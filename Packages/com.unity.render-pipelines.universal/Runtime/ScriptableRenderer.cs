@@ -1197,6 +1197,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.VolumetricFog, false);
             cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
             cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
         }

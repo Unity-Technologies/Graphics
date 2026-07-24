@@ -88,7 +88,8 @@ bool IsAdditionalLightsCookieAtlasTextureAlphaFormat()
 
 real4 SampleMainLightCookieTexture(float2 uv)
 {
-    return SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv);
+    // Always sample LOD 0 for light cookies
+    return SAMPLE_TEXTURE2D_LOD(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv, 0);
 }
 
 real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)

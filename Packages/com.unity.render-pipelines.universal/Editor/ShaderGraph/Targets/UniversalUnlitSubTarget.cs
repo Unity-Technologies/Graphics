@@ -693,6 +693,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
                 { CoreKeywordDescriptors.ClusterLightLoop },
             };
         }

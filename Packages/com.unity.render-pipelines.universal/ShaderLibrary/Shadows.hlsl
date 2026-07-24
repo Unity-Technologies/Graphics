@@ -354,7 +354,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
         half cascadeIndex = half(0.0);
     #endif
 
-    float4 shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 0.0);
+    float4 shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
 #endif
     return shadowCoord;
 }
@@ -369,7 +369,7 @@ half MainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSampl
     if (shadowCoord.z < 0.0 || any(saturate(shadowCoord.xy) != shadowCoord.xy))
         return half(1.0);
 #endif
-    
+
     #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
         return SampleScreenSpaceShadowmap(shadowCoord);
     #else

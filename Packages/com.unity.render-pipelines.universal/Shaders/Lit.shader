@@ -154,6 +154,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_IRRADIANCE
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 #if defined(UNITY_PLATFORM_META_QUEST)

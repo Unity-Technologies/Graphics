@@ -1015,6 +1015,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ClusterLightLoop },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { Descriptors.DecalsNormalBlend },
                 { Descriptors.DecalLayers },

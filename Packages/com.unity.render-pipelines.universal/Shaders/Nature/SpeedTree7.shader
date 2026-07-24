@@ -47,6 +47,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX

@@ -1,0 +1,557 @@
+// This kernel only dispatches while volumetric fog is active, so turn the keyword on unconditionally.
+#define _VOLUMETRIC_FOG
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel VolumetricLighting
+
+#pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
+#pragma multi_compile_local _ ENABLE_REPROJECTION
+#pragma multi_compile_local _ SUPPORT_LOCAL_LIGHTS
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+#pragma multi_compile _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+#pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+#pragma multi_compile _ _LIGHT_COOKIES
+
+#define GROUP_SIZE 8
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+CBUFFER_START(VolumetricLightingConstants)
+    float4x4 _VBufferCoordToViewDirWS;
+    float4   _DepthDecodingParams;
+    float4   _DepthEncodingParams;
+    float4   _VBufferSize; // (w, h, 1/w, 1/h)
+    float4   _MainLightDirection; // xyz = -light.forward (toward light)
+    float4   _MainLightColorVolumetric; // rgb = color * intensity
+    float    _FogAnisotropy; // Cornette-Shanks asymmetry: 0 isotropic, >0 forward, <0 backward.
+    float    _CornetteShanksConstant; // (3/8π)·(1−g²)/(2+g²), uploaded once per frame
+    float    _VBufferVoxelSize;
+    float    _VBufferUnitDepthTexelSpacing;
+    uint     _VBufferSliceCount;
+    float    _VBufferRcpSliceCount;
+    float    _CameraNearPlane;
+    float    _HalfVoxelArcLength; // half angular size of one voxel at 1m; used as minimum emission radius
+    float    _VolumetricLightingExtinctionCutoff; // skip the light loop when extinction <= this (1/m). 0 disables the cutoff.
+    float4   _FogAmbientProbe; // rgb = ambient probe L0 (Unity SH coeff 0), already scaled by dimmer × (π · √(4π)). w unused.
+    float4   _CameraPositionWS; // xyz = world-space camera position
+    // Reprojection
+    float4   _VBufferSampleOffset; // xy = jitter in [-0.5, 0.5]^2, z = slice jitter in [0, 1], w = frame index
+    float4   _VBufferHistoryViewportScale; // history texture sub-rect scale (xyz)
+    float4   _VBufferHistoryViewportLimit; // last addressable texel center in history (xyz)
+    float4   _VBufferPrevDistanceEncodingParams;
+    float4   _VBufferPrevDistanceDecodingParams;
+    float4   _PrevCamPosWS; // previous frame's world-space camera position
+    float4x4 _VBufferPrevViewProjMatrix; // previous frame's view-projection (no jitter)
+    uint     _VBufferHistoryIsValid; // 0 on the bootstrap frame; 1 once history is usable
+CBUFFER_END
+
+// ---------------------------------------------------------------------------
+// Resources
+// ---------------------------------------------------------------------------
+TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+TEXTURE2D_X(_MaxZMaskTexture);
+TEXTURE3D(_VBufferDensity); // RGB = scattering, A = extinction (from VolumeVoxelization)
+RW_TEXTURE3D(float4, _VBuffer);
+
+#ifdef ENABLE_REPROJECTION
+TEXTURE3D(_VBufferHistory); // previous frame's feedback (linearized RGB + optical depth, normalized by dt)
+RW_TEXTURE3D(float4, _VBufferFeedback); // this frame's blended value, written here for next frame
+#endif
+
+SamplerState s_point_clamp_sampler;
+SamplerState s_linear_clamp_sampler;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+struct VolumetricRay
+{
+    float3 originWS;
+    float3 centerDirWS;
+    float3 jitterDirWS;
+    float  geomDist;
+    float  maxDist;
+};
+
+// Per-light radiance split into the direction-dependent ("varying") part of the
+// Cornette-Shanks phase and the rest. The split lets reprojection blend history on the
+// phase-free part; without it, anisotropic lighting shimmers as the jittered ray rotates.
+struct VoxelLighting
+{
+    float3 radianceNoPhase;
+    float3 radianceComplete;
+};
+
+#ifdef ENABLE_REPROJECTION
+// Sample the previous-frame v-buffer at a world-space voxel center: reproject through the
+// previous view-projection, then biquadratic XY + linear Z filtering to match the apply pass.
+// Returns 0 when the projected sample falls outside the previous frustum.
+float4 SampleVBufferReprojected(float3 positionWS)
+{
+    float4 sampled = 0;
+
+    // Project the voxel center into the previous frame's clip space.
+    float4 prevH = mul(_VBufferPrevViewProjMatrix, float4(positionWS, 1.0));
+    if (prevH.w > 0)
+    {
+    #if UNITY_UV_STARTS_AT_TOP
+        prevH.y = -prevH.y;
+    #endif
+
+        float2 prevNDC = prevH.xy / prevH.w * 0.5 + 0.5;
+        float  prevLinearDist = distance(positionWS, _PrevCamPosWS.xyz);
+
+        // Distance encoded along the previous frame's log-depth axis. w outside [0, 1] means the
+        // point was nearer than the previous near plane or past its far plane.
+        float w = EncodeLogarithmicDepthGeneralized(prevLinearDist, _VBufferPrevDistanceEncodingParams);
+
+        // Clip to the previous frustum and depth range: outside it the history edge texels are
+        // zero, and a linear sampler would leak that zero into the visible region.
+        if (all(prevNDC >= 0) && all(prevNDC <= 1) && w >= 0 && w <= 1)
+        {
+            // Biquadratic 4-tap reconstruction in XY. fc is the fractional texel-space coordinate.
+            float2 xy = prevNDC * _VBufferSize.xy;
+            float2 ic = floor(xy);
+            float2 fc = frac(xy);
+
+            float2 weights[2], offsets[2];
+            BiquadraticFilter(1 - fc, weights, offsets);
+
+            // History texture exactly matches the v-buffer dimensions, so rcpBufDim = 1 / vbufferSize.
+            float2 rcpBufDim = _VBufferHistoryViewportScale.xy * _VBufferSize.zw;
+
+            float2 texUv0 = (ic + float2(offsets[0].x, offsets[0].y)) * rcpBufDim;
+            float2 texUv1 = (ic + float2(offsets[1].x, offsets[0].y)) * rcpBufDim;
+            float2 texUv2 = (ic + float2(offsets[0].x, offsets[1].y)) * rcpBufDim;
+            float2 texUv3 = (ic + float2(offsets[1].x, offsets[1].y)) * rcpBufDim;
+            float  texW   = w * _VBufferHistoryViewportScale.z;
+            float3 limit  = _VBufferHistoryViewportLimit.xyz;
+
+            sampled = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(_VBufferHistory, s_linear_clamp_sampler, min(float3(texUv0, texW), limit), 0)
+                    + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(_VBufferHistory, s_linear_clamp_sampler, min(float3(texUv1, texW), limit), 0)
+                    + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(_VBufferHistory, s_linear_clamp_sampler, min(float3(texUv2, texW), limit), 0)
+                    + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(_VBufferHistory, s_linear_clamp_sampler, min(float3(texUv3, texW), limit), 0);
+        }
+    }
+
+    return sampled;
+}
+#endif // ENABLE_REPROJECTION
+
+// EMA weight (n-1)/n with n = 7: once converged, the running average equals the mean of the
+// last 7 samples.
+#define HISTORY_WEIGHT (6.0 / 7.0)
+
+// ---------------------------------------------------------------------------
+// Main kernel
+// ---------------------------------------------------------------------------
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 voxelCoord = dispatchThreadId.xy;
+
+    if (voxelCoord.x >= (uint)_VBufferSize.x || voxelCoord.y >= (uint)_VBufferSize.y)
+        return;
+
+    // View forward direction: the center voxel maps approximately to the camera forward axis.
+    float3 F = normalize(mul(-float4(0.5 * _VBufferSize.x, 0.5 * _VBufferSize.y, 1, 1), _VBufferCoordToViewDirWS).xyz);
+    // No camera up matrix is exposed, so pick a world axis to derive a perpendicular basis from F.
+    float3 U = abs(F.y) < 0.999 ? float3(0, 1, 0) : float3(1, 0, 0);
+
+    // Compute a world-space ray direction such that ViewSpace(rayDirWS).z = 1.
+    float2 centerCoord = voxelCoord + float2(0.5, 0.5);
+    float3 rayDirWS = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS).xyz;
+    float  rcpLenRayDir = rsqrt(dot(rayDirWS, rayDirWS));
+
+    VolumetricRay ray;
+    ray.originWS    = _CameraPositionWS.xyz;
+    ray.centerDirWS = rayDirWS * rcpLenRayDir;
+
+    float FdotD = dot(F, ray.centerDirWS);
+
+    // With reprojection on, jitter the sample direction within the voxel face. The cycle of 7
+    // hexagonally-close-packed offsets makes the 7-frame EMA cover the full voxel volume.
+    // With reprojection off, use the voxel center.
+#ifdef ENABLE_REPROJECTION
+    float unitDistFaceSize = _VBufferUnitDepthTexelSpacing * FdotD * rcpLenRayDir;
+    float3 rightDirWS = cross(ray.centerDirWS, U);
+    float  rcpLenRightDir = rsqrt(max(dot(rightDirWS, rightDirWS), FLT_MIN));
+    float3 xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize);
+    float3 yDirDerivWS = cross(xDirDerivWS, ray.centerDirWS);
+    float2 sampleOffset = _VBufferSampleOffset.xy;
+
+    ray.jitterDirWS = normalize(ray.centerDirWS + sampleOffset.x * xDirDerivWS
+                                                + sampleOffset.y * yDirDerivWS);
+#else
+    ray.jitterDirWS = ray.centerDirWS;
+#endif
+
+    // Start at the near plane along the ray actually used for ray-marching.
+    float tStart = _CameraNearPlane / dot(ray.jitterDirWS, F);
+
+    // Compute geometry distance from the depth buffer.
+#ifdef ENABLE_REPROJECTION
+    // Approximate the screen pixel that the jittered ray hits.
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5 + sampleOffset) * _VBufferVoxelSize);
+#else
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize);
+#endif
+    ray.geomDist = FLT_INF;
+    ray.maxDist  = FLT_INF;
+
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).r;
+    if (deviceDepth != UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+        ray.geomDist = linearDepth * rcp(FdotD);
+
+        // Sample the MaxZ mask for the early-out distance.
+        float2 uv = (voxelCoord + 0.5) * _VBufferSize.zw;
+        float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, uv) * rcp(FdotD);
+        ray.maxDist = max(Max3(d.x, d.y, d.z), d.w);
+    }
+
+    // Phase function setup. Cornette-Shanks splits into a constant part (anisotropy-only, applied
+    // once per voxel at accumulation) and a varying part (cosTheta-dependent, applied per light).
+    // With reprojection on, the split lets us blend history on the phase-free signal and reapply
+    // the current phase ratio at the end, removing shimmer for non-zero anisotropy. With
+    // reprojection off there's no history to blend, so we apply the full phase per light directly.
+    float cosThetaMain = dot(_MainLightDirection.xyz, ray.centerDirWS);
+    float mainPhase = CornetteShanksPhaseFunction(_FogAnisotropy, cosThetaMain);
+#ifdef ENABLE_REPROJECTION
+    float mainPhaseVarying = CornetteShanksPhasePartVarying(_FogAnisotropy, cosThetaMain);
+#endif
+
+    // Directional light.
+    float3 lightColor = _MainLightColorVolumetric.rgb;
+
+    // Ray march through VBuffer slices.
+    float  de = _VBufferRcpSliceCount;
+    float  t0 = max(tStart, DecodeLogarithmicDepthGeneralized(0, _DepthDecodingParams));
+
+    float3 totalRadiance = 0;
+    float  opticalDepth  = 0;
+    uint   slice = 0;
+
+    // Per-pixel base offset for importance sampling. With reprojection on, perturb by the per-frame
+    // z fraction so successive frames sample a different sub-interval of each voxel and the 7-frame
+    // EMA covers the full slice. Without reprojection, the per-pixel hash alone keeps shading
+    // deterministic per camera position.
+    float perPixelRandomOffset = GenerateHashedRandomFloat(voxelCoord);
+#ifdef ENABLE_REPROJECTION
+    float rndVal = frac(perPixelRandomOffset + _VBufferSampleOffset.z);
+#else
+    float rndVal = perPixelRandomOffset;
+#endif
+
+    for (; slice < _VBufferSliceCount; slice++)
+    {
+        uint3 texCoord = uint3(voxelCoord, slice);
+
+        // Per-voxel density from the voxelization pass (global fog + local volumes).
+        float4 density = _VBufferDensity[texCoord];
+        float3 scattering = density.rgb;
+        float  extinction = density.a;
+
+        float e1 = slice * de + de; // (slice + 1) / sliceCount
+        float t1 = max(tStart, DecodeLogarithmicDepthGeneralized(e1, _DepthDecodingParams));
+        float tNext = t1;
+
+        // Clamp the voxel end to the opaque surface, but don't hard-stop (note the * 1.0001):
+        // with reprojection on, a hard stop flickers on near/far edges. A small light leak at depth
+        // discontinuities is preferable to a jittering edge.
+        bool hitsGeometry = (ray.geomDist >= t0) && (ray.geomDist < t1);
+        if (hitsGeometry)
+            t1 = max(t0 * 1.0001, ray.geomDist);
+
+        float dt = t1 - t0;
+        if (dt <= 0.0)
+        {
+            _VBuffer[texCoord] = 0;
+        #ifdef ENABLE_REPROJECTION
+            _VBufferFeedback[texCoord] = 0;
+        #endif
+            t0 = tNext;
+            continue;
+        }
+
+        float voxelOpticalDepth = extinction * dt;
+
+        // Voxel center along the *unjittered* ray: the reprojection anchor (when on) and the
+        // anchor for the per-light phase function. Tying the anisotropy direction to the voxel
+        // center rather than the jittered sample point keeps the integrated radiance temporally
+        // stable — the phase-free signal converges through the EMA and the re-applied phase ratio
+        // doesn't wobble.
+        float tCenter = DecodeLogarithmicDepthGeneralized(e1 - 0.5 * de, _DepthDecodingParams);
+        float3 centerWS = ray.originWS + tCenter * ray.centerDirWS;
+
+        if (extinction > _VolumetricLightingExtinctionCutoff)
+        {
+            // Importance-sample the homogeneous medium for the directional light.
+            float tOffset, weight;
+            ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+
+            // One sample position, shared by shadow, cookie and height-fog attenuation. Use the
+            // jittered ray so each frame's shadow lookup differs slightly and reprojection averages
+            // them into a smooth result.
+            float3 posSample = ray.originWS + (t0 + tOffset) * ray.jitterDirWS;
+
+            // Cascaded directional shadow at the sample position. MainLightShadow handles the
+            // shadow-distance fade; white shadowMask + zero occlusion-probe channels make the baked
+            // term resolve to 1, so beyond max shadow distance the light is fully unoccluded,
+            // matching surface lighting.
+            #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                float4 shadowCoord = TransformWorldToShadowCoord(posSample);
+                half shadow = MainLightShadow(shadowCoord, posSample, half4(1, 1, 1, 1), half4(0, 0, 0, 0));
+            #else
+                half shadow = 1.0;
+            #endif
+
+            // Directional light cookie at the sample position.
+            real3 mainCookie = SampleMainLightCookie(posSample);
+
+            // Attenuate the directional light by the height-fog optical depth along its travel
+            // direction at the sample position. World up is the height axis.
+            float lightTransmittance = ComputeMainLightVolumetricFogAttenuation(posSample, _MainLightDirection.xyz);
+
+            // Compute in-scattered radiance from the directional light, before phase.
+            float3 lightContrib = weight * lightColor * mainCookie * shadow * lightTransmittance;
+
+            // Aggregate per-light contributions, split phase-free / complete so reprojection can
+            // blend the phase-free part across history. No scattering scaling here — see VoxelLighting.
+            VoxelLighting agg;
+            agg.radianceNoPhase  = lightContrib;
+        #ifdef ENABLE_REPROJECTION
+            agg.radianceComplete = lightContrib * mainPhaseVarying;
+        #else
+            agg.radianceComplete = lightContrib * mainPhase;
+        #endif
+
+            // --- Local (point / spot) lights ---
+        #ifdef SUPPORT_LOCAL_LIGHTS
+            // Set up InputData for LIGHT_LOOP_BEGIN (cluster iteration reads screen UV and position).
+            InputData inputData = (InputData)0;
+            inputData.normalizedScreenSpaceUV = (voxelCoord + 0.5) * _VBufferSize.zw;
+            inputData.positionWS = ray.originWS + t0 * ray.jitterDirWS;
+
+            uint additionalLightsCount = uint(_AdditionalLightsCount.x);
+            LIGHT_LOOP_BEGIN(additionalLightsCount)
+                // Light position + spot data up front: the spot cone is needed *before* importance
+                // sampling to clip the integration interval to the cone slice. Point lights take the
+                // spotAtten.z == 0 fast path and skip the clip.
+                float4 lightPositionWS = _AdditionalLightsPosition[lightIndex];
+                half4  spotAtten       = _AdditionalLightsAttenuation[lightIndex];
+                half4  spotDirection   = _AdditionalLightsSpotDir[lightIndex];
+
+                // position.w == 0 means directional — skip (only punctual lights here).
+                if (lightPositionWS.w < 0.5)
+                    continue;
+
+                // Ray-cone clip for spot lights. URP packs (distanceX, distanceY, spotInvRange,
+                // spotAdd) into the per-light attenuation float4 — see InitializeLightConstants in
+                // UniversalRenderPipelineCore.cs and AngleAttenuation in RealtimeLights.hlsl. The
+                // spot fields are (1/(cosInner-cosOuter), -cosOuter/(cosInner-cosOuter)) for spots
+                // and (0, 1) for points; spotAtten.z == 0 is the discriminator.
+                //
+                // Without the clip, ImportanceSamplePunctualLight spreads samples across the full
+                // voxel (t0, t1). For a narrow cone covering only a sliver of the voxel, most
+                // samples land outside it where AngleAttenuation is 0, while the few inside carry a
+                // 1/PDF weight tuned to the full voxel — a variance amplifier that reads as flicker.
+                float tEntr = t0;
+                float tExit = t1;
+                if (spotAtten.z > 0)
+                {
+                    float cosOuter = -spotAtten.w * rcp(spotAtten.z);
+                    float sinOuter = sqrt(saturate(1.0 - cosOuter * cosOuter));
+                    // IntersectRayCone's cone equation is (h/r·x)^2 + (h/r·y)^2 - z^2 = 0: X/Y are
+                    // unit perpendicular vectors scaled by cot(halfAngle) = h/r, Z is the
+                    // apex-outward direction. URP stores spotDirection as -light.forward, so flip it.
+                    float cotOuter = cosOuter * rcp(max(sinOuter, FLT_MIN));
+                    float3 coneZ = -spotDirection.xyz;
+                    float3 anyPerp = abs(coneZ.y) < 0.999 ? float3(0, 1, 0) : float3(1, 0, 0);
+                    float3 coneAxisX = normalize(cross(coneZ, anyPerp)) * cotOuter;
+                    float3 coneAxisY = cross(coneAxisX, coneZ); // length cot(halfAngle) by construction
+
+                    bool hit = IntersectRayCone(ray.originWS, ray.jitterDirWS,
+                                                lightPositionWS.xyz, coneZ,
+                                                coneAxisX, coneAxisY,
+                                                t0, t1, tEntr, tExit);
+                    if (!hit)
+                        continue;
+                }
+
+                // Emission radius: keep the effective light size at least the voxel arc length at
+                // this depth, avoiding aliasing and singularities near the source. Use tEntr (cone
+                // entry) not t0 so the radius shrinks correctly when the cone enters partway.
+                float lightSqRadius = _HalfVoxelArcLength * tEntr;
+
+                // Equiangular importance sampling concentrates samples near the light, restricted
+                // to the cone slice (tEntr, tExit) so 100% of the budget lands where the light
+                // can actually contribute.
+                float tSample, sampleDistSq, rcpPdf;
+                ImportanceSamplePunctualLight(rndVal, lightPositionWS.xyz, lightSqRadius,
+                                             ray.originWS, ray.jitterDirWS,
+                                             tEntr, tExit,
+                                             tSample, sampleDistSq, rcpPdf);
+
+                float3 samplePos = ray.originWS + tSample * ray.jitterDirWS;
+
+                // Get standard URP light data at the sample position.
+                Light light = GetAdditionalPerObjectLight(lightIndex, samplePos);
+
+                // Emission-radius softening: URP's 1/d^2 scaled by d^2/(d^2+r^2) gives 1/(d^2+r^2).
+                float3 lightVector = lightPositionWS.xyz - samplePos;
+                float  distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
+                light.distanceAttenuation *= distanceSqr * rcp(distanceSqr + lightSqRadius);
+
+                // Realtime shadow at the sample position. Zero occlusion-probe channels (no baked
+                // occlusion in fog) make the baked term resolve to 1, leaving realtime shadow + fade.
+                #if defined(_ADDITIONAL_LIGHT_SHADOWS)
+                    light.shadowAttenuation = AdditionalLightShadow(lightIndex, samplePos, light.direction,
+                                                                    half4(1, 1, 1, 1), half4(0, 0, 0, 0));
+                #endif
+
+                // Cookie color (spot/point/directional handled inside SampleAdditionalLightCookie,
+                // reading the per-light data from URP's LightCookies constant buffer).
+                #if defined(_LIGHT_COOKIES)
+                    real3 localCookie = SampleAdditionalLightCookie(lightIndex, samplePos);
+                    light.color *= localCookie;
+                #endif
+
+                // Anchor the phase direction to the *voxel center*, not the jittered sample point.
+                // The sample point moves with the per-frame jitter; using it would make the
+                // per-light phase (and the phase ratio re-applied after the EMA blend) wobble
+                // between frames, leaving noise reprojection can't remove. Worst near the light,
+                // where small sample-point shifts cause large angular changes.
+                float3 centerL = lightPositionWS.xyz - centerWS;
+                float  centerDistSq = max(dot(centerL, centerL), FLT_MIN);
+                float  localCosTheta = dot(centerL, ray.centerDirWS) * rsqrt(centerDistSq);
+            #ifdef ENABLE_REPROJECTION
+                float localPhaseVarying = CornetteShanksPhasePartVarying(_FogAnisotropy, localCosTheta);
+            #else
+                float localPhase = CornetteShanksPhaseFunction(_FogAnisotropy, localCosTheta);
+            #endif
+
+                // Transmittance from voxel start to sample, weighted by equiangular PDF.
+                float localWeight = TransmittanceHomogeneousMedium(extinction, tSample - t0) * rcpPdf;
+
+                // Per-light phase-free contribution: light radiance only. Scattering is folded in
+                // at accumulation so the temporal blend stays well-defined under LinearizeRGBD.
+                float3 localContrib = localWeight * light.distanceAttenuation * light.shadowAttenuation * light.color;
+                agg.radianceNoPhase  += localContrib;
+            #ifdef ENABLE_REPROJECTION
+                agg.radianceComplete += localContrib * localPhaseVarying;
+            #else
+                agg.radianceComplete += localContrib * localPhase;
+            #endif
+            LIGHT_LOOP_END
+        #endif // SUPPORT_LOCAL_LIGHTS
+
+            // Transmittance from camera to the start of this voxel.
+            float transmittance = TransmittanceFromOpticalDepth(opticalDepth);
+
+            // Ambient probe contribution: global GI lights the fog from all directions, so each
+            // voxel scatters a little of it toward the camera.
+            //
+            // _FogAmbientProbe.rgb is the L0 (direction-independent) band, pre-scaled CPU-side by
+            // the artist dimmer and the factors converting "surface irradiance probe" into
+            // "isotropic in-scattering radiance" — see VolumetricLightingPass.cs. The transmittance
+            // integral is the fraction surviving the voxel's extinction over its slab depth dt.
+            //
+            // Only L0 is injected. The L1/L2 directional bands would let bright sky / dark ground
+            // show as a gradient through the fog, but that needs a CPU-side precompute of the phase
+            // function's zonal harmonics; left for a follow-up.
+            float3 probeRadiance = _FogAmbientProbe.rgb * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+
+        #ifdef ENABLE_REPROJECTION
+            // --- Temporal reprojection on the phase-free channel ---
+            // 1. Linearize the (radiance, optical depth) tuple into perceptual log space so the EMA
+            //    isn't biased by the large dynamic-range swing between lit and unlit voxels.
+            // 2. Normalize by dt so voxels of different physical thickness (slices vary with
+            //    log-depth) blend on the same scale.
+            // 3. Reproject the previous frame at this voxel's centerWS, blend, and store the
+            //    feedback normalized so next frame's read just multiplies back by dt.
+            float4 voxelValue        = float4(agg.radianceNoPhase, voxelOpticalDepth);
+            float4 linearizedValue   = LinearizeRGBD(voxelValue);
+            float4 normalizedValue   = linearizedValue * rcp(dt);
+            float4 normalizedBlend   = normalizedValue;
+
+            float4 reprojValue = SampleVBufferReprojected(centerWS);
+            bool   reprojSuccess = (_VBufferHistoryIsValid != 0) && (reprojValue.a != 0);
+            if (reprojSuccess)
+            {
+                // EMA: lerp(currentFrame, history, 6/7) — current-frame contributes 1/7 weight.
+                normalizedBlend = lerp(normalizedValue, reprojValue, HISTORY_WEIGHT);
+            }
+
+            // Store the feedback for next frame, clamped to HALF_MAX so one bad frame can't cascade
+            // NaNs through the history.
+            _VBufferFeedback[texCoord] = clamp(normalizedBlend, 0, HALF_MAX);
+
+            // Back to physical units: undo the per-unit-distance normalization, then delinearize.
+            // The .rgb is the per-voxel phase-free radiance accumulation expects below.
+            float4 linearizedBlend = normalizedBlend * dt;
+            float3 blendedNoPhase = DelinearizeRGBD(linearizedBlend).rgb;
+
+            // Reapply the current-frame phase ratio. SafeDiv guards 0/0 in voxels that received no
+            // light this frame. With g = 0 (isotropic) the ratio is 1 and this collapses to the
+            // phase-free value.
+            float3 phaseRatio = float3(
+                SafeDiv(agg.radianceComplete.r, agg.radianceNoPhase.r),
+                SafeDiv(agg.radianceComplete.g, agg.radianceNoPhase.g),
+                SafeDiv(agg.radianceComplete.b, agg.radianceNoPhase.b));
+            float3 voxelRadiance = blendedNoPhase * phaseRatio;
+
+            // Fold in scattering and the constant part of the phase function, after blending.
+            totalRadiance += transmittance * scattering * (_CornetteShanksConstant * voxelRadiance + probeRadiance);
+        #else
+            // No reprojection: per-light evaluations already include the full phase, so
+            // radianceComplete is the in-scattered radiance with phase but without scattering.
+            // Multiply scattering at accumulation.
+            totalRadiance += transmittance * scattering * (agg.radianceComplete + probeRadiance);
+        #endif
+        }
+        else
+        {
+        #ifdef ENABLE_REPROJECTION
+            _VBufferFeedback[texCoord] = 0;
+        #endif
+        }
+
+        // Update optical depth (half before store, half after — centered).
+        opticalDepth += 0.5 * voxelOpticalDepth;
+
+        // Store in perceptual space for correct trilinear filtering.
+        _VBuffer[texCoord] = max(0, LinearizeRGBD(float4(totalRadiance, opticalDepth)));
+
+        opticalDepth += 0.5 * voxelOpticalDepth;
+
+        // Early out if past the max geometry distance.
+        if (t0 * 0.99 > ray.maxDist)
+            break;
+
+        t0 = tNext;
+    }
+
+    // Zero out remaining slices.
+    for (; slice < _VBufferSliceCount; slice++)
+    {
+        uint3 texCoord = uint3(voxelCoord, slice);
+        _VBuffer[texCoord] = 0;
+    #ifdef ENABLE_REPROJECTION
+        _VBufferFeedback[texCoord] = 0;
+    #endif
+    }
+}

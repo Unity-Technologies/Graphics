@@ -1535,6 +1535,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection

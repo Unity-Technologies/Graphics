@@ -56,8 +56,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingSamplerFPComplete = new ProfilingSampler("Forward+ Complete");
         private static readonly ProfilingSampler m_ProfilingSamplerFPUpload = new ProfilingSampler("Forward+ Upload");
         MixedLightingSetup m_MixedLightingSetup;
-        
-        // Persistent constant buffer path        
+
+        // Persistent constant buffer path
         const string k_AdditionalLightsCBName = "Additional Lights Buffer";
         // Channel order of m_AdditionalLightsData (NativeArray<Vector4>), matching the field order in
         // CBUFFER(AdditionalLights). With N = m_MaxVisibleAdditionalLights, channel C occupies [C*N .. (C+1)*N).
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_ZBinCBName =  "URP Z-Bin Buffer";
         NativeArray<uint> m_ZBins;
         GraphicsBuffer m_ZBinsBuffer;
-        
+
         const string k_TileCBName = "URP Tile Buffer";
         NativeArray<uint> m_TileMasks;
         GraphicsBuffer m_TileMasksBuffer;
@@ -226,6 +226,24 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal ReflectionProbeManager reflectionProbeManager => m_ReflectionProbeManager;
+
+#if VOLUMETRIC_FOG
+        internal LightCookieManager lightCookieManager => m_LightCookieManager;
+
+        internal GraphicsBuffer zBinsBuffer => m_ZBinsBuffer;
+        internal GraphicsBuffer tileMasksBuffer => m_TileMasksBuffer;
+        internal float zBinScale => m_ZBinScale;
+        internal float zBinOffset => m_ZBinOffset;
+        internal int lightCount => m_LightCount;
+        internal int directionalLightCount => m_DirectionalLightCount;
+        internal int actualTileWidth => m_ActualTileWidth;
+        internal int2 tileResolution => m_TileResolution;
+        internal int wordsPerTile => m_WordsPerTile;
+        internal int binCount => m_BinCount;
+
+        internal GraphicsBuffer additionalLightsConstantBuffer => m_AdditionalLightsBuffer;
+        internal int additionalLightsConstantBufferSizeBytes => m_AdditionalLightsData.Length * UnsafeUtility.SizeOf<Vector4>();
+#endif
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
@@ -434,7 +452,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using var _ = new ProfilingScope(m_ProfilingSamplerFPSetup);
 
                 m_ReflectionProbeManager.PreSetup();
-                
+
                 if (!m_CullingHandle.IsCompleted)
                 {
                     throw new InvalidOperationException("Forward+ jobs have not completed yet.");

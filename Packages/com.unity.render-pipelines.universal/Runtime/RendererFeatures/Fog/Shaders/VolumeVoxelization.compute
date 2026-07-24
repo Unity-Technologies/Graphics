@@ -1,0 +1,54 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel VolumeVoxelization
+
+#define GROUP_SIZE 8
+
+CBUFFER_START(VolumeVoxelizationConstants)
+    float4x4 _VBufferCoordToViewDirWS;
+    float4   _DepthDecodingParams;
+    float4   _VBufferSize;            // (w, h, 1/w, 1/h)
+    float4   _CameraPositionWS;       // xyz = world-space camera position
+    float4   _GlobalFogScattering;    // rgb = extinction * albedo
+    float    _GlobalFogExtinction;
+    float    _CameraNearPlane;
+    uint     _VBufferSliceCount;
+    float    _VBufferRcpSliceCount;
+CBUFFER_END
+
+// RGB = scattering, A = extinction
+RW_TEXTURE3D(float4, _VBufferDensity);
+
+// Fills the V-buffer with the fog's scattering (rgb) and extinction (a) at every voxel.
+// Each thread owns one screen-space column and walks all depth slices, seeding each
+// voxel with the global fog values scaled by the height-fog falloff.
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 voxelCoord = dispatchThreadId.xy;
+
+    if (voxelCoord.x >= (uint)_VBufferSize.x || voxelCoord.y >= (uint)_VBufferSize.y)
+        return;
+
+    float3 dirWS;
+    float  tStart;
+    ReconstructColumnRayWS(voxelCoord, _VBufferSize, _VBufferCoordToViewDirWS, _CameraNearPlane, dirWS, tStart);
+
+    for (uint slice = 0; slice < _VBufferSliceCount; slice++)
+    {
+        float3 voxelCenterWS = ComputeVoxelCenterWS(slice, _VBufferRcpSliceCount, _DepthDecodingParams,
+                                                    _CameraPositionWS.xyz, dirWS, tStart);
+
+        // Seed with the global fog values, attenuated by the height-fog multiplier so that
+        // density falls off exponentially above _VolumetricFogBaseHeight
+        float heightMultiplier = ComputeHeightFogMultiplier(voxelCenterWS.y, _VolumetricFogBaseHeight, _VolumetricFogExponents);
+        float3 scattering = _GlobalFogScattering.rgb * heightMultiplier;
+        float  extinction = _GlobalFogExtinction * heightMultiplier;
+
+        _VBufferDensity[uint3(voxelCoord, slice)] = float4(scattering, extinction);
+    }
+}

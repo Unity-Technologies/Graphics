@@ -7,6 +7,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookie.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Clustering.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
 
 // Abstraction over Light shading data.
 struct Light
@@ -134,6 +135,10 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
         real3 cookieColor = SampleMainLightCookie(positionWS);
         light.color *= cookieColor;
     #endif
+
+    // Dim the main light by how much height-fog its rays pass through to reach this fragment.
+    // Returns 1 (no change) when no Fog volume override is active.
+    light.color *= ComputeMainLightVolumetricFogAttenuation(positionWS, light.direction);
 
     return light;
 }

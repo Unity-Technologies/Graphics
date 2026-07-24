@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int additionalLightsCookieEnableBits = Shader.PropertyToID("_AdditionalLightsCookieEnableBits");
         }
 
-        private enum LightCookieShaderFormat
+        internal enum LightCookieShaderFormat
         {
             None = -1,
 
@@ -177,6 +177,11 @@ namespace UnityEngine.Rendering.Universal
             public ShaderBitArray cookieEnableBits => m_CookieEnableBitsCpuData;
             public Vector4[] atlasUVRects => m_AtlasUVRectCpuData;
             public float[] lightTypes => m_LightTypeCpuData;
+
+#if VOLUMETRIC_FOG
+            public GraphicsBuffer lightCookieBuffer => m_LightCookieBuffer;
+            public int lightCookieBufferSizeBytes => m_LightCookieData.Length * UnsafeUtility.SizeOf<Vector4>();
+#endif
 
             public bool isUploaded { get; set; }
 
@@ -333,6 +338,30 @@ namespace UnityEngine.Rendering.Universal
 
         internal RTHandle AdditionalLightsCookieAtlasTexture => m_AdditionalLightsCookieAtlas?.AtlasTexture;
 
+#if VOLUMETRIC_FOG
+        internal GraphicsBuffer AdditionalLightsCookieConstantBuffer => m_AdditionalLightsCookieShaderData?.lightCookieBuffer;
+        internal int AdditionalLightsCookieConstantBufferSizeBytes => m_AdditionalLightsCookieShaderData?.lightCookieBufferSizeBytes ?? 0;
+
+        internal bool GetMainLightCookieData(ref VisibleLight visibleMainLight, out Texture cookie, out Matrix4x4 worldToLight, out float cookieFormat)
+        {
+            var mainLight = visibleMainLight.light;
+            cookie = mainLight.cookie;
+            worldToLight = Matrix4x4.identity;
+            cookieFormat = (float)LightCookieShaderFormat.None;
+
+            if (cookie == null)
+                return false;
+
+            Matrix4x4 cookieUVTransform = Matrix4x4.identity;
+            if (mainLight.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                GetLightUVScaleOffset(ref additionalLightData, ref cookieUVTransform);
+
+            worldToLight = s_DirLightProj * cookieUVTransform * visibleMainLight.localToWorldMatrix.inverse;
+            cookieFormat = (float)GetLightCookieShaderFormat(cookie.graphicsFormat);
+            return true;
+        }
+#endif
+
         public LightCookieManager(ref Settings settings)
         {
             m_Settings = settings;
@@ -452,7 +481,7 @@ namespace UnityEngine.Rendering.Universal
             return isMainLightCookieEnabled;
         }
 
-        private LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
+        internal LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
         {
             // TODO: convert this to use GraphicsFormatUtility
             switch (cookieFormat)

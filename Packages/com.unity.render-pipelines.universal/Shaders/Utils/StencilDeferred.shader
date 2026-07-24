@@ -265,6 +265,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
@@ -332,6 +333,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------

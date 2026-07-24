@@ -210,10 +210,13 @@ namespace UnityEngine.Rendering.Universal
         // If post processing is enabled on the camera, and on the renderer, then
         // the internal post processing passes will be added.
         // Validation can still turn this off so it's not a direct view on the
-        // serialized renderer data. 
+        // serialized renderer data.
         internal bool postProcessEnabled { get; set; }
 
         internal DeferredLights deferredLights { get => m_DeferredLights; }
+#if VOLUMETRIC_FOG
+        internal ForwardLights forwardLights { get => m_ForwardLights; }
+#endif
         internal LayerMask prepassLayerMask { get; set; }
         internal LayerMask opaqueLayerMask { get; set; }
         internal LayerMask transparentLayerMask { get; set; }
@@ -472,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                supportedRenderingFeatures.supportsHDR = true; 
+                supportedRenderingFeatures.supportsHDR = true;
                 supportedRenderingFeatures.postProcessing = postProcessEnabled;
                 supportedRenderingFeatures.cameraOpaqueTexture = true;
                 supportedRenderingFeatures.cameraDepthTexture = true;
@@ -493,9 +496,9 @@ namespace UnityEngine.Rendering.Universal
             }
             supportedRenderingFeatures.msaa = !supportedRenderingFeatures.deferredLighting;
 
-            // Setting the engine wide feature flags here as well. We can likely phase these out. 
+            // Setting the engine wide feature flags here as well. We can likely phase these out.
             SupportedRenderingFeatures.active.supportsHDR = supportedRenderingFeatures.supportsHDR;
-        }        
+        }
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
@@ -738,7 +741,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void AddRequirementsOfInternalFeatures(ref RenderPassInputSummary inputSummary, UniversalCameraData cameraData, bool postProcessingEnabled, bool renderingLayerProvidesByDepthNormalPass, MotionVectorRenderPass motionVectorPass, CopyDepthMode copyDepthMode)
-        {          
+        {
             if(cameraData.requiresDepthTexture)
             {
                 inputSummary.requiresDepthTexture = true;

@@ -2896,6 +2896,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor VolumetricFog = new KeywordDescriptor()
+        {
+            displayName = "Volumetric Fog",
+            referenceName = "_VOLUMETRIC_FOG",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
             displayName = "Cluster Light Loop",

@@ -181,6 +181,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
         LocalKeyword m_LightCookies;
+        LocalKeyword m_VolumetricFog;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
         LocalKeyword m_BloomLQ;
@@ -257,6 +258,7 @@ namespace UnityEditor.Rendering.Universal
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
             m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
+            m_VolumetricFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.VolumetricFog);
             m_DepthAsInputAttachment = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
             m_DepthAsInputAttachmentMSAA = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
@@ -792,6 +794,11 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies);
         }
 
+        internal bool StripUnusedFeatures_VolumetricFog(ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            return stripTool.StripMultiCompileKeepOffVariant(m_VolumetricFog, ShaderFeatures.VolumetricFog);
+        }
+
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_ProbeVolumesL1, ShaderFeatures.ProbeVolumeL1, m_ProbeVolumesL2, ShaderFeatures.ProbeVolumeL2);
@@ -986,6 +993,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_LightCookies(ref strippingData, ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_VolumetricFog(ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))

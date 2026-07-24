@@ -201,6 +201,8 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
                 real3 cookieColor = SampleMainLightCookie(posWS);
                 unityLight.color *= half3(cookieColor);
             #endif
+
+            unityLight.color *= ComputeMainLightVolumetricFogAttenuation(posWS, unityLight.direction);
         #else
             unityLight.direction = _LightDirection;
             unityLight.distanceAttenuation = 1.0;

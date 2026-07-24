@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
 #endif
         ScreenSpaceReflection = (1L << 55),
         RenderObjectDepthInputAttachment = (1L << 56),
+        VolumetricFog = (1L << 57),
         All = ~0
     }
 
@@ -1005,6 +1006,15 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.ScreenSpaceReflection;
                     continue;
                 }
+
+#if VOLUMETRIC_FOG
+                VolumetricFogRendererFeature volumetricFogFeature = rendererFeature as VolumetricFogRendererFeature;
+                if (volumetricFogFeature != null)
+                {
+                    shaderFeatures |= ShaderFeatures.VolumetricFog;
+                    continue;
+                }
+#endif
 
                 // Decals...
                 DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
