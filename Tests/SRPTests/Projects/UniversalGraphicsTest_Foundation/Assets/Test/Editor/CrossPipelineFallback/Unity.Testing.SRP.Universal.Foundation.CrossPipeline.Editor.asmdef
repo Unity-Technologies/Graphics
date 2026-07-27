@@ -1,0 +1,23 @@
+{
+    "name": "Unity.Testing.SRP.Universal.Foundation.CrossPipeline.Editor",
+    "references": [
+        "UnityEditor.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.Testing.SRP.Universal.Foundation.CrossPipeline.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "noEngineReferences": false
+}

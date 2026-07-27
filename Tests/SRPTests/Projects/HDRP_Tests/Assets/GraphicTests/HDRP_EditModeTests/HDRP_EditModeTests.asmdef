@@ -5,7 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "UnityEngine.TestTools.Graphics",
-        "Unity.Graphics.Testing.Common.Editor"
+        "Unity.Graphics.Testing.Common.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
     "includePlatforms": [
         "Editor"
