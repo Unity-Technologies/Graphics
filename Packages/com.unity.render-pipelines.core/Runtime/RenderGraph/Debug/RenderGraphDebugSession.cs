@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
+        internal static void ResetStaticsOnLoad()
         {
             onRegisteredGraphsChanged = null;
             onDebugDataUpdated = null;
