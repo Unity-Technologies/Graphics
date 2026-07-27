@@ -134,10 +134,22 @@ namespace UnityEngine.Rendering
             InternalMeshRendererSettings rendererSettings = renderWorld.rendererSettings[instanceIndex];
             int rendererPriority = renderWorld.rendererPriorities[instanceIndex];
             ushort subMeshStartIndex = renderWorld.subMeshStartIndices[instanceIndex];
+            ushort staticBatchSubMeshCount = renderWorld.staticBatchSubMeshCounts[instanceIndex];
             EmbeddedArray32<EntityId> subMaterialIDs = renderWorld.materialIDArrays[instanceIndex];
 
             if (!meshMap.TryGetValue(meshID, out MeshInfo mesh))
                 return;
+
+            int lodLoopCount = math.max(mesh.meshLodCount, 1);
+            int availableSubMeshCount = mesh.subMeshes.Length / lodLoopCount - subMeshStartIndex;
+            int subMeshCount = rendererSettings.IsPartOfStaticBatch
+                ? math.min(staticBatchSubMeshCount, availableSubMeshCount)
+                : availableSubMeshCount;
+
+            if (subMeshCount <= 0)
+                return;
+
+            int GetSubMeshIndexForMaterial(int materialIndex) => subMeshStartIndex + math.min(materialIndex, subMeshCount - 1);
 
             // Scan all materials once to retrieve whether this renderer is indirect-compatible or not (and store it in the RangeKey).
             // Also cache hash map lookups since we need them right after.
@@ -152,8 +164,7 @@ namespace UnityEngine.Rendering
 
                 subMaterials[i] = subMaterial;
 
-                int subMeshIndex = subMeshStartIndex + i;
-                int lodLoopCount = math.max(mesh.meshLodCount, 1);
+                int subMeshIndex = GetSubMeshIndexForMaterial(i);
                 var subMesh = mesh.subMeshes[subMeshIndex * lodLoopCount];
 
                 // The indirect path does not support topology adjustment; use the direct path when this is required.
@@ -199,8 +210,7 @@ namespace UnityEngine.Rendering
                     flags |= BatchDrawCommandFlags.LODCrossFadeKeyword;
 
                 // Static batching uses per MeshRenderer sub-mesh offset
-                int subMeshIndex = subMeshStartIndex + i;
-                int lodLoopCount = math.max(mesh.meshLodCount, 1);
+                int subMeshIndex = GetSubMeshIndexForMaterial(i);
 
                 for (int lodLoopIndex = 0; lodLoopIndex < lodLoopCount; lodLoopIndex++)
                 {

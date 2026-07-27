@@ -813,6 +813,161 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestMeshRendererWithMoreMaterialsThanSubMeshesUsesLastSubMesh()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat0 = new Material(simpleDots);
+            var simpleDotsMat1 = new Material(simpleDots);
+            var simpleDotsMat2 = new Material(simpleDots);
+
+            // The cube primitive's mesh has a single submesh.
+            var gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+
+            // Assign more material slots than the mesh has submeshes. The extra material slots
+            // should redraw the last submesh instead of reading out of bounds (UUM-147082).
+            renderer.sharedMaterials = new Material[] { simpleDotsMat0, simpleDotsMat1, simpleDotsMat2 };
+
+            var instanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            instanceIDs[0] = renderer.GetEntityId();
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+
+            var drawInstanceData = m_Batcher.GetDrawInstanceData();
+            Assert.AreEqual(3, drawInstanceData.drawInstances.Length);
+
+            foreach (var drawInstance in drawInstanceData.drawInstances)
+            {
+                Assert.AreEqual(0, drawInstance.key.submeshIndex);
+            }
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            instanceIDs.Dispose();
+
+            GameObject.DestroyImmediate(gameObject);
+            GameObject.DestroyImmediate(simpleDotsMat0);
+            GameObject.DestroyImmediate(simpleDotsMat1);
+            GameObject.DestroyImmediate(simpleDotsMat2);
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestStaticBatchedMeshRendererWithMoreMaterialsThanSubMeshesUsesLastRendererSubMesh()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat0 = new Material(simpleDots);
+            var simpleDotsMat1 = new Material(simpleDots);
+            var simpleDotsMat2 = new Material(simpleDots);
+
+            var staticBatchingRoot = new GameObject();
+            staticBatchingRoot.transform.position = new Vector3(10, 0, 0);
+
+            // Static batching truncates excess material slots, so add them only after combining.
+            var gameObjects = new GameObject[3]
+            {
+                GameObject.CreatePrimitive(PrimitiveType.Cube),
+                GameObject.CreatePrimitive(PrimitiveType.Cube),
+                GameObject.CreatePrimitive(PrimitiveType.Cube)
+            };
+
+            foreach (var go in gameObjects)
+            {
+                MeshRenderer renderer = go.GetComponent<MeshRenderer>();
+                renderer.receiveGI = ReceiveGI.LightProbes;
+                renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
+                renderer.sharedMaterial = simpleDotsMat0;
+            }
+
+            gameObjects[0].transform.position = new Vector3(2, 0, 0);
+            gameObjects[1].transform.position = new Vector3(0, 0, 0);
+            gameObjects[2].transform.position = new Vector3(-2, 0, 0);
+
+            StaticBatchingUtility.Combine(gameObjects, staticBatchingRoot);
+
+            var instanceIDs = new NativeArray<EntityId>(3, Allocator.TempJob);
+            instanceIDs[0] = gameObjects[0].GetComponent<MeshRenderer>().GetEntityId();
+            instanceIDs[1] = gameObjects[1].GetComponent<MeshRenderer>().GetEntityId();
+            instanceIDs[2] = gameObjects[2].GetComponent<MeshRenderer>().GetEntityId();
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+
+            var instances = new NativeArray<InstanceHandle>(instanceIDs.Length, Allocator.TempJob);
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+
+            int combinedSubMeshCount = gameObjects[0].GetComponent<MeshFilter>().sharedMesh.subMeshCount;
+            int middleRendererSlot = -1;
+
+            // Select a renderer with submeshes on both sides of its range. This ensures that clamping
+            // against the combined mesh would select another renderer's submesh and fail the test.
+            for (int i = 0; i < instances.Length; i++)
+            {
+                int index = m_InstanceDataSystem.renderWorld.HandleToIndex(instances[i]);
+                int rendererSubMeshStartIndex = m_InstanceDataSystem.renderWorld.subMeshStartIndices[index];
+                int rendererSubMeshCount = m_InstanceDataSystem.renderWorld.staticBatchSubMeshCounts[index];
+                if (rendererSubMeshStartIndex > 0 &&
+                    rendererSubMeshStartIndex + rendererSubMeshCount < combinedSubMeshCount)
+                    middleRendererSlot = i;
+            }
+            Assert.AreNotEqual(-1, middleRendererSlot,
+                "Expected a renderer with submeshes before and after its static batch range.");
+
+            MeshRenderer middleRenderer = gameObjects[middleRendererSlot].GetComponent<MeshRenderer>();
+
+            // Adding material slots after combining preserves the renderer's static batch range.
+            middleRenderer.sharedMaterials = new Material[] { simpleDotsMat0, simpleDotsMat1, simpleDotsMat2 };
+
+            var changedInstanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            changedInstanceIDs[0] = instanceIDs[middleRendererSlot];
+            m_MeshRendererProcessor.ProcessGameObjectChanges(changedInstanceIDs);
+            changedInstanceIDs.Dispose();
+
+            var drawInstanceData = m_Batcher.GetDrawInstanceData();
+
+            int middleRendererIndex = m_InstanceDataSystem.renderWorld.HandleToIndex(instances[middleRendererSlot]);
+            ushort subMeshStartIndex = m_InstanceDataSystem.renderWorld.subMeshStartIndices[middleRendererIndex];
+            ushort staticBatchSubMeshCount =
+                m_InstanceDataSystem.renderWorld.staticBatchSubMeshCounts[middleRendererIndex];
+            Assert.AreEqual(1, staticBatchSubMeshCount);
+
+            int expectedClampedSubMeshIndex = subMeshStartIndex + staticBatchSubMeshCount - 1;
+            int middleRendererInstanceIndex = instances[middleRendererSlot].index;
+
+            // The draw list contains all three renderers. Isolate the middle renderer and verify that
+            // each of its material slots resolves to the last submesh in its own static batch range.
+            int drawInstanceCountForRenderer = 0;
+            foreach (var drawInstance in drawInstanceData.drawInstances)
+            {
+                if (drawInstance.instanceIndex != middleRendererInstanceIndex)
+                    continue;
+
+                drawInstanceCountForRenderer++;
+                Assert.AreEqual(expectedClampedSubMeshIndex, drawInstance.key.submeshIndex);
+            }
+            Assert.AreEqual(3, drawInstanceCountForRenderer);
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            instances.Dispose();
+            instanceIDs.Dispose();
+
+            foreach (var go in gameObjects)
+                GameObject.DestroyImmediate(go);
+
+            GameObject.DestroyImmediate(staticBatchingRoot);
+            GameObject.DestroyImmediate(simpleDotsMat0);
+            GameObject.DestroyImmediate(simpleDotsMat1);
+            GameObject.DestroyImmediate(simpleDotsMat2);
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestDisallowGPUDrivenRendering()
         {
             InitializeGPUResidentDrawer();
