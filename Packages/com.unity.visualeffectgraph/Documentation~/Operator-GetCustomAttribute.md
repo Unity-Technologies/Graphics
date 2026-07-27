@@ -1,8 +1,11 @@
 # Get Custom Attribute Operator
 
-Menu Path : **Operator > Attribute > Get Custom Attribute**
+> [!NOTE]
+> The Get Custom Attribute operator is obsolete. Use a [Get Attribute](OperatorAttribute.md) operator instead.
 
-The **Get Custom Attribute** Operator returns the value of a named custom Attribute of a given type depending on its location.
+Menu Path : **Operator** > **Attribute** > **Get Custom Attribute**
+
+The **Get Custom Attribute** operator returns the value of a custom attribute of a given type depending on its location.
 
 ## Operator settings
 
