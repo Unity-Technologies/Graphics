@@ -865,7 +865,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             context.cmd.ConfigureFoveatedRendering(data.cameraData.xr.foveatedRenderingInfo);
 
-                            if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                            if ((XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) != 0)
                                 context.cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, true);
                         }
                     }
@@ -908,7 +908,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
                     {
-                        if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                        if ((XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) != 0)
                             context.cmd.SetKeyword(ShaderGlobalKeywords.FoveatedRenderingNonUniformRaster, false);
 
                         context.cmd.ConfigureFoveatedRendering(IntPtr.Zero);

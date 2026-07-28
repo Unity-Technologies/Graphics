@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 AccessFlags targetAccessFlag = AccessFlags.Write;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                bool passSupportsFoveation = (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0;
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
                 // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
                 if (!cameraData.xr.isQuadViewInnerPass)

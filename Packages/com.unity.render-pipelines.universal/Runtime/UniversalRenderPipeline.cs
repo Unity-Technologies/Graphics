@@ -2734,7 +2734,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>True if the main display and platform support HDR and HDR output is enabled on the platform.</returns>
         internal static bool HDROutputForMainDisplayIsActive()
         {
-            bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
+            bool hdrOutputSupported = (SystemInfo.hdrDisplaySupportFlags & HDRDisplaySupportFlags.Supported) != 0 && asset.supportsHDR;
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
             return hdrOutputSupported && hdrOutputActive;
         }
@@ -2778,7 +2778,7 @@ namespace UnityEngine.Rendering.Universal
             bool hdrOutputIncompatibleWithSDRRendering = hdrOutputActive && HDROutputSettings.main.displayColorGamut != ColorGamut.Rec709;
 
             // If the pipeline doesn't support HDR rendering, output to SDR.
-            bool supportsSwitchingHDROutput = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool supportsSwitchingHDROutput = (SystemInfo.hdrDisplaySupportFlags & HDRDisplaySupportFlags.RuntimeSwitchable) != 0;
             bool switchHDROutputToSDROutput = !asset.supportsHDR && hdrOutputActive && hdrOutputIncompatibleWithSDRRendering;
             if (switchHDROutputToSDROutput && !warnedRuntimeSwitchHDROutputToSDROutput)
             {

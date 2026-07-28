@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                 {
                     // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                    bool passSupportsFoveation = !Experimental.Rendering.XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                    bool passSupportsFoveation = (Experimental.Rendering.XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
                     // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
                     var requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
                     var isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
                     var applyFxaa = data.applyFxaa;
-                    var hdrColorEncoding = data.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding);
+                    var hdrColorEncoding = (data.hdrOperations & HDROutputUtils.Operation.ColorEncoding) != 0;
                     var applySrgbEncoding = data.applySrgbEncoding;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 

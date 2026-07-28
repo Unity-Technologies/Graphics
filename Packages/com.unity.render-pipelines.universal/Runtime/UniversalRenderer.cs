@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData != null && cameraData.historyManager != null)
             {
                 var vfxBufferNeeded = VFX.VFXManager.IsCameraBufferNeeded(cameraData.camera);
-                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Color))
+                if ((vfxBufferNeeded & VFX.VFXCameraBufferTypes.Color) != 0)
                 {
                     cameraData.historyManager.RequestAccess<RawColorHistory>();
 
@@ -633,7 +633,7 @@ namespace UnityEngine.Rendering.Universal
                         (int)(cameraData.pixelWidth * cameraData.renderScale), (int)(cameraData.pixelHeight * cameraData.renderScale));
                 }
 
-                if (vfxBufferNeeded.HasFlag(VFX.VFXCameraBufferTypes.Depth))
+                if ((vfxBufferNeeded & VFX.VFXCameraBufferTypes.Depth) != 0)
                 {
                     cameraData.historyManager.RequestAccess<RawDepthHistory>();
 

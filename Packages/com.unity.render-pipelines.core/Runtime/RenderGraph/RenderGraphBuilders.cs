@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (isDepth)
                 {
                     // Check ExtendedFeatureFlags
-                    if (!m_RenderPass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment))
+                    if ((m_RenderPass.extendedFeatureFlags & ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) == 0)
                     {
                         throw new InvalidOperationException(
                             RenderGraphExceptionMessages.DepthInputAttachmentNotEnabled(m_RenderPass.name));
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 else
                 {
                     // Check invalid input attachment use case for color
-                    if (m_RenderPass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) && index == 0)
+                    if ((m_RenderPass.extendedFeatureFlags & ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) != 0 && index == 0)
                     {
                         throw new InvalidOperationException(
                             RenderGraphExceptionMessages.DepthInputAttachmentWithColorFormat(m_RenderPass.name));

@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                    passSupportsFoveation &= !Experimental.Rendering.XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                    passSupportsFoveation &= (Experimental.Rendering.XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
                     // Multiview render regions are incompatible with the inner (foveal) pass in Quad View

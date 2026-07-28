@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
                     Material material = data.material;
                     material.shaderKeywords = null;
 
-                    bool hdrColorEncoding = data.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding);
+                    bool hdrColorEncoding = (data.hdrOperations & HDROutputUtils.Operation.ColorEncoding) != 0;
                     bool isFxaaEnabled = PostProcessUtils.IsFxaaEnabled(cameraData);
                     bool isFsrEnabled = PostProcessUtils.IsFsrEnabled(cameraData);
 

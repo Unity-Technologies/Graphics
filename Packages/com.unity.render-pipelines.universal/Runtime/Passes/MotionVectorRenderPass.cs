@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             bool foveatedRendering = xr.supportsFoveatedRendering;
-            bool nonUniformFoveatedRendering = foveatedRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+            bool nonUniformFoveatedRendering = foveatedRendering && (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) != 0;
 
             if (foveatedRendering)
             {

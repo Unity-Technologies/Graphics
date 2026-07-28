@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
             public bool softShadow
             {
-                get => m_ShadowProperties.HasFlag(SettingsOptions.SoftShadow); // otherwise it's hard-shadow (no filtering)
+                get => (m_ShadowProperties & SettingsOptions.SoftShadow) != 0; // otherwise it's hard-shadow (no filtering)
                 set
                 {
                     if (value)
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
 
             public bool pointLightShadow
             {
-                get => m_ShadowProperties.HasFlag(SettingsOptions.PointLightShadow); // otherwise it's spot light shadow (1 shadow slice instead of 6)
+                get => (m_ShadowProperties & SettingsOptions.PointLightShadow) != 0; // otherwise it's spot light shadow (1 shadow slice instead of 6)
                 set
                 {
                     if (value)

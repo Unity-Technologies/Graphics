@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.Universal
                         }
 
                         // We also need motion vectors to reproject.
-                        if (input.HasFlag(ScriptableRenderPassInput.Motion))
+                        if ((input & ScriptableRenderPassInput.Motion) != 0)
                         {
                             passData.motionVectorColor = motionVectorColorTexture;
                             builder.UseTexture(passData.motionVectorColor);
@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.Universal
                 // Temporal filtering pass.
                 if (settings.temporalFiltering.value &&
                     cameraData.historyManager != null &&
-                    input.HasFlag(ScriptableRenderPassInput.Motion))
+                    (input & ScriptableRenderPassInput.Motion) != 0)
                 {
                     int multipassId = 0;
                     bool xrMultipassEnabled = false;
