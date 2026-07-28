@@ -121,6 +121,8 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
 
                 };
             result.passes.Add(GenerateUIPassDescriptor(isSRP));
+            result.passes.Add(GenerateSceneSelectionPassDescriptor(isSRP));
+            result.passes.Add(GenerateScenePickingPassDescriptor(isSRP));
             return result;
         }
 
@@ -221,6 +223,40 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 customInterpolators = UITKCustomInterpolators.Common,
             };
             return DefaultUITKPass;
+        }
+
+        // The Scene view selection outline and picking only position UITK's element-local vertices
+        // correctly when the material provides its own SceneSelectionPass/Picking pass; otherwise the
+        // editor falls back to a replacement material that skips the element transform and draws the
+        // geometry mispositioned (UUM-146911). These passes reuse the Default pass vertex path
+        // (uie_custom_vert, including the graph vertex stage). The selection pass mirrors
+        // Internal-UIRDefault.shader's SceneSelectionPass; that shader has no picking pass, so the
+        // picking pass follows URP's CorePasses.ScenePicking instead.
+        protected virtual PassDescriptor GenerateSceneSelectionPassDescriptor(bool isSRP)
+        {
+            var pass = GenerateUIPassDescriptor(isSRP);
+            pass.displayName = "SceneSelectionPass";
+            pass.lightMode = "SceneSelectionPass";
+            pass.useInPreview = false;
+            // Fixed states: URP overrides the Default pass blend per alphaMode, but the selection
+            // output (_ObjectId, _PassValue, 1, 1) must not depend on it. Alpha is 1, so the
+            // standard SrcAlpha OneMinusSrcAlpha blend overwrites the destination.
+            pass.renderStates = UITKRenderStates.GenerateRenderStateDeclaration();
+            pass.keywords = UITKKeywords.SelectionAndPicking;
+            pass.defines.Add(UITKKeywords.SceneSelectionPass, 1);
+            return pass;
+        }
+
+        protected virtual PassDescriptor GenerateScenePickingPassDescriptor(bool isSRP)
+        {
+            var pass = GenerateUIPassDescriptor(isSRP);
+            pass.displayName = "ScenePickingPass";
+            pass.lightMode = "Picking";
+            pass.useInPreview = false;
+            pass.renderStates = UITKRenderStates.GenerateScenePickingRenderStateDeclaration();
+            pass.keywords = UITKKeywords.SelectionAndPicking;
+            pass.defines.Add(UITKKeywords.ScenePickingPass, 1);
+            return pass;
         }
 
         // We don't need the save context / update materials for nows
@@ -670,6 +706,29 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
             ForceTextureSlotCount,
             ForceRenderType,
         };
+
+        public static KeywordDescriptor SceneSelectionPass = new()
+        {
+            displayName = "Scene Selection Pass",
+            referenceName = "SCENESELECTIONPASS",
+            type = KeywordType.Boolean,
+        };
+
+        public static KeywordDescriptor ScenePickingPass = new()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
+            type = KeywordType.Boolean,
+        };
+
+        // ForceGamma is omitted: these passes only run for world-space panels, which never render
+        // with forced gamma (UIRRenderTreeManager only enables it when !drawInCameras). The keyword
+        // is therefore off in the Default pass too, so both passes evaluate the graph identically.
+        public static KeywordCollection SelectionAndPicking = new()
+        {
+            ForceTextureSlotCount,
+            ForceRenderType,
+        };
     }
 
 #endregion
@@ -684,6 +743,20 @@ namespace UnityEditor.Rendering.UITK.ShaderGraph
                 {RenderState.Cull(Cull.Off)},
                 {RenderState.ZWrite(ZWrite.Off)},
                 {RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha)},
+            };
+        }
+
+        public static RenderStateCollection GenerateScenePickingRenderStateDeclaration()
+        {
+            return new RenderStateCollection
+            {
+                {RenderState.Cull(Cull.Off)},
+                // Picking reads back exact ids: ZWrite On resolves overlaps by depth, and
+                // Blend One Zero prevents blending from corrupting the id (_SelectionID.a is
+                // not 1). Mirrors URP's CorePasses.ScenePicking and the built-in particle
+                // shaders' ScenePickingPass (Internal-UIRDefault.shader has no picking pass).
+                {RenderState.ZWrite(ZWrite.On)},
+                {RenderState.Blend(Blend.One, Blend.Zero)},
             };
         }
     }

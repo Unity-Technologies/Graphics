@@ -74,7 +74,15 @@ PackedVaryings uie_custom_vert(Attributes input)
     return packedOutput;
 }
 
-UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
+// The picking/selection ids must round-trip exactly; UIE_FRAG_T can be fixed4/half4, which may not
+// preserve them (e.g. _ObjectId above 2048 loses integer precision in half).
+#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
+#define UIE_CUSTOM_FRAG_T float4
+#else
+#define UIE_CUSTOM_FRAG_T UIE_FRAG_T
+#endif
+
+UIE_CUSTOM_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
 {
     Varyings varyings = UnpackVaryings(packedInput);
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(varyings);
@@ -83,7 +91,9 @@ UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
     // carried varying so the Element Color node's Opacity output is correct even on its own.
     surfaceDescriptionInputs.opacity = varyings.opacity;
 
+#if !defined(SCENESELECTIONPASS) && !defined(SCENEPICKINGPASS)
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+#endif
 
     // TODO: In the future, we should try to use surfaceDescription.coverage instead of computing coverage outside
     // of the branches like we do here.
@@ -99,6 +109,13 @@ UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
     // This will write proper masks values in the stencil buffer.
     clip(coverage - 0.003f);
 
+    // Selection/picking only need the covered footprint (rect/arc coverage and clipping above);
+    // the graph's color output is replaced by the id, so SurfaceDescriptionFunction is skipped.
+#if defined(SCENESELECTIONPASS)
+    return float4(_ObjectId, _PassValue, 1, 1);
+#elif defined(SCENEPICKINGPASS)
+    return _SelectionID;
+#else
     surfaceDescription.Alpha *= coverage;
 
     // Apply the per-element opacity here, at the very end, instead of baking it into the tint in the
@@ -110,4 +127,5 @@ UIE_FRAG_T uie_custom_frag(PackedVaryings packedInput) : SV_Target
 #endif
 
     return float4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+#endif // SCENESELECTIONPASS / SCENEPICKINGPASS
 }
