@@ -2134,6 +2134,10 @@ namespace UnityEditor.Rendering
 
         void OnDisable()
         {
+            // Always dispose PlayerConnection to avoid resource leaks
+            m_PlayerConnection?.Dispose();
+            m_PlayerConnection = null;
+
             // NOTE: This is a workaround to deal with how Unity handles Maximize/Minimize. When the window gets
             // maximized, seemingly nothing happens. When it gets unmaximized, both OnEnable() and OnDisable() get called
             // on a new EditorWindow instance, which I guess was the maximized one? Anyway we need to ignore this event
@@ -2144,8 +2148,6 @@ namespace UnityEditor.Rendering
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             m_CurrentDebugData?.Clear();
             DisconnectDebugSession();
-
-            m_PlayerConnection?.Dispose();
 
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderGraphViewer>();
         }
@@ -2207,7 +2209,7 @@ namespace UnityEditor.Rendering
         }
 
         internal void ConnectDebugSession<TSession>()
-            where TSession : RenderGraphDebugSession, new()
+            where TSession : IRenderGraphDebugSession, new()
         {
             // If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
             // connection changes
@@ -2216,9 +2218,9 @@ namespace UnityEditor.Rendering
 
             DisconnectDebugSession();
 
-            RenderGraphDebugSession.Create<TSession>();
-            RenderGraphDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
-            RenderGraphDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+            RenderGraphDebugSession.BeginSession<TSession>();
+            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
+            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
 
             OnRegisteredGraphsChanged();
         }
@@ -2228,10 +2230,10 @@ namespace UnityEditor.Rendering
             if (RenderGraphDebugSession.currentDebugSession == null)
                 return;
 
+            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
+            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
             RenderGraphDebugSession.EndSession();
-            RenderGraphDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
-            RenderGraphDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
-
+            
             UpdateStatusLabel();
             ClearGraphViewerUI();
         }

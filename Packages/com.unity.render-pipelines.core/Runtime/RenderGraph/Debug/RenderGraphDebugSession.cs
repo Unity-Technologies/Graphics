@@ -4,234 +4,100 @@ using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    internal abstract class RenderGraphDebugSession : IDisposable
+    /// <summary>
+    /// Static manager for render graph debug sessions.
+    /// Manages the current active session and provides convenience methods for accessing it.
+    /// </summary>
+    internal static class RenderGraphDebugSession
     {
-        protected class DebugDataContainer
-        {
-            readonly Dictionary<string, Dictionary<EntityId, DebugData>> m_Container = new();
-
-            public bool AddGraph(string graphName)
-            {
-                if (m_Container.ContainsKey(graphName))
-                    return false;
-
-                m_Container.Add(graphName, new Dictionary<EntityId, DebugData>());
-
-                return true;
-            }
-
-            public bool RemoveGraph(string graphName)
-            {
-                return m_Container.Remove(graphName);
-            }
-
-            public bool AddExecution(string graphName, EntityId executionId, string executionName)
-            {
-                Debug.Assert(m_Container.ContainsKey(graphName));
-                if (m_Container[graphName].ContainsKey(executionId))
-                    return false;
-
-                m_Container[graphName][executionId] = new DebugData(executionName);
-                return true;
-            }
-
-            public List<string> GetRenderGraphs() => new(m_Container.Keys);
-
-            public List<DebugExecutionItem> GetExecutions(string graphName)
-            {
-                var executions = new List<DebugExecutionItem>();
-                if (!string.IsNullOrEmpty(graphName) && m_Container.TryGetValue(graphName, out var executionsDict))
-                {
-                    foreach (var (executionId, debugData) in executionsDict)
-                    {
-                        var item = new DebugExecutionItem(executionId, debugData.executionName);
-                        executions.Add(item);
-                    }
-                }
-
-                return executions;
-            }
-
-            public DebugData GetDebugData(string renderGraph, EntityId executionId)
-            {
-                if (!m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
-                    throw new InvalidOperationException($"RenderGraph '{renderGraph}' was never registered with the debug session.");
-                return debugDataForGraph[executionId];
-            }
-
-            public void SetDebugData(string renderGraph, EntityId executionId, DebugData data)
-            {
-                if (m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
-                    debugDataForGraph[executionId] = data;
-            }
-
-            public void DeleteExecutionIds(string renderGraph, List<EntityId> executionIds)
-            {
-                if (m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
-                {
-                    foreach (var executionId in executionIds)
-                        debugDataForGraph.Remove(executionId);
-                }
-            }
-
-            public void Clear()
-            {
-                m_Container.Clear();
-            }
-
-            public void Invalidate()
-            {
-                foreach (var (graph, dict) in m_Container)
-                {
-                    foreach (var (cam, debugData) in dict)
-                        debugData.Clear();
-                }
-            }
-        }
-
-        // Session is considered active when it is collecting debug data
-        public abstract bool isActive { get; }
-
-        public string connectionName { get; set; }
-
-        DebugDataContainer debugDataContainer { get; }
-
-        protected RenderGraphDebugSession()
-        {
-            debugDataContainer = new DebugDataContainer();
-
-            onGraphRegistered += RegisterGraph;
-            onGraphUnregistered += UnregisterGraph;
-            onExecutionRegistered += RegisterExecution;
-        }
-
-        protected void RegisterGraph(string graphName)
-        {
-            if (debugDataContainer.AddGraph(graphName))
-                onRegisteredGraphsChanged?.Invoke();
-        }
-
-        protected void UnregisterGraph(string graphName)
-        {
-            if (debugDataContainer.RemoveGraph(graphName))
-                onRegisteredGraphsChanged?.Invoke();
-        }
-
-        protected void RegisterExecution(string graphName, EntityId executionId, string executionName)
-        {
-            if (debugDataContainer.AddExecution(graphName, executionId, executionName))
-                onRegisteredGraphsChanged?.Invoke();
-        }
-
-        public virtual void Dispose()
-        {
-            onGraphRegistered -= RegisterGraph;
-            onGraphUnregistered -= UnregisterGraph;
-            onExecutionRegistered -= RegisterExecution;
-            debugDataContainer.Clear();
-        }
-
-        protected void InvalidateData()
-        {
-            debugDataContainer.Invalidate();
-        }
-
-        public static event Action onRegisteredGraphsChanged;
-        public static event Action<string, EntityId> onDebugDataUpdated;
-
-        static RenderGraphDebugSession s_CurrentDebugSession;
+        static IRenderGraphDebugSession s_CurrentDebugSession;
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         internal static void ResetStaticsOnLoad()
         {
-            onRegisteredGraphsChanged = null;
-            onDebugDataUpdated = null;
             s_CurrentDebugSession = null;
         }
 #endif
 
+        /// <summary>
+        /// Returns true if there is an active debug session.
+        /// </summary>
         public static bool hasActiveDebugSession => s_CurrentDebugSession?.isActive ?? false;
 
-        public static RenderGraphDebugSession currentDebugSession => s_CurrentDebugSession;
+        /// <summary>
+        /// Gets the current debug session instance.
+        /// </summary>
+        public static IRenderGraphDebugSession currentDebugSession => s_CurrentDebugSession;
 
-        public static void Create<TSession>() where TSession : RenderGraphDebugSession, new()
+        /// <summary>
+        /// Creates a new debug session of the specified type.
+        /// Ends any existing session before creating the new one.
+        /// </summary>
+        /// <typeparam name="TSession">Type of session to create.</typeparam>
+        public static void BeginSession<TSession>() where TSession : IRenderGraphDebugSession, new()
         {
             EndSession();
             s_CurrentDebugSession = new TSession();
         }
 
-        // internal: Required in test
-        internal static void Create(Type sessionType)
+        /// <summary>
+        /// Creates a new debug session of the specified type.
+        /// Ends any existing session before creating the new one.
+        /// </summary>
+        /// <param name="sessionType">Type of session to create (must implement IRenderGraphDebugSession).</param>
+        internal static void BeginSession(Type sessionType)
         {
             EndSession();
 
-            if (sessionType.IsAssignableFrom(typeof(RenderGraphDebugSession)))
-                throw new ArgumentException("Incorrect session type. Type should be derived from RenderGraphDebugSession.");
+            if (!typeof(IRenderGraphDebugSession).IsAssignableFrom(sessionType))
+                throw new ArgumentException("Incorrect session type. Type should implement IRenderGraphDebugSession.");
 
-            s_CurrentDebugSession = Activator.CreateInstance(sessionType) as RenderGraphDebugSession;
+            s_CurrentDebugSession = Activator.CreateInstance(sessionType) as IRenderGraphDebugSession;
         }
 
+        /// <summary>
+        /// Ends the current debug session and disposes of its resources.
+        /// </summary>
         public static void EndSession()
         {
-            if (s_CurrentDebugSession != null)
-            {
-                s_CurrentDebugSession.Dispose();
-                s_CurrentDebugSession = null;
-            }
+            s_CurrentDebugSession?.Dispose();
+            s_CurrentDebugSession = null;
         }
 
+        // Convenience delegates to current session
         public static readonly List<string> s_EmptyRegisteredGraphs = new();
+
+        /// <summary>
+        /// Gets the list of registered render graphs from the current session.
+        /// </summary>
+        /// <returns>List of graph names, or empty list if no session active.</returns>
         public static List<string> GetRegisteredGraphs()
         {
-            if (s_CurrentDebugSession == null || s_CurrentDebugSession.debugDataContainer == null)
-            {
-                return s_EmptyRegisteredGraphs;
-            }
-
-            return s_CurrentDebugSession.debugDataContainer.GetRenderGraphs();
+            return s_CurrentDebugSession == null ? s_EmptyRegisteredGraphs : s_CurrentDebugSession.GetRegisteredGraphs();
         }
 
         public static readonly List<DebugExecutionItem> s_EmptyExecutions = new();
+
+        /// <summary>
+        /// Gets the list of executions for a specific render graph from the current session.
+        /// </summary>
+        /// <param name="graphName">Name of the render graph.</param>
+        /// <returns>List of executions, or empty list if no session active.</returns>
         public static List<DebugExecutionItem> GetExecutions(string graphName)
         {
-            if (s_CurrentDebugSession == null || s_CurrentDebugSession.debugDataContainer == null)
-            {
-                return s_EmptyExecutions;
-            }
-
-            return s_CurrentDebugSession.debugDataContainer.GetExecutions(graphName);
+            return s_CurrentDebugSession == null ? s_EmptyExecutions : s_CurrentDebugSession.GetExecutions(graphName);
         }
 
+        /// <summary>
+        /// Gets debug data for a specific execution from the current session.
+        /// </summary>
+        /// <param name="renderGraph">Name of the render graph.</param>
+        /// <param name="executionId">ID of the execution.</param>
+        /// <returns>Debug data for the execution.</returns>
         public static DebugData GetDebugData(string renderGraph, EntityId executionId)
         {
-            return s_CurrentDebugSession.debugDataContainer.GetDebugData(renderGraph, executionId);
-        }
-
-        public static void SetDebugData(string renderGraph, EntityId executionId, DebugData data)
-        {
-            data.captureSourceString = s_CurrentDebugSession.connectionName;
-            data.captureTimestamp = $"{DateTime.Now:HH:mm:ss}";
-
-            s_CurrentDebugSession.debugDataContainer.SetDebugData(renderGraph, executionId, data);
-            onDebugDataUpdated?.Invoke(renderGraph, executionId);
-        }
-
-        public static void DeleteExecutionIds(string renderGraph, List<EntityId> executionIds)
-        {
-            s_CurrentDebugSession.debugDataContainer.DeleteExecutionIds(renderGraph, executionIds);
-            onRegisteredGraphsChanged?.Invoke();
-        }
-
-        protected void RegisterAllLocallyKnownGraphsAndExecutions()
-        {
-            var registeredExecutions = GetRegisteredExecutions();
-            foreach (var (graph, executions) in registeredExecutions)
-            {
-                RegisterGraph(graph.name);
-                foreach (var executionItem in executions)
-                    RegisterExecution(graph.name, executionItem.id, executionItem.name);
-            }
+            return s_CurrentDebugSession.GetDebugData(renderGraph, executionId);
         }
     }
 }

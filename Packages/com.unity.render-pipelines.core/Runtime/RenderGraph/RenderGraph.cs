@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
 #if !UNITY_EDITOR && UNITY_ENABLE_CHECKS
             if (RenderGraphDebugSession.currentDebugSession == null)
-                RenderGraphDebugSession.Create<RenderGraphPlayerRemoteDebugSession>();
+                RenderGraphDebugSession.BeginSession<RenderGraphPlayerRemoteDebugSession>();
 #endif
         }
 
@@ -1768,7 +1768,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 
             if (deletedExecutionIds.Count > 0)
-                RenderGraphDebugSession.DeleteExecutionIds(name, deletedExecutionIds); // Clear stale debug data entries for deleted cameras
+                RenderGraphDebugSession.currentDebugSession.DeleteExecutionIds(name, deletedExecutionIds); // Clear stale debug data entries for deleted cameras
 
             if (!alreadyRegistered)
             {
@@ -1792,7 +1792,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             nativeCompiler.GenerateNativeCompilerDebugData(ref debugData);
 
             debugData.valid = true;
-            RenderGraphDebugSession.SetDebugData(name, m_CurrentExecutionId, debugData);
+            RenderGraphDebugSession.currentDebugSession.SetDebugData(name, m_CurrentExecutionId, debugData);
         }
 
         #endregion

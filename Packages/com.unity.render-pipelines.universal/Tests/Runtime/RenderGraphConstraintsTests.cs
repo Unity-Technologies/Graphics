@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_PreviousSessionType = RenderGraphDebugSession.currentDebugSession?.GetType();
             m_PreviousQualityRenderPipelineAsset = QualitySettings.renderPipeline;
 
-            RenderGraphDebugSession.Create<TestRenderGraphDebugSession>();
+            RenderGraphDebugSession.BeginSession<TestRenderGraphDebugSession>();
 
             // Create new URP asset
             m_UniversalRenderPipelineAsset = Create();
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         public void OneTimeTearDown()
         {
             if (m_PreviousSessionType != null)
-                RenderGraphDebugSession.Create(m_PreviousSessionType);
+                RenderGraphDebugSession.BeginSession(m_PreviousSessionType);
             else
                 RenderGraphDebugSession.EndSession();
 
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             return m_ResourceTestNames.Contains(name);
         }
 
-        class TestRenderGraphDebugSession : RenderGraphDebugSession
+        class TestRenderGraphDebugSession : LiveRenderGraphDebugSession
         {
             public override bool isActive => true;
 

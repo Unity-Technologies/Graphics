@@ -3,7 +3,7 @@ using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    internal sealed class RenderGraphEditorRemoteDebugSession : RenderGraphDebugSession
+    internal sealed class RenderGraphEditorRemoteDebugSession : LiveRenderGraphDebugSession
     {
         public override bool isActive => false;
 

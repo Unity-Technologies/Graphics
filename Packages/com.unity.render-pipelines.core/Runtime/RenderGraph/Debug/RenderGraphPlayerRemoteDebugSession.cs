@@ -4,7 +4,7 @@ using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    internal sealed class RenderGraphPlayerRemoteDebugSession : RenderGraphDebugSession
+    internal sealed class RenderGraphPlayerRemoteDebugSession : LiveRenderGraphDebugSession
     {
         bool m_IsActive;
 

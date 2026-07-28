@@ -1,0 +1,145 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
+
+namespace UnityEngine.Rendering.RenderGraphModule
+{
+    /// <summary>
+    /// Container for RenderGraph debug data. Stores debug data for multiple render graphs and their executions.
+    /// </summary>
+    internal class DebugDataContainer
+    {
+        private Dictionary<string, Dictionary<EntityId, DebugData>> m_Container = new();
+
+        /// <summary>
+        /// Adds a new render graph to the container.
+        /// </summary>
+        /// <param name="graphName">Name of the render graph.</param>
+        /// <returns>True if added successfully, false if already exists.</returns>
+        public bool AddGraph(string graphName)
+        {
+            if (m_Container.ContainsKey(graphName))
+                return false;
+
+            m_Container.Add(graphName, new Dictionary<EntityId, DebugData>());
+            return true;
+        }
+
+        /// <summary>
+        /// Removes a render graph from the container.
+        /// </summary>
+        /// <param name="graphName">Name of the render graph.</param>
+        /// <returns>True if removed successfully, false if not found.</returns>
+        public bool RemoveGraph(string graphName)
+        {
+            return m_Container.Remove(graphName);
+        }
+
+        /// <summary>
+        /// Adds a new execution to a render graph.
+        /// </summary>
+        /// <param name="graphName">Name of the render graph.</param>
+        /// <param name="executionId">ID of the execution (usually camera/viewport).</param>
+        /// <param name="executionName">Name of the execution.</param>
+        /// <returns>True if added successfully, false if already exists.</returns>
+        public bool AddExecution(string graphName, EntityId executionId, string executionName)
+        {
+            Debug.Assert(m_Container.ContainsKey(graphName),
+                $"Graph '{graphName}' must be added before adding executions.");
+
+            if (m_Container[graphName].ContainsKey(executionId))
+                return false;
+
+            m_Container[graphName][executionId] = new DebugData(executionName);
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the list of all registered render graph names.
+        /// </summary>
+        /// <returns>List of graph names.</returns>
+        public List<string> GetRenderGraphs() => new(m_Container.Keys);
+
+        /// <summary>
+        /// Gets all executions for a specific render graph.
+        /// </summary>
+        /// <param name="graphName">Name of the render graph.</param>
+        /// <returns>List of execution items.</returns>
+        public List<DebugExecutionItem> GetExecutions(string graphName)
+        {
+            var executions = new List<DebugExecutionItem>();
+            if (!string.IsNullOrEmpty(graphName) && m_Container.TryGetValue(graphName, out var executionsDict))
+            {
+                foreach (var (executionId, debugData) in executionsDict)
+                {
+                    var item = new DebugExecutionItem(executionId, debugData.executionName);
+                    executions.Add(item);
+                }
+            }
+
+            return executions;
+        }
+
+        /// <summary>
+        /// Gets debug data for a specific execution.
+        /// </summary>
+        /// <param name="renderGraph">Name of the render graph.</param>
+        /// <param name="executionId">ID of the execution.</param>
+        /// <returns>Debug data for the execution.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if graph not registered.</exception>
+        public DebugData GetDebugData(string renderGraph, EntityId executionId)
+        {
+            if (!m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
+                throw new InvalidOperationException($"RenderGraph '{renderGraph}' was never registered with the debug session.");
+
+            return debugDataForGraph[executionId];
+        }
+
+        /// <summary>
+        /// Sets debug data for a specific execution.
+        /// </summary>
+        /// <param name="renderGraph">Name of the render graph.</param>
+        /// <param name="executionId">ID of the execution.</param>
+        /// <param name="data">Debug data to set.</param>
+        public void SetDebugData(string renderGraph, EntityId executionId, DebugData data)
+        {
+            if (m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
+                debugDataForGraph[executionId] = data;
+        }
+
+        /// <summary>
+        /// Deletes specific execution IDs from a render graph.
+        /// </summary>
+        /// <param name="renderGraph">Name of the render graph.</param>
+        /// <param name="executionIds">List of execution IDs to delete.</param>
+        public void DeleteExecutionIds(string renderGraph, List<EntityId> executionIds)
+        {
+            if (m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
+            {
+                foreach (var executionId in executionIds)
+                    debugDataForGraph.Remove(executionId);
+            }
+        }
+
+        /// <summary>
+        /// Clears all data from the container.
+        /// </summary>
+        public void Clear()
+        {
+            m_Container.Clear();
+        }
+
+        /// <summary>
+        /// Invalidates all debug data (marks as stale but doesn't remove).
+        /// </summary>
+        public void Invalidate()
+        {
+            foreach (var (graph, dict) in m_Container)
+            {
+                foreach (var (cam, debugData) in dict)
+                    debugData.Clear();
+            }
+        }
+    }
+}
