@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Tests
                     albedo: Vector3.one,
                     halfSize: 2.0f,
                     center: new Vector3(0.0f, 0.5f, 0.0f),
-                    frontFaceUp: false);
+                    normal: Vector3.down);
             }
             CreateObserverPatch();
             Estimate();

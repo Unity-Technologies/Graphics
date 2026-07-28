@@ -94,13 +94,13 @@ namespace UnityEngine.Rendering.Tests
             SolidColorShader = testResources.solidColorShader,
         };
 
-        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute, uint sampleCount = 1, uint defragCount = 0)
+        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute, uint sampleCount = 1, uint defragCount = 0, bool multiBounce = false, bool bouncePatchAllocation = false, float volumeSize = 1f, uint volumeResolution = 4)
         {
             var volParams = new SurfaceCacheVolumeParameterSet
             {
-                Resolution = 4,
+                Resolution = volumeResolution,
                 CascadeCount = 1,
-                Size = 1f
+                Size = volumeSize
             };
 
             var testResources = UnityEngine.Resources.Load<TestResourceAsset>("TestShaders");
@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.Tests
             _cache.SetEstimationParams(new SurfaceCacheEstimationParameterSet
             {
                 SampleCount = sampleCount,
-                MultiBounce = false,
-                BouncePatchAllocation = false
+                MultiBounce = multiBounce,
+                BouncePatchAllocation = bouncePatchAllocation
             });
             _cache.SetPatchFilteringParams(new SurfaceCachePatchFilteringParameterSet
             {

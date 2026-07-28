@@ -25,10 +25,10 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
-        public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, bool frontFaceUp = true)
+        public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, Vector3 normal)
         {
             var materialHandle = m_World.AddMaterial(CreateUniformAlbedoDescriptor(albedo), UVChannel.UV0);
-            var mesh = CreateHorizontalQuad(halfSize, frontFaceUp);
+            var mesh = CreateQuad(halfSize, normal);
             m_Resources.Add(mesh);
             m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Tests
                 EmissionColor = emission,
                 PointSampleEmission = true,
             }, UVChannel.UV0);
-            var mesh = CreateHorizontalQuad(halfSize, frontFaceUp);
+            var mesh = CreateQuad(halfSize, frontFaceUp ? Vector3.up : Vector3.down);
             m_Resources.Add(mesh);
             m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
         }
@@ -76,24 +76,27 @@ namespace UnityEngine.Rendering.Tests
             };
         }
 
-        static Mesh CreateHorizontalQuad(float halfSize, bool frontFaceUp)
+        static Mesh CreateQuad(float halfSize, Vector3 normal)
         {
-            var mesh = new Mesh { hideFlags = HideFlags.DontSave };
-            mesh.vertices = new[]
+            var rotation = Quaternion.FromToRotation(Vector3.up, normal);
+            var mesh = new Mesh
             {
-                new Vector3(-halfSize, 0f, -halfSize),
-                new Vector3( halfSize, 0f, -halfSize),
-                new Vector3(-halfSize, 0f,  halfSize),
-                new Vector3( halfSize, 0f,  halfSize),
+                hideFlags = HideFlags.DontSave,
+                vertices = new[]
+                {
+                    rotation * new Vector3(-halfSize, 0f, -halfSize),
+                    rotation * new Vector3( halfSize, 0f, -halfSize),
+                    rotation * new Vector3(-halfSize, 0f,  halfSize),
+                    rotation * new Vector3( halfSize, 0f,  halfSize),
+                },
+                normals = new[] { normal, normal, normal, normal }
             };
-            var faceNormal = frontFaceUp ? Vector3.up : Vector3.down;
-            mesh.normals = new[] { faceNormal, faceNormal, faceNormal, faceNormal };
             // All UVs at the texture center: the albedo is uniform, and this avoids atlas-edge bleed.
             var center = new Vector2(0.5f, 0.5f);
             mesh.uv = new[] { center, center, center, center };
             mesh.uv2 = mesh.uv;
-            // Winding sets the geometric face normal: {0,2,1,2,3,1} faces +Y, the reverse faces -Y.
-            mesh.triangles = frontFaceUp ? new[] { 0, 2, 1, 2, 3, 1 } : new[] { 0, 1, 2, 2, 1, 3 };
+            // Winding {0,2,1,2,3,1} makes +Y the geometric front face, we then rotate it to the normal vector
+            mesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
             return mesh;
         }
 

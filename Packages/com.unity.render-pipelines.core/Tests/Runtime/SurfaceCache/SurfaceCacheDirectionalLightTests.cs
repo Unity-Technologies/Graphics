@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Tests
             Vector3 albedo = albedoScale * new Vector3(1.0f, 0.7f, 0.4f);
             Vector3 lightColor = intensity * new Vector3(1.0f, 0.5f, 0.25f);
             m_Scene.AddDirectionalLight(Vector3.down, lightColor);
-            m_Scene.AddPlane(albedo, k_PlaneHalfSize, Vector3.zero);
+            m_Scene.AddPlane(albedo, k_PlaneHalfSize, Vector3.zero, Vector3.up);
             SeedObserver();
             Estimate();
 
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Tests
             Vector3 lightDir = new Vector3(0.1f, -0.8f, 0.2f).normalized; // shining down, mostly
             float lightDirDotPlaneNormal = Vector3.Dot(-lightDir, Vector3.up);
             m_Scene.AddDirectionalLight(lightDir, lightColor);
-            m_Scene.AddPlane(albedo, k_PlaneHalfSize, Vector3.zero);
+            m_Scene.AddPlane(albedo, k_PlaneHalfSize, Vector3.zero, Vector3.up);
             SeedObserver();
             Estimate();
 
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Tests
         {
             // Light travels horizontally (to the left), parallel to the plane: cos theta = 0, the < 0 guard boundary.
             m_Scene.AddDirectionalLight(Vector3.left, new Vector3(0.3f, 1.0f, 0.6f));
-            m_Scene.AddPlane(albedo: new Vector3(0.9f, 0.4f, 0.7f), k_PlaneHalfSize, Vector3.zero);
+            m_Scene.AddPlane(albedo: new Vector3(0.9f, 0.4f, 0.7f), k_PlaneHalfSize, Vector3.zero, Vector3.up);
             SeedObserver();
             Estimate();
 
@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.Tests
         {
             // Plane front face points down, so the observer above hits the culled back face.
             m_Scene.AddDirectionalLight(Vector3.down, new Vector3(0.8f, 0.4f, 1.0f));
-            m_Scene.AddPlane(albedo: new Vector3(0.5f, 0.9f, 0.3f), k_PlaneHalfSize, Vector3.zero, frontFaceUp: false);
+            m_Scene.AddPlane(albedo: new Vector3(0.5f, 0.9f, 0.3f), k_PlaneHalfSize, Vector3.zero, Vector3.down);
             SeedObserver();
             Estimate();
 
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Tests
         {
             // Light travels up: the plane's lit front face points away from it, so nothing bounces.
             m_Scene.AddDirectionalLight(Vector3.up, new Vector3(1.0f, 0.6f, 0.3f));
-            m_Scene.AddPlane(albedo: new Vector3(0.4f, 0.7f, 1.0f), k_PlaneHalfSize, Vector3.zero);
+            m_Scene.AddPlane(albedo: new Vector3(0.4f, 0.7f, 1.0f), k_PlaneHalfSize, Vector3.zero, Vector3.up);
             SeedObserver();
             Estimate();
 
@@ -183,9 +183,9 @@ namespace UnityEngine.Rendering.Tests
         {
             const float occluderHeight = 1f;
             m_Scene.AddDirectionalLight(Vector3.down, new Vector3(0.6f, 1.0f, 0.4f));
-            m_Scene.AddPlane(albedo: new Vector3(1.0f, 0.5f, 0.8f), k_PlaneHalfSize, Vector3.zero);
+            m_Scene.AddPlane(albedo: new Vector3(1.0f, 0.5f, 0.8f), k_PlaneHalfSize, Vector3.zero, Vector3.up);
             // Opaque plane above, between light and ground; only its silhouette matters, so any albedo works.
-            m_Scene.AddPlane(albedo: Vector3.one, k_PlaneHalfSize, new Vector3(0f, occluderHeight, 0f));
+            m_Scene.AddPlane(albedo: Vector3.one, k_PlaneHalfSize, new Vector3(0f, occluderHeight, 0f), Vector3.up);
             SeedObserver();
             Estimate();
 
