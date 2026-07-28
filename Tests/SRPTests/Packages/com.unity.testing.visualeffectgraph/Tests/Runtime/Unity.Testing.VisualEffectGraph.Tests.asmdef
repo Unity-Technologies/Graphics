@@ -12,6 +12,7 @@
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
         "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics.Contexts",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Testing.XR.Editor",

@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 
 namespace UnityEngine.VFX.Test
@@ -49,6 +51,10 @@ namespace UnityEngine.VFX.Test
         [DeviceFilter(GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan, GraphicsDeviceType.Metal)]
         public IEnumerator All_Compute_Shaders_Prewarmed()
         {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                && GraphicsTestPlatform.Current.GetValue<UnityGraphicsKernelMode>() == UnityGraphicsKernelMode.On)
+                Assert.Ignore("https://jira.unity3d.com/browse/UGK-2502");
+
             // Find the CreateComputePipelineImpl marker
             m_Recorders = new List<ProfilerRecorder>();
             var allHandles = new List<ProfilerRecorderHandle>();
