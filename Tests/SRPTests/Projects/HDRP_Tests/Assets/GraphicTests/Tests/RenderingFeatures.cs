@@ -109,16 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
         )]
         [IgnoreGraphicsTest(
-            "9800_Compositor",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
-            "9801_ShurikenLightModule",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
             "9701_CustomPass_DrawRenderers",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
             RuntimePlatform.WindowsEditor
