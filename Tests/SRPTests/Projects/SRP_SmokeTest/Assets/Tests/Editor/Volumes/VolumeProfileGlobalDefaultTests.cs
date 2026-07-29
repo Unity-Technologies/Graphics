@@ -12,6 +12,9 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Rendering.Tests
 {
     [TestFixture]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-148441
+    })]
     public class VolumeProfileGlobalDefaultTests
     {
         VolumeManager m_VolumeManager;
