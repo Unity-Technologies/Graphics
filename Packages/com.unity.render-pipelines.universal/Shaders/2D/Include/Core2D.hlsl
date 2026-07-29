@@ -91,11 +91,13 @@ float3 UnitySkinSprite( in float3 inputData, in uint4 blendIndices, in float4 bl
         // SpriteRenderer.Color while Non-Batched/Instanced.
         UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpriteRendererColorArray)
         // this could be smaller but that's how bit each entry is regardless of type
-        UNITY_DEFINE_INSTANCED_PROP(float2, unity_SpriteFlipArray)            
+        UNITY_DEFINE_INSTANCED_PROP(float2, unity_SpriteFlipArray)
+        UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
     UNITY_INSTANCING_BUFFER_END(PerDrawSprite)
 
     #define unity_SpriteColor  UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteRendererColorArray)
     #define unity_SpriteFlip   UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteFlipArray)
+    #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_RendererUserValueArray).x)
 #endif // instancing
 
 void SetUpSpriteInstanceProperties()
