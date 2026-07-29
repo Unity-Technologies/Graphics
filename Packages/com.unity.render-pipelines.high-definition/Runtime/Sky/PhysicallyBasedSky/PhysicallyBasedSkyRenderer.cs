@@ -443,6 +443,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(x, y);
         }
 
+#if UNITY_EDITOR
+        // A directional light drives the sky only if its scene is rendered by the camera drawing the sky
+        // - the same per-scene culling meshes get. Otherwise a light in a scene the camera doesn't render
+        // (e.g. an authoring subscene hidden during Entities live baking, whose scene culling mask is
+        // cleared) would still light the sky, duplicating a sun that is shown elsewhere.
+        static bool IsDirectionalLightVisibleToSky(HDAdditionalLightData light, HDCamera hdCamera)
+        {
+            if (light == null || light.legacyLight == null || hdCamera == null || hdCamera.camera == null)
+                return true;
+
+            ulong cameraMask = HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
+            ulong sceneMask = UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(light.legacyLight.gameObject.scene);
+            return (cameraMask & sceneMask) != 0;
+        }
+#endif
+
         void UpdateCelestialBodyBuffer(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
         {
             if (m_CelestialBodyBuffer == null)
@@ -462,6 +478,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint lightCount = 0;
                 foreach (var light in directionalLights)
                 {
+#if UNITY_EDITOR
+                    if (!IsDirectionalLightVisibleToSky(light, builtinParams.hdCamera))
+                        continue;
+#endif
                     if (light.legacyLight.enabled && light.interactsWithSky && light.legacyLight.intensity != 0.0f)
                     {
                         FillCelestialBodyData(cmd, light, ref m_CelestialBodyData[lightCount++]);
@@ -474,6 +494,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var light in directionalLights)
                 {
                     if (bodyCount >= k_MaxCelestialBodies) break;
+#if UNITY_EDITOR
+                    if (!IsDirectionalLightVisibleToSky(light, builtinParams.hdCamera))
+                        continue;
+#endif
                     if (light.legacyLight.enabled && light.interactsWithSky && light.legacyLight.intensity == 0.0f)
                         FillCelestialBodyData(cmd, light, ref m_CelestialBodyData[bodyCount++]);
                 }

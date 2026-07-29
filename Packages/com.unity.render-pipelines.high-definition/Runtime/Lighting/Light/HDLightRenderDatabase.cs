@@ -346,11 +346,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (additionalLightData.legacyLight.type == LightType.Directional
 #if UNITY_EDITOR
-                 && !UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(additionalLightData.gameObject.scene)
+                 && IsSceneEligibleForDirectionalSky(additionalLightData.gameObject.scene)
 #endif
                 )
                 directionalLights.Add(additionalLightData);
         }
+
+#if UNITY_EDITOR
+        // directionalLights feeds the Physically Based Sky's sun. Exclude lights in preview scenes used
+        // purely for offscreen rendering (asset thumbnails, material previews, prefab stage). A preview
+        // scene given a game-rendering culling mask (GameViewObjects) does render to the game/scene view
+        // and must still drive the sky - e.g. the preview scenes hosting closed Entities subscenes.
+        static bool IsSceneEligibleForDirectionalSky(UnityEngine.SceneManagement.Scene scene)
+        {
+            if (!UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(scene))
+                return true;
+
+            return (UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(scene)
+                & UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects) != 0;
+        }
+#endif
 
         // Destroys a light render entity.
         public unsafe void DestroyEntity(HDLightRenderEntity lightEntity)
