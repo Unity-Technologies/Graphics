@@ -1,4 +1,3 @@
-#if SURFACE_CACHE
 using System.Collections.Generic;
 using UnityEditor.Rendering.Universal;
 using UnityEngine.PathTracing.Core;
@@ -38,6 +37,12 @@ namespace UnityEditor.Rendering
 
         internal static bool CanRemoveSurfaceCacheSettings(List<UniversalRenderPipelineAsset> urpAssets)
         {
+            // TODO: UUM-148447. Unsupported targets should ideally never ship the resources, but the support check only answers for the active target.
+            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (URPBuildData.instance.buildTarget == activeBuildTarget &&
+                !SurfaceCacheGISupport.IsSupportedByActiveBuildTarget(activeBuildTarget))
+                return true;
+
             if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings) && !urpShaderStrippingSettings.stripUnusedVariants)
                 return false;
 
@@ -108,4 +113,3 @@ namespace UnityEditor.Rendering
         }
     }
 }
-#endif

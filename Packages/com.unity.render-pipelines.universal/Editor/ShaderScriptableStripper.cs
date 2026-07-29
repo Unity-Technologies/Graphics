@@ -416,15 +416,11 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_ScreenSpaceIrradiance(ref IShaderScriptableStrippingData strippingData)
         {
-#if SURFACE_CACHE
             if (strippingData.PassHasKeyword(m_ScreenSpaceIrradiance))
             {
                 return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache) && strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance);
             }
             return false;
-#else
-            return strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance);
-#endif
         }
 
         internal bool StripUnusedFeatures_BicubicLightmapSampling(ref IShaderScriptableStrippingData strippingData)
@@ -1149,11 +1145,9 @@ namespace UnityEditor.Rendering.Universal
             // Meta pass is needed for Enlighten and Surface Cache realtime GI systems.
             if (strippingData.passType == PassType.Meta)
             {
-#if SURFACE_CACHE
                 // Keep Meta pass for Surface Cache feature
                 if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache))
                     return false;
-#endif
                 // Keep Meta pass for Enlighten realtime GI
                 if (SupportedRenderingFeatures.active.enlighten
                     && ((int)SupportedRenderingFeatures.active.lightmapBakeTypes & (int)LightmapBakeType.Realtime) != 0

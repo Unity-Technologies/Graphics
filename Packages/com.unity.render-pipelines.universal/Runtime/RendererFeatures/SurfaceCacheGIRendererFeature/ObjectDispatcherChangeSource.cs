@@ -1,4 +1,4 @@
-#if SURFACE_CACHE && (SURFACE_CACHE_SUPPORTED || UNITY_EDITOR)
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
 using Unity.Collections;

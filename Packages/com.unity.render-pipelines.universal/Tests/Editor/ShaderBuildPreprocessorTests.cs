@@ -25,9 +25,7 @@ namespace ShaderStrippingAndPrefiltering
             internal List<ScriptableRendererFeature> rendererFeatures;
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
-#if SURFACE_CACHE
             internal bool containsSurfaceCache;
-#endif
             internal bool everyRendererHasSSAO;
             internal bool everyRendererHasSSR;
 
@@ -111,11 +109,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromAsset()
             {
-#if SURFACE_CACHE
                 return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSAO, out everyRendererHasSSR);
-#else
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out everyRendererHasSSAO, out everyRendererHasSSR);
-#endif
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRenderer(RendererRequirements rendererRequirements, ShaderFeatures urpAssetShaderFeatures)
@@ -1099,7 +1093,6 @@ namespace ShaderStrippingAndPrefiltering
         }
 #pragma warning restore CS0618
 
-#if SURFACE_CACHE
         // Surface Cache Global Illumination...
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_SurfaceCacheGI()
@@ -1124,7 +1117,6 @@ namespace ShaderStrippingAndPrefiltering
 
             Object.DestroyImmediate(surfaceCacheFeature);
         }
-#endif
 
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_ScreenSpaceReflection()

@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -69,7 +67,8 @@ namespace UnityEditor.Rendering.Universal
                 Init();
 
             SurfaceCacheGIRendererFeature surfaceCacheGIRendererFeature = (SurfaceCacheGIRendererFeature)target;
-            if (!SurfaceCacheGISupport.IsSupportedByActiveBuildTarget())
+            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (!SurfaceCacheGISupport.IsSupportedByActiveBuildTarget(activeBuildTarget))
             {
                 if (surfaceCacheGIRendererFeature.isActive)
                     EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedErrorMessage, MessageType.Error);
@@ -77,7 +76,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedWarningMessage, MessageType.Warning);
             }
 
-            if (PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget))
+            if (PlayerSettings.GetStaticBatchingForPlatform(activeBuildTarget))
             {
                 CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
                     PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
@@ -114,5 +113,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-
-#endif

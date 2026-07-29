@@ -6,6 +6,9 @@ uid: urp-changelog
 
 ## [Unreleased]
 
+### Added
+- Surface Cache Global Illumination is now publicly available in URP through the Surface Cache Global Illumination Renderer Feature and the Surface Cache Global Illumination Volume Override.
+
 ### Fixed
 - Fixed a Render Graph execution error ("Adding the final blit pass when Tile-Only Mode is on") when Tile-Only Mode was enabled on displays with a non-sRGB backbuffer (for example OpenGL ES in Linear color space); Tile-Only Mode now falls back to regular rendering on those displays.
 

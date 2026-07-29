@@ -34,11 +34,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderPrefilteringData CreatePrefilteringSettings(ShaderFeatures shaderFeatures)
             {
-#if SURFACE_CACHE
                 return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, everyRendererHasSSR, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripBicubicLightmapSampling, stripReflectionProbeRotation, stripScreenSpaceIrradiance, stripUnusedVariants, ref ssaoRendererFeatures);
-#else
-                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, everyRendererHasSSR, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripBicubicLightmapSampling, stripReflectionProbeRotation, stripUnusedVariants, ref ssaoRendererFeatures);
-#endif
 
             }
 
@@ -289,7 +285,6 @@ namespace ShaderStrippingAndPrefiltering
             helper.AssertPrefilteringData(expected, actual);
 
             // Screen Space Irradiance
-#if SURFACE_CACHE
             helper.stripScreenSpaceIrradiance = false;
             expected = helper.defaultPrefilteringData;
             expected.stripScreenSpaceIrradiance = false;
@@ -300,13 +295,6 @@ namespace ShaderStrippingAndPrefiltering
             expected = helper.defaultPrefilteringData;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
             helper.AssertPrefilteringData(expected, actual);
-#else
-            helper.stripScreenSpaceIrradiance = false;
-            expected = helper.defaultPrefilteringData;
-            expected.stripScreenSpaceIrradiance = true;
-            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
-            helper.AssertPrefilteringData(expected, actual);
-#endif
         }
 
         [Test]

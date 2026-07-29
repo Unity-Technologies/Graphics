@@ -15,6 +15,8 @@ namespace UnityEditor.Rendering.Universal
 
         public bool buildingPlayerForUniversalRenderPipeline { get; private set; }
 
+        public BuildTarget buildTarget { get; private set; }
+
         public List<UniversalRenderPipelineAsset> renderPipelineAssets { get; private set; } = new List<UniversalRenderPipelineAsset>();
 
         public List<ScriptableRendererData> rendererDataList { get; private set; } = new List<ScriptableRendererData>();
@@ -22,6 +24,8 @@ namespace UnityEditor.Rendering.Universal
         public URPBuildData(BuildTarget buildTarget)
         {
             m_Instance = this;
+
+            this.buildTarget = buildTarget;
 
             buildingPlayerForUniversalRenderPipeline = CoreBuildData.instance.buildingPlayerForRenderPipeline &&
                                                        CoreBuildData.instance.currentRenderPipelineAssetType == typeof(UniversalRenderPipelineAsset);

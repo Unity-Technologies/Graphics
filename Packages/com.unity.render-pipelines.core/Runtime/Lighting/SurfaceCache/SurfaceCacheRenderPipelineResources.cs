@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using System;
 
 namespace UnityEngine.Rendering
@@ -132,5 +130,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-
-#endif

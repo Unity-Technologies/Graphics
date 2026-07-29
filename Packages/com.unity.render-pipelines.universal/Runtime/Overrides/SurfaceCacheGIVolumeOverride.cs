@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -227,8 +225,12 @@ namespace UnityEngine.Rendering.Universal
             },
         };
 
-        // Writes preset values into the backing serialized fields so users can inspect them
-        // and use them as a starting point when switching to Custom.
+        /// <summary>
+        /// Writes the values of the given quality preset into the parameters and enables their override states,
+        /// so they can be inspected and used as a starting point when switching to <see cref="PresetQuality.Custom"/>.
+        /// Has no effect when <paramref name="quality"/> is <see cref="PresetQuality.Custom"/>.
+        /// </summary>
+        /// <param name="quality">The quality preset to apply.</param>
         public void ApplyPreset(PresetQuality quality)
         {
             if (quality == PresetQuality.Custom) return;
@@ -260,6 +262,11 @@ namespace UnityEngine.Rendering.Universal
             upsamplingSampleCount.overrideState = true;
         }
 
+        /// <summary>
+        /// Returns the quality preset that matches the current parameter values,
+        /// or <see cref="PresetQuality.Custom"/> if no preset matches.
+        /// </summary>
+        /// <returns>The matching quality preset.</returns>
         public PresetQuality GetPresetQuality()
         {
             if(HasPresetOverridesEnabled())
@@ -272,6 +279,10 @@ namespace UnityEngine.Rendering.Universal
             return PresetQuality.Custom;
         }
 
+        /// <summary>
+        /// Checks whether the override states of all preset-controlled parameters are enabled.
+        /// </summary>
+        /// <returns>True if all preset-controlled parameters have their override state enabled.</returns>
         public bool HasPresetOverridesEnabled()
         {
             return multiBounce.overrideState == true
@@ -287,6 +298,11 @@ namespace UnityEngine.Rendering.Universal
                 && upsamplingSampleCount.overrideState == true;
         }
 
+        /// <summary>
+        /// Checks whether the current parameter values match the given quality preset.
+        /// </summary>
+        /// <param name="quality">The quality preset to compare against.</param>
+        /// <returns>True if the parameter values match the preset, or if <paramref name="quality"/> is <see cref="PresetQuality.Custom"/>.</returns>
         public bool HasPresetQualityValues(PresetQuality quality)
         {
             if (quality == PresetQuality.Custom) return true;
@@ -311,5 +327,3 @@ namespace UnityEngine.Rendering.Universal
 #endif
     }
 }
-
-#endif

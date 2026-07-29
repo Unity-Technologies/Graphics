@@ -74,9 +74,7 @@ namespace UnityEditor.Rendering.Universal
         DeferredPlus = (1L << 51),
         ReflectionProbeAtlas = (1L << 52),
         PointSamplingUpsampling = (1L << 53),
-#if SURFACE_CACHE
         SurfaceCache = (1L << 54),
-#endif
         ScreenSpaceReflection = (1L << 55),
         RenderObjectDepthInputAttachment = (1L << 56),
         VolumetricFog = (1L << 57),
@@ -558,17 +556,13 @@ namespace UnityEditor.Rendering.Universal
                     ref ssaoRendererFeatures,
                     stripUnusedVariants,
                     out bool containsForwardRenderer,
-#if SURFACE_CACHE
                     out bool containsSurfaceCache,
-#endif
                     out bool everyRendererHasSSAO,
                     out bool everyRendererHasSSR
                 );
 
-#if SURFACE_CACHE
                 // Check if we can strip the Screen Space Irradiance keyword. Currently, it only depends on the presence of the Surface Cache feature.
                 bool stripScreenSpaceIrradiance = !containsSurfaceCache;
-#endif
 
                 // Creates a struct containing all the prefiltering settings for this asset
                 ShaderPrefilteringData spd = CreatePrefilteringSettings(
@@ -582,9 +576,7 @@ namespace UnityEditor.Rendering.Universal
                     s_StripScreenCoordOverrideVariants,
                     s_StripBicubicLightmapSamplingVariants,
                     s_StripReflectionProbeRotationVariants,
-#if SURFACE_CACHE
                     stripScreenSpaceIrradiance,
-#endif
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
                     );
@@ -611,9 +603,7 @@ namespace UnityEditor.Rendering.Universal
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
             out bool containsForwardRenderer,
-#if SURFACE_CACHE
             out bool containsSurfaceCache,
-#endif
             out bool everyRendererHasSSAO,
             out bool everyRendererHasSSR)
         {
@@ -707,9 +697,7 @@ namespace UnityEditor.Rendering.Universal
                 ref ssaoRendererFeatures,
                 stripUnusedVariants,
                 out containsForwardRenderer,
-#if SURFACE_CACHE
                 out containsSurfaceCache,
-#endif
                 out everyRendererHasSSAO,
                 out everyRendererHasSSR);
 
@@ -724,9 +712,7 @@ namespace UnityEditor.Rendering.Universal
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
             out bool containsForwardRenderer,
-#if SURFACE_CACHE
             out bool containsSurfaceCache,
-#endif
             out bool everyRendererHasSSAO,
             out bool everyRendererHasSSR)
         {
@@ -740,9 +726,7 @@ namespace UnityEditor.Rendering.Universal
             ShaderFeatures combinedURPAssetShaderFeatures = ShaderFeatures.None;
 
             containsForwardRenderer = false;
-#if SURFACE_CACHE
             containsSurfaceCache = false;
-#endif
             everyRendererHasSSAO = true;
             everyRendererHasSSR = true;
             ScriptableRendererData[] rendererDataArray = urpAsset.m_RendererDataList;
@@ -759,10 +743,8 @@ namespace UnityEditor.Rendering.Universal
                 ShaderFeatures rendererShaderFeatures = GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref rendererData, ref ssaoRendererFeatures, ref containsForwardRenderer, urpAssetShaderFeatures);
                 rendererFeaturesList.Add(rendererShaderFeatures);
 
-#if SURFACE_CACHE
                 // Check to see if the Surface Cache feature is enabled
                 containsSurfaceCache |= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.SurfaceCache);
-#endif
 
                 // Check to see if it's possible to remove the OFF variant for SSAO
                 everyRendererHasSSAO &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
@@ -988,7 +970,6 @@ namespace UnityEditor.Rendering.Universal
                     continue;
                 }
 
-#if SURFACE_CACHE
                 // Surface Cache GI...
                 SurfaceCacheGIRendererFeature surfaceCacheFeature = rendererFeature as SurfaceCacheGIRendererFeature;
                 if(surfaceCacheFeature != null)
@@ -996,7 +977,6 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.SurfaceCache;
                     continue;
                 }
-#endif
 
                 // Screen Space Reflection (SSR)...
                 // Removing the OFF variant requires every renderer to use SSR. That is checked later.
@@ -1138,9 +1118,7 @@ namespace UnityEditor.Rendering.Universal
             bool stripScreenCoord,
             bool stripBicubicLightmap,
             bool stripReflectionProbeRotation,
-#if SURFACE_CACHE
             bool stripScreenSpaceIrradiance,
-#endif
             bool stripUnusedVariants,
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
             )
@@ -1169,11 +1147,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
             spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
             spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
-#if SURFACE_CACHE
             spd.stripScreenSpaceIrradiance = stripScreenSpaceIrradiance;
-#else
-            spd.stripScreenSpaceIrradiance = true;
-#endif
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
 
             // Rendering Modes

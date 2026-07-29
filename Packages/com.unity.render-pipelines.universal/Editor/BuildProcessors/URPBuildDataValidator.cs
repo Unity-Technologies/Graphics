@@ -35,22 +35,21 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-#if SURFACE_CACHE
         private static void ValidateSurfaceCacheSupportedOnTarget(BuildReport report, StringBuilder failures)
         {
             // GetAssemblies() only answers for the active target, so validate only that one.
-            if (report.summary.platform != EditorUserBuildSettings.activeBuildTarget)
+            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (report.summary.platform != activeBuildTarget)
                 return;
-            if (SurfaceCacheGISupport.IsSupportedByActiveBuildTarget())
+            if (SurfaceCacheGISupport.IsSupportedByActiveBuildTarget(activeBuildTarget))
                 return;
             if (!SurfaceCacheStripperUtility.IsSurfaceCacheEnabledForBuild())
                 return;
 
             failures.AppendLine(
-                $"- Surface Cache GI is enabled in a Universal Renderer but is not supported on the active build target '{EditorUserBuildSettings.activeBuildTarget}'. " +
+                $"- Surface Cache GI is enabled in a Universal Renderer but is not supported on the active build target '{activeBuildTarget}'. " +
                 "Remove the Surface Cache GI renderer feature, or build with a Renderer that does not use it.");
         }
-#endif
 
         public static bool IsProjectValidForBuilding(BuildReport report, out string message)
         {
@@ -60,9 +59,7 @@ namespace UnityEditor.Rendering.Universal
 
                 ValidateRenderPipelineAssetsAreAtLastVersion(URPBuildData.instance.renderPipelineAssets, failures);
                 ValidateRenderPipelineGlobalSettings(UniversalRenderPipelineGlobalSettings.Ensure(), failures);
-#if SURFACE_CACHE
                 ValidateSurfaceCacheSupportedOnTarget(report, failures);
-#endif
 
                 string allFailures = failures.ToString();
 

@@ -1,4 +1,4 @@
-#if SURFACE_CACHE && (SURFACE_CACHE_SUPPORTED || UNITY_EDITOR)
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
@@ -83,10 +83,14 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// The renderer feature for Surface Cache Global Illumination.
+    /// Use the <see cref="SurfaceCacheGIVolumeOverride"/> volume component to control the effect.
+    /// </summary>
     [DisallowMultipleRendererFeature("Surface Cache Global Illumination")]
     public class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
     {
-        public enum DebugViewMode_
+        internal enum DebugViewMode_
         {
             CellIndex,
             StableIrradiance,
@@ -98,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
             FlatNormal
         }
 
-        public static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
+        internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
 
         private const uint DEFAULT_DEFRAG_COUNT = 2; // Default value for how many patches to defragment per frame.
         private const float DEFAULT_VOLUME_SIZE = 128.0f; // Default value for the size of the volume in world units.
@@ -1108,6 +1112,7 @@ namespace UnityEngine.Rendering.Universal
             return _cameraPass != null;
         }
 
+        /// <inheritdoc/>
         public override void Create()
         {
             ClearResources();
@@ -1201,6 +1206,7 @@ namespace UnityEngine.Rendering.Universal
             _cameraPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
         }
 
+        /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
 #if UNITY_EDITOR
@@ -1279,6 +1285,7 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(_cameraPass);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             ClearResources();

@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -260,5 +258,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-
-#endif
