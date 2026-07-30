@@ -656,7 +656,135 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
+
+            InitGlobalShaderVars();
+
             m_ValidationHandler.OnBeginRenderGraphFrame();
+        }
+
+        void InitGlobalShaderVars()
+        {
+            UniversalGlobalShaderData shaderData = frameData.Create<UniversalGlobalShaderData>();
+            shaderData.useConstantBuffers = false;
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.topLeftUV.AsBase());
+
+                // URP CB TIER 2 WIP
+                // Once we add more shader vars from feature passes, we will fill them here
+                
+                // We need to flip when rendering offscreen for these APIs, as Unity textures are always BottomLeft UV oriented by convention
+                GenerateBottomLeftShaderVarsFromTopLeftOnes(cameraData, in shaderData.m_GlobalShaderVars.topLeftUV.AsBase(),
+                                                                       ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
+            }
+            else // GL/GLES/WebGL APIs — offscreen and backbuffer rendering share BottomLeft UV origin, only one variant needed.
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
+
+                // URP CB TIER 2 WIP
+                // Once we add more shader vars from feature passes, we will fill them here
+            }
+        }
+
+        private class InitPassData
+        {
+            internal UniversalCameraData cameraData;
+            internal UniversalGlobalShaderData shaderData;
+            internal TextureHandle target;
+        };
+
+        internal override void InitRenderGraphFrame(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddUnsafePass<InitPassData>(Profiling.initRenderGraphFrame.name, out var passData,
+                Profiling.initRenderGraphFrame))
+            {
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (InitPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    var cmd = rgContext.cmd;
+
+                    InitGlobalKeywords(cmd, data.cameraData);
+
+                    cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
+                    cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
+
+                    // Force UV Bottom Left for now, as we don't know yet if the target will be flipped or not.
+                    data.shaderData.GetDefaultVars(useUVBottomLeft: true).SetGlobals(cmd, setCameraMatrices: false);
+                });
+            }
+        }
+
+        // Renderer is responsible for init/resetting the keywords it manages
+        static void InitGlobalKeywords(IBaseCommandBuffer cmd, UniversalCameraData cameraData)
+        {
+            using var profScope = new ProfilingScope(Profiling.initGlobalKeywords);
+
+            Camera camera = cameraData.camera;
+
+            // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false); // Backward compatibility. Deprecated in 6.1.
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.VolumetricFog, false);
+
+#if (UNITY_META_QUEST)
+            cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ, camera.orthographic);
+#endif
+            cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
+            cmd.SetKeyword(ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
+        }
+
+        void SetupRenderGraphCameraProperties(RenderGraph renderGraph, in TextureHandle target)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<InitPassData>(Profiling.setupCamera.name, out var passData,
+                Profiling.setupCamera))
+            {
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
+                passData.target = target;
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (InitPassData data, RasterGraphContext context) =>
+                {
+                    bool useBottomLeftUV = !SystemInfo.graphicsUVStartsAtTop || RenderingUtils.IsHandleYFlipped(context, in data.target);
+
+                    SetupCameraProperties(context, data.cameraData, useBottomLeftUV);
+
+                    /// URP CB TIER 2 WIP - we do a distinction for XR until its incoming refactoring,
+                    /// XR currently owns the camera matrices via PushBuiltinShaderConstantsXR called in SetupCameraProperties().
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    bool setCameraMatrices = !data.cameraData.xr.enabled;
+#else
+                    const bool setCameraMatrices = true;
+#endif
+                    data.shaderData.GetDefaultVars(useBottomLeftUV).SetGlobals(context.cmd, setCameraMatrices: setCameraMatrices);
+                });
+            }
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)

@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -38,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
     /// </example>
     public abstract partial class ScriptableRenderer : IDisposable
     {
-        private static class Profiling
+        internal static class Profiling
         {
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
@@ -47,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Properties");
             public static readonly ProfilingSampler vfxProcessCamera = new ProfilingSampler($"VFX Process Camera");
             public static readonly ProfilingSampler addRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
-            public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
+            public static readonly ProfilingSampler initGlobalKeywords = new ProfilingSampler($"{k_Name}.InitGlobalKeywords");
             public static readonly ProfilingSampler internalFinishRenderingCommon = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRenderingCommon)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler("DrawGizmos"); //Todo: update to nameof(method reference) once RG version name is cleaned up
             public static readonly ProfilingSampler drawWireOverlay = new ProfilingSampler("DrawWireOverlay"); //Todo: update to nameof(method reference) once RG version name is cleaned up
@@ -57,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly ProfilingSampler setEditorTarget = new ProfilingSampler($"Set Editor Target");
         }
 
-        internal string name { get; set; } 
+        internal string name { get; set; }
 
         /// <summary>
         /// This setting controls if the camera editor should display the camera stack category.
@@ -134,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
             /// <seealso cref="CameraRenderType"/>
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead. #from(2022.2) #breakingFrom(2023.1)", true)]
-            public bool cameraStacking { get; set; } = false;            
+            public bool cameraStacking { get; set; } = false;
 
             /// <summary>
             /// This setting controls if the Universal Render Pipeline asset should expose the MSAA option.
@@ -173,59 +171,49 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        internal static void SetCameraMatrices(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices, bool isTargetFlipped)
+        internal static void SetCameraMatrices(ref BaseGlobalShaderVars vars, UniversalCameraData cameraData, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                cameraData.PushBuiltinShaderConstantsXR(cmd, isTargetFlipped);
-                XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, isTargetFlipped);
+                // URP CB TIER 2 WIP
+                // XR pushes its builtin shader constants directly through the command buffer (PushBuiltinShaderConstantsXR),
+                // which cannot be captured into the struct here. Instead, we keep calling manually through SetupRenderGraphCameraProperties() for now.
                 return;
             }
 #endif
 
             // NOTE: the URP default main view/projection matrices are the CameraData view/projection matrices.
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
-            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix(); // Jittered, non-gpu
+            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();                         // Jittered, non-gpu
+            Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix(renderIntoTexture);  // gfx api adjusted (Y-Flipped or not), used for rendering
+            Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+            Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+            Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+            // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+            // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+            // we will also change it here to avoid breaking existing shaders. (case 1257518)
+            Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
+            Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
 
-            // TODO: Investigate why SetViewAndProjectionMatrices is causing y-flip / winding order issue
-            // for now using cmd.SetViewProjecionMatrices
-            //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
-
-            // Set the default view/projection, note: projectionMatrix will be set as a gpu-projection (gfx api adjusted) for rendering.
-            cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
-            if (setInverseMatrices)
-            {
-                Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix(isTargetFlipped); // TODO: invProjection might NOT match the actual projection (invP*P==I) as the target flip logic has diverging paths.
-                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
-                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
-
-                // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
-                // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
-                // we will also change it here to avoid breaking existing shaders. (case 1257518)
-                Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
-                Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
-                cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
-
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
-            }
-
-            // TODO: Add SetPerCameraClippingPlaneProperties here once we are sure it correctly behaves in overlay camera for some time
+            vars.unity_MatrixV = viewMatrix;
+            vars.glstate_matrix_projection = gpuProjectionMatrix;
+            vars._ProjectionMatrix = projectionMatrix;
+            vars.unity_MatrixVP = gpuProjectionMatrix * viewMatrix;
+            vars.unity_WorldToCamera = worldToCameraMatrix;
+            vars.unity_CameraToWorld = cameraToWorldMatrix;
+            vars.unity_MatrixInvV = inverseViewMatrix;
+            vars.unity_MatrixInvP = inverseProjectionMatrix;
+            vars.unity_MatrixInvVP = inverseViewProjection;
         }
 
-        void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, bool isTargetFlipped)
+        void SetPerCameraShaderVariables(ref BaseGlobalShaderVars vars, UniversalCameraData cameraData)
         {
-            using var profScope = new ProfilingScope(Profiling.setPerCameraShaderVariables);
-
             Camera camera = cameraData.camera;
 
-            float scaledCameraTargetWidth = (float)cameraTargetSizeCopy.x;
-            float scaledCameraTargetHeight = (float)cameraTargetSizeCopy.y;
+            Vector2Int cameraTargetSize = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+            float scaledCameraTargetWidth = (float)cameraTargetSize.x;
+            float scaledCameraTargetHeight = (float)cameraTargetSize.y;
             float cameraWidth = (float)camera.pixelWidth;
             float cameraHeight = (float)camera.pixelHeight;
 
@@ -241,12 +229,8 @@ namespace UnityEngine.Rendering.Universal
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
-                cameraWidth = (float)cameraTargetSizeCopy.x;
-                cameraHeight = (float)cameraTargetSizeCopy.y;
-
-                // Multi-pass needs to set unity_StereoEyeIndex builtin param for skybox-panoramic.shader to work correctly (UUM-120719)
-                if (!cameraData.xr.singlePassEnabled)
-                    cmd.SetGlobalVector(XRBuiltinShaderConstants.unity_StereoEyeIndex, new Vector4(cameraData.xr.multipassId, 0, 0, 0));
+                cameraWidth = (float)cameraTargetSize.x;
+                cameraHeight = (float)cameraTargetSize.y;
             }
 
             if (camera.allowDynamicResolution)
@@ -260,15 +244,10 @@ namespace UnityEngine.Rendering.Universal
             float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;
             float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
             float isOrthographic = camera.orthographic ? 1.0f : 0.0f;
-#if (UNITY_META_QUEST)
-            cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ, camera.orthographic);
-#endif
+
             // From http://www.humus.name/temp/Linearize%20depth.txt
             // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
             // the same constants for both D3D and OpenGL here.
-            // OpenGL would be this:
-            // zc0 = (1.0 - far / near) / 2.0;
-            // zc1 = (1.0 + far / near) / 2.0;
             // D3D is this:
             float zc0 = 1.0f - far * invNear;
             float zc1 = far * invNear;
@@ -283,33 +262,21 @@ namespace UnityEngine.Rendering.Universal
                 zBufferParams.z = -zBufferParams.z;
             }
 
-            // Projection flip sign logic is very deep in GfxDevice::SetInvertProjectionMatrix
-            // This setup is tailored especially for overlay camera game view
-            // For other scenarios this will be overwritten correctly by SetupCameraProperties
-            if (cameraData.renderType == CameraRenderType.Overlay)
-            {
-                float projectionFlipSign = isTargetFlipped ? -1.0f : 1.0f;
-                Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
-                cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
-            }
-
-            Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
-            cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
-            cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
-
-            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight));
-            cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
-            cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
-            cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
-
+            vars._WorldSpaceCameraPosVec4 = new Vector4(cameraData.worldSpaceCameraPos.x, cameraData.worldSpaceCameraPos.y, cameraData.worldSpaceCameraPos.z, 0.0f);
+            vars._ScreenParams = new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight);
+            vars._ScaledScreenParams = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight);
+            vars._ZBufferParams = zBufferParams;
+            // Projection flip sign is +1 for the backbuffer/natural-orientation variant, we will switch it in GenerateBottomLeftShaderVarsFromTopLeftOnes() if needed
+            vars._ProjectionParams = new Vector4(1.0f, near, far, 1.0f * invFar);
+            vars.unity_OrthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
+            vars._ScreenSize = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight);
+            vars._ScreenSizeOverride = cameraData.screenSizeOverride;
+            vars._ScreenCoordScaleBias = cameraData.screenCoordScaleBias;
             // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
             // TODO(@sandy-carter) set to RTHandles.rtHandleProperties.rtHandleScale once dynamic scaling is set up
-            cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
+            vars._RTHandleScale = Vector4.one;
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             float mipBias;
@@ -332,32 +299,25 @@ namespace UnityEngine.Rendering.Universal
                 float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
                 mipBias = Math.Min(mipBias, taaMipBias);
             }
-            cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
+            vars._GlobalMipBiasVec4 = new Vector4(mipBias, Mathf.Pow(2.0f, mipBias), 0.0f, 0.0f);
 
-            //Set per camera matrices.
-            SetCameraMatrices(cmd, cameraData, true, isTargetFlipped);
+            //Set per camera matrices for the backbuffer variant.
+            SetCameraMatrices(ref vars, cameraData, renderIntoTexture: false);
         }
 
-        /// <summary>
-        /// Set the Camera billboard properties.
-        /// </summary>
-        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
-        /// <param name="cameraData">CameraData containing camera matrices information.</param>
-        void SetPerCameraBillboardProperties(RasterCommandBuffer cmd, UniversalCameraData cameraData)
+        void SetPerCameraBillboardProperties(ref BaseGlobalShaderVars vars, UniversalCameraData cameraData)
         {
             Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
             Vector3 cameraPos = cameraData.worldSpaceCameraPos;
-
-            cmd.SetKeyword(ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
 
             Vector3 billboardTangent;
             Vector3 billboardNormal;
             float cameraXZAngle;
             CalculateBillboardProperties(worldToCameraMatrix, out billboardTangent, out billboardNormal, out cameraXZAngle);
 
-            cmd.SetGlobalVector(ShaderPropertyId.billboardNormal, new Vector4(billboardNormal.x, billboardNormal.y, billboardNormal.z, 0.0f));
-            cmd.SetGlobalVector(ShaderPropertyId.billboardTangent, new Vector4(billboardTangent.x, billboardTangent.y, billboardTangent.z, 0.0f));
-            cmd.SetGlobalVector(ShaderPropertyId.billboardCameraParams, new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, cameraXZAngle));
+            vars.unity_BillboardNormal = new Vector4(billboardNormal.x, billboardNormal.y, billboardNormal.z, 0.0f);
+            vars.unity_BillboardTangent = new Vector4(billboardTangent.x, billboardTangent.y, billboardTangent.z, 0.0f);
+            vars.unity_BillboardCameraParams = new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, cameraXZAngle);
         }
 
         private static void CalculateBillboardProperties(
@@ -398,7 +358,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraXZAngle += 2 * Mathf.PI;
         }
 
-        private void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, in UniversalCameraData cameraData, bool isTargetFlipped)
+        static void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, in UniversalCameraData cameraData, bool isTargetFlipped)
         {
             Matrix4x4 projectionMatrix = cameraData.GetGPUProjectionMatrix(isTargetFlipped);
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
@@ -414,15 +374,34 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVectorArray(ShaderPropertyId.cameraWorldClipPlanes, cameraWorldClipPlanes);
         }
 
-        /// <summary>
-        /// Set shader time variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-        /// </summary>
-        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
-        /// <param name="time">Time.</param>
-        /// <param name="deltaTime">Delta time.</param>
-        /// <param name="smoothDeltaTime">Smooth delta time.</param>
-        static void SetShaderTimeValues(IBaseCommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)
+        // URP CB TIER 2 WIP - XR is still using the non-centralized loose uniforms path for now.
+        static void SetupXRShaderConstants(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool isTargetFlipped)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (!cameraData.xr.enabled)
+                return;
+
+            // Previously the XR branch of SetCameraMatrices.
+            cameraData.PushBuiltinShaderConstantsXR(cmd, isTargetFlipped);
+            XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, isTargetFlipped);
+
+            // Previously the XR branch of SetPerCameraShaderVariables:
+            // multi-pass needs unity_StereoEyeIndex for skybox-panoramic.shader (UUM-120719).
+            if (!cameraData.xr.singlePassEnabled)
+                cmd.SetGlobalVector(XRBuiltinShaderConstants.unity_StereoEyeIndex, new Vector4(cameraData.xr.multipassId, 0, 0, 0));
+#endif
+        }
+
+        static void SetShaderTimeValues(ref BaseGlobalShaderVars vars)
+        {
+#if UNITY_EDITOR
+            float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+#else
+            float time = Time.time;
+#endif
+            float deltaTime = Time.deltaTime;
+            float smoothDeltaTime = Time.smoothDeltaTime;
+
             float timeEights = time / 8f;
             float timeFourth = time / 4f;
             float timeHalf = time / 2f;
@@ -437,12 +416,33 @@ namespace UnityEngine.Rendering.Universal
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
             Vector4 lastTimeParametersVector = new Vector4(lastTime, Mathf.Sin(lastTime), Mathf.Cos(lastTime), 0.0f);
 
-            cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
-            cmd.SetGlobalVector(ShaderPropertyId.lastTimeParameters, lastTimeParametersVector);
+            vars._Time = timeVector;
+            vars._SinTime = sinTimeVector;
+            vars._CosTime = cosTimeVector;
+            vars.unity_DeltaTime = deltaTimeVector;
+            vars._TimeParameters = timeParametersVector;
+            vars._LastTimeParameters = lastTimeParametersVector;
+        }
+
+        // Builds the base shader vars for the backbuffer / natural-orientation target
+        // On some graphics APIs, the offscreen Y-flipped variant is derived via GenerateBottomLeftShaderVarsFromTopLeftOnes
+        internal void BuildBaseGlobalShaderVars(UniversalCameraData cameraData, ref BaseGlobalShaderVars vars)
+        {
+            SetPerCameraShaderVariables(ref vars, cameraData);
+            SetPerCameraBillboardProperties(ref vars, cameraData);
+            SetShaderTimeValues(ref vars);
+        }
+
+        // On top left UV oriented graphics APIs (D3D/Metal/Vulkan), we fill the Y-flipped bottom left UV oriented set of shader vars
+        // from the top left ones.
+        internal static void GenerateBottomLeftShaderVarsFromTopLeftOnes(
+            UniversalCameraData cameraData,
+            in BaseGlobalShaderVars topLeftVars,
+            ref BaseGlobalShaderVars bottomLeftVars)
+        {
+            bottomLeftVars = topLeftVars;
+            bottomLeftVars._ProjectionParams.x = -1.0f;
+            SetCameraMatrices(ref bottomLeftVars, cameraData, renderIntoTexture: true);
         }
 
         /// <summary>
@@ -613,30 +613,127 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        private void InitRenderGraphFrame(RenderGraph renderGraph)
+        // Default implementation set the global shader vars contained in BaseGlobalShaderVars
+        // URP 3D and 2D will set their own list of global shader vars
+        internal virtual void InitRenderGraphFrame(RenderGraph renderGraph)
         {
-            using (var builder = renderGraph.AddUnsafePass<PassData>(Profiling.initRenderGraphFrame.name, out var passData,
+            InitBaseGlobalShaderVars();
+
+            using (var builder = renderGraph.AddUnsafePass<InitPassData>(Profiling.initRenderGraphFrame.name, out var passData,
                 Profiling.initRenderGraphFrame))
             {
-                passData.renderer = this;
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<DefaultGlobalShaderData>();
 
-                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc(static (PassData data, UnsafeGraphContext rgContext) =>
+                builder.SetRenderFunc(static (InitPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    UnsafeCommandBuffer cmd = rgContext.cmd;
-#if UNITY_EDITOR
-                    float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
-#else
-                    float time = Time.time;
-#endif
-                    float deltaTime = Time.deltaTime;
-                    float smoothDeltaTime = Time.smoothDeltaTime;
+                    var cmd = rgContext.cmd;
 
-                    ClearRenderingState(cmd);
-                    SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                    InitDefaultGlobalKeywords(cmd, data.cameraData);
+
+                    data.shaderData.GetDefaultVars(useUVBottomLeft: true).SetGlobals(cmd, setCameraMatrices: false);
                 });
             }
+        }
+
+        // Default per-frame keyword reset that covers the URP-common
+        // forward-pipeline keywords that a standard URP shader could consume. 
+        // URP 3D ships its own InitGlobalKeywords.
+        internal static void InitDefaultGlobalKeywords(IBaseCommandBuffer cmd, UniversalCameraData cameraData)
+        {
+            using var profScope = new ProfilingScope(Profiling.initGlobalKeywords);
+
+            Camera camera = cameraData.camera;
+
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
+
+#if (UNITY_META_QUEST)
+            cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ, camera.orthographic);
+#endif
+            cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
+            cmd.SetKeyword(ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
+        }
+
+        void InitBaseGlobalShaderVars()
+        {
+            var shaderData = frameData.Create<DefaultGlobalShaderData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.topLeftUV);
+                // We need to flip when rendering offscreen for these APIs, as Unity textures are always BottomLeft UV oriented by convention
+                GenerateBottomLeftShaderVarsFromTopLeftOnes(cameraData, in shaderData.m_GlobalShaderVars.topLeftUV,
+                                                                       ref shaderData.m_GlobalShaderVars.bottomLeftUV);
+            }
+            else // GL/GLES/WebGL APIs — offscreen and backbuffer rendering share BottomLeft UV origin, only one variant needed.
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.bottomLeftUV);
+            }
+        }
+
+        // Default Camera setup that can be called by a custom ScriptableRenderer, URP 3D and 2D renderers have their own implementations
+        internal void SetupRenderGraphDefaultCameraProperties(RenderGraph renderGraph, in TextureHandle target)
+        {
+            Debug.Assert(this is not UniversalRenderer);
+
+            using (var builder = renderGraph.AddRasterRenderPass<InitPassData>(Profiling.setupCamera.name, out var passData,
+                Profiling.setupCamera))
+            {
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<DefaultGlobalShaderData>();
+                passData.target = target;
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (InitPassData data, RasterGraphContext context) =>
+                {
+                    bool useBottomLeftUV = !SystemInfo.graphicsUVStartsAtTop || RenderingUtils.IsHandleYFlipped(context, in data.target);
+
+                    SetupCameraProperties(context, data.cameraData, useBottomLeftUV);
+
+                    /// URP CB TIER 2 WIP - we do a distinction for XR until its incoming refactoring,
+                    /// XR currently owns the camera matrices via PushBuiltinShaderConstantsXR called in SetupCameraProperties().
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    bool setCameraMatrices = !data.cameraData.xr.enabled;
+#else
+                    const bool setCameraMatrices = true;
+#endif
+                    data.shaderData.GetDefaultVars(useBottomLeftUV).SetGlobals(context.cmd, setCameraMatrices: setCameraMatrices);
+                });
+            }
+        }
+
+        static internal void SetupCameraProperties(RasterGraphContext context, UniversalCameraData cameraData, bool useBottomLeftUV)
+        {
+            // This is still required because of the following reasons:
+            // - Camera billboard properties.
+            // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+            // - _ProjectionParams.x logic is deep inside GfxDevice
+            // The side effect is that this will override some shader properties we already setup and we will have to
+            // reset them.
+            if (cameraData.renderType == CameraRenderType.Base)
+            {
+                context.cmd.SetupCameraProperties(cameraData.camera);
+            }
+            else
+            {
+                SetPerCameraClippingPlaneProperties(context.cmd, in cameraData, useBottomLeftUV);
+            }
+
+            SetupXRShaderConstants(context.cmd, cameraData, useBottomLeftUV);
         }
 
         private class VFXProcessCameraPassData
@@ -680,58 +777,6 @@ namespace UnityEngine.Rendering.Universal
 
             }
         }
-
-        internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, in TextureHandle target)
-        {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(Profiling.setupCamera.name, out var passData,
-                Profiling.setupCamera))
-            {
-                passData.renderer = this;
-                passData.cameraData = frameData.Get<UniversalCameraData>();
-                passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
-                passData.target = target;
-
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
-                {
-                    bool yFlipped = SystemInfo.graphicsUVStartsAtTop && RenderingUtils.IsHandleYFlipped(context, in data.target);
-
-                    // This is still required because of the following reasons:
-                    // - Camera billboard properties.
-                    // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
-                    // - _ProjectionParams.x logic is deep inside GfxDevice
-                    // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
-                    // is because this need to be called for each eye in multi pass VR.
-                    // The side effect is that this will override some shader properties we already setup and we will have to
-                    // reset them.
-                    if (data.cameraData.renderType == CameraRenderType.Base)
-                    {
-                        context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, yFlipped);
-                    }
-                    else
-                    {
-                        // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, yFlipped);
-                        data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, yFlipped);
-                        data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
-                    }
-
-#if UNITY_EDITOR
-                    float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
-#else
-                    float time = Time.time;
-#endif
-                    float deltaTime = Time.deltaTime;
-                    float smoothDeltaTime = Time.smoothDeltaTime;
-
-                    // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
-                    SetShaderTimeValues(context.cmd, time, deltaTime, smoothDeltaTime);
-                });
-            }
-        }
-
 
         private class DrawGizmosPassData
         {
@@ -938,16 +983,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private class PassData
+        private class InitPassData
         {
-            internal ScriptableRenderer renderer;
             internal UniversalCameraData cameraData;
+            internal DefaultGlobalShaderData shaderData;
             internal TextureHandle target;
-
-            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
-            internal Vector2Int cameraTargetSizeCopy;
         };
-
 
         /// <summary>
         /// TODO RENDERGRAPH
@@ -1043,7 +1084,7 @@ namespace UnityEngine.Rendering.Universal
         {
             RecordCustomRenderGraphPasses(renderGraph, injectionPoint, injectionPoint);
         }
-        
+
         /// <summary>
         /// Enqueues a render pass for execution.
         /// </summary>
@@ -1170,36 +1211,6 @@ namespace UnityEngine.Rendering.Universal
                 if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
-        }
-        
-        static void ClearRenderingState(IBaseCommandBuffer cmd)
-        {
-            using var profScope = new ProfilingScope(Profiling.clearRenderingState);
-
-            // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
-            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false); // Backward compatibility. Deprecated in 6.1.
-            cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.VolumetricFog, false);
-            cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
-            cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
         }
 
         // Scene filtering is enabled when in prefab editing mode

@@ -462,16 +462,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
                 if (ppc != null && ppc.enabled)
                 {
-                    if (ppc.offscreenRTSize != Vector2Int.zero)
-                    {
-                        forceCreateColorTexture = true;
-
-                        // Pixel Perfect Camera may request a different RT size than camera VP size.
-                        // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
-                        cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
-                        cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
-                    }
-
+                    forceCreateColorTexture = (ppc.offscreenRTSize != Vector2Int.zero);
+   
                     cameraTargetFilterMode = FilterMode.Point;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
 
@@ -805,6 +797,114 @@ namespace UnityEngine.Rendering.Universal
 
 			universal2DResourceData.InitFrame();
             commonResourceData.InitFrame();
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+
+            ApplyPixelPerfectCameraDataOverride(cameraData);
+
+            InitGlobalShaderVars(cameraData);
+        }
+
+        void ApplyPixelPerfectCameraDataOverride(UniversalCameraData cameraData)
+        {
+            // Pixel Perfect Camera doesn't support camera stacking.
+            if (cameraData.renderType != CameraRenderType.Base || !cameraData.resolveFinalTarget)
+                return;
+
+            if (!cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc) || !ppc.enabled)
+                return;
+
+            if (ppc.offscreenRTSize == Vector2Int.zero)
+                return;
+
+            ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
+            cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
+            cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
+        }
+
+        void InitGlobalShaderVars(UniversalCameraData cameraData)
+        {
+            Universal2DGlobalShaderData shaderData = frameData.Create<Universal2DGlobalShaderData>();
+            shaderData.useConstantBuffers = false;
+
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.topLeftUV.AsBase());
+                
+                // URP CB TIER 2 WIP
+                // Once we add more shader vars from feature passes, we will fill them here
+                
+                // We need to flip when rendering offscreen for these APIs, as Unity textures are always BottomLeft UV oriented by convention
+                GenerateBottomLeftShaderVarsFromTopLeftOnes(cameraData, in shaderData.m_GlobalShaderVars.topLeftUV.AsBase(),
+                                                                       ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
+            }
+            else // GL/GLES/WebGL APIs — offscreen and backbuffer rendering share BottomLeft UV origin, only one variant needed.
+            {
+                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
+                
+                // URP CB TIER 2 WIP
+
+                // Once we add more shader vars from feature passes, we will fill them here
+            }
+        }
+
+        private class InitPassData
+        {
+            internal UniversalCameraData cameraData;
+            internal Universal2DGlobalShaderData shaderData;
+            internal TextureHandle target;
+        };
+
+        internal override void InitRenderGraphFrame(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddUnsafePass<InitPassData>(Profiling.initRenderGraphFrame.name, out var passData,
+                Profiling.initRenderGraphFrame))
+            {
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<Universal2DGlobalShaderData>();
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (InitPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    var cmd = rgContext.cmd;
+
+                    // Renderer is responsible for init/resetting the keywords it manages, for now we can use the default reset
+                    InitDefaultGlobalKeywords(cmd, data.cameraData);
+
+                    // Force UV Bottom Left for now, as we don't know yet if the target will be flipped or not.
+                    data.shaderData.GetDefaultVars(useUVBottomLeft: true).SetGlobals(cmd, setCameraMatrices: false);
+                });
+            }
+        }
+
+        void SetupRenderGraphCameraProperties(RenderGraph renderGraph, in TextureHandle target)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<InitPassData>(Profiling.setupCamera.name, out var passData,
+                Profiling.setupCamera))
+            {
+                passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.shaderData = frameData.Get<Universal2DGlobalShaderData>();
+                passData.target = target;
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (InitPassData data, RasterGraphContext context) =>
+                {
+                    bool useBottomLeftUV = !SystemInfo.graphicsUVStartsAtTop || RenderingUtils.IsHandleYFlipped(context, in data.target);
+
+                    SetupCameraProperties(context, data.cameraData, useBottomLeftUV);
+
+                    /// URP CB TIER 2 WIP - we do a distinction for XR until its incoming refactoring,
+                    /// XR currently owns the camera matrices via PushBuiltinShaderConstantsXR called in SetupCameraProperties().
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    bool setCameraMatrices = !data.cameraData.xr.enabled;
+#else
+                    const bool setCameraMatrices = true;
+#endif
+                    data.shaderData.GetDefaultVars(useBottomLeftUV).SetGlobals(context.cmd, setCameraMatrices: setCameraMatrices);
+                });
+            }
         }
 
         internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent2D eventStart, int batchIndex = -1)

@@ -1091,7 +1091,6 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 UniversalLightData lightData;
                 UniversalShadowData shadowData;
-                CullContextData cullData;
 
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData, camera))
                 {
@@ -1100,7 +1099,7 @@ namespace UnityEngine.Rendering.Universal
                     shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
                     CreateRenderingData(frameData, asset, cmd, renderingMode, cameraData.renderer);
-                    cullData = CreateCullContextData(frameData, context);
+                    CreateCullContextData(frameData, context);
                 }
 
                 RenderingData legacyRenderingData = new RenderingData(frameData);

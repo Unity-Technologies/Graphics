@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnBeginRenderGraphFrame()
         {
+            base.OnBeginRenderGraphFrame();
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
         }
@@ -124,7 +126,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-
             ImportResourceParams importBackbufferParams = new ImportResourceParams();
             importBackbufferParams.clearOnFirstUse = true;
             importBackbufferParams.clearColor = cameraData.backgroundColor;
@@ -133,7 +134,7 @@ namespace UnityEngine.Rendering.Universal
             var targetHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferParams);
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
-            SetupRenderGraphCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
+            SetupRenderGraphDefaultCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
 
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }
