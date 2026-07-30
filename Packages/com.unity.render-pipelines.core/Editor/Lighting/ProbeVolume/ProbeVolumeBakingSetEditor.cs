@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginProperty(position, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, 1, 1 << 30);
+            int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, range.min, range.max);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = Mathf.ClosestPowerOfTwo(newValue);
 
