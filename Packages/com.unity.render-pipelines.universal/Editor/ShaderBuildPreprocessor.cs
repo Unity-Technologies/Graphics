@@ -516,9 +516,12 @@ namespace UnityEditor.Rendering.Universal
                     // Update the Prefiltering settings for this URP asset
                     urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                    // Save the asset before build
-                    EditorUtility.SetDirty(urpAsset);
-                    AssetDatabase.SaveAssetIfDirty(urpAsset);
+                    if (!AssetDatabase.IsAssetImportWorkerProcess())
+                    {
+                        // Save the asset before build
+                        EditorUtility.SetDirty(urpAsset);
+                        AssetDatabase.SaveAssetIfDirty(urpAsset);
+                    }
                 }
             }
         }
@@ -587,9 +590,12 @@ namespace UnityEditor.Rendering.Universal
                 // Update the Prefiltering settings for this URP asset
                 urpAsset.UpdateShaderKeywordPrefiltering(ref spd);
 
-                // Save the asset before build
-                EditorUtility.SetDirty(urpAsset);
-                AssetDatabase.SaveAssetIfDirty(urpAsset);
+                if (!AssetDatabase.IsAssetImportWorkerProcess())
+                {
+                    // Save the asset before build
+                    EditorUtility.SetDirty(urpAsset);
+                    AssetDatabase.SaveAssetIfDirty(urpAsset);
+                }
 
                 // Clean up
                 ssaoRendererFeatures.Clear();
