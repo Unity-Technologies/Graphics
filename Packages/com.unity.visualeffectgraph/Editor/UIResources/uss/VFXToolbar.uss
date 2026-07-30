@@ -82,6 +82,11 @@ Button:hover, Toggle:hover
     background-color: var(--unity-colors-toolbar_button-background-hover);
 }
 
+.popup Button:hover, .popup Toggle:hover
+{
+    background-color: var(--unity-colors-highlight-background);
+}
+
 Button:disabled
 {
     opacity: 0.5;
