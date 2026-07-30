@@ -53,6 +53,7 @@ CBUFFER_START(cb0)
     float4 _BloomBicubicParams;
     float4 _DebugFlags;
     float4 _AlphaScaleBias;
+    float4 _PreExposureCorrectionParams; // x: 1 to apply pre-exposure correction, 0 to skip it (reset frames)
 CBUFFER_END
 
 #define DistCenter              _DistortionParams1.xy
@@ -75,6 +76,7 @@ CBUFFER_END
 #define VignetteOpacity         _VignetteColor.w
 
 #define PostExposure            _LogLut3D_Params.z
+#define PreExposureCorrectionEnabled _PreExposureCorrectionParams.x
 
 #define NeedLUT                 _LogLut3D_Params.w
 
@@ -176,7 +178,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     // When the HDCamera is reset, post-processing history and exposure resets as well, leaving the default value for the current
     // previous exposure frame even though the current exposure is still be valid (the frame was pre-exposed with a non default value).
     // To avoid this case we don't perform exposure compensation if the current frame exposure is the default value.
-    if (currentFrameExposure != 1)
+    if (PreExposureCorrectionEnabled != 0 && currentFrameExposure != 1)
     {
         // Find the original color of the pixel as if it was not exposed, hence removing the previous frame exposure from current frame.
         float3 nonExposedColor = color.rgb / previousFrameExposure;

@@ -5593,6 +5593,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 alphaScaleBias;
 
+            public bool exposureCompensationEnabled;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle logLut;
@@ -5660,6 +5662,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareUberBloomParameters(passData, hdCamera);
                 PrepareAlphaScaleParameters(passData, hdCamera);
 
+                passData.exposureCompensationEnabled = !hdCamera.resetPostProcessingHistory && !hdCamera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(hdCamera);
+
                 passData.source = source;
                 builder.UseTexture(passData.source, AccessFlags.Read);
                 passData.bloomTexture = bloomTexture;
@@ -5702,6 +5706,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Alpha scale and bias (only used when alpha is enabled)
                         natCmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);
+
+                        natCmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._PreExposureCorrectionParams, new Vector4(data.exposureCompensationEnabled ? 1f : 0f, 0f, 0f, 0f));
 
                         // Dispatch uber post
                         natCmd.SetComputeVectorParam(data.uberPostCS, "_DebugFlags", new Vector4(data.outputColorLog ? 1 : 0, 0, 0, data.isSearchingInHierarchy ? 1 : 0));
