@@ -328,9 +328,19 @@ namespace UnityEngine.Rendering
             while (job.currentStep < job.stepCount)
                 job.Step();
 
-            foreach (var cell in m_BakingBatch.cells)
+            for (int c = 0; c < m_BakingBatch.cells.Count; ++c)
             {
+                var cell = m_BakingBatch.cells[c];
                 int numProbes = cell.probePositions.Length;
+
+                // Might have no offset vectors, if the previous bake wasn't using virtual offsets.
+                // If so, initialize them so the user can still preview what the offsets will do.
+                if (cell.offsetVectors == null)
+                {
+                    cell.offsetVectors = new Vector3[numProbes];
+                    m_BakingBatch.cells[c] = cell;
+                }
+
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = cell.probeIndices[i];
