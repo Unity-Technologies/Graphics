@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using Object = UnityEngine.Object;
 using UnityEngine.MultipleSRPGraphicsTest;
 
@@ -47,6 +48,7 @@ public class BaseGraphicsTests
     [MultipleSRPGraphicsTest("Assets/CrossPipelineFallbackTests")]
     [Timeout(300 * 1000)]
     [Ignore("Leaves GPU/compute state that fails CustomAlphaTestedPickingPass_URP on Windows/DX11 in the same session. UUM-147593.")]
+    [TestNotSupportedOn("0001_SwitchPipeline|0002_FallbackTest", "XR-reuse capture reads the screen at window size, so it cannot honour the test's target resolution", StereoRenderingContext.StereoEnabled)]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (string.IsNullOrEmpty(testCase.ScenePath))

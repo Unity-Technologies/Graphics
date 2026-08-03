@@ -3,6 +3,7 @@
     "references": [
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics.Contexts",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Testing.HDRP.CrossPipeline.Runtime"

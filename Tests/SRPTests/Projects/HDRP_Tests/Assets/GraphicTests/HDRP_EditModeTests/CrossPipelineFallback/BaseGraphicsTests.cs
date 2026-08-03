@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using Object = UnityEngine.Object;
 using UnityEngine.MultipleSRPGraphicsTest;
 
@@ -46,6 +47,7 @@ public class BaseGraphicsTests
     [UnityTest, Category("Base")]
     [MultipleSRPGraphicsTest("Assets/CrossPipelineFallbackTests")]
     [Timeout(300 * 1000)]
+    [TestNotSupportedOn("0001_SwitchPipeline|0002_FallbackTest", "XR-reuse capture reads the screen at window size, so it cannot honour the test's target resolution", StereoRenderingContext.StereoEnabled)]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (string.IsNullOrEmpty(testCase.ScenePath))
