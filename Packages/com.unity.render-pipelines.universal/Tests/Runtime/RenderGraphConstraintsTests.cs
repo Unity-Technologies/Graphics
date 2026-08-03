@@ -337,6 +337,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             }
         }
 
+        [HideInInspector]
         class TestScriptableRendererFeature : ScriptableRendererFeature
         {
             TestScriptableRendererPass m_TestScriptableRendererPass;
