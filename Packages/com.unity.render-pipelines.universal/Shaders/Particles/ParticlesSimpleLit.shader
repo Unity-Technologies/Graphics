@@ -378,6 +378,9 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // Includes
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthNormalsPass.hlsl"
+
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             ENDHLSL
         }
         // ------------------------------------------------------------------

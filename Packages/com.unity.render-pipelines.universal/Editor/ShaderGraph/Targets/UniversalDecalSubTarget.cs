@@ -966,17 +966,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection ForwardEmissiveProjector = new KeywordCollection
             {
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection ScreenSpaceMeshGl = new KeywordCollection

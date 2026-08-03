@@ -802,6 +802,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     keywords = new KeywordCollection
                     {
                         CoreKeywordDescriptors.WriteSmoothness,
+                        CoreKeywordDescriptors.GBufferNormalsOct,
                         LitKeywords.ScreenSpaceReflectionsOff,
                     },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
