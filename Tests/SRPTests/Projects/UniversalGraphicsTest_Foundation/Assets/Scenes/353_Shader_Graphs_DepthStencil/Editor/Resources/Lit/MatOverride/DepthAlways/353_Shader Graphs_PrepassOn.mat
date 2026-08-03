@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -21,8 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 353_Shader Graphs_PrepassOn
-  m_Shader: {fileID: -6465566751694194690, guid: da5bd72177af6de48bd3699cb787c7ff,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: da5bd72177af6de48bd3699cb787c7ff, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -76,6 +76,7 @@ Material:
     - _AlphaClipThreshold: 0.33
     - _BillboardKwToggle: 1
     - _BillboardShadowFade: 0.5
+    - _Cull: 0
     - _Glossiness: 1
     - _HueVariationKwToggle: 0
     - _Metallic: 0
@@ -83,6 +84,8 @@ Material:
     - _OldHueVarBehavior: 0
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
     - _SubsurfaceIndirect: 0.25
     - _SubsurfaceKwToggle: 0
     - _TwoSided: 2

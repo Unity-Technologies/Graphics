@@ -8,13 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 353_PrepassOff
-  m_Shader: {fileID: -6465566751694194690, guid: 87d9c8643b13afb42b828784a66bbaec,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 87d9c8643b13afb42b828784a66bbaec, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2045
@@ -39,8 +38,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Cull: 2
     - _QueueControl: 1
     - _QueueOffset: 7
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
@@ -56,4 +58,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11

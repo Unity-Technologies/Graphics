@@ -214,6 +214,7 @@ MonoBehaviour:
       - rid: 6535566473957998596
       - rid: 6535566473957998597
       - rid: 6535566473957998598
+      - rid: 7182773092123672577
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -941,3 +942,20 @@ MonoBehaviour:
       data:
         m_Version: 1
         m_EnableMaskAndCurrentWaterDecals: 1
+    - rid: 7182773092123672577
+      type: {class: SurfaceCacheRenderPipelineResourceSet, ns: UnityEngine.Rendering, asm: Unity.SurfaceCache.Runtime}
+      data:
+        m_Version: 4
+        m_TemporalFilteringShader: {fileID: 7200000, guid: c23523f04780d754f927b9daf4f975b9, type: 3}
+        m_SpatialFilteringShader: {fileID: 7200000, guid: 63e59de460463bb4c9d64bc58051d12c, type: 3}
+        m_ScrollingShader: {fileID: 7200000, guid: 47bbc3edf61978b498603cc2a1b87eea, type: 3}
+        m_GlobalProbeShader: {fileID: 7200000, guid: 4dccb71ac6af46018e56b6ccc3974c80, type: 3}
+        m_DefragShader: {fileID: 7200000, guid: a183a2d0b1da4904fb3bd71c6111ebb1, type: 3}
+        m_EvictionShader: {fileID: 7200000, guid: c9f2aeed6ef396f4d9134e4da1edfe19, type: 3}
+        m_PatchAllocationShader: {fileID: 7200000, guid: b271ec1ddd8048458fa529e8e7cfe960, type: 3}
+        m_PunctualLightSamplingComputeShader: {fileID: -6772857160820960102, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+        m_PunctualLightSamplingRayTracingShader: {fileID: -5126288278712620388, guid: f32463968f29423cad25aee15a14b9f1, type: 3}
+        m_EmissiveTriangleAdditionComputeShader: {fileID: 7200000, guid: 2e583cebf11e4785b8a5b0d8f7b20ab6, type: 3}
+        m_EmissiveTriangleRemovalComputeShader: {fileID: 7200000, guid: 3d386645a85b4e758a7b7eb1bf87fa24, type: 3}
+        m_EstimationComputeShader: {fileID: -6772857160820960102, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
+        m_EstimationRayTracingShader: {fileID: -5126288278712620388, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}

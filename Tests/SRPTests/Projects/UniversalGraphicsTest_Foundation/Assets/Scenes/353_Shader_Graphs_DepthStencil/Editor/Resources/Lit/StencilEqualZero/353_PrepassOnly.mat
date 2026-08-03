@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -21,13 +21,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 353_PrepassOnly
-  m_Shader: {fileID: -6465566751694194690, guid: c854808872333334f848fa476b89926f,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: c854808872333334f848fa476b89926f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2059
@@ -52,8 +51,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Cull: 2
     - _QueueControl: 1
     - _QueueOffset: 21
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
+    - _StencilUsesPrepass: 1
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

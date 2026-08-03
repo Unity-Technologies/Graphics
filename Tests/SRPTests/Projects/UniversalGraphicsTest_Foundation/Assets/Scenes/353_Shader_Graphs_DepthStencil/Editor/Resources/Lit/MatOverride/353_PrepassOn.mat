@@ -8,13 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 353_PrepassOn
-  m_Shader: {fileID: -6465566751694194690, guid: da5bd72177af6de48bd3699cb787c7ff,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: da5bd72177af6de48bd3699cb787c7ff, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2037
@@ -51,19 +50,30 @@ Material:
     - _QueueControl: 1
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _StencilCompFunc: 8
     - _StencilCompFuncBack: 8
+    - _StencilCompFuncDefault: 8
+    - _StencilCompFuncDefaultBack: 8
     - _StencilFailOp: 0
     - _StencilFailOpBack: 0
+    - _StencilFailOpDefault: 0
+    - _StencilFailOpDefaultBack: 0
     - _StencilPassOp: 0
     - _StencilPassOpBack: 0
+    - _StencilPassOpDefault: 0
+    - _StencilPassOpDefaultBack: 0
     - _StencilReadMask: 15
     - _StencilRef: 0
+    - _StencilUsesPrepass: 1
     - _StencilWriteMask: 15
     - _StencilZFailOp: 0
     - _StencilZFailOpBack: 0
+    - _StencilZFailOpDefault: 0
+    - _StencilZFailOpDefaultBack: 0
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZTest: 4
@@ -84,4 +94,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11

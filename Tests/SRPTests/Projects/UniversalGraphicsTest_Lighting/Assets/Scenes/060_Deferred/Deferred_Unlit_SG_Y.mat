@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Deferred_Unlit_SG_Y
-  m_Shader: {fileID: -6465566751694194690, guid: c5bdf0bf23b3340719648b2d60f0a55a,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: c5bdf0bf23b3340719648b2d60f0a55a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -136,4 +135,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11
