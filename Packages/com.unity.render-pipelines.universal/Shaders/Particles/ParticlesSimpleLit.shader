@@ -505,6 +505,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         }
     }
 
-    Fallback "Universal Render Pipeline/Particles/Unlit"
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesSimpleLitShader"
 }

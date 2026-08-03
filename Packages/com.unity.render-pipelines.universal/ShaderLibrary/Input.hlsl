@@ -97,7 +97,7 @@ half4 _SubtractiveShadowColor;
 
 half4 _GlossyEnvironmentCubeMap_HDR;
 TEXTURECUBE(_GlossyEnvironmentCubeMap);
-SAMPLER(sampler_GlossyEnvironmentCubeMap);
+#define sampler_GlossyEnvironmentCubeMap sampler_TrilinearClamp
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;

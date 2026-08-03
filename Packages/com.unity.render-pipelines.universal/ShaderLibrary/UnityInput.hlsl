@@ -254,19 +254,19 @@ real4 unity_ShadowColor;
 
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
-SAMPLER(samplerunity_SpecCube0);
+#define samplerunity_SpecCube0 sampler_TrilinearClamp
 TEXTURECUBE(unity_SpecCube1);
-SAMPLER(samplerunity_SpecCube1);
+#define samplerunity_SpecCube1 sampler_TrilinearClamp
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
-SAMPLER(samplerunity_Lightmap);
+#define samplerunity_Lightmap sampler_LinearClamp
 TEXTURE2D_ARRAY(unity_Lightmaps);
-SAMPLER(samplerunity_Lightmaps);
+#define samplerunity_Lightmaps sampler_LinearClamp
 
 // Dynamic lightmap
 TEXTURE2D(unity_DynamicLightmap);
-SAMPLER(samplerunity_DynamicLightmap);
+#define samplerunity_DynamicLightmap sampler_LinearClamp
 // TODO ENLIGHTEN: Instanced GI
 
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
@@ -277,9 +277,9 @@ TEXTURE2D(unity_DynamicDirectionality);
 // TEXTURE2D_ARRAY(unity_DynamicDirectionality);
 
 TEXTURE2D(unity_ShadowMask);
-SAMPLER(samplerunity_ShadowMask);
+#define samplerunity_ShadowMask sampler_LinearClamp
 TEXTURE2D_ARRAY(unity_ShadowMasks);
-SAMPLER(samplerunity_ShadowMasks);
+#define samplerunity_ShadowMasks sampler_LinearClamp
 
 // Mipmap Streaming Debug
 TEXTURE2D(unity_MipmapStreaming_DebugTex);
