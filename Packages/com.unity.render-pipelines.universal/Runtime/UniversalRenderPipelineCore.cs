@@ -1939,6 +1939,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly bool isSwitch2;
             public readonly bool isRunningOnPowerVRGPU;
             public readonly bool hasRenderToR32F;
+            public readonly int maxSupportedShadowAtlasResolution;
 
             public PlatformDetectionCache()
             {
@@ -1955,6 +1956,11 @@ namespace UnityEngine.Rendering.Universal
                 isSwitch2 = Application.platform == RuntimePlatform.Switch2;
                 isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
                 hasRenderToR32F = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+
+                // Calculate and cache maximum shadow atlas resolution graphics device support
+                int maxTextureSize = SystemInfo.maxTextureSize;
+                int powerOfTwo = Mathf.ClosestPowerOfTwo(maxTextureSize);
+                maxSupportedShadowAtlasResolution = powerOfTwo > maxTextureSize ? powerOfTwo >> 1 : powerOfTwo;
             }
         }
 
@@ -2012,6 +2018,12 @@ namespace UnityEngine.Rendering.Universal
         /// If true, then the runtime device supports R32_SFloat render targets. Not guaranteed on GLES 3.1 or earlier.
         /// </summary>
         internal static bool hasRenderToR32F => platformCache.Value.hasRenderToR32F;
+
+        /// <summary>
+        /// The maximum shadow atlas resolution supported by the current graphics device.
+        /// Clamped to SystemInfo.maxTextureSize, if requested > SystemInfo.maxTextureSize).
+        /// </summary>
+        internal static int maxSupportedShadowAtlasResolution => platformCache.Value.maxSupportedShadowAtlasResolution;
 
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.
