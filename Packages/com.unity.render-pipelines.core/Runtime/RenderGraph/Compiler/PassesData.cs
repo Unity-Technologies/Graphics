@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool hasShadingRateStates;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Name GetName(CompilerContextData ctx) => ctx.GetFullPassName(passId);
+        public string GetName(CompilerContextData ctx) => ctx.GetPassName(passId);
 
         public PassData(in RenderGraphPass pass, int passIndex)
         {
@@ -816,15 +816,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return ctx.compactedNonCulledRasterPasses.MakeReadOnlySpan(firstCompactedNonCulledRasterPass, lastCompactedNonCulledRasterPass - firstCompactedNonCulledRasterPass + 1);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void GetGraphPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
-        {
-            foreach (ref readonly var pass in GraphPasses(ctx))
-            {
-                dest.Add(pass.GetName(ctx));
-            }
-        }
-
         static bool CanMergeMSAASamples(ref NativePassData nativePass, ref PassData passToMerge)
         {
             return (nativePass.samples == passToMerge.fragmentInfoSamples) ||
@@ -1209,7 +1200,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             // Depth input attachments cannot have write access
                             throw new InvalidOperationException(
                                 RenderGraph.RenderGraphExceptionMessages.DepthInputAttachmentWithWriteAccess(
-                                    passToMerge.GetName(contextData).name));
+                                    passToMerge.GetName(contextData)));
                         }
                     }
 #endif
@@ -1332,7 +1323,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 // Depth input attachments cannot have write access
                                 throw new InvalidOperationException(
                                     RenderGraph.RenderGraphExceptionMessages.DepthInputAttachmentWithWriteAccess(
-                                        passToMerge.GetName(contextData).name));
+                                        passToMerge.GetName(contextData)));
                             }
                         }
 #endif

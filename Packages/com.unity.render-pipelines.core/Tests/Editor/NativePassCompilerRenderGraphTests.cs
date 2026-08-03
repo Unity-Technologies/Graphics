@@ -2470,5 +2470,68 @@ namespace UnityEngine.Rendering.Tests
             // No passes are culled, so the optimization culled system must be disabled and cleared.
             Assert.IsTrue(result.m_NonCulledPassIndicesForRasterPasses.Length == 0);
         }
+
+        [Test]
+        public void CompiledGraphPreservesPassAndResourceNames()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            Assert.AreEqual("TestPass0", result.contextData.GetPassName(0));
+            Assert.AreEqual("ExtraTexture0", result.contextData.GetResourceName(renderTargets.extraTextures[0].handle));
+        }
+
+        [Test]
+        public void CompileOnFreshCompilationCacheEntry_DoesNotAllocateGCMemory()
+        {
+            RenderGraph.s_EnableCompilationCachingForTests = true;
+            NativePassCompiler.s_ForceGenerateAuditsForTests = false;
+            try
+            {
+                var g = AllocateRenderGraph();
+                var renderTargets = ImportAndCreateRenderTargets(g);
+
+                void AddPass(int i)
+                {
+                    using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass" + i, out var passData))
+                    {
+                        builder.SetRenderAttachment(renderTargets.extraTextures[i], 0, AccessFlags.Write);
+                        builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                        builder.AllowPassCulling(false);
+                    }
+                }
+
+                // Each AddPass changes the graph hash so every compile misses the cache;
+                // two warm-up compiles absorb one-shot costs, the third is measured.
+                AddPass(0);
+                g.CompileNativeRenderGraph(g.ComputeGraphHash());
+                AddPass(1);
+                g.CompileNativeRenderGraph(g.ComputeGraphHash());
+                AddPass(2);
+                var hash = g.ComputeGraphHash();
+
+                gcAllocRecorder.FilterToCurrentThread();
+                gcAllocRecorder.enabled = false; // flush allocations accumulated outside the measured window
+                gcAllocRecorder.enabled = true;
+                g.CompileNativeRenderGraph(hash);
+                gcAllocRecorder.enabled = false;
+
+                Assert.AreEqual(0, gcAllocRecorder.sampleBlockCount, "Compiling on a fresh compilation-cache entry allocated GC memory.");
+            }
+            finally
+            {
+                RenderGraph.s_EnableCompilationCachingForTests = null;
+                NativePassCompiler.s_ForceGenerateAuditsForTests = true;
+            }
+        }
     }
 }

@@ -366,7 +366,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var ctxPass = ref ctx.passData.ElementAt(passId);
                     ctxPass.ResetAndInitialize(inputPass, passId);
 
-                    ctx.passNames.Add(new Name(inputPass.name, true));
+#if UNITY_ENABLE_CHECKS
+                    ctx.passNames.AddTruncated(inputPass.name);
+#endif
 
                     if (ctxPass.hasSideEffects)
                     {
@@ -1882,25 +1884,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_ENABLE_CHECKS
                 if (RenderGraph.enableValidityChecks)
                 {
-                    graphPassNamesForDebug.Clear();
-
-                    nativePass.GetGraphPassNames(contextData, graphPassNamesForDebug);
-
+                    // Names are stored pre-encoded as UTF8, so building the debug label is plain byte copies.
                     int utf8CStrDebugNameLength = 0;
-                    foreach (ref readonly Name graphPassName in graphPassNamesForDebug)
+                    foreach (ref readonly var graphPass in nativePass.GraphPasses(contextData))
                     {
-                        utf8CStrDebugNameLength += graphPassName.utf8ByteCount + 1; // +1 to add '/' between passes or the null terminator at the end
+                        utf8CStrDebugNameLength += contextData.passNames.ElementAt(graphPass.passId).Length + 1; // +1 to add '/' between passes or the null terminator at the end
                     }
 
                     var nameBytes = stackalloc byte[utf8CStrDebugNameLength];
                     if (utf8CStrDebugNameLength > 0)
                     {
                         int startStr = 0;
-                        foreach (ref readonly var graphPassName in graphPassNamesForDebug)
+                        foreach (ref readonly var graphPass in nativePass.GraphPasses(contextData))
                         {
-                            int strByteCount = graphPassName.utf8ByteCount;
-                            System.Text.Encoding.UTF8.GetBytes(graphPassName.name.AsSpan(), new Span<byte>(nameBytes + startStr, strByteCount));
-                            startStr += strByteCount;
+                            var utf8Name = contextData.passNames[graphPass.passId];
+                            new ReadOnlySpan<byte>(utf8Name.GetUnsafePtr(), utf8Name.Length).CopyTo(new Span<byte>(nameBytes + startStr, utf8Name.Length));
+                            startStr += utf8Name.Length;
                             // Adding '/' in UTF8
                             nameBytes[startStr++] = (byte)(0x2F);
                         }
@@ -1921,9 +1920,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 CommandBuffer.ThrowOnSetRenderTarget = true;
             }
         }
-
-        const int ArbitraryMaxNbMergedPasses = 16;
-        DynamicArray<Name> graphPassNamesForDebug = new DynamicArray<Name>(ArbitraryMaxNbMergedPasses);
 
         private void ExecuteDestroyResource(InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, ref PassData pass)
         {

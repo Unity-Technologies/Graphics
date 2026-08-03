@@ -229,17 +229,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<ResourceVersionedData>[] versionedData;     // Packed versioned data (sparse)
         public NativeList<ResourceReaderData>[] readerData;           // Partially packed reader data (semi-sparse)
 
-        public DynamicArray<Name>[] resourceNames;
+#if UNITY_ENABLE_CHECKS
+        public NativeList<FixedString64Bytes>[] resourceNames;
+#endif
 
         public ResourcesData()
         {
             unversionedData = new NativeList<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
             versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
             readerData = new NativeList<ResourceReaderData>[(int)RenderGraphResourceType.Count];
-            resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
-
-            for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
-                resourceNames[t] = new DynamicArray<Name>(0); // T in NativeList<T> cannot contain managed types, so the names are stored separately
+#if UNITY_ENABLE_CHECKS
+            resourceNames = new NativeList<FixedString64Bytes>[(int)RenderGraphResourceType.Count];
+#endif
         }
 
         public void Clear()
@@ -254,8 +255,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (readerData[t].IsCreated)
                     readerData[t].Clear();
-
-                resourceNames[t].Clear();
             }
         }
 
@@ -279,14 +278,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // We don't clear the list as we reinitialize it right after
                 AllocateAndResizeNativeListIfNeeded(ref unversionedData[t], numResources, NativeArrayOptions.UninitializedMemory);
 
-                resourceNames[t].Resize(numResources, true);
+#if UNITY_ENABLE_CHECKS
+                NameTableExtensions.AllocateOrClear(ref resourceNames[t], numResources);
+#endif
 
                 if (numResources > 0) // Null Resource
                 {
                     var nullResource = new ResourceUnversionedData();
                     nullResource.InitializeNullResource();
                     unversionedData[t][0] = nullResource;
-                    resourceNames[t][0] = new Name("");
+#if UNITY_ENABLE_CHECKS
+                    resourceNames[t].Add(default);
+#endif
                 }
 
                 // Compute allocation sizes and populate unversionedData in a single pass
@@ -299,7 +302,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var h = new ResourceHandle(r, resourceType, false);
                     var rll = resources.GetResourceLowLevel(h);
-                    resourceNames[t][r] = new Name(rll.GetName());
+#if UNITY_ENABLE_CHECKS
+                    resourceNames[t].AddTruncated(rll.GetName());
+#endif
 
                     // Initialize unversionedData based on resource type
                     switch (t)
@@ -400,6 +405,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (readerData[t].IsCreated)
                     readerData[t].Dispose();
+
+#if UNITY_ENABLE_CHECKS
+                if (resourceNames[t].IsCreated)
+                    resourceNames[t].Dispose();
+#endif
             }
         }
     }

@@ -7,15 +7,27 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
-    // Wrapper struct to allow storing strings in a DynamicArray which requires a type with a parameterless constructor
-    internal readonly struct Name
+    // Debug-only name storage: only allocated and populated in UNITY_ENABLE_CHECKS builds.
+    internal static class NameTableExtensions
     {
-        public readonly string name;
-        public readonly int utf8ByteCount;
-        public Name(string name, bool computeUTF8ByteCount = false)
+        public static void AllocateOrClear(ref NativeList<FixedString64Bytes> names, int estimatedEntries)
         {
-            this.name = name;
-            this.utf8ByteCount = ((name?.Length > 0) && computeUTF8ByteCount) ? System.Text.Encoding.UTF8.GetByteCount((ReadOnlySpan<char>)name) : 0;
+            if (!names.IsCreated)
+                names = new NativeList<FixedString64Bytes>(estimatedEntries, AllocatorManager.Persistent);
+            else
+                names.Clear();
+        }
+
+        public static void AddTruncated(this NativeList<FixedString64Bytes> names, string name)
+        {
+            var fixedName = new FixedString64Bytes();
+            fixedName.CopyFromTruncated(name);
+            names.Add(fixedName);
+        }
+
+        public static string GetNameOrEmpty(this in NativeList<FixedString64Bytes> names, int index)
+        {
+            return names.IsCreated && (uint)index < (uint)names.Length ? names[index].ToString() : "";
         }
     }
 
@@ -47,7 +59,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             fences = new Dictionary<int, GraphicsFence>();
             resources = new ResourcesData();
-            passNames = new DynamicArray<Name>(0, false); // T in NativeList<T> cannot contain managed types, so the names are stored separately
         }
 
         void AllocateNativeDataStructuresIfNeeded(int estimatedNumPasses)
@@ -76,13 +87,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public void Initialize(RenderGraphResourceRegistry resourceRegistry, int estimatedNumPasses)
         {
             resources.Initialize(resourceRegistry);
-            passNames.Reserve(estimatedNumPasses, false);
+#if UNITY_ENABLE_CHECKS
+            NameTableExtensions.AllocateOrClear(ref passNames, estimatedNumPasses);
+#endif
             AllocateNativeDataStructuresIfNeeded(estimatedNumPasses);
         }
 
         public void Clear()
         {
-            passNames.Clear();
             resources.Clear();
 
             if (m_AreNativeListsAllocated)
@@ -143,7 +155,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<PassData> passData;
         public NativeList<PassData> compactedNonCulledRasterPasses;
         public Dictionary<int, GraphicsFence> fences;
-        public DynamicArray<Name> passNames;
+#if UNITY_ENABLE_CHECKS
+        public NativeList<FixedString64Bytes> passNames;
+#endif
 
         // Tightly packed lists all passes, add to these lists then index in it using offset+count
         public NativeList<PassInputData> inputData;
@@ -199,14 +213,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return true;
         }
 
+#if UNITY_ENABLE_CHECKS
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Name GetFullPassName(int passId) => passNames[passId];
+        public string GetPassName(int passId) => passNames.GetNameOrEmpty(passId);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetPassName(int passId) => passNames[passId].name;
+        public string GetResourceName(in ResourceHandle h) => resources.resourceNames[h.iType].GetNameOrEmpty(h.index);
+#else
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string GetPassName(int passId) => "";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetResourceName(in ResourceHandle h) => resources.resourceNames[h.iType][h.index].name;
+        public string GetResourceName(in ResourceHandle h) => "";
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetResourceVersionedName(in ResourceHandle h) => GetResourceName(h) + " V" + h.version;
@@ -364,6 +383,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         void Cleanup()
         {
             resources.Dispose();
+#if UNITY_ENABLE_CHECKS
+            if (passNames.IsCreated)
+                passNames.Dispose();
+#endif
 
             if (m_AreNativeListsAllocated)
             {

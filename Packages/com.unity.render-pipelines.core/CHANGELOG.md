@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed a `variant DISABLE_TEXTURE2D_X_ARRAY not found` shader error when copying MSAA textures on OpenGL ES 3.1 drivers that lack per-sample shading (`gl_SampleID`); these devices now fall back to a regular blit instead.
 - Fixed the Adaptive Probe Volume Samples fields accepting typed values above the slider maximum.
+- Fixed GC allocations during native render pass compilation. Debug-only pass and resource names are now stored as UTF8 in native memory instead of managed arrays.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
