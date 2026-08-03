@@ -40,6 +40,8 @@ namespace UnityEngine.PathTracing.Core
         private readonly Stack<Handle<T>> _freeHandles = new();
         private UInt64 _nextHandleIndex;
 
+        public int Count => (int)_nextHandleIndex - _freeHandles.Count;
+
         public Handle<T> Add()
         {
             if (_freeHandles.Count > 0)

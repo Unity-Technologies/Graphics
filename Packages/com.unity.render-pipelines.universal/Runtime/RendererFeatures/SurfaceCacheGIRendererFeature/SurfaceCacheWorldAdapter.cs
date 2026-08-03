@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.Universal
         readonly TerrainSet _terrains;
         // Per-frame set of TerrainData EntityIds that were reported changed by ObjectDispatcher.
         readonly HashSet<EntityId> _dirtyTerrainDataThisFrame = new();
+#if UNITY_EDITOR
+        internal const uint k_TerrainRebuildDelayInTicks = 30;
+#endif
 #endif
 
         // Defaults to Everything so that, absent a Surface Cache volume override, every instance contributes.
@@ -42,6 +45,13 @@ namespace UnityEngine.Rendering.Universal
             _lights.CleanUp(world);
             _sharedMaterials.CleanUp(world);
         }
+
+#if ENABLE_TERRAIN_MODULE && UNITY_EDITOR
+        internal int GetDeferredTerrainRebuildCount()
+        {
+            return _terrains.DeferredRebuildCount;
+        }
+#endif
 
         public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
@@ -489,7 +499,6 @@ namespace UnityEngine.Rendering.Universal
                 public uint TickAtLastChange;
             }
 
-            const uint k_TerrainRebuildDelayInTicks = 30;
             uint _tickCounter;
             readonly Dictionary<EntityId, DeferredRebuild> _deferredRebuilds = new();
             readonly List<EntityId> _deferredRebuildScratch = new();
@@ -603,6 +612,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
+            public int DeferredRebuildCount => _deferredRebuilds.Count;
+
             public void ProcessDeferredRebuilds(SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
                 _tickCounter++;

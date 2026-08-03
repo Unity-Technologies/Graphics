@@ -548,6 +548,16 @@ namespace UnityEngine.Rendering
             return _lights.GetPunctualLight(index);
         }
 
+        internal int GetInstanceCount()
+        {
+            return _instanceHandleSet.Count;
+        }
+
+        internal int GetMaterialCount()
+        {
+            return _materialHandleSet.Count;
+        }
+
         public void SetEnvironmentMaterial(Material mat)
         {
             _cubemapRender.SetMaterial(mat);
