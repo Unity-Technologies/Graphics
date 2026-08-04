@@ -3325,7 +3325,8 @@ namespace UnityEditor.VFX.UI
                 }
 
                 // Forbid dropping a subgraph output property multiple times
-                if (items.OfType<PropertyItem>().Select(x => controller.parameterControllers.SingleOrDefault(c => c.exposedName == x.title)).Any(x => x is { isOutput: true, hasNodes: true }))
+                if (items.OfType<PropertyItem>()
+                    .Any(x => x.controller is { isOutput: true, hasNodes: true }))
                 {
                     return;
                 }
@@ -3366,10 +3367,9 @@ namespace UnityEditor.VFX.UI
                 UpdateSelectionWithNewNode();
                 foreach (var item in items)
                 {
-                    if (item is PropertyItem)
+                    if (item is PropertyItem propertyItem)
                     {
-                        var parameterController = controller.parameterControllers.Single(x => x.exposedName == item.title);
-                        AddVFXParameter(mousePosition - new Vector2(50, 20), parameterController, groupNode);
+                        AddVFXParameter(mousePosition - new Vector2(50, 20), propertyItem.controller, groupNode);
                         mousePosition.y += 40;
                     }
                     else if (item is AttributeItem)
@@ -3479,7 +3479,7 @@ namespace UnityEditor.VFX.UI
 
             if (string.IsNullOrEmpty(newCategoryName))
             {
-                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>(), true, VFXBlackboardCategory.kMaxCategoryNameLength);
+                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase), true, VFXBlackboardCategory.kMaxCategoryNameLength);
             }
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();

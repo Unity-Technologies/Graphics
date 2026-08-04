@@ -1243,7 +1243,8 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
-            parameter.SetSettingValue("m_ExposedName", $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}");
+            var candidateName = $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}";
+            parameter.SetSettingValue("m_ExposedName", VFXParameterController.MakeNameUnique(this, candidateName, VFXParameterController.kMaxExposedNameLength));
 
             if (!type.IsPrimitive)
             {
@@ -1450,7 +1451,7 @@ namespace UnityEditor.VFX.UI
             VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
             if (parameters.Length > 0)
             {
-                var existingNames = new HashSet<string>();
+                var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 existingNames.Add(parameters[0].exposedName);
                 m_ParameterControllers[parameters[0]].order = 0;
@@ -1552,27 +1553,77 @@ namespace UnityEditor.VFX.UI
                 var ui = graph.UIInfos;
                 // Validate category list
                 var categories = ui.categories ?? new List<VFXUI.CategoryInfo>();
+                bool modified = false;
 
-                string[] missingCategories = m_ParameterControllers.Select(t => t.Key.category).Where(t => !string.IsNullOrEmpty(t)).Except(categories.Select(t => t.name)).ToArray();
-
-                HashSet<string> foundCategories = new HashSet<string>();
+                // Remove empty and case-insensitive duplicate categories (keeping the first casing seen as canonical)
+                HashSet<string> foundCategories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 for (int i = 0; i < categories.Count; ++i)
                 {
                     string category = categories[i].name;
-                    if (string.IsNullOrEmpty(category) || foundCategories.Contains(category))
+                    if (string.IsNullOrEmpty(category) || !foundCategories.Add(category))
                     {
                         categories.RemoveAt(i);
                         --i;
+                        modified = true;
                     }
-                    foundCategories.Add(category);
                 }
 
+                string[] missingCategories = m_ParameterControllers
+                    .Select(t => t.Key.category)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .Except(categories.Select(t => t.name), StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
                 if (missingCategories.Length > 0)
                 {
                     categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t }));
+                    modified = true;
+                }
+
+                foreach (var parameter in m_ParameterControllers)
+                {
+                    string category = parameter.Key.category;
+                    if (string.IsNullOrEmpty(category))
+                        continue;
+
+                    var canonical = categories.FirstOrDefault(t => string.Equals(t.name, category, StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrEmpty(canonical.name) && canonical.name != category)
+                    {
+                        parameter.Key.category = canonical.name;
+                        modified = true;
+                    }
+                }
+
+                // Drop categories whose name collides with a reserved blackboard section title (any casing) and move
+                // their parameters back to the root Properties section. These names were legal in older graphs and can
+                // still arrive through paste, but the editing paths blank them (FilterOutReservedCategoryName), so
+                // keeping such a category around would make adding/moving parameters into it silently misbehave.
+                for (int i = 0; i < categories.Count; ++i)
+                {
+                    var reservedName = categories[i].name;
+                    if (!VFXBlackboard.IsReservedCategoryName(reservedName))
+                        continue;
+
+                    categories.RemoveAt(i);
+                    --i;
+
+                    foreach (var parameter in m_ParameterControllers)
+                    {
+                        if (string.Equals(parameter.Key.category, reservedName, StringComparison.Ordinal))
+                        {
+                            parameter.Key.category = string.Empty;
+                        }
+                    }
+
+                    modified = true;
+                }
+
+                if (modified)
+                {
                     ui.categories = categories;
                     ui.Modified(true);
+                    graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    graph.BuildParameterInfo();
                 }
             }
         }
@@ -1664,7 +1715,7 @@ namespace UnityEditor.VFX.UI
             var category = graph.UIInfos.categories.SingleOrDefault(x => x.name == oldName);
             if (!string.IsNullOrEmpty(category.name))
             {
-                if (graph.UIInfos.categories.All(t => t.name != newName))
+                if (graph.UIInfos.categories.All(t => t.name == oldName || !string.Equals(t.name, newName, StringComparison.OrdinalIgnoreCase)))
                 {
                     graph.UIInfos.categories.Remove(category);
                     category.name = newName;
