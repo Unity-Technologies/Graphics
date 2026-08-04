@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 // Access to SamplingResources for the PathTracing package, to be removed when its content will be moved to RP Core
 [assembly: InternalsVisibleTo("Unity.Rendering.PathTracing.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.Modules.GI.PathTracing.Tests.Editor")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor")]

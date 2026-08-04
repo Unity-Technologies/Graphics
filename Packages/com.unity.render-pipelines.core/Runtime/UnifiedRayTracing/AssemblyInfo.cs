@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 // Make visible to tests
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.Modules.GI.PathTracing.Tests.Editor")]
 [assembly: InternalsVisibleTo("Unity.Testing.UnifiedRayTracing.Runtime")]
 [assembly: InternalsVisibleTo("Unity.Testing.UnifiedRayTracing.Performance")]
 [assembly: InternalsVisibleTo("Unity.UnifiedRayTracing.Editor.Tests")]
