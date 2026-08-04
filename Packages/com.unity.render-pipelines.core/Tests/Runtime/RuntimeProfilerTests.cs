@@ -76,8 +76,6 @@ namespace UnityEngine.Rendering.Tests
             if (XRSettings.enabled)
                 supportsGpuFrameTime = false; // XR
 #endif
-            if (IsForcedUGK() && (Application.platform == RuntimePlatform.Android || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal))
-                supportsGpuFrameTime = false; // UGK-2118: GPU frame time is 0 under UGK on Android and Metal (works on Windows DX11/Vulkan)
 
             yield return Warmup();
 
@@ -121,9 +119,5 @@ namespace UnityEngine.Rendering.Tests
                 $"GPUFrameTime={avg.GPUFrameTime} (asserted={supportsGpuFrameTime}), " +
                 $"MainThreadCPUPresentWaitTime={avg.MainThreadCPUPresentWaitTime}.");
         }
-
-        static bool IsForcedUGK() =>
-            System.Array.Exists(System.Environment.GetCommandLineArgs(),
-                arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
     }
 }
