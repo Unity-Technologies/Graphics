@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.Converter
                     {
                         isSelected = false,
                         isInitialized = false,
-                        items = new List<ConverterItemState>(),
                         converter = renderPipelineConverter
                     };
                     converterStates.Add(converterState);

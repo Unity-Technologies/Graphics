@@ -93,6 +93,46 @@ namespace UnityEditor.Rendering.Converter
             get => mappings.GetMaterialSearchList();
         }
 
+        /// <summary>
+        /// Categorize results by material name instead of asset path
+        /// </summary>
+        protected override List<IRenderPipelineConverterItem> CategorizeResults(
+            List<RenderPipelineConverterAssetItem> assets,
+            Dictionary<string, List<RenderPipelineConverterAssetItem>> assetsByDescription)
+        {
+            if (assetsByDescription == null || assetsByDescription.Count == 0)
+                return new List<IRenderPipelineConverterItem>();
+
+            var result = new List<IRenderPipelineConverterItem>();
+
+            foreach (var kvp in assetsByDescription)
+            {
+                var materialName = kvp.Key;
+                var materialAssets = kvp.Value;
+
+                if (materialAssets.Count == 0)
+                    continue;
+
+                // Create asset group for this material (shows material icon, not folder icon)
+                var materialGroup = new RenderPipelineConverterUtility.AssetGroupItem
+                {
+                    name = materialName,
+                    info = $"{materialAssets.Count} object(s) referencing {materialName}",
+                    assetType = typeof(Material)
+                };
+
+                // Add all assets to this group
+                foreach (var asset in materialAssets)
+                {
+                    materialGroup.children.Add(asset);
+                }
+
+                result.Add(materialGroup);
+            }
+
+            return result;
+        }
+
         internal MaterialReferenceChanger m_MaterialReferenceChanger;
         private ReadonlyMaterialMap m_Mappings;
 

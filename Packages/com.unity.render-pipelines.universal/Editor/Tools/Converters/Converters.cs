@@ -310,8 +310,12 @@ namespace UnityEditor.Rendering.Universal
 
                 void OnConverterCompleteDataCollection(List<IRenderPipelineConverterItem> items)
                 {
+                    // Flatten folders to leaf items for batch conversion
+                    var leafItems = new List<IRenderPipelineConverterItem>();
+                    RenderPipelineConverterUtility.CollectLeafItems(items, leafItems);
+
                     converter.BeforeConvert();
-                    foreach (var item in items)
+                    foreach (var item in leafItems)
                     {
                         var status = converter.Convert(item, out var message);
                         switch (status)
