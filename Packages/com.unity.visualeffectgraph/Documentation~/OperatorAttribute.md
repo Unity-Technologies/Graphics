@@ -21,7 +21,9 @@ Get the data from [particle attributes](Attributes.md).
 | [Get Attribute: hasCollisionEvent](Operator-GetAttributeHasCollisionEvent.md) | Return True or False if a collision happened in this frame. |
 | [Get Attribute: lifetime Operator](Operator-GetAttributeLifetime.md) | Get the amount of time a particle should live for. |
 | [Get Attribute: mass Operator](Operator-GetAttributeMass.md) | Get the mass of a particle. |
+| [Get Attribute: meshIndex Operator](Operator-GetAttributeMeshIndex.md) | Get the mesh index of a particle. |
 | [Get Attribute: oldPosition Operator](Operator-GetAttributeOldPosition.md) | Get the position of a particle before velocity is added. |
+| [Get Attribute: oldVelocity Operator](Operator-GetAttributeOldVelocity.md) | Get the velocity of a particle before force integration. |
 | [Get Attribute: particleCountInStrip Operator](Operator-GetAttributeParticleCountInStrip.md) | Get the number of particles in a particle strip. |
 | [Get Attribute: particleId Operator](Operator-GetAttributeParticleID.md) | Get a unique ID that identifies a particle. |
 | [Get Attribute: particleIndexInStrip Operator](Operator-GetAttributeParticleIndexInStrip.md) | Get the index of a particle in its particle strip. |
@@ -30,7 +32,9 @@ Get the data from [particle attributes](Attributes.md).
 | [Get Attribute: scale Operator](Operator-GetAttributeScale.md) | Get the scale of the particle. |
 | [Get Attribute: seed Operator](Operator-GetAttributeSeed.md) | Get the random number value of a particle. |
 | [Get Attribute: size Operator](Operator-GetAttributeSize.md) | Get the size of a particle. |
+| [Get Attribute: spawnCount Operator](Operator-GetAttributeSpawnCount.md) | Get the number of particles spawned in the current frame. |
 | [Get Attribute: spawnIndex Operator](Operator-GetAttributeSpawnIndex.md) | Get the index of a particle when it spawned. |
+| [Get Attribute: spawnIndexInStrip Operator](Operator-GetAttributeSpawnIndexInStrip.md) | Get the spawn index of a particle within its strip. |
 | [Get Attribute: spawnTime Operator](Operator-GetAttributeSpawnTime.md) | Get the time that the particle spawned. |
 | [Get Attribute: stripIndex Operator](Operator-GetAttributeStripIndex.md) | Get the index of the particle strip a particle belongs to. |
 | [Get Attribute: targetPosition Operator](Operator-GetAttributeTargetPosition.md) | Get the target coordinates of a particle.  |
