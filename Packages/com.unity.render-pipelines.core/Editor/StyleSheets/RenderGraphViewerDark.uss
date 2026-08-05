@@ -9,7 +9,7 @@
     --pass-block-border-color: var(--unity-colors-highlight-background-hover-lighter);
     --pass-block-color--highlight: white;
     --pass-block-text-color--highlight: white;
-    --pass-block-color--culled: black;
+    --pass-block-color--culled: rgb(225, 225, 225);
     --grid-line-color: #454545;
     --grid-line-color--hover: white;
     --resource-helper-line-color: darkgray;
