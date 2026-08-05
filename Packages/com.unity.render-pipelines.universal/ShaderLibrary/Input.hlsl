@@ -178,12 +178,22 @@ float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS];
 
 #if USE_CLUSTER_LIGHT_LOOP
 
+// Forward+ cluster data (Z-bins and per-tile light masks).
+#if defined(API_PREFERS_UBO_OVER_SSBO)
 CBUFFER_START(urp_ZBinBuffer)
         float4 urp_ZBins[MAX_ZBIN_VEC4S];
 CBUFFER_END
 CBUFFER_START(urp_TileBuffer)
         float4 urp_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
+#define LoadZBin(index)     Select4(asuint(urp_ZBins[(index) / 4]), (index) % 4)
+#define LoadTileWord(index) Select4(asuint(urp_Tiles[(index) / 4]), (index) % 4)
+#else
+StructuredBuffer<uint> urp_ZBins;
+StructuredBuffer<uint> urp_Tiles;
+#define LoadZBin(index)     urp_ZBins[(index)]
+#define LoadTileWord(index) urp_Tiles[(index)]
+#endif
 
 TEXTURE2D(urp_ReflProbes_Atlas);
 float urp_ReflProbes_Count;

@@ -75,7 +75,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     state.zBinWordsOffset = zBinOffset + 2;
 
 #if !URP_FP_DISABLE_ZBINNING
-    uint header = Select4(asuint(urp_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    uint header = LoadZBin(zBinHeaderIndex);
 #else
     uint header;
     if (headerIndex == 0)
@@ -97,10 +97,10 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     {
         state.tileMask =
 #if !URP_FP_DISABLE_TILING
-            Select4(asuint(urp_Tiles[tileWordIndex / 4]), tileWordIndex % 4) &
+            LoadTileWord(tileWordIndex) &
 #endif
 #if !URP_FP_DISABLE_ZBINNING
-            Select4(asuint(urp_ZBins[zBinWordIndex / 4]), zBinWordIndex % 4) &
+            LoadZBin(zBinWordIndex) &
 #endif
             (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
     }
@@ -122,10 +122,10 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
         uint zBinWordIndex = it.zBinWordsOffset + wordIndex;
         it.tileMask =
 #if !URP_FP_DISABLE_TILING
-            Select4(asuint(urp_Tiles[tileWordIndex / 4]), tileWordIndex % 4) &
+            LoadTileWord(tileWordIndex) &
 #endif
 #if !URP_FP_DISABLE_ZBINNING
-            Select4(asuint(urp_ZBins[zBinWordIndex / 4]), zBinWordIndex % 4) &
+            LoadZBin(zBinWordIndex) &
 #endif
             // Mask out the beginning and end of the word.
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));

@@ -84,9 +84,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Reserved for future SSBO experiments.
-        internal static bool useStructuredBuffer => false;
-        
+        // Must be kept in sync with API_PREFERS_UBO_OVER_SSBO in the platform API shader includes
+        internal static bool useStructuredBuffer
+        {
+            get
+            {
+                // - On WebGL and GL older than 4.3, SSBOs are not supported
+                // - On GLES3 and Switch, SSBOs can be slower than UBOs/ConstantBuffers even when the data access is non-uniform across the warps
+                var type = SystemInfo.graphicsDeviceType;
+                return type != GraphicsDeviceType.OpenGLES3 && type != GraphicsDeviceType.OpenGLCore && type != GraphicsDeviceType.Switch;
+            }
+        }
+
         // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
         internal static bool usePersistentConstantBuffer
         {

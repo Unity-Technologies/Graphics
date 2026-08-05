@@ -40,6 +40,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AdditionalLights = Shader.PropertyToID("AdditionalLights");
             public static readonly int urp_ZBinBuffer = Shader.PropertyToID("urp_ZBinBuffer");
             public static readonly int urp_TileBuffer = Shader.PropertyToID("urp_TileBuffer");
+            public static readonly int urp_ZBins = Shader.PropertyToID("urp_ZBins");
+            public static readonly int urp_Tiles = Shader.PropertyToID("urp_Tiles");
             public static readonly int _FPParams0 = Shader.PropertyToID("_FPParams0");
             public static readonly int _FPParams1 = Shader.PropertyToID("_FPParams1");
             public static readonly int _FPParams2 = Shader.PropertyToID("_FPParams2");
@@ -486,10 +488,18 @@ namespace UnityEngine.Rendering.Universal
 
                     if (data.zBinsBuffer != null && data.tileMasksBuffer != null)
                     {
-                        cmd.SetComputeConstantBufferParam(cs, ShaderIDs.urp_ZBinBuffer,
-                            data.zBinsBuffer, 0, UniversalRenderPipeline.maxZBinWords * 4);
-                        cmd.SetComputeConstantBufferParam(cs, ShaderIDs.urp_TileBuffer,
-                            data.tileMasksBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
+                        if (RenderingUtils.useStructuredBuffer)
+                        {
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs.urp_ZBins, data.zBinsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs.urp_Tiles, data.tileMasksBuffer);
+                        }
+                        else
+                        {
+                            cmd.SetComputeConstantBufferParam(cs, ShaderIDs.urp_ZBinBuffer,
+                                data.zBinsBuffer, 0, UniversalRenderPipeline.maxZBinWords * 4);
+                            cmd.SetComputeConstantBufferParam(cs, ShaderIDs.urp_TileBuffer,
+                                data.tileMasksBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
+                        }
 
                         cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams0, data.fpParams0);
                         cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams1, data.fpParams1);

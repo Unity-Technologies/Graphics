@@ -38,7 +38,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static readonly int _AdditionalLightsLayerMasks = Shader.PropertyToID("_AdditionalLightsLayerMasks");
 
-            // Forward+ CBUFFER bindings
+            // Forward+ StructuredBuffer bindings (default path)
+            public static readonly int _ZBins = Shader.PropertyToID("urp_ZBins");
+            public static readonly int _Tiles = Shader.PropertyToID("urp_Tiles");
+
+            // Forward+ constant buffer bindings (fallback for APIs with RenderingUtils.useStructuredBuffer returning false)
             public static readonly int _ZBinBuffer = Shader.PropertyToID("urp_ZBinBuffer");
             public static readonly int _TileBuffer = Shader.PropertyToID("urp_TileBuffer");
 
@@ -84,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_MaxVisibleAdditionalLights;
 
-        bool m_UseConstantBuffer;
+        bool m_UseAdditionalLightsConstantBuffer;
 
         bool m_UseForwardPlus;
         int m_DirectionalLightCount;
@@ -93,11 +97,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         JobHandle m_CullingHandle;
 
-        const string k_ZBinCBName =  "URP Z-Bin Buffer";
+        // Forward+ cluster data uses StructuredBuffers (SSBOs) when possible and optimal
+        bool m_UseForwardPlusStructuredBuffer;
+
+        const string k_ZBinBufferName =  "URP Z-Bin Buffer";
         NativeArray<uint> m_ZBins;
         GraphicsBuffer m_ZBinsBuffer;
 
-        const string k_TileCBName = "URP Tile Buffer";
+        const string k_TileBufferName = "URP Tile Buffer";
         NativeArray<uint> m_TileMasks;
         GraphicsBuffer m_TileMasksBuffer;
 
@@ -140,11 +147,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal ForwardLights(InitParams initParams)
         {
-            m_UseConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
+            m_UseAdditionalLightsConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
+            m_UseForwardPlusStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseForwardPlus = initParams.forwardPlus;
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
-            if (m_UseConstantBuffer)
+            if (m_UseAdditionalLightsConstantBuffer)
             {
                 CreateAdditionalLightsConstantBuffer();
             }
@@ -155,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseForwardPlus)
             {
-                CreateForwardPlusConstantBuffers();
+                CreateForwardPlusBuffers();
                 m_ReflectionProbeManager = ReflectionProbeManager.Create();
             }
 
@@ -201,20 +209,30 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsLayerMasks = new float[m_MaxVisibleAdditionalLights];
         }
 
-        void CreateForwardPlusConstantBuffers()
+        void CreateForwardPlusBuffers()
         {
             m_ZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.Persistent);
-            m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxZBinWords / 4, UnsafeUtility.SizeOf<float4>());
-            m_ZBinsBuffer.name = k_ZBinCBName;
             m_TileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.Persistent);
-            m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxTileWords / 4, UnsafeUtility.SizeOf<float4>());
-            m_TileMasksBuffer.name = k_TileCBName;
+
+            if (m_UseForwardPlusStructuredBuffer)
+            {
+                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UniversalRenderPipeline.maxZBinWords, sizeof(uint));
+                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, UniversalRenderPipeline.maxTileWords, sizeof(uint));
+            }
+            else
+            {
+                // Constant buffers store float4s, i.e. 4 words per element.
+                m_ZBinsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxZBinWords / 4, UnsafeUtility.SizeOf<float4>());
+                m_TileMasksBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, UniversalRenderPipeline.maxTileWords / 4, UnsafeUtility.SizeOf<float4>());
+            }
+            m_ZBinsBuffer.name = k_ZBinBufferName;
+            m_TileMasksBuffer.name = k_TileBufferName;
         }
 
         void ResizeAdditionalLightsBuffer(int maxLights)
         {
             m_MaxVisibleAdditionalLights = maxLights;
-            if (m_UseConstantBuffer)
+            if (m_UseAdditionalLightsConstantBuffer)
             {
                 DisposeAdditionalLightsConstantBuffer();
                 CreateAdditionalLightsConstantBuffer();
@@ -464,7 +482,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_ZBinsBuffer.Dispose();
                     m_TileMasks.Dispose();
                     m_TileMasksBuffer.Dispose();
-                    CreateForwardPlusConstantBuffers();
+                    CreateForwardPlusBuffers();
                 }
                 else
                 {
@@ -563,10 +581,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     using (new ProfilingScope(m_ProfilingSamplerFPUpload))
                     {
-                        m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
-                        m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
-                        cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, LightShaderPropertyId._ZBinBuffer, 0, UniversalRenderPipeline.maxZBinWords * 4);
-                        cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, LightShaderPropertyId._TileBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
+                        if (m_UseForwardPlusStructuredBuffer)
+                        {
+                            m_ZBinsBuffer.SetData(m_ZBins);
+                            m_TileMasksBuffer.SetData(m_TileMasks);
+                            cmd.SetGlobalBuffer(LightShaderPropertyId._ZBins, m_ZBinsBuffer);
+                            cmd.SetGlobalBuffer(LightShaderPropertyId._Tiles, m_TileMasksBuffer);
+                        }
+                        else
+                        {
+                            m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
+                            m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
+                            cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, LightShaderPropertyId._ZBinBuffer, 0, UniversalRenderPipeline.maxZBinWords * 4);
+                            cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, LightShaderPropertyId._TileBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
+                        }
                     }
 
                     cmd.SetGlobalVector(LightShaderPropertyId._FPParams0, math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
@@ -740,7 +768,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (additionalLightsCount > 0)
             {
                 int mainLight = lightData.mainLightIndex;
-                if (m_UseConstantBuffer)
+                if (m_UseAdditionalLightsConstantBuffer)
                 {
                     int positionOffset    = maxAdditionalLightsCount * k_AdditionalLightsPositionChannel;
                     int colorOffset       = maxAdditionalLightsCount * k_AdditionalLightsColorChannel;

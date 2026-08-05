@@ -15,6 +15,9 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+// Keep in sync with RenderingUtils.useStructuredBuffer on the C# side.
+#define API_PREFERS_UBO_OVER_SSBO
+
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER
 #define PLATFORM_LANE_COUNT 32

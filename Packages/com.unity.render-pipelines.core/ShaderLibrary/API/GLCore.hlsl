@@ -34,6 +34,9 @@
 // details. As a workaround you may use this macro.
 #define UNITY_OUT_OF_BOUNDS_BRANCH [branch]
 
+// Keep in sync with RenderingUtils.useStructuredBuffer on the C# side.
+#define API_PREFERS_UBO_OVER_SSBO
+
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0
 #define ZERO_INITIALIZE(type, name) name = (type)0;
