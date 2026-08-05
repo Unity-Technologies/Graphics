@@ -13,13 +13,14 @@ using TMPro;
 using System.Collections;
 using UnityEngine.Rendering;
 using System.Text.RegularExpressions;
+using Unity.Scripting.LifecycleManagement;
 #if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
 
 [ExecuteInEditMode]
-public class SamplesShowcase : MonoBehaviour
+public partial class SamplesShowcase : MonoBehaviour
 {
     
     public string headline = "Headline Goes Here";
@@ -51,8 +52,11 @@ public class SamplesShowcase : MonoBehaviour
     #endif
 
     //Variable containing TMPPro compatible sanitized text
+    [AutoStaticsCleanup]
     public static string SanitizedIntroduction;
+    [AutoStaticsCleanup]
     public static Dictionary<string, string> SanitizedDescriptions;  //Key should be the prefabName, value is the description;
+    [AutoStaticsCleanup]
     public static Dictionary<string, string> SanitizedTitles;        //Key should be the prefabName, value is the title;
 
     public TMP_Text gameobjectSamplesName;  //if we want to have the samples name on a text mesh pro asset.
@@ -67,6 +71,7 @@ public class SamplesShowcase : MonoBehaviour
     //Delegate to update every instance of samples showcase inspector UI
     #if UNITY_EDITOR
     public delegate void UpdateSamplesInspectorDelegate();
+    [AutoStaticsCleanup]
     public static UpdateSamplesInspectorDelegate OnUpdateSamplesInspector;
     void UpdateSamplesInspector()
     {

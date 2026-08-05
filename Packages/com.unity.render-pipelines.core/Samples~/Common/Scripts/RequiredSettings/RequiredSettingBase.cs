@@ -7,11 +7,12 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Reflection;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering
 {
     [System.Serializable]
-    public class RequiredSettingBase : IRequiredSetting
+    public partial class RequiredSettingBase : IRequiredSetting
     {
         [SerializeField]
         private string m_name = "Property Name";
@@ -50,6 +51,7 @@ namespace UnityEngine.Rendering
 
         public virtual string projectSettingsPath { get; }
         
+        [AutoStaticsCleanup]
         public static Action<RequiredSettingBase> showSettingCallback { get; set; } = null;
 
         public virtual SerializedProperty property
