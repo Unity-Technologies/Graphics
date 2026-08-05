@@ -62,7 +62,7 @@ VertexNormalInputs ParticleInstancingGetVertexNormalInputs(float3x4 transform, f
 
     VertexNormalInputs tbn;
     tbn.normalWS  = SafeNormalize(normalOS);
-    tbn.tangentWS = real3(SafeNormalize(tangentOS));
+    tbn.tangentWS = real3(SafeNormalize(tangentOS.xyz));
 
     real sign = real(tangentOS.w) * GetOddNegativeScale();
     tbn.bitangentWS = real3(cross(tbn.normalWS, float3(tbn.tangentWS))) * sign;
