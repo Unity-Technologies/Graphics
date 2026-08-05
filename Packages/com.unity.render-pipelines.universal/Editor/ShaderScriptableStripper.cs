@@ -48,7 +48,10 @@ namespace UnityEditor.Rendering.Universal
             public bool IsVolumeFeatureEnabled(VolumeFeatures feature);
 
             public bool IsKeywordEnabled(LocalKeyword keyword);
+
             public bool PassHasKeyword(LocalKeyword keyword);
+
+            public bool IsKeywordDynamic(LocalKeyword keyword);
         }
 
         // Data containing all the info needed to compare
@@ -80,6 +83,38 @@ namespace UnityEditor.Rendering.Universal
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get => HDROutputUtils.IsShaderVariantValid(variantData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport); set { } }
 
+            // Cache isDynamic (a native call) per pass, not on every IsKeywordDynamic lookup.
+            private readonly struct CachedKeyword
+            {
+                public readonly string name;
+                public readonly bool isDynamic;
+
+                public CachedKeyword(LocalKeyword keyword)
+                {
+                    name = keyword.name;
+                    isDynamic = keyword.isDynamic;
+                }
+            }
+
+            // Cached local keywords of the pass; small array, linear-scanned by name.
+            private CachedKeyword[] m_LocalKeywords;
+
+            private CachedKeyword[] localKeywords
+            {
+                get
+                {
+                    if (m_LocalKeywords == null)
+                    {
+                        var passKeywords = ShaderUtil.GetPassKeywords(shader, passData.pass, passData.shaderType, shaderCompilerPlatform);
+                        m_LocalKeywords = new CachedKeyword[passKeywords.Length];
+                        for (int i = 0; i < passKeywords.Length; i++)
+                            m_LocalKeywords[i] = new CachedKeyword(passKeywords[i]);
+                    }
+
+                    return m_LocalKeywords;
+                }
+            }
+
             public bool IsKeywordEnabled(LocalKeyword keyword)
             {
                 return variantData.shaderKeywordSet.IsEnabled(keyword);
@@ -97,7 +132,22 @@ namespace UnityEditor.Rendering.Universal
 
             public bool PassHasKeyword(LocalKeyword keyword)
             {
-                return ShaderUtil.PassHasKeyword(shader, passData.pass, keyword, passData.shaderType, shaderCompilerPlatform);
+                foreach (var k in localKeywords)
+                {
+                    if (k.name == keyword.name)
+                        return true;
+                }
+                return false;
+            }
+
+            public bool IsKeywordDynamic(LocalKeyword keyword)
+            {
+                foreach (var k in localKeywords)
+                {
+                    if (k.name == keyword.name)
+                        return k.isDynamic;
+                }
+                return false;
             }
 
             public ShaderSnippetData passData { get; set; }
@@ -1027,8 +1077,11 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripUnsupportedVariants_DirectionalLightmap(ref IShaderScriptableStrippingData strippingData)
         {
             // We can strip variants that have directional lightmap enabled but not static nor dynamic lightmap.
-            if (strippingData.IsKeywordEnabled(m_DirectionalLightmap)
-                && !(strippingData.IsKeywordEnabled(m_Lightmap) || strippingData.IsKeywordEnabled(m_DynamicLightmap)))
+            // Dynamic-branch lightmap keywords are resolved at runtime, so a lightmap may be present even when
+            // the keyword isn't set in this variant -> don't strip those.
+            bool lightmapMaybeOn = strippingData.IsKeywordEnabled(m_Lightmap) || strippingData.IsKeywordEnabled(m_DynamicLightmap)
+                || strippingData.IsKeywordDynamic(m_Lightmap) || strippingData.IsKeywordDynamic(m_DynamicLightmap);
+            if (strippingData.IsKeywordEnabled(m_DirectionalLightmap) && !lightmapMaybeOn)
                 return true;
 
             return false;
@@ -1091,7 +1144,7 @@ namespace UnityEditor.Rendering.Universal
             bool hasShadowsOff = strippingData.IsShaderFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants);
             if (hasShadowsOff && areAdditionalShadowsEnabled)
             {
-                bool isPerPixel     = strippingData.IsKeywordEnabled(m_AdditionalLightsPixel);
+                bool isPerPixel     = strippingData.IsKeywordEnabled(m_AdditionalLightsPixel) || strippingData.IsKeywordDynamic(m_AdditionalLightsPixel);
                 bool isForwardPlus  = strippingData.IsKeywordEnabled(m_ClusterLightLoop);
                 bool isDeferred     = strippingData.IsShaderFeatureEnabled(ShaderFeatures.DeferredShading);
                 bool isDeferredPlus = strippingData.IsShaderFeatureEnabled(ShaderFeatures.DeferredPlus);
@@ -1104,11 +1157,28 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadowCascades = strippingData.IsKeywordEnabled(m_MainLightShadowsCascades);
             bool isMainShadowScreen = strippingData.IsKeywordEnabled(m_MainLightShadowsScreen);
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
-            bool isShadowVariant = isMainShadow || areAdditionalShadowsEnabled;
+            // Dynamic-branch shadow keywords are resolved at runtime, so shadows may be on even when the
+            // keyword isn't set in this variant. Don't treat such variants as "shadows off" -> keep soft shadows.
+            bool shadowsAreDynamic = strippingData.IsKeywordDynamic(m_MainLightShadows) ||
+                                     strippingData.IsKeywordDynamic(m_MainLightShadowsCascades) ||
+                                     strippingData.IsKeywordDynamic(m_MainLightShadowsScreen) ||
+                                     strippingData.IsKeywordDynamic(m_AdditionalLightShadows);
+            bool isShadowVariant = isMainShadow || areAdditionalShadowsEnabled || shadowsAreDynamic;
             if (!isShadowVariant && (strippingData.IsKeywordEnabled(m_SoftShadows) ||
                                      strippingData.IsKeywordEnabled(m_SoftShadowsLow) ||
                                      strippingData.IsKeywordEnabled(m_SoftShadowsMedium)
                                      || strippingData.IsKeywordEnabled(m_SoftShadowsHigh)))
+                return true;
+
+            return false;
+        }
+
+        internal bool StripInvalidVariants_AdditionalLights(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip invalid combination of both vertex and pixel additional lights
+            // After separating the pragmas, this combination should never occur
+            if (strippingData.IsKeywordEnabled(m_AdditionalLightsVertex) &&
+                strippingData.IsKeywordEnabled(m_AdditionalLightsPixel))
                 return true;
 
             return false;
@@ -1123,6 +1193,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripInvalidVariants_Shadows(ref strippingData))
+                return true;
+
+            if (StripInvalidVariants_AdditionalLights(ref strippingData))
                 return true;
 
             return false;

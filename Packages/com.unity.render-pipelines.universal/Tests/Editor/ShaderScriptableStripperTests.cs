@@ -62,12 +62,18 @@ namespace ShaderStrippingAndPrefiltering
             {
                 return TestHelper.s_PassKeywords != null && TestHelper.s_PassKeywords.Contains(keyword.name);
             }
+
+            public bool IsKeywordDynamic(LocalKeyword keyword)
+            {
+                return TestHelper.s_DynamicKeywords != null && TestHelper.s_DynamicKeywords.Contains(keyword.name);
+            }
         }
 
         class TestHelper
         {
             public static List<string> s_EnabledKeywords;
             public static List<string> s_PassKeywords;
+            public static List<string> s_DynamicKeywords;
 
             public ShaderScriptableStripper stripper;
             public IShaderScriptableStrippingData data;
@@ -84,6 +90,7 @@ namespace ShaderStrippingAndPrefiltering
             {
                 s_PassKeywords = new List<string>() { };
                 s_EnabledKeywords = new List<string>() { };
+                s_DynamicKeywords = new List<string>() { };
 
                 stripper = new();
                 stripper.BeforeShaderStripping(shader);
@@ -493,6 +500,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripInvalidVariants_HDR(shader);
             StripInvalidVariants_TerrainHoles(shader, expectedTerrainHoles, expectedTerrainHolesWithAlphaTestOn);
             TestStripInvalidVariants_Shadows(shader, expectedSoftShadows);
+            TestStripInvalidVariants_AdditionalLights(shader);
         }
 
         public void TestStripInvalidVariants_HDR(Shader shader)
@@ -644,9 +652,39 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightShadows, ShaderKeywordStrings.SoftShadows};
             helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            // Dynamic shadow keyword keeps soft shadows even with no shadow keyword set here.
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.IsHDRShaderVariantValid = true;
+            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.SoftShadows};
+            TestHelper.s_DynamicKeywords = new List<string>{ShaderKeywordStrings.MainLightShadows};
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            // Dynamic _ADDITIONAL_LIGHTS keeps the additional-shadow variant the static path strips.
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants);
+            helper.data.IsHDRShaderVariantValid = true;
+            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightShadows};
+            helper.AreEqual(shader != null, helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants);
+            helper.data.IsHDRShaderVariantValid = true;
+            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightShadows};
+            TestHelper.s_DynamicKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightsPixel};
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
         }
 
+        public void TestStripInvalidVariants_AdditionalLights(Shader shader)
+        {
+            TestHelper helper;
+            List<string> additionalLightKeywords = new List<string>() { ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel };
 
+            // Invalid: Both Vertex AND Pixel enabled - should be stripped
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel};
+            TestHelper.s_PassKeywords = additionalLightKeywords;
+            helper.AreEqual(shader != null, helper.stripper.StripInvalidVariants_AdditionalLights(ref helper.data));
+        }
 
         /*****************************************************
          * Unsupported Variants
@@ -708,6 +746,13 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DIRLIGHTMAP_COMBINED, ShaderKeywordStrings.DYNAMICLIGHTMAP_ON};
+            helper.IsFalse(helper.stripper.StripUnsupportedVariants_DirectionalLightmap(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
+
+            // Dynamic LIGHTMAP_ON keeps the variant the static path strips.
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.DIRLIGHTMAP_COMBINED};
+            TestHelper.s_DynamicKeywords = new List<string>{ShaderKeywordStrings.LIGHTMAP_ON};
             helper.IsFalse(helper.stripper.StripUnsupportedVariants_DirectionalLightmap(ref helper.data));
             helper.IsFalse(helper.stripper.StripUnsupportedVariants(ref helper.data));
         }

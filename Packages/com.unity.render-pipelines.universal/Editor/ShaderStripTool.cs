@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool ContainsKeyword(in LocalKeyword kw)
         {
-            return m_StrippingData.PassHasKeyword(kw);
+            return m_StrippingData.PassHasKeyword(kw) && !m_StrippingData.IsKeywordDynamic(kw);
         }
     }
 }
