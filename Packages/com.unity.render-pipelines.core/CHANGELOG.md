@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a `variant DISABLE_TEXTURE2D_X_ARRAY not found` shader error when copying MSAA textures on OpenGL ES 3.1 drivers that lack per-sample shading (`gl_SampleID`); these devices now fall back to a regular blit instead.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
