@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering
 
         // Baking Set Data
         [SerializeField] internal bool singleSceneMode = true;
-        [SerializeField] internal bool dialogNoProbeVolumeInSetShown = false;
+        [SerializeField] internal bool dialogNoProbeVolumeInSetShown;
         [SerializeField] internal ProbeVolumeBakingProcessSettings settings;
 
         internal bool hasDilation => settings.dilationSettings.enableDilation && settings.dilationSettings.dilationDistance > 0.0f;
@@ -104,8 +104,8 @@ namespace UnityEngine.Rendering
         // List of cell descriptors.
         [SerializeField] internal SerializedDictionary<int, CellDesc> cellDescs = new SerializedDictionary<int, CellDesc>();
 
-        internal Dictionary<int, CellData> cellDataMap = new Dictionary<int, CellData>();
-        List<int> m_TotalIndexList = new List<int>();
+        internal Dictionary<int, CellData> m_CellDataMap = new Dictionary<int, CellData>();
+        readonly List<int> m_TotalIndexList = new List<int>();
 
         [Serializable]
         struct SerializedPerSceneCellList
@@ -116,15 +116,15 @@ namespace UnityEngine.Rendering
         [SerializeField] List<SerializedPerSceneCellList> m_SerializedPerSceneCellList;
 
         // Can't use SerializedDictionary here because we can't serialize a List of List T_T
-        internal Dictionary<string, List<int>> perSceneCellLists = new Dictionary<string, List<int>>();
+        internal Dictionary<string, List<int>> m_PerSceneCellLists = new Dictionary<string, List<int>>();
 
         // Assets containing actual cell data (SH, Validity, etc)
         // This data will be streamed from disk to the GPU.
-        [SerializeField] internal ProbeVolumeStreamableAsset cellSharedDataAsset = null; // Contains validity data
+        [SerializeField] internal ProbeVolumeStreamableAsset cellSharedDataAsset; // Contains validity data
         [SerializeField] internal SerializedDictionary<string, PerScenarioDataInfo> scenarios = new SerializedDictionary<string, PerScenarioDataInfo>();
         // This data will be streamed from disk but is only needed in CPU memory.
         [SerializeField] internal ProbeVolumeStreamableAsset cellBricksDataAsset; // Contains bricks data
-        [SerializeField] internal ProbeVolumeStreamableAsset cellSupportDataAsset = null; // Contains debug data
+        [SerializeField] internal ProbeVolumeStreamableAsset cellSupportDataAsset; // Contains debug data
 
         [SerializeField] internal int chunkSizeInBricks;
         [SerializeField] internal Vector3Int maxCellPosition;
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Bounds globalBounds;
         [SerializeField] internal int bakedSimplificationLevels = -1;
         [SerializeField] internal float bakedMinDistanceBetweenProbes = -1.0f;
-        [SerializeField] internal bool bakedProbeOcclusion = false;
+        [SerializeField] internal bool bakedProbeOcclusion;
         [SerializeField] internal int bakedSkyOcclusionValue = -1;
         [SerializeField] internal int bakedSkyShadingDirectionValue = -1;
         [SerializeField] internal Vector3 bakedProbeOffset = Vector3.zero;
@@ -165,18 +165,18 @@ namespace UnityEngine.Rendering
             set => bakedSkyShadingDirectionValue = value ? 1 : 0;
         }
 
-        [SerializeField] internal string lightingScenario = ProbeReferenceVolume.defaultLightingScenario;
-        string m_OtherScenario = null;
-        float m_ScenarioBlendingFactor = 0.0f;
+        [SerializeField] internal string lightingScenario = ProbeReferenceVolume.k_DefaultLightingScenario;
+        string m_OtherScenario;
+        float m_ScenarioBlendingFactor;
 
         internal string otherScenario => m_OtherScenario;
         internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
 
-        ReadCommandArray m_ReadCommandArray = new ReadCommandArray();
-        NativeArray<ReadCommand> m_ReadCommandBuffer = new NativeArray<ReadCommand>();
-        Stack<NativeArray<byte>> m_ReadOperationScratchBuffers = new Stack<NativeArray<byte>>();
-        List<int> m_PrunedIndexList = new List<int>();
-        List<int> m_PrunedScenarioIndexList = new List<int>();
+        ReadCommandArray m_ReadCommandArray;
+        NativeArray<ReadCommand> m_ReadCommandBuffer;
+        readonly Stack<NativeArray<byte>> m_ReadOperationScratchBuffers = new Stack<NativeArray<byte>>();
+        readonly List<int> m_PrunedIndexList = new List<int>();
+        readonly List<int> m_PrunedScenarioIndexList = new List<int>();
 
         internal const int k_MaxSkyOcclusionBakingSamples = 8192;
 
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
         [SerializeField]
-        internal bool freezePlacement = false;
+        internal bool freezePlacement;
 
         /// <summary>
         /// Offset on world origin used during baking. Can be used to have cells on positions that are not multiples of the probe spacing.
@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Size of the cell in meters.
         /// </summary>
-        public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
+        public float cellSizeInMeters => cellSizeInBricks * minBrickSize;
 
         /// <summary>
         /// Layer mask filter for all renderers.
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Specifies whether the baking set will have sky handled dynamically.
         /// </summary>
-        public bool skyOcclusion = false;
+        public bool skyOcclusion;
 
         /// <summary>
         /// Controls the number of samples per probe for dynamic sky baking.
@@ -262,12 +262,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Sky Occlusion backface culling
         /// </summary>
-        public bool skyOcclusionBackFaceCulling = false;
+        public bool skyOcclusionBackFaceCulling;
 
         /// <summary>
         /// Bake sky shading direction.
         /// </summary>
-        public bool skyOcclusionShadingDirection = false;
+        public bool skyOcclusionShadingDirection;
 
         [Serializable]
         internal struct ProbeLayerMask
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering
         }
 
         [SerializeField]
-        internal bool useRenderingLayers = false;
+        internal bool useRenderingLayers;
         [SerializeField]
         internal ProbeLayerMask[] renderingLayerMasks;
 
@@ -289,7 +289,9 @@ namespace UnityEngine.Rendering
             else
             {
                 for (int i = 0; i < renderingLayerMasks.Length; i++)
+                {
                     masks[i] = renderingLayerMasks[i].mask;
+                }
 
             }
             return masks;
@@ -299,16 +301,16 @@ namespace UnityEngine.Rendering
         internal static int GetMaxSubdivision(int simplificationLevels) => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal static float GetMinBrickSize(float minDistanceBetweenProbes) => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
-        bool m_HasSupportData = false;
-        bool m_SharedDataIsValid = false;
+        bool m_HasSupportData;
+        bool m_SharedDataIsValid;
         bool m_UseStreamingAsset = true;
 
-        private void OnValidate()
+        void OnValidate()
         {
             singleSceneMode &= m_SceneGUIDs.Count <= 1;
 
             if (m_LightingScenarios.Count == 0)
-                m_LightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
+                m_LightingScenarios = new List<string> { ProbeReferenceVolume.k_DefaultLightingScenario };
 
             settings.Upgrade();
 
@@ -333,13 +335,13 @@ namespace UnityEngine.Rendering
                 if (version < Version.RemoveProbeVolumeSceneData)
                 {
 #if UNITY_EDITOR
-                    var sceneData = ProbeReferenceVolume.instance.sceneData;
+                    var sceneData = ProbeReferenceVolume.instance.m_SceneData;
                     if (sceneData == null)
                         return;
 
                     foreach (var scene in m_SceneGUIDs)
                     {
-                        SceneBakeData newSceneData = new SceneBakeData();
+                        var newSceneData = new SceneBakeData();
                         sceneData.obsoleteSceneBounds.TryGetValue(scene, out newSceneData.bounds);
                         sceneData.obsoleteHasProbeVolumes.TryGetValue(scene, out newSceneData.hasProbeVolume);
                         newSceneData.bakeScene = !obsoleteScenesToNotBake.Contains(scene);
@@ -433,9 +435,9 @@ namespace UnityEngine.Rendering
         public bool HasBakedData(string scenario = null)
         {
             if (scenario == null)
-                return scenarios.ContainsKey(ProbeReferenceVolume.defaultLightingScenario);
+                return scenarios.ContainsKey(ProbeReferenceVolume.k_DefaultLightingScenario);
 
-            if (!ProbeReferenceVolume.instance.supportLightingScenarios && scenario != ProbeReferenceVolume.defaultLightingScenario)
+            if (!ProbeReferenceVolume.instance.supportLightingScenarios && scenario != ProbeReferenceVolume.k_DefaultLightingScenario)
                 return false;
             return scenarios.ContainsKey(scenario);
         }
@@ -448,13 +450,13 @@ namespace UnityEngine.Rendering
                 if (m_LightingScenarios.Count != 0)
                     lightingScenario = m_LightingScenarios[0];
                 else
-                    lightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+                    lightingScenario = ProbeReferenceVolume.k_DefaultLightingScenario;
             }
 
-            perSceneCellLists.Clear();
-            foreach(var scene in m_SerializedPerSceneCellList)
+            m_PerSceneCellLists.Clear();
+            foreach (var scene in m_SerializedPerSceneCellList)
             {
-                perSceneCellLists.Add(scene.sceneGUID, scene.cellList);
+                m_PerSceneCellLists.Add(scene.sceneGUID, scene.cellList);
             }
 
             if (m_OtherScenario == "")
@@ -472,7 +474,6 @@ namespace UnityEngine.Rendering
             if (bakedSkyShadingDirectionValue == -1)
                 bakedSkyShadingDirection = false;
 
-
             // Hack T_T
             // Added the new bricksCount in Disk Streaming PR to have everything ready in the serialized desc but old data does not have it so we need to recompute it...
             // Might as well not serialize it but it's bad to have non-serialized data in the serialized desc.
@@ -484,8 +485,10 @@ namespace UnityEngine.Rendering
                 var cellDesc = enumerator.Current;
                 if (cellDesc.bricksCount == 0)
                 {
-                    foreach(var value in cellDescs.Values)
-                        value.bricksCount = value.probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+                    foreach (var value in cellDescs.Values)
+                    {
+                        value.bricksCount = value.probeCount / ProbeBrickPool.k_BrickProbeCountTotal;
+                    }
                 }
             }
         }
@@ -494,7 +497,7 @@ namespace UnityEngine.Rendering
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_SerializedPerSceneCellList = new List<SerializedPerSceneCellList>();
-            foreach (var kvp in perSceneCellLists)
+            foreach (var kvp in m_PerSceneCellLists)
             {
                 m_SerializedPerSceneCellList.Add(new SerializedPerSceneCellList { sceneGUID = kvp.Key, cellList = kvp.Value });
             }
@@ -504,14 +507,18 @@ namespace UnityEngine.Rendering
         {
             // Would have been better in OnEnable but unfortunately, ProbeReferenceVolume.instance.shBands might not be initialized yet when it's called.
             foreach (var scenario in scenarios)
+            {
                 scenario.Value.Initialize(ProbeReferenceVolume.instance.shBands);
+            }
 
             if (!useStreamingAsset)
             {
                 m_UseStreamingAsset = false;
                 m_TotalIndexList.Clear();
                 foreach (var index in cellDescs.Keys)
+                {
                     m_TotalIndexList.Add(index);
+                }
 
                 ResolveAllCellData();
             }
@@ -540,8 +547,10 @@ namespace UnityEngine.Rendering
             if (m_ReadCommandBuffer.IsCreated)
                 m_ReadCommandBuffer.Dispose();
 
-            foreach(var buffer in m_ReadOperationScratchBuffers)
+            foreach (var buffer in m_ReadOperationScratchBuffers)
+            {
                 buffer.Dispose();
+            }
 
             m_ReadOperationScratchBuffers.Clear();
         }
@@ -632,7 +641,6 @@ namespace UnityEngine.Rendering
             return hash;
         }
 
-
         static int AlignUp16(int count)
         {
             var alignment = 16;
@@ -673,7 +681,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private unsafe bool FileExists(string path)
+        unsafe bool FileExists(string path)
         {
             // Can't use System.IO.File.Exists as it doesn't work with compressed streaming assets folder (iOS, Android)
             FileInfoResult infoResult;
@@ -724,11 +732,11 @@ namespace UnityEngine.Rendering
                 // Compute total size and fill read command offsets/sizes
                 int totalSize = 0;
                 int commandIndex = 0;
-                foreach (int cellIndex in cellIndices)
+                foreach (var cellIndex in cellIndices)
                 {
                     var cell = cellDescs[cellIndex];
                     var streamableCellDesc = asset.streamableCellDescs[cellIndex];
-                    ReadCommand command = new ReadCommand();
+                    var command = new ReadCommand();
                     command.Offset = streamableCellDesc.offset;
                     command.Size = streamableCellDesc.elementCount * asset.elementSize;
                     command.Buffer = null;
@@ -743,7 +751,7 @@ namespace UnityEngine.Rendering
                 commandIndex = 0;
                 long outputOffset = 0;
                 byte* scratchPtr = (byte*)scratchBuffer.GetUnsafePtr();
-                foreach (int cellIndex in cellIndices)
+                foreach (var cellIndex in cellIndices)
                 {
                     // Stupid C# and no ref returns by default...
                     var command = m_ReadCommandBuffer[commandIndex];
@@ -779,7 +787,7 @@ namespace UnityEngine.Rendering
             foreach (var cellIndex in cellIndices)
             {
                 // When clearing data only partially (ie: not all scenes are loaded), there can be left over indices here but no cells in the set.
-                if (!cellDataMap.ContainsKey(cellIndex) && cellDescs.ContainsKey(cellIndex))
+                if (!m_CellDataMap.ContainsKey(cellIndex) && cellDescs.ContainsKey(cellIndex))
                 {
                     prunedIndexList.Add(cellIndex);
                 }
@@ -800,9 +808,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal List<int> GetSceneCellIndexList(string sceneGUID)
+        internal List<int> GetSceneCellIndexList(string sceneGuid)
         {
-            if (perSceneCellLists.TryGetValue(sceneGUID, out var indexList))
+            if (m_PerSceneCellLists.TryGetValue(sceneGuid, out var indexList))
                 return indexList;
             else
                 return null;
@@ -839,14 +847,16 @@ namespace UnityEngine.Rendering
                 // GPU data will stay empty but CPU data (bricks, support) will be streamed here.
                 foreach (var cell in m_PrunedIndexList)
                 {
-                    Debug.Assert(!cellDataMap.ContainsKey(cell));
+                    Debug.Assert(!m_CellDataMap.ContainsKey(cell));
                     // Not ideal.
                     // When streaming and blending, we still need to have a valid list of scenario per CellData.
                     var newCellData = new CellData();
                     foreach (var scenario in scenarios)
+                    {
                         newCellData.scenarios.Add(scenario.Key, default);
+                    }
 
-                    cellDataMap.Add(cell, newCellData);
+                    m_CellDataMap.Add(cell, newCellData);
                 }
 
                 return true;
@@ -880,7 +890,7 @@ namespace UnityEngine.Rendering
                 int bricksCount = cellDesc.bricksCount;
                 int shChunkCount = cellDesc.shChunkCount;
 
-                Debug.Assert(!cellDataMap.ContainsKey(cellIndex)); // Don't resolve the same cell twice.
+                Debug.Assert(!m_CellDataMap.ContainsKey(cellIndex)); // Don't resolve the same cell twice.
 
                 // When we use Streaming Assets, we can't keep a reference to the source file data so we create a copy of the native array.
                 // When not using Streaming Assets, the file will always be alive so we can keep the reference on the file data.
@@ -941,12 +951,11 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                cellDataMap.Add(cellIndex, cellData);
+                m_CellDataMap.Add(cellIndex, cellData);
                 totalBricksCount += bricksCount;
                 totalSHChunkCount += shChunkCount;
             }
         }
-
 
         internal bool ResolveSharedCellData(List<int> cellIndices)
         {
@@ -1036,7 +1045,7 @@ namespace UnityEngine.Rendering
             for (var i = 0; i < cellIndices.Count; ++i)
             {
                 var cellIndex = cellIndices[i];
-                var cell = cellDataMap[cellIndex];
+                var cell = m_CellDataMap[cellIndex];
                 var cellDesc = cellDescs[cellIndex];
                 var cellState = new CellData.PerScenarioData();
 
@@ -1047,22 +1056,22 @@ namespace UnityEngine.Rendering
                 var sourceShL1BL1RzDataSource = cellData.GetSubArray(chunkOffsetL0L1 + (L0ChunkSize + L1ChunkSize) * shChunkCount, L1ChunkSize * shChunkCount);
 
                 cellState.shL0L1RxData = m_UseStreamingAsset ? new NativeArray<ushort>(sourceShL0L1RxDataSource, Allocator.Persistent) : sourceShL0L1RxDataSource;
-                cellState.shL1GL1RyData = m_UseStreamingAsset ?new NativeArray<byte>(sourceShL1GL1RyDataSource, Allocator.Persistent) : sourceShL1GL1RyDataSource;
+                cellState.shL1GL1RyData = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL1GL1RyDataSource, Allocator.Persistent) : sourceShL1GL1RyDataSource;
                 cellState.shL1BL1RzData = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL1BL1RzDataSource, Allocator.Persistent) : sourceShL1BL1RzDataSource;
 
                 if (hasOptionalData)
                 {
                     var L2DataSize = shChunkCount * L2TextureChunkSize;
 
-                    var sourceShL2Data_0 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 0, L2DataSize);
-                    var sourceShL2Data_1 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 1, L2DataSize);
-                    var sourceShL2Data_2 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 2, L2DataSize);
-                    var sourceShL2Data_3 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 3, L2DataSize);
+                    var sourceShL2Data0 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 0, L2DataSize);
+                    var sourceShL2Data1 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 1, L2DataSize);
+                    var sourceShL2Data2 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 2, L2DataSize);
+                    var sourceShL2Data3 = cellOptionalData.GetSubArray(chunkOffsetL2 + L2DataSize * 3, L2DataSize);
 
-                    cellState.shL2Data_0 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data_0, Allocator.Persistent) : sourceShL2Data_0;
-                    cellState.shL2Data_1 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data_1, Allocator.Persistent) : sourceShL2Data_1;
-                    cellState.shL2Data_2 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data_2, Allocator.Persistent) : sourceShL2Data_2;
-                    cellState.shL2Data_3 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data_3, Allocator.Persistent) : sourceShL2Data_3;
+                    cellState.shL2Data_0 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data0, Allocator.Persistent) : sourceShL2Data0;
+                    cellState.shL2Data_1 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data1, Allocator.Persistent) : sourceShL2Data1;
+                    cellState.shL2Data_2 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data2, Allocator.Persistent) : sourceShL2Data2;
+                    cellState.shL2Data_3 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data3, Allocator.Persistent) : sourceShL2Data3;
                 }
 
                 if (hasProbeOcclusionData)
@@ -1084,9 +1093,9 @@ namespace UnityEngine.Rendering
 
         internal void ReleaseCell(int cellIndex)
         {
-            var cellData = cellDataMap[cellIndex];
+            var cellData = m_CellDataMap[cellIndex];
             cellData.Cleanup(true);
-            cellDataMap.Remove(cellIndex);
+            m_CellDataMap.Remove(cellIndex);
         }
 
         internal CellDesc GetCellDesc(int cellIndex)
@@ -1099,7 +1108,7 @@ namespace UnityEngine.Rendering
 
         internal CellData GetCellData(int cellIndex)
         {
-            if (cellDataMap.TryGetValue(cellIndex, out var cellData))
+            if (m_CellDataMap.TryGetValue(cellIndex, out var cellData))
                 return cellData;
             else
                 return null;

@@ -1,4 +1,3 @@
-using System;
 
 namespace UnityEngine.Rendering
 {
@@ -34,7 +33,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         [Min(0.0f), Tooltip("Modify the radius of this Probe Adjustment Volume. This is unaffected by the GameObject's Transform's Scale property.")]
         public float radius = 1.0f;
-
 
         /// <summary>The mode that adjustment volume will operate in. It determines what probes falling within the volume will do. </summary>
         public enum Mode
@@ -107,7 +105,7 @@ namespace UnityEngine.Rendering
         [Tooltip("The direction for sampling the ambient probe in worldspace when using the Sky Visibility feature.")]
         public Vector3 skyDirection = Vector3.zero;
 
-        internal Vector3 skyShadingDirectionRotation = Vector3.zero;
+        internal Vector3 m_SkyShadingDirectionRotation = Vector3.zero;
 
         /// <summary>Number of samples for direct lighting computations.</summary>
         [Logarithmic(1, 1024), Tooltip("Number of samples for direct lighting computations.")]
@@ -140,7 +138,7 @@ namespace UnityEngine.Rendering
         public byte renderingLayerMask;
 
 #if UNITY_EDITOR
-        [SerializeField] internal int cachedHashCode = 0;
+        [SerializeField] internal int cachedHashCode;
 
         public override int GetHashCode()
         {
@@ -160,7 +158,7 @@ namespace UnityEngine.Rendering
                 hash = hash * 23 + geometryBias.GetHashCode();
                 hash = hash * 23 + rayOriginBias.GetHashCode();
                 hash = hash * 23 + skyDirection.GetHashCode();
-                hash = hash * 23 + skyShadingDirectionRotation.GetHashCode();
+                hash = hash * 23 + m_SkyShadingDirectionRotation.GetHashCode();
                 hash = hash * 23 + directSampleCount.GetHashCode();
                 hash = hash * 23 + indirectSampleCount.GetHashCode();
                 hash = hash * 23 + sampleCountMultiplier.GetHashCode();
@@ -183,7 +181,7 @@ namespace UnityEngine.Rendering
             return size;
         }
 
-        internal void GetOBBandAABB(out ProbeReferenceVolume.Volume volume, out Bounds bounds)
+        internal void GetOBBAndAABB(out ProbeReferenceVolume.Volume volume, out Bounds bounds)
         {
             if (shape == Shape.Box)
             {
@@ -200,23 +198,23 @@ namespace UnityEngine.Rendering
         internal float ComputeVolume(in ProbeReferenceVolume.Volume touchupOBB)
         {
             if (shape == Shape.Box)
-                return touchupOBB.X.magnitude * touchupOBB.Y.magnitude * touchupOBB.Z.magnitude;
+                return touchupOBB.m_X.magnitude * touchupOBB.m_Y.magnitude * touchupOBB.m_Z.magnitude;
             else
                 return (4.0f / 3.0f) * Mathf.PI * radius * radius * radius;
         }
 
-        internal bool IntersectsVolume(in ProbeReferenceVolume.Volume touchupOBB, in Bounds touchupBounds, Bounds volumeBounds)
+        internal bool IntersectsVolume(in ProbeReferenceVolume.Volume touchupObb, in Bounds touchupBounds, Bounds volumeBounds)
         {
             if (shape == Shape.Box)
-                return ProbeVolumePositioning.OBBAABBIntersect(touchupOBB, volumeBounds, touchupBounds);
+                return ProbeVolumePositioning.OBBAABBIntersect(touchupObb, volumeBounds, touchupBounds);
             else
                 return volumeBounds.SqrDistance(touchupBounds.center) < radius * radius;
         }
 
-        internal bool ContainsPoint(in ProbeReferenceVolume.Volume touchupOBB, in Vector3 touchupCenter, in Vector3 position)
+        internal bool ContainsPoint(in ProbeReferenceVolume.Volume touchupObb, in Vector3 touchupCenter, in Vector3 position)
         {
             if (shape == Shape.Box)
-                return ProbeVolumePositioning.OBBContains(touchupOBB, position);
+                return ProbeVolumePositioning.OBBContains(touchupObb, position);
             else
                 return (touchupCenter - position).sqrMagnitude < radius * radius;
         }
@@ -235,7 +233,7 @@ namespace UnityEngine.Rendering
             Initial,
             Mode,
 
-            Count
+            Count,
         }
 
         [SerializeField]

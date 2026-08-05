@@ -4,59 +4,59 @@ namespace UnityEditor.Rendering
 {
     internal class SerializedProbeAdjustmentVolume
     {
-        internal SerializedProperty shape;
-        internal SerializedProperty size;
-        internal SerializedProperty radius;
+        internal SerializedProperty m_Shape;
+        internal SerializedProperty m_Size;
+        internal SerializedProperty m_Radius;
 
-        internal SerializedProperty mode;
-        internal SerializedProperty intensityScale;
-        internal SerializedProperty overriddenDilationThreshold;
-        internal SerializedProperty virtualOffsetRotation;
-        internal SerializedProperty virtualOffsetDistance;
-        internal SerializedProperty virtualOffsetThreshold;
-        internal SerializedProperty geometryBias;
-        internal SerializedProperty rayOriginBias;
-        internal SerializedProperty skyDirection;
+        internal SerializedProperty m_Mode;
+        internal SerializedProperty m_IntensityScale;
+        internal SerializedProperty m_OverriddenDilationThreshold;
+        internal SerializedProperty m_VirtualOffsetRotation;
+        internal SerializedProperty m_VirtualOffsetDistance;
+        internal SerializedProperty m_VirtualOffsetThreshold;
+        internal SerializedProperty m_GeometryBias;
+        internal SerializedProperty m_RayOriginBias;
+        internal SerializedProperty m_SkyDirection;
 
-        internal SerializedProperty directSampleCount;
-        internal SerializedProperty indirectSampleCount;
-        internal SerializedProperty sampleCountMultiplier;
-        internal SerializedProperty maxBounces;
+        internal SerializedProperty m_DirectSampleCount;
+        internal SerializedProperty m_IndirectSampleCount;
+        internal SerializedProperty m_SampleCountMultiplier;
+        internal SerializedProperty m_MaxBounces;
 
-        internal SerializedProperty skyOcclusionSampleCount;
-        internal SerializedProperty skyOcclusionMaxBounces;
+        internal SerializedProperty m_SkyOcclusionSampleCount;
+        internal SerializedProperty m_SkyOcclusionMaxBounces;
 
-        internal SerializedProperty renderingLayerMaskOperation;
-        internal SerializedProperty renderingLayerMask;
+        internal SerializedProperty m_RenderingLayerMaskOperation;
+        internal SerializedProperty m_RenderingLayerMask;
 
         internal SerializedProbeAdjustmentVolume(SerializedObject obj)
         {
             var o = new PropertyFetcher<ProbeAdjustmentVolume>(obj);
 
-            shape = o.Find(x => x.shape);
-            size = o.Find(x => x.size);
-            radius = o.Find(x => x.radius);
+            m_Shape = o.Find(x => x.shape);
+            m_Size = o.Find(x => x.size);
+            m_Radius = o.Find(x => x.radius);
 
-            mode = o.Find(x => x.mode);
-            intensityScale = o.Find(x => x.intensityScale);
-            overriddenDilationThreshold = o.Find(x => x.overriddenDilationThreshold);
-            virtualOffsetRotation = o.Find(x => x.virtualOffsetRotation);
-            virtualOffsetDistance = o.Find(x => x.virtualOffsetDistance);
-            virtualOffsetThreshold = o.Find(x => x.virtualOffsetThreshold);
-            geometryBias = o.Find(x => x.geometryBias);
-            rayOriginBias = o.Find(x => x.rayOriginBias);
-            skyDirection = o.Find(x => x.skyDirection);
+            m_Mode = o.Find(x => x.mode);
+            m_IntensityScale = o.Find(x => x.intensityScale);
+            m_OverriddenDilationThreshold = o.Find(x => x.overriddenDilationThreshold);
+            m_VirtualOffsetRotation = o.Find(x => x.virtualOffsetRotation);
+            m_VirtualOffsetDistance = o.Find(x => x.virtualOffsetDistance);
+            m_VirtualOffsetThreshold = o.Find(x => x.virtualOffsetThreshold);
+            m_GeometryBias = o.Find(x => x.geometryBias);
+            m_RayOriginBias = o.Find(x => x.rayOriginBias);
+            m_SkyDirection = o.Find(x => x.skyDirection);
 
-            directSampleCount = o.Find(x => x.directSampleCount);
-            indirectSampleCount = o.Find(x => x.indirectSampleCount);
-            sampleCountMultiplier = o.Find(x => x.sampleCountMultiplier);
-            maxBounces = o.Find(x => x.maxBounces);
+            m_DirectSampleCount = o.Find(x => x.directSampleCount);
+            m_IndirectSampleCount = o.Find(x => x.indirectSampleCount);
+            m_SampleCountMultiplier = o.Find(x => x.sampleCountMultiplier);
+            m_MaxBounces = o.Find(x => x.maxBounces);
 
-            skyOcclusionSampleCount = o.Find(x => x.skyOcclusionSampleCount);
-            skyOcclusionMaxBounces = o.Find(x => x.skyOcclusionMaxBounces);
+            m_SkyOcclusionSampleCount = o.Find(x => x.skyOcclusionSampleCount);
+            m_SkyOcclusionMaxBounces = o.Find(x => x.skyOcclusionMaxBounces);
 
-            renderingLayerMaskOperation = o.Find(x => x.renderingLayerMaskOperation);
-            renderingLayerMask = o.Find(x => x.renderingLayerMask);
+            m_RenderingLayerMaskOperation = o.Find(x => x.renderingLayerMaskOperation);
+            m_RenderingLayerMask = o.Find(x => x.renderingLayerMask);
         }
     }
 }

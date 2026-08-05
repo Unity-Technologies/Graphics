@@ -4,8 +4,8 @@ namespace UnityEngine.Rendering
     {
         // Scratch buffers reused across calls to avoid per-call allocation.
         // Every code path fully writes all elements before reading — no reset needed on domain reload.
-        static readonly Vector3[] m_Axes = new Vector3[6];
-        static readonly Vector3[] m_AABBCorners = new Vector3[8];
+        static readonly Vector3[] s_Axes = new Vector3[6];
+        static readonly Vector3[] s_AABBCorners = new Vector3[8];
 
         public static bool OBBIntersect(in ProbeReferenceVolume.Volume a, in ProbeReferenceVolume.Volume b)
         {
@@ -18,17 +18,17 @@ namespace UnityEngine.Rendering
             if (Vector3.SqrMagnitude(aCenter - bCenter) > aRadius + bRadius)
                 return false;
 
-            m_Axes[0] = a.X.normalized;
-            m_Axes[1] = a.Y.normalized;
-            m_Axes[2] = a.Z.normalized;
-            m_Axes[3] = b.X.normalized;
-            m_Axes[4] = b.Y.normalized;
-            m_Axes[5] = b.Z.normalized;
+            s_Axes[0] = a.m_X.normalized;
+            s_Axes[1] = a.m_Y.normalized;
+            s_Axes[2] = a.m_Z.normalized;
+            s_Axes[3] = b.m_X.normalized;
+            s_Axes[4] = b.m_Y.normalized;
+            s_Axes[5] = b.m_Z.normalized;
 
             for (int i = 0; i < 6; i++)
             {
-                Vector2 aProj = ProjectOBB(in a, m_Axes[i]);
-                Vector2 bProj = ProjectOBB(in b, m_Axes[i]);
+                Vector2 aProj = ProjectOBB(in a, s_Axes[i]);
+                Vector2 bProj = ProjectOBB(in b, s_Axes[i]);
 
                 if (aProj.y < bProj.x || bProj.y < aProj.x)
                 {
@@ -41,13 +41,13 @@ namespace UnityEngine.Rendering
 
         public static bool OBBContains(in ProbeReferenceVolume.Volume obb, Vector3 point)
         {
-            float lenX2 = obb.X.sqrMagnitude;
-            float lenY2 = obb.Y.sqrMagnitude;
-            float lenZ2 = obb.Z.sqrMagnitude;
+            float lenX2 = obb.m_X.sqrMagnitude;
+            float lenY2 = obb.m_Y.sqrMagnitude;
+            float lenZ2 = obb.m_Z.sqrMagnitude;
 
             // Project in OBB space
-            point -= obb.corner;
-            point = new Vector3(Vector3.Dot(point, obb.X), Vector3.Dot(point, obb.Y), Vector3.Dot(point, obb.Z));
+            point -= obb.m_Corner;
+            point = new Vector3(Vector3.Dot(point, obb.m_X), Vector3.Dot(point, obb.m_Y), Vector3.Dot(point, obb.m_Z));
 
             return (0.0f < point.x && point.x < lenX2) && (0.0f < point.y && point.y < lenY2) && (0.0f < point.z && point.z < lenZ2);
         }
@@ -61,23 +61,23 @@ namespace UnityEngine.Rendering
 
             // Perform complex OBB test
             Vector3 boundsMin = b.min, boundsMax = b.max;
-            m_AABBCorners[0] = new Vector3(boundsMin.x, boundsMin.y, boundsMin.z);
-            m_AABBCorners[1] = new Vector3(boundsMax.x, boundsMin.y, boundsMin.z);
-            m_AABBCorners[2] = new Vector3(boundsMax.x, boundsMax.y, boundsMin.z);
-            m_AABBCorners[3] = new Vector3(boundsMin.x, boundsMax.y, boundsMin.z);
-            m_AABBCorners[4] = new Vector3(boundsMin.x, boundsMin.y, boundsMax.z);
-            m_AABBCorners[5] = new Vector3(boundsMax.x, boundsMin.y, boundsMax.z);
-            m_AABBCorners[6] = new Vector3(boundsMax.x, boundsMax.y, boundsMax.z);
-            m_AABBCorners[7] = new Vector3(boundsMin.x, boundsMax.y, boundsMax.z);
+            s_AABBCorners[0] = new Vector3(boundsMin.x, boundsMin.y, boundsMin.z);
+            s_AABBCorners[1] = new Vector3(boundsMax.x, boundsMin.y, boundsMin.z);
+            s_AABBCorners[2] = new Vector3(boundsMax.x, boundsMax.y, boundsMin.z);
+            s_AABBCorners[3] = new Vector3(boundsMin.x, boundsMax.y, boundsMin.z);
+            s_AABBCorners[4] = new Vector3(boundsMin.x, boundsMin.y, boundsMax.z);
+            s_AABBCorners[5] = new Vector3(boundsMax.x, boundsMin.y, boundsMax.z);
+            s_AABBCorners[6] = new Vector3(boundsMax.x, boundsMax.y, boundsMax.z);
+            s_AABBCorners[7] = new Vector3(boundsMin.x, boundsMax.y, boundsMax.z);
 
-            m_Axes[0] = a.X.normalized;
-            m_Axes[1] = a.Y.normalized;
-            m_Axes[2] = a.Z.normalized;
+            s_Axes[0] = a.m_X.normalized;
+            s_Axes[1] = a.m_Y.normalized;
+            s_Axes[2] = a.m_Z.normalized;
 
             for (int i = 0; i < 3; i++)
             {
-                Vector2 aProj = ProjectOBB(in a, m_Axes[i]);
-                Vector2 bProj = ProjectAABB(m_AABBCorners, m_Axes[i]);
+                Vector2 aProj = ProjectOBB(in a, s_Axes[i]);
+                Vector2 bProj = ProjectAABB(s_AABBCorners, s_Axes[i]);
 
                 if (aProj.y < bProj.x || bProj.y < aProj.x)
                 {
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering
 
         static Vector2 ProjectOBB(in ProbeReferenceVolume.Volume a, Vector3 axis)
         {
-            float min = Vector3.Dot(axis, a.corner);
+            float min = Vector3.Dot(axis, a.m_Corner);
             float max = min;
 
             for (int x = 0; x < 2; x++)
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
                 {
                     for (int z = 0; z < 2; z++)
                     {
-                        Vector3 vert = a.corner + a.X * x + a.Y * y + a.Z * z;
+                        Vector3 vert = a.m_Corner + a.m_X * x + a.m_Y * y + a.m_Z * z;
 
                         float proj = Vector3.Dot(axis, vert);
 
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering
             {
                 float proj = Vector3.Dot(axis, corners[i]);
                 if (proj < min) min = proj;
-                else if (proj > max)  max = proj;
+                else if (proj > max) max = proj;
             }
 
             return new Vector2(min, max);

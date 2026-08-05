@@ -1,9 +1,8 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
-using UnityEngine.SceneManagement;
 using UnityEditor;
-using System.Runtime.InteropServices;
+using UnityEngine.SceneManagement;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 
 namespace UnityEngine.Rendering
@@ -17,43 +16,43 @@ namespace UnityEngine.Rendering
         public int maxSubdivision => ProbeVolumeBakingSet.GetMaxSubdivision(simplificationLevels);
         public float minBrickSize => ProbeVolumeBakingSet.GetMinBrickSize(minDistanceBetweenProbes);
         public int cellSizeInBricks => ProbeVolumeBakingSet.GetCellSizeInBricks(simplificationLevels);
-        public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
+        public float cellSizeInMeters => cellSizeInBricks * minBrickSize;
 
         public Vector3Int PositionToCell(Vector3 position) => Vector3Int.FloorToInt((position - probeOffset) / cellSizeInMeters);
     }
 
     public partial class AdaptiveProbeVolumes
     {
-        static internal ProbeVolumeProfileInfo m_ProfileInfo = null;
+        static internal ProbeVolumeProfileInfo s_ProfileInfo = null;
 
         static void FindWorldBounds()
         {
             var prv = ProbeReferenceVolume.instance;
-            prv.clearAssetsOnVolumeClear = true;
+            prv.m_ClearAssetsOnVolumeClear = true;
 
             var activeScene = SceneManager.GetActiveScene();
             var activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeScene);
 
             bool hasFoundBounds = false;
 
-            foreach (var sceneGUID in activeSet.sceneGUIDs)
+            foreach (var sceneGuid in activeSet.sceneGUIDs)
             {
-                var bakeData = activeSet.GetSceneBakeData(sceneGUID);
+                var bakeData = activeSet.GetSceneBakeData(sceneGuid);
                 if (bakeData.hasProbeVolume)
                 {
                     if (hasFoundBounds)
                     {
-                        globalBounds.Encapsulate(bakeData.bounds);
+                        s_GlobalBounds.Encapsulate(bakeData.bounds);
                     }
                     else
                     {
-                        globalBounds = bakeData.bounds;
+                        s_GlobalBounds = bakeData.bounds;
                         hasFoundBounds = true;
                     }
                 }
             }
 
-            ProbeReferenceVolume.instance.globalBounds = globalBounds;
+            ProbeReferenceVolume.instance.globalBounds = s_GlobalBounds;
         }
 
         internal static List<ProbeVolumePerSceneData> GetPerSceneDataList()
@@ -62,10 +61,10 @@ namespace UnityEngine.Rendering
             if (!isBakingSceneSubset)
                 return fullPerSceneDataList;
 
-            List<ProbeVolumePerSceneData> usedPerSceneDataList = new ();
+            List<ProbeVolumePerSceneData> usedPerSceneDataList = new();
             foreach (var sceneData in fullPerSceneDataList)
             {
-                if (partialBakeSceneList.Contains(ProbeReferenceVolume.GetSceneGUID(sceneData.gameObject.scene)))
+                if (s_PartialBakeSceneList.Contains(ProbeReferenceVolume.GetSceneGuid(sceneData.gameObject.scene)))
                     usedPerSceneDataList.Add(sceneData);
             }
             return usedPerSceneDataList;
@@ -73,23 +72,23 @@ namespace UnityEngine.Rendering
 
         internal static List<ProbeVolume> GetProbeVolumeList()
         {
-            #pragma warning disable CS0618 // Type or member is obsolete
-            var fullPvList = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+#pragma warning disable CS0618 // Type or member is obsolete
+            var fullPVList = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
 #pragma warning restore CS0618 // Type or member is obsolete
             List<ProbeVolume> usedPVList;
 
             if (isBakingSceneSubset)
             {
                 usedPVList = new List<ProbeVolume>();
-                foreach (var pv in fullPvList)
+                foreach (var pv in fullPVList)
                 {
-                    if (pv.isActiveAndEnabled && partialBakeSceneList.Contains(ProbeReferenceVolume.GetSceneGUID(pv.gameObject.scene)))
+                    if (pv.isActiveAndEnabled && s_PartialBakeSceneList.Contains(ProbeReferenceVolume.GetSceneGuid(pv.gameObject.scene)))
                         usedPVList.Add(pv);
                 }
             }
             else
             {
-                usedPVList = new List<ProbeVolume>(fullPvList);
+                usedPVList = new List<ProbeVolume>(fullPVList);
             }
 
             return usedPVList;
@@ -106,8 +105,8 @@ namespace UnityEngine.Rendering
 
         static int PosToIndex(Vector3Int pos)
         {
-            Vector3Int normalizedPos = pos - minCellPosition;
-            return normalizedPos.z * (cellCount.x * cellCount.y) + normalizedPos.y * cellCount.x + normalizedPos.x;
+            Vector3Int normalizedPos = pos - s_MinCellPosition;
+            return normalizedPos.z * (s_CellCount.x * s_CellCount.y) + normalizedPos.y * s_CellCount.x + normalizedPos.x;
         }
 
         static internal bool CanFreezePlacement()
@@ -150,7 +149,7 @@ namespace UnityEngine.Rendering
 
             // All probes need to be baked only once for the whole batch and not once per cell
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
-            m_BakingBatch = new BakingBatch(cellCount, refVolume);
+            s_BakingBatch = new BakingBatch(s_CellCount, refVolume);
 
             // Run subdivision
             ProbeSubdivisionResult result;
@@ -175,11 +174,11 @@ namespace UnityEngine.Rendering
         {
             var perSceneDataList = GetPerSceneDataList();
 
-            if (isFreezingPlacement)
+            if (s_IsFreezingPlacement)
                 return GetBricksFromLoaded(perSceneDataList);
 
             var ctx = PrepareProbeSubdivisionContext(perSceneDataList);
-            return BakeBricks(ctx, m_BakingBatch.contributors, showProgress: true, ref canceledByUser);
+            return BakeBricks(ctx, s_BakingBatch.contributors, showProgress: true, ref canceledByUser);
         }
 
         static NativeList<Vector3> ApplySubdivisionResults(ProbeSubdivisionResult results, ref bool canceledByUser)
@@ -202,10 +201,10 @@ namespace UnityEngine.Rendering
                 int positionStart = positions.Length;
 
                 ConvertBricksToPositions(bricks, out var probePositions, out var brickSubdivLevels);
-                if (!DeduplicateProbePositions(in probePositions, in brickSubdivLevels, m_BakingBatch, positions, out var probeIndices))
+                if (!DeduplicateProbePositions(in probePositions, in brickSubdivLevels, s_BakingBatch, positions, out var probeIndices))
                     return new NativeList<Vector3>(Allocator.Persistent);
 
-                BakingCell cell = new BakingCell()
+                var cell = new BakingCell
                 {
                     index = PosToIndex(position),
                     position = position,
@@ -215,8 +214,8 @@ namespace UnityEngine.Rendering
                     probeIndices = probeIndices,
                 };
 
-                m_BakingBatch.cells.Add(cell);
-                m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
+                s_BakingBatch.cells.Add(cell);
+                s_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
             }
 
             return positions;
@@ -280,8 +279,8 @@ namespace UnityEngine.Rendering
 
             foreach (var data in dataList)
             {
-                var cellSize = m_ProfileInfo.minDistanceBetweenProbes * 3.0f * m_ProfileInfo.cellSizeInBricks;
-                Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
+                var cellSize = s_ProfileInfo.minDistanceBetweenProbes * 3.0f * s_ProfileInfo.cellSizeInBricks;
+                var cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
                 // Loop through cells in asset, we need to be careful as there'll be duplicates.
                 // As we go through the cells we fill ProbeSubdivisionResult as we go.
@@ -322,11 +321,11 @@ namespace UnityEngine.Rendering
                 SetBakingContext(perSceneDataList);
             }
 
-            var profileInfo = m_ProfileInfo;
-            if (liveContext || m_ProfileInfo == null)
+            var profileInfo = s_ProfileInfo;
+            if (liveContext || s_ProfileInfo == null)
                 profileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
 
-            ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
+            var ctx = new ProbeSubdivisionContext();
             ctx.Initialize(m_BakingSet, profileInfo, refVolOrigin);
             return ctx;
         }
@@ -364,7 +363,7 @@ namespace UnityEngine.Rendering
                         if (ProbeVolumePositioning.OBBAABBIntersect(probeVolume.volume, cell.bounds, probeVolume.bounds))
                         {
                             overlappingProbeVolumes.Add(probeVolume);
-                            scenesInCell.Add(ProbeReferenceVolume.GetSceneGUID(probeVolume.component.gameObject.scene));
+                            scenesInCell.Add(ProbeReferenceVolume.GetSceneGuid(probeVolume.component.gameObject.scene));
                         }
                     }
 
@@ -379,10 +378,14 @@ namespace UnityEngine.Rendering
                         continue;
 
                     foreach (var renderer in filteredContributors.renderers)
-                        scenesInCell.Add(ProbeReferenceVolume.GetSceneGUID(renderer.component.gameObject.scene));
+                    {
+                        scenesInCell.Add(ProbeReferenceVolume.GetSceneGuid(renderer.component.gameObject.scene));
+                    }
 #if ENABLE_TERRAIN_MODULE
                     foreach (var terrain in filteredContributors.terrains)
-                        scenesInCell.Add(ProbeReferenceVolume.GetSceneGUID(terrain.component.gameObject.scene));
+                    {
+                        scenesInCell.Add(ProbeReferenceVolume.GetSceneGuid(terrain.component.gameObject.scene));
+                    }
 #endif
 
                     result.cells.Add((cell.position, cell.bounds, bricks));
@@ -395,32 +398,32 @@ namespace UnityEngine.Rendering
 
         static void ModifyProfileFromLoadedData(ProbeVolumeBakingSet bakingSet)
         {
-            m_ProfileInfo.simplificationLevels = bakingSet.bakedSimplificationLevels;
-            m_ProfileInfo.minDistanceBetweenProbes = bakingSet.bakedMinDistanceBetweenProbes;
-            m_ProfileInfo.probeOffset = bakingSet.bakedProbeOffset;
-            globalBounds = bakingSet.globalBounds;
+            s_ProfileInfo.simplificationLevels = bakingSet.bakedSimplificationLevels;
+            s_ProfileInfo.minDistanceBetweenProbes = bakingSet.bakedMinDistanceBetweenProbes;
+            s_ProfileInfo.probeOffset = bakingSet.bakedProbeOffset;
+            s_GlobalBounds = bakingSet.globalBounds;
         }
 
-        // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
+        // Converts brick information into positional data at k_BrickProbeCountPerDim * k_BrickProbeCountPerDim * k_BrickProbeCountPerDim resolution
         internal static void ConvertBricksToPositions(Brick[] bricks, out Vector3[] outProbePositions, out int[] outBrickSubdiv)
         {
             int posIdx = 0;
-            float scale = ProbeReferenceVolume.instance.MinBrickSize() / ProbeBrickPool.kBrickCellCount;
+            float scale = ProbeReferenceVolume.instance.MinBrickSize() / ProbeBrickPool.k_BrickCellCount;
             Vector3 offset = ProbeReferenceVolume.instance.ProbeOffset();
 
-            outProbePositions = new Vector3[bricks.Length * ProbeBrickPool.kBrickProbeCountTotal];
-            outBrickSubdiv = new int[bricks.Length * ProbeBrickPool.kBrickProbeCountTotal];
+            outProbePositions = new Vector3[bricks.Length * ProbeBrickPool.k_BrickProbeCountTotal];
+            outBrickSubdiv = new int[bricks.Length * ProbeBrickPool.k_BrickProbeCountTotal];
 
             foreach (var b in bricks)
             {
                 int brickSize = ProbeReferenceVolume.CellSize(b.subdivisionLevel);
-                Vector3Int brickOffset = b.position * ProbeBrickPool.kBrickCellCount;
+                Vector3Int brickOffset = b.position * ProbeBrickPool.k_BrickCellCount;
 
-                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                for (int z = 0; z < ProbeBrickPool.k_BrickProbeCountPerDim; z++)
                 {
-                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                    for (int y = 0; y < ProbeBrickPool.k_BrickProbeCountPerDim; y++)
                     {
-                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                        for (int x = 0; x < ProbeBrickPool.k_BrickProbeCountPerDim; x++)
                         {
                             var probeOffset = brickOffset + new Vector3Int(x, y, z) * brickSize;
 

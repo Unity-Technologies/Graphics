@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering
             /// <summary>Encapsulate all renderers in the scene.</summary>
             Scene,
             /// <summary>Encapsulate all renderers in the bounding box.</summary>
-            Local
+            Local,
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
         /// Override the renderer filters.
         /// </summary>
         [HideInInspector, Min(0)]
-        public bool overrideRendererFilters = false;
+        public bool overrideRendererFilters;
 
         /// <summary>
         /// The minimum renderer bounding box volume size. This value is used to discard small renderers when the overrideMinRendererVolumeSize is enabled.
@@ -56,21 +56,21 @@ namespace UnityEngine.Rendering
         /// The lowest subdivision level override
         /// </summary>
         [HideInInspector]
-        public int lowestSubdivLevelOverride = 0;
+        public int lowestSubdivLevelOverride;
 
         /// <summary>
         /// The highest subdivision level override
         /// </summary>
         [HideInInspector]
-        public int highestSubdivLevelOverride = ProbeBrickIndex.kMaxSubdivisionLevels;
+        public int highestSubdivLevelOverride = ProbeBrickIndex.k_MaxSubdivisionLevels;
 
         /// <summary>
         /// If the subdivision levels need to be overriden
         /// </summary>
         [HideInInspector]
-        public bool overridesSubdivLevels = false;
+        public bool overridesSubdivLevels;
 
-        [SerializeField] internal bool mightNeedRebaking = false;
+        [SerializeField] internal bool mightNeedRebaking;
 
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
         /// <summary>Whether spaces with no renderers need to be filled with bricks at highest subdivision level.</summary>
         [HideInInspector]
         [Tooltip("Whether Unity should fill empty space between renderers with bricks at the highest subdivision level.")]
-        public bool fillEmptySpaces = false;
+        public bool fillEmptySpaces;
 
 #if UNITY_EDITOR
         /// <summary>
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering
 
         internal Bounds ComputeBounds(GIContributors.ContributorFilter filter, Scene? scene = null)
         {
-            Bounds bounds = new Bounds();
+            var bounds = new Bounds();
             bool foundABound = false;
 
             void ExpandBounds(Bounds bound)
@@ -115,10 +115,14 @@ namespace UnityEngine.Rendering
 
             var contributors = GIContributors.Find(filter, scene);
             foreach (var renderer in contributors.renderers)
+            {
                 ExpandBounds(renderer.component.bounds);
+            }
 #if ENABLE_TERRAIN_MODULE
             foreach (var terrain in contributors.terrains)
+            {
                 ExpandBounds(terrain.boundsWithTrees);
+            }
 #endif
 
             return bounds;
@@ -183,16 +187,16 @@ namespace UnityEngine.Rendering
         }
 
         [AutoStaticsCleanup]
-        internal static List<ProbeVolume> instances = new();
+        internal static List<ProbeVolume> s_Instances = new();
 
         void OnEnable()
         {
-            instances.Add(this);
+            s_Instances.Add(this);
         }
 
         void OnDisable()
         {
-            instances.Remove(this);
+            s_Instances.Remove(this);
         }
 
         internal ref struct CellCullingContext
@@ -220,7 +224,7 @@ namespace UnityEngine.Rendering
             var debugDisplay = probeRefVolume.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneToBakingSetMap, gameObject.scene.GetGUID());
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneToBakingSetMap, gameObject.scene.GetGuid());
                 if (bakingSet == null)
                     return true;
 

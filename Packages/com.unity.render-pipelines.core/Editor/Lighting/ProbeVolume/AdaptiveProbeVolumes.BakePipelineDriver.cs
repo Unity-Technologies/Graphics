@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -90,7 +89,7 @@ namespace UnityEngine.Rendering
                 Bake = 3,
                 PostProcess = 4,
                 AdditionalBake = 5,
-                Done = 6
+                Done = 6,
             }
 
             // If StageName is not kept in sync, this should return false

@@ -1,17 +1,16 @@
-using System.Collections.Generic;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
     internal static class ProbeVolumeGizmos
     {
-        static MeshGizmo _brickMeshGizmo;
-        static MeshGizmo _cellMeshGizmo;
-        static double _lastDrawAt = 0;
+        static MeshGizmo s_BrickMeshGizmo;
+        static MeshGizmo s_CellMeshGizmo;
+        static double s_LastDrawAt;
 
-        static readonly string _gizmoPath = "Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos";
-        static readonly string _probeAdjustmentVolumeIconPath = _gizmoPath + "/ProbeTouchupVolume.png";
-        static readonly string _probeVolumeIconPath = _gizmoPath + "/ProbeVolume.png";
+        static readonly string k_GizmoPath = "Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos";
+        static readonly string k_ProbeAdjustmentVolumeIconPath = k_GizmoPath + "/ProbeTouchupVolume.png";
+        static readonly string k_ProbeVolumeIconPath = k_GizmoPath + "/ProbeVolume.png";
 
         static ProbeVolumeGizmos()
         {
@@ -20,17 +19,17 @@ namespace UnityEngine.Rendering
 
         static void Update()
         {
-            bool resourcesAllocated = _brickMeshGizmo != null || _cellMeshGizmo != null;
+            bool resourcesAllocated = s_BrickMeshGizmo != null || s_CellMeshGizmo != null;
 
             if (resourcesAllocated)
             {
-                bool shouldCleanUp = EditorApplication.timeSinceStartup - _lastDrawAt > 1.0;
+                bool shouldCleanUp = EditorApplication.timeSinceStartup - s_LastDrawAt > 1.0;
                 if (shouldCleanUp)
                 {
-                    _brickMeshGizmo?.Dispose();
-                    _brickMeshGizmo = null;
-                    _cellMeshGizmo?.Dispose();
-                    _cellMeshGizmo = null;
+                    s_BrickMeshGizmo?.Dispose();
+                    s_BrickMeshGizmo = null;
+                    s_CellMeshGizmo?.Dispose();
+                    s_CellMeshGizmo = null;
                 }
             }
         }
@@ -38,19 +37,19 @@ namespace UnityEngine.Rendering
         [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected)]
         static void DrawProbeAdjustmentVolumes(ProbeAdjustmentVolume volume, GizmoType gizmoType)
         {
-            Gizmos.DrawIcon(volume.transform.position, _probeAdjustmentVolumeIconPath, true);
+            Gizmos.DrawIcon(volume.transform.position, k_ProbeAdjustmentVolumeIconPath, true);
         }
 
         [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected)]
         static void DrawProbeVolumeGizmos(ProbeVolume volume, GizmoType gizmoType)
         {
-            _lastDrawAt = EditorApplication.timeSinceStartup;
+            s_LastDrawAt = EditorApplication.timeSinceStartup;
 
-            Gizmos.DrawIcon(volume.transform.position, _probeVolumeIconPath, true);
+            Gizmos.DrawIcon(volume.transform.position, k_ProbeVolumeIconPath, true);
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             var sceneToBakingSetMap = ProbeVolumeBakingSet.SceneToBakingSet.Instance;
-            var allVolumes = ProbeVolume.instances;
+            var allVolumes = ProbeVolume.s_Instances;
 
             if (!probeRefVolume.isInitialized || allVolumes.Count == 0)
                 return;
@@ -80,19 +79,21 @@ namespace UnityEngine.Rendering
             {
                 var subDivColors = probeRefVolume.subdivisionDebugColors;
 
-                if (_brickMeshGizmo == null)
-                    _brickMeshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
-                _brickMeshGizmo.Clear();
+                if (s_BrickMeshGizmo == null)
+                    s_BrickMeshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.k_MaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
+                s_BrickMeshGizmo.Clear();
 
                 if (debugDisplay.realtimeSubdivision)
                 {
                     // realtime subdiv cells are already culled
-                    foreach (var kp in probeRefVolume.realtimeSubdivisionInfo)
+                    foreach (var kp in probeRefVolume.m_RealtimeSubdivisionInfo)
                     {
                         var cellVolume = kp.Key;
 
                         foreach (var brick in kp.Value)
-                            DrawAndAddBrick(_brickMeshGizmo, brick, minBrickSize, probeOffset, subDivColors);
+                        {
+                            DrawAndAddBrick(s_BrickMeshGizmo, brick, minBrickSize, probeOffset, subDivColors);
+                        }
                     }
                 }
                 else
@@ -104,7 +105,7 @@ namespace UnityEngine.Rendering
                     };
                     ProbeVolume.PrepareCellCulling(ref cullCtx);
 
-                    foreach (var cell in probeRefVolume.cells.Values)
+                    foreach (var cell in probeRefVolume.m_Cells.Values)
                     {
                         if (!cell.loaded)
                             continue;
@@ -116,36 +117,38 @@ namespace UnityEngine.Rendering
                             continue;
 
                         foreach (var brick in cell.data.bricks)
-                            DrawAndAddBrick(_brickMeshGizmo, brick, minBrickSize, probeOffset, subDivColors);
+                        {
+                            DrawAndAddBrick(s_BrickMeshGizmo, brick, minBrickSize, probeOffset, subDivColors);
+                        }
                     }
                 }
 
-                _brickMeshGizmo.RenderWireframe(Matrix4x4.identity, gizmoName: "Brick Gizmo Rendering");
+                s_BrickMeshGizmo.RenderWireframe(Matrix4x4.identity, gizmoName: "Brick Gizmo Rendering");
             }
 
             if (debugDisplay.drawCells)
             {
-                Color s_LoadedColor = new Color(0, 1, 0.5f, 0.2f);
-                Color s_UnloadedColor = new Color(1, 0.0f, 0.0f, 0.2f);
-                Color s_StreamingColor = new Color(0.0f, 0.0f, 1.0f, 0.2f);
-                Color s_LowScoreColor = new Color(0, 0, 0, 0.2f);
-                Color s_HighScoreColor = new Color(1, 1, 0, 0.2f);
+                var loadedColor = new Color(0, 1, 0.5f, 0.2f);
+                var unloadedColor = new Color(1, 0.0f, 0.0f, 0.2f);
+                var streamingColor = new Color(0.0f, 0.0f, 1.0f, 0.2f);
+                var lowScoreColor = new Color(0, 0, 0, 0.2f);
+                var highScoreColor = new Color(1, 1, 0, 0.2f);
 
                 var oldGizmoMatrix = Gizmos.matrix;
                 Gizmos.matrix = Matrix4x4.identity;
 
-                if (_cellMeshGizmo == null)
-                    _cellMeshGizmo = new MeshGizmo();
-                _cellMeshGizmo.Clear();
+                if (s_CellMeshGizmo == null)
+                    s_CellMeshGizmo = new MeshGizmo();
+                s_CellMeshGizmo.Clear();
 
-                float minStreamingScore = probeRefVolume.minStreamingScore;
-                float streamingScoreRange = probeRefVolume.maxStreamingScore - probeRefVolume.minStreamingScore;
+                float minStreamingScore = probeRefVolume.m_MinStreamingScore;
+                float streamingScoreRange = probeRefVolume.m_MaxStreamingScore - probeRefVolume.m_MinStreamingScore;
 
                 if (debugDisplay.realtimeSubdivision)
                 {
-                    foreach (var kp in probeRefVolume.realtimeSubdivisionInfo)
+                    foreach (var kp in probeRefVolume.m_RealtimeSubdivisionInfo)
                     {
-                        DrawAndAddCell(_cellMeshGizmo, kp.Key.center, s_LoadedColor, cellSizeInMeters);
+                        DrawAndAddCell(s_CellMeshGizmo, kp.Key.center, loadedColor, cellSizeInMeters);
                     }
                 }
                 else
@@ -157,7 +160,7 @@ namespace UnityEngine.Rendering
                     };
                     ProbeVolume.PrepareCellCulling(ref cullCtx);
 
-                    foreach (var cell in probeRefVolume.cells.Values)
+                    foreach (var cell in probeRefVolume.m_Cells.Values)
                     {
                         if (volume.ShouldCullCell(cullCtx, sceneToBakingSetMap, probeRefVolume, cell.desc.position))
                             continue;
@@ -166,23 +169,23 @@ namespace UnityEngine.Rendering
                         if (debugDisplay.displayCellStreamingScore)
                         {
                             float lerpFactor = (cell.streamingInfo.streamingScore - minStreamingScore) / streamingScoreRange;
-                            color = Color.Lerp(s_HighScoreColor, s_LowScoreColor, lerpFactor);
+                            color = Color.Lerp(highScoreColor, lowScoreColor, lerpFactor);
                         }
                         else
                         {
                             if (cell.streamingInfo.IsStreaming())
-                                color = s_StreamingColor;
+                                color = streamingColor;
                             else
-                                color = cell.loaded ? s_LoadedColor : s_UnloadedColor;
+                                color = cell.loaded ? loadedColor : unloadedColor;
                         }
 
                         var positionF = new Vector4(cell.desc.position.x, cell.desc.position.y, cell.desc.position.z, 0.0f);
                         var center = (Vector4)probeOffset + positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
-                        DrawAndAddCell(_cellMeshGizmo, center, color, cellSizeInMeters);
+                        DrawAndAddCell(s_CellMeshGizmo, center, color, cellSizeInMeters);
                     }
                 }
 
-                _cellMeshGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
+                s_CellMeshGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
                 Gizmos.matrix = oldGizmoMatrix;
             }
         }
@@ -202,7 +205,7 @@ namespace UnityEngine.Rendering
                 return;
 
             float brickSize = minBrickSize * ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
-            Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
+            var scaledSize = new Vector3(brickSize, brickSize, brickSize);
             Vector3 scaledPos = probeOffset + new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
             meshGizmo.AddWireCube(scaledPos, scaledSize, subDivColors[brick.subdivisionLevel]);
         }

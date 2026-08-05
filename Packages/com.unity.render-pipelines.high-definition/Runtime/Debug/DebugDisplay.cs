@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
         public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
-        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.kMaxSubdivisionLevels
+        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.k_MaxSubdivisionLevels
         public fixed float _DebugAPVSubdivColors[7 * 4];
 
         public int _DebugLightingMode; // Match enum DebugLightingMode

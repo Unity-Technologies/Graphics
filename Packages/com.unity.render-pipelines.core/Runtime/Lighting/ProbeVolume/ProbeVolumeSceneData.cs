@@ -1,12 +1,7 @@
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
-using UnityEditor;
 #endif
 
 namespace UnityEngine.Rendering
@@ -17,7 +12,7 @@ namespace UnityEngine.Rendering
     [Obsolete("This class is no longer necessary for APV implementation. #from(2023.3)")]
     public class ProbeVolumeSceneData
     {
-        internal Object parentAsset = null;
+        internal Object m_ParentAsset;
 
         [SerializeField, FormerlySerializedAs("sceneBounds"), Obsolete("This data is now serialized directly in the baking set asset. #from(2023.3)")]
         internal SerializedDictionary<string, Bounds> obsoleteSceneBounds;
@@ -38,7 +33,7 @@ namespace UnityEngine.Rendering
         [Obsolete("#from(2023.3)")]
         public void SetParentObject(Object parent)
         {
-            parentAsset = parent;
+            m_ParentAsset = parent;
         }
     }
 }

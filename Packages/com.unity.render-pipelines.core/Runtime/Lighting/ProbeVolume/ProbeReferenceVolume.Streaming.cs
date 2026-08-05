@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
         internal class DiskStreamingRequest
         {
             ReadHandle m_ReadHandle;
-            ReadCommandArray m_ReadCommandArray = new ReadCommandArray();
+            ReadCommandArray m_ReadCommandArray;
             NativeArray<ReadCommand> m_ReadCommandBuffer;
             int m_BytesWritten;
 
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
             {
                 Debug.Assert(m_ReadCommandArray.CommandCount < m_ReadCommandBuffer.Length);
 
-                m_ReadCommandBuffer[m_ReadCommandArray.CommandCount++] = new ReadCommand()
+                m_ReadCommandBuffer[m_ReadCommandArray.CommandCount++] = new ReadCommand
                 {
                     Buffer = dest,
                     Offset = offset,
@@ -112,17 +112,17 @@ namespace UnityEngine.Rendering
 
         internal struct BufferLayoutBuilder
         {
-            int _Offset;
+            int m_Offset;
 
             public BufferLayoutBuilder(int initialOffset = 0)
             {
-                _Offset = initialOffset;
+                m_Offset = initialOffset;
             }
 
             public int AddBlock(int blockSize)
             {
-                int currentOffset = _Offset;
-                _Offset += blockSize;
+                int currentOffset = m_Offset;
+                m_Offset += blockSize;
                 return currentOffset;
             }
         }
@@ -145,7 +145,9 @@ namespace UnityEngine.Rendering
                 if (allocateGraphicsBuffers)
                 {
                     for (int i = 0; i < 2; i++)
+                    {
                         m_GraphicsBuffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSize, sizeof(uint));
+                    }
                 }
 
                 m_CurrentBuffer = 0;
@@ -155,13 +157,15 @@ namespace UnityEngine.Rendering
 
             public void Swap()
             {
-                m_CurrentBuffer = (m_CurrentBuffer + 1 ) % 2;
+                m_CurrentBuffer = (m_CurrentBuffer + 1) % 2;
             }
 
             public void Dispose()
             {
                 for (int i = 0; i < 2; ++i)
+                {
                     m_GraphicsBuffers[i]?.Dispose();
+                }
                 stagingBuffer.Dispose();
             }
 
@@ -174,7 +178,7 @@ namespace UnityEngine.Rendering
             public int chunkSize { get; }
 
             int m_CurrentBuffer;
-            GraphicsBuffer[] m_GraphicsBuffers = new GraphicsBuffer[2];
+            readonly GraphicsBuffer[] m_GraphicsBuffers = new GraphicsBuffer[2];
         }
 
         [DebuggerDisplay("Index = {cell.desc.index} State = {state}")]
@@ -199,7 +203,7 @@ namespace UnityEngine.Rendering
             public bool streamSharedData { get; set; }
 
             public delegate void OnStreamingCompleteDelegate(CellStreamingRequest request, CommandBuffer cmd);
-            public OnStreamingCompleteDelegate onStreamingComplete = null;
+            public OnStreamingCompleteDelegate onStreamingComplete;
 
             public DiskStreamingRequest cellDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest cellOptionalDataStreamingRequest = new DiskStreamingRequest(1);
@@ -324,7 +328,7 @@ namespace UnityEngine.Rendering
             m_LoadMaxCellsPerFrame = value;
         }
 
-        const int kMaxCellLoadedPerFrame = 10;
+        const int k_MaxCellLoadedPerFrame = 10;
         int m_NumberOfCellsLoadedPerFrame = 1;
 
         /// <summary>
@@ -333,7 +337,7 @@ namespace UnityEngine.Rendering
         /// <param name="numberOfCells">Number of cells to be loaded per frame.</param>
         public void SetNumberOfCellsLoadedPerFrame(int numberOfCells)
         {
-            m_NumberOfCellsLoadedPerFrame = Mathf.Min(kMaxCellLoadedPerFrame, Mathf.Max(1, numberOfCells));
+            m_NumberOfCellsLoadedPerFrame = Mathf.Min(k_MaxCellLoadedPerFrame, Mathf.Max(1, numberOfCells));
         }
 
         /// <summary>Set to true to stream as many cells as possible every frame.</summary>
@@ -343,7 +347,7 @@ namespace UnityEngine.Rendering
             set => m_LoadMaxCellsPerFrame = value;
         }
 
-        int numberOfCellsLoadedPerFrame => m_LoadMaxCellsPerFrame ? cells.Count : m_NumberOfCellsLoadedPerFrame;
+        int numberOfCellsLoadedPerFrame => m_LoadMaxCellsPerFrame ? m_Cells.Count : m_NumberOfCellsLoadedPerFrame;
 
         int m_NumberOfCellsBlendedPerFrame = 10000;
         /// <summary>Maximum number of cells that are blended per frame.</summary>
@@ -361,37 +365,37 @@ namespace UnityEngine.Rendering
             set => m_TurnoverRate = Mathf.Clamp01(value);
         }
 
-        DynamicArray<Cell> m_LoadedCells = new(); // List of currently loaded cells.
-        DynamicArray<Cell> m_ToBeLoadedCells = new(); // List of currently unloaded cells.
-        DynamicArray<Cell> m_WorseLoadedCells = new(); // Reduced list (N cells are processed per frame) of worse loaded cells.
-        DynamicArray<Cell> m_BestToBeLoadedCells = new(); // Reduced list (N cells are processed per frame) of best unloaded cells.
-        DynamicArray<Cell> m_TempCellToLoadList = new(); // Temp list of cells loaded during this frame.
-        DynamicArray<Cell> m_TempCellToUnloadList = new(); // Temp list of cells unloaded during this frame.
+        readonly DynamicArray<Cell> m_LoadedCells = new(); // List of currently loaded cells.
+        readonly DynamicArray<Cell> m_ToBeLoadedCells = new(); // List of currently unloaded cells.
+        readonly DynamicArray<Cell> m_WorseLoadedCells = new(); // Reduced list (N cells are processed per frame) of worse loaded cells.
+        readonly DynamicArray<Cell> m_BestToBeLoadedCells = new(); // Reduced list (N cells are processed per frame) of best unloaded cells.
+        readonly DynamicArray<Cell> m_TempCellToLoadList = new(); // Temp list of cells loaded during this frame.
+        readonly DynamicArray<Cell> m_TempCellToUnloadList = new(); // Temp list of cells unloaded during this frame.
 
-        DynamicArray<Cell> m_LoadedBlendingCells = new();
-        DynamicArray<Cell> m_ToBeLoadedBlendingCells = new();
-        DynamicArray<Cell> m_TempBlendingCellToLoadList = new();
-        DynamicArray<Cell> m_TempBlendingCellToUnloadList = new();
+        readonly DynamicArray<Cell> m_LoadedBlendingCells = new();
+        readonly DynamicArray<Cell> m_ToBeLoadedBlendingCells = new();
+        readonly DynamicArray<Cell> m_TempBlendingCellToLoadList = new();
+        readonly DynamicArray<Cell> m_TempBlendingCellToUnloadList = new();
 
         Vector3 m_FrozenCameraPosition;
         Vector3 m_FrozenCameraDirection;
 
-        const float kIndexFragmentationThreshold = 0.2f;
+        const float k_IndexFragmentationThreshold = 0.2f;
         bool m_IndexDefragmentationInProgress;
         ProbeBrickIndex m_DefragIndex;
         ProbeGlobalIndirection m_DefragCellIndices;
-        DynamicArray<Cell> m_IndexDefragCells = new DynamicArray<Cell>();
-        DynamicArray<Cell> m_TempIndexDefragCells = new DynamicArray<Cell>();
+        readonly DynamicArray<Cell> m_IndexDefragCells = new DynamicArray<Cell>();
+        readonly DynamicArray<Cell> m_TempIndexDefragCells = new DynamicArray<Cell>();
 
-        internal float minStreamingScore;
-        internal float maxStreamingScore;
+        internal float m_MinStreamingScore;
+        internal float m_MaxStreamingScore;
 
         // Requests waiting to be run. Needed to preserve order of requests.
-        Queue<CellStreamingRequest> m_StreamingQueue = new Queue<CellStreamingRequest>();
+        readonly Queue<CellStreamingRequest> m_StreamingQueue = new Queue<CellStreamingRequest>();
         // List of active requests. Needed to query the result every frame.
-        List<CellStreamingRequest> m_ActiveStreamingRequests = new List<CellStreamingRequest>();
-        UnityEngine.Pool.ObjectPool<CellStreamingRequest> m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, (val) => val.Clear());
-        bool m_DiskStreamingUseCompute = false;
+        readonly List<CellStreamingRequest> m_ActiveStreamingRequests = new List<CellStreamingRequest>();
+        UnityEngine.Pool.ObjectPool<CellStreamingRequest> m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, val => val.Clear());
+        bool m_DiskStreamingUseCompute;
         ProbeVolumeScratchBufferPool m_ScratchBufferPool;
 
         CellStreamingRequest.OnStreamingCompleteDelegate m_OnStreamingComplete;
@@ -425,7 +429,7 @@ namespace UnityEngine.Rendering
                 m_ScratchBufferPool = null;
             }
 
-            m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, (val) => val.Clear());
+            m_StreamingRequestsPool = new UnityEngine.Pool.ObjectPool<CellStreamingRequest>(() => new CellStreamingRequest(), null, val => val.Clear());
             m_ActiveStreamingRequests.Clear();
             m_StreamingQueue.Clear();
 
@@ -439,7 +443,9 @@ namespace UnityEngine.Rendering
             {
                 UnloadAllBlendingCells();
                 for (int i = 0; i < m_ToBeLoadedBlendingCells.size; ++i)
+                {
                     m_ToBeLoadedBlendingCells[i].blendingInfo.ForceReupload();
+                }
             }
         }
 
@@ -470,8 +476,8 @@ namespace UnityEngine.Rendering
                 ComputeCellStreamingScore(cell, cameraPosition, cameraDirection);
 
                 // We need to compute min/max streaming scores here since we don't have the full sorted list anymore (which is used in ComputeMinMaxStreamingScore)
-                minStreamingScore = Mathf.Min(minStreamingScore, cell.streamingInfo.streamingScore);
-                maxStreamingScore = Mathf.Max(maxStreamingScore, cell.streamingInfo.streamingScore);
+                m_MinStreamingScore = Mathf.Min(m_MinStreamingScore, cell.streamingInfo.streamingScore);
+                m_MaxStreamingScore = Mathf.Max(m_MaxStreamingScore, cell.streamingInfo.streamingScore);
 
                 int currentBestCellsSize = System.Math.Min(m_BestToBeLoadedCells.size, numberOfCellsLoadedPerFrame);
                 int index;
@@ -497,7 +503,7 @@ namespace UnityEngine.Rendering
 
             int requiredSHChunks = 0;
             int requiredIndexChunks = 0;
-            foreach(var cell in m_BestToBeLoadedCells)
+            foreach (var cell in m_BestToBeLoadedCells)
             {
                 requiredSHChunks += cell.desc.shChunkCount;
                 requiredIndexChunks += cell.desc.indexChunkCount;
@@ -508,8 +514,8 @@ namespace UnityEngine.Rendering
                 ComputeCellStreamingScore(cell, cameraPosition, cameraDirection);
 
                 // We need to compute min/max streaming scores here since we don't have the full sorted list anymore (which is used in ComputeMinMaxStreamingScore)
-                minStreamingScore = Mathf.Min(minStreamingScore, cell.streamingInfo.streamingScore);
-                maxStreamingScore = Mathf.Max(maxStreamingScore, cell.streamingInfo.streamingScore);
+                m_MinStreamingScore = Mathf.Min(m_MinStreamingScore, cell.streamingInfo.streamingScore);
+                m_MaxStreamingScore = Mathf.Max(m_MaxStreamingScore, cell.streamingInfo.streamingScore);
 
                 int currentWorseSize = m_WorseLoadedCells.size;
                 int index;
@@ -601,19 +607,19 @@ namespace UnityEngine.Rendering
 
         void ComputeMinMaxStreamingScore()
         {
-            minStreamingScore = float.MaxValue;
-            maxStreamingScore = float.MinValue;
+            m_MinStreamingScore = float.MaxValue;
+            m_MaxStreamingScore = float.MinValue;
 
             if (m_ToBeLoadedCells.size != 0)
             {
-                minStreamingScore = Mathf.Min(minStreamingScore, m_ToBeLoadedCells[0].streamingInfo.streamingScore);
-                maxStreamingScore = Mathf.Max(maxStreamingScore, m_ToBeLoadedCells[m_ToBeLoadedCells.size - 1].streamingInfo.streamingScore);
+                m_MinStreamingScore = Mathf.Min(m_MinStreamingScore, m_ToBeLoadedCells[0].streamingInfo.streamingScore);
+                m_MaxStreamingScore = Mathf.Max(m_MaxStreamingScore, m_ToBeLoadedCells[m_ToBeLoadedCells.size - 1].streamingInfo.streamingScore);
             }
 
             if (m_LoadedCells.size != 0)
             {
-                minStreamingScore = Mathf.Min(minStreamingScore, m_LoadedCells[0].streamingInfo.streamingScore);
-                maxStreamingScore = Mathf.Max(maxStreamingScore, m_LoadedCells[m_LoadedCells.size - 1].streamingInfo.streamingScore);
+                m_MinStreamingScore = Mathf.Min(m_MinStreamingScore, m_LoadedCells[0].streamingInfo.streamingScore);
+                m_MaxStreamingScore = Mathf.Max(m_MaxStreamingScore, m_LoadedCells[m_LoadedCells.size - 1].streamingInfo.streamingScore);
             }
         }
 
@@ -667,8 +673,8 @@ namespace UnityEngine.Rendering
                 // This allows us to not sort through all the cells every frame which is very slow. Instead we just output very small lists that we then process.
                 else
                 {
-                    minStreamingScore = float.MaxValue;
-                    maxStreamingScore = float.MinValue;
+                    m_MinStreamingScore = float.MaxValue;
+                    m_MaxStreamingScore = float.MinValue;
 
                     ComputeBestToBeLoadedCells(cameraPositionCellSpace, m_FrozenCameraDirection);
                     bestUnloadedCells = m_BestToBeLoadedCells;
@@ -767,7 +773,7 @@ namespace UnityEngine.Rendering
                         if (needComputeFragmentation)
                             m_Index.ComputeFragmentationRate();
 
-                        if (m_Index.fragmentationRate >= kIndexFragmentationThreshold)
+                        if (m_Index.fragmentationRate >= k_IndexFragmentationThreshold)
                             StartIndexDefragmentation();
                     }
                 }
@@ -802,13 +808,17 @@ namespace UnityEngine.Rendering
 
                 // Move the successfully loaded cells to the "loaded cells" list.
                 foreach (var cell in m_TempCellToLoadList)
+                {
                     m_ToBeLoadedCells.Remove(cell);
+                }
                 m_LoadedCells.AddRange(m_TempCellToLoadList);
                 // Move the unloaded cells to the list of cells to be loaded.
                 if (m_TempCellToUnloadList.size > 0)
                 {
                     foreach (var cell in m_TempCellToUnloadList)
+                    {
                         m_LoadedCells.Remove(cell);
+                    }
 
                     ComputeCellGlobalInfo();
                 }
@@ -859,7 +869,7 @@ namespace UnityEngine.Rendering
 
         // Bound once to a static method; the delegate never changes, so there is no per-Play-Mode state to reset.
         [NoAutoStaticsCleanup]
-        static readonly DynamicArray<Cell>.SortComparer s_BlendingComparer = BlendingComparer;
+        static readonly DynamicArray<Cell>.SortComparer k_BlendingComparer = BlendingComparer;
 
         void UpdateBlendingCellStreaming(CommandBuffer cmd)
         {
@@ -871,8 +881,8 @@ namespace UnityEngine.Rendering
             ComputeBlendingScore(m_ToBeLoadedBlendingCells, worstScore);
             ComputeBlendingScore(m_LoadedBlendingCells, worstScore);
 
-            m_ToBeLoadedBlendingCells.QuickSort(s_BlendingComparer);
-            m_LoadedBlendingCells.QuickSort(s_BlendingComparer);
+            m_ToBeLoadedBlendingCells.QuickSort(k_BlendingComparer);
+            m_LoadedBlendingCells.QuickSort(k_BlendingComparer);
 
             int cellCountToLoad = Mathf.Min(numberOfCellsLoadedPerFrame, m_ToBeLoadedBlendingCells.size);
             while (m_TempBlendingCellToLoadList.size < cellCountToLoad)
@@ -933,8 +943,8 @@ namespace UnityEngine.Rendering
                     if (loadOk && turnoverOffset != -1)
                     {
                         // swap to ensure loaded cells are at the start of m_ToBeLoadedBlendingCells
-                        m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size-1];
-                        m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size-1] = bestCellToBeLoaded;
+                        m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size - 1];
+                        m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size - 1] = bestCellToBeLoaded;
                         if (++turnoverOffset >= m_ToBeLoadedBlendingCells.size)
                             turnoverOffset = m_TempBlendingCellToLoadList.size;
                     }
@@ -986,7 +996,7 @@ namespace UnityEngine.Rendering
 
         // Bound once to a static method; the delegate never changes, so there is no per-Play-Mode state to reset.
         [NoAutoStaticsCleanup]
-        static readonly DynamicArray<Cell>.SortComparer s_DefragComparer = DefragComparer;
+        static readonly DynamicArray<Cell>.SortComparer k_DefragComparer = DefragComparer;
 
         void StartIndexDefragmentation()
         {
@@ -1000,7 +1010,7 @@ namespace UnityEngine.Rendering
             // We want to relocate cells with more indices first.
             m_IndexDefragCells.Clear();
             m_IndexDefragCells.AddRange(m_LoadedCells);
-            m_IndexDefragCells.QuickSort(s_DefragComparer);
+            m_IndexDefragCells.QuickSort(k_DefragComparer);
 
             m_DefragIndex.Clear();
         }
@@ -1014,7 +1024,7 @@ namespace UnityEngine.Rendering
                 int numberOfCellsToProcess = Mathf.Min(m_IndexDefragCells.size, numberOfCellsLoadedPerFrame);
                 int i = 0;
                 int processedCells = 0;
-                while(i < m_IndexDefragCells.size && processedCells < numberOfCellsToProcess)
+                while (i < m_IndexDefragCells.size && processedCells < numberOfCellsToProcess)
                 {
                     var cell = m_IndexDefragCells[m_IndexDefragCells.size - i - 1];
 
@@ -1138,7 +1148,7 @@ namespace UnityEngine.Rendering
         unsafe bool ProcessDiskStreamingRequest(CellStreamingRequest request)
         {
             var cellIndex = request.cell.desc.index;
-            var cell = cells[cellIndex];
+            var cell = m_Cells[cellIndex];
             var cellDesc = cell.desc;
             var cellData = cell.data;
 
@@ -1184,7 +1194,7 @@ namespace UnityEngine.Rendering
             // Pool -1 is regular pool and 0/1 are blending pools.
             var destChunks = request.poolIndex == -1 ? request.cell.poolInfo.chunkList : request.cell.blendingInfo.chunkList;
             var destChunkCount = destChunks.Count;
-            for (int i = 0; i < destChunkCount ; ++i)
+            for (int i = 0; i < destChunkCount; ++i)
             {
                 var destChunk = destChunks[i];
                 destChunkAddr[i * 4] = (uint)destChunk.x;

@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Analytics
             if (volume == null)
                 return;
 
-            var sceneGUID = EditorSceneManager.GetActiveScene().GetGUID();
+            var sceneGUID = EditorSceneManager.GetActiveScene().GetGuid();
             GUID guid = new GUID(sceneGUID);
             if (guid.Empty())
                 return;

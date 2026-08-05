@@ -1,10 +1,10 @@
 #if UNITY_EDITOR
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Profiling;
-using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering
 {
@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering
         {
             Terrain = 0,
             NonInstancedMesh = 1,
-            InstancedMesh = 2
+            InstancedMesh = 2,
         }
 
         [GenerateHLSL(needAccessors = false)]
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering
                 // Limit the max resolution of the texture to avoid out of memory, for bigger cells, we split them into sub-cells for distance field computation.
                 sceneSDFSize = Mathf.Clamp(sceneSDFSize, 64, k_MaxDistanceFieldTextureSize);
 
-                RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
+                var distanceFieldTextureDescriptor = new RenderTextureDescriptor
                 {
                     height = sceneSDFSize,
                     width = sceneSDFSize,
@@ -118,7 +118,9 @@ namespace UnityEngine.Rendering
                 brickCountBuffer.Release();
 
                 for (int i = 0; i <= maxSubdivisionLevelInSubCell; i++)
+                {
                     bricksBuffers[i].Release();
+                }
             }
         }
 
@@ -161,14 +163,14 @@ namespace UnityEngine.Rendering
         static int s_VoxelizeProbeVolumesKernel;
         static int s_SubdivideKernel;
 
-        static ComputeShader _subdivideSceneCS;
+        static ComputeShader s_SubdivideSceneCS;
         static ComputeShader subdivideSceneCS
         {
             get
             {
-                if (_subdivideSceneCS == null)
+                if (s_SubdivideSceneCS == null)
                 {
-                    _subdivideSceneCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().subdivideSceneCS;
+                    s_SubdivideSceneCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().subdivideSceneCS;
 
                     // The compute shader is not supported on OpenGL (see #pragma only_renderers in ProbeVolumeSubdivide.compute)
                     // The kernels won't exist, so we skip initialization. This is caught earlier in RunPlacement with a proper error message.
@@ -192,22 +194,22 @@ namespace UnityEngine.Rendering
                             message += " This is expected on OpenGL which is not supported for APV baking.";
                         }
                         Debug.LogWarning(message);
-                        _subdivideSceneCS = null;
+                        s_SubdivideSceneCS = null;
                     }
                 }
-                return _subdivideSceneCS;
+                return s_SubdivideSceneCS;
             }
         }
 
-        static Material _voxelizeMaterial;
+        static Material s_VoxelizeMaterial;
         static Material voxelizeMaterial
         {
             get
             {
-                if (_voxelizeMaterial == null)
-                    _voxelizeMaterial = new Material(GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().voxelizeSceneShader);
+                if (s_VoxelizeMaterial == null)
+                    s_VoxelizeMaterial = new Material(GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().voxelizeSceneShader);
 
-                return _voxelizeMaterial;
+                return s_VoxelizeMaterial;
             }
         }
 
@@ -221,21 +223,23 @@ namespace UnityEngine.Rendering
             for (int x = 0; x < (int)subdivisionCount; x++)
             {
                 for (int y = 0; y < (int)subdivisionCount; y++)
+                {
                     for (int z = 0; z < (int)subdivisionCount; z++)
                     {
                         var center = bounds.min + new Vector3((x + 0.5f) * subVolumeSize.x, (y + 0.5f) * subVolumeSize.y, (z + 0.5f) * subVolumeSize.z);
-                        Bounds subBounds = new Bounds(center, subVolumeSize);
+                        var subBounds = new Bounds(center, subVolumeSize);
                         var parentCellPosition = new Vector3(x, y, z);
 
                         yield return (subBounds, parentCellPosition);
                     }
+                }
             }
         }
 
         public static Brick[] SubdivideCell(Vector3Int cellPosition, Bounds cellBounds, ProbeSubdivisionContext subdivisionCtx, GPUSubdivisionContext ctx, GIContributors contributors, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes)
         {
             Brick[] finalBricks;
-            HashSet<Brick> brickSet = new HashSet<Brick>();
+            var brickSet = new HashSet<Brick>();
 
             Profiler.BeginSample($"Subdivide Cell {cellBounds.center}");
             {
@@ -274,7 +278,7 @@ namespace UnityEngine.Rendering
                             foreach (var brick in subBrickSet)
                             {
                                 float brickSize = ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
-                                Bounds brickBounds = new Bounds();
+                                var brickBounds = new Bounds();
                                 brickBounds.min = subdivisionCtx.profile.probeOffset + (Vector3)brick.position * ProbeReferenceVolume.instance.MinBrickSize();
                                 brickBounds.max = brickBounds.min + new Vector3(brickSize, brickSize, brickSize);
 
@@ -316,7 +320,7 @@ namespace UnityEngine.Rendering
                                 Vector3 subCellPos = (subVolume.parentPosition / parentSubdivLevel);
                                 // Add the sub-cell offset:
                                 int brickSize = (int)Mathf.Pow(3, i + 1);
-                                Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * brickSize;
+                                var subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * brickSize;
                                 Vector3Int parentSubCellPos = cellPosition * cellSizeInBricks + subCellPosInt;
 
                                 // Find the corner in bricks of the parent volume:
@@ -432,7 +436,7 @@ namespace UnityEngine.Rendering
 
                 // Capture locally the subdivision level to use it inside the lambda
                 int localSubdivLevel = subdivisionLevel;
-                cmd.RequestAsyncReadback(ctx.brickCountBuffer, sizeof(int), subdivisionLevel * sizeof(int), (data) => {
+                cmd.RequestAsyncReadback(ctx.brickCountBuffer, sizeof(int), subdivisionLevel * sizeof(int), data => {
                     int readbackBrickCount = data.GetData<int>()[0];
 
                     if (readbackBrickCount > 0)
@@ -455,7 +459,9 @@ namespace UnityEngine.Rendering
             CommandBufferPool.Release(cmd);
 
             foreach (var buf in deferredBufferDisposals)
+            {
                 buf.Dispose();
+            }
 
             // ExternalGPUProfiler.EndGPUCapture();
         }
@@ -615,7 +621,9 @@ namespace UnityEngine.Rendering
                             // Max buffer size is 64KB, matrix is 64B, so limit to 1000 trees per prototype per cell, which should be fine
                             var treeMatrices = new Matrix4x4[Mathf.Min(prototype.instances.Count, 1000)];
                             for (int i = 0; i < treeMatrices.Length; i++)
+                            {
                                 treeMatrices[i] = prototype.instances[i].transform;
+                            }
 
                             VoxelizeMesh(mesh, prototype.transform, treeMatrices, treeMatrices.Length, props, deferredBufferRemovals, cmd);
                         }
@@ -645,7 +653,9 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
             {
                 for (int i = 0; i < source.volumeDepth; i++)
+                {
                     cmd.CopyTexture(source, i, 0, destination, i, 0);
+                }
             }
         }
 
@@ -709,7 +719,7 @@ namespace UnityEngine.Rendering
         {
             using (new ProfilingScope(cmd, new ProfilingSampler("Voxelize Probe Volume Data")))
             {
-                List<GPUProbeVolumeOBB> gpuProbeVolumes = new List<GPUProbeVolumeOBB>();
+                var gpuProbeVolumes = new List<GPUProbeVolumeOBB>();
                 int cellMinSubdiv = ctx.maxSubdivisionLevelInSubCell;
                 int cellMaxSubdiv = 0;
 
@@ -720,10 +730,10 @@ namespace UnityEngine.Rendering
 
                     gpuProbeVolumes.Add(new GPUProbeVolumeOBB
                     {
-                        corner = kp.volume.corner,
-                        X = kp.volume.X,
-                        Y = kp.volume.Y,
-                        Z = kp.volume.Z,
+                        corner = kp.volume.m_Corner,
+                        X = kp.volume.m_X,
+                        Y = kp.volume.m_Y,
+                        Z = kp.volume.m_Z,
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         fillEmptySpaces = kp.component.fillEmptySpaces ? 1 : 0,

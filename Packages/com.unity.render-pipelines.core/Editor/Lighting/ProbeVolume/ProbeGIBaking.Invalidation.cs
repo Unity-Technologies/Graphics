@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering
     partial class AdaptiveProbeVolumes
     {
         // We use this scratch memory as a way of spoofing the texture.
-        static DynamicArray<(float, byte)> s_ValidityLayer_locData = new DynamicArray<(float, byte)>();
-        static DynamicArray<int> s_ProbeIndices = new DynamicArray<int>();
+        static readonly DynamicArray<(float, byte)> s_ValidityLayerLocData = new DynamicArray<(float, byte)>();
+        static readonly DynamicArray<int> s_ProbeIndices = new DynamicArray<int>();
 
         internal static Vector3Int GetSampleOffset(int i)
         {
@@ -42,14 +42,14 @@ namespace UnityEngine.Rendering
         static void StoreScratchData(int x, int y, int z, int dataWidth, int dataHeight, float value, byte layer, int probeIndex)
         {
             int index = x + dataWidth * (y + dataHeight * z);
-            s_ValidityLayer_locData[index] = (value, layer);
+            s_ValidityLayerLocData[index] = (value, layer);
             s_ProbeIndices[index] = probeIndex;
         }
 
         static (float, byte) ReadValidity(int x, int y, int z, int dataWidth, int dataHeight)
         {
             int index = x + dataWidth * (y + dataHeight * z);
-            return s_ValidityLayer_locData[index];
+            return s_ValidityLayerLocData[index];
         }
 
         static int ReadProbeIndex(int x, int y, int z, int dataWidth, int dataHeight)
@@ -97,18 +97,18 @@ namespace UnityEngine.Rendering
                 int count = ProbeBrickPool.GetChunkSizeInProbeCount();
                 int bx = 0, by = 0, bz = 0;
 
-                s_ValidityLayer_locData.Resize(size);
+                s_ValidityLayerLocData.Resize(size);
                 s_ProbeIndices.Resize(size);
 
-                HashSet<Vector3Int> probesToRestore = new HashSet<Vector3Int>();
+                var probesToRestore = new HashSet<Vector3Int>();
 
-                for (int brickIdx = 0; brickIdx < count; brickIdx += ProbeBrickPool.kBrickProbeCountTotal)
+                for (int brickIdx = 0; brickIdx < count; brickIdx += ProbeBrickPool.k_BrickProbeCountTotal)
                 {
-                    for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                    for (int z = 0; z < ProbeBrickPool.k_BrickProbeCountPerDim; z++)
                     {
-                        for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                        for (int y = 0; y < ProbeBrickPool.k_BrickProbeCountPerDim; y++)
                         {
-                            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                            for (int x = 0; x < ProbeBrickPool.k_BrickProbeCountPerDim; x++)
                             {
                                 int ix = bx + x;
                                 int iy = by + y;
@@ -126,13 +126,13 @@ namespace UnityEngine.Rendering
                                     // Check if we need to do some extra check on this probe.
                                     bool hasFreeNeighbourhood = false;
                                     Bounds invalidatingTouchupBound;
-                                    if (m_BakingBatch.forceInvalidatedProbesAndTouchupVols.TryGetValue(cell.probePositions[shidx], out invalidatingTouchupBound))
+                                    if (s_BakingBatch.forceInvalidatedProbesAndTouchupVols.TryGetValue(cell.probePositions[shidx], out invalidatingTouchupBound))
                                     {
-                                        int actualBrickIdx = brickIdx / ProbeBrickPool.kBrickProbeCountTotal;
+                                        int actualBrickIdx = brickIdx / ProbeBrickPool.k_BrickProbeCountTotal;
                                         float brickSize = ProbeReferenceVolume.CellSize(cell.bricks[actualBrickIdx].subdivisionLevel);
                                         Vector3 position = cell.probePositions[shidx];
                                         probesToRestore.Add(new Vector3Int(ix, iy, iz));
-                                        var searchDistance = (brickSize * m_ProfileInfo.minBrickSize) / ProbeBrickPool.kBrickCellCount;
+                                        var searchDistance = (brickSize * s_ProfileInfo.minBrickSize) / ProbeBrickPool.k_BrickCellCount;
                                         hasFreeNeighbourhood = NeighbourhoodIsEmptySpace(position, searchDistance, invalidatingTouchupBound);
                                     }
                                     probeHasEmptySpaceInGrid[shidx] = hasFreeNeighbourhood;
@@ -143,15 +143,15 @@ namespace UnityEngine.Rendering
                     }
 
                     // update the pool index
-                    bx += ProbeBrickPool.kBrickProbeCountPerDim;
+                    bx += ProbeBrickPool.k_BrickProbeCountPerDim;
                     if (bx >= locSize.x)
                     {
                         bx = 0;
-                        by += ProbeBrickPool.kBrickProbeCountPerDim;
+                        by += ProbeBrickPool.k_BrickProbeCountPerDim;
                         if (by >= locSize.y)
                         {
                             by = 0;
-                            bz += ProbeBrickPool.kBrickProbeCountPerDim;
+                            bz += ProbeBrickPool.k_BrickProbeCountPerDim;
                         }
                     }
                 }
@@ -172,9 +172,9 @@ namespace UnityEngine.Rendering
                                 for (int o = 0; o < 8; ++o)
                                 {
                                     Vector3Int off = GetSampleOffset(o);
-                                    Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, locSize.x - 1),
+                                    var samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, locSize.x - 1),
                                                                           Mathf.Clamp(y + off.y, 0, locSize.y - 1),
-                                                                          Mathf.Clamp(z + off.z, 0, ProbeBrickPool.kBrickProbeCountPerDim - 1));
+                                                                          Mathf.Clamp(z + off.z, 0, ProbeBrickPool.k_BrickProbeCountPerDim - 1));
 
                                     if (probesToRestore.Contains(samplePos))
                                     {

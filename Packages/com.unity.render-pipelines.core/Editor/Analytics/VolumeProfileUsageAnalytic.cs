@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Analytics
                 using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.volume_name = Hash128.Compute(volume.name).ToString();
-                    data.scene_name = EditorSceneManager.GetActiveScene().GetGUID();
+                    data.scene_name = EditorSceneManager.GetActiveScene().GetGuid();
                     data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetEntityId()));
                     m_Data = data;
                 }

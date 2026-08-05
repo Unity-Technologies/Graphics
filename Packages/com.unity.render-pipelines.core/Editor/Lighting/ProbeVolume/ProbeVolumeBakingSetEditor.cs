@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent renderingLayersTitle = new GUIContent("Rendering Layers");
 
             public static readonly GUIContent keepSamePlacement = new GUIContent("Probe Positions", "If set to Don't Recalculate, probe positions are not recalculated when baking. Allows baking multiple Scenarios that include small differences in Scene geometry.");
-            public static readonly string[] placementOptions = new string[] { "Recalculate", "Don't Recalculate" };
+            public static readonly string[] placementOptions = new[] { "Recalculate", "Don't Recalculate" };
 
             // Scenario section
             public static readonly GUIContent emptyLabel = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), "This scenario doesn't have any baked data. Set it as active scenario and click generate lighting to bake the lighting data.");
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering
             public static readonly string maskTooltip = "The Rendering Layers for this mask.";
         }
 
-        static readonly string s_RenameScenarioUndoName = "Rename Baking Set Scenario";
+        static readonly string k_RenameScenarioUndoName = "Rename Baking Set Scenario";
 
         void OnEnable()
         {
@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering
             m_ProbeOffset = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.probeOffset));
             m_ProbeVolumeBakingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.settings));
             m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.m_LightingScenarios));
-			m_SkyOcclusion = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusion));
+            m_SkyOcclusion = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusion));
             m_SkyOcclusionBakingSamples = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingSamples));
             m_SkyOcclusionBakingBounces = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingBounces));
             m_SkyOcclusionAverageAlbedo = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionAverageAlbedo));
@@ -118,14 +118,14 @@ namespace UnityEditor.Rendering
             Undo.undoRedoEvent += OnUndoRedo;
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             Undo.undoRedoEvent -= OnUndoRedo;
         }
 
         void OnUndoRedo(in UndoRedoInfo info)
         {
-            if (bakingSet != null && info.undoName == s_RenameScenarioUndoName)
+            if (bakingSet != null && info.undoName == k_RenameScenarioUndoName)
                 bakingSet.EnsureScenarioAssetNameConsistencyForUndo();
         }
 
@@ -143,7 +143,6 @@ namespace UnityEditor.Rendering
             SkyOcclusionSettingsGUI();
             ProbeInvaliditySettingsGUI();
             RenderingLayersSettingsGUI();
-
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -166,9 +165,9 @@ namespace UnityEditor.Rendering
                         m_FreezePlacement.boolValue = freeze;
                 }
 
-                AdaptiveProbeVolumes.isFreezingPlacement = canFreezePlacement && m_FreezePlacement.boolValue;
+                AdaptiveProbeVolumes.s_IsFreezingPlacement = canFreezePlacement && m_FreezePlacement.boolValue;
 
-                if (canFreezePlacement && !AdaptiveProbeVolumes.isFreezingPlacement && m_LightingScenarios.arraySize > 1)
+                if (canFreezePlacement && !AdaptiveProbeVolumes.s_IsFreezingPlacement && m_LightingScenarios.arraySize > 1)
                 {
                     foreach (var guid in bakingSet.sceneGUIDs)
                     {
@@ -185,7 +184,7 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            using (new EditorGUI.DisabledScope(Lightmapping.isRunning || (canFreezePlacement && AdaptiveProbeVolumes.isFreezingPlacement)))
+            using (new EditorGUI.DisabledScope(Lightmapping.isRunning || (canFreezePlacement && AdaptiveProbeVolumes.s_IsFreezingPlacement)))
             {
                 // Display vector3 ourselves otherwise display is messed up
                 {
@@ -291,7 +290,8 @@ namespace UnityEditor.Rendering
 
         void ResetProbeSettings(Rect rect)
         {
-            EditorUtility.DisplayCustomMenu(rect, new[] { Styles.resetDilation, Styles.resetVirtualOffset }, -1, (object userData, string[] options, int selected) => {
+            EditorUtility.DisplayCustomMenu(rect, new[] { Styles.resetDilation, Styles.resetVirtualOffset }, -1, (object userData, string[] options, int selected) =>
+            {
                 if (selected == 0)
                     bakingSet.settings.dilationSettings.SetDefaults();
                 else
@@ -299,9 +299,8 @@ namespace UnityEditor.Rendering
             }, null);
         }
 
-        #region Rendering Layer Mask
-        ReorderableList m_MaskList = null;
-        int renamingMask;
+        ReorderableList m_MaskList;
+        int m_RenamingMask;
 
         void RenderingLayersSettingsGUI()
         {
@@ -341,17 +340,17 @@ namespace UnityEditor.Rendering
                     rect.yMax--;
 
                     // Name
-                    if (RenameEvent(rect, active, focused, index, ref renamingMask))
+                    if (RenameEvent(rect, active, focused, index, ref m_RenamingMask))
                     {
-                        Rect labelPosition = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
-                        Rect fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + 2, rect.y, rect.width - EditorGUIUtility.labelWidth - 2, rect.height);
+                        var labelPosition = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
+                        var fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + 2, rect.y, rect.width - EditorGUIUtility.labelWidth - 2, rect.height);
 
                         // Renaming
                         EditorGUI.BeginChangeCheck();
                         var newName = EditorGUI.DelayedTextField(labelPosition, name.stringValue, EditorStyles.boldLabel);
                         if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newName))
                         {
-                            renamingMask = -1;
+                            m_RenamingMask = -1;
                             name.stringValue = newName;
                         }
 
@@ -384,8 +383,8 @@ namespace UnityEditor.Rendering
                 case false when renderPipelineAssetType is { Name: "HDRenderPipelineAsset" }:
                 {
                     var lightingGroup = ProbeVolumeEditor.GetHDRPLightingGroup();
-                    var k_QualitySettingsHelpBox = ProbeVolumeEditor.GetHDRPQualitySettingsHelpBox();
-                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    var qualitySettingsHelpBox = ProbeVolumeEditor.GetHDRPQualitySettingsHelpBox();
+                    qualitySettingsHelpBox.Invoke(null, new[]
                     {
                         "The current HDRP Asset does not support Light Layers.", MessageType.Warning, lightingGroup, -1, "m_RenderPipelineSettings.supportLightLayers"
                     });
@@ -393,9 +392,9 @@ namespace UnityEditor.Rendering
                 }
                 case false when renderPipelineAssetType is { Name: "UniversalRenderPipelineAsset" }:
                 {
-                    var k_QualitySettingsHelpBox = ProbeVolumeEditor.GetURPQualitySettingsHelpBox();
+                    var qualitySettingsHelpBox = ProbeVolumeEditor.GetURPQualitySettingsHelpBox();
                     var lightingValue = ProbeVolumeEditor.GetURPLightingGroup();
-                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    qualitySettingsHelpBox.Invoke(null, new[]
                     {
                         "The current URP Asset does not support Light Layers.", MessageType.Warning, lightingValue, "m_SupportsLightLayers"
                     });
@@ -418,9 +417,6 @@ namespace UnityEditor.Rendering
             return (bool)settings.GetType().GetField("supportLightLayers").GetValue(settings);
         }
 
-        #endregion
-
-        #region Sky occlusion
         void SkyOcclusionSettingsGUI()
         {
             if (!SupportedRenderingFeatures.active.skyOcclusion)
@@ -455,11 +451,8 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.Space();
         }
-        #endregion
 
-        #region Probe Placement
-
-        static int s_SimplificationSliderID = "SimplificationLevelSlider".GetHashCode();
+        static readonly int k_SimplificationSliderID = "SimplificationLevelSlider".GetHashCode();
 
         void SimplificationLevelsSlider()
         {
@@ -468,7 +461,7 @@ namespace UnityEditor.Rendering
             var rect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(rect, Styles.maxDistanceBetweenProbes, m_SimplificationLevels);
 
-            int id = GUIUtility.GetControlID(s_SimplificationSliderID, FocusType.Keyboard, rect);
+            int id = GUIUtility.GetControlID(k_SimplificationSliderID, FocusType.Keyboard, rect);
             rect = EditorGUI.PrefixLabel(rect, id, Styles.maxDistanceBetweenProbes);
 
             int value = m_SimplificationLevels.intValue;
@@ -482,13 +475,10 @@ namespace UnityEditor.Rendering
             ProbeVolumeLightingTab.DrawSimplificationLevelsMarkers(rect, bakingSet.minDistanceBetweenProbes, 2, highestSimplification, value, value);
             EditorGUI.EndProperty();
         }
-        #endregion
 
-        #region Lighting Scenarios
+        ReorderableList m_Scenarios;
 
-        ReorderableList m_Scenarios = null;
-
-        int renamingScenario;
+        int m_RenamingScenario;
 
         void SetActiveScenario(string scenario)
         {
@@ -508,7 +498,7 @@ namespace UnityEditor.Rendering
                 multiSelect = false,
                 elementHeightCallback = _ => EditorGUIUtility.singleLineHeight,
 
-                drawHeaderCallback = (rect) =>
+                drawHeaderCallback = rect =>
                 {
                     ProbeVolumeLightingTab.SplitRectInThree(rect, out var left, out var middle, out var right, 70);
 
@@ -549,18 +539,18 @@ namespace UnityEditor.Rendering
                     SetActiveScenario(scenarioName);
 
                 // Name
-                if (RenameEvent(left, active, focused, index, ref renamingScenario))
+                if (RenameEvent(left, active, focused, index, ref m_RenamingScenario))
                 {
                     // Renaming
                     EditorGUI.BeginChangeCheck();
                     var name = EditorGUI.DelayedTextField(left, scenarioName, EditorStyles.boldLabel);
                     if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(name))
                     {
-                        renamingScenario = -1;
+                        m_RenamingScenario = -1;
                         try
                         {
                             AssetDatabase.StartAssetEditing();
-                            Undo.RegisterCompleteObjectUndo(bakingSet, s_RenameScenarioUndoName);
+                            Undo.RegisterCompleteObjectUndo(bakingSet, k_RenameScenarioUndoName);
                             name = bakingSet.RenameScenario(scenarioName, name);
                         }
                         finally
@@ -585,7 +575,7 @@ namespace UnityEditor.Rendering
                 Repaint();
             };
 
-            m_Scenarios.onAddCallback = (list) =>
+            m_Scenarios.onAddCallback = list =>
             {
                 serializedObject.ApplyModifiedProperties();
                 Undo.RegisterCompleteObjectUndo(bakingSet, "Added new lighting scenario");
@@ -593,7 +583,7 @@ namespace UnityEditor.Rendering
                 serializedObject.Update();
             };
 
-            m_Scenarios.onRemoveCallback = (list) =>
+            m_Scenarios.onRemoveCallback = list =>
             {
                 if (m_Scenarios.count == 1)
                 {
@@ -620,6 +610,5 @@ namespace UnityEditor.Rendering
                 }
             };
         }
-        #endregion
     }
 }

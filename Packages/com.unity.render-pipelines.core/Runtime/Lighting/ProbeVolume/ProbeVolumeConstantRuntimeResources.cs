@@ -9,67 +9,66 @@ namespace UnityEngine.Rendering
 {
     static class ProbeVolumeConstantRuntimeResources
     {
-        static ComputeBuffer m_SkySamplingDirectionsBuffer = null;
-        static ComputeBuffer m_AntiLeakDataBuffer = null;
+        static ComputeBuffer s_SkySamplingDirectionsBuffer;
+        static ComputeBuffer s_AntiLeakDataBuffer;
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         static void ResetStaticsOnLoad()
         {
-            CoreUtils.SafeRelease(m_SkySamplingDirectionsBuffer);
-            m_SkySamplingDirectionsBuffer = null;
-            CoreUtils.SafeRelease(m_AntiLeakDataBuffer);
-            m_AntiLeakDataBuffer = null;
-            Array.Clear(k_SkyDirections, 0, k_SkyDirections.Length);
+            CoreUtils.SafeRelease(s_SkySamplingDirectionsBuffer);
+            s_SkySamplingDirectionsBuffer = null;
+            CoreUtils.SafeRelease(s_AntiLeakDataBuffer);
+            s_AntiLeakDataBuffer = null;
+            Array.Clear(s_SkyDirections, 0, s_SkyDirections.Length);
         }
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void GetRuntimeResources(ref RuntimeResources rr)
         {
-            rr.SkyPrecomputedDirections = m_SkySamplingDirectionsBuffer;
-            rr.QualityLeakReductionData = m_AntiLeakDataBuffer;
+            rr.SkyPrecomputedDirections = s_SkySamplingDirectionsBuffer;
+            rr.QualityLeakReductionData = s_AntiLeakDataBuffer;
         }
 
         internal static void Initialize()
         {
-            if (m_SkySamplingDirectionsBuffer == null)
+            if (s_SkySamplingDirectionsBuffer == null)
             {
-                k_SkyDirections = GenerateSkyDirections();
-                m_SkySamplingDirectionsBuffer = new ComputeBuffer(k_SkyDirections.Length, 3 * sizeof(float));
-                m_SkySamplingDirectionsBuffer.SetData(k_SkyDirections);
+                s_SkyDirections = GenerateSkyDirections();
+                s_SkySamplingDirectionsBuffer = new ComputeBuffer(s_SkyDirections.Length, 3 * sizeof(float));
+                s_SkySamplingDirectionsBuffer.SetData(s_SkyDirections);
             }
 
-            if (m_AntiLeakDataBuffer == null)
+            if (s_AntiLeakDataBuffer == null)
             {
-                m_AntiLeakDataBuffer = new ComputeBuffer(k_AntiLeakData.Length, sizeof(uint));
-                m_AntiLeakDataBuffer.SetData(k_AntiLeakData);
+                s_AntiLeakDataBuffer = new ComputeBuffer(k_AntiLeakData.Length, sizeof(uint));
+                s_AntiLeakDataBuffer.SetData(k_AntiLeakData);
             }
         }
 
         public static Vector3[] GetSkySamplingDirections()
         {
-            return k_SkyDirections;
+            return s_SkyDirections;
         }
 
         internal static void Cleanup()
         {
-            CoreUtils.SafeRelease(m_SkySamplingDirectionsBuffer);
-            m_SkySamplingDirectionsBuffer = null;
+            CoreUtils.SafeRelease(s_SkySamplingDirectionsBuffer);
+            s_SkySamplingDirectionsBuffer = null;
 
-            CoreUtils.SafeRelease(m_AntiLeakDataBuffer);
-            m_AntiLeakDataBuffer = null;
+            CoreUtils.SafeRelease(s_AntiLeakDataBuffer);
+            s_AntiLeakDataBuffer = null;
         }
 
-        #region Sky Directions Buffer generator
-        const int NB_SKY_PRECOMPUTED_DIRECTIONS = 255;
-        static Vector3[] k_SkyDirections = new Vector3[NB_SKY_PRECOMPUTED_DIRECTIONS];
+        const int k_NbSkyPrecomputedDirections = 255;
+        static Vector3[] s_SkyDirections = new Vector3[k_NbSkyPrecomputedDirections];
 
         static Vector3[] GenerateSkyDirections()
         {
-            var skyDirections = new Vector3[NB_SKY_PRECOMPUTED_DIRECTIONS];
+            var skyDirections = new Vector3[k_NbSkyPrecomputedDirections];
 
-            float sqrtNBpoints = Mathf.Sqrt((float)(NB_SKY_PRECOMPUTED_DIRECTIONS));
+            float sqrtNBpoints = Mathf.Sqrt((k_NbSkyPrecomputedDirections));
             float phi = 0.0f;
             float phiMax = 0.0f;
             float thetaMax = 0.0f;
@@ -77,18 +76,18 @@ namespace UnityEngine.Rendering
             // Spiral based sampling on sphere
             // See http://web.archive.org/web/20120331125729/http://www.math.niu.edu/~rusin/known-math/97/spherefaq
             // http://www.math.vanderbilt.edu/saffeb/texts/161.pdf
-            for (int i=0; i < NB_SKY_PRECOMPUTED_DIRECTIONS; i++)
+            for (int i = 0; i < k_NbSkyPrecomputedDirections; i++)
             {
                 // theta from 0 to PI
                 // phi from 0 to 2PI
-                float h = -1.0f + (2.0f * i) / (NB_SKY_PRECOMPUTED_DIRECTIONS - 1.0f);
+                float h = -1.0f + (2.0f * i) / (k_NbSkyPrecomputedDirections - 1.0f);
                 float theta = Mathf.Acos(h);
-                if (i == NB_SKY_PRECOMPUTED_DIRECTIONS - 1 || i==0)
+                if (i == k_NbSkyPrecomputedDirections - 1 || i == 0)
                     phi = 0.0f;
                 else
-                    phi = phi + 3.6f / sqrtNBpoints * 1.0f / (Mathf.Sqrt(1.0f-h*h));
+                    phi = phi + 3.6f / sqrtNBpoints * 1.0f / (Mathf.Sqrt(1.0f - h * h));
 
-                Vector3 pointOnSphere = new Vector3(Mathf.Sin(theta) * Mathf.Cos(phi), Mathf.Sin(theta) * Mathf.Sin(phi), Mathf.Cos(theta));
+                var pointOnSphere = new Vector3(Mathf.Sin(theta) * Mathf.Cos(phi), Mathf.Sin(theta) * Mathf.Sin(phi), Mathf.Cos(theta));
 
                 pointOnSphere.Normalize();
                 skyDirections[i] = pointOnSphere;
@@ -99,10 +98,8 @@ namespace UnityEngine.Rendering
 
             return skyDirections;
         }
-        #endregion
 
-        #region AntiLeak Buffer generator
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         static uint3 GetSampleOffset(uint i)
         {
             return new uint3(i, i >> 1, i >> 2) & 1;
@@ -270,7 +267,9 @@ namespace UnityEngine.Rendering
         {
             uint[] antileak = new uint[256];
             for (uint validityMask = 0; validityMask < 256; validityMask++)
+            {
                 antileak[validityMask] = ComputeAntiLeakData(validityMask);
+            }
 
             string str = "static readonly uint[] k_AntiLeakData = new uint[256] {\n";
             for (int i = 0; i < 16; i++)
@@ -286,27 +285,26 @@ namespace UnityEngine.Rendering
 
             return antileak;
         }
-        #endif
+#endif
 
         // This is autogenerated using the MenuItem above -- do not edit by hand
         static readonly uint[] k_AntiLeakData = new uint[256] {
-	        38347995, 38347849, 38347852, 38347851, 38347873, 38347865, 38322764, 38322763, 38347876, 38324297, 38347868, 38324299, 38347875, 38324313, 38322780, 38347867,
-	        38348041, 38347977, 38408780, 38408779, 38408801, 38408793, 69517900, 69517899, 38408804, 38324425, 38408796, 69519435, 38408803, 69519449, 69517916, 38408795,
-	        38348044, 38410313, 38347980, 38410315, 38410337, 38410329, 38322892, 70304331, 38410340, 70305865, 38410332, 70305867, 38410339, 70305881, 70304348, 38410331,
-	        38348043, 38410441, 38408908, 38347979, 38322955, 38409817, 69518028, 38322891, 38324491, 70305993, 38409820, 38324427, 38409827, 26351193, 25564764, 38323915,
-	        38348065, 38421065, 38421068, 38421067, 38348001, 38421081, 38312161, 38388299, 38421092, 75810889, 38421084, 75810891, 38421091, 75810905, 38388316, 38421083,
-	        38348057, 38421193, 38312217, 38416971, 38408929, 38347993, 69507297, 38312153, 38324505, 75811017, 38416988, 26358347, 38416995, 38324441, 69583452, 38320345,
-	        38421260, 75896905, 38421196, 75896907, 38410465, 75896921, 38388428, 70369867, 75896932, 70305865, 75896924, 70305867, 75896931, 70305881, 70369884, 75896923,
-	        38421259, 75897033, 38417100, 38421195, 38409953, 38410457, 69583564, 38377689, 75811083, 70305993, 75896412, 75811019, 75896419, 70306009, 70107740, 70301913,
-	        38348068, 38422601, 38422604, 38422603, 38422625, 38422617, 76595788, 76595787, 38348004, 38310628, 38422620, 38389835, 38422627, 38389849, 76595804, 38422619,
-	        38422793, 38422729, 76681804, 76681803, 76681825, 76681817, 69517900, 69517899, 38408932, 38389961, 76681820, 69584971, 76681827, 69584985, 69517916, 76681819,
-	        38348060, 38310684, 38422732, 38418507, 38322972, 38418521, 76595916, 25573451, 38410468, 70292196, 38347996, 38310620, 38418531, 70371417, 38322908, 38318812,
-	        38422795, 38418633, 76681932, 38422731, 76595979, 76682841, 69518028, 76595915, 38409956, 70371529, 38408924, 38376156, 76682851, 70109273, 69518044, 69513948,
-	        38348067, 38310691, 38312227, 38422091, 38422753, 38422105, 76585185, 76661323, 38421220, 75797220, 38422108, 75876427, 38348003, 38310627, 38312163, 38311651,
-	        38422809, 38422217, 76585241, 76689995, 76681953, 38422745, 69507297, 76585177, 38417124, 75876553, 76690012, 73779275, 38408931, 38389977, 69507299, 76593369,
-	        38421276, 75797276, 38422220, 75905099, 38418657, 75905113, 76661452, 74564171, 75897060, 70292196, 38421212, 75797212, 38410467, 70292195, 38388444, 75805404,
-	        38348059, 38310683, 38312219, 38422219, 38322971, 38418649, 25467163, 76650713, 38324507, 26252059, 38417116, 75862748, 38409955, 70371545, 69583580, 38347995,
+            38347995, 38347849, 38347852, 38347851, 38347873, 38347865, 38322764, 38322763, 38347876, 38324297, 38347868, 38324299, 38347875, 38324313, 38322780, 38347867,
+            38348041, 38347977, 38408780, 38408779, 38408801, 38408793, 69517900, 69517899, 38408804, 38324425, 38408796, 69519435, 38408803, 69519449, 69517916, 38408795,
+            38348044, 38410313, 38347980, 38410315, 38410337, 38410329, 38322892, 70304331, 38410340, 70305865, 38410332, 70305867, 38410339, 70305881, 70304348, 38410331,
+            38348043, 38410441, 38408908, 38347979, 38322955, 38409817, 69518028, 38322891, 38324491, 70305993, 38409820, 38324427, 38409827, 26351193, 25564764, 38323915,
+            38348065, 38421065, 38421068, 38421067, 38348001, 38421081, 38312161, 38388299, 38421092, 75810889, 38421084, 75810891, 38421091, 75810905, 38388316, 38421083,
+            38348057, 38421193, 38312217, 38416971, 38408929, 38347993, 69507297, 38312153, 38324505, 75811017, 38416988, 26358347, 38416995, 38324441, 69583452, 38320345,
+            38421260, 75896905, 38421196, 75896907, 38410465, 75896921, 38388428, 70369867, 75896932, 70305865, 75896924, 70305867, 75896931, 70305881, 70369884, 75896923,
+            38421259, 75897033, 38417100, 38421195, 38409953, 38410457, 69583564, 38377689, 75811083, 70305993, 75896412, 75811019, 75896419, 70306009, 70107740, 70301913,
+            38348068, 38422601, 38422604, 38422603, 38422625, 38422617, 76595788, 76595787, 38348004, 38310628, 38422620, 38389835, 38422627, 38389849, 76595804, 38422619,
+            38422793, 38422729, 76681804, 76681803, 76681825, 76681817, 69517900, 69517899, 38408932, 38389961, 76681820, 69584971, 76681827, 69584985, 69517916, 76681819,
+            38348060, 38310684, 38422732, 38418507, 38322972, 38418521, 76595916, 25573451, 38410468, 70292196, 38347996, 38310620, 38418531, 70371417, 38322908, 38318812,
+            38422795, 38418633, 76681932, 38422731, 76595979, 76682841, 69518028, 76595915, 38409956, 70371529, 38408924, 38376156, 76682851, 70109273, 69518044, 69513948,
+            38348067, 38310691, 38312227, 38422091, 38422753, 38422105, 76585185, 76661323, 38421220, 75797220, 38422108, 75876427, 38348003, 38310627, 38312163, 38311651,
+            38422809, 38422217, 76585241, 76689995, 76681953, 38422745, 69507297, 76585177, 38417124, 75876553, 76690012, 73779275, 38408931, 38389977, 69507299, 76593369,
+            38421276, 75797276, 38422220, 75905099, 38418657, 75905113, 76661452, 74564171, 75897060, 70292196, 38421212, 75797212, 38410467, 70292195, 38388444, 75805404,
+            38348059, 38310683, 38312219, 38422219, 38322971, 38418649, 25467163, 76650713, 38324507, 26252059, 38417116, 75862748, 38409955, 70371545, 69583580, 38347995,
         };
-        #endregion
     }
 }

@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering
 
             // These assets would get garbage collected, but we clean them up immediately to free memory earlier.
             // Only do this in editor, where the assets are never needed, so we don't unload assets that may still be in use.
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             Resources.UnloadAsset(bakingSet.cellBricksDataAsset?.asset);
             Resources.UnloadAsset(bakingSet.cellSharedDataAsset?.asset);
             Resources.UnloadAsset(bakingSet.cellSupportDataAsset?.asset);
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering
                 Resources.UnloadAsset(scenario.Value.cellOptionalDataAsset?.asset);
                 Resources.UnloadAsset(scenario.Value.cellProbeOcclusionDataAsset?.asset);
             }
-            #endif
+#endif
 
             // Unload the baking set itself.
             Resources.UnloadAsset(bakingSet);

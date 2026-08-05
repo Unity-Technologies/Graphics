@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 
 using System;
-using System.IO;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine.SceneManagement;
+using System.IO;
 using Unity.Mathematics;
 using Unity.Scripting.LifecycleManagement;
+using UnityEditor;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering
 {
@@ -16,54 +16,56 @@ namespace UnityEngine.Rendering
         [Serializable]
         internal class SceneBakeData
         {
-            public bool hasProbeVolume = false;
+            public bool hasProbeVolume;
             public bool bakeScene = true;
-            public Bounds bounds = new();
+            public Bounds bounds;
         }
 
         internal partial class SceneToBakingSet
         {
             [AutoStaticsCleanup]
-            static Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = null;
+            static Dictionary<string, ProbeVolumeBakingSetWeakReference> s_SceneToBakingSet;
 
             internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> Instance
             {
                 get
                 {
-                    if (sceneToBakingSet == null)
-                        sceneToBakingSet = ProbeVolumeBakingSet.SyncBakingSets();
+                    if (s_SceneToBakingSet == null)
+                        s_SceneToBakingSet = ProbeVolumeBakingSet.SyncBakingSets();
 
-                    return sceneToBakingSet;
+                    return s_SceneToBakingSet;
                 }
             }
 
             // Undo/redo restores a set's serialized scene list without going through Add/Remove/SetScene.
             internal static void Resync(ProbeVolumeBakingSet set)
             {
-                if (sceneToBakingSet == null)
+                if (s_SceneToBakingSet == null)
                     return;
 
                 var entityId = set.GetEntityId();
                 var staleGUIDs = new List<string>();
-                foreach (var kvp in sceneToBakingSet)
+                foreach (var kvp in s_SceneToBakingSet)
                 {
                     if (kvp.Value.m_EntityId == entityId && !set.m_SceneGUIDs.Contains(kvp.Key))
                         staleGUIDs.Add(kvp.Key);
                 }
                 foreach (var guid in staleGUIDs)
-                    sceneToBakingSet.Remove(guid);
+                {
+                    s_SceneToBakingSet.Remove(guid);
+                }
 
                 var reference = new ProbeVolumeBakingSetWeakReference(set);
                 foreach (var guid in set.m_SceneGUIDs)
                 {
                     // Don't steal scenes whose current owner is loaded and still lists them (e.g. a duplicated set asset).
-                    if (sceneToBakingSet.TryGetValue(guid, out var existing) && existing.m_EntityId != entityId)
+                    if (s_SceneToBakingSet.TryGetValue(guid, out var existing) && existing.m_EntityId != entityId)
                     {
                         var owner = existing.IsLoaded() ? existing.Get() : null;
                         if (owner == null || owner.m_SceneGUIDs.Contains(guid))
                             continue;
                     }
-                    sceneToBakingSet[guid] = reference;
+                    s_SceneToBakingSet[guid] = reference;
                 }
             }
         }
@@ -104,7 +106,7 @@ namespace UnityEngine.Rendering
             m_SceneGUIDs.Remove(guid);
             m_SceneBakeData.Remove(guid);
 
-            if (SceneToBakingSet.Instance.TryGetValue(guid, out var mapped) && mapped.m_EntityId == this.GetEntityId())
+            if (SceneToBakingSet.Instance.TryGetValue(guid, out var mapped) && mapped.m_EntityId == GetEntityId())
                 SceneToBakingSet.Instance.Remove(guid);
 
             EditorUtility.SetDirty(this);
@@ -112,11 +114,11 @@ namespace UnityEngine.Rendering
 
         internal void SetScene(string guid, int index, SceneBakeData bakeData = null)
         {
-            var previousSceneGUID = m_SceneGUIDs[index];
+            var previousSceneGuid = m_SceneGUIDs[index];
             m_SceneGUIDs[index] = guid;
 
-            if (SceneToBakingSet.Instance.TryGetValue(previousSceneGUID, out var mapped) && mapped.m_EntityId == this.GetEntityId())
-                SceneToBakingSet.Instance.Remove(previousSceneGUID);
+            if (SceneToBakingSet.Instance.TryGetValue(previousSceneGuid, out var mapped) && mapped.m_EntityId == GetEntityId())
+                SceneToBakingSet.Instance.Remove(previousSceneGuid);
             SceneToBakingSet.Instance[guid] = new ProbeVolumeBakingSetWeakReference(this);
 
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
@@ -162,13 +164,14 @@ namespace UnityEngine.Rendering
         public void SetAllSceneBaking(bool enableForBaking)
         {
             foreach (var kvp in m_SceneBakeData)
+            {
                 kvp.Value.bakeScene = enableForBaking;
+            }
 
             EditorUtility.SetDirty(this);
         }
 
-
-        /// <summary>
+/// <summary>
         /// Tries to add a lighting scenario to the baking set.
         /// </summary>
         /// <param name ="name">The name of the scenario to add.</param>
@@ -188,7 +191,9 @@ namespace UnityEngine.Rendering
             int index = 1;
             string renamed = name;
             while (!TryAddScenario(renamed))
+            {
                 renamed = $"{name} ({index++})";
+            }
 
             return renamed;
         }
@@ -208,7 +213,7 @@ namespace UnityEngine.Rendering
                 EditorUtility.SetDirty(this);
             }
 
-            foreach (var cellData in cellDataMap.Values)
+            foreach (var cellData in m_CellDataMap.Values)
             {
                 if (cellData.scenarios.TryGetValue(name, out var cellScenarioData))
                 {
@@ -297,11 +302,13 @@ namespace UnityEngine.Rendering
             scenarios.Clear();
 
             // All cells should have been released through unloading the scenes first.
-            Debug.Assert(cellDataMap.Count == 0);
+            Debug.Assert(m_CellDataMap.Count == 0);
 
-            perSceneCellLists.Clear();
-            foreach (var sceneGUID in sceneGUIDs)
-                perSceneCellLists.Add(sceneGUID, new List<int>());
+            m_PerSceneCellLists.Clear();
+            foreach (var sceneGuid in sceneGUIDs)
+            {
+                m_PerSceneCellLists.Add(sceneGuid, new List<int>());
+            }
         }
 
         /// <summary>
@@ -324,7 +331,7 @@ namespace UnityEngine.Rendering
                 scenarios.Remove(scenario);
                 scenarios.Add(newName, data);
 
-                foreach (var cellData in cellDataMap.Values)
+                foreach (var cellData in m_CellDataMap.Values)
                 {
                     if (cellData.scenarios.TryGetValue(scenario, out var cellScenarioData))
                     {
@@ -344,13 +351,13 @@ namespace UnityEngine.Rendering
 
         internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> SyncBakingSets()
         {
-            Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
+            var sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
 
             var setGUIDs = AssetDatabase.FindAssets("t:" + nameof(ProbeVolumeBakingSet));
 
-            foreach (var setGUID in setGUIDs)
+            foreach (var setGuid in setGUIDs)
             {
-                string bakingSetPath = AssetDatabase.GUIDToAssetPath(setGUID);
+                string bakingSetPath = AssetDatabase.GUIDToAssetPath(setGuid);
                 bool alreadyLoaded = AssetDatabase.IsMainAssetAtPathLoaded(bakingSetPath);
 
                 var set = AssetDatabase.LoadAssetAtPath<ProbeVolumeBakingSet>(bakingSetPath);
@@ -362,7 +369,9 @@ namespace UnityEngine.Rendering
 
                     var reference = new ProbeVolumeBakingSetWeakReference(set);
                     foreach (var guid in set.sceneGUIDs)
+                    {
                         sceneToBakingSet[guid] = reference;
+                    }
 
                     // If the asset wasn't already in-memory, and we just loaded it into memory, free it, so we don't waste memory.
                     if (!alreadyLoaded)
@@ -373,14 +382,14 @@ namespace UnityEngine.Rendering
             return sceneToBakingSet;
         }
 
-        internal static ProbeVolumeBakingSet GetBakingSetForScene(Dictionary<string, ProbeVolumeBakingSetWeakReference> mapping, string sceneGUID) { return mapping.GetValueOrDefault(sceneGUID, null)?.Get(); }
-        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) { return SceneToBakingSet.Instance.GetValueOrDefault(sceneGUID, null)?.Get(); }
-        internal static ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(scene.GetGUID());
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(Dictionary<string, ProbeVolumeBakingSetWeakReference> mapping, string sceneGuid) { return mapping.GetValueOrDefault(sceneGuid, null)?.Get(); }
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGuid) { return SceneToBakingSet.Instance.GetValueOrDefault(sceneGuid, null)?.Get(); }
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(scene.GetGuid());
 
         internal void SetDefaults()
         {
             settings.SetDefaults();
-            m_LightingScenarios = new List<string> { ProbeReferenceVolume.defaultLightingScenario };
+            m_LightingScenarios = new List<string> { ProbeReferenceVolume.k_DefaultLightingScenario };
 
             // We have to initialize that to not trigger a warning on new baking sets
             chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
@@ -496,13 +505,13 @@ namespace UnityEngine.Rendering
             // If we are called from the scene callback, we want to update all global volumes that are potentially affected
             bool onSceneSave = path != null;
 
-            string sceneGUID = ProbeReferenceVolume.GetSceneGUID(scene);
-            var bakingSet = GetBakingSetForScene(sceneGUID);
+            string sceneGuid = ProbeReferenceVolume.GetSceneGuid(scene);
+            var bakingSet = GetBakingSetForScene(sceneGuid);
 
             if (bakingSet != null)
             {
-                bakingSet.UpdateSceneBounds(scene, sceneGUID, onSceneSave);
-                bakingSet.EnsurePerSceneData(scene, sceneGUID);
+                bakingSet.UpdateSceneBounds(scene, sceneGuid, onSceneSave);
+                bakingSet.EnsurePerSceneData(scene, sceneGuid);
             }
         }
 
@@ -546,18 +555,18 @@ namespace UnityEngine.Rendering
 
             // Remove the extra padding caused by cell rounding
             bounds.min = bounds.min + new Vector3(
-                leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
-                bottomPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.y - originalBounds.min.y) / (float)bottomPaddingSubdivLevel),
-                backPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.z - originalBounds.min.z) / (float)backPaddingSubdivLevel)
+                leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / leftPaddingSubdivLevel),
+                bottomPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.y - originalBounds.min.y) / bottomPaddingSubdivLevel),
+                backPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.z - originalBounds.min.z) / backPaddingSubdivLevel)
             );
             bounds.max = bounds.max - new Vector3(
-                rightPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.x - originalBounds.max.x) / (float)rightPaddingSubdivLevel),
-                topPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.y - originalBounds.max.y) / (float)topPaddingSubdivLevel),
-                forwardPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.z - originalBounds.max.z) / (float)forwardPaddingSubdivLevel)
+                rightPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.x - originalBounds.max.x) / rightPaddingSubdivLevel),
+                topPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.y - originalBounds.max.y) / topPaddingSubdivLevel),
+                forwardPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.z - originalBounds.max.z) / forwardPaddingSubdivLevel)
             );
         }
 
-        internal void UpdateSceneBounds(Scene scene, string sceneGUID, bool onSceneSave)
+        internal void UpdateSceneBounds(Scene scene, string sceneGuid, bool onSceneSave)
         {
             var volumes = FindObjectsByType<ProbeVolume>();
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -570,7 +579,7 @@ namespace UnityEngine.Rendering
                 ProbeReferenceVolume.instance.SetSubdivisionDimensions(GetMinBrickSize(minDistanceBetweenProbes), GetMaxSubdivision(simplificationLevels), probeOffset);
 
             bool boundFound = false;
-            Bounds newBound = new Bounds();
+            var newBound = new Bounds();
             foreach (var volume in volumes)
             {
                 bool forceUpdate = onSceneSave && volume.mode == ProbeVolume.Mode.Global;
@@ -596,7 +605,7 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            bool bakeDataExist = m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData);
+            bool bakeDataExist = m_SceneBakeData.TryGetValue(sceneGuid, out var bakeData);
             Debug.Assert(bakeDataExist, "Scene should have been added to the baking set with default bake data instance.");
             bakeData.hasProbeVolume = boundFound;
             if (boundFound)
@@ -607,16 +616,16 @@ namespace UnityEngine.Rendering
         }
 
         // It is important this is called after UpdateSceneBounds is called otherwise SceneHasProbeVolumes might be out of date
-        internal void EnsurePerSceneData(Scene scene, string sceneGUID)
+        internal void EnsurePerSceneData(Scene scene, string sceneGuid)
         {
-            bool bakeDataExist = m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData);
+            bool bakeDataExist = m_SceneBakeData.TryGetValue(sceneGuid, out var bakeData);
             Debug.Assert(bakeDataExist, "Scene should have been added to the baking set with default bake data instance.");
 
             if (bakeData.hasProbeVolume)
             {
-                if (!ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGUID, out var data))
+                if (!ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGuid, out var data))
                 {
-                    GameObject go = new GameObject("ProbeVolumePerSceneData");
+                    var go = new GameObject("ProbeVolumePerSceneData");
                     go.hideFlags |= HideFlags.HideInHierarchy;
                     var perSceneData = go.AddComponent<ProbeVolumePerSceneData>();
                     SceneManager.MoveGameObjectToScene(go, scene);
@@ -624,20 +633,20 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal SceneBakeData GetSceneBakeData(string sceneGUID, bool addIfMissing = true)
+        internal SceneBakeData GetSceneBakeData(string sceneGuid, bool addIfMissing = true)
         {
-            if (!m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData) && addIfMissing)
+            if (!m_SceneBakeData.TryGetValue(sceneGuid, out var bakeData) && addIfMissing)
             {
-                if (m_SceneGUIDs.Contains(sceneGUID))
-                    m_SceneBakeData[sceneGUID] = bakeData = new SceneBakeData();
+                if (m_SceneGUIDs.Contains(sceneGuid))
+                    m_SceneBakeData[sceneGuid] = bakeData = new SceneBakeData();
             }
             return bakeData;
         }
 
-        internal static bool SceneHasProbeVolumes(string sceneGUID)
+        internal static bool SceneHasProbeVolumes(string sceneGuid)
         {
-            var bakingSet = GetBakingSetForScene(sceneGUID);
-            return bakingSet?.GetSceneBakeData(sceneGUID)?.hasProbeVolume ?? false;
+            var bakingSet = GetBakingSetForScene(sceneGuid);
+            return bakingSet?.GetSceneBakeData(sceneGuid)?.hasProbeVolume ?? false;
         }
 
         internal bool DialogNoProbeVolumeInSetShown()

@@ -1,6 +1,4 @@
 using System;
-using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -50,7 +48,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         [Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
-
 
         /// <summary>
         /// Whether to animate the noise when TAA is enabled, smoothing potentially out the noise pattern introduced.

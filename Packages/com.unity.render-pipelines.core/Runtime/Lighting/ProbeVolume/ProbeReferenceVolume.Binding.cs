@@ -1,5 +1,3 @@
-using System;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -28,7 +26,7 @@ namespace UnityEngine.Rendering
             public static readonly int _AntiLeakData = Shader.PropertyToID("_AntiLeakData");
         }
 
-        ComputeBuffer m_EmptyIndexBuffer = null;
+        ComputeBuffer m_EmptyIndexBuffer;
 
         /// <summary>
         /// Bind the global APV resources

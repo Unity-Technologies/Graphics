@@ -67,7 +67,9 @@ namespace UnityEngine.Rendering
             for (int rgb = 0; rgb < 3; ++rgb)
             {
                 for (int k = 0; k < 9; ++k)
+                {
                     shv[rgb, k] *= intensityScale;
+                }
 
                 var l0 = shv[rgb, 0];
 
@@ -75,12 +77,16 @@ namespace UnityEngine.Rendering
                 {
                     shv[rgb, 0] = 0.0f;
                     for (int k = 1; k < 9; ++k)
+                    {
                         shv[rgb, k] = 0.5f;
+                    }
                 }
                 else if (clearForDilation)
                 {
                     for (int k = 0; k < 9; ++k)
+                    {
                         shv[rgb, k] = 0.0f;
+                    }
                 }
                 else
                 {
@@ -102,7 +108,9 @@ namespace UnityEngine.Rendering
                     shv[rgb, 8] = shv[rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
                     for (int coeff = 1; coeff < 9; ++coeff)
+                    {
                         shv[rgb, coeff] = Mathf.Clamp01(shv[rgb, coeff]);
+                    }
                 }
             }
         }
@@ -210,14 +218,6 @@ namespace UnityEngine.Rendering
                         touchupVolumeInteraction[i] = 2.0f + intensityScale;
                 }
             }
-
-            if (validity < 0.05f && bakingBatch.invalidatedPositions.ContainsKey(probePositions[i]) && bakingBatch.invalidatedPositions[probePositions[i]])
-            {
-                if (!bakingBatch.forceInvalidatedProbesAndTouchupVols.ContainsKey(probePositions[i]))
-                    bakingBatch.forceInvalidatedProbesAndTouchupVols.Add(probePositions[i], new Bounds());
-
-                invalidatedProbe = true;
-            }
         }
 
         internal void SetBakedData(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, int probeIndex,
@@ -246,7 +246,9 @@ namespace UnityEngine.Rendering
             byte currValidityNeighbourMask = 255;
             this.validity[i] = currValidity;
             for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
+            {
                 validityNeighbourMask[l, i] = currValidityNeighbourMask;
+            }
 
             if (probeOcclusion.IsCreated)
                 this.probeOcclusion[i] = probeOcclusion[probeIndex];
@@ -277,18 +279,15 @@ namespace UnityEngine.Rendering
         // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
         // Can be probably done cleaner.
         public NativeHashMap<int, int> uniqueBrickSubdiv;
-        // Mapping for explicit invalidation, whether it comes from the auto finding of occluders or from the touch up volumes
-        // TODO: This is not used yet. Will soon.
-        public Dictionary<Vector3, bool> invalidatedPositions = new();
         // Utilities to compute unique probe position hash
-        Vector3Int maxBrickCount;
-        float inverseScale;
-        Vector3 offset;
+        Vector3Int m_MaxBrickCount;
+        readonly float m_InverseScale;
+        Vector3 m_Offset;
 
         public Dictionary<(int, int), float> customDilationThresh = new();
         public Dictionary<Vector3, Bounds> forceInvalidatedProbesAndTouchupVols = new();
 
-        private GIContributors? m_Contributors;
+        GIContributors? m_Contributors;
         public GIContributors contributors
         {
             get
@@ -299,13 +298,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private BakingBatch() { }
+        BakingBatch() { }
 
         public BakingBatch(Vector3Int cellCount, ProbeReferenceVolume refVolume)
         {
-            maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(refVolume.GetMaxSubdivision());
-            inverseScale = ProbeBrickPool.kBrickCellCount / refVolume.MinBrickSize();
-            offset = refVolume.ProbeOffset();
+            m_MaxBrickCount = cellCount * ProbeReferenceVolume.CellSize(refVolume.GetMaxSubdivision());
+            m_InverseScale = ProbeBrickPool.k_BrickCellCount / refVolume.MinBrickSize();
+            m_Offset = refVolume.ProbeOffset();
 
             // Initialize NativeHashMaps with reasonable initial capacity
             // Using a larger capacity to reduce allocations during baking
@@ -323,13 +322,13 @@ namespace UnityEngine.Rendering
 
         public int GetProbePositionHash(Vector3 position)
         {
-            var brickPosition = Vector3Int.RoundToInt((position - offset) * inverseScale); // Inverse of op in ConvertBricksToPositions()
+            var brickPosition = Vector3Int.RoundToInt((position - m_Offset) * m_InverseScale); // Inverse of op in ConvertBricksToPositions()
             return GetBrickPositionHash(brickPosition);
         }
 
         public int GetBrickPositionHash(Vector3Int brickPosition)
         {
-            return brickPosition.x + brickPosition.y * maxBrickCount.x + brickPosition.z * maxBrickCount.x * maxBrickCount.y;
+            return brickPosition.x + brickPosition.y * m_MaxBrickCount.x + brickPosition.z * m_MaxBrickCount.x * m_MaxBrickCount.y;
         }
 
         public int GetSubdivLevelAt(Vector3 position) => uniqueBrickSubdiv[GetProbePositionHash(position)];
@@ -347,8 +346,8 @@ namespace UnityEngine.Rendering
             protected virtual bool ShowProgressBar => true;
 
             protected T prevStage;
-            bool disposed = false;
-            static float globalProgress = 0.0f;
+            bool m_Disposed;
+            static float s_GlobalProgress;
 
             public float GetProgress(T stage) => (int)(object)stage / (float)(int)(object)GetLastStep();
             void UpdateProgressBar(T stage)
@@ -358,13 +357,13 @@ namespace UnityEngine.Rendering
 
                 if (EqualityComparer<T>.Default.Equals(stage, GetLastStep()))
                 {
-                    globalProgress = 0.0f;
+                    s_GlobalProgress = 0.0f;
                     EditorUtility.ClearProgressBar();
                 }
                 else
                 {
-                    globalProgress = Mathf.Max(GetProgress(stage), globalProgress); // prevent progress from going back
-                    EditorUtility.DisplayProgressBar("Baking Adaptive Probe Volumes", stage.ToString(), globalProgress);
+                    s_GlobalProgress = Mathf.Max(GetProgress(stage), s_GlobalProgress); // prevent progress from going back
+                    EditorUtility.DisplayProgressBar("Baking Adaptive Probe Volumes", stage.ToString(), s_GlobalProgress);
                 }
             }
 
@@ -389,8 +388,8 @@ namespace UnityEngine.Rendering
 
             public void OnDispose(ref T currentStage)
             {
-                if (disposed) return;
-                disposed = true;
+                if (m_Disposed) return;
+                m_Disposed = true;
 
                 if (LogFile != null)
                     Profiling.Profiler.EndSample();
@@ -419,14 +418,14 @@ namespace UnityEngine.Rendering
                 PlaceProbes,
                 BakeBricks,
                 ApplySubdivisionResults,
-                None
+                None,
             }
 
-            static Stages currentStage = Stages.None;
-            public BakingSetupProfiling(Stages stage) : base(stage, ref currentStage) { }
+            static Stages s_CurrentStage = Stages.None;
+            public BakingSetupProfiling(Stages stage) : base(stage, ref s_CurrentStage) { }
             public override Stages GetLastStep() => Stages.None;
-            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
-            public void Dispose() { OnDispose(ref currentStage); }
+            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)s_CurrentStage * s; progress1 = progress0 + s; }
+            public void Dispose() { OnDispose(ref s_CurrentStage); }
         }
 
         internal class BakingCompleteProfiling : BakingProfiling<BakingCompleteProfiling.Stages>, IDisposable
@@ -438,14 +437,14 @@ namespace UnityEngine.Rendering
                 FinalizingBake,
                 WriteBakedData,
                 PerformDilation,
-                None
+                None,
             }
 
-            static Stages currentStage = Stages.None;
-            public BakingCompleteProfiling(Stages stage) : base(stage, ref currentStage) { }
+            static Stages s_CurrentStage = Stages.None;
+            public BakingCompleteProfiling(Stages stage) : base(stage, ref s_CurrentStage) { }
             public override Stages GetLastStep() => Stages.None;
-            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
-            public void Dispose() { OnDispose(ref currentStage); }
+            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)s_CurrentStage * s; progress1 = progress0 + s; }
+            public void Dispose() { OnDispose(ref s_CurrentStage); }
         }
 
         struct BakeData
@@ -482,9 +481,9 @@ namespace UnityEngine.Rendering
             [Flags]
             enum BakeJobRequests
             {
-                MAIN_REQUEST = 1,
-                TOUCHUP_REQUESTS = 2,
-                ADDITIONAL_REQUEST = 4
+                MainRequest = 1 << 0,
+                TouchupRequests = 1 << 1,
+                AdditionalRequest = 1 << 2,
             }
 
             internal static void InitVirtualOffsetJob(IntPtr pVirtualOffsetsBuffer, ref bool bakeVirtualOffsets)
@@ -500,7 +499,7 @@ namespace UnityEngine.Rendering
 
                 var virtualOffsets = new VirtualOffsets(pVirtualOffsetsBuffer);
 
-                s_BakeData.virtualOffsetJob = virtualOffsetOverride ?? new DefaultVirtualOffset();
+                s_BakeData.virtualOffsetJob = s_VirtualOffsetOverride ?? new DefaultVirtualOffset();
                 s_BakeData.virtualOffsetJob.Initialize(m_BakingSet,
                     s_BakeData.sortedPositions.GetSubArray(0, s_BakeData.probeCount));
                 s_BakeData.VirtualOffsets = virtualOffsets; // This is an internal secret, it is only used by our own virtual offsets baker
@@ -549,23 +548,23 @@ namespace UnityEngine.Rendering
                 probeCount = probePositions.Length;
                 reflectionProbeCount = requests.Count;
 
-                var probeJobRequests = BakeJobRequests.MAIN_REQUEST | BakeJobRequests.TOUCHUP_REQUESTS;
+                var probeJobRequests = BakeJobRequests.MainRequest | BakeJobRequests.TouchupRequests;
                 if (requests.Count > 0)
-                    probeJobRequests |= BakeJobRequests.ADDITIONAL_REQUEST;
+                    probeJobRequests |= BakeJobRequests.AdditionalRequest;
 
                 jobs = CreateBakingJobs(bakingSet, probeJobRequests);
                 originalPositions = probePositions.ToArray(Allocator.Persistent);
                 SortPositions(probePositions, requests);
 
-                skyOcclusionJob = skyOcclusionOverride ?? new DefaultSkyOcclusion();
+                skyOcclusionJob = s_SkyOcclusionOverride ?? new DefaultSkyOcclusion();
                 skyOcclusionJob.Initialize(bakingSet, sortedPositions.GetSubArray(0, probeCount));
                 if (skyOcclusionJob is DefaultSkyOcclusion defaultSOJob)
                     defaultSOJob.jobs = jobs;
 
-                layerMaskJob = renderingLayerOverride ?? new DefaultRenderingLayer();
+                layerMaskJob = s_RenderingLayerOverride ?? new DefaultRenderingLayer();
                 layerMaskJob.Initialize(bakingSet, sortedPositions.GetSubArray(0, probeCount));
 
-                lightingJob = lightingOverride ?? new DefaultLightTransport();
+                lightingJob = s_LightingOverride ?? new DefaultLightTransport();
                 lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions, layerMaskJob.renderingLayerMasks);
                 if (lightingJob is DefaultLightTransport defaultLightTransport)
                     defaultLightTransport.bakeType = bakeType;
@@ -586,7 +585,7 @@ namespace UnityEngine.Rendering
                 originalPositions = probePositions.ToArray(Allocator.Persistent);
                 SortPositions(probePositions, requests);
 
-                lightingJob = lightingOverride ?? new DefaultLightTransport();
+                lightingJob = s_LightingOverride ?? new DefaultLightTransport();
                 using var layerMask = new NativeArray<uint>();
                 lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions, layerMask);
                 if (lightingJob is DefaultLightTransport defaultLightTransport)
@@ -604,20 +603,20 @@ namespace UnityEngine.Rendering
                 probeCount = probePositions.Length;
 
                 s_AdjustmentVolumes = new TouchupVolumeWithBoundsList();
-                touchup.GetOBBandAABB(out var obb, out var aabb);
+                touchup.GetOBBAndAABB(out var obb, out var aabb);
                 s_AdjustmentVolumes.Add((obb, aabb, touchup));
                 touchup.skyDirection.Normalize();
 
-                var probeJobRequests = BakeJobRequests.TOUCHUP_REQUESTS;
+                var probeJobRequests = BakeJobRequests.TouchupRequests;
                 if (touchup.mode != ProbeAdjustmentVolume.Mode.OverrideSampleCount)
                 {
                     // Other touchup volumes don't need a job of their own but they do need a main request job
-                    probeJobRequests |= BakeJobRequests.MAIN_REQUEST;
+                    probeJobRequests |= BakeJobRequests.MainRequest;
                 }
                 jobs = CreateBakingJobs(bakingSet, probeJobRequests);
                 SortPositions(probePositions, new List<Vector3>());
 
-                lightingJob = lightingOverride ?? new DefaultLightTransport();
+                lightingJob = s_LightingOverride ?? new DefaultLightTransport();
                 lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions);
                 if (lightingJob is DefaultLightTransport defaultLightTransport)
                     defaultLightTransport.bakeType = bakeType;
@@ -627,7 +626,8 @@ namespace UnityEngine.Rendering
 
             public void ExecuteLightingAsync()
             {
-                bakingThread = new Thread(() => {
+                bakingThread = new Thread(() =>
+                {
                     var job = s_BakeData.lightingJob;
                     while (job.currentStep < job.stepCount)
                     {
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering
             {
                 // Build the list of adjustment volumes affecting sample count
                 var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList();
-                if (bakeJobRequests.HasFlag(BakeJobRequests.TOUCHUP_REQUESTS))
+                if (bakeJobRequests.HasFlag(BakeJobRequests.TouchupRequests))
                 {
                     // This is slow, but we should have very little amount of touchup volumes.
                     foreach (var adjustment in s_AdjustmentVolumes)
@@ -666,26 +666,26 @@ namespace UnityEngine.Rendering
                 bool skyOcclusion = bakingSet.skyOcclusion;
                 var jobs = new List<BakeJob>();
 
-                if (bakeJobRequests.HasFlag(BakeJobRequests.TOUCHUP_REQUESTS))
+                if (bakeJobRequests.HasFlag(BakeJobRequests.TouchupRequests))
                 {
                     foreach (var touchupVolume in touchupVolumesAndBounds)
                     {
-                        BakeJob job = new BakeJob();
+                        var job = new BakeJob();
                         job.Create(lightingSettings, skyOcclusion, touchupVolume);
                         jobs.Add(job);
                     }
                 }
 
-                if (bakeJobRequests.HasFlag(BakeJobRequests.MAIN_REQUEST))
+                if (bakeJobRequests.HasFlag(BakeJobRequests.MainRequest))
                 {
-                    BakeJob job = new BakeJob();
+                    var job = new BakeJob();
                     job.Create(bakingSet, lightingSettings, skyOcclusion);
                     jobs.Add(job);
                 }
 
-                if (bakeJobRequests.HasFlag(BakeJobRequests.ADDITIONAL_REQUEST))
+                if (bakeJobRequests.HasFlag(BakeJobRequests.AdditionalRequest))
                 {
-                    BakeJob job = new BakeJob();
+                    var job = new BakeJob();
                     job.Create(bakingSet, lightingSettings, false);
                     jobs.Add(job);
                 }
@@ -715,7 +715,9 @@ namespace UnityEngine.Rendering
                 var jobs = new BakeJob[touchupVolumesAndBounds.Count + 1];
 
                 for (int i = 0; i < touchupVolumesAndBounds.Count; i++)
+                {
                     jobs[i].Create(lightingSettings, skyOcclusion, touchupVolumesAndBounds[i]);
+                }
 
                 jobs[touchupVolumesAndBounds.Count].Create(null, lightingSettings, false);
 
@@ -775,7 +777,9 @@ namespace UnityEngine.Rendering
                     requestJob.startOffset = currentOffset;
                     requestJob.probeCount = additionalRequests.Count;
                     for (int i = 0; i < additionalRequests.Count; i++)
+                    {
                         sortedPositions[currentOffset++] = additionalRequests[i];
+                    }
 
                     Debug.Assert(currentOffset == sortedPositions.Length);
                 }
@@ -785,7 +789,9 @@ namespace UnityEngine.Rendering
             {
                 NativeArray<Vector3> offsets = virtualOffsetJob.offsets;
                 for (int i = 0; i < offsets.Length; i++)
+                {
                     sortedPositions[i] += offsets[i];
+                }
             }
 
             public bool Done()
@@ -803,13 +809,15 @@ namespace UnityEngine.Rendering
                     return;
 
                 foreach (var job in jobs)
+                {
                     job.Dispose();
+                }
 
                 positionRemap.Dispose();
                 originalPositions.Dispose();
                 sortedPositions.Dispose();
 
-                skyOcclusionJob?.encodedDirections.Dispose();
+                skyOcclusionJob?.m_EncodedDirections.Dispose();
                 virtualOffsetJob?.Dispose();
                 virtualOffsetJob = null;
                 skyOcclusionJob?.Dispose();
@@ -832,38 +840,37 @@ namespace UnityEngine.Rendering
             }
         }
 
-
-        static bool m_IsInit = false;
-        static BakingBatch m_BakingBatch;
-        static ProbeVolumeBakingSetWeakReference m_BakingSetReference = new();
+        static bool s_IsInit;
+        static BakingBatch s_BakingBatch;
+        static readonly ProbeVolumeBakingSetWeakReference s_BakingSetReference = new();
         static ProbeVolumeBakingSet m_BakingSet
         {
-            get => m_BakingSetReference.Get();
-            set => m_BakingSetReference.Set(value);
+            get => s_BakingSetReference.Get();
+            set => s_BakingSetReference.Set(value);
         }
         static TouchupVolumeWithBoundsList s_AdjustmentVolumes;
 
-        static Bounds globalBounds = new Bounds();
-        static Vector3Int minCellPosition = Vector3Int.one * int.MaxValue;
-        static Vector3Int maxCellPosition = Vector3Int.one * int.MinValue;
-        static Vector3Int cellCount = Vector3Int.zero;
+        static Bounds s_GlobalBounds;
+        static Vector3Int s_MinCellPosition = Vector3Int.one * int.MaxValue;
+        static Vector3Int s_MaxCellPosition = Vector3Int.one * int.MinValue;
+        static Vector3Int s_CellCount = Vector3Int.zero;
 
-        static int pvHashesAtBakeStart = -1;
+        static int s_PVHashesAtBakeStart = -1;
         static APVRTContext s_TracingContext;
         static BakeData s_BakeData;
 
-        static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
+        static readonly Dictionary<int, BakingCell> s_BakedCells = new Dictionary<int, BakingCell>();
 
-        internal static HashSet<string> partialBakeSceneList = null;
-        internal static bool isBakingSceneSubset => partialBakeSceneList != null;
-        internal static bool isFreezingPlacement = false;
+        internal static HashSet<string> s_PartialBakeSceneList;
+        internal static bool isBakingSceneSubset => s_PartialBakeSceneList != null;
+        internal static bool s_IsFreezingPlacement;
 
         static SphericalHarmonicsL2 s_BlackSH;
-        static bool s_BlackSHInitialized = false;
+        static readonly bool k_BlackSHInitialized = false;
 
         static SphericalHarmonicsL2 GetBlackSH()
         {
-            if (!s_BlackSHInitialized)
+            if (!k_BlackSHInitialized)
             {
                 // Init SH with values that will resolve to black
                 s_BlackSH = new SphericalHarmonicsL2();
@@ -871,7 +878,9 @@ namespace UnityEngine.Rendering
                 {
                     s_BlackSH[channel, 0] = 0.0f;
                     for (int coeff = 1; coeff < 9; ++coeff)
+                    {
                         s_BlackSH[channel, coeff] = 0.5f;
+                    }
                 }
             }
 
@@ -885,9 +894,9 @@ namespace UnityEngine.Rendering
 
         static internal void Init()
         {
-            if (!m_IsInit)
+            if (!s_IsInit)
             {
-                m_IsInit = true;
+                s_IsInit = true;
                 Lightmapping.lightingDataCleared += OnLightingDataCleared;
                 Lightmapping.bakeStarted += OnBakeStarted;
                 Lightmapping.bakeCancelled += OnBakeCancelled;
@@ -916,18 +925,22 @@ namespace UnityEngine.Rendering
             var activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(SceneManager.GetActiveScene());
 
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+            {
                 data.Clear();
+            }
 
             ProbeReferenceVolume.instance.Clear();
 
             if (activeSet != null)
                 activeSet.Clear();
 
-            #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
             var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
 #pragma warning restore CS0618 // Type or member is obsolete
             foreach (var probeVolume in probeVolumes)
+            {
                 probeVolume.OnLightingDataAssetCleared();
+            }
         }
 
         static bool SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
@@ -951,8 +964,8 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < perSceneData.Count; ++i)
             {
                 var data = perSceneData[i];
-                var sceneGUID = data.sceneGUID;
-                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGUID);
+                var sceneGuid = data.sceneGUID;
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGuid);
 
                 if (bakingSet == null)
                 {
@@ -982,7 +995,7 @@ namespace UnityEngine.Rendering
             var activeScene = SceneManager.GetActiveScene();
 
             var activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeScene);
-            if (activeSet == null && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(activeScene)))
+            if (activeSet == null && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGuid(activeScene)))
             {
                 Debug.LogError($"Active scene at {activeScene.path} is not part of any baking set.");
                 return false;
@@ -1000,7 +1013,7 @@ namespace UnityEngine.Rendering
                 ProbeVolumeBakingSet.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
                 var sceneBakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
 
-                if (sceneBakingSet != null && sceneBakingSet != activeSet && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(scene)))
+                if (sceneBakingSet != null && sceneBakingSet != activeSet && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGuid(scene)))
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking set.");
                     return false;
@@ -1021,10 +1034,10 @@ namespace UnityEngine.Rendering
 
         static void CachePVHashes(List<ProbeVolume> probeVolumes)
         {
-            pvHashesAtBakeStart = 0;
+            s_PVHashesAtBakeStart = 0;
             foreach (var pv in probeVolumes)
             {
-                pvHashesAtBakeStart += pvHashesAtBakeStart * 23 + pv.GetHashCode();
+                s_PVHashesAtBakeStart += s_PVHashesAtBakeStart * 23 + pv.GetHashCode();
             }
         }
 
@@ -1040,7 +1053,7 @@ namespace UnityEngine.Rendering
                     currHash += currHash * 23 + pv.GetHashCode();
                 }
 
-                if (currHash != pvHashesAtBakeStart)
+                if (currHash != s_PVHashesAtBakeStart)
                 {
                     Lightmapping.Cancel();
                     Lightmapping.BakeAsync();
@@ -1051,8 +1064,8 @@ namespace UnityEngine.Rendering
         static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters, Vector3 worldOffset)
         {
             // Sync with ProbeVolumeProfileInfo.PositionToCell
-            minCellPositionXYZ = Vector3Int.FloorToInt((globalBounds.min - worldOffset) / cellSizeInMeters);
-            maxCellPositionXYZ = Vector3Int.FloorToInt((globalBounds.max - worldOffset) / cellSizeInMeters);
+            minCellPositionXYZ = Vector3Int.FloorToInt((s_GlobalBounds.min - worldOffset) / cellSizeInMeters);
+            maxCellPositionXYZ = Vector3Int.FloorToInt((s_GlobalBounds.max - worldOffset) / cellSizeInMeters);
         }
 
         static TouchupVolumeWithBoundsList GetAdjustementVolumes()
@@ -1067,7 +1080,7 @@ namespace UnityEngine.Rendering
             {
                 if (touchup.isActiveAndEnabled)
                 {
-                    touchup.GetOBBandAABB(out var obb, out var aabb);
+                    touchup.GetOBBAndAABB(out var obb, out var aabb);
                     touchupVolumesAndBounds.Add((obb, aabb, touchup));
                     touchup.skyDirection.Normalize();
                 }
@@ -1091,7 +1104,7 @@ namespace UnityEngine.Rendering
             FixSeams,
             FinalizeCells,
 
-            Last = FinalizeCells + 1
+            Last = FinalizeCells + 1,
         }
 
         static void OnBakeStarted()
@@ -1103,10 +1116,10 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private static readonly string APVLightBakerFolder = "APVBake";
-        private static readonly string APVLightBakerOutputFolder = $"Temp/LightBakerOutput/{APVLightBakerFolder}";
-        private static readonly string APVLightBakerPostProcessingOutputFolder = $"Temp/PostProcessingOutput/{APVLightBakerFolder}";
-        private static void OnInputExtraction(InputExtraction.BakeInput bakeInput)
+        static readonly string k_APVLightBakerFolder = "APVBake";
+        static readonly string k_APVLightBakerOutputFolder = $"Temp/LightBakerOutput/{k_APVLightBakerFolder}";
+        static readonly string k_APVLightBakerPostProcessingOutputFolder = $"Temp/PostProcessingOutput/{k_APVLightBakerFolder}";
+        static void OnInputExtraction(InputExtraction.BakeInput bakeInput)
         {
             if (s_BakeData.sortedPositions.Length == 0)
                 return;
@@ -1125,7 +1138,7 @@ namespace UnityEngine.Rendering
 
             int[] newOcclusionIndices = bakeInput.GetOcclusionLightIndices();
             int prevOcclusionCount = newOcclusionIndices.Length;
-            int[] extraOcclusionIndices = InputExtraction.ComputeOcclusionLightIndicesFromBakeInput(bakeInput, extraPos, 4);
+            int[] extraOcclusionIndices = InputExtraction.ComputeOcclusionLightIndicesFromBakeInput(bakeInput, extraPos);
             Array.Resize(ref newOcclusionIndices, newOcclusionIndices.Length + extraOcclusionIndices.Length);
             Array.Copy(extraOcclusionIndices, 0, newOcclusionIndices, prevOcclusionCount, extraOcclusionIndices.Length);
 
@@ -1150,8 +1163,8 @@ namespace UnityEngine.Rendering
                     maxBounces = (uint)bakeJob.maxBounces,
                     positionOffset = (ulong)bakeJob.startOffset,
                     positionLength = (ulong)bakeJob.probeCount,
-                    bakeOutputFolderPath = APVLightBakerOutputFolder + probeOutputSubFolder,
-                    postProcessOutputFolderPath = APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
+                    bakeOutputFolderPath = k_APVLightBakerOutputFolder + probeOutputSubFolder,
+                    postProcessOutputFolderPath = k_APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
                     ignoreDirectEnvironment = ignoreEnvironmentLight,
                     ignoreIndirectEnvironment = ignoreEnvironmentLight,
                     pushoff = pushoff,
@@ -1165,10 +1178,10 @@ namespace UnityEngine.Rendering
             s_BakeData.bakeInput = bakeInput;
         }
 
-        private delegate bool GetProbesFunc(out NativeList<Vector3> b);
-        private delegate List<Vector3> GetAdditionalRequestsFunc();
+        delegate bool GetProbesFunc(out NativeList<Vector3> b);
+        delegate List<Vector3> GetAdditionalRequestsFunc();
 
-        private static bool PrepareBaking(BakeType bakeType, GetProbesFunc getProbes, GetAdditionalRequestsFunc getAdditionalRequests)
+        static bool PrepareBaking(BakeType bakeType, GetProbesFunc getProbes, GetAdditionalRequestsFunc getAdditionalRequests)
         {
             if (AdaptiveProbeVolumes.isRunning)
                 AdaptiveProbeVolumes.Cancel();
@@ -1203,7 +1216,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        private static bool PrepareAdditionalProbesBaking(BakeType bakeType, GetProbesFunc getProbes, GetAdditionalRequestsFunc getAdditionalRequests)
+        static bool PrepareAdditionalProbesBaking(BakeType bakeType, GetProbesFunc getProbes, GetAdditionalRequestsFunc getAdditionalRequests)
         {
             if (AdaptiveProbeVolumes.isRunning)
                 AdaptiveProbeVolumes.Cancel();
@@ -1227,12 +1240,12 @@ namespace UnityEngine.Rendering
 
             return true;
         }
-        private static bool DoProbePlacement(out NativeList<Vector3> positions)
+        static bool DoProbePlacement(out NativeList<Vector3> positions)
         {
             bool canceledByUser = false;
             // Note: this could be executed in the baking delegate to be non blocking
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
-                positions = RunPlacement(m_ProfileInfo, ProbeReferenceVolume.instance, ref canceledByUser);
+                positions = RunPlacement(s_ProfileInfo, ProbeReferenceVolume.instance, ref canceledByUser);
 
             if (positions.Length == 0 || canceledByUser)
             {
@@ -1261,8 +1274,8 @@ namespace UnityEngine.Rendering
             using var scope = new BakingSetupProfiling(BakingSetupProfiling.Stages.PrepareWorldSubdivision);
 
             // Verify to make sure we can still do it. Shortcircuting so that we don't run CanFreezePlacement unless is needed.
-            isFreezingPlacement = isFreezingPlacement && CanFreezePlacement();
-            if (!isFreezingPlacement)
+            s_IsFreezingPlacement = s_IsFreezingPlacement && CanFreezePlacement();
+            if (!s_IsFreezingPlacement)
             {
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.EnsurePerSceneDataInOpenScenes))
                 {
@@ -1287,9 +1300,9 @@ namespace UnityEngine.Rendering
             if (!SetBakingContext(sceneDataList))
                 return false;
 
-            m_TotalCellCounts = new CellCounts();
-            m_ProfileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
-            if (isFreezingPlacement)
+            s_TotalCellCounts = new CellCounts();
+            s_ProfileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
+            if (s_IsFreezingPlacement)
             {
                 ModifyProfileFromLoadedData(m_BakingSet);
             }
@@ -1300,8 +1313,8 @@ namespace UnityEngine.Rendering
             }
 
             // Get min/max
-            CellCountInDirections(out minCellPosition, out maxCellPosition, m_ProfileInfo.cellSizeInMeters, m_ProfileInfo.probeOffset);
-            cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
+            CellCountInDirections(out s_MinCellPosition, out s_MaxCellPosition, s_ProfileInfo.cellSizeInMeters, s_ProfileInfo.probeOffset);
+            s_CellCount = s_MaxCellPosition + Vector3Int.one - s_MinCellPosition;
 
             if (!ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet))
                 return false;
@@ -1332,8 +1345,8 @@ namespace UnityEngine.Rendering
             using var scope = new BakingSetupProfiling(BakingSetupProfiling.Stages.PrepareWorldSubdivision);
 
             // Verify to make sure we can still do it. Shortcircuting so that we don't run CanFreezePlacement unless is needed.
-            isFreezingPlacement = isFreezingPlacement && CanFreezePlacement();
-            if (!isFreezingPlacement)
+            s_IsFreezingPlacement = s_IsFreezingPlacement && CanFreezePlacement();
+            if (!s_IsFreezingPlacement)
             {
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.EnsurePerSceneDataInOpenScenes))
                 {
@@ -1349,10 +1362,10 @@ namespace UnityEngine.Rendering
         {
             Full,
             ApvOnly,
-            AdditionalApvOnly
+            AdditionalApvOnly,
         }
 
-        private static void BakeDelegate(ref float progress, out bool done, InputExtraction.BakeInput bakeInput)
+        static void BakeDelegate(ref float progress, out bool done, InputExtraction.BakeInput bakeInput)
         {
             done = false;
 
@@ -1438,10 +1451,10 @@ namespace UnityEngine.Rendering
                     s_BakeData.lightingJob.irradiance, s_BakeData.lightingJob.validity,
                     s_BakeData.layerMaskJob.renderingLayerMasks,
                     s_BakeData.virtualOffsetJob?.offsets ?? new NativeArray<Vector3>(),
-                    s_BakeData.skyOcclusionJob.occlusion, s_BakeData.skyOcclusionJob.encodedDirections,
+                    s_BakeData.skyOcclusionJob.occlusion, s_BakeData.skyOcclusionJob.m_EncodedDirections,
                     s_BakeData.lightingJob.occlusion);
 
-                if (s_BakeData.cellIndex >= m_BakingBatch.cells.Count)
+                if (s_BakeData.cellIndex >= s_BakingBatch.cells.Count)
                     s_BakeData.step++;
             }
 
@@ -1473,8 +1486,8 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 return false;
 
-            string sceneGUID = SceneManager.GetActiveScene().GetGUID();
-            ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGUID, out var sceneData);
+            string sceneGuid = SceneManager.GetActiveScene().GetGuid();
+            ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGuid, out var sceneData);
             if (sceneData == null || sceneData.bakingSet == null)
                 return false;
 
@@ -1533,8 +1546,8 @@ namespace UnityEngine.Rendering
         static void CleanBakeData()
         {
             s_BakeData.CleanUp();
-            m_BakingBatch?.Dispose();
-            m_BakingBatch = null;
+            s_BakingBatch?.Dispose();
+            s_BakingBatch = null;
             s_AdjustmentVolumes = null;
 
             // If lighting panel is not created, we have to dispose ourselves
@@ -1543,15 +1556,17 @@ namespace UnityEngine.Rendering
 
             Lightmapping.RemoveBakeDelegate(BakeDelegate);
 
-            partialBakeSceneList = null;
+            s_PartialBakeSceneList = null;
             ProbeReferenceVolume.instance.checksDuringBakeAction = null;
         }
 
         // Clean-up after the Lighting job has been initialized with InitLightingJob
-        private static void CleanLightingBakeData()
+        static void CleanLightingBakeData()
         {
-            foreach (BakeJob job in s_BakeData.jobs)
+            foreach (var job in s_BakeData.jobs)
+            {
                 job.Dispose();
+            }
             s_BakeData = default;
             s_AdjustmentVolumes = null;
         }
@@ -1566,9 +1581,9 @@ namespace UnityEngine.Rendering
 
             const int k_MaxCellsCached = 64;
 
-            int accesses = 0;
-            Dictionary<int, CacheEntry> cache = new();
-            UnityEngine.Pool.ObjectPool<CacheEntry> m_BrickMetaPool = new UnityEngine.Pool.ObjectPool<CacheEntry>(() => new CacheEntry(), x => x.map.Clear(), null, null, false);
+            int m_Accesses;
+            readonly Dictionary<int, CacheEntry> m_Cache = new();
+            readonly UnityEngine.Pool.ObjectPool<CacheEntry> m_BrickMetaPool = new UnityEngine.Pool.ObjectPool<CacheEntry>(() => new CacheEntry(), x => x.map.Clear(), null, null, false);
 
             CacheEntry BuildMap(in BakingCell cell)
             {
@@ -1578,9 +1593,9 @@ namespace UnityEngine.Rendering
                 // A voxel is the size of a brick at subdivision level 0
                 foreach (var brick in cell.bricks)
                 {
-                    int brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
+                    int brickSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Vector3Int brickMin = brick.position;
-                    Vector3Int brickMax = brick.position + Vector3Int.one * brick_size;
+                    Vector3Int brickMax = brick.position + Vector3Int.one * brickSize;
 
                     for (int x = brickMin.x; x < brickMax.x; ++x)
                     {
@@ -1588,7 +1603,7 @@ namespace UnityEngine.Rendering
                         {
                             for (int y = brickMin.y; y < brickMax.y; ++y)
                             {
-                                entry.map[m_BakingBatch.GetBrickPositionHash(new Vector3Int(x, y, z))] = brick;
+                                entry.map[s_BakingBatch.GetBrickPositionHash(new Vector3Int(x, y, z))] = brick;
                             }
                         }
                     }
@@ -1599,13 +1614,13 @@ namespace UnityEngine.Rendering
 
             public Dictionary<int, Brick> GetMap(in BakingCell cell)
             {
-                if (!cache.TryGetValue(cell.index, out var entry))
+                if (!m_Cache.TryGetValue(cell.index, out var entry))
                 {
-                    if (cache.Count >= k_MaxCellsCached)
+                    if (m_Cache.Count >= k_MaxCellsCached)
                     {
                         int worst = 0;
                         int oldest = int.MaxValue;
-                        foreach (var ce in cache)
+                        foreach (var ce in m_Cache)
                         {
                             if (ce.Value.access < oldest)
                             {
@@ -1613,15 +1628,15 @@ namespace UnityEngine.Rendering
                                 worst = ce.Key;
                             }
                         }
-                        m_BrickMetaPool.Release(cache[worst]);
-                        cache.Remove(worst);
+                        m_BrickMetaPool.Release(m_Cache[worst]);
+                        m_Cache.Remove(worst);
                     }
 
                     entry = BuildMap(cell);
-                    cache[cell.index] = entry;
+                    m_Cache[cell.index] = entry;
                 }
 
-                entry.access = ++accesses;
+                entry.access = ++m_Accesses;
                 return entry.map;
             }
         }
@@ -1644,38 +1659,40 @@ namespace UnityEngine.Rendering
             bool doSkyOcclusion = skyOcclusion.IsCreated && skyOcclusion.Length > 0;
 
             // Use an indirection structure to ensure mem usage stays reasonable
-            VoxelToBrickCache cache = new VoxelToBrickCache();
+            var cache = new VoxelToBrickCache();
 
             // Create a map from cell position to index for fast lookup across cells
             var cellPositionToIndex = new Dictionary<Vector3Int, int>();
-            for (int i = 0; i < m_BakingBatch.cells.Count; i++)
-                cellPositionToIndex[m_BakingBatch.cells[i].position] = i;
-
-            for (int c = 0; c < m_BakingBatch.cells.Count; c++)
+            for (int i = 0; i < s_BakingBatch.cells.Count; i++)
             {
-                var cell = m_BakingBatch.cells[c];
+                cellPositionToIndex[s_BakingBatch.cells[i].position] = i;
+            }
+
+            for (int c = 0; c < s_BakingBatch.cells.Count; c++)
+            {
+                var cell = s_BakingBatch.cells[c];
                 var voxelToBrick = cache.GetMap(cell);
 
-                float scale = m_ProfileInfo.minBrickSize / ProbeBrickPool.kBrickCellCount;
-                float minBrickSize = m_ProfileInfo.minBrickSize;
+                float scale = s_ProfileInfo.minBrickSize / ProbeBrickPool.k_BrickCellCount;
+                float minBrickSize = s_ProfileInfo.minBrickSize;
                 Brick largestBrick = default;
 
                 int numProbes = cell.probePositions.Length;
                 for (int probeIndex = 0; probeIndex < numProbes; ++probeIndex)
                 {
                     int i = positionRemap[cell.probeIndices[probeIndex]];
-                    int minSubdiv = ProbeBrickIndex.kMaxSubdivisionLevels;
+                    int minSubdiv = ProbeBrickIndex.k_MaxSubdivisionLevels;
                     int maxSubdiv = -1;
 
-                    Vector3 pos = positions[i] - m_ProfileInfo.probeOffset;
+                    Vector3 pos = positions[i] - s_ProfileInfo.probeOffset;
 
                     // 1.
                     // For each unique probe, find bricks from all 8 neighbouring voxels
                     for (int o = 0; o < 8; o++)
                     {
-                        Vector3 sampleOffset = m_ProfileInfo.minDistanceBetweenProbes * (Vector3)GetSampleOffset(o);
+                        Vector3 sampleOffset = s_ProfileInfo.minDistanceBetweenProbes * (Vector3)GetSampleOffset(o);
                         Vector3Int voxel = Vector3Int.FloorToInt((pos - sampleOffset) / minBrickSize);
-                        int hashCode = m_BakingBatch.GetBrickPositionHash(voxel);
+                        int hashCode = s_BakingBatch.GetBrickPositionHash(voxel);
                         if (!voxelToBrick.TryGetValue(hashCode, out var brick))
                         {
                             // If the brick was not found in the current cell, find it in the neighbouring cells
@@ -1691,16 +1708,16 @@ namespace UnityEngine.Rendering
 
                             // Find the position of the neighbouring cell that would contain the voxel
                             bool foundInOtherCell = false;
-                            var cellToLookupPos = GetCellPositionFromVoxel(voxel, m_ProfileInfo.cellSizeInBricks);
-                            if(cellPositionToIndex.TryGetValue(cellToLookupPos, out var cellIndex))
+                            var cellToLookupPos = GetCellPositionFromVoxel(voxel, s_ProfileInfo.cellSizeInBricks);
+                            if (cellPositionToIndex.TryGetValue(cellToLookupPos, out var cellIndex))
                             {
-                                var currentCell = m_BakingBatch.cells[cellIndex];
+                                var currentCell = s_BakingBatch.cells[cellIndex];
                                 var voxelToBrickNeighbouringCell = cache.GetMap(currentCell);
                                 if (voxelToBrickNeighbouringCell.TryGetValue(hashCode, out brick))
                                     foundInOtherCell = true;
                             }
 
-                            if(!foundInOtherCell)
+                            if (!foundInOtherCell)
                                 continue;
                         }
 
@@ -1727,8 +1744,8 @@ namespace UnityEngine.Rendering
                     var probe = Vector3Int.FloorToInt(uvw);
                     var fract = math.frac(uvw);
 
-                    int brick_size = ProbeReferenceVolume.CellSize(largestBrick.subdivisionLevel);
-                    Vector3Int brickOffset = largestBrick.position * ProbeBrickPool.kBrickCellCount;
+                    int brickSizeInBricks = ProbeReferenceVolume.CellSize(largestBrick.subdivisionLevel);
+                    Vector3Int brickOffset = largestBrick.position * ProbeBrickPool.k_BrickCellCount;
 
                     // We need to check if rendering layers masks were baked, since it happens in separate job
                     bool bakedRenderingLayerMasks = (renderingLayerMasks.IsCreated & renderingLayerMasks.Length > 0);
@@ -1746,10 +1763,10 @@ namespace UnityEngine.Rendering
 
                         // We need to make sure probe positions are computed in the same way as in ConvertBricksToPositions
                         // Otherwise floating point imprecision could give a different position hash
-                        Vector3Int probeOffset = brickOffset + (probe + offset) * brick_size;
-                        int probeHash = m_BakingBatch.GetProbePositionHash(m_ProfileInfo.probeOffset + (Vector3)probeOffset * scale);
+                        Vector3Int probeOffset = brickOffset + (probe + offset) * brickSizeInBricks;
+                        int probeHash = s_BakingBatch.GetProbePositionHash(s_ProfileInfo.probeOffset + (Vector3)probeOffset * scale);
 
-                        if (m_BakingBatch.positionToIndex.TryGetValue(probeHash, out var index))
+                        if (s_BakingBatch.positionToIndex.TryGetValue(probeHash, out var index))
                         {
                             bool valid = validity[positionRemap[index]] <= k_MinValidityForLeaking;
                             if (!valid) continue;
@@ -1813,18 +1830,20 @@ namespace UnityEngine.Rendering
 
             // Clear baked data
             foreach (var data in probeRefVolume.perSceneDataList)
+            {
                 data.QueueSceneRemoval();
+            }
             probeRefVolume.Clear();
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
-            probeRefVolume.SetSubdivisionDimensions(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision, m_ProfileInfo.probeOffset);
+            probeRefVolume.SetSubdivisionDimensions(s_ProfileInfo.minBrickSize, s_ProfileInfo.maxSubdivision, s_ProfileInfo.probeOffset);
 
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
-            probeRefVolume.globalBounds = globalBounds;
+            probeRefVolume.globalBounds = s_GlobalBounds;
 
             // Validate baking cells size before any state modifications
-            var bakingCellsArray = m_BakedCells.Values.ToArray();
+            var bakingCellsArray = s_BakedCells.Values.ToArray();
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
             var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
             var hasRenderingLayers = m_BakingSet.useRenderingLayers;
@@ -1835,9 +1854,9 @@ namespace UnityEngine.Rendering
             PrepareCellsForWriting(isBakingSceneSubset);
 
             m_BakingSet.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
-            m_BakingSet.minCellPosition = minCellPosition;
-            m_BakingSet.maxCellPosition = maxCellPosition;
-            m_BakingSet.globalBounds = globalBounds;
+            m_BakingSet.minCellPosition = s_MinCellPosition;
+            m_BakingSet.maxCellPosition = s_MaxCellPosition;
+            m_BakingSet.globalBounds = s_GlobalBounds;
             m_BakingSet.maxSHChunkCount = -1;
 
             m_BakingSet.scenarios.TryAdd(m_BakingSet.lightingScenario, new ProbeVolumeBakingSet.PerScenarioDataInfo());
@@ -1845,7 +1864,7 @@ namespace UnityEngine.Rendering
             // Attempt to convert baking cells to runtime cells
             bool succeededWritingBakingCells;
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData))
-                succeededWritingBakingCells = WriteBakingCells(m_BakingSet, m_BakedCells.Values.ToArray());
+                succeededWritingBakingCells = WriteBakingCells(m_BakingSet, s_BakedCells.Values.ToArray());
 
             if (!succeededWritingBakingCells)
                 return;
@@ -1855,7 +1874,7 @@ namespace UnityEngine.Rendering
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            probeRefVolume.clearAssetsOnVolumeClear = false;
+            probeRefVolume.m_ClearAssetsOnVolumeClear = false;
 
             if (m_BakingSet.hasDilation)
             {
@@ -1886,38 +1905,43 @@ namespace UnityEngine.Rendering
             else
             {
                 foreach (var data in probeRefVolume.perSceneDataList)
+                {
                     data.Initialize();
+                }
 
                 probeRefVolume.PerformPendingOperations();
             }
 
             // Mark stuff as up to date
-            m_BakingBatch?.Dispose();
-            m_BakingBatch = null;
+            s_BakingBatch?.Dispose();
+            s_BakingBatch = null;
             foreach (var probeVolume in GetProbeVolumeList())
+            {
                 probeVolume.OnBakeCompleted();
+            }
             foreach (var adjustment in s_AdjustmentVolumes)
+            {
                 adjustment.volume.cachedHashCode = adjustment.volume.GetHashCode();
+            }
 
             // We allocate data even if dilation is off, that should be changed
             FinalizeDilation();
         }
 
-
-        static int _asyncBakeTaskId = -1;
+        static int s_AsyncBakeTaskId = -1;
         internal static void AsyncBakeCallback()
         {
             float progress = 0.0f;
             BakeDelegate(ref progress, out bool done, s_BakeData.bakeInput);
-            Progress.Report(_asyncBakeTaskId, progress, s_BakeData.step.ToString());
+            Progress.Report(s_AsyncBakeTaskId, progress, s_BakeData.step.ToString());
 
             if (done)
             {
                 UpdateLightStatus();
-                Progress.Remove(_asyncBakeTaskId);
+                Progress.Remove(s_AsyncBakeTaskId);
 
                 EditorApplication.update -= AsyncBakeCallback;
-                _asyncBakeTaskId = -1;
+                s_AsyncBakeTaskId = -1;
             }
         }
 
@@ -1930,12 +1954,12 @@ namespace UnityEngine.Rendering
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking(BakeType.ApvOnly, DoProbePlacement, AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests))
                 return false;
 
-            _asyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous);
-            Progress.RegisterCancelCallback(_asyncBakeTaskId, () =>
+            s_AsyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous);
+            Progress.RegisterCancelCallback(s_AsyncBakeTaskId, () =>
             {
                 OnBakeCancelled();
                 EditorApplication.update -= AsyncBakeCallback;
-                _asyncBakeTaskId = -1;
+                s_AsyncBakeTaskId = -1;
                 return true;
             });
 
@@ -1947,13 +1971,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns true when the async baking of adaptive probe volumes only is running, false otherwise (Read Only).
         /// </summary>
-        public static bool isRunning => _asyncBakeTaskId != -1;
+        public static bool isRunning => s_AsyncBakeTaskId != -1;
 
         /// <summary>
         /// Cancels the currently running asynchronous bake job.
         /// </summary>
         /// <returns>Returns true if baking was successfully cancelled.</returns>
-        public static bool Cancel() => Progress.Cancel(_asyncBakeTaskId);
+        public static bool Cancel() => Progress.Cancel(s_AsyncBakeTaskId);
 
         /// <summary>
         /// Request additional bake request manager to recompute baked data for an array of requests
@@ -1975,14 +1999,16 @@ namespace UnityEngine.Rendering
 
             Debug.Assert(numValidProbes == sh.Length);
             for (int probeIndex = 0; probeIndex < numValidProbes; ++probeIndex)
+            {
                 AdditionalGIBakeRequestsManager.SetSHCoefficients(validProbeInstanceIds[probeIndex], sh[probeIndex], validity[probeIndex]);
+            }
 
             return;
 
             List<Vector3> GetNormalizationRequests()
             {
                 List<Vector3> positions = new();
-                foreach (EntityId probeInstanceId in probeInstanceIDs)
+                foreach (var probeInstanceId in probeInstanceIDs)
                 {
                     if (AdditionalGIBakeRequestsManager.GetPositionForRequest(probeInstanceId, out Vector3 position))
                     {
@@ -1990,7 +2016,7 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                m_BakingBatch = new BakingBatch(Vector3Int.zero, ProbeReferenceVolume.instance); // We have zero cells
+                s_BakingBatch = new BakingBatch(Vector3Int.zero, ProbeReferenceVolume.instance); // We have zero cells
 
                 return positions;
             }
@@ -2004,7 +2030,7 @@ namespace UnityEngine.Rendering
             static void GetValidProbeInstanceIds(EntityId[] entityIds, out List<EntityId> validProbeInstanceIds)
             {
                 validProbeInstanceIds = new List<EntityId>();
-                foreach (EntityId probeInstanceId in entityIds)
+                foreach (var probeInstanceId in entityIds)
                 {
                     if (AdditionalGIBakeRequestsManager.GetPositionForRequest(probeInstanceId, out Vector3 _))
                     {
@@ -2036,7 +2062,9 @@ namespace UnityEngine.Rendering
         {
             var entityIds = new EntityId[probeInstanceIDs.Length];
             for (int i = 0; i < probeInstanceIDs.Length; i++)
+            {
                 entityIds[i] = probeInstanceIDs[i];
+            }
             BakeAdditionalRequests(entityIds);
         }
 
@@ -2050,47 +2078,47 @@ namespace UnityEngine.Rendering
             BakeAdditionalRequest((EntityId)probeInstanceID);
         }
 
-        static RenderingLayerBaker renderingLayerOverride = null;
-        static VirtualOffsetBaker virtualOffsetOverride = null;
-        static SkyOcclusionBaker skyOcclusionOverride = null;
-        static LightingBaker lightingOverride = null;
+        static RenderingLayerBaker s_RenderingLayerOverride;
+        static VirtualOffsetBaker s_VirtualOffsetOverride;
+        static SkyOcclusionBaker s_SkyOcclusionOverride;
+        static LightingBaker s_LightingOverride;
 
         /// <summary>Used to override the virtual offset baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>
         public static void SetVirtualOffsetBakerOverride(VirtualOffsetBaker baker)
         {
-            virtualOffsetOverride = baker;
+            s_VirtualOffsetOverride = baker;
         }
         /// <summary>Used to override the lighting baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>
         public static void SetLightingBakerOverride(LightingBaker baker)
         {
-            lightingOverride = baker;
+            s_LightingOverride = baker;
         }
         /// <summary>Used to override the sky occlusion baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>
         public static void SetSkyOcclusionBakerOverride(SkyOcclusionBaker baker)
         {
-            skyOcclusionOverride = baker;
+            s_SkyOcclusionOverride = baker;
         }
 
         /// <summary>Used to override the virtual offset baking system.</summary>
         /// <returns>The baker override or null if none is set.</returns>
         public static VirtualOffsetBaker GetVirtualOffsetBakerOverride()
         {
-            return virtualOffsetOverride;
+            return s_VirtualOffsetOverride;
         }
         /// <summary>Used to override the lighting baking system.</summary>
         /// <returns>The baker override or null if none is set.</returns>
         public static LightingBaker GetLightingBakerOverride()
         {
-            return lightingOverride;
+            return s_LightingOverride;
         }
         /// <summary>Get the current sky occlusion baker override</summary>
         /// <returns>The baker override or null if none is set.</returns>
         public static SkyOcclusionBaker GetSkyOcclusionBakerOverride()
         {
-            return skyOcclusionOverride;
+            return s_SkyOcclusionOverride;
         }
     }
 }

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     [GenerateHLSL]
     class APVDefinitions
     {
-        public const int probeIndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
+        public const int probeIndexChunkSize = ProbeBrickIndex.k_IndexChunkSize;
         public const float probeValidityThreshold = 0.05f;
 
         public const int probeMaxRegionCount = 4;
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Global register
         /// </summary>
-        GlobalRegister = 6
+        GlobalRegister = 6,
     }
 
     /// <summary>
