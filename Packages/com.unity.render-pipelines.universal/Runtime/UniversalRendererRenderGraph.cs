@@ -665,7 +665,8 @@ namespace UnityEngine.Rendering.Universal
         void InitGlobalShaderVars()
         {
             UniversalGlobalShaderData shaderData = frameData.Create<UniversalGlobalShaderData>();
-            shaderData.useConstantBuffers = false;
+            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+            shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
 
             var cameraData = frameData.Get<UniversalCameraData>();
 
