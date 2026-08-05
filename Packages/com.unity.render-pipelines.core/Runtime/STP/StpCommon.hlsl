@@ -42,19 +42,8 @@
     #define STP_TAA_Q 0
 #endif
 
-#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
-    #define STP_BUG_SAT_INF 1
-#endif
-
-// Enable workarounds that help us avoid issues on Metal
-#if defined(SHADER_API_METAL)
-    // Relying on infinity behavior causes issues in the on-screen inline pass calculations
-    // We expect this option to be required on Metal because the shading language spec states that the fast-math
-    // option is on by default which disables support for proper INF handling.
-    #define STP_BUG_SAT_INF 1
-#endif
-
-#if defined(SHADER_API_PSSL)
+// No guaranteed INF/NaN arithmetic on these platforms (fast-math by default)
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || defined(SHADER_API_PSSL) || defined(SHADER_API_WEBGPU)
     #define STP_BUG_SAT_INF 1
 #endif
 
