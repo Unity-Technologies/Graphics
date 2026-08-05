@@ -295,12 +295,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             float invHalfTanFOV = cameraData.camera.projectionMatrix.m11;
-            float downsampleMultiplier = 1.0f / (settings.Downsample ? 2 : 1);
-            Vector2 runningRes = new Vector2(cameraColorDesc.width, cameraColorDesc.height) * downsampleMultiplier;
+            int downsampleDivider = settings.Downsample ? 2 : 1;
+            Vector2 runningRes = new Vector2(cameraColorDesc.width / downsampleDivider, cameraColorDesc.height / downsampleDivider);
             float aspectRatio = runningRes.y / runningRes.x;
             float fovCorrection = runningRes.y * invHalfTanFOV * 0.5f;
 
-            ssaoParams2 = new Vector4(settings.GTAOMinimumRadiusInPixels * downsampleMultiplier, 0.0f, fovCorrection, 0.0f);
+            ssaoParams2 = new Vector4(settings.GTAOMinimumRadiusInPixels / (float)downsampleDivider, fovCorrection, runningRes.x, runningRes.y);
             depthToViewParams = new Vector4(
                 2.0f / (invHalfTanFOV * aspectRatio * runningRes.x),
                 2.0f / (invHalfTanFOV * runningRes.y),

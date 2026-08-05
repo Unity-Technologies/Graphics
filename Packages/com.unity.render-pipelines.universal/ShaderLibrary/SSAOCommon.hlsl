@@ -80,6 +80,7 @@ struct GTAOConfig
     float4 depthToViewParams;
     half gtaoMinimumRadiusInPixels;
     half gtaoFOVCorrection;
+    half2 screenSizeDownsampled;
     half2 blueNoiseScale;
     half2 blueNoiseOffset;
     half temporalRotation;
@@ -95,7 +96,8 @@ GTAOConfig CreateGTAOConfig(half4 ssaoParams, half4 ssaoParams2, float4 depthToV
     config.falloff = ssaoParams.w;
     config.depthToViewParams = depthToViewParams;
     config.gtaoMinimumRadiusInPixels = ssaoParams2.x;
-    config.gtaoFOVCorrection = ssaoParams2.z;
+    config.gtaoFOVCorrection = ssaoParams2.y;
+    config.screenSizeDownsampled = ssaoParams2.zw;
     config.blueNoiseScale = blueNoiseScale;
     config.blueNoiseOffset = blueNoiseOffset;
     config.temporalRotation = temporalRotation;
@@ -320,7 +322,7 @@ float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 
     float sinN = sin(N);
     float2 maxHorizons = float2(sinN, -sinN);
 
-    const half2 screenSize              = SCREEN_PARAMS.xy * config.downsample;
+    const half2 screenSize              = config.screenSizeDownsampled;
     const float pixelTooCloseThreshold  = 1.3;
     const float minStepFraction         = pixelTooCloseThreshold / fovCorrectedRadiusSS;
     const float rcpStepCount            = rcp(GTAO_STEP_COUNT);

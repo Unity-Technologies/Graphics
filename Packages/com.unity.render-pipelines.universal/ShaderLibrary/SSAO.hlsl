@@ -411,7 +411,7 @@ half4 FragGTAO(Varyings input)
     if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, config.falloff))
         return PackAOAndNormal(HALF_ZERO, centerNormal);
 
-    float2 positionSS = GetScreenSpacePosition(uv, config.downsample);
+    float2 positionSS = input.positionCS.xy;
     float3 positionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
     half3 V = GetViewVectorVS(positionVS);
 
