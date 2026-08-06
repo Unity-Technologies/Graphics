@@ -162,6 +162,8 @@ namespace UnityEditor.VFX
             if (resource.isSubgraph)
                 throw new InvalidOperationException("Unexpected invoke of OnCompileResource: " + resource.name);
 
+            context.DependsOnCustomDependency(VFXGraph.k_RenderPipelineDependency);
+
             if (resource != null)
             {
                 VFXGraph graph = resource.GetGraph();
@@ -520,6 +522,8 @@ namespace UnityEditor.VFX
         {
             m_ExpressionGraphDirty = true;
         }
+
+        internal const string k_RenderPipelineDependency = "srp/default-pipeline";
 
         public VisualEffectResource visualEffectResource => m_Owner;
 
@@ -1553,6 +1557,9 @@ namespace UnityEditor.VFX
         static VisualEffectAssetDesc GenerateVisualEffectAssetDesc(VFXGraphCompiledData.VFXCompileOutput compilationOutput, bool instancingEnabled, bool compileInitialVariant, VFXCompilationMode compilationMode, AssetImportContext ctx, List<UnityObject> previewAsset)
         {
             using var globalAutoScope = k_GenerateVisualEffectAssetDescMaker.Auto();
+
+            ctx?.DependsOnCustomDependency(VFXGraph.k_RenderPipelineDependency);
+
             if (compilationOutput.success)
             {
                 var overridenSystemDesc = new List<VFXEditorSystemDesc>();
