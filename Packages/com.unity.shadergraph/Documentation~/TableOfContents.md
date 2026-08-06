@@ -154,6 +154,7 @@
         * Scene
             * [Camera](Camera-Node.md)
             * [Eye Index](Eye-Index-Node.md)
+            * [Fetch Scene Depth](Fetch-Scene-Depth-Node.md)
             * [Fog](Fog-Node.md)
             * [Object](Object-Node.md)
             * [Scene Color](Scene-Color-Node.md)

@@ -82,6 +82,7 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | **Topic**                                    | **Description**                                                              |
 |----------------------------------------------|------------------------------------------------------------------------------|
 | [Camera](Camera-Node.md)                     | Provides access to various parameters of the current Camera.                 |
+| [Fetch Scene Depth](Fetch-Scene-Depth-Node.md) | Provides access to the current pixel's depth value using a depth input attachment. |
 | [Fog](Fog-Node.md)                           | Provides access to the Scene's Fog parameters.                               |
 | [Object](Object-Node.md)                     | Provides access to various parameters of the Object.                         |
 | [Scene Color](Scene-Color-Node.md)           | Provides access to the current Camera's color buffer.                        |
