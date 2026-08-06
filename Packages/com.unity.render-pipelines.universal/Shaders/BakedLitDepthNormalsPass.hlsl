@@ -5,6 +5,7 @@
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 struct Attributes
 {
@@ -73,24 +74,16 @@ void DepthNormalsFragment(
         LODFadeCrossFade(input.positionCS);
     #endif
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(input.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
+    #if defined(_NORMALMAP)
+        half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+        half sgn = input.tangentWS.w;      // should be either +1 or -1
+        half3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
     #else
-        #if defined(_NORMALMAP)
-            half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-            half sgn = input.tangentWS.w;      // should be either +1 or -1
-            half3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
-        #else
-            half3 normalWS = input.normalWS;
-        #endif
-
-        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
+        half3 normalWS = input.normalWS;
     #endif
+
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
         outRenderingLayers = EncodeMeshRenderingLayer();

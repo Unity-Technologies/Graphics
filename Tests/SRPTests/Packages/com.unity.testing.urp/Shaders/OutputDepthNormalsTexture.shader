@@ -40,7 +40,7 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
                     && normalizedScreenSpaceUV.x < (_OutputAdjustParams.x + (1.0 / _OutputAdjustParams.z))
                     && normalizedScreenSpaceUV.y < (_OutputAdjustParams.y + (1.0 / _OutputAdjustParams.w)))
                 {
-                    float3 normals = SampleSceneNormals(normalizedScreenSpaceUV);
+                    float3 normals = SampleSceneNormalsRaw(normalizedScreenSpaceUV);
                     return half4(normals,1);
                 }
                 else

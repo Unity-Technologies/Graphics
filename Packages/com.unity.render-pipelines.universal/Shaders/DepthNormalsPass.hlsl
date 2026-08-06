@@ -6,6 +6,7 @@
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 struct Attributes
 {
@@ -65,16 +66,7 @@ void DepthNormalsFragment(
         LODFadeCrossFade(input.positionCS);
     #endif
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-    float3 normalWS = normalize(input.normalWS);
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms.
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-    float3 normalWS = NormalizeNormalPerPixel(input.normalWS);
-    outNormalWS = half4(normalWS, 0.0);
-    #endif
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normalWS)), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
     outRenderingLayers = EncodeMeshRenderingLayer();

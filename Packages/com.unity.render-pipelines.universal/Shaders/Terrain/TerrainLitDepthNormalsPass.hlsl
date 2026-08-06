@@ -2,6 +2,7 @@
 #define UNIVERSAL_FORWARD_LIT_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 // DepthNormal pass
 struct AttributesDepthNormal
@@ -97,15 +98,7 @@ void DepthNormalOnlyFragment(
         half3 normalWS = IN.normal;
     #endif
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-    normalWS = normalize(normalWS);
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-    outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
-    #endif
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), 0.0);
 
     #if defined(_WRITE_SMOOTHNESS)
         half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);

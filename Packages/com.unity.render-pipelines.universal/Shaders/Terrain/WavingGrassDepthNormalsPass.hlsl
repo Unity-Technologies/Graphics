@@ -1,6 +1,8 @@
 #ifndef UNIVERSAL_WAVING_GRASS_DEPTH_NORMAL_PASSE_INCLUDED
 #define UNIVERSAL_WAVING_GRASS_DEPTH_NORMAL_PASSE_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+
 struct GrassVertexDepthNormalInput
 {
     float4 vertex       : POSITION;
@@ -68,15 +70,8 @@ GrassVertexDepthNormalOutput DepthNormalOnlyBillboardVertex(GrassVertexDepthNorm
 half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = NormalizeNormalPerPixel(input.normal);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        return half4(packedNormalWS, 0.0);
-    #else
-        return half4(NormalizeNormalPerPixel(input.normal), 0.0);
-    #endif
+
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normal)), 0.0);
 }
 
 #endif
