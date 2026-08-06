@@ -21,5 +21,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         event Action onRegisteredGraphsChanged;
         event Action<string, EntityId> onDebugDataUpdated;
+        event Action<bool> onPausedStateChanged;
     }
 }

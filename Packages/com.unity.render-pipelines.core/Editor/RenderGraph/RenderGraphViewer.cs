@@ -103,6 +103,9 @@ namespace UnityEditor.Rendering
         const string k_PassListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}PassInspector@2x.png";
         const string k_EditorName ="Editor";
 
+        static readonly string k_AutoUpdateText = L10n.Tr("Auto Update");
+        static readonly string k_PauseText = L10n.Tr("Pause");
+
         // keep in sync with .uss
         const int kPassWidthPx = 26;
         const int kResourceRowHeightPx = 30;
@@ -121,7 +124,20 @@ namespace UnityEditor.Rendering
 
         PlayerConnection m_PlayerConnection;
 
-        internal bool m_Paused = false;
+        // Store the paused state so it can be restored when reconnecting sessions (e.g., during play mode changes)
+        [SerializeField]
+        bool m_StoredPausedState;
+
+        internal bool isPaused
+        {
+            get => RenderGraphDebugSession.currentDebugSession?.isPaused ?? m_StoredPausedState;
+            set
+            {
+                m_StoredPausedState = value;
+                if (RenderGraphDebugSession.currentDebugSession != null)
+                    RenderGraphDebugSession.currentDebugSession.isPaused = value;
+            }
+        }
 
         static EntityId s_EditorWindowEntityId;
 
@@ -881,17 +897,30 @@ namespace UnityEditor.Rendering
 
         internal void OnAutoPlayStatusChanged(ChangeEvent<bool> evt)
         {
-            var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
-            autoPlayToggle.text = evt.newValue ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
-            m_Paused = evt.newValue;
+            if (RenderGraphDebugSession.currentDebugSession == null)
+                ReconnectDebugSession();
+
+            // Setting isPaused will trigger OnPausedStateChanged via the session event
+            isPaused = evt.newValue;
+        }
+
+        void OnPausedStateChanged(bool paused)
+        {
+            // Update the toggle UI to reflect the new pause state
+            var autoPlayToggle = rootVisualElement?.Q<ToolbarToggle>(Names.kAutoPauseToggle);
+            if (autoPlayToggle != null)
+            {
+                autoPlayToggle.SetValueWithoutNotify(paused);
+                autoPlayToggle.text = paused ? k_AutoUpdateText : k_PauseText;
+            }
 
             // A play mode transition can reset the session while paused (reconnect was deferred); restore it on unpause.
-            if (!m_Paused && RenderGraphDebugSession.currentDebugSession == null)
+            if (!paused && RenderGraphDebugSession.currentDebugSession == null)
                 ReconnectDebugSession();
 
             // When enabling Auto Update, if the current debug data is from a player that is no longer connected,
             // switch back to Editor target.
-            if (!m_Paused &&
+            if (!paused &&
                 RenderGraphDebugSession.currentDebugSession is RenderGraphEditorRemoteDebugSession &&
                 m_PlayerConnection.connectionState.connectedToTarget != ConnectionTarget.Player)
             {
@@ -901,7 +930,7 @@ namespace UnityEditor.Rendering
             UpdateStatusLabel();
 
             // Force update when unpausing
-            if (!m_Paused)
+            if (!paused)
                 UpdateCurrentDebugData();
         }
 
@@ -1046,8 +1075,8 @@ namespace UnityEditor.Rendering
             var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
             autoPlayToggle.UnregisterCallback<ChangeEvent<bool>>(OnAutoPlayStatusChanged);
             autoPlayToggle.RegisterCallback<ChangeEvent<bool>>(OnAutoPlayStatusChanged);
-            autoPlayToggle.value = m_Paused;
-            autoPlayToggle.text = m_Paused ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
+            autoPlayToggle.value = isPaused;
+            autoPlayToggle.text = isPaused ? k_AutoUpdateText : k_PauseText;
         }
 
         void UpdateSelectedGraphAndExecution()
@@ -2030,9 +2059,9 @@ namespace UnityEditor.Rendering
             if (statusLabel == null || footerContainer == null)
                 return;
 
-            footerContainer.style.display = m_Paused ? DisplayStyle.Flex : DisplayStyle.None;
+            footerContainer.style.display = isPaused ? DisplayStyle.Flex : DisplayStyle.None;
 
-            if (!m_Paused)
+            if (!isPaused)
                 return;
 
             if (!HasValidDebugData)
@@ -2058,7 +2087,7 @@ namespace UnityEditor.Rendering
 
         void UpdateCurrentDebugData(bool force = false)
         {
-            if (m_Paused && !force)
+            if (isPaused && !force)
                 return; // Don't update data when paused except for if we force the update
 
             if (selectedExecutionItem != null)
@@ -2158,7 +2187,7 @@ namespace UnityEditor.Rendering
             if (state != PlayModeStateChange.EnteredPlayMode && state != PlayModeStateChange.EnteredEditMode)
                 return;
             // While paused the viewer shows a frozen capture; defer reconnecting to unpause so it is not cleared.
-            if (m_Paused)
+            if (isPaused)
                 return;
             if (RenderGraphDebugSession.currentDebugSession != null)
                 return;
@@ -2168,8 +2197,7 @@ namespace UnityEditor.Rendering
 
         void ReconnectDebugSession()
         {
-            bool playerConnected = m_PlayerConnection != null &&
-                m_PlayerConnection.connectionState.connectedToTarget == ConnectionTarget.Player;
+            bool playerConnected = m_PlayerConnection != null && m_PlayerConnection.connectionState.connectedToTarget == ConnectionTarget.Player;
             if (playerConnected)
             {
                 ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
@@ -2189,7 +2217,7 @@ namespace UnityEditor.Rendering
 
         void OnPlayerDisconnected(int playerID)
         {
-            if (!m_Paused)
+            if (!isPaused)
             {
                 var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
                 if (autoPlayToggle != null)
@@ -2198,7 +2226,7 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            if (!m_Paused)
+            if (!isPaused)
             {
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
             }
@@ -2213,7 +2241,7 @@ namespace UnityEditor.Rendering
         {
             // If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
             // connection changes
-            if (m_Paused)
+            if (isPaused)
                 OnRegisteredGraphsChangedInternal(true);
 
             DisconnectDebugSession();
@@ -2221,6 +2249,10 @@ namespace UnityEditor.Rendering
             RenderGraphDebugSession.BeginSession<TSession>();
             RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
             RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
+
+            // Restore the paused state to the new session
+            RenderGraphDebugSession.currentDebugSession.isPaused = m_StoredPausedState;
 
             OnRegisteredGraphsChanged();
         }
@@ -2230,10 +2262,14 @@ namespace UnityEditor.Rendering
             if (RenderGraphDebugSession.currentDebugSession == null)
                 return;
 
+            // Store the paused state before disconnecting so it can be restored later
+            m_StoredPausedState = RenderGraphDebugSession.currentDebugSession.isPaused;
+
             RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
             RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
+            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged -= OnPausedStateChanged;
             RenderGraphDebugSession.EndSession();
-            
+
             UpdateStatusLabel();
             ClearGraphViewerUI();
         }

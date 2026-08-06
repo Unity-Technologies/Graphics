@@ -58,10 +58,20 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public string connectionName { get; set; }
 
         private bool m_IsPaused;
-        public bool isPaused
+        public virtual bool isPaused
         {
             get => m_IsPaused;
-            set => m_IsPaused = value;
+            set => ChangePausedState(value);
+        }
+
+        protected void ChangePausedState(bool paused)
+        {
+            if (m_IsPaused == paused)
+                return;
+
+            m_IsPaused = paused;
+            onPausedStateChanged?.Invoke(paused);
+
         }
 
         public List<string> GetRegisteredGraphs()
@@ -81,10 +91,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetDebugData(string renderGraph, EntityId executionId, DebugData data)
         {
-            // Set capture metadata
-            data.captureSourceString = connectionName;
-            data.captureTimestamp = $"{DateTime.Now:HH:mm:ss}";
+            // Note: data can be null when there's a version mismatch - in that case we still want to register
+            // the execution with null data so the UI can display an incompatible version message
+            if (data != null)
+            {
+                // Set capture metadata
+                data.captureSourceString = connectionName;
+                data.captureTimestamp = $"{DateTime.Now:HH:mm:ss}";
+            }
 
+            
             container.SetDebugData(renderGraph, executionId, data);
             onDebugDataUpdated?.Invoke(renderGraph, executionId);
         }
@@ -98,6 +114,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // Events
         public event Action onRegisteredGraphsChanged;
         public event Action<string, EntityId> onDebugDataUpdated;
+        public event Action<bool> onPausedStateChanged;
 
         /// <summary>
         /// Helper method for derived classes to register all locally known graphs and executions.

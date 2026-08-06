@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void DoesNotReconnect_WhilePaused()
         {
-            m_Viewer.m_Paused = true;
+            m_Viewer.isPaused = true;
             SimulateFastEnterPlayModeReset();
             Assert.IsNull(RenderGraphDebugSession.currentDebugSession);
 
@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void ReconnectsOnUnpause_WhenSessionResetWhilePaused()
         {
-            m_Viewer.m_Paused = true;
+            m_Viewer.isPaused = true;
             SimulateFastEnterPlayModeReset();
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
             Assert.IsNull(RenderGraphDebugSession.currentDebugSession, "precondition: reconnect deferred while paused");

@@ -67,10 +67,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        void OnMessageFromEditor(DebugMessageHandler.MessageType messageType, DebugMessageHandler.IPayload _)
+        void OnMessageFromEditor(DebugMessageHandler.MessageType messageType, DebugMessageHandler.IPayload payload)
         {
             if (messageType == DebugMessageHandler.MessageType.Activate)
                 ActivateSession();
+            else if (messageType == DebugMessageHandler.MessageType.Pause)
+            {
+                if (payload is DebugMessageHandler.PausePayload pausePayload)
+                    isPaused = pausePayload.isPaused;
+            }
         }
 
         void SendDebugDataToEditor(string graph, EntityId executionId)

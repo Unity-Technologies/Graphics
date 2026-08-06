@@ -1785,6 +1785,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (debugData.valid && debugData.graphHash == graphHash && !cameraWasRenamed)
                 return; // No need to update
 
+            // Don't update debug data when paused to keep the captured state frozen.
+            // However, if paused but no valid data exists yet, capture once to initialize.
+            if ((RenderGraphDebugSession.currentDebugSession?.isPaused ?? false) && debugData.valid)
+                return;
+
             debugData.Clear();
             debugData.executionName = currentExecutionName;
             debugData.graphHash = graphHash;
