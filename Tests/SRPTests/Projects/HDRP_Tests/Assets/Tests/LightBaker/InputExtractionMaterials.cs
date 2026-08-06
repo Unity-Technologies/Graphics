@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Platforms;
 using static UnityEditor.LightBaking.InputExtraction;
 
 namespace UnityEditor.LightBaking.Tests
@@ -20,10 +21,10 @@ namespace UnityEditor.LightBaking.Tests
         public string ObjectName { get; set; } // Object for which to test the metaPass data
         public MetaPassType MetaPassType { get; set; } = MetaPassType.Albedo;
         public int TextureCount { get; set; }
-        public float RMSEThreshold { get; set; } = 0.0001f;
 
-        // Vulkan diverges at sub-texel sampling boundaries (UUM-134767); 0 = no Vulkan-specific floor.
-        public float VulkanRMSEThreshold { get; set; } = 0.0f;
+        // Block-mean compare noise floor: cross-backend noise peaks at ~0.016 RMSE, the smallest measured real regression at ~0.031.
+        public const float DefaultRmseThreshold = 0.025f;
+        public float RMSEThreshold { get; set; } = DefaultRmseThreshold;
 
         public override string ToString()
         {
@@ -49,6 +50,58 @@ namespace UnityEditor.LightBaking.Tests
             return texture;
         }
 
+        const int k_DownsampleFactor = 4;
+
+        // Catches uniform drift the RMSE floor allows (10% darkening of a dark albedo ~0.021); cross-backend mean noise < 0.004.
+        const float k_MeanColorTolerance = 0.01f;
+
+        // Box-average downsample; partial edge blocks average only their covered texels.
+        static Texture2D BoxDownsample(Texture2D src, int factor)
+        {
+            int w = (src.width + factor - 1) / factor;
+            int h = (src.height + factor - 1) / factor;
+            Color[] srcPixels = src.GetPixels();
+            var dstPixels = new Color[w * h];
+            for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x)
+            {
+                int blockW = Math.Min(factor, src.width - x * factor);
+                int blockH = Math.Min(factor, src.height - y * factor);
+                Color sum = Color.clear;
+                for (int dy = 0; dy < blockH; ++dy)
+                for (int dx = 0; dx < blockW; ++dx)
+                    sum += srcPixels[(y * factor + dy) * src.width + (x * factor + dx)];
+                dstPixels[y * w + x] = sum / (blockW * blockH);
+            }
+            Texture2D dst = new(w, h, TextureFormat.RGBAFloat, false, true);
+            dst.SetPixels(dstPixels);
+            dst.Apply();
+            return dst;
+        }
+
+        static Color AverageColor(Color[] pixels)
+        {
+            Color sum = Color.clear;
+            foreach (Color pixel in pixels)
+                sum += pixel;
+            return sum / pixels.Length;
+        }
+
+        // Writes to the same destination as the framework's failure exporter (LegacyComparisonImageExporter).
+        static void SaveFullResActual(Texture2D actual)
+        {
+            GraphicsTestBuildSettings buildSettings = GraphicsTestBuildSettings.LoadOrDefault();
+            PlatformSchema schema = buildSettings.BuildPlatformSchemata is { Length: > 0 }
+                ? buildSettings.BuildPlatformSchemata[0]
+                : null; // GetCurrent falls back to the all-platform schema
+            ImageHandler.instance.SaveImage(new ImageMessage
+            {
+                PathName = string.Join('/', buildSettings.ActualImagesPath, GraphicsTestPlatform.GetCurrent(schema).ResultsPath),
+                ImageName = TestContext.CurrentContext.Test.Name.ToValidPath(),
+                ActualImage = actual.EncodeToEXR(),
+            }, "exr");
+        }
+
         private static readonly MetaPassSceneTest[] metaPassTests =
         {
             new()
@@ -56,112 +109,98 @@ namespace UnityEditor.LightBaking.Tests
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "default",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "default",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissive",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedo",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTex",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTex",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTriplanarWorldSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexPlanarWorldSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTriplanarObjectSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexPlanarObjectSpace",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTexTiling23",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexTiling23",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "emissiveTexOffset_p5p3",
                 MetaPassType = MetaPassType.Emission,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
                 SceneName = "Metapass_BasicMaterials",
                 ObjectName = "albedoTexOffset_p5p3",
                 MetaPassType = MetaPassType.Albedo,
-                TextureCount = 13,
-                VulkanRMSEThreshold = 0.035f
+                TextureCount = 13
             },
             new()
             {
@@ -251,31 +290,57 @@ namespace UnityEditor.LightBaking.Tests
             }
             Texture2D actualTexture2D = ConvertVector4ImageToRGBAHalfTexture(actualTextureData.resolution.width, actualTextureData.resolution.height, actualTextureData.data);
 
-            // Tests need higher threshold on AMD due to platform-specific rasterization differences.
-            bool isAMD = SystemInfo.graphicsDeviceVendor.Contains("amd", StringComparison.InvariantCultureIgnoreCase) ||
-                         SystemInfo.graphicsDeviceVendor.Contains("ati", StringComparison.InvariantCultureIgnoreCase);
-            float rmseThreshold = isAMD ? Math.Max(0.02f, metaPassTest.RMSEThreshold) : metaPassTest.RMSEThreshold;
+            // The meta pass samples in lightmap-UV space, so at texture-feature boundaries the extracted
+            // albedo/emissive differs slightly per graphics backend. Compare block means (what baking
+            // consumes) so one shared reference passes on every backend and vendor.
+            // On a missing or size-changed reference, ImageAssert itself reports the problem at full
+            // resolution and saves the full-res actual, from which a new reference can be bootstrapped.
+            Texture2D expected = testCase.ReferenceImage.Image;
+            Texture2D actual = actualTexture2D;
+            bool sizesMatch = expected != null
+                && expected.width == actual.width && expected.height == actual.height;
+            if (sizesMatch)
+            {
+                Color expectedMean = AverageColor(expected.GetPixels());
+                Color actualMean = AverageColor(actual.GetPixels());
+                float meanDelta = 0.0f;
+                for (int channel = 0; channel < 4; ++channel)
+                    meanDelta = Mathf.Max(meanDelta, Mathf.Abs(actualMean[channel] - expectedMean[channel]));
+                if (meanDelta > k_MeanColorTolerance)
+                {
+                    SaveFullResActual(actualTexture2D);
+                    Assert.Fail($"Mean color delta {meanDelta} exceeds {k_MeanColorTolerance} (expected mean {expectedMean}, actual mean {actualMean}).");
+                }
 
-            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan)
-                rmseThreshold = Math.Max(metaPassTest.VulkanRMSEThreshold, rmseThreshold);
+                expected = BoxDownsample(expected, k_DownsampleFactor);
+                actual = BoxDownsample(actual, k_DownsampleFactor);
+            }
 
             ImageComparisonSettings imageComparisonSettings =
                 new()
                 {
-                    TargetWidth = actualTexture2D.width,
-                    TargetHeight = actualTexture2D.height,
-                    ActivePixelTests = ImageComparisonSettings.PixelTests.None,
                     ActiveImageTests = ImageComparisonSettings.ImageTests.RMSE,
-                    IncorrectPixelsThreshold =
-                        1.0f / (actualTexture2D.width * actualTexture2D.height),
-                    RMSEThreshold = rmseThreshold,
+                    RMSEThreshold = metaPassTest.RMSEThreshold,
                 };
 
-            ImageAssert.AreEqualLinearHDR(
-                testCase.ReferenceImage.Image,
-                actualTexture2D,
-                imageComparisonSettings
-            );
+            try
+            {
+                ImageAssert.AreEqualLinearHDR(
+                    expected,
+                    actual,
+                    imageComparisonSettings
+                );
+            }
+            catch when (sizesMatch)
+            {
+                // Replace the downsampled artifact with the full-res actual so it can be promoted to a reference directly.
+                SaveFullResActual(actualTexture2D);
+                throw;
+            }
+
+            // -save-actual-images rebaseline runs need the promotable full-res image too.
+            if (sizesMatch && GraphicsTestBuildSettings.LoadOrDefault().SaveActualImages)
+                SaveFullResActual(actualTexture2D);
         }
     }
 }
