@@ -388,13 +388,12 @@ namespace UnityEngine.Rendering
             // Validate baking cells size before writing
             var bakingCellsArray = s_BakingBatch.cells.ToArray();
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
-            var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
-            var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            GetOptionalFeaturesFromCells(bakingCellsArray, out var hasVirtualOffsets, out var hasRenderingLayers);
 
             if (ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
             {
                 // Write back the assets.
-                WriteBakingCells(m_BakingSet, bakingCellsArray);
+                WriteBakingCells(m_BakingSet, bakingCellsArray, m_BakingSet.bakedLayerMasks);
             }
 
             s_BakingBatch?.Dispose();

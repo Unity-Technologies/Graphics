@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering
         static BakingCell MergeCells(BakingCell dst, BakingCell srcCell)
         {
             int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
-            bool hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            bool hasRenderingLayers = s_BakeData.layerMaskJob.renderingLayerMasks.IsCreated;
             bool hasVirtualOffsets = s_BakeData.virtualOffsetJob.offsets.IsCreated;
             bool hasSkyOcclusion = s_BakeData.skyOcclusionJob.occlusion.IsCreated;
             bool hasSkyShadingDirection = s_BakeData.skyOcclusionJob.shadingDirections.IsCreated;
@@ -750,6 +750,24 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Determines which optional features the baking cells contain data for. Used instead of the
+        /// baking set settings, which can be modified while a bake is in progress.
+        /// </summary>
+        /// <param name="bakingCells">Array of baking cells to inspect</param>
+        /// <param name="hasVirtualOffsets">Whether any cell has virtual offset data</param>
+        /// <param name="hasRenderingLayers">Whether any cell has rendering layer data</param>
+        static void GetOptionalFeaturesFromCells(BakingCell[] bakingCells, out bool hasVirtualOffsets, out bool hasRenderingLayers)
+        {
+            hasVirtualOffsets = false;
+            hasRenderingLayers = false;
+            for (var i = 0; i < bakingCells.Length; ++i)
+            {
+                hasVirtualOffsets |= bakingCells[i].offsetVectors?.Length > 0;
+                hasRenderingLayers |= bakingCells[i].layerValidity?.Length > 0;
+            }
+        }
+
+        /// <summary>
         /// Validates that the baking cells can be written without exceeding system limits.
         /// This method performs size calculations without accessing any global state.
         /// </summary>
@@ -806,7 +824,7 @@ namespace UnityEngine.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        static unsafe bool WriteBakingCells(ProbeVolumeBakingSet bakingSet, BakingCell[] bakingCells)
+        static unsafe bool WriteBakingCells(ProbeVolumeBakingSet bakingSet, BakingCell[] bakingCells, Unity.Mathematics.uint4 bakedRegionMasks)
         {
             bakingSet.GetBlobFileNames(bakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename,
                                        out var cellOptionalDataFilename, out var cellProbeOcclusionDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
@@ -816,10 +834,10 @@ namespace UnityEngine.Rendering
             bakingSet.bakedSimplificationLevels = s_ProfileInfo.simplificationLevels;
             bakingSet.bakedProbeOffset = s_ProfileInfo.probeOffset;
             bakingSet.bakedProbeOcclusion = false;
-            bakingSet.bakedSkyOcclusion = bakingSet.skyOcclusion;
-            bakingSet.bakedSkyShadingDirection = bakingSet.bakedSkyOcclusion && bakingSet.skyOcclusionShadingDirection;
-            bakingSet.bakedMaskCount = bakingSet.useRenderingLayers ? APVDefinitions.probeMaxRegionCount : 1;
-            bakingSet.bakedLayerMasks = bakingSet.ComputeRegionMasks();
+            // Settings can be modified in the UI while a bake is in progress, so derive the baked feature
+            // flags from the data the bake actually produced rather than from the current settings.
+            bakingSet.bakedSkyOcclusion = false;
+            bakingSet.bakedSkyShadingDirection = false;
 
             var cellSharedDataDescs = new SerializedDictionary<int, StreamableCellDesc>();
             var cellL0L1DataDescs = new SerializedDictionary<int, StreamableCellDesc>();
@@ -828,20 +846,20 @@ namespace UnityEngine.Rendering
             var cellBricksDescs = new SerializedDictionary<int, StreamableCellDesc>();
             var cellSupportDescs = new SerializedDictionary<int, StreamableCellDesc>();
 
-            var voSettings = bakingSet.settings.virtualOffsetSettings;
-            bool hasVirtualOffsets = voSettings.useVirtualOffset;
-            bool handlesSkyOcclusion = bakingSet.bakedSkyOcclusion;
-            bool handlesSkyShading = bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyShadingDirection;
-            bool hasRenderingLayers = bakingSet.useRenderingLayers;
-            int validityRegionCount = bakingSet.bakedMaskCount;
+            bool hasVirtualOffsets = false;
+            bool hasRenderingLayers = false;
 
             for (var i = 0; i < bakingCells.Length; ++i)
             {
                 AnalyzeBrickForIndirectionEntries(ref bakingCells[i]);
                 var bakingCell = bakingCells[i];
 
-                // If any cell had probe occlusion, the baking set has probe occlusion.
+                // If any cell has data for an optional feature, the baking set has that feature.
                 bakingSet.bakedProbeOcclusion |= bakingCell.probeOcclusion?.Length > 0;
+                bakingSet.bakedSkyOcclusion |= bakingCell.skyOcclusionDataL0L1?.Length > 0;
+                bakingSet.bakedSkyShadingDirection |= bakingCell.skyShadingDirectionIndices?.Length > 0;
+                hasVirtualOffsets |= bakingCell.offsetVectors?.Length > 0;
+                hasRenderingLayers |= bakingCell.layerValidity?.Length > 0;
 
                 bakingSet.cellDescs.Add(bakingCell.index, new CellDesc
                 {
@@ -863,6 +881,18 @@ namespace UnityEngine.Rendering
                     chunksCount = bakingCell.shChunkCount
                 });
             }
+
+            // Sky shading direction data is only written when sky occlusion data is present.
+            bakingSet.bakedSkyShadingDirection &= bakingSet.bakedSkyOcclusion;
+
+            // The region masks are captured with the bake inputs since the per-probe rendering layer bits
+            // were baked against them; recomputing them from the current settings could mismatch the data.
+            bakingSet.bakedMaskCount = hasRenderingLayers ? APVDefinitions.probeMaxRegionCount : 1;
+            bakingSet.bakedLayerMasks = hasRenderingLayers ? bakedRegionMasks : new Unity.Mathematics.uint4(0xFFFFFFFF, 0, 0, 0);
+
+            bool handlesSkyOcclusion = bakingSet.bakedSkyOcclusion;
+            bool handlesSkyShading = bakingSet.bakedSkyShadingDirection;
+            int validityRegionCount = bakingSet.bakedMaskCount;
 
             // All per probe data is stored per chunk and contiguously for each cell.
             // This is done so that we can stream from disk one cell at a time by group of chunks.
@@ -950,6 +980,14 @@ namespace UnityEngine.Rendering
                 sceneStateHash = sceneStateHash * 23 + bakingCell.GetBakingHashCode();
 
                 var inputProbesCount = bakingCell.probePositions.Length;
+
+                // Cells loaded from a previous bake may lack data for optional features that other cells
+                // have (e.g. when partially baking after a settings change); neutral values are written instead.
+                bool cellHasProbeOcclusion = bakingCell.probeOcclusion?.Length > 0;
+                bool cellHasSkyOcclusion = bakingCell.skyOcclusionDataL0L1?.Length > 0;
+                bool cellHasSkyDirection = bakingCell.skyShadingDirectionIndices?.Length > 0;
+                bool cellHasRenderingLayers = bakingCell.layerValidity?.Length > 0;
+                bool cellHasVirtualOffsets = bakingCell.offsetVectors?.Length > 0;
 
                 int shidx = 0;
 
@@ -1050,25 +1088,25 @@ namespace UnityEngine.Rendering
                                         }
                                         if (bakingSet.bakedSkyOcclusion)
                                         {
-                                            WriteToShaderSkyOcclusion(bakingCell.skyOcclusionDataL0L1[shidx], skyOcclusionL0L1ChunkTarget, index * 4);
+                                            WriteToShaderSkyOcclusion(cellHasSkyOcclusion ? bakingCell.skyOcclusionDataL0L1[shidx] : Vector4.zero, skyOcclusionL0L1ChunkTarget, index * 4);
                                             if (bakingSet.bakedSkyShadingDirection)
                                             {
-                                                skyShadingIndicesChunkTarget[index] = bakingCell.skyShadingDirectionIndices[shidx];
+                                                skyShadingIndicesChunkTarget[index] = cellHasSkyDirection ? bakingCell.skyShadingDirectionIndices[shidx] : (byte)255;
                                             }
                                         }
 
                                         if (bakingSet.bakedProbeOcclusion)
                                         {
-                                            WriteToShaderProbeOcclusion(bakingCell.probeOcclusion[shidx], probeOcclusionTarget, index * 4);
+                                            WriteToShaderProbeOcclusion(cellHasProbeOcclusion ? bakingCell.probeOcclusion[shidx] : Vector4.one, probeOcclusionTarget, index * 4);
                                         }
 
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
                                         touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
                                         if (hasRenderingLayers)
-                                            regionChunkTarget[index] = bakingCell.layerValidity[shidx];
+                                            regionChunkTarget[index] = cellHasRenderingLayers ? bakingCell.layerValidity[shidx] : (byte)0xFF;
                                         if (hasVirtualOffsets)
-                                            offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
+                                            offsetChunkTarget[index] = cellHasVirtualOffsets ? bakingCell.offsetVectors[shidx] : Vector3.zero;
                                     }
                                     shidx++;
                                 }

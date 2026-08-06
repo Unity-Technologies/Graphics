@@ -713,8 +713,7 @@ namespace UnityEngine.Rendering
                 {
                     // Validate baking cells size before any global state modifications
                     var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
-                    var hasVirtualOffsets = bakingSet.settings.virtualOffsetSettings.useVirtualOffset;
-                    var hasRenderingLayers = bakingSet.useRenderingLayers;
+                    GetOptionalFeaturesFromCells(bakingCells, out var hasVirtualOffsets, out var hasRenderingLayers);
 
                     if (ValidateBakingCellsSize(bakingCells, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
                     {
@@ -725,7 +724,10 @@ namespace UnityEngine.Rendering
                         }
 
                         // Attempt to write the result to disk.
-                        if (WriteBakingCells(bakingSet, bakingCells))
+                        // The settings are patched with the baked values above, so the masks match what the layer job baked against.
+                        var bakedRegionMasks = bakingSet.useRenderingLayers ? bakingSet.ComputeRegionMasks() : bakingSet.bakedLayerMasks;
+
+                        if (WriteBakingCells(bakingSet, bakingCells, bakedRegionMasks))
                         {
                             // Reload everything
                             AssetDatabase.SaveAssets();
