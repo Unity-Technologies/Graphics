@@ -7,6 +7,7 @@ using UnityEngine.Rendering.Universal.Internal;
 /// The class for the On-Tile Post Processing renderer feature. This renderer feature provides a reduced scope alternative to the built-in URP post-processing features but that can run more optimally on tile-based graphics hardware (most untethered-XR devices)
 /// The renderer feature could only be added once. Adding multiple post processing passes is currently not supported.
 /// </summary>
+[SupportedOnRenderer(typeof(UniversalRendererData))]
 [DisallowMultipleRendererFeature("On Tile Post Processing")]
 public partial class OnTilePostProcessFeature : ScriptableRendererFeature
 {
@@ -82,7 +83,9 @@ public partial class OnTilePostProcessFeature : ScriptableRendererFeature
 
         // NOTE: Ideally, we check here if the Post Processing is enabled on the UniversalRenderer asset through a public API. In that case, the built in post processing will be enabled.
         // We currently do not have a public API for that, so we use internal API for now.
-        var universalRenderer = renderer as UniversalRenderer;
+        if (renderer is not UniversalRenderer universalRenderer)
+            return;
+
         if (universalRenderer.postProcessEnabled)
         {
             Debug.LogError("URP renderer(Universal Renderer Data) has post processing enabled, which conflicts with the On-Tile post processing feature. Only one of the post processing should be enabled. On-Tile post processing feature will not be added.");
