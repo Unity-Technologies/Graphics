@@ -883,6 +883,12 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (coreResourceSet == null)
                 Assert.Ignore("Surface cache core render pipeline resources are unavailable.");
 
+            if (coreResourceSet.emissiveTriangleAdditionComputeShader == null
+                || !coreResourceSet.emissiveTriangleAdditionComputeShader.HasKernel("Add")
+                || coreResourceSet.emissiveTriangleRemovalComputeShader == null
+                || !coreResourceSet.emissiveTriangleRemovalComputeShader.HasKernel("Remove"))
+                Assert.Ignore("Surface cache emissive triangle compute kernels are unavailable on this graphics API.");
+
             var ctx = new RayTracingContext(RayTracingBackend.Compute, rtResources);
             var world = new SurfaceCacheWorld();
             world.Init(ctx, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader);

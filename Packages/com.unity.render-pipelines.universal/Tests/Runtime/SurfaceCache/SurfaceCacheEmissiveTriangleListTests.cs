@@ -1,4 +1,4 @@
-#if SURFACE_CACHE && (SURFACE_CACHE_SUPPORTED || UNITY_EDITOR)
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
 using System.Runtime.InteropServices;
@@ -76,6 +76,12 @@ namespace UnityEngine.Rendering.Universal.Tests
             var coreResourceSet = GraphicsSettings.GetRenderPipelineSettings<Rendering.SurfaceCacheRenderPipelineResourceSet>();
             if (coreResourceSet == null)
                 Assert.Ignore("Surface cache core render pipeline resources are unavailable.");
+
+            if (coreResourceSet.emissiveTriangleAdditionComputeShader == null
+                || !coreResourceSet.emissiveTriangleAdditionComputeShader.HasKernel("Add")
+                || coreResourceSet.emissiveTriangleRemovalComputeShader == null
+                || !coreResourceSet.emissiveTriangleRemovalComputeShader.HasKernel("Remove"))
+                Assert.Ignore("Surface cache emissive triangle compute kernels are unavailable on this graphics API.");
 
             var env = new Environment();
             env.Context = new RayTracingContext(RayTracingBackend.Compute, rtResources);
