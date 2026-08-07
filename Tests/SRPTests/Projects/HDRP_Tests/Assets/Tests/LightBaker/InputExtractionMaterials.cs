@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Platforms;
 using static UnityEditor.LightBaking.InputExtraction;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.LightBaking.Tests
 {
@@ -221,6 +222,9 @@ namespace UnityEditor.LightBaking.Tests
         };
 
         [Test, Category("Graphics"), GraphicsTest(TextureFormat = TextureFormat.RGBAHalf, ImageExtension = ImageExtension.EXR)]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-149196
+        })]
         public void MetaPassTemplateTests(
             GraphicsTestCase testCase,
             [ValueSource(nameof(metaPassTests))] MetaPassSceneTest metaPassTest
