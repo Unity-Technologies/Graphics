@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -47,6 +48,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "8109_IsFrontFace",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-146901",
             RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
+            "8104_Unlit",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146901",
+            RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Metal
         )]
         [TestNotSupportedOn(
             "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
