@@ -297,6 +297,66 @@ namespace UnityEngine.Rendering.Universal.Tests
             s_AdditionalCameraData.UpdateCameraStack();
         }
 
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer })]
+        [UnityTest]
+        public IEnumerator RenderTextureCameraDoesNotTriggerOnTileValidation()
+        {
+            var renderTexture = new RenderTexture(256, 256, 24) { antiAliasing = 4 };
+            var gameObject = new GameObject();
+            var camera = gameObject.AddComponent<Camera>();
+            gameObject.AddComponent<UniversalAdditionalCameraData>().SetRenderer(0);
+            camera.targetTexture = renderTexture;
+
+            // Act
+            // Built-in post processing is incompatible with Tile-Only Mode and would log a warning.
+            m_UniversalRendererData.postProcessData = null;
+            m_UniversalRendererData.tileOnlyMode = true;
+
+            yield return null;
+            yield return null;
+
+            LogAssert.NoUnexpectedReceived();
+
+            m_UniversalRendererData.tileOnlyMode = false;
+            camera.targetTexture = null;
+            Object.DestroyImmediate(gameObject);
+            renderTexture.Release();
+            Object.DestroyImmediate(renderTexture);
+        }
+
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer })]
+        [UnityTest]
+        public IEnumerator PreviewCameraDoesNotTriggerOnTileValidation()
+        {
+            var renderTexture = new RenderTexture(256, 256, 24);
+            var gameObject = new GameObject();
+            var camera = gameObject.AddComponent<Camera>();
+            gameObject.AddComponent<UniversalAdditionalCameraData>().SetRenderer(0);
+            camera.cameraType = CameraType.Preview;
+            camera.enabled = false;
+            // A non-default viewport forces rendering via intermediate textures and a final blit.
+            camera.rect = new Rect(0f, 0f, 0.5f, 0.5f);
+
+            // Built-in post processing is incompatible with Tile-Only Mode and would log a warning.
+            m_UniversalRendererData.postProcessData = null;
+            m_UniversalRendererData.tileOnlyMode = true;
+
+            yield return null;
+
+            var request = new RenderPipeline.StandardRequest { destination = renderTexture };
+            if (RenderPipeline.SupportsRenderRequest(camera, request))
+                RenderPipeline.SubmitRenderRequest(camera, request);
+
+            yield return null;
+
+            LogAssert.NoUnexpectedReceived();
+
+            m_UniversalRendererData.tileOnlyMode = false;
+            Object.DestroyImmediate(gameObject);
+            renderTexture.Release();
+            Object.DestroyImmediate(renderTexture);
+        }
+
 
         bool OnlyBackbufferOrMemoryless(bool outputNonMemoryless = false)
         {

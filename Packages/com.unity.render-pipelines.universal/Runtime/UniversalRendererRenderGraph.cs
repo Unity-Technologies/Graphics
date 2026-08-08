@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (requireIntermediateAttachments)
             {
-                Debug.Assert(!useTileOnlyMode || HasMatchingAttachmentProperties(cameraData.backbufferColor, cameraDescriptor),
+                Debug.Assert(!(useTileOnlyMode && cameraData.resolveToScreen) || HasMatchingAttachmentProperties(cameraData.backbufferColor, cameraDescriptor),
                     "Tile-only mode requires intermediate textures to be compatible with the backbuffer (matching MSAA, width, height).");
 
                 cameraDescriptor.format = cameraData.cameraTargetDescriptor.graphicsFormat;
@@ -833,7 +833,8 @@ namespace UnityEngine.Rendering.Universal
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
-            m_ValidationHandler.active = cameraData.cameraType == CameraType.Game;
+            // The On-Tile validation only applies when rendering to the screen backbuffer.
+            m_ValidationHandler.active = cameraData.resolveToScreen;
             m_ValidationHandler.OnBeforeRendering(renderGraph, resourceData);
 
             if (DebugHandler != null)
@@ -1640,7 +1641,7 @@ namespace UnityEngine.Rendering.Universal
             //Checking resourceData.isActiveTargetBackBuffer is a robust way to check if this has happened, by our own code or by the user.
             if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget)
             {
-                Debug.Assert(!useTileOnlyMode, "Adding the final blit pass when Tile-Only Mode is on. This is not valid and will throw an exception. Likely, an On-Tile Feature has requested the intermediate textures but did not correctly copy the data to the backbuffer.");
+                Debug.Assert(!(useTileOnlyMode && cameraData.resolveToScreen), "Adding the final blit pass when Tile-Only Mode is on. This is not valid and will throw an exception. Likely, an On-Tile Feature has requested the intermediate textures but did not correctly copy the data to the backbuffer.");
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
@@ -1843,7 +1844,7 @@ namespace UnityEngine.Rendering.Universal
             // To target the BB directly, either we don't render to the intermediate textures, or we render with the on-tile renderer.
             // The on-tile renderer guarantees a single native render pass for the draw passes to the backbuffer, even though
             // it potentially uses the intermediate textures as temporary attachments inside of the NRP.
-            bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !useTileOnlyMode;
+            bool intermediateTexturesAreSampledAsTextures = s_RequiresIntermediateAttachments && !(useTileOnlyMode && cameraData.resolveToScreen);
 
             // RenderGraph can't derive the size of BuiltinRenderTextureType / RenderTexture-backed RTHandles
             // through the RenderTargetIdentifier wrapper chain, so we provide it via RenderTargetInfo.
@@ -1895,7 +1896,7 @@ namespace UnityEngine.Rendering.Universal
             desc.autoGenerateMips = false;
             desc.filterMode = FilterMode.Bilinear;
             desc.wrapMode = TextureWrapMode.Clamp;
-            desc.bindTextureMS = useTileOnlyMode && desc.msaaSamples != MSAASamples.None; //Needed for GLES fallback
+            desc.bindTextureMS = useTileOnlyMode && cameraData.resolveToScreen && desc.msaaSamples != MSAASamples.None; //Needed for GLES fallback
 
             // When there's a single camera setup, there's no need to do the double buffer technique with attachment A/B, in order to save memory allocation
             // and simplify the workflow by using a RenderGraph texture directly.
