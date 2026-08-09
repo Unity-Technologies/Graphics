@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -441,6 +442,7 @@ namespace UnityEditor.Rendering.Universal
         {
             UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
+            ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
             FixEmissiveFlags(material);
         }
@@ -453,6 +455,7 @@ namespace UnityEditor.Rendering.Universal
         {
             UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
+            ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
             FixEmissiveFlags(material);
         }
@@ -530,7 +533,11 @@ namespace UnityEditor.Rendering.Universal
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Additive);
                     break;
-                case 5: // sub > none
+                case 5: // sub > transparent with Subtractive color mode
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Alpha);
+                    material.SetFloat("_ColorMode", 2f); // ParticleGUI.ColorMode.Subtractive
                     break;
                 case 6: // mod > multiply
                     material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");

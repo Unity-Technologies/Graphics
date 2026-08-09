@@ -474,7 +474,6 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
         {
             name =
                 "Given_RenderingModeSubtractiveStandardParticleUnlitMaterial_When_Upgrading_Then_SurfaceTypeURPParticleUnlitMaterialDropdownNotBlank",
-            ignore = true,
             setup = material =>
             {
                 //set the material to Subtractive
@@ -482,9 +481,16 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
             },
             verify = material =>
             {
-                //check material surface type is not blank
-                float surfaceType = material.GetFloat("_Surface");
-                Assert.IsTrue(surfaceType == 0.0f || surfaceType == 1.0f, "Surface type is blank.");
+                //check material surface type is transparent
+                Assert.AreEqual(1.0f, material.GetFloat("_Surface"));
+                //check color mode is subtractive
+                Assert.AreEqual(2.0f, material.GetFloat("_ColorMode"));
+                //check blend mode is alpha
+                Assert.AreEqual(0.0f, material.GetFloat("_Blend"));
+                //check that the _COLORADDSUBDIFF_ON keyword is enabled
+                Assert.IsTrue(material.IsKeywordEnabled("_COLORADDSUBDIFF_ON"));
+                //check that _BaseColorAddSubDiff is set correctly for subtractive mode
+                Assert.AreEqual(new Vector4(-1.0f, 0.0f, 0.0f, 0.0f), material.GetVector("_BaseColorAddSubDiff"));
             }
         };
 
