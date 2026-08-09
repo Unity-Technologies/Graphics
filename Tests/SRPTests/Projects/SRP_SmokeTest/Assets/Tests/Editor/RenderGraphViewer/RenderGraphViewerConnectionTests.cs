@@ -38,8 +38,9 @@ namespace UnityEditor.Rendering.Tests
         [TearDown]
         public void TearDown()
         {
-            var rgv = RenderGraphViewerUITests.FindRenderGraphViewerWindow();
-            rgv.Close();
+            var rgv = RenderGraphViewerTestHelpers.FindRenderGraphViewerWindow();
+            if (rgv != null)
+                rgv.Close();
 
             ProfilerDriver.connectedProfiler = -1;
 
@@ -73,7 +74,7 @@ namespace UnityEditor.Rendering.Tests
         {
             RenderGraphViewer viewer = null;
             if (openState == WindowOpenState.BeforePlayerStart)
-                viewer = RenderGraphViewerUITests.OpenAndCheckRenderGraphViewer();
+                viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
 
             Assume.That(m_Runner.RunPlayer());
 
@@ -81,7 +82,7 @@ namespace UnityEditor.Rendering.Tests
             yield return new WaitUntil(() => ProfilerDriver.connectedProfiler != -1, 60);
 
             if (openState == WindowOpenState.AfterPlayerStarted)
-                viewer = RenderGraphViewerUITests.OpenAndCheckRenderGraphViewer();
+                viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
 
             // Wait for debug data to be available in the viewer
             yield return new WaitUntil(() => viewer.m_CurrentDebugData != null, 60);
@@ -119,12 +120,12 @@ namespace UnityEditor.Rendering.Tests
         {
             RenderGraphViewer viewer = null;
             if (openState == WindowOpenState.BeforePlayerStart)
-                viewer = RenderGraphViewerUITests.OpenAndCheckRenderGraphViewer();
+                viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
 
             Assume.That(m_Runner.RunPlayer());
 
             if (openState == WindowOpenState.AfterPlayerStarted)
-                viewer = RenderGraphViewerUITests.OpenAndCheckRenderGraphViewer();
+                viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
 
             viewer.ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
 

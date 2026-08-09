@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Tests
         [SetUp]
         public void SetUp()
         {
-            m_Viewer = RenderGraphViewerUITests.OpenAndCheckRenderGraphViewer();
+            m_Viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
             m_RenderGraph = new RenderGraph("TestRenderGraph");
 
             var cameraObject = new GameObject("TestCamera", typeof(Camera));

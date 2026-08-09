@@ -1,0 +1,1971 @@
+{
+    "m_SerializedGraphs": [
+        {
+            "graphName": "URPRenderGraph",
+            "executions": [
+                {
+                    "m_ExecutionId": 1099511677449,
+                    "executionName": "Main Camera",
+                    "debugData": {
+                        "executionName": "Main Camera",
+                        "valid": true,
+                        "captureSourceString": "Editor",
+                        "captureTimestamp": "16:56:55",
+                        "graphHash": 1592559333,
+                        "passList": [
+                            {
+                                "name": "Initialize Frame",
+                                "type": 0,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1000
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\ScriptableRenderer.cs",
+                                    "line": 618
+                                }
+                            },
+                            {
+                                "name": "Setup Forward Lights",
+                                "type": 0,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1001
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\ForwardLights.cs",
+                                    "line": 511
+                                }
+                            },
+                            {
+                                "name": "Setup Debug Properties",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1002
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Debug\\DebugHandler.cs",
+                                    "line": 543
+                                }
+                            },
+                            {
+                                "name": "Setup Camera Properties",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1003
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\ScriptableRenderer.cs",
+                                    "line": 686
+                                }
+                            },
+                            {
+                                "name": "Process VFXCamera Command",
+                                "type": 0,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1004
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\ScriptableRenderer.cs",
+                                    "line": 656
+                                }
+                            },
+                            {
+                                "name": "Draw Main Light Shadowmap",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1005
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\MainLightShadowCasterPass.cs",
+                                    "line": 484
+                                }
+                            },
+                            {
+                                "name": "Setup Camera Properties",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1006
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\ScriptableRenderer.cs",
+                                    "line": 686
+                                }
+                            },
+                            {
+                                "name": "Draw Depth Normal Prepass",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        8
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        9,
+                                        8
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 0,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1007
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DepthNormalOnlyPass.cs",
+                                    "line": 145
+                                }
+                            },
+                            {
+                                "name": "Copy DBuffer Depth",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        8
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        12
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 0,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1008
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\CopyDepthPass.cs",
+                                    "line": 182
+                                }
+                            },
+                            {
+                                "name": "Draw DBuffer",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        12,
+                                        8,
+                                        9
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        13,
+                                        14,
+                                        15
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1009
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Decal\\DBuffer\\DBufferRenderPass.cs",
+                                    "line": 106
+                                }
+                            },
+                            {
+                                "name": "Draw Opaque Objects",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        7,
+                                        3,
+                                        13,
+                                        14,
+                                        15,
+                                        3,
+                                        9,
+                                        8,
+                                        13,
+                                        14,
+                                        15
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        6,
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 0,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1010
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DrawObjectsPass.cs",
+                                    "line": 249
+                                }
+                            },
+                            {
+                                "name": "Draw Decal Forward Emissive",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        6
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1011
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Decal\\DBuffer\\DecalForwardEmissivePass.cs",
+                                    "line": 61
+                                }
+                            },
+                            {
+                                "name": "Draw Skybox",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        6,
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 2,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1012
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DrawSkyboxPass.cs",
+                                    "line": 97
+                                }
+                            },
+                            {
+                                "name": "Draw Transparent Objects",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        7,
+                                        3,
+                                        13,
+                                        14,
+                                        15,
+                                        3,
+                                        9,
+                                        8,
+                                        13,
+                                        14,
+                                        15
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        6,
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 2,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1013
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DrawObjectsPass.cs",
+                                    "line": 249
+                                }
+                            },
+                            {
+                                "name": "Blit Final To Back Buffer",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        6
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        4
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 0,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1014
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\FinalBlitPass.cs",
+                                    "line": 154
+                                }
+                            },
+                            {
+                                "name": "Draw UIToolkit/u GUI Overlay",
+                                "type": 1,
+                                "resourceReadLists": {
+                                    "m_Textures": [
+                                        7,
+                                        3,
+                                        9,
+                                        8,
+                                        13,
+                                        14,
+                                        15
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        4,
+                                        7
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": 1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1015
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DrawScreenSpaceUIPass.cs",
+                                    "line": 315
+                                }
+                            },
+                            {
+                                "name": "Draw IMGUI/Software Cursor Overlay",
+                                "type": 0,
+                                "resourceReadLists": {
+                                    "m_Textures": [],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "resourceWriteLists": {
+                                    "m_Textures": [
+                                        4
+                                    ],
+                                    "m_Buffers": [],
+                                    "m_AccelerationStructures": []
+                                },
+                                "culled": false,
+                                "async": false,
+                                "nativeSubPassIndex": -1,
+                                "syncToPassIndex": -1,
+                                "syncFromPassIndex": -1,
+                                "generateDebugData": true,
+                                "nrpInfo": {
+                                    "rid": 1016
+                                },
+                                "scriptInfo": {
+                                    "filePath": "C:\\UnitySrc\\unity\\Packages\\com.unity.render-pipelines.universal\\Runtime\\Passes\\DrawScreenSpaceUIPass.cs",
+                                    "line": 389
+                                }
+                            }
+                        ],
+                        "resourceLists": {
+                            "m_Textures": [
+                                {
+                                    "name": "<null>",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1017
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "UnityBlack",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1018
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "UnityWhite",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1019
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "DefaultShadowTexture",
+                                    "imported": true,
+                                    "creationPassIndex": 10,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        10,
+                                        10,
+                                        13,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1020
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "Backbuffer color",
+                                    "imported": true,
+                                    "creationPassIndex": 14,
+                                    "releasePassIndex": 16,
+                                    "consumerList": [],
+                                    "producerList": [
+                                        14,
+                                        15,
+                                        16
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1021
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "Backbuffer depth",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1022
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_CameraTargetAttachment",
+                                    "imported": false,
+                                    "creationPassIndex": 10,
+                                    "releasePassIndex": 14,
+                                    "consumerList": [
+                                        14
+                                    ],
+                                    "producerList": [
+                                        10,
+                                        11,
+                                        12,
+                                        13
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1023
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_CameraDepthAttachment",
+                                    "imported": false,
+                                    "creationPassIndex": 10,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        10,
+                                        11,
+                                        12,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        10,
+                                        12,
+                                        13,
+                                        15
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1024
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_CameraDepthTexture",
+                                    "imported": false,
+                                    "creationPassIndex": 7,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        7,
+                                        8,
+                                        9,
+                                        10,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        7
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1025
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_CameraNormalsTexture",
+                                    "imported": false,
+                                    "creationPassIndex": 7,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        9,
+                                        10,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        7
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1026
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_MotionVectorTexture",
+                                    "imported": false,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1027
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_MotionVectorDepthTexture",
+                                    "imported": false,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1028
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "DBufferDepth",
+                                    "imported": false,
+                                    "creationPassIndex": 8,
+                                    "releasePassIndex": 9,
+                                    "consumerList": [
+                                        9
+                                    ],
+                                    "producerList": [
+                                        8
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1029
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_DBufferTexture0",
+                                    "imported": false,
+                                    "creationPassIndex": 9,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        10,
+                                        10,
+                                        13,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        9
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1030
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_DBufferTexture1",
+                                    "imported": false,
+                                    "creationPassIndex": 9,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        10,
+                                        10,
+                                        13,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        9
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1031
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                },
+                                {
+                                    "name": "_DBufferTexture2",
+                                    "imported": false,
+                                    "creationPassIndex": 9,
+                                    "releasePassIndex": 15,
+                                    "consumerList": [
+                                        10,
+                                        10,
+                                        13,
+                                        13,
+                                        15
+                                    ],
+                                    "producerList": [
+                                        9
+                                    ],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1032
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                }
+                            ],
+                            "m_Buffers": [
+                                {
+                                    "name": "<null>",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1033
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                }
+                            ],
+                            "m_AccelerationStructures": [
+                                {
+                                    "name": "<null>",
+                                    "imported": true,
+                                    "creationPassIndex": -1,
+                                    "releasePassIndex": -1,
+                                    "consumerList": [],
+                                    "producerList": [],
+                                    "memoryless": false,
+                                    "textureData": {
+                                        "rid": 1034
+                                    },
+                                    "bufferData": {
+                                        "rid": -2
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "references": {
+        "version": 2,
+        "RefIds": [
+            {
+                "rid": -2,
+                "type": {
+                    "class": "",
+                    "ns": "",
+                    "asm": ""
+                },
+                "data": {}
+            },
+            {
+                "rid": 1000,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": -2
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1001,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": -2
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1002,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1035
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1003,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1035
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1004,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": -2
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1005,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1036
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [
+                        3
+                    ],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1006,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1036
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1007,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1037
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [
+                        9,
+                        8
+                    ],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1008,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1038
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1009,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1038
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [
+                        13,
+                        14,
+                        15
+                    ],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1010,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1039
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1011,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1039
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1012,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1039
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1013,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1039
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1014,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1040
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1015,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": 1040
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 1470,
+                    "height": 689,
+                    "volumeDepth": 1,
+                    "samples": 1,
+                    "hasDepth": true
+                }
+            },
+            {
+                "rid": 1016,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "nativePassInfo": {
+                        "rid": -2
+                    },
+                    "textureFBFetchList": [],
+                    "setGlobals": [],
+                    "width": 0,
+                    "height": 0,
+                    "volumeDepth": 0,
+                    "samples": 0,
+                    "hasDepth": false
+                }
+            },
+            {
+                "rid": 1017,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 0,
+                    "height": 0,
+                    "depth": 0,
+                    "bindMS": false,
+                    "samples": 0,
+                    "format": 0,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1018,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 4,
+                    "height": 4,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 4,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1019,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 4,
+                    "height": 4,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 4,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1020,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1,
+                    "height": 1,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 93,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1021,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 4,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1022,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 94,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1023,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 4,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1024,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 94,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1025,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 94,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1026,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 12,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1027,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 46,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1028,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 94,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1029,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 94,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1030,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 4,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1031,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 8,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1032,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 1470,
+                    "height": 689,
+                    "depth": 1,
+                    "bindMS": false,
+                    "samples": 1,
+                    "format": 8,
+                    "clearBuffer": true
+                }
+            },
+            {
+                "rid": 1033,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 0,
+                    "height": 0,
+                    "depth": 0,
+                    "bindMS": false,
+                    "samples": 0,
+                    "format": 0,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1034,
+                "type": {
+                    "class": "RenderGraph/DebugData/TextureResourceData",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "width": 0,
+                    "height": 0,
+                    "depth": 0,
+                    "bindMS": false,
+                    "samples": 0,
+                    "format": 0,
+                    "clearBuffer": false
+                }
+            },
+            {
+                "rid": 1035,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge ProcessVFXCameraCommand into this native pass.\nThe next pass is not a raster render pass.",
+                    "attachmentInfos": [],
+                    "passCompatibility": {
+                        "m_Keys": [],
+                        "m_Values": []
+                    },
+                    "mergedPassIds": [
+                        2,
+                        3
+                    ]
+                }
+            },
+            {
+                "rid": 1036,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge DrawDepthNormalPrepass into this native pass.\nThe render target sizes of the next pass do not match.",
+                    "attachmentInfos": [],
+                    "passCompatibility": {
+                        "m_Keys": [],
+                        "m_Values": []
+                    },
+                    "mergedPassIds": [
+                        5,
+                        6
+                    ]
+                }
+            },
+            {
+                "rid": 1037,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge Copy DBuffer Depth into this native pass.\nThe next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
+                    "attachmentInfos": [
+                        {
+                            "resourceName": "_CameraDepthTexture",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 0,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "_CameraNormalsTexture",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 1,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        }
+                    ],
+                    "passCompatibility": {
+                        "m_Keys": [
+                            9,
+                            10,
+                            13,
+                            15,
+                            8
+                        ],
+                        "m_Values": [
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw DBuffer.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw Opaque Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw Transparent Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw UIToolkit/u GUI Overlay.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Copy DBuffer Depth.",
+                                "isCompatible": false
+                            }
+                        ]
+                    },
+                    "mergedPassIds": [
+                        7
+                    ]
+                }
+            },
+            {
+                "rid": 1038,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge DrawOpaqueObjects into this native pass.\nThe next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
+                    "attachmentInfos": [
+                        {
+                            "resourceName": "DBufferDepth",
+                            "loadReason": "The pass indicated it will rewrite the full resource contents. Existing contents are not loaded or cleared.",
+                            "storeReason": "The resource is written by this pass but no later passes are using the results. The data is discarded.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 0,
+                            "attachment": {
+                                "loadAction": 2,
+                                "storeAction": 3,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "_DBufferTexture0",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 1,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "_DBufferTexture1",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 2,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "_DBufferTexture2",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 3,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        }
+                    ],
+                    "passCompatibility": {
+                        "m_Keys": [
+                            7,
+                            9,
+                            8,
+                            10,
+                            13,
+                            15
+                        ],
+                        "m_Values": [
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Copy DBuffer Depth.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw DBuffer uses a different depth buffer than Draw Opaque Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw DBuffer uses a different depth buffer than Draw Transparent Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw DBuffer uses a different depth buffer than Draw UIToolkit/u GUI Overlay.",
+                                "isCompatible": false
+                            }
+                        ]
+                    },
+                    "mergedPassIds": [
+                        8,
+                        9
+                    ]
+                }
+            },
+            {
+                "rid": 1039,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge BlitFinalToBackBuffer into this native pass.\nThe next pass reads data output by this pass as a regular texture.",
+                    "attachmentInfos": [
+                        {
+                            "resourceName": "_CameraDepthAttachment",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>Draw UIToolkit/uGUI Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 0,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "_CameraTargetAttachment",
+                            "loadReason": "The resource is created in this pass and cleared on first use.",
+                            "storeReason": "The resource is read by pass <b>BlitFinalToBackBuffer</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 1,
+                            "attachment": {
+                                "loadAction": 1,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        }
+                    ],
+                    "passCompatibility": {
+                        "m_Keys": [
+                            9,
+                            7,
+                            11,
+                            12,
+                            10,
+                            13,
+                            14,
+                            15
+                        ],
+                        "m_Values": [
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw DBuffer uses a different depth buffer than Draw Opaque Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw Opaque Objects.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Transparent Objects output is sampled by Blit Final To Back Buffer as a regular texture, the pass needs to break.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses can be merged but are not recorded consecutively.",
+                                "isCompatible": true
+                            }
+                        ]
+                    },
+                    "mergedPassIds": [
+                        10,
+                        11,
+                        12,
+                        13
+                    ]
+                }
+            },
+            {
+                "rid": 1040,
+                "type": {
+                    "class": "RenderGraph/DebugData/PassData/NRPInfo/NativeRenderPassInfo",
+                    "ns": "UnityEngine.Rendering.RenderGraphModule",
+                    "asm": "Unity.RenderPipelines.Core.Runtime"
+                },
+                "data": {
+                    "passBreakReasoning": "Failed to merge Draw IMGUI/SoftwareCursor Overlay into this native pass.\nThe next pass is not a raster render pass.",
+                    "attachmentInfos": [
+                        {
+                            "resourceName": "_CameraDepthAttachment",
+                            "loadReason": "The resource is written by <b>DrawOpaqueObjects</b> executed previously in the graph. The data is loaded.",
+                            "storeReason": "The resource is written by this pass but no later passes are using the results. The data is discarded.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 0,
+                            "attachment": {
+                                "loadAction": 0,
+                                "storeAction": 3,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        },
+                        {
+                            "resourceName": "Backbuffer color",
+                            "loadReason": "The resource is imported in the graph and loaded to retrieve the existing buffer contents.",
+                            "storeReason": "The resource is read by pass <b>Draw IMGUI/SoftwareCursor Overlay</b> executed later in the graph. The data is stored.",
+                            "storeMsaaReason": "",
+                            "attachmentIndex": 1,
+                            "attachment": {
+                                "loadAction": 0,
+                                "storeAction": 0,
+                                "memoryless": false,
+                                "mipLevel": 0,
+                                "depthSlice": -1
+                            }
+                        }
+                    ],
+                    "passCompatibility": {
+                        "m_Keys": [
+                            13,
+                            15,
+                            14,
+                            7,
+                            9,
+                            16
+                        ],
+                        "m_Values": [
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Transparent Objects output is sampled by Blit Final To Back Buffer as a regular texture, the pass needs to break.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>compatible</b> to be merged.\n\nPasses are merged.",
+                                "isCompatible": true
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw Depth Normal Prepass uses a different depth buffer than Draw UIToolkit/u GUI Overlay.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass writes to a resource that is read by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw DBuffer uses a different depth buffer than Draw UIToolkit/u GUI Overlay.",
+                                "isCompatible": false
+                            },
+                            {
+                                "message": "This pass reads a resource that is written to by the currently selected pass.\n\nThe passes are <b>incompatible</b> to be merged.\n\nDraw UIToolkit/u GUI Overlay is type Raster. Only Raster passes can be merged.",
+                                "isCompatible": false
+                            }
+                        ]
+                    },
+                    "mergedPassIds": [
+                        14,
+                        15
+                    ]
+                }
+            }
+        ]
+    }
+}

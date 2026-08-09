@@ -57,6 +57,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Sets a pre-constructed debug session as the current session.
+        /// Ends any existing session before setting the new one.
+        /// Useful for tests and loading serialized sessions.
+        /// </summary>
+        /// <param name="session">The session instance to set as current.</param>
+        public static void BeginSession(IRenderGraphDebugSession session)
+        {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
+
+            EndSession();
+            s_CurrentDebugSession = session;
+        }
+
+        /// <summary>
         /// Ends the current debug session and disposes of its resources.
         /// </summary>
         public static void EndSession()
@@ -86,7 +101,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>List of executions, or empty list if no session active.</returns>
         public static List<DebugExecutionItem> GetExecutions(string graphName)
         {
-            return s_CurrentDebugSession == null ? s_EmptyExecutions : s_CurrentDebugSession.GetExecutions(graphName);
+            return string.IsNullOrEmpty(graphName) || s_CurrentDebugSession == null ? s_EmptyExecutions : s_CurrentDebugSession.GetExecutions(graphName);
         }
 
         /// <summary>

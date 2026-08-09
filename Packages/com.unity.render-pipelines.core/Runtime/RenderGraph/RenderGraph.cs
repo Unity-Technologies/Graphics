@@ -415,8 +415,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
         }
 
-        /// <summary>If true, the Render Graph Viewer is active.</summary>
-        public static bool isRenderGraphViewerActive => RenderGraphDebugSession.hasActiveDebugSession;
+        /// <summary>If true, the Render Graph Viewer is active (not considered in release mode).</summary>
+        public static bool isRenderGraphViewerActive =>
+#if UNITY_ENABLE_CHECKS
+            RenderGraphDebugSession.hasActiveDebugSession;
+#else
+            false;
+#endif
 
         /// <summary>If true, the Render Graph will run its various validity checks while processing (not considered in release mode).</summary>
         internal static bool enableValidityChecks { get; private set; }

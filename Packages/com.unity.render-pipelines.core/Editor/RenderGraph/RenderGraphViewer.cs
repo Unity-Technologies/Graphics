@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     [MovedFrom("")]
     [CoreRPHelpURL(packageName: "com.unity.render-pipelines.universal", pageName: "render-graph-view")]
-    public partial class RenderGraphViewer : EditorWindowWithHelpButton
+    public partial class RenderGraphViewer : EditorWindowWithHelpButton, IHasCustomMenu
     {
         internal static partial class Names
         {
@@ -1081,20 +1081,18 @@ namespace UnityEditor.Rendering
 
         void UpdateSelectedGraphAndExecution()
         {
-            m_ExecutionItems = RenderGraphDebugSession.GetExecutions(m_SelectedRenderGraph);
-
-            var renderGraphDropdownField = rootVisualElement.Q<DropdownField>(Names.kCurrentGraphDropdown);
-
-            // Update selected render graph
             var graphs = RenderGraphDebugSession.GetRegisteredGraphs();
+            var renderGraphDropdownField = rootVisualElement.Q<DropdownField>(Names.kCurrentGraphDropdown);
             if (graphs.Count == 0 || renderGraphDropdownField == null)
             {
                 m_SelectedRenderGraph = null;
+                m_ExecutionItems = RenderGraphDebugSession.GetExecutions(m_SelectedRenderGraph); // will return a valid reference but with 0 elements
                 SetSelectedExecutionIndex(-1);
                 return;
             }
 
-            m_SelectedRenderGraph = graphs[0];
+            m_SelectedRenderGraph = graphs.Contains(m_SelectedRenderGraph) ? m_SelectedRenderGraph : graphs[0];
+            m_ExecutionItems = RenderGraphDebugSession.GetExecutions(m_SelectedRenderGraph);
             renderGraphDropdownField.choices = graphs;
             renderGraphDropdownField.value = m_SelectedRenderGraph;
 
@@ -1334,11 +1332,13 @@ namespace UnityEditor.Rendering
         VisualElement CreatePassListItem(int passId, RenderGraph.DebugData.PassData pass, int visiblePassIndex)
         {
             var passListItem = new VisualElement();
+            passListItem.name = pass.name;
             passListItem.AddToClassList(Classes.kPassListItem);
             passListItem.pickingMode = PickingMode.Ignore;
             passListItem.style.left = visiblePassIndex * kPassWidthPx;
 
             var passTitle = new PassTitleLabel(pass.name);
+            passTitle.name = pass.name;
             passTitle.tooltip = pass.name;
             passTitle.AddToClassList(Classes.kPassTitle);
             passTitle.RegisterCallback<GeometryChangedEvent>(TruncatePassTitle);
@@ -1380,6 +1380,10 @@ namespace UnityEditor.Rendering
                 }
 
                 passMergeIndicator.style.width = width;
+            }
+            else
+            {
+                passMergeIndicator.style.visibility = Visibility.Hidden;
             }
 
             passListItem.Add(passMergeIndicator);
@@ -1449,6 +1453,7 @@ namespace UnityEditor.Rendering
         {
             var resourceListItem = new VisualElement();
             resourceListItem.AddToClassList(Classes.kResourceListItem);
+            resourceListItem.name = res.name;
 
             var resourceTitleContainer = new VisualElement();
             resourceTitleContainer.Add(CreateResourceTypeIcon(type, res.memoryless));
@@ -1505,7 +1510,7 @@ namespace UnityEditor.Rendering
             return -1;
         }
 
-        void CreateRWResourceBlockElement(int offsetPx, ResourceRWBlock block)
+        void CreateRWResourceBlockElement(int offsetPx, ResourceRWBlock block, string passName = null, string resourceName = null)
         {
             string accessType = null;
             if (block.read && block.write)
@@ -1531,6 +1536,12 @@ namespace UnityEditor.Rendering
                     block.element.AddToClassList(Classes.kResourceDependencyBlockWrite);
                     accessType = "Write";
                 }
+            }
+
+            // Tag element with pass and resource names for test automation
+            if (!string.IsNullOrEmpty(passName) && !string.IsNullOrEmpty(resourceName))
+            {
+                block.element.name = $"{passName}_{resourceName}_block";
             }
 
             string tooltip = string.Empty;
@@ -1797,7 +1808,8 @@ namespace UnityEditor.Rendering
                         continue; // No need to create a visual element
 
                     int offsetPx = visiblePassIndex * kPassWidthPx;
-                    CreateRWResourceBlockElement(offsetPx, block);
+                    var passName = m_CurrentDebugData.passList[passId].name;
+                    CreateRWResourceBlockElement(offsetPx, block, passName, res.name);
                     block.visibleResourceIndex = visibleResourceIndex;
                     row.Add(block.element);
                     m_PassElementsInfo[visiblePassIndex].resourceBlocks.Add(block);
@@ -2257,6 +2269,20 @@ namespace UnityEditor.Rendering
             OnRegisteredGraphsChanged();
         }
 
+        internal void ConnectDebugSession(IRenderGraphDebugSession session)
+        {
+            // If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the connection changes
+            OnRegisteredGraphsChangedInternal(session?.isPaused ?? false);
+
+            DisconnectDebugSession();
+
+            RenderGraphDebugSession.BeginSession(session);
+            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
+            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+
+            OnRegisteredGraphsChanged();
+        }
+
         void DisconnectDebugSession()
         {
             if (RenderGraphDebugSession.currentDebugSession == null)
@@ -2272,6 +2298,43 @@ namespace UnityEditor.Rendering
 
             UpdateStatusLabel();
             ClearGraphViewerUI();
+        }
+
+        void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
+        {
+            if (Unsupported.IsDeveloperMode())
+            {
+                menu.AddItem(new GUIContent("Export Debug Session..."), false, ExportDebugSessionForTests);
+            }
+        }
+
+        void ExportDebugSessionForTests()
+        {
+            if (!RenderGraphDebugSession.hasActiveDebugSession)
+            {
+                Debug.LogWarning("No active debug session found. Please render a frame first.");
+                return;
+            }
+
+            string defaultPath = System.IO.Path.Combine(Application.dataPath, $"{nameof(RenderGraphDebugSession)}_{System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.json");
+            string path = EditorUtility.SaveFilePanel("Export Debug Session",
+                System.IO.Path.GetDirectoryName(defaultPath),
+                System.IO.Path.GetFileName(defaultPath),
+                "json");
+
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            try
+            {
+                SerializedRenderGraphDebugSession.Export(RenderGraphDebugSession.currentDebugSession, path);
+                Debug.Log($"Debug session exported successfully to: {path}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to export debug session: {ex.Message}");
+                Debug.LogException(ex);
+            }
         }
     }
 

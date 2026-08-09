@@ -8,17 +8,34 @@ namespace UnityEngine.Rendering.RenderGraphModule
 {
     public partial class RenderGraph
     {
+        [Serializable]
         // Convenience class that wraps execution id and name for display purposes
-        internal class DebugExecutionItem
+        internal class DebugExecutionItem : ISerializationCallbackReceiver
         {
-            public EntityId id { get; }
+            [SerializeField]
+            private ulong m_EntityId = 0;
 
-            public string name { get; }
+            public EntityId id { get; private set; }
+
+            [SerializeField]
+            private string m_Name = string.Empty;
+
+            public string name => m_Name;
 
             public DebugExecutionItem(EntityId id, string name)
             {
                 this.id = id;
-                this.name = name;
+                m_Name = name;
+            }
+
+            void ISerializationCallbackReceiver.OnBeforeSerialize()
+            {
+                m_EntityId = EntityId.ToULong(id);
+            }
+
+            void ISerializationCallbackReceiver.OnAfterDeserialize()
+            {
+                id = EntityId.FromULong(m_EntityId);
             }
         }
 

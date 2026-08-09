@@ -19,6 +19,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         void SetDebugData(string renderGraph, EntityId executionId, DebugData data);
         void DeleteExecutionIds(string renderGraph, List<EntityId> executionIds);
 
+        /// <summary>
+        /// Gets the underlying debug data container for serialization.
+        /// </summary>
+        DebugDataContainer debugDataContainer { get; }
+
         event Action onRegisteredGraphsChanged;
         event Action<string, EntityId> onDebugDataUpdated;
         event Action<bool> onPausedStateChanged;

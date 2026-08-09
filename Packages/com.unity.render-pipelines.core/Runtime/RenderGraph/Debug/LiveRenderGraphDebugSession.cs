@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 data.captureTimestamp = $"{DateTime.Now:HH:mm:ss}";
             }
 
-            
+
             container.SetDebugData(renderGraph, executionId, data);
             onDebugDataUpdated?.Invoke(renderGraph, executionId);
         }
@@ -110,6 +110,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             container.DeleteExecutionIds(renderGraph, executionIds);
             onRegisteredGraphsChanged?.Invoke();
         }
+
+        public DebugDataContainer debugDataContainer => container;
 
         // Events
         public event Action onRegisteredGraphsChanged;

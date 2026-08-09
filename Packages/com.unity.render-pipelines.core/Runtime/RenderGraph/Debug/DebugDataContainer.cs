@@ -7,10 +7,41 @@ namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Container for RenderGraph debug data. Stores debug data for multiple render graphs and their executions.
+    /// Uses dual representation: Dictionary for runtime, List for JSON serialization.
     /// </summary>
-    internal class DebugDataContainer
+    [Serializable]
+    internal class DebugDataContainer : ISerializationCallbackReceiver
     {
+        // Serialized representation for JSON
+        [SerializeField]
+        private List<GraphData> m_SerializedGraphs = new();
+
+        // Runtime representation (not serialized to JSON, rebuilt from list)
+        [NonSerialized]
         private Dictionary<string, Dictionary<EntityId, DebugData>> m_Container = new();
+
+        [Serializable]
+        internal class GraphData
+        {
+            public string graphName;
+            public List<ExecutionData> executions = new();
+        }
+
+        [Serializable]
+        internal class ExecutionData
+        {
+            [SerializeField]
+            private ulong m_ExecutionId;
+
+            public EntityId executionId
+            {
+                get => EntityId.FromULong(m_ExecutionId);
+                set => m_ExecutionId = EntityId.ToULong(value);
+            }
+
+            public string executionName;
+            public DebugData debugData;
+        }
 
         /// <summary>
         /// Adds a new render graph to the container.
@@ -123,6 +154,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Gets the internal container with all debug data.
+        /// </summary>
+        /// <returns>Dictionary mapping graph names to their execution data.</returns>
+        public Dictionary<string, Dictionary<EntityId, DebugData>> GetAllData()
+        {
+            return m_Container;
+        }
+
+        /// <summary>
         /// Clears all data from the container.
         /// </summary>
         public void Clear()
@@ -139,6 +179,49 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 foreach (var (cam, debugData) in dict)
                     debugData.Clear();
+            }
+        }
+
+        // ISerializationCallbackReceiver implementation
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            // Convert dictionary → list before JSON serialization
+            m_SerializedGraphs.Clear();
+            foreach (var (graphName, executions) in m_Container)
+            {
+                var graphData = new GraphData { graphName = graphName };
+                foreach (var (execId, debugData) in executions)
+                {
+                    // Only serialize valid debug data
+                    if (debugData != null && debugData.valid)
+                    {
+                        graphData.executions.Add(new ExecutionData
+                        {
+                            executionId = execId,
+                            executionName = debugData.executionName,
+                            debugData = debugData
+                        });
+                    }
+                }
+
+                if (graphData.executions.Count > 0)
+                    m_SerializedGraphs.Add(graphData);
+            }
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            // Rebuild dictionary from list after JSON deserialization
+            m_Container = new Dictionary<string, Dictionary<EntityId, DebugData>>();
+
+            foreach (var graph in m_SerializedGraphs)
+            {
+                var execDict = new Dictionary<EntityId, DebugData>();
+                foreach (var exec in graph.executions)
+                {
+                    execDict[exec.executionId] = exec.debugData;
+                }
+                m_Container[graph.graphName] = execDict;
             }
         }
     }
