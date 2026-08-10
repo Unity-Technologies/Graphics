@@ -24,33 +24,6 @@ EditorBuildSettings:
     path: Assets/Scenes/076_Dithering.unity
     guid: 49c136c02b1ebe640834a557f6baeef3
   - enabled: 1
-    path: Assets/Scenes/077_GradingChannelMixerLDR.unity
-    guid: e4d45947c95a67a41b393c5fe823891b
-  - enabled: 1
-    path: Assets/Scenes/079_GradingColorAdjustmentsLDR.unity
-    guid: d37e4ef718eada94db246dbd8ef33205
-  - enabled: 1
-    path: Assets/Scenes/081_GradingColorCurvesLDR.unity
-    guid: c4dab86134e72034aac45c19df32ceb7
-  - enabled: 1
-    path: Assets/Scenes/083_GradingLiftGammaGainLDR.unity
-    guid: 61718ed79ced0044fbfabd6ef7861a15
-  - enabled: 1
-    path: Assets/Scenes/085_GradingShadowsMidtonesHighlightsLDR.unity
-    guid: b8fbc679adfaed54ea1d4121a8564c81
-  - enabled: 1
-    path: Assets/Scenes/087_GradingSplitToningLDR.unity
-    guid: 9e7523551cb924341a7dd2c98d773076
-  - enabled: 1
-    path: Assets/Scenes/089_GradingWhiteBalanceLDR.unity
-    guid: 507fe0226a0388c4898d134f829a4b28
-  - enabled: 1
-    path: Assets/Scenes/091_TonemappingNeutralLDR.unity
-    guid: d0fe400c29908d94e9cd70045224370d
-  - enabled: 1
-    path: Assets/Scenes/093_TonemappingACESLDR.unity
-    guid: 46788dd77b1c63144b05ad4e2bbe58d5
-  - enabled: 1
     path: Assets/Scenes/095_CameraMotionBlur.unity
     guid: 9e498e31909a6427582110fd758d2f9d
   - enabled: 1
