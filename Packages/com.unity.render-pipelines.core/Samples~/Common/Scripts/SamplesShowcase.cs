@@ -41,6 +41,9 @@ public partial class SamplesShowcase : MonoBehaviour
     public GameObject[] samplesPrefabs;
     public Mode PresentationMode = Mode.TextOnly;
     public bool enableSelectButton = true;
+    // Use arrow keys to switch prefabs in instantiation or focus mode
+    public bool useArrowsToSwitchPrefabs = true;
+    public bool loadPreviousPrefabPosition = true;
     public int currentIndex;
     public GameObject currentPrefab;
     int prefabIndex;
@@ -119,32 +122,35 @@ public partial class SamplesShowcase : MonoBehaviour
     {
         if (PresentationMode != Mode.TextOnly)
         {
-            //Controls in GameMode
-            if (Application.isFocused && Application.isPlaying)
+            if (useArrowsToSwitchPrefabs)
             {
+                //Controls in GameMode
+                if (Application.isFocused && Application.isPlaying)
+                {
 #if ENABLE_LEGACY_INPUT_MANAGER
-                if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) )
-                {
-                    SwitchEffect(currentIndex+1);
-                }
-                if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.DownArrow) )
-                {
-                    SwitchEffect(currentIndex-1);
-                }
+                    if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) )
+                    {
+                        SwitchEffect(currentIndex+1);
+                    }
+                    if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.DownArrow) )
+                    {
+                        SwitchEffect(currentIndex-1);
+                    }
 #endif
 
 #if USE_INPUT_SYSTEM
-                if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
-                {
-                    SwitchEffect(currentIndex+1);
-                } 
-                
-                if(Keyboard.current.leftArrowKey.wasPressedThisFrame ||Keyboard.current.downArrowKey.wasPressedThisFrame)
-                {
-                    SwitchEffect(currentIndex-1);
-                }           
+                    if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
+                    {
+                        SwitchEffect(currentIndex + 1);
+                    }
+
+                    if (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
+                    {
+                        SwitchEffect(currentIndex - 1);
+                    }
 #endif
 
+                }
             }
 
             if (needUpdate)
@@ -189,8 +195,11 @@ public partial class SamplesShowcase : MonoBehaviour
                         prefabIndex = index;
                         
                         // This is for keeping the prefab at the same position as before
-                        instantiatedPrefab.transform.position = savedPrefabPosition;
-                            
+                        if(loadPreviousPrefabPosition)
+                            instantiatedPrefab.transform.position = savedPrefabPosition;
+                        else
+                            instantiatedPrefab.transform.localPosition = Vector3.zero;
+
                     }
                 }    
             break;

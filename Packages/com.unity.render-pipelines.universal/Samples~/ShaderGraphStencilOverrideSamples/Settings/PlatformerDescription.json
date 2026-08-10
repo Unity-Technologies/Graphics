@@ -1,0 +1,70 @@
+{
+    "introduction": 
+	"""Welcome to the collection of <b>Stencil Shader Graph Samples</b>.
+This scene demonstrates how the Stencil feature in Shader Graph can be used in a platformer-style environment.
+
+There are four versions of the cube prefab, each one building on the previous version and introducing more advanced techniques.
+You can cycle through each version of the prefab using the << and >> buttons below.""",
+    "samples": [
+        {
+            "title": "1. Cube Overlay Full White",
+            "prefabName": "1. Cube Overlay Full White",
+            "description": 
+	"""This first version is the simplest and does not use the <b>Stencil</b> feature at all.
+
+The parent cube renders normally.
+
+The parent cube has a child <link="OverlayRGB - No Outline">OverlayRGB - No Outline</link> with an Unlit <link="CubeOverlay - No Outline - Read 7 (RGB).mat">material</link> that uses <b>Greater</b> as its depth test. This causes the overlay to render on top of other geometry when the depth test fails, and to not render when the depth test passes.
+
+This behavior is the inverse of the default <b>Less Equal</b> depth test."""
+        },
+        {
+            "title": "2. Cube Overlay Outline White",
+            "prefabName": "2. Cube Overlay Outline White",
+            "description": 
+	"""In this version, the <link="OccluderWhite">occluders</link> write a value other than 0 to the stencil buffer.
+
+The parent cube writes 0 to the stencil buffer, but it does so after the occluders have written their values. 
+As a result, the stencil buffer contains non-zero values where the occluders are, with a hole exactly where the cube is located.
+
+The parent cube has a child <link="OverlayRGB - Outline">OverlayRGB - Outline</link> with an Unlit <link="CubeOverlay - Outline - Read 7 (RGB).mat">material</link> that slightly pushes each vertex outward, making it larger than the cube itself.
+
+Using the stencil feature, this material renders <b>only</b> where the stencil value is <b>NOT</b> equal to 0, leaving a thin outline exactly around the cube.
+    """
+        },
+        {
+            "title": "3. Cube Overlay Outline RGB",
+            "prefabName": "3. Cube Overlay Outline RGB",
+            "description": 
+	"""In this version, the first three bits of the stencil buffer are reserved, one for each color channel (R, G, and B). Each type of occluder uses a different material to write to its own bit in the stencil buffer, affecting only that bit via a <b>Write Mask</b>: 
+    • <color=#ff4040>Red</color> <link="OccluderR">occluders</link> write 1, with a <b>Write Mask</b> of 1 (<i>1000 in binary</i>)
+    • <color=#80ff00>Greens</color> <link="OccluderG">occluders</link> write 2, with a <b>Write Mask</b> of 2 (<i>0100 in binary</i>)
+    • <color=#0080ff>Blues</color> <link="OccluderB">occluders</link> write 4, with a <b>Write Mask</b> of 4 (<i>0010 in binary</i>)
+    • <color=white>Whites</color> <link="OccluderWhite">occluders</link> write 7 (1 + 2 + 4), with a <b>Write Mask</b> of 7 (</i>1110 in binary</i>)
+
+The parent cube now has three children, one for each color channel (RGB). Each child renders transparently and additively on top of the others. Each child reads the stencil buffer only at its assigned bit, using a <b>Read Mask</b>:
+    • <link="OverlayR">OverlayR</link> only renders when reading 1, with a <b>Read Mask</b> of 1 (<i>1000 in binary</i>)
+    • <link="OverlayG">OverlayG</link> only renders when reading 2, with a <b>Read Mask</b> of 2 (<i>0100 in binary</i>)
+    • <link="OverlayB">OverlayB</link> only renders when reading 4, with a <b>Read Mask</b> of 4 (<i>0010 in binary</i>)
+
+    Each occluder writes to its own bit, and each colored overlay reads only that bit. 
+    Because the overlays render additively, the final outline color is a combination of the occluders currently affecting the cube thin outline.
+    """
+        },
+        {
+            "title": "4. Cube Overlay Outline RGB - Visibility",
+            "prefabName": "4. Cube Parent",
+            "description": 
+	"""This final version makes use of the last remaining stencil bit, the fourth bit, to implement a visibility mask similar to a <i>fog of war</i> effect.
+
+A new child is added to the parent cube: <link="Visibility">Visibility</link>.
+This child uses a transparent <link="SpotlightWarStencilWrite.mat">material</link> that writes only to the fourth stencil bit, marking the areas of the scene that are currently visible. 
+This shader uses dithering to simulate gradual transparency while still relying on alpha clipping, since the stencil can only store 0 or 1 values.
+
+In addition, a separate object is introduced: a large quad, <link="Occluder For Visibility">Occluder For Visibility</link> that covers the entire screen. This quad uses a <link="SpotlightWarStencillRead.mat">material</link> that renders only where the fourth stencil bit is set to 0, effectively darkening all areas that have not been marked as visible.
+
+Together, these elements use the stencil buffer to clearly separate visible and non-visible areas of the scene."""
+        }
+    ]	
+}
+

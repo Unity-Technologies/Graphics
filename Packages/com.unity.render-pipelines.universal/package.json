@@ -35,6 +35,14 @@
         "com.unity.render-pipelines.core/Samples~/Common",
         "com.unity.render-pipelines.core/Samples~/RendererShaderUserValue_Common"
       ]
+    },
+	  {
+      "displayName": "Shader Graph Stencil Override Samples",
+      "description": "Adds a set of examples using Shader Graph Stencil Override feature.",
+      "path": "Samples~/ShaderGraphStencilOverrideSamples",
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common"
+      ]
     }
   ]
 }
