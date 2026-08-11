@@ -214,9 +214,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         NativeArray<ushort> m_stencilVisLights;
         // Offset of each type of lights in m_stencilVisLights.
         NativeArray<ushort> m_stencilVisLightOffsets;
-        // Needed to access light shadow index (can be null if the pass is not queued).
-        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
-
         // For rendering stencil point lights.
         Mesh m_SphereMesh;
         // For rendering stencil spot lights.
@@ -461,12 +458,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GBuffer slice count can change depending actual geometry/light being rendered.
             // For instance, we only bind shadowMask RT if the scene supports mix lighting and at least one visible light has subtractive mixed ligting mode.
             return this.GBufferSliceCount <= SystemInfo.supportedRenderTargetCount && !DeferredConfig.IsOpenGL && !DeferredConfig.IsDX10;
-        }
-
-        // Only used by RenderGraph now as the other Setup call requires providing target handles which isn't working on RG
-        internal void Setup(AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass)
-        {
-            m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)
@@ -794,25 +785,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
                 bool hasLightCookieManager = m_LightCookieManager != null;
-                bool hasAdditionalLightPass = m_AdditionalLightsShadowCasterPass != null;
-
                 if (HasStencilLightsOfType(LightType.Directional))
-                    RenderStencilDirectionalLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager, lightData.mainLightIndex);
+                    RenderStencilDirectionalLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager, lightData.mainLightIndex);
 
                 if (lightData.supportsAdditionalLights)
                 {
                     if (HasStencilLightsOfType(LightType.Point))
-                        RenderStencilPointLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
+                        RenderStencilPointLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager);
 
                     if (HasStencilLightsOfType(LightType.Spot))
-                        RenderStencilSpotLights(cmd, lightData, shadowData, visibleLights, hasAdditionalLightPass, hasLightCookieManager);
+                        RenderStencilSpotLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager);
                 }
             }
 
             Profiler.EndSample();
         }
 
-        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager, int mainLightIndex)
+        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager, int mainLightIndex)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -858,7 +847,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isMainLight = visLightIndex == mainLightIndex;
                 if (!isMainLight)
                 {
-                    int shadowLightIndex = hasAdditionalLightPass ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+                    int shadowLightIndex = AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(shadowData, visLightIndex);
                     hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                     SetLightCookiesKeyword(cmd, visLightIndex, hasLightCookieManager, isFirstAdditionalLight, ref lastLightCookieKeywordState, ref lastLightCookieIndex);
@@ -890,7 +879,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, false);
         }
 
-        void RenderStencilPointLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
+        void RenderStencilPointLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -931,7 +920,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 // Determine whether the light is casting shadows and what the index it should use.
-                int shadowLightIndex = hasAdditionalLightPass ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+                int shadowLightIndex = AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(shadowData, visLightIndex);
                 bool hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
 
                 // Update keywords states
@@ -960,7 +949,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._POINT, false);
         }
 
-        void RenderStencilSpotLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasAdditionalLightPass, bool hasLightCookieManager)
+        void RenderStencilSpotLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager)
         {
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
@@ -1000,7 +989,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 // Determine whether the light is casting shadows and what the index it should use.
-                int shadowLightIndex = hasAdditionalLightPass ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+                int shadowLightIndex = AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(shadowData, visLightIndex);
                 bool hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
 
                 // Update keywords states

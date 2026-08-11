@@ -466,6 +466,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (AnyAdditionalLightHasMixedShadows(lightData))
                     return SetupForEmptyRendering(cameraData.renderer.stripShadowsOffVariants, shadowsEnabled, lightData, shadowData);
 
+                SetShadowLightIndexMapping(shadowData);
                 return false;
             }
 
@@ -475,7 +476,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Skip the shadow map setup below if using the cached shadow map
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (shadowData.useCachedShadowMap)
+            {
+                SetShadowLightIndexMapping(shadowData);
                 return true;
+            }
 #endif
 
             Clear();
@@ -599,10 +603,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Light light = visibleLight.light;
                 if (light == null)
                     break;
+                light.TryGetComponent(out UniversalAdditionalLightData additionalLightData);
 
                 LightType lightType = visibleLight.lightType;
                 bool usesBakedShadows = UsesBakedShadows(light);
                 float lightTypeIdentifierForShadowParams = GetLightTypeIdentifierForShadowParams(lightType);
+                Vector4 shadowParams = ShadowUtils.GetAdditionalLightShadowParams(light, additionalLightData, (supportsSoftShadows && light.shadows == LightShadows.Soft), lightTypeIdentifierForShadowParams, 0);
                 int perLightShadowSlicesCount = ShadowUtils.GetPunctualLightShadowSlicesCount(lightType);
                 bool isValidShadowCastingLight = ShadowUtils.IsValidShadowCastingLight(lightData, visibleLightIndex, visibleLight.lightType, light.shadows, light.shadowStrength);
                 if (isValidShadowCastingLight && (m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount)
@@ -616,7 +622,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     break;
                 }
 
-                float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && light.shadows == LightShadows.Soft));
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
                 bool shouldAddLight = false;
                 for (byte perLightShadowSlice = 0; perLightShadowSlice < perLightShadowSlicesCount; ++perLightShadowSlice)
@@ -633,7 +638,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // This check is to make sure we only update this for spot and point lights.
                         if (usesBakedShadows && lightTypeIdentifierForShadowParams > -1)
                         {
-                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightTypeIdentifierForShadowParams, lightIndexToUse);
+                            shadowParams.w = lightIndexToUse;
+                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
                             m_VisibleLightIndexToIsCastingShadows[visibleLightIndex] = usesBakedShadows;
                         }
                         continue;
@@ -658,7 +664,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             m_ShadowSliceToAdditionalLightIndex.Add(lightIndexToUse);
                             m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                             m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceData.shadowTransform;
-                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightTypeIdentifierForShadowParams, perLightFirstShadowSliceIndex);
+                            shadowParams.w = perLightFirstShadowSliceIndex;
+                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
                             shouldAddLight = true;
                         }
                     }
@@ -676,7 +683,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             m_ShadowSliceToAdditionalLightIndex.Add(lightIndexToUse);
                             m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                             m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceData.shadowTransform;
-                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightTypeIdentifierForShadowParams, perLightFirstShadowSliceIndex);
+                            shadowParams.w = perLightFirstShadowSliceIndex;
+                            m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
                             shouldAddLight = true;
                         }
                     }
@@ -692,7 +700,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     m_VisibleLightIndexToIsCastingShadows[visibleLightIndex] = usesBakedShadows;
-                    m_AdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightTypeIdentifierForShadowParams, c_DefaultShadowParams.w);
+                    shadowParams.w = c_DefaultShadowParams.w;
+                    m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
                 }
             }
 
@@ -753,7 +762,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
             m_CreateEmptyShadowmap = false;
+            SetShadowLightIndexMapping(shadowData);
             return true;
+        }
+
+        void SetShadowLightIndexMapping(UniversalShadowData shadowData)
+        {
+            shadowData.visibleLightIndexToAdditionalLightIndex = m_VisibleLightIndexToAdditionalLightIndex;
+            shadowData.visibleLightIndexToIsCastingShadows = m_VisibleLightIndexToIsCastingShadows;
         }
 
         private void UpdateTextureDescriptorIfNeeded()
@@ -795,7 +811,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool SetupForEmptyRendering(bool stripShadowsOffVariants, bool shadowsEnabled, UniversalLightData lightData, UniversalShadowData shadowData)
         {
             if (!stripShadowsOffVariants)
+            {
+                SetShadowLightIndexMapping(shadowData);
                 return false;
+            }
 
             shadowData.isKeywordAdditionalLightShadowsEnabled = true;
             m_CreateEmptyShadowmap = true;
@@ -851,8 +870,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     bool lightHasSoftShadows = shadows != LightShadows.Soft;
                     bool supportsSoftShadows = shadowData.supportsSoftShadows;
-                    float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && lightHasSoftShadows));
-                    s_EmptyAdditionalLightIndexToShadowParams[lightIndexToUse] = new Vector4(light.shadowStrength, softShadows, lightType, c_DefaultShadowParams.w);
+                    s_EmptyAdditionalLightIndexToShadowParams[lightIndexToUse] = ShadowUtils.GetAdditionalLightShadowParams(light, (supportsSoftShadows && lightHasSoftShadows), lightType, (int)c_DefaultShadowParams.w);
                 }
                 else
                 {
@@ -863,6 +881,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_VisibleLightIndexToIsCastingShadows[visibleLightIndex] = UsesBakedShadows(light);
             }
 
+            SetShadowLightIndexMapping(shadowData);
             return true;
         }
 
@@ -873,10 +892,22 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <returns>The additional light index.</returns>
         public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
-            if (visibleLightIndex < 0 || visibleLightIndex >= m_VisibleLightIndexToAdditionalLightIndex.Length || !m_VisibleLightIndexToIsCastingShadows[visibleLightIndex])
+            return GetShadowLightIndexFromLightIndex(m_VisibleLightIndexToAdditionalLightIndex, m_VisibleLightIndexToIsCastingShadows, visibleLightIndex);
+        }
+
+        internal static int GetShadowLightIndexFromLightIndex(UniversalShadowData shadowData, int visibleLightIndex)
+        {
+            return GetShadowLightIndexFromLightIndex(shadowData.visibleLightIndexToAdditionalLightIndex, shadowData.visibleLightIndexToIsCastingShadows, visibleLightIndex);
+        }
+
+        static int GetShadowLightIndexFromLightIndex(short[] visibleLightIndexToAdditionalLightIndex, bool[] visibleLightIndexToIsCastingShadows, int visibleLightIndex)
+        {
+            if (visibleLightIndexToAdditionalLightIndex == null
+                || visibleLightIndex < 0 || visibleLightIndex >= visibleLightIndexToAdditionalLightIndex.Length
+                || !visibleLightIndexToIsCastingShadows[visibleLightIndex])
                 return -1;
 
-            return m_VisibleLightIndexToAdditionalLightIndex[visibleLightIndex];
+            return visibleLightIndexToAdditionalLightIndex[visibleLightIndex];
         }
 
         private void Clear()

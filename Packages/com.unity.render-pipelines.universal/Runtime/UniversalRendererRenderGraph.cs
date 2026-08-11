@@ -914,19 +914,17 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
-            {
-                resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
-            }
+            shadowData.shadowPassGroup = m_ShadowPassGroup;
+            m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, allowCachedShadowMap: false, shadowmapStencil: shadowmapStencil);
+            m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, allowCachedShadowMap: false, shadowmapStencil: shadowmapStencil);
 
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
-            {
-                resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
-            }
+            if (m_ShadowPassGroup.isMainLightShadowCasting)
+                resourceData.mainShadowsTexture = m_ShadowPassGroup.mainLightShadowmapTexture;
+
+            if (m_ShadowPassGroup.isAdditionalLightShadowCasting)
+                resourceData.additionalShadowsTexture = m_ShadowPassGroup.additionalLightShadowmapTexture;
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
@@ -948,41 +946,22 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
 
+            shadowData.shadowPassGroup = m_ShadowPassGroup;
+
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
-            bool renderShadows = false;
+            m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil: shadowmapStencil);
+            m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil: shadowmapStencil);
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
-            {
-                renderShadows = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (shadowData.useCachedShadowMap)
-                {
-                    resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.FetchShadowMapAndSetParameters(renderGraph, frameData);
-                }
-                else
-#endif
-                {
-                    resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
-                }
-            }
+            if (m_ShadowPassGroup.isMainLightShadowCasting)
+                resourceData.mainShadowsTexture = m_ShadowPassGroup.mainLightShadowmapTexture;
 
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData, shadowmapStencil))
-            {
-                renderShadows = true;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (shadowData.useCachedShadowMap)
-                {
-                    resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.FetchShadowMapAndSetParameters(renderGraph, frameData);
-                }
-                else
-#endif
-                    resourceData.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
-            }
+            if (m_ShadowPassGroup.isAdditionalLightShadowCasting)
+                resourceData.additionalShadowsTexture = m_ShadowPassGroup.additionalLightShadowmapTexture;
 
             // The camera need to be setup again after the shadows since those passes override some settings
             // TODO RENDERGRAPH: move the setup code into the shadow passes
-            if (renderShadows)
+            if (m_ShadowPassGroup.isRenderingShadows)
                 SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
@@ -1302,8 +1281,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (usesDeferredLighting)
             {
-                m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
-
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.

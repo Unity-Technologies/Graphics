@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -97,6 +98,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Owned by AdditionalLightsShadowCasterPass
         internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
+        internal short[] visibleLightIndexToAdditionalLightIndex;
+        internal bool[] visibleLightIndexToIsCastingShadows;
+
+        internal ShadowPassGroup shadowPassGroup;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         /// <summary>True when this camera pass should reuse the shadow map rendered in the previous XR pass.</summary>
@@ -130,6 +135,9 @@ namespace UnityEngine.Rendering.Universal
 
             visibleLightsShadowCullingInfos = default;
             shadowAtlasLayout = default;
+            shadowPassGroup = null;
+            visibleLightIndexToAdditionalLightIndex = null;
+            visibleLightIndexToIsCastingShadows = null;
 
             emptyAdditionalLightShadowsBuffer = null;
 

@@ -284,9 +284,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float mainLightShadowCascadeBorder = shadowData.mainLightShadowCascadeBorder;
 
                 bool softShadows = light.shadows == LightShadows.Soft && supportsSoftShadows;
-                float softShadowsProp = ShadowUtils.SoftShadowQualityToShaderProperty(light, softShadows);
+                ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrengthEmpty);
                 ShadowUtils.GetScaleAndBiasForLinearDistanceFade(maxShadowDistanceSq, mainLightShadowCascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
-                s_EmptyShadowParams =  new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias);
+                s_EmptyShadowParams =  new Vector4(shadowStrengthEmpty, softShadowsProp, shadowFadeScale, shadowFadeBias);
             }
 
             return true;
@@ -368,13 +368,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invShadowAtlasHeight = 1.0f / m_RenderTargetHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
-            float softShadowsProp = ShadowUtils.SoftShadowQualityToShaderProperty(light, softShadows);
+            ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
-                new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
+                new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
 
             if (m_ShadowCasterCascadesCount > 1)
             {

@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
@@ -165,8 +166,8 @@ namespace UnityEngine.Rendering.Universal
                             RenderTexture source = null;
                             switch (fullScreenDebugMode)
                             {
-                                case DebugFullScreenMode.AdditionalLightsShadowMap: source = m_AdditionalLightsShadowCasterPass?.m_AdditionalLightsShadowmapHandle?.rt; break;
-                                case DebugFullScreenMode.MainLightShadowMap: source = m_MainLightShadowCasterPass?.m_MainLightShadowmapTexture?.rt; break;
+                                case DebugFullScreenMode.AdditionalLightsShadowMap: source = shadowData.shadowPassGroup?.additionalLightShadowmapPass?.m_AdditionalLightsShadowmapHandle?.rt; break;
+                                case DebugFullScreenMode.MainLightShadowMap: source = shadowData.shadowPassGroup?.mainLightShadowmapPass?.m_MainLightShadowmapTexture?.rt; break;
                                 case DebugFullScreenMode.AdditionalLightsCookieAtlas: source = m_LightCookieManager?.AdditionalLightsCookieAtlasTexture?.rt; break;
                                 case DebugFullScreenMode.ReflectionProbeAtlas: source = m_ForwardLights?.reflectionProbeManager.atlasRT; break;
                                 default:

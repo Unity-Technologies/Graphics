@@ -147,8 +147,7 @@ namespace UnityEngine.Rendering.Universal
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MotionVectorRenderPass m_MotionVectorPass;
-        MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        ShadowPassGroup m_ShadowPassGroup;
         GBufferPass m_GBufferPass;
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
@@ -359,10 +358,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Note: Since all custom render passes inject first and we have stable sort,
-            // we inject the builtin passes in the before events.
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_ShadowPassGroup = new ShadowPassGroup();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
@@ -509,7 +505,7 @@ namespace UnityEngine.Rendering.Universal
             m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.Dispose();
+            m_ShadowPassGroup.Dispose();
 
             m_CopyDepthPass?.Dispose();
 #if UNITY_EDITOR
@@ -553,8 +549,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            m_MainLightShadowCasterPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.ReleaseRenderTargets();
+            m_ShadowPassGroup.ReleaseRenderTargets();
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ public class ModifyShadowSettings : MonoBehaviour
         {
             maxDist = asset.shadowDistance;
             depthBias = asset.shadowDepthBias;
-            normalBias = asset.shadowDepthBias;
+            normalBias = asset.shadowNormalBias;
         }
     }
 

@@ -645,18 +645,44 @@ namespace UnityEngine.Rendering.Universal
             return textureScaleAndBias * worldToShadow;
         }
 
-        internal static float SoftShadowQualityToShaderProperty(Light light, bool softShadowsEnabled)
+        static void GetShadowStrengthAndSoftShadows(Light light, UniversalAdditionalLightData additionalLightData, bool softShadowsEnabled, out float shadowStrength, out float softShadows)
         {
-            float softShadows = softShadowsEnabled ? 1.0f : 0.0f;
-            if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+            softShadows = softShadowsEnabled ? 1.0f : 0.0f;
+            shadowStrength = light.shadowStrength;
+            if (additionalLightData != null)
             {
                 var softShadowQuality = (additionalLightData.softShadowQuality == SoftShadowQuality.UsePipelineSettings)
                     ? UniversalRenderPipeline.asset?.softShadowQuality
                     : additionalLightData.softShadowQuality;
                 softShadows *= Math.Max((int)softShadowQuality, (int)SoftShadowQuality.Low);
             }
+        }
 
-            return softShadows;
+        internal static void GetMainLightShadowParams(Light light, bool softShadowsEnabled, out float softShadows, out float shadowStrength)
+        {
+            if (light == null)
+            {
+                softShadows = softShadowsEnabled ? 1.0f : 0.0f;
+                shadowStrength = 1.0f;
+                return;
+            }
+
+            light.TryGetComponent(out UniversalAdditionalLightData additionalLightData);
+            GetShadowStrengthAndSoftShadows(light, additionalLightData, softShadowsEnabled, out shadowStrength, out softShadows);
+        }
+
+        internal static Vector4 GetAdditionalLightShadowParams(Light light, bool softShadowsEnabled, float lightTypeIdentifier, int perLightFirstShadowSliceIndex)
+        {
+            Debug.Assert(light != null);
+            light.TryGetComponent(out UniversalAdditionalLightData additionalLightData);
+            return GetAdditionalLightShadowParams(light, additionalLightData, softShadowsEnabled, lightTypeIdentifier, perLightFirstShadowSliceIndex);
+        }
+
+        internal static Vector4 GetAdditionalLightShadowParams(Light light, UniversalAdditionalLightData additionalLightData, bool softShadowsEnabled, float lightTypeIdentifier, int perLightFirstShadowSliceIndex)
+        {
+            Debug.Assert(light != null);
+            GetShadowStrengthAndSoftShadows(light, additionalLightData, softShadowsEnabled, out float shadowStrength, out float softShadows);
+            return new Vector4(shadowStrength, softShadows, lightTypeIdentifier, perLightFirstShadowSliceIndex);
         }
 
         internal static bool SupportsPerLightSoftShadowQuality()
