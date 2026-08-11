@@ -1,0 +1,119 @@
+{
+    "width": 960,
+    "height": 540,
+    "ssaoParams": [
+        4.0,
+        1.5,
+        1.0,
+        100.0
+    ],
+    "ssaoParams2": [
+        40.0,
+        467.65372,
+        960.0,
+        540.0
+    ],
+    "aoDepthToViewParams": [
+        0.0021383493,
+        0.0021383493,
+        1.0264033,
+        0.57735027
+    ],
+    "projectionParams2": [
+        3.3333332538604738,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "sourceSize": [
+        960.0,
+        540.0,
+        0.0010416667209938169,
+        0.0018518518190830947
+    ],
+    "zBufferParams": [
+        3332.333251953125,
+        1.0,
+        3.3323333263397219,
+        0.0010001659393310547
+    ],
+    "depthTexelSize": [
+        0.0010416667209938169,
+        0.0018518518190830947,
+        960.0,
+        540.0
+    ],
+    "viewMatrix": [
+        -1.0, 0.0, 0.0, 0.0,
+        0.0, 0.9396926, 0.3420201, 0.0,
+        0.0, -0.3420201, 0.9396927, 0.0,
+        8.0, -11.95345, -25.63426, 1.0
+    ],
+    "cameraViewProjection": [
+        -0.974278569,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.62759531,
+        -0.342225373,
+        -0.3420201,
+        0.0,
+        -0.5923962,
+        -0.9402567,
+        -0.9396927,
+        7.79422855,
+        -20.7039833,
+        25.0494671,
+        25.63426
+    ],
+    "cameraViewTopLeftCorner": [
+        0.3079202,
+        0.06015352,
+        -0.341147453,
+        0.0
+    ],
+    "cameraViewXExtent": [
+        -0.6158404,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "cameraViewYExtent": [
+        0.0,
+        -0.325519145,
+        0.118479267,
+        0.0
+    ],
+    "cameraViewZExtent": [
+        0.0,
+        -341.922668,
+        -939.4248,
+        0.0
+    ],
+    "blueNoiseParams": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "keywords": [
+        "_GTAO_MODE",
+        "_INTERLEAVED_GRADIENT",
+        "_SOURCE_DEPTH_NORMALS",
+        "_SAMPLE_COUNT_LOW"
+    ],
+    "aoMode": "GTAO",
+    "aoMethod": "InterleavedGradient",
+    "sampleCount": "Low",
+    "depthSource": "DepthNormals",
+    "normalQuality": "High",
+    "blurQuality": "High",
+    "downsample": false,
+    "intensity": 4.0,
+    "radius": 1.5,
+    "falloff": 100.0,
+    "isComputeShader": false,
+    "directionCount": 0,
+    "stepCount": 0
+}
