@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isRegistered = _slots.TryGetValue(id, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                var mesh = renderer.GetComponent<MeshFilter>()?.sharedMesh;
+                var mesh = renderer.TryGetComponent(out MeshFilter meshFilter) ? meshFilter.sharedMesh : null;
                 bool shouldBeRegistered = renderer.enabled && renderer.gameObject.activeInHierarchy && mesh != null && mesh.vertexCount != 0;
                 bool matchesWorldFilter = (renderer.renderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;

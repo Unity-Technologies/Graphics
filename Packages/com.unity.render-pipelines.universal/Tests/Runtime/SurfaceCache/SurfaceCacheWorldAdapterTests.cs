@@ -177,6 +177,29 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
+        public void UpdateMeshRenderer_ChangedWithoutMeshFilter_RendererIsNotAdded()
+        {
+            // A MeshRenderer without a MeshFilter (e.g. a TextMesh object) must be skipped, not throw. In the
+            // editor a missing component is a placeholder object that throws when dereferenced.
+            var env = CreateEnvironmentOrIgnore();
+            GameObject go = null;
+            try
+            {
+                go = new GameObject("SurfaceCacheWorldAdapterTest RendererWithoutMeshFilter");
+                var renderer = go.AddComponent<MeshRenderer>();
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererChangedList = new Object[] { renderer } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A renderer without a MeshFilter should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
         public void UpdateMeshRenderer_DisabledAfterAdd_RendererIsRemoved()
         {
             var env = CreateEnvironmentOrIgnore();
