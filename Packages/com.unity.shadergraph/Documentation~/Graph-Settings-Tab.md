@@ -8,10 +8,12 @@ Use the **Graph Settings** tab in the [Graph Inspector](Internal-Inspector.md) w
 | :--- | :--- |
 | **Precision** | Select a default [Precision Mode](Precision-Modes.md) for the entire graph. You can override the precision mode at the node level in your graph. |
 | **Preview** | Select your preferred preview mode for the nodes that support preview. The options are: <ul><li>**Inherit**:  The Unity Editor automatically selects the preview mode to use.</li><li>**Preview 2D**: Renders the output of the sub graph as a flat two-dimensional preview.</li><li>**Preview 3D**: Renders the output of the sub graph on a three-dimensional object such as a sphere.</li></ul> This property is available only in [sub graphs](Sub-graph.md).  |
+| **Deprecate** | Marks the sub graph as deprecated. Deprecated sub graphs no longer appear in the node search window. Existing [Sub Graph nodes](Sub-graph-Node.md) that reference a deprecated sub graph display a validation warning in the graph where they're used. This property is available only in [sub graphs](Sub-graph.md). |
+| **Deprecation Message** | Enter a custom message to display in the validation warning on existing [Sub Graph nodes](Sub-graph-Node.md) that reference this sub graph. If you leave this field empty, Shader Graph displays a default message instead. This property is available only when **Deprecate** is enabled. |
 
 ## Target Settings
 
-Add or remove graph targets to the current shader graph and set target properties according to the selected material type.
+Add or remove graph targets to the current shader graph and set target properties according to the selected material type. This section is not available in [sub graphs](Sub-graph.md).
 
 ### Active Targets
 
