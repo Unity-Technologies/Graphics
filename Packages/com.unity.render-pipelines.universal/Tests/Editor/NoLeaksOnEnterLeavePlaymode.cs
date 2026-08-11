@@ -50,12 +50,19 @@ class NoLeaksOnEnterLeavePlaymode
         return result;
     }
 
-    void CompareResourceLists(Dictionary<string, int> oldList, Dictionary<string, int> newList, string [] blackList)
+    // UITK atlas pages get a new monotonic name on lazy init/growth; name drift is not a leak (UUM-146436)
+    static readonly string[] k_TextureNamePrefixBlackList =
+    {
+        "UIR Dynamic Atlas Page",
+    };
+
+    void CompareResourceLists(Dictionary<string, int> oldList, Dictionary<string, int> newList, string [] blackList, string[] prefixBlackList = null)
     {
         foreach (var newRes in newList)
         {
             // Ignore blacklisted materials
             if (blackList.Contains(newRes.Key)) continue;
+            if (prefixBlackList != null && prefixBlackList.Any(prefix => newRes.Key.StartsWith(prefix, System.StringComparison.Ordinal))) continue;
 
             int oldCount = 0;
             oldList.TryGetValue(newRes.Key, out oldCount);
@@ -67,9 +74,6 @@ class NoLeaksOnEnterLeavePlaymode
     }
 
     [UnityTest]
-    [UnityPlatform(exclude = new RuntimePlatform[] {
-        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-146436
-    })]
     public IEnumerator NoResourceLeaks()
     {
         // Ignoring OpenGL as it has now been deprecated and this test is unstable on that platform.
@@ -161,6 +165,6 @@ class NoLeaksOnEnterLeavePlaymode
         var texturesPerNameOld = CountResources(oldTextureNames);
         var newTextureNames = newTextures.Select(m => m.name).ToArray();
         var texturesPerNameNew = CountResources(newTextureNames);
-        CompareResourceLists(texturesPerNameOld, texturesPerNameNew, textureBlackList);
+        CompareResourceLists(texturesPerNameOld, texturesPerNameNew, textureBlackList, k_TextureNamePrefixBlackList);
     }
 }
