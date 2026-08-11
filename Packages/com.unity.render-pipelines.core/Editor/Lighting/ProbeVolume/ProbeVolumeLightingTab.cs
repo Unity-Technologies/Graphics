@@ -151,9 +151,9 @@ namespace UnityEngine.Rendering
             RefreshSceneAssets();
         }
 
-        bool FindActiveSet()
+        bool FindActiveSet(bool forceRefresh = false)
         {
-            if (m_ActiveSet.Get() == null)
+            if (forceRefresh || m_ActiveSet.Get() == null)
             {
                 activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(SceneManager.GetActiveScene());
                 for (int i = 0; activeSet == null && i < SceneManager.sceneCount; i++)
@@ -959,11 +959,8 @@ namespace UnityEngine.Rendering
             if (!prv.isInitialized || !prv.enabledBySRP)
                 return false;
 
-            // Always baking with a fresh activeSet
-            activeSet = null;
-
-            // In case UI was never opened we have to setup some stuff
-            FindActiveSet();
+            // Always bake with a fresh activeSet. Also handles the case where the UI was never opened.
+            FindActiveSet(forceRefresh: true);
 
             if (activeSet == null)
             {
@@ -972,6 +969,9 @@ namespace UnityEngine.Rendering
                 var activeSceneGuid = ProbeReferenceVolume.GetSceneGuid(activeScene);
                 UseTemporaryBakingSet(activeSceneGuid);
             }
+
+            // Sync data.
+            m_SingleSceneMode = activeSet.singleSceneMode;
 
             bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
             if (createPV)

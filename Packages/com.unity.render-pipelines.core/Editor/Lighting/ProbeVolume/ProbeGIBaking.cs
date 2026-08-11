@@ -1319,11 +1319,6 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet))
                 return false;
 
-            if (!Lightmapping.TryGetLightingSettings(out LightingSettings lightingSettings))
-            {
-                m_BakingSet.skyOcclusion = false;
-            }
-
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip
