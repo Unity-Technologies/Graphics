@@ -362,8 +362,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     if (evt.newValue != shaderInput.displayName)
                     {
-                        this._preChangeValueCallback("Change Display Name");
-                        shaderInput.SetDisplayNameAndSanitizeForGraph(graphData, evt.newValue);
+                        // Rename through the dispatched action only, matching the Blackboard path.
                         this._displayNameChangedCallback(evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.displayName))
@@ -371,7 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         else
                             m_DisplayNameField.AddToClassList("modified");
 
-                        this._postChangeValueCallback(true, ModificationScope.Layout);
+                        inspectorUpdateDelegate?.Invoke();
                     }
                 });
 
