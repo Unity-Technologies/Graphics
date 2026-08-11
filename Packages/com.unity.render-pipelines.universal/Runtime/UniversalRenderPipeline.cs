@@ -412,6 +412,8 @@ namespace UnityEngine.Rendering.Universal
 
             QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
 
+            UpdateSwapChainPreTransformOverride(asset);
+
             apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
             SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
@@ -450,9 +452,41 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        // Disables swapchain pre-transform while any Tile-Only renderer is in use (the two are
+        // incompatible) and restores it otherwise; the engine recreates the swapchain on change.
+        static void UpdateSwapChainPreTransformOverride(UniversalRenderPipelineAsset asset)
+        {
+            if (!SystemInfo.supportsSwapChainPreTransform || asset == null)
+                return;
+
+            bool anyTileOnlyRenderer = false;
+            foreach (var rendererData in asset.rendererDataList)
+            {
+                if (rendererData is UniversalRendererData universalRendererData && universalRendererData.tileOnlyMode)
+                {
+                    anyTileOnlyRenderer = true;
+                    break;
+                }
+            }
+
+            bool wasDisabled = QualitySettings.disableSwapChainPreTransform;
+            QualitySettings.disableSwapChainPreTransform = anyTileOnlyRenderer;
+
+            if (!wasDisabled && anyTileOnlyRenderer)
+                Debug.Log("Disabling swapchain pre-transform ('Apply display rotation during rendering'): the active Universal Render Pipeline Asset contains a renderer with Tile-Only Mode enabled, which is incompatible with pre-transform. This applies even if no camera currently uses that renderer. Remove the Tile-Only renderer from the asset's renderer list to keep pre-transform enabled.");
+        }
+
+        static void ResetSwapChainPreTransformOverride()
+        {
+            if (SystemInfo.supportsSwapChainPreTransform)
+                QualitySettings.disableSwapChainPreTransform = false;
+        }
+
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            ResetSwapChainPreTransformOverride();
+
             Vrs.DisposeResources();
 
             if (apvIsEnabled)
