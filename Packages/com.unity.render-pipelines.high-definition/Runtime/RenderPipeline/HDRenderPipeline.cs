@@ -2244,8 +2244,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
 #if UNITY_EDITOR
-                // Disable water updates while in the FrameDebugger until it can be improved.
-                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger.
+                // TODO: Disable water updates while in the FrameDebugger until it can be improved.
+                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger which uses redraws for data gathering.
                 // NOTE: This means those events cannot be debugged with the FrameDebugger for now.
                 if (FrameDebugger.enabled)
                 {
