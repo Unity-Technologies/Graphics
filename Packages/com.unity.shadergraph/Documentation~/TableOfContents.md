@@ -267,6 +267,12 @@
             * [Sawtooth Wave](Sawtooth-Wave-Node.md)
             * [Square Wave](Square-Wave-Node.md)
             * [Triangle Wave](Triangle-Wave-Node.md)
+    * [Particle](Particle-Nodes.md)
+        * [Particle Anim Frame](Particle-Anim-Frame-Node.md)
+        * [Particle Color](Particle-Color-Node.md)
+        * [Particle Flipbook Blending](Particle-Flipbook-Blending-Node.md)
+        * [Particle Texcoords](Particle-Texcoords-Node.md)
+        * [Particle Transforms](Particle-Transforms-Node.md)
     * [Procedural](Procedural-Nodes.md)
         * [Checkerboard](Checkerboard-Node.md)
         * Noise
