@@ -355,8 +355,8 @@ namespace UnityEngine.Rendering
             parameters.frameIndexForNoise = 0;
             parameters.reflNormalizationLowerClamp = 0.1f;
             parameters.reflNormalizationUpperClamp = 1.0f;
-            parameters.skyOcclusionIntensity = bakingSet.bakedSkyOcclusion ? 1 : 0;
-            parameters.skyOcclusionShadingDirection = bakingSet.bakedSkyShadingDirection;
+            parameters.skyOcclusionIntensity = bakingSet.skyOcclusion ? 1 : 0;
+            parameters.skyOcclusionShadingDirection = bakingSet.skyOcclusionShadingDirection ? true : false;
             parameters.regionCount = 1;
             parameters.regionLayerMasks = 1;
             parameters.worldOffset = Vector3.zero;
