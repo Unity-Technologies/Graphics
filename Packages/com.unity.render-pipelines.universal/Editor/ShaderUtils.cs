@@ -161,7 +161,8 @@ namespace Unity.Rendering.Universal
             switch (shaderID)
             {
                 case ShaderID.Lit:
-                    LitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+                case ShaderID.ComplexLit:
+                    LitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, LitDetailGUI.SetMaterialKeywords);
                     break;
                 case ShaderID.SimpleLit:
                     SimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);

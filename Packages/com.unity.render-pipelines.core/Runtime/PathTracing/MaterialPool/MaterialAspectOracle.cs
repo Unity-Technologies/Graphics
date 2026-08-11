@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 
@@ -30,7 +29,7 @@ namespace UnityEngine.PathTracing.Core
 
     internal static class MaterialAspectOracle
     {
-        // See gi::HasBakedEmissive in Materials.cpp
+        // See gi::HasBakedEmission in Materials.cpp
         public static MaterialPropertyDesc GetEmission(Material mat, EmissionMode emissionMode)
         {
             var emissiveFlags = mat.globalIlluminationFlags;
@@ -64,12 +63,6 @@ namespace UnityEngine.PathTracing.Core
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
             }
 
-            // If the material has an emission keyword, but it is disabled, there is no emission
-            if (IsMaterialWithEmissionKeyword(mat) && !EnumerableArrayContains(mat.shaderKeywords, "_EMISSION"))
-            {
-                return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
-            }
-
             // If we have reached this point, the material should be emissive.
             // First we check for an emissive texture, and use that if it exists
             if (HasEmissionMap(mat))
@@ -86,15 +79,6 @@ namespace UnityEngine.PathTracing.Core
             // If we found neither property, we assume that the material has an unusual meta pass implementation,
             // which will render the emission - thus we use texture mode
             return new MaterialPropertyDesc { Type = MaterialPropertyType.Texture, Color = float3.zero };
-        }
-
-        private static bool EnumerableArrayContains(IEnumerable<string> array, string value)
-        {
-            foreach (string element in array)
-                if (EqualityComparer<string>.Default.Equals(element, value))
-                    return true;
-
-            return false;
         }
 
         // Check if a material has a property with a specific Shaderlab property flag
@@ -153,11 +137,6 @@ namespace UnityEngine.PathTracing.Core
         {
             return (mat.HasProperty(SID.EmissionMap) && mat.GetTexture(SID.EmissionMap) != null)
                 && (!mat.HasProperty(SID.UseEmissiveMap) || mat.GetInt(SID.UseEmissiveMap) == 1);
-        }
-
-        private static bool IsMaterialWithEmissionKeyword(Material mat)
-        {
-            return EnumerableArrayContains(mat.shader.keywordSpace.keywordNames, "_EMISSION");
         }
 
         public static float GetAlpha(Material mat)

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor
 {
@@ -36,16 +37,11 @@ namespace UnityEditor
                                                                               EditorGUIUtility.TrTextContent("2048") };
             public static readonly int[] ReflectionProbeSizeValues = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
 
-
-            public static readonly GUIContent SelectObjects = EditorGUIUtility.TrTextContent("");
-            public static readonly GUIContent SelectObjectsButton = EditorGUIUtility.TrTextContentWithIcon("", "Find References in Scene", "UnityEditor.FindDependencies");
-            public static readonly GUIContent Color = EditorGUIUtility.TrTextContent("Color");
-
             public static readonly GUIContent Emission = EditorGUIUtility.TrTextContent("Emission");
-            // The order of the following lists have to match.
-            public static readonly string[] EmissionOptions = { "Realtime Direct Emission", "Realtime Indirect Emission", "Baked Emission" };
+            // The order of the following lists have to match. Unlike the default light explorer, URP also
+            // exposes the realtime direct emission flag, which drives the _EMISSION keyword of URP shaders.
+            public static readonly string[] EmissionOptions = { L10n.Tr("Realtime Direct Emission"), L10n.Tr("Realtime Indirect Emission"), L10n.Tr("Baked Emission") };
             public static readonly MaterialGlobalIlluminationFlags[] EmissionOptionsInternal = { MaterialGlobalIlluminationFlags.RealtimeDirectEmission, MaterialGlobalIlluminationFlags.RealtimeIndirectEmission, MaterialGlobalIlluminationFlags.BakedEmission };
-
         }
 
 
@@ -112,9 +108,10 @@ namespace UnityEditor
             {
                 if (GameObjectUtility.AreStaticEditorFlagsSet(mr.gameObject, StaticEditorFlags.ContributeGI) && mr.sharedMaterials != null)
                 {
-                    foreach (var mat in  mr.sharedMaterials)
+                    foreach (var mat in mr.sharedMaterials)
                     {
-                        if (mat != null && mat.HasProperty("_EmissionColor"))
+                        if (mat != null && mat.HasProperty("_EmissionColor")
+                            && (mat.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.RealtimeDirectEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.BakedEmission)) != MaterialGlobalIlluminationFlags.None)
                         {
                             materials.Add(mat);
                         }
@@ -129,17 +126,11 @@ namespace UnityEditor
         /// <inheritdoc />
         protected override LightingExplorerTableColumn[] GetEmissivesColumns()
         {
-            return new[]
-            {
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, Styles.SelectObjects, "m_LightmapFlags", 20, (r, prop, dep) =>
-                {
-                    if (GUI.Button(r, Styles.SelectObjectsButton, "label"))
-                    {
-                        SearchForReferences(prop);
-                    }
-                }),     // 0: Icon
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, Styles.Name, null, 200), // 1: Name
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, Styles.Emission, "m_LightmapFlags", 120, (r, prop, dep) =>
+            // Reuse the base columns (icon, name and color) and only replace the emission flags column,
+            // since URP additionally exposes the realtime direct emission flag.
+            var columns = base.GetEmissivesColumns();
+
+            columns[2] = new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, Styles.Emission, "m_LightmapFlags", 120, (r, prop, dep) =>
                 {
                     if (!prop.serializedObject.targetObject.GetType().Equals(typeof(Material)))
                         return;
@@ -155,63 +146,63 @@ namespace UnityEditor
                                 flags |= 1 << i;
                         }
 
-                        EditorGUI.BeginChangeCheck();
-                        flags = EditorGUI.MaskField(r, flags, Styles.EmissionOptions);
-                        var globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                        for (int i = 0; i < Styles.EmissionOptions.Length; i++)
-                        {
-                            if((flags & 1 << i) != 0)
-                                globalIlluminationFlags |= Styles.EmissionOptionsInternal[i];
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(material, $"Modify Emission Flags of {material.name}");
-                            material.globalIlluminationFlags = globalIlluminationFlags;
-                            EditorUtility.SetDirty(material);
-                        }
-
-                    }
-                }),     // 2: GI
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, Styles.Color, "m_Shader", 120, (r, prop, dep) =>
-                {
-                    if (!prop.serializedObject.targetObject.GetType().Equals(typeof(Material)))
-                        return;
-
-                    using (new EditorGUI.DisabledScope(!IsEditable(prop.serializedObject.targetObject)))
-                    {
-                        Material material = (Material)prop.serializedObject.targetObject;
-
-                        Color color = material.GetColor("_EmissionColor");
-
                         EditorGUI.BeginProperty(r, GUIContent.none, prop);
                         EditorGUI.BeginChangeCheck();
-                        Color newValue = EditorGUI.ColorField(r, GUIContent.none, color, true, false, true);
+
+                        flags = EditorGUI.MaskField(r, flags, Styles.EmissionOptions);
 
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(material, $"Modify Emission Color of {material.name}");
-                            material.SetColor("_EmissionColor", newValue);
+                            // Only touch the emission flags, so other flags like EmissiveIsBlack are preserved.
+                            MaterialGlobalIlluminationFlags giFlags = material.globalIlluminationFlags;
+                            for (int i = 0; i < Styles.EmissionOptionsInternal.Length; i++)
+                            {
+                                if ((flags & 1 << i) != 0)
+                                    giFlags |= Styles.EmissionOptionsInternal[i];
+                                else
+                                    giFlags &= ~Styles.EmissionOptionsInternal[i];
+                            }
+
+                            Undo.RecordObject(material, $"Modify Emission Flags of {material.name}");
+                            material.globalIlluminationFlags = giFlags;
                             EditorUtility.SetDirty(material);
+
+                            // Update the material's keywords to match the changed flags, e.g. _EMISSION.
+                            UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial);
+
+                            prop.serializedObject.Update();
                         }
                         EditorGUI.EndProperty();
                     }
-                }, (lhs, rhs) =>
+                }, copyDelegate: (target, source) =>
                     {
-                        float lh, ls, lv, rh, rs, rv;
-                        Color.RGBToHSV(((Material)lhs.serializedObject.targetObject).GetColor("_EmissionColor"), out lh, out ls, out lv);
-                        Color.RGBToHSV(((Material)rhs.serializedObject.targetObject).GetColor("_EmissionColor"), out rh, out rs, out rv);
-                        return lv.CompareTo(rv);
-                    }, (target, source) =>
-                    {
-                        Material sourceMaterial = (Material)source.serializedObject.targetObject;
-                        Color color = sourceMaterial.GetColor("_EmissionColor");
-
                         Material targetMaterial = (Material)target.serializedObject.targetObject;
+                        if (!IsEditable(targetMaterial))
+                            return;
+
+                        Material sourceMaterial = (Material)source.serializedObject.targetObject;
+
+                        // Only copy the emission flags exposed in the UI, so flags like EmissiveIsBlack stay derived from the target's own state.
+                        MaterialGlobalIlluminationFlags giFlags = targetMaterial.globalIlluminationFlags;
+                        for (int i = 0; i < Styles.EmissionOptionsInternal.Length; i++)
+                        {
+                            if ((sourceMaterial.globalIlluminationFlags & Styles.EmissionOptionsInternal[i]) != MaterialGlobalIlluminationFlags.None)
+                                giFlags |= Styles.EmissionOptionsInternal[i];
+                            else
+                                giFlags &= ~Styles.EmissionOptionsInternal[i];
+                        }
+
                         Undo.RecordObject(targetMaterial, $"Modify Emission Flags of {targetMaterial.name}");
-                        targetMaterial.SetColor("_EmissionColor", color);
+                        targetMaterial.globalIlluminationFlags = giFlags;
                         EditorUtility.SetDirty(targetMaterial);
-                    }) // 3: Color
-            };
+
+                        // Update the material's keywords to match the changed flags, e.g. _EMISSION.
+                        UpdateMaterial(targetMaterial, MaterialUpdateType.ModifiedMaterial);
+
+                        target.serializedObject.Update();
+                    }); // 2: GI
+
+            return columns;
         }
     }
 }

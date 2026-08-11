@@ -399,9 +399,12 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
             #pragma shader_feature EDITOR_VISUALIZATION
+
+            // Required for SampleEmission to sample the emission; GI extraction gates emission
+            // by the material's GI flags instead of the keyword.
+            #define _EMISSION 1
 
             // -------------------------------------
             // Includes
