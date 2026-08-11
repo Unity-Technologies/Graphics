@@ -13,10 +13,10 @@ CBUFFER_START(MaxZConstants)
 float4 _ZBufferParams;
 CBUFFER_END
 
-#ifdef DISABLE_TEXTURE2D_X_ARRAY
-#define GET_TEXTURE2D_X_SIZE(tex, width, height) tex.GetDimensions(width, height)
-#else
+#ifdef USE_TEXTURE2D_X_AS_ARRAY
 #define GET_TEXTURE2D_X_SIZE(tex, width, height) uint _elementCount; tex.GetDimensions(width, height, _elementCount)
+#else
+#define GET_TEXTURE2D_X_SIZE(tex, width, height) tex.GetDimensions(width, height)
 #endif
 
 TEXTURE2D_X_FLOAT(_CameraDepthTexture);
