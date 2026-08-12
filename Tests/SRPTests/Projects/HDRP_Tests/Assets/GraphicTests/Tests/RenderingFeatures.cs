@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -111,6 +112,18 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "9701_CustomPass_DrawRenderers",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
             RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
+            "9001_LODTransition",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOn-DefferedDecal-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
