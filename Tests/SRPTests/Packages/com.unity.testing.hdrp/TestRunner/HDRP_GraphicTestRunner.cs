@@ -65,9 +65,9 @@ public static class HDRP_GraphicTestRunner
 
         // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
         int warmupTime = 1;
-        if (XRGraphicsAutomatedTests.enabled)
-            warmupTime = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
-        else
+        Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
+
+        if (!XRGraphicsAutomatedTests.enabled)
             camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
 
         // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
@@ -147,7 +147,21 @@ public static class HDRP_GraphicTestRunner
 
         if (XRGraphicsAutomatedTests.enabled)
         {
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, waitFrames, settings.ImageComparisonSettings);
+            if (settings.xrCompatible)
+            {
+                Unity.Testing.XR.Runtime.ConfigureMockHMD.ConfigureXRDisplay(settings.xrCompatible, settings.ImageComparisonSettings);
+
+                #if !UNITY_EDITOR
+                // Some tests need time after eye resolution change before setting player resolution
+                yield return Unity.Testing.XR.Runtime.ConfigureMockHMD.WaitForXRFrames(settings.xrCompatible, 1);
+                #endif
+
+                waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetPlayerResolutionForXR(settings.xrCompatible, settings.ImageComparisonSettings, waitFrames);
+            }
+            else
+            {
+                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+            }
 
             // Increase tolerance to account for slight changes due to float precision
             settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
