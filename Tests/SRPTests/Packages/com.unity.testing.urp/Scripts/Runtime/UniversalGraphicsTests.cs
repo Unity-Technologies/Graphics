@@ -20,17 +20,59 @@ namespace Unity.Rendering.Universal.Tests
 {
     public static class UniversalGraphicsTests
     {
+        static bool UseAsyncShaderCompilation(SceneGraphicsTestCase testCase, System.Text.RegularExpressions.Regex asyncShaderCompilationScenes)
+        {
+#if UNITY_EDITOR
+            if (asyncShaderCompilationScenes == null)
+                return false;
+
+            var sceneName = System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath);
+            return asyncShaderCompilationScenes.IsMatch(sceneName);
+#else
+            return false;
+#endif
+        }
 #if UNITY_ANDROID
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
-        public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase)
+        public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase, System.Text.RegularExpressions.Regex asyncShaderCompilationScenes = null)
         {
             Watermark.showDeveloperWatermark = false;
             GraphicsTestLogger.Log(
                 $"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
 
             SceneManager.LoadScene(testCase.ScenePath);
+
+            if (UseAsyncShaderCompilation(testCase, asyncShaderCompilationScenes))
+            {
+                // Load once to trigger a shader compile for the scene, then reload before capturing
+                // to ensure that synchronous and async runs capture on the same frame for consistency
+                try
+                {
+#if UNITY_EDITOR
+                    UnityEditor.ShaderUtil.allowAsyncCompilation = true;
+                    UnityEditor.EditorSettings.asyncShaderCompilation = true;
+#endif
+                    yield return null;
+
+                    var warmupSettings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
+                    yield return ShaderWarmup.WaitForCompilation((warmupSettings?.WaitFrames ?? 0) + 2);
+
+                    // Variant bookkeeping lags the drain by a few frames (UUM-149513).
+                    for (int settleFrame = 0; settleFrame < 3; settleFrame++)
+                        yield return null;
+                }
+                finally
+                {
+#if UNITY_EDITOR
+                    UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+                    UnityEditor.EditorSettings.asyncShaderCompilation = false;
+#endif
+                }
+
+                SceneManager.LoadScene(testCase.ScenePath);
+            }
 
             // Always wait one frame for scene load
             yield return null;
