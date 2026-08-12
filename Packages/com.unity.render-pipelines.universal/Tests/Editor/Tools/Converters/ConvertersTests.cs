@@ -41,13 +41,13 @@ namespace UnityEditor.Rendering.Universal.Tools
                 new List<string> { "Material" },
                 true,
                 new List<Type> { typeof(BuiltInToURP3DMaterialUpgrader) }
-            ).SetName("When Using Inclusive filter with Material in the correct category. The Filter only returns that converter");
+            ).SetName("{m}(When Using Inclusive filter with Material in the correct category. The Filter only returns that converter)");
             yield return new TestCaseData(
                 "BuiltInToURP",
                 new List<string> { "ParametricToFreeformLight" },
                 true,
                 new List<Type>()
-            ).SetName("When Using Inclusive filter with Light in the wrong category. The Filter returns nothing");
+            ).SetName("{m}(When Using Inclusive filter with Light in the wrong category. The Filter returns nothing)");
 
             yield return new TestCaseData(
                 "BuiltInToURP",
@@ -63,14 +63,14 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(BuiltInToURP3DReadonlyMaterialConverter),
                 }
-            ).SetName("When Using Exclusive filter. The filter returns everything except the given ids");
+            ).SetName("{m}(When Using Exclusive filter. The filter returns everything except the given ids)");
 
             yield return new TestCaseData(
                 "BuiltInToURP",
                 new List<string>(),
                 true,
                 new List<Type>() // No converters match
-            ).SetName("When Using Inclusive filter with no converters. The filter returns nothing");
+            ).SetName("{m}(When Using Inclusive filter with no converters. The filter returns nothing)");
 
             yield return new TestCaseData(
                 "BuiltInToURP",
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(BuiltInToURP3DReadonlyMaterialConverter),
                  }
-            ).SetName("BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything)");
 
             yield return new TestCaseData(
                 "BuiltInToURP2D",
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP2DRenderSettingsConverter),
                     typeof(BuiltInToURP2DReadonlyMaterialConverter),
                  }
-            ).SetName("BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything)");
 
             yield return new TestCaseData(
                 "UpgradeURP2DAssets",
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 {
                     typeof(ParametricToFreeformLightUpgrader)
                 }
-            ).SetName("UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything)");
         }
 
         [TestCaseSource(nameof(TestCases))]
@@ -153,13 +153,13 @@ namespace UnityEditor.Rendering.Universal.Tools
                 new List<ConverterId> { ConverterId.Material },
                 ConverterFilter.Inclusive,
                 new List<Type> { typeof(BuiltInToURP3DMaterialUpgrader) }
-            ).SetName("When Using Inclusive filter with Material in the correct category. The Filter only returns that converter");
+            ).SetName("{m}(When Using Inclusive filter with Material in the correct category. The Filter only returns that converter)");
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP,
                 new List<ConverterId> { ConverterId.ParametricToFreeformLight },
                 ConverterFilter.Inclusive,
                 new List<Type>()
-            ).SetName("When Using Inclusive filter with Light in the wrong category. The Filter returns nothing");
+            ).SetName("{m}(When Using Inclusive filter with Light in the wrong category. The Filter returns nothing)");
 
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP,
@@ -177,14 +177,14 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(BuiltInToURP3DReadonlyMaterialConverter),
                 }
-            ).SetName("When Using Exclusive filter. The filter returns everything except the given ids");
+            ).SetName("{m}(When Using Exclusive filter. The filter returns everything except the given ids)");
 
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP,
                 new List<ConverterId>(),
                 ConverterFilter.Inclusive,
                 new List<Type>() // No converters match
-            ).SetName("When Using Inclusive filter with no converters. The filter returns nothing");
+            ).SetName("{m}(When Using Inclusive filter with no converters. The filter returns nothing)");
 
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP,
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP3DMaterialUpgrader),
                     typeof(BuiltInToURP3DReadonlyMaterialConverter),
                  }
-            ).SetName("BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(BuiltInToURP - When Using Exclusive filter with no converters. The filter returns everything)");
 
             yield return new TestCaseData(
                 ConverterContainerId.BuiltInToURP2D,
@@ -211,7 +211,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(BuiltInToURP2DRenderSettingsConverter),
                     typeof(BuiltInToURP2DReadonlyMaterialConverter),
                  }
-            ).SetName("BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything)");
 
             yield return new TestCaseData(
                 ConverterContainerId.UpgradeURP2DAssets,
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                     typeof(URP3DToURP2DReadonlyMaterialConverter),
                     typeof(ParametricToFreeformLightUpgrader)
                 }
-            ).SetName("UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything");
+            ).SetName("{m}(UpgradeURP2DAssets - When Using Exclusive filter with no converters. The filter returns everything)");
         }
 
         [TestCaseSource(nameof(TestCasesDeprecated))]

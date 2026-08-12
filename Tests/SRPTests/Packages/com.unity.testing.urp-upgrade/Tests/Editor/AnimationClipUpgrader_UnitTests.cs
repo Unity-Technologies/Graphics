@@ -570,10 +570,10 @@ namespace UnityEditor.Rendering.Tests
             Assert.That(clip.Object.GetCurveBindings().Single(), Is.EqualTo(expectedBindings[0]), "Did not find a single curve with expected bindings.");
         }
 
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Color.r", "_BaseColor", "material._BaseColor.r", TestName = "Known upgrade patches data")]
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._OldProp.r", "_NewProp", "material._Color.r", TestName = "No known upgrade applies no change")]
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Colo.r", "_BaseColo", "material._Color.r", TestName = "Near match applies no change")]
-        [TestCase("material._Color.r", typeof(MeshFilter), "material._Color.r", "_BaseColor", "material._Color.r", TestName = "Known upgrade but wrong target type applies no change")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Color.r", "_BaseColor", "material._BaseColor.r", TestName = "{m}(Known upgrade patches data)")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._OldProp.r", "_NewProp", "material._Color.r", TestName = "{m}(No known upgrade applies no change)")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Colo.r", "_BaseColo", "material._Color.r", TestName = "{m}(Near match applies no change)")]
+        [TestCase("material._Color.r", typeof(MeshFilter), "material._Color.r", "_BaseColor", "material._Color.r", TestName = "{m}(Known upgrade but wrong target type applies no change)")]
         public void UpgradeClips_AppliesExpectedChangesToClip(
             string oldPropertyName,
             Type bindingType,
@@ -601,10 +601,10 @@ namespace UnityEditor.Rendering.Tests
             Assert.That(actualBinding, Is.EqualTo(expectedBindings[0]), "Did not find a single curve with expected bindings.");
         }
 
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Color.r", "_BaseColor", "material._BaseColor.r", TestName = "Known upgrade patches data")]
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._OldProp.r", "_NewProp", "material._Color.r", TestName = "No known upgrade applies no change")]
-        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Colo.r", "_BaseColo", "material._Color.r", TestName = "Near match applies no change")]
-        [TestCase("material._Color.r", typeof(MeshFilter), "material._Color.r", "_BaseColor", "material._Color.r", TestName = "Known upgrade but wrong target type applies no change")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Color.r", "_BaseColor", "material._BaseColor.r", TestName = "{m}(Known upgrade patches data)")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._OldProp.r", "_NewProp", "material._Color.r", TestName = "{m}(No known upgrade applies no change)")]
+        [TestCase("material._Color.r", typeof(MeshRenderer), "material._Colo.r", "_BaseColo", "material._Color.r", TestName = "{m}(Near match applies no change)")]
+        [TestCase("material._Color.r", typeof(MeshFilter), "material._Color.r", "_BaseColor", "material._Color.r", TestName = "{m}(Known upgrade but wrong target type applies no change)")]
         public void UpgradeClips_AppliesExpectedChangesToProxyClip(
             string oldPropertyName,
             Type bindingType,

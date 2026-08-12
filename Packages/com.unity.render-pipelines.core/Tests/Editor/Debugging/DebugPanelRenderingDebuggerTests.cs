@@ -202,15 +202,15 @@ namespace UnityEditor.Rendering.Tests
                 new TestCaseData(WidgetFactory.CreateIntField(testData), 42, 13)
                     .SetName("IntField_SetAndGet"),
                 new TestCaseData(WidgetFactory.CreateIntMinMaxField(testData), 50, 13)
-                    .SetName("IntMinMaxField_SetAndGet"),
+                    .SetName("{m}(IntMinMaxField_SetAndGet)"),
                 new TestCaseData(WidgetFactory.CreateUIntField(testData), 100u, 23u)
                     .SetName("UIntField_SetAndGet"),
                 new TestCaseData(WidgetFactory.CreateUIntMinMaxField(testData), 50u, 23u)
-                    .SetName("UIntMinMaxField_SetAndGet"),
+                    .SetName("{m}(UIntMinMaxField_SetAndGet)"),
                 new TestCaseData(WidgetFactory.CreateFloatField(testData), 3.14f, 7.7f)
                     .SetName("FloatField_SetAndGet"),
                 new TestCaseData(WidgetFactory.CreateFloatMinMaxField(testData), 50.5f, 7.7f)
-                    .SetName("FloatMinMaxField_SetAndGet"),
+                    .SetName("{m}(FloatMinMaxField_SetAndGet)"),
 
                 // Bool fields
                 new TestCaseData(WidgetFactory.CreateBoolField(testData), false, true)
@@ -263,11 +263,11 @@ namespace UnityEditor.Rendering.Tests
             {
                 // Number fields
                 new TestCaseData(WidgetFactory.CreateIntMinMaxField(testData), -100, 100, 42, -200, 200)
-                    .SetName("IntMinMaxField_SetAndGet"),
+                    .SetName("{m}(IntMinMaxField_SetAndGet)"),
                 new TestCaseData(WidgetFactory.CreateUIntMinMaxField(testData), 1u, 100u, 50u, 0u, 200u)
-                    .SetName("UIntMinMaxField_SetAndGet"),
+                    .SetName("{m}(UIntMinMaxField_SetAndGet)"),
                 new TestCaseData(WidgetFactory.CreateFloatMinMaxField(testData), -100.0f, 100.0f, 3.14f, -200.0f, 200.0f)
-                    .SetName("FloatMinMaxField_SetAndGet"),
+                    .SetName("{m}(FloatMinMaxField_SetAndGet)"),
             };
         }
 
