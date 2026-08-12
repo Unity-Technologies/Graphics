@@ -32,13 +32,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         static TestCaseData[] s_ListTestsCaseDatasLODBias =
         {
-            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.FromQualitySettings, 0).Returns(1.5f).SetName("FromQualitySettings_Level0"),
-            new TestCaseData(new float[] { 0, 2.5f, 0 }, 5.5f, LODBiasMode.FromQualitySettings, 1).Returns(2.5f).SetName("FromQualitySettings_Level1"),
-            new TestCaseData(new float[] { 0, 0f, 3.5f }, 5.5f, LODBiasMode.FromQualitySettings, 2).Returns(3.5f).SetName("FromQualitySettings_Level2"),
+            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.FromQualitySettings, 0).Returns(1.5f).SetName("{m}(FromQualitySettings_Level0)"),
+            new TestCaseData(new float[] { 0, 2.5f, 0 }, 5.5f, LODBiasMode.FromQualitySettings, 1).Returns(2.5f).SetName("{m}(FromQualitySettings_Level1)"),
+            new TestCaseData(new float[] { 0, 0f, 3.5f }, 5.5f, LODBiasMode.FromQualitySettings, 2).Returns(3.5f).SetName("{m}(FromQualitySettings_Level2)"),
 
-            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.OverrideQualitySettings, 0).Returns(5.5f).SetName("OverrideQualitySettings"),
+            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.OverrideQualitySettings, 0).Returns(5.5f).SetName("{m}(OverrideQualitySettings)"),
 
-            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.ScaleQualitySettings, 0).Returns(5.5f * 1.5f).SetName("ScaleQualitySettings"),
+            new TestCaseData(new float[] { 1.5f, 0, 0 }, 5.5f, LODBiasMode.ScaleQualitySettings, 0).Returns(5.5f * 1.5f).SetName("{m}(ScaleQualitySettings)"),
         };
 
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatasLODBias))]
@@ -57,13 +57,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         static TestCaseData[] s_ListTestsCaseDatasMaximumLODLevel =
         {
-            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.FromQualitySettings, 0).Returns(1).SetName("FromQualitySettings_Level0"),
-            new TestCaseData(new int[] { 0, 2, 0 }, 5, MaximumLODLevelMode.FromQualitySettings, 1).Returns(2).SetName("FromQualitySettings_Level1"),
-            new TestCaseData(new int[] { 0, 0, 3 }, 5, MaximumLODLevelMode.FromQualitySettings, 2).Returns(3).SetName("FromQualitySettings_Level2"),
+            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.FromQualitySettings, 0).Returns(1).SetName("{m}(FromQualitySettings_Level0)"),
+            new TestCaseData(new int[] { 0, 2, 0 }, 5, MaximumLODLevelMode.FromQualitySettings, 1).Returns(2).SetName("{m}(FromQualitySettings_Level1)"),
+            new TestCaseData(new int[] { 0, 0, 3 }, 5, MaximumLODLevelMode.FromQualitySettings, 2).Returns(3).SetName("{m}(FromQualitySettings_Level2)"),
 
-            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.OverrideQualitySettings, 0).Returns(5).SetName("OverrideQualitySettings"),
+            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.OverrideQualitySettings, 0).Returns(5).SetName("{m}(OverrideQualitySettings)"),
 
-            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.OffsetQualitySettings, 0).Returns(5 + 1).SetName("ScaleQualitySettings"),
+            new TestCaseData(new int[] { 1, 0, 0 }, 5, MaximumLODLevelMode.OffsetQualitySettings, 0).Returns(5 + 1).SetName("{m}(ScaleQualitySettings)"),
         };
 
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatasMaximumLODLevel))]
@@ -104,14 +104,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         static TestCaseData[] s_ListTestsCaseDataSssSampleBudget =
         {
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 1, 0, 0 }, 0, 30)
-                .Returns(1).SetName("FromQualitySettings_0"),
+                .Returns(1).SetName("{m}(FromQualitySettings_0)"),
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 0, 2, 0 }, 1, 30)
-                .Returns(2).SetName("FromQualitySettings_1"),
+                .Returns(2).SetName("{m}(FromQualitySettings_1)"),
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 0, 0, 3 }, 2, 30)
-                .Returns(3).SetName("FromQualitySettings_2"),
+                .Returns(3).SetName("{m}(FromQualitySettings_2)"),
 
             new TestCaseData(SssQualityMode.OverrideQualitySettings, new int[] { 0, 0, 3 }, 2, 30)
-                .Returns(30).SetName("OverrideQualitySettings"),
+                .Returns(30).SetName("{m}(OverrideQualitySettings)"),
         };
 
         [Test, TestCaseSource(nameof(s_ListTestsCaseDataSssSampleBudget))]
@@ -132,14 +132,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         static TestCaseData[] s_ListTestsCaseDataSssDownsampleSteps =
         {
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 1, 0, 0 }, 0, 30)
-                .Returns(1).SetName("FromQualitySettings_0"),
+                .Returns(1).SetName("{m}(FromQualitySettings_0)"),
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 0, 2, 0 }, 1, 30)
-                .Returns(2).SetName("FromQualitySettings_1"),
+                .Returns(2).SetName("{m}(FromQualitySettings_1)"),
             new TestCaseData(SssQualityMode.FromQualitySettings, new int[] { 0, 0, 3 }, 2, 30)
-                .Returns(3).SetName("FromQualitySettings_2"),
+                .Returns(3).SetName("{m}(FromQualitySettings_2)"),
 
             new TestCaseData(SssQualityMode.OverrideQualitySettings, new int[] { 0, 0, 3 }, 2, 30)
-                .Returns(30).SetName("OverrideQualitySettings"),
+                .Returns(30).SetName("{m}(OverrideQualitySettings)"),
         };
 
         [Test, TestCaseSource(nameof(s_ListTestsCaseDataSssDownsampleSteps))]
