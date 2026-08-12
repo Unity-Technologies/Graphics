@@ -699,7 +699,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness },
+                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness, CoreKeywordDescriptors.GBufferNormalsOct },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support

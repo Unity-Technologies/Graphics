@@ -230,6 +230,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma vertex DepthNormalOnlyVertex
             #pragma fragment DepthNormalOnlyFragment
 
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
