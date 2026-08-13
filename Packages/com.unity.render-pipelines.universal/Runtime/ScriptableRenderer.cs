@@ -245,9 +245,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraWidth = (float)cameraTargetSize.x;
                 cameraHeight = (float)cameraTargetSize.y;
-            }
 
-            if (camera.allowDynamicResolution)
+                // pixelWidth/Height is derived from xr.GetViewport() and encodes renderViewportScale (which also handles dynamic res)
+                scaledCameraTargetWidth = cameraData.pixelWidth;
+                scaledCameraTargetHeight = cameraData.pixelHeight;
+            }
+            else if (camera.allowDynamicResolution)
             {
                 scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
                 scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
