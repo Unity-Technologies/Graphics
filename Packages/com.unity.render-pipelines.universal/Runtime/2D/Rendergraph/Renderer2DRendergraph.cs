@@ -828,25 +828,10 @@ namespace UnityEngine.Rendering.Universal
             var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
             shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
 
-            if (SystemInfo.graphicsUVStartsAtTop)
-            {
-                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.topLeftUV.AsBase());
-                
-                // URP CB TIER 2 WIP
-                // Once we add more shader vars from feature passes, we will fill them here
-                
-                // We need to flip when rendering offscreen for these APIs, as Unity textures are always BottomLeft UV oriented by convention
-                GenerateBottomLeftShaderVarsFromTopLeftOnes(cameraData, in shaderData.m_GlobalShaderVars.topLeftUV.AsBase(),
-                                                                       ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
-            }
-            else // GL/GLES/WebGL APIs — offscreen and backbuffer rendering share BottomLeft UV origin, only one variant needed.
-            {
-                BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.bottomLeftUV.AsBase());
-                
-                // URP CB TIER 2 WIP
+            BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.AsBase());
 
-                // Once we add more shader vars from feature passes, we will fill them here
-            }
+            // URP CB TIER 2 WIP
+            // Once we add more shader vars from feature passes, we will fill them here
         }
 
         private class InitPassData
@@ -873,8 +858,7 @@ namespace UnityEngine.Rendering.Universal
                     // Renderer is responsible for init/resetting the keywords it manages, for now we can use the default reset
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    // Force UV Bottom Left for now, as we don't know yet if the target will be flipped or not.
-                    data.shaderData.GetDefaultVars(useUVBottomLeft: true).SetGlobals(cmd, setCameraMatrices: false);
+                    data.shaderData.GetDefaultVars().SetGlobals(cmd);
                 });
             }
         }
@@ -892,18 +876,11 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc(static (InitPassData data, RasterGraphContext context) =>
                 {
-                    bool useBottomLeftUV = !SystemInfo.graphicsUVStartsAtTop || RenderingUtils.IsHandleYFlipped(context, in data.target);
+                    bool isTargetFlipped = SystemInfo.graphicsUVStartsAtTop && RenderingUtils.IsHandleYFlipped(context, in data.target);
 
-                    SetupCameraProperties(context, data.cameraData, useBottomLeftUV);
+                    SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    /// URP CB TIER 2 WIP - we do a distinction for XR until its incoming refactoring,
-                    /// XR currently owns the camera matrices via PushBuiltinShaderConstantsXR called in SetupCameraProperties().
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    bool setCameraMatrices = !data.cameraData.xr.enabled;
-#else
-                    const bool setCameraMatrices = true;
-#endif
-                    data.shaderData.GetDefaultVars(useBottomLeftUV).SetGlobals(context.cmd, setCameraMatrices: setCameraMatrices);
+                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd);
                 });
             }
         }

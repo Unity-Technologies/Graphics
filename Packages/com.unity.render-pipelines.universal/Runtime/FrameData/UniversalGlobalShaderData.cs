@@ -1,11 +1,9 @@
-using System;
-
 namespace UnityEngine.Rendering.Universal
 {
     internal class UniversalGlobalShaderData : ContextItem
     {
         #region Internal
-        internal (GlobalShaderVars bottomLeftUV, GlobalShaderVars topLeftUV) m_GlobalShaderVars;
+        internal GlobalShaderVars m_GlobalShaderVars;
 
         #endregion
 
@@ -18,18 +16,11 @@ namespace UnityEngine.Rendering.Universal
         internal bool useConstantBuffers { get; set; }
 
         // Returns the stored GlobalShaderVars by ref-readonly so callers with in parameter can avoid its copy, no modification possible
-        internal ref readonly GlobalShaderVars GetDefaultVars(bool useUVBottomLeft = true)
-        {
-            if (useUVBottomLeft)
-                return ref m_GlobalShaderVars.bottomLeftUV;
-            if (SystemInfo.graphicsUVStartsAtTop)
-                return ref m_GlobalShaderVars.topLeftUV;
-            throw new ArgumentException("UV always starts from the bottom for this API, use useUVBottomLeft = true");
-        }
+        internal ref readonly GlobalShaderVars GetDefaultVars() => ref m_GlobalShaderVars;
 
         public override void Reset()
         {
-            m_GlobalShaderVars = (default, default);
+            m_GlobalShaderVars = default;
             useConstantBuffers = false;
         }
         //#endregion
