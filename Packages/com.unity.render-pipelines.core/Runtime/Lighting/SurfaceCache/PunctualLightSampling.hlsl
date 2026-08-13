@@ -14,7 +14,7 @@ StructuredBuffer<PunctualLight> _PunctualLights;
 RWStructuredBuffer<PunctualLightSample> _Samples;
 
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
-Texture2DArray _AlbedoTextures;
+Texture2DArray<float4> _AlbedoTextures;
 SamplerState sampler_AlbedoTextures;
 float _MaterialAtlasTexelSize;
 float _AlbedoBoost;

@@ -46,8 +46,8 @@ SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, Unifi
 struct MaterialPoolParamSet
 {
     StructuredBuffer<MaterialPool::MaterialEntry> materialEntries;
-    Texture2DArray albedoTextures;
-    Texture2DArray emissionTextures;
+    Texture2DArray<float4> albedoTextures;
+    Texture2DArray<float4> emissionTextures;
     SamplerState emissionSampler;
     SamplerState albedoSampler;
     float atlasTexelSize; // The size of 1 texel in the atlases above
