@@ -83,10 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         static TestCaseData[] s_ListTestsCaseDataMSAAMode =
         {
             new TestCaseData(MSAAMode.FromHDRPAsset, MSAASamples.MSAA8x)
-                .Returns(MSAASamples.MSAA8x).SetName("FromHDRPAsset"),
+                .Returns(MSAASamples.MSAA8x).SetName("{m}(FromHDRPAsset)"),
 
             new TestCaseData(MSAAMode.MSAA2X, MSAASamples.MSAA8x)
-                .Returns(MSAASamples.MSAA2x).SetName("Override")
+                .Returns(MSAASamples.MSAA2x).SetName("{m}(Override)")
         };
 
         [Test, TestCaseSource(nameof(s_ListTestsCaseDataMSAAMode))]
