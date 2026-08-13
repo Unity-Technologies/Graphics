@@ -7,7 +7,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// Provides methods to access node data, parent nodes, and child nodes.
     /// </summary>
     /// <typeparam name="T">The type of data stored in each graph node.</typeparam>
-    /*public*/ interface IGraph<T> : IIndexable<int, GraphNode<T>>, ICountable, IVersioned
+    /*public*/ interface IDirectedGraph<T> : IIndexable<int, GraphNode<T>>, ICountable, IVersioned
     {
         /// <summary>
         /// Gets the data associated with the specified node index.
@@ -53,7 +53,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// Reference to the graph containing this node.
         /// </summary>
-        readonly IGraph<T> m_Owner;
+        readonly IDirectedGraph<T> m_Owner;
 
         /// <summary>
         /// The index of this node within its graph.
@@ -73,7 +73,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// Gets the graph to which this node belongs.
         /// </summary>
-        public IGraph<T> Graph => m_Owner;
+        public IDirectedGraph<T> Graph
+        {
+            get
+            {
+                CheckAlive();
+                return m_Owner;
+            }
+        }
 
         void CheckAlive() { if (!IsAlive) throw new InvalidOperationException(
             $"GraphNode<{typeof(T).Name}> at index {m_Index} no longer refers to a live slot in the graph."); }
@@ -82,47 +89,26 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Gets the data of type <typeparamref name="T"/> associated with this node.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the graph.</exception>
-        public T Data
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetData(m_Index);
-            }
-        }
+        public T Data => Graph.GetData(m_Index);
 
         /// <summary>
         /// Gets the parent nodes linked to this node within the graph.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the graph.</exception>
-        public GraphNodeLinks<T> Parents
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetParents(m_Index);
-            }
-        }
+        public GraphNodeLinks<T> Parents => Graph.GetParents(m_Index);
 
         /// <summary>
         /// Gets the child nodes linked to this node within the graph.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the graph.</exception>
-        public GraphNodeLinks<T> Children
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetChildren(m_Index);
-            }
-        }
+        public GraphNodeLinks<T> Children => Graph.GetChildren(m_Index);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphNode{T}"/> struct.
         /// </summary>
         /// <param name="graph">The graph to which this node belongs.</param>
         /// <param name="index">The index of this node within the graph.</param>
-        public GraphNode(IGraph<T> graph, int index)
+        public GraphNode(IDirectedGraph<T> graph, int index)
         {
             m_Owner = graph;
             m_Index = index;
@@ -139,7 +125,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// Reference to the graph containing these links.
         /// </summary>
-        readonly IGraph<T> m_Owner;
+        readonly IDirectedGraph<T> m_Owner;
 
         /// <summary>
         /// Source mapping indices of links (parent or child slot indices). Depends on
@@ -176,7 +162,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </param>
         /// <param name="index">The sublist index — the slot of the node whose links this view exposes.</param>
         /// <param name="count">The total number of links associated with this node.</param>
-        public GraphNodeLinks(IGraph<T> owner, IMultiList<int> source, int index, int count)
+        public GraphNodeLinks(IDirectedGraph<T> owner, IMultiList<int> source, int index, int count)
         {
             m_Owner = owner;
             m_Source = source;
@@ -197,15 +183,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Composing enumerator: wraps <see cref="VersionedSublistEnumerator{T}"/> (which yields int
     /// slot indices and performs the per-sublist version check) and projects each popped slot
-    /// through <see cref="IGraph{T}"/> to a <see cref="GraphNode{T}"/>.
+    /// through <see cref="IDirectedGraph{T}"/> to a <see cref="GraphNode{T}"/>.
     /// </summary>
     /// <typeparam name="T">The data type of the graph nodes being enumerated.</typeparam>
     /*public*/ struct GraphNodeLinksEnumerator<T> : IValueEnumerator<GraphNode<T>>
     {
         VersionedSublistEnumerator<int> m_Inner;
-        readonly IGraph<T>              m_Graph;
+        readonly IDirectedGraph<T> m_Graph;
 
-        internal GraphNodeLinksEnumerator(IGraph<T> graph, IMultiList<int> source, int listIndex, int count)
+        internal GraphNodeLinksEnumerator(IDirectedGraph<T> graph, IMultiList<int> source, int listIndex, int count)
         {
             m_Graph = graph;
             m_Inner = new VersionedSublistEnumerator<int>(source, listIndex, count);

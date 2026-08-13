@@ -161,14 +161,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>True if the child data view was found, false otherwise.</returns>
         public bool FindSubData(IDataKey subdataKey, out DataView subDataView)
         {
-            //TODO: maybe use m_DataViewIdDictionary here somehow
-            foreach (var child in Children)
+            if (Graph.TryGetSubView(Id, subdataKey, out var subDataViewId))
             {
-                if (child.SubDataKey.Equals(subdataKey))
-                {
-                    subDataView = child;
-                    return true;
-                }
+                subDataView = Graph.DataViews[subDataViewId];
+                return true;
             }
             subDataView = new DataView();
             return false;
@@ -196,10 +192,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         public bool ContainsSubData(DataViewId dataViewId)
         {
-            if(Id.Equals(dataViewId)) return true;
-            foreach (var child in Children)
+            if (!Graph.IsValid(dataViewId))
+                return false;
+
+            for (DataView? current = Graph.DataViews[dataViewId]; current.HasValue; current = current.Value.Parent)
             {
-                if(child.ContainsSubData(dataViewId)) return true;
+                if (current.Value.Id.Equals(Id))
+                    return true;
             }
 
             return false;

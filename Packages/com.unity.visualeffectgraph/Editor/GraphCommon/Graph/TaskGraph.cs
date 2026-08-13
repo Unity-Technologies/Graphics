@@ -17,11 +17,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<DataViewInfo> m_DataViews = new();
         GraphDataList<DataBindingInfo> m_DataBindings = new();
 
-        HashSet<TaskDependency> m_TaskDependencies = new();
         HashSet<DataDependency> m_DataDependencies = new();
-
-        Dictionary<(DataViewId, IDataKey), DataViewId> m_DataViewIdDictionary = new();
-        Dictionary<(TaskNodeId, DataContainerId), DataNodeId> m_DataNodeIdDictionary = new();
 
         TaskNodeProvider m_TaskNodeProvider;
         DataNodeProvider m_DataNodeProvider;
@@ -107,11 +103,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             m_DataViews      = new(source.m_DataViews);
             m_DataBindings   = new(source.m_DataBindings);
 
-            m_TaskDependencies = new(source.m_TaskDependencies);
             m_DataDependencies = new(source.m_DataDependencies);
-
-            m_DataViewIdDictionary = new(source.m_DataViewIdDictionary);
-            m_DataNodeIdDictionary = new(source.m_DataNodeIdDictionary);
         }
 
         T RegisterCache<T>(T cache, T sourcePeer, bool copyCache) where T : class, ICopyableCache<T>
@@ -145,10 +137,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             m_DataContainers.Clear();
             m_DataViews.Clear();
 
-            m_TaskDependencies.Clear();
             m_DataDependencies.Clear();
-
-            m_DataViewIdDictionary.Clear();
 
             Version = 1u;
             NotifyGraphCleared();
@@ -193,7 +182,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <inheritdoc cref="IBuildableGraph"/>
         public DataViewId GetSubdata(DataViewId parentDataViewId, IDataKey subDataKey, IDataDescription dataDescription = null)
         {
-            if (!m_DataViewIdDictionary.TryGetValue((parentDataViewId, subDataKey), out DataViewId dataViewId))
+            if (!DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out DataViewId dataViewId))
             {
                 dataViewId = DataViewId.Invalid;
                 IDataDescription targetDataDescription = m_DataViews[parentDataViewId].DataDescription.GetSubdata(subDataKey);
@@ -212,7 +201,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     var containerId = DataViews[parentDataViewId].DataContainer.Id;
                     m_DataViews.Allocate(out var newDataViewId) = new DataViewInfo(newDataViewId, dataDescription, parentDataViewId, subDataKey);
                     dataViewId = newDataViewId;
-                    m_DataViewIdDictionary.Add((parentDataViewId, subDataKey), dataViewId);
 
                     NotifyDataViewAdded(dataViewId, parentDataViewId, containerId, dataDescription);
                 }
@@ -296,12 +284,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             CreateDataViewsFromUsage(dataViewId, usage, readPaths, writePaths);
 
             var dataContainerId = DataViews[dataViewId].DataContainer.Id;
-            if (!m_DataNodeIdDictionary.TryGetValue((taskNodeId, dataContainerId), out var dataNodeId))
+
+            if (!TaskNodeToDataNodes.TryGetDataNode(taskNodeId, dataContainerId, out var dataNodeId))
             {
                 m_DataNodes.Allocate(out var newDataNodeId) = new DataNodeInfo(newDataNodeId, taskNodeId, dataContainerId);
                 NotifyDataNodeAdded(newDataNodeId, taskNodeId, dataContainerId);
                 dataNodeId = newDataNodeId;
-                m_DataNodeIdDictionary.Add((taskNodeId, dataContainerId), dataNodeId);
             }
 
             m_DataBindings.Allocate(out var dataBindingId) =
@@ -363,30 +351,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             {
                 Version++;
                 NotifyDataDependencyAdded(dataNodeId, parentDataNodeId);
-
-                bool generateTaskDependencies = true;
-                if (generateTaskDependencies)
-                {
-                    AddTaskDependency(m_DataNodes[dataNodeId].TaskNodeId, m_DataNodes[parentDataNodeId].TaskNodeId);
-                }
             }
 
-            return added;
-        }
-
-        /// <summary>
-        /// Adds a dependency relationship between two task nodes.
-        /// </summary>
-        /// <param name="taskNodeId">The ID of the dependent task node.</param>
-        /// <param name="parentTaskNodeId">The ID of the parent task node.</param>
-        /// <returns>True if the dependency was added, false if it already existed.</returns>
-        public bool AddTaskDependency(TaskNodeId taskNodeId, TaskNodeId parentTaskNodeId)
-        {
-            Debug.Assert(taskNodeId.IsValid);
-            Debug.Assert(parentTaskNodeId.IsValid);
-            bool added = m_TaskDependencies.Add(new TaskDependency(taskNodeId, parentTaskNodeId));
-            if (added)
-                NotifyTaskDependencyAdded(taskNodeId, parentTaskNodeId);
             return added;
         }
 
@@ -446,6 +412,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
             var dataContainerId = DataViewToDataContainer.Data[dataViewId.Index];
             return DataContainers[dataContainerId];
         }
+
+        /// <inheritdoc cref="IReadOnlyGraph.TryGetSubView"/>
+        bool IReadOnlyGraph.TryGetSubView(DataViewId parentDataViewId, IDataKey subDataKey, out DataViewId dataViewId)
+            => DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out dataViewId);
 
         ReadOnlyList<DataNodeId> FindImplicitParentDataNodes(DataViewId dataViewId)
         {
@@ -576,18 +546,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             for (int i = m_DataNodeObservers.Count - 1; i >= 0; i--)
                 m_DataNodeObservers[i].OnDataDependencyRemoved(child, parent);
-        }
-
-        void NotifyTaskDependencyAdded(TaskNodeId child, TaskNodeId parent)
-        {
-            for (int i = 0; i < m_TaskObservers.Count; i++)
-                m_TaskObservers[i].OnTaskDependencyAdded(child, parent);
-        }
-
-        void NotifyTaskDependencyRemoved(TaskNodeId child, TaskNodeId parent)
-        {
-            for (int i = m_TaskObservers.Count - 1; i >= 0; i--)
-                m_TaskObservers[i].OnTaskDependencyRemoved(child, parent);
         }
 
         void NotifyGraphCleared()

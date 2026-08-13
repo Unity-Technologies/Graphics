@@ -81,7 +81,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// Gets the tree to which this node belongs.
         /// </summary>
-        public IMultiTree<T> Tree => m_Owner;
+        public IMultiTree<T> Tree
+        {
+            get
+            {
+                CheckAlive();
+                return m_Owner;
+            }
+        }
 
         /// <summary>
         /// Gets the slot index of this node within its tree.
@@ -100,53 +107,25 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Gets the data of type <typeparamref name="T"/> associated with this node.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the tree.</exception>
-        public T Data
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetData(m_Index);
-            }
-        }
+        public T Data => Tree.GetData(m_Index);
 
         /// <summary>
         /// Gets the root node associated with this node.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the tree.</exception>
-        public MultiTreeNode<T> Root
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetRootNode(m_Index);
-            }
-        }
+        public MultiTreeNode<T> Root => Tree.GetRootNode(m_Index);
 
         /// <summary>
         /// Gets the parent node associated with this node, or <c>null</c> if this node is a root.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the tree.</exception>
-        public MultiTreeNode<T>? Parent
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetParentNode(m_Index);
-            }
-        }
+        public MultiTreeNode<T>? Parent => Tree.GetParentNode(m_Index);
 
         /// <summary>
         /// Gets the enumerable collection of child nodes associated with this node.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the node's slot has been removed from the tree.</exception>
-        public MultiTreeNodeChildren<T> Children
-        {
-            get
-            {
-                CheckAlive();
-                return m_Owner.GetChildren(m_Index);
-            }
-        }
+        public MultiTreeNodeChildren<T> Children => Tree.GetChildren(m_Index);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MultiTreeNode{T}"/> struct.

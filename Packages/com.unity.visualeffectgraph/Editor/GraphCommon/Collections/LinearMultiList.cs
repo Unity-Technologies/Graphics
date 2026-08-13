@@ -41,10 +41,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
         [SerializeField]
         List<int> m_ListCounts = new();
         [SerializeField]
-        List<T> m_Items = new();
-
-        [SerializeField]
         List<uint> m_ListVersions = new();
+        [SerializeField]
+        List<T> m_Items = new();
 
         /// <inheritdoc cref="IMultiList{T}"/>
         public int ListCount => m_ListOffsets.Count;

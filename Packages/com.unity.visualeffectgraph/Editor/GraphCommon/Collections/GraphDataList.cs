@@ -67,10 +67,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
     class GraphDataList<T> : ICountable, IVersioned, IEnumerable<T> where T : struct
     {
         [SerializeField]
-        T[] m_Items = new T[0];
+        T[] m_Items = Array.Empty<T>();
 
         [SerializeField]
-        bool[] m_Alive = new bool[0];
+        bool[] m_Alive = Array.Empty<bool>();
 
         [SerializeField]
         int m_LiveCount;

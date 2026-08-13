@@ -93,6 +93,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </returns>
         internal DataContainer GetDataContainer(DataViewId dataViewId);
 
+        /// <summary>
+        /// Looks up an existing sub-data view by its parent view and sub-data key.
+        /// </summary>
+        /// <param name="parentDataViewId">The parent data view to search under.</param>
+        /// <param name="subDataKey">The sub-data key identifying the child view.</param>
+        /// <param name="dataViewId">The matching sub-view id, or invalid if none exists.</param>
+        /// <returns>True if a matching sub-view exists; false otherwise.</returns>
+        internal bool TryGetSubView(DataViewId parentDataViewId, IDataKey subDataKey, out DataViewId dataViewId);
+
         /// <summary>Returns true if the given data view is alive in this graph.</summary>
         bool IsValid(DataViewId dataViewId);
 

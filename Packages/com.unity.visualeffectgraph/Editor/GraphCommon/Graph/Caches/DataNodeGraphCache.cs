@@ -6,10 +6,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
     {
         sealed class DataNodeGraphCache : ICopyableCache<DataNodeGraphCache>, IDataNodeObserver
         {
-            LinearGraph<DataNodeId> m_Graph = new();
+            LinearDirectedGraph<DataNodeId> m_Graph = new();
             readonly TaskGraph m_Owner;
 
-            public LinearGraph<DataNodeId> Data => m_Graph;
+            public LinearDirectedGraph<DataNodeId> Data => m_Graph;
 
             public DataNodeGraphCache(TaskGraph owner)
             {
@@ -31,11 +31,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 => m_Graph.RemoveNode(id.Index);
 
             public void OnGraphCleared()
-                => m_Graph = new LinearGraph<DataNodeId>();
+                => m_Graph = new LinearDirectedGraph<DataNodeId>();
 
             public void RebuildFromPrimary()
             {
-                m_Graph = new LinearGraph<DataNodeId>();
+                m_Graph = new LinearDirectedGraph<DataNodeId>();
                 for (int slot = 0; slot < m_Owner.m_DataNodes.SlotCount; slot++)
                 {
                     if (!m_Owner.m_DataNodes.IsAliveAtSlot(slot))

@@ -11,8 +11,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         void OnTaskNodeAdded(TaskNodeId id, ITask task, string name) {}
         void OnTaskChanged(TaskNodeId id, ITask oldTask, ITask newTask) {}
         void OnTaskNodeRemoved(TaskNodeId id) {}
-        void OnTaskDependencyAdded(TaskNodeId childTaskNodeId, TaskNodeId parentTaskNodeId) {}
-        void OnTaskDependencyRemoved(TaskNodeId childTaskNodeId, TaskNodeId parentTaskNodeId) {}
     }
 
     /// <summary>Data node mutation callbacks. </summary>

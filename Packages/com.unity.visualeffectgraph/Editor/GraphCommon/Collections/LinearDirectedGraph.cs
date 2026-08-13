@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     [Serializable]
-    class LinearGraph<T> : IGraph<T>
+    class LinearDirectedGraph<T> : IDirectedGraph<T>
     {
         [SerializeField]
         List<T> m_Data = new();
@@ -114,7 +114,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Version++;
         }
 
-        /// <inheritdoc cref="IGraph{T}.IsAlive"/>
+        /// <inheritdoc cref="IDirectedGraph{T}.IsAlive"/>
         public bool IsAlive(int index) => m_Alive[index];
 
         /// <summary>Gets the capacity of the parents list for the specified node.</summary>
@@ -134,7 +134,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Replaces the contents of this graph with a deep copy of <paramref name="other"/>.
         /// </summary>
         /// <param name="other">The source graph to copy from.</param>
-        public void CopyFrom(LinearGraph<T> other)
+        public void CopyFrom(LinearDirectedGraph<T> other)
         {
             m_Data.Clear();
             m_Data.AddRange(other.m_Data);
@@ -145,8 +145,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Version = other.Version;
         }
 
-        T IGraph<T>.GetData(int index) => m_Data[index];
-        GraphNodeLinks<T> IGraph<T>.GetParents(int index) => new(this, m_Parents, index, m_Parents[index].Count);
-        GraphNodeLinks<T> IGraph<T>.GetChildren(int index) => new(this, m_Children, index, m_Children[index].Count);
+        T IDirectedGraph<T>.GetData(int index) => m_Data[index];
+        GraphNodeLinks<T> IDirectedGraph<T>.GetParents(int index) => new(this, m_Parents, index, m_Parents[index].Count);
+        GraphNodeLinks<T> IDirectedGraph<T>.GetChildren(int index) => new(this, m_Children, index, m_Children[index].Count);
     }
 }

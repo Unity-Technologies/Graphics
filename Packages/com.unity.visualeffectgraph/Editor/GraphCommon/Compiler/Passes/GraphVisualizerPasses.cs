@@ -181,18 +181,16 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         public static (string htmlLabel, string fill) DataInTaskNodeLabel(DataNode dataNode)
         {
-            var readIds = new StringBuilder();
-            var writtenIds = new StringBuilder();
+            bool anyRead = false;
+            bool anyWritten = false;
             if (dataNode.UsedDataViewsRoot.Valid)
             {
                 foreach (var dataView in dataNode.UsedDataViews)
                 {
-                    if (dataNode.IsRead(dataView.Id)) readIds.Append(dataView.Id).Append(' ');
-                    if (dataNode.IsWritten(dataView.Id)) writtenIds.Append(dataView.Id).Append(' ');
+                    anyRead |= dataNode.IsRead(dataView.Id);
+                    anyWritten |= dataNode.IsWritten(dataView.Id);
                 }
             }
-            bool anyRead = readIds.Length > 0;
-            bool anyWritten = writtenIds.Length > 0;
 
             var bindingsList = new List<string>(dataNode.DataBindings.Count);
             foreach (var binding in dataNode.DataBindings)
@@ -202,15 +200,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             var html = new StringBuilder();
             html.Append('<');
             html.Append("<B>").Append(bindingsStr).Append("</B>");
-            if (anyRead)
-                html.Append("<BR/><FONT POINT-SIZE=\"9\" COLOR=\"#0a4d99\">R: ")
-                    .Append(readIds.ToString().TrimEnd())
-                    .Append("</FONT>");
-            if (anyWritten)
-                html.Append("<BR/><FONT POINT-SIZE=\"9\" COLOR=\"#a05500\">W: ")
-                    .Append(writtenIds.ToString().TrimEnd())
-                    .Append("</FONT>");
-            html.Append("<BR/><FONT POINT-SIZE=\"8\" COLOR=\"#888888\">#")
+            // The data views used by this node, laid out as a tree: each parent view sits above its
+            // (indented) children, colour- and tag-coded by whether this node reads and/or writes it.
+            html.Append("<BR ALIGN=\"LEFT\"/>");
+            if (dataNode.UsedDataViewsRoot.Valid)
+                AppendDataViewHierarchy(html, dataNode, dataNode.UsedDataViewsRoot, 0);
+            html.Append("<FONT POINT-SIZE=\"8\" COLOR=\"#888888\">#")
                 .Append(dataNode.Id.Index)
                 .Append("</FONT>");
             html.Append('>');
@@ -224,6 +219,31 @@ namespace Unity.GraphCommon.LowLevel.Editor
             };
 
             return (html.ToString(), fill);
+        }
+
+        // Appends one indented line per used data view (pre-order, so each parent appears above its
+        // children) to the node's HTML label, colour- and tag-coded by this node's read/write usage.
+        static void AppendDataViewHierarchy(StringBuilder html, DataNode dataNode, DataView dataView, int depth)
+        {
+            bool read = dataNode.IsRead(dataView.Id);
+            bool written = dataNode.IsWritten(dataView.Id);
+            (string color, string tag) = (read, written) switch
+            {
+                (true,  true)  => ("#7a3fa0", " [RW]"), // read + written — purple
+                (true,  false) => ("#0a4d99", " [R]"),  // read — blue
+                (false, true)  => ("#a05500", " [W]"),  // written — orange
+                _              => ("#888888", ""),      // structural parent — gray
+            };
+            string subKey = dataView.SubDataKey != null ? " " + HtmlEscape(dataView.SubDataKey.ToString()) : "";
+
+            for (int i = 0; i < depth; i++)
+                html.Append("&nbsp;&nbsp;");
+            html.Append("<FONT POINT-SIZE=\"9\" COLOR=\"").Append(color).Append("\">")
+                .Append(dataView.Id).Append(subKey).Append(tag)
+                .Append("</FONT><BR ALIGN=\"LEFT\"/>");
+
+            foreach (var child in dataView.Children)
+                AppendDataViewHierarchy(html, dataNode, child, depth + 1);
         }
 
         // Pick (fill, border) colors for a task cluster based on a coarse category.
