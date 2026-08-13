@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering
             SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 8, new Vector3(value[0, 8], value[1, 8], value[2, 8]));
         }
 
-        void ReadAdjustmentVolumes(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, float validity,
+        void ReadAdjustmentVolumes(BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, float validity, bool hasSkyDirection, bool hasRenderingLayers,
             ref byte validityMask, out bool invalidatedProbe, out float intensityScale, out uint? skyShadingDirectionOverride)
         {
             invalidatedProbe = false;
@@ -192,11 +192,11 @@ namespace UnityEngine.Rendering
                         touchupVolumeInteraction[i] = 1.0f + thresh;
                         bakingBatch.customDilationThresh[(index, i)] = thresh;
                     }
-                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideSkyDirection && bakingSet.skyOcclusion && bakingSet.skyOcclusionShadingDirection)
+                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideSkyDirection && hasSkyDirection)
                     {
                         skyShadingDirectionOverride = AdaptiveProbeVolumes.SkyOcclusionBaker.EncodeSkyShadingDirection(touchupVolume.skyDirection);
                     }
-                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideRenderingLayerMask && bakingSet.useRenderingLayers)
+                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideRenderingLayerMask && hasRenderingLayers)
                     {
                         switch (touchupVolume.renderingLayerMaskOperation)
                         {
@@ -225,7 +225,8 @@ namespace UnityEngine.Rendering
         {
             byte layerValidityMask = (byte)(renderingLayerMasks.IsCreated ? renderingLayerMasks[probeIndex] : 0);
 
-            ReadAdjustmentVolumes(bakingSet, bakingBatch, localTouchupVolumes, i, validity, ref layerValidityMask, out var invalidatedProbe, out var intensityScale, out var skyShadingDirectionOverride);
+            ReadAdjustmentVolumes(bakingBatch, localTouchupVolumes, i, validity, skyOcclusion.IsCreated && skyDirection.IsCreated, renderingLayerMasks.IsCreated,
+                ref layerValidityMask, out var invalidatedProbe, out var intensityScale, out var skyShadingDirectionOverride);
             SetSHCoefficients(i, sh, intensityScale, validity, bakingSet.settings.dilationSettings);
 
             if (virtualOffsets.IsCreated)
@@ -466,6 +467,7 @@ namespace UnityEngine.Rendering
             public SkyOcclusionBaker skyOcclusionJob;
             public LightingBaker lightingJob;
             public RenderingLayerBaker layerMaskJob;
+            public uint4 regionMasks;
             public int cellIndex;
 
             public Thread fixSeamsThread;
@@ -563,6 +565,7 @@ namespace UnityEngine.Rendering
 
                 layerMaskJob = s_RenderingLayerOverride ?? new DefaultRenderingLayer();
                 layerMaskJob.Initialize(bakingSet, sortedPositions.GetSubArray(0, probeCount));
+                regionMasks = bakingSet.useRenderingLayers ? bakingSet.ComputeRegionMasks() : bakingSet.bakedLayerMasks;
 
                 lightingJob = s_LightingOverride ?? new DefaultLightTransport();
                 lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions, layerMaskJob.renderingLayerMasks);
@@ -1145,8 +1148,6 @@ namespace UnityEngine.Rendering
             bakeInput.SetProbePositions(newPositions);
             bakeInput.SetOcclusionLightIndices(newOcclusionIndices);
 
-            var ignoreEnvironmentLight = m_BakingSet != null && m_BakingSet.skyOcclusion;
-
             var lightmapParameters = LightmapParameters.GetLightmapParametersForLightingSettings(lightingSettings);
             float pushoff = lightmapParameters != null ? lightmapParameters.pushoff : 0.0001f;
 
@@ -1165,8 +1166,8 @@ namespace UnityEngine.Rendering
                     positionLength = (ulong)bakeJob.probeCount,
                     bakeOutputFolderPath = k_APVLightBakerOutputFolder + probeOutputSubFolder,
                     postProcessOutputFolderPath = k_APVLightBakerPostProcessingOutputFolder + probeOutputSubFolder,
-                    ignoreDirectEnvironment = ignoreEnvironmentLight,
-                    ignoreIndirectEnvironment = ignoreEnvironmentLight,
+                    ignoreDirectEnvironment = bakeJob.ignoreEnvironement,
+                    ignoreIndirectEnvironment = bakeJob.ignoreEnvironement,
                     pushoff = pushoff,
                     indirectScale = bakeJob.indirectScale,
                     dering = true,
@@ -1840,8 +1841,15 @@ namespace UnityEngine.Rendering
             // Validate baking cells size before any state modifications
             var bakingCellsArray = s_BakedCells.Values.ToArray();
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
-            var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
-            var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            GetOptionalFeaturesFromCells(bakingCellsArray, out var hasVirtualOffsets, out var hasRenderingLayers);
+
+            if (isBakingSceneSubset)
+            {
+                // Cells from scenes outside the subset are merged in before writing and can carry
+                // optional data the newly baked cells lack, so validate against the union.
+                hasVirtualOffsets |= m_BakingSet.supportOffsetsChunkSize != 0;
+                hasRenderingLayers |= m_BakingSet.bakedMaskCount > 1;
+            }
 
             if (!ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
                 return; // Early exit if validation fails
@@ -1859,7 +1867,7 @@ namespace UnityEngine.Rendering
             // Attempt to convert baking cells to runtime cells
             bool succeededWritingBakingCells;
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData))
-                succeededWritingBakingCells = WriteBakingCells(m_BakingSet, s_BakedCells.Values.ToArray());
+                succeededWritingBakingCells = WriteBakingCells(m_BakingSet, s_BakedCells.Values.ToArray(), s_BakeData.regionMasks);
 
             if (!succeededWritingBakingCells)
                 return;
