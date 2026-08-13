@@ -41,6 +41,15 @@ namespace UnityEngine.Rendering
                 return result is true;
             }
 
+            // Only meaningful once RunInProgress() is false. A finished run is not necessarily a successful one.
+            internal bool GetLastRunSucceeded()
+            {
+                if (!InvokeMethod(new object[] { }, out object result))
+                    return false;
+
+                return result is true;
+            }
+
             internal void Step(ref float progress, ref StageName stage) =>
                 Update(true, true, true, out progress, out stage);
 

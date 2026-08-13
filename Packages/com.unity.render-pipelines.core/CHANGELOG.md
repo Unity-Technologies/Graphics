@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a "Shader 'Hidden/Core/ProbeVolumeDebug': All SubShaders were stripped" warning when building an HDRP project, caused by a leftover URP-specific RenderPipeline tag on the shared probe volume debug shader.
 - Fixed the Adaptive Probe Volume Samples fields accepting typed values above the slider maximum.
 - Fixed GC allocations during native render pass compilation. Debug-only pass and resource names are now stored as UTF8 in native memory instead of managed arrays.
+- Fixed the Editor becoming stuck when an asynchronous Adaptive Probe Volumes bake fails, for example when the selected lightmapper cannot run on the machine. A failed bake now reports the error and stops instead of leaving the progress item and further bakes blocked.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

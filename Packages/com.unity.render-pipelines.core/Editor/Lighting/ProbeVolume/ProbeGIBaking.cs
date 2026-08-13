@@ -1927,7 +1927,23 @@ namespace UnityEngine.Rendering
         internal static void AsyncBakeCallback()
         {
             float progress = 0.0f;
-            BakeDelegate(ref progress, out bool done, s_BakeData.bakeInput);
+            bool done;
+            try
+            {
+                BakeDelegate(ref progress, out done, s_BakeData.bakeInput);
+            }
+            catch (Exception e)
+            {
+                // Without tearing down we stay subscribed to EditorApplication.update and rethrow every tick, with
+                // isRunning stuck true blocking every later bake until a domain reload.
+                Debug.LogException(e);
+                EditorApplication.update -= AsyncBakeCallback;
+                Progress.Remove(s_AsyncBakeTaskId);
+                s_AsyncBakeTaskId = -1;
+                OnBakeCancelled();
+                return;
+            }
+
             Progress.Report(s_AsyncBakeTaskId, progress, s_BakeData.step.ToString());
 
             if (done)
@@ -1991,6 +2007,10 @@ namespace UnityEngine.Rendering
 
             // Bake all probes in a single batch
             BakeAdditionalProbes(out SphericalHarmonicsL2[] sh, out float[] validity);
+
+            // The bake failed and already reported it, so leave the probes untouched.
+            if (sh == null || validity == null)
+                return;
 
             Debug.Assert(numValidProbes == sh.Length);
             for (int probeIndex = 0; probeIndex < numValidProbes; ++probeIndex)

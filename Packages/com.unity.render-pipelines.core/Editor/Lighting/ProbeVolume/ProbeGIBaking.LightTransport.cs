@@ -143,6 +143,12 @@ namespace UnityEngine.Rendering
                             m_Step = (ulong)(Math.Clamp(progress, 0.0f, 1.0f) * m_ProbeCount);
                         return true;
                     }
+
+                    if (!m_BakePipelineDriver.GetLastRunSucceeded())
+                    {
+                        m_IsDone = true;
+                        return false;
+                    }
                 }
 
                 // At this point, the baked data exists on disk. Either the regular LightBaker process wrote it,
@@ -525,7 +531,18 @@ namespace UnityEngine.Rendering
             while (s_BakeData.lightingJob.currentStep < s_BakeData.lightingJob.stepCount)
             {
                 if (!s_BakeData.lightingJob.Step())
+                {
                     s_BakeData.failed = true;
+                    break;
+                }
+            }
+
+            if (s_BakeData.failed)
+            {
+                shValues = null;
+                validityValues = null;
+                CleanBakeData();
+                return;
             }
 
             shValues = s_BakeData.lightingJob.irradiance.ToArray();
@@ -693,14 +710,17 @@ namespace UnityEngine.Rendering
                 }
                 CleanLightingBakeData();
 
-                // Upload new data in cells
-                foreach ((int uniqueProbeIndex, int cellIndex, int i) in bakedProbes)
+                // Upload new data in cells. Skipped on failure: the result buffers are uninitialized.
+                if (!failed)
                 {
-                    ref var cell = ref bakingCells[cellIndex];
-                    cell.SetBakedData(bakingSet, s_BakingBatch, cellVolumes[cellIndex], i, uniqueProbeIndex,
-                        lightingJob.irradiance[uniqueProbeIndex], lightingJob.validity[uniqueProbeIndex],
-                        layerMaskJob.renderingLayerMasks, virtualOffsetJob.offsets,
-                        skyOcclusionJob.occlusion, skyOcclusionJob.m_EncodedDirections, lightingJob.occlusion);
+                    foreach ((int uniqueProbeIndex, int cellIndex, int i) in bakedProbes)
+                    {
+                        ref var cell = ref bakingCells[cellIndex];
+                        cell.SetBakedData(bakingSet, s_BakingBatch, cellVolumes[cellIndex], i, uniqueProbeIndex,
+                            lightingJob.irradiance[uniqueProbeIndex], lightingJob.validity[uniqueProbeIndex],
+                            layerMaskJob.renderingLayerMasks, virtualOffsetJob.offsets,
+                            skyOcclusionJob.occlusion, skyOcclusionJob.m_EncodedDirections, lightingJob.occlusion);
+                    }
                 }
 
                 skyOcclusionJob.m_EncodedDirections.Dispose();

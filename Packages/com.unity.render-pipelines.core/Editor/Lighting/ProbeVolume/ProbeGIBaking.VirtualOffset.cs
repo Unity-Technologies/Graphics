@@ -351,6 +351,12 @@ namespace UnityEngine.Rendering
 
             while (job.currentStep < job.stepCount)
             {
+                if (!job.Step())
+                    break;
+            }
+
+            for (int c = 0; c < s_BakingBatch.cells.Count; ++c)
+            {
                 job.Step();
             }
 
