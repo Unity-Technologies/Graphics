@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditorInternal;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -9,6 +10,23 @@ namespace UnityEngine.Rendering.HighDefinition
     internal static class VolumeUtils
     {
 #if UNITY_EDITOR
+        public static void EnsureDefaultVolumeProfile()
+        {
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings)
+                && GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
+            {
+                var defaultValuesAsset = editorAssets.defaultVolumeProfile;
+                var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
+                defaultVolumeProfileSettings.volumeProfile = volumeProfileCopy;
+                EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
+
+                if (VolumeManager.instance.isInitialized)
+                    VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
+
+                SettingsService.RepaintAllSettingsWindow();
+            }
+        }
+
         public static string GetDefaultNameForVolumeProfile(VolumeProfile profileInResourcesFolder)
         {
             return BuildDefaultNameForVolumeProfile(profileInResourcesFolder);
