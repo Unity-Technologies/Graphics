@@ -153,6 +153,7 @@
 
 # *** specific binaries in the unity codebase ***
 
+acceleratord			filter=lfs diff=lfs merge=lfs -text
 AudioPluginDemo         filter=lfs diff=lfs merge=lfs -text
 convert                 filter=lfs diff=lfs merge=lfs -text
 ios-deploy              filter=lfs diff=lfs merge=lfs -text
