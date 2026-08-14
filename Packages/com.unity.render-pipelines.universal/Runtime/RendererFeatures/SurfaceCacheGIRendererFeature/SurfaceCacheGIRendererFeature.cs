@@ -104,19 +104,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
 
-        private const uint DEFAULT_DEFRAG_COUNT = 2; // Default value for how many patches to defragment per frame.
-        private const float DEFAULT_VOLUME_SIZE = 128.0f; // Default value for the size of the volume in world units.
-        private const uint DEFAULT_VOLUME_RESOLUTION = 32; // Default value for the voxel resolution of the volume.
-        private const uint DEFAULT_VOLUME_CASCADE_COUNT = 4; // Default value for the number of cascades in the volume.
-
-        private const uint DEFAULT_ESTIMATION_SAMPLE_COUNT = 2;
-        private const float DEFAULT_TEMPORAL_SMOOTHING = 0.8f;
-        private const uint DEFAULT_SPATIAL_FILTER_SAMPLE_COUNT = 4;
-        private const float DEFAULT_SPATIAL_FILTER_RADIUS = 1.0f;
-        private const uint DEFAULT_LOOKUP_SAMPLE_COUNT = 6;
-        private const float DEFAULT_UPSAMPLING_KERNEL_SIZE = 5.0f;
-        private const uint DEFAULT_UPSAMPLING_SAMPLE_COUNT = 2;
-
         private const int k_UpscaleFactor = 4;
 
         // URP currently cannot render motion vectors properly in Scene View, so we disable it.
@@ -149,70 +136,39 @@ namespace UnityEngine.Rendering.Universal
             return focusTarget != null ? focusTarget.transform.position : camera.transform.position;
         }
 
-        private static VolumeParameterSet GetVolumeParametersOrDefaults(SurfaceCacheGIVolumeOverride volume)
+        private static VolumeParameterSet GetVolumeParameters(SurfaceCacheGIVolumeOverride volume)
         {
-            if (volume != null)
-            {
-                return new VolumeParameterSet
-                {
-                    EstimationParams = new SurfaceCacheEstimationParameterSet
-                    {
-                        MultiBounce = volume.multiBounce.value,
-                        BouncePatchAllocation = volume.bouncePatchAllocation.value,
-                        SampleCount = (uint)volume.sampleCount.value,
-                        DistanceFallback = volume.distanceFallback.value
-                    },
-                    PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
-                    {
-                        TemporalSmoothing = volume.temporalSmoothing.value,
-                        SpatialFilterEnabled = volume.spatialFilterEnabled.value,
-                        SpatialFilterSampleCount = (uint)volume.spatialSampleCount.value,
-                        SpatialFilterRadius = volume.spatialRadius.value,
-                        TemporalPostFilterEnabled = volume.temporalPostFilter.value
-                    },
-                    ScreenFilteringParams = new SurfaceCacheScreenFilteringParameterSet
-                    {
-                        LookupSampleCount = (uint)volume.lookupSampleCount.value,
-                        UpsamplingKernelSize = volume.upsamplingKernelSize.value,
-                        UpsamplingSampleCount = (uint)volume.upsamplingSampleCount.value,
-                    },
-                    VolumeSize = volume.volumeSize.value,
-                    VolumeResolution = (uint)volume.volumeResolution.value,
-                    VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
-                    DefragCount = (uint)volume.defragCount.value,
-                    RenderingLayerMask = volume.renderingLayerMask.value,
-                    PatchWarpingEnabled = volume.patchWarping.value
-                };
-            }
+            Debug.Assert(volume != null);
 
             return new VolumeParameterSet
             {
                 EstimationParams = new SurfaceCacheEstimationParameterSet
                 {
-                    MultiBounce = true,
-                    BouncePatchAllocation = false,
-                    SampleCount = DEFAULT_ESTIMATION_SAMPLE_COUNT,
+                    MultiBounce = volume.lightTransportMultiBounce.value,
+                    BouncePatchAllocation = volume.lightTransportBouncePatchAllocation.value,
+                    SampleCount = (uint)volume.lightTransportSampleCount.value,
+                    DistanceFallback = volume.volumeDistanceFallback.value
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
-                    TemporalSmoothing = DEFAULT_TEMPORAL_SMOOTHING,
-                    SpatialFilterEnabled = true,
-                    SpatialFilterSampleCount = DEFAULT_SPATIAL_FILTER_SAMPLE_COUNT,
-                    SpatialFilterRadius = DEFAULT_SPATIAL_FILTER_RADIUS,
-                    TemporalPostFilterEnabled = true
+                    TemporalSmoothing = volume.patchFilteringTemporalSmoothing.value,
+                    SpatialFilterEnabled = volume.patchFilteringSpatialFilterEnabled.value,
+                    SpatialFilterSampleCount = (uint)volume.patchFilteringSpatialSampleCount.value,
+                    SpatialFilterRadius = volume.patchFilteringSpatialRadius.value,
+                    TemporalPostFilterEnabled = volume.patchFilteringPostTemporalEnabled.value
                 },
                 ScreenFilteringParams = new SurfaceCacheScreenFilteringParameterSet
                 {
-                    LookupSampleCount = DEFAULT_LOOKUP_SAMPLE_COUNT,
-                    UpsamplingKernelSize = DEFAULT_UPSAMPLING_KERNEL_SIZE,
-                    UpsamplingSampleCount = DEFAULT_UPSAMPLING_SAMPLE_COUNT,
+                    LookupSampleCount = (uint)volume.screenFilteringLookupSampleCount.value,
+                    UpsamplingKernelSize = volume.screenFilteringUpsamplingKernelSize.value,
+                    UpsamplingSampleCount = (uint)volume.screenFilteringUpsamplingSampleCount.value,
                 },
-                VolumeSize = DEFAULT_VOLUME_SIZE,
-                VolumeResolution = DEFAULT_VOLUME_RESOLUTION,
-                VolumeCascadeCount = DEFAULT_VOLUME_CASCADE_COUNT,
-                DefragCount = DEFAULT_DEFRAG_COUNT,
-                RenderingLayerMask = 0xFFFFFFFF,
-                PatchWarpingEnabled = true
+                VolumeSize = volume.volumeSize.value,
+                VolumeResolution = (uint)volume.volumeResolution.value,
+                VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
+                DefragCount = (uint)volume.advancedDefragCount.value,
+                RenderingLayerMask = volume.advancedRenderingLayerMask.value,
+                PatchWarpingEnabled = volume.advancedPatchWarpingEnabled.value
             };
         }
 
@@ -1220,7 +1176,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var surfaceCacheVolumeOverride = VolumeManager.instance.stack.GetComponent<SurfaceCacheGIVolumeOverride>();
-            bool enabled = surfaceCacheVolumeOverride == null || surfaceCacheVolumeOverride.enabled.value;
+            Debug.Assert(surfaceCacheVolumeOverride != null);
+
+            bool enabled = surfaceCacheVolumeOverride.enabled.value;
             if (!enabled)
             {
                 if (_cameraStates.TryGetValue(camera, out var disabledState))
@@ -1240,7 +1198,7 @@ namespace UnityEngine.Rendering.Universal
             if (!ResourcesCreated())
                 return;
 
-            var volumeParams = GetVolumeParametersOrDefaults(surfaceCacheVolumeOverride);
+            var volumeParams = GetVolumeParameters(surfaceCacheVolumeOverride);
 
             bool newEntry = !_cameraStates.TryGetValue(camera, out var perCameraState);
             if (newEntry)
