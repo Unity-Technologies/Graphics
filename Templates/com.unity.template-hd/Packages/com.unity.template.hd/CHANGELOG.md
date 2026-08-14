@@ -4,6 +4,11 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.2.2] - 2026-08-07
+
+- Bump SRP packages to 17.7.0
+- Disabled the GPU Resident Drawer
+
 ## [16.2.1] - 2026-06-03
 
 ### Changed

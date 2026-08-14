@@ -130,6 +130,11 @@ namespace Tests
                     var fi1eInfo = new FileInfo(settingsFile);
                     Assert.That(fi1eInfo.Length, Is.EqualTo(0), "Boot.config file must be empty");
                 }
+                else if (settingsFilename.Equals("PackageManager.policy", StringComparison.OrdinalIgnoreCase))
+                {
+                    var fileInfo = new FileInfo(settingsFile);
+                    Assert.That(fileInfo.Length, Is.GreaterThan(0), "PackageManager.policy file must not be empty");
+                }
                 else
                 {
                     throw new Exception($"Unexpected file found {settingsFile}");

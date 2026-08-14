@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "com.unity.collab-proxy": "2.12.4",
+    "com.unity.collab-proxy": "2.13.5",
     "com.unity.feature.development": "1.0.2",
-    "com.unity.inputsystem": "1.19.0",
-    "com.unity.multiplayer.center": "2.0.0",
+    "com.unity.inputsystem": "1.20.0",
+    "com.unity.multiplayer.center": "2.0.1",
     "com.unity.render-pipelines.high-definition": "17.7.0",
     "com.unity.timeline": "6.6.0",
     "com.unity.ugui": "2.6.0",
-    "com.unity.visualscripting": "1.9.11",
+    "com.unity.visualscripting": "1.9.12",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.physicscore2d": "1.0.0",
