@@ -642,14 +642,8 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
             header.TrackSerializedObjectValue(allImportersSerializedObject, x =>
             {
-                // Does not work
-                /*foreach (var t in targets)
-                {
-                    EditorUtility.SetDirty(t);
-                    AssetDatabase.SaveAssetIfDirty(t);
-                }*/
-                // This works
-                AssetDatabase.ForceReserializeAssets(paths, ForceReserializeAssetsOptions.ReserializeMetadata);
+                // Defer so the reimport doesn't re-register bindings while UIToolkit is iterating them
+                EditorApplication.delayCall += () => AssetDatabase.ForceReserializeAssets(paths, ForceReserializeAssetsOptions.ReserializeMetadata);
             });
         }
 
