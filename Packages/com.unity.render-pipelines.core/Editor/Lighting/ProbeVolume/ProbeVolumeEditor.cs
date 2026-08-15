@@ -147,7 +147,9 @@ namespace UnityEditor.Rendering
 
             bool drawInspector = true;
 
+#pragma warning disable 618
             if (ProbeVolumeLightingTab.GetLightingSettings().realtimeGI)
+#pragma warning restore 618
             {
                 EditorGUILayout.HelpBox("Adaptive Probe Volumes are not supported when using Realtime Global Illumination(Enlighten).", MessageType.Warning, wide: true);
                 drawInspector = false;

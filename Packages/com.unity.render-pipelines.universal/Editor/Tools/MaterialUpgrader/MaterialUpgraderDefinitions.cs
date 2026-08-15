@@ -474,11 +474,13 @@ namespace UnityEditor.Rendering.Universal
             if (material.IsKeywordEnabled("_EMISSION"))
             {
                 LightingSettings lightingSettingsOrDefaultsFallback = Lightmapping.GetLightingSettingsOrDefaultsFallback();
+#pragma warning disable 618
                 MaterialGlobalIlluminationFlags materialGlobalIlluminationFlags =
                     MaterialGlobalIlluminationFlags.RealtimeDirectEmission |
                     (lightingSettingsOrDefaultsFallback.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeIndirectEmission :
                     (lightingSettingsOrDefaultsFallback.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmission :
                     MaterialGlobalIlluminationFlags.None));
+#pragma warning restore 618
                 material.globalIlluminationFlags = materialGlobalIlluminationFlags;
             }
 

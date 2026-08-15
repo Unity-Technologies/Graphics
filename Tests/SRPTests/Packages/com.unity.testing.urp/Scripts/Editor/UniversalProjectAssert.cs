@@ -117,7 +117,9 @@ public static class UniversalProjectAssert
                 continue;
 
             LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
+#pragma warning disable 618
             Assert.IsFalse(lightingSettings.realtimeGI, $"Lighting Setting ({path}) has realtime GI enabled. {projectName} project should not have realtime GI");
+#pragma warning restore 618
             Assert.IsFalse(lightingSettings.bakedGI, $"Lighting Setting ({path}) has baked GI enabled. {projectName} project should not have baked GI");
         }
     }
