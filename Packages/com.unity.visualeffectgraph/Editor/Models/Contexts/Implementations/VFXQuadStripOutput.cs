@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputStripQuad")]
     [VFXInfo(name = "Output ParticleStrip|Unlit|Quad", category = "#3Output Strip", experimental = true, synonyms = new []{ "Trail", "Ribbon" })]
     class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {

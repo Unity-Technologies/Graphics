@@ -1,15 +1,12 @@
 # Output Strip Contexts reference
 
-Render connected particle strips such as trails and ribbons.
+Explore the Contexts you use to render particle strips.
 
-These Contexts render particle strip data as a continuous connected surface, rather than as independent particles.
-
-| **Topic** | **Description** |
+| **Page** | **Description** |
 | --- | --- |
-| [Output Particle ShaderGraph Strip Context](Context-OutputShaderGraphStrip.md) | Render particles as a custom Shader Graph strip. |
 | [Output Distortion Context](Context-OutputDistortion.md) | In the High Definition Render Pipeline (HDRP), use distortion to simulate effects like heat haze from fire. Covers the **Output Strip Distortion Quad** variant. |
-
-**Note**: The Unlit and Lit **Output ParticleStrip Quad** menu entries do not have a dedicated reference page yet.
+| [Output ParticleStrip Quad Context](Context-OutputStripQuad.md) | Render particles as a ribbon of quads, in a regular (unlit) or Lit (HDRP-only) variety. |
+| [Output ParticleStrip ShaderGraph Context](Context-OutputShaderGraphStrip.md) | Render particles as a custom Shader Graph strip. |
 
 ## Additional resources
 
