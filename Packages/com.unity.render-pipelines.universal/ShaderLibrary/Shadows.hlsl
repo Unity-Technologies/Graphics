@@ -58,6 +58,10 @@
 #define CALCULATE_BAKED_SHADOWS
 #endif
 
+#if !(defined(_SPOT) || defined(_POINT) || defined(_DIRECTIONAL))
+#define FORWARD_RENDER_PATH
+#endif
+
 TEXTURE2D_X(_ScreenSpaceShadowmapTexture);
 
 TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
@@ -395,16 +399,19 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
         if (shadowSliceIndex < 0)
             return 1.0;
 
+    // Add cube-face offset to shadowSliceIndex when this is a point light.
+    // - FORWARD_RENDER_PATH: Apply offset code behind if-statement, since we determine light type at runtime.
+    // - _POINT: Deferred point path applies offset code unconditionally since we know light type at compile time.
+    // - _SPOT / _DIRECTIONAL: Deferred spot/directional paths skip the offset code entirely.
+    #if defined(FORWARD_RENDER_PATH)
         half isPointLight = shadowParams.z;
-
         UNITY_BRANCH
         if (isPointLight)
-        {
-            // This is a point light, we have to find out which shadow slice to sample from
-            const int cubeFaceOffset = CubeMapFaceID(-lightDirection);
-            shadowSliceIndex += cubeFaceOffset;
-        }
-
+            shadowSliceIndex += CubeMapFaceID(-lightDirection);
+    #elif defined(_POINT)
+        shadowSliceIndex += CubeMapFaceID(-lightDirection);
+    #endif
+    
         float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
         return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);

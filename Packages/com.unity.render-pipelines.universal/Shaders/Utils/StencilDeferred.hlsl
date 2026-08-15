@@ -129,8 +129,13 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
     float distAtten = DistanceAttenuation(distanceSqr, punctualLightData.attenuation.xy);
 #endif
+#if defined(_POINT)
+    float attenuation = distAtten;
+#else
     // full-float precision required on some platforms
     float attenuation = distAtten * AngleAttenuation(punctualLightData.spotDirection.xyz, lightDirection, punctualLightData.attenuation.zw);
+#endif
+
     light.direction = lightDirection;
     light.color = punctualLightData.color.rgb;
 
