@@ -253,34 +253,59 @@ namespace UnityEditor.VFX
             public int depth;
         }
 
-        private static List<VFXSpawnContextLayer> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts, int currentDepth = 0)
+        private static List<VFXSpawnContextLayer> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
-            var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t))
-                .Select(t => t.context).Distinct()
-                .Select(c => new VFXSpawnContextLayer()
-                {
-                    context = c,
-                    depth = currentDepth
-                }).ToList();
 
-            if (contextList.Any(o => contextEffectiveInputLinks[o.context].Any()))
+            // Ensure spawners are in BFS order. Visit each context once so cycles terminate.
+            var discoveryOrder = new List<VFXContext>();
+            var seen = new HashSet<VFXContext>();
+            var frontier = new Queue<VFXContext>();
+
+            void QueueParents(VFXContext context)
             {
-                var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context), ref subgraphContexts, currentDepth + 1);
-                foreach (var parentContextEntry in parentContextList)
-                {
-                    var currentEntry = contextList.FirstOrDefault(o => o.context == parentContextEntry.context);
-                    if (currentEntry == null)
-                    {
-                        contextList.Add(parentContextEntry);
-                    }
-                    else if (parentContextEntry.depth > currentEntry.depth)
-                    {
-                        currentEntry.depth = parentContextEntry.depth;
-                    }
-                }
+                foreach (var slot in contextEffectiveInputLinks[context])
+                    foreach (var link in slot)
+                        if (seen.Add(link.context))
+                        {
+                            discoveryOrder.Add(link.context);
+                            frontier.Enqueue(link.context);
+                        }
             }
-            return contextList;
+
+            foreach (var input in inputList)
+                QueueParents(input);
+            while (frontier.Count > 0)
+                QueueParents(frontier.Dequeue());
+
+            var depthByContext = new Dictionary<VFXContext, int>();
+            var currentPath = new HashSet<VFXContext>();
+
+            void Visit(VFXContext context, int depth)
+            {
+                if (!currentPath.Add(context))
+                    return; // stop on a cycle
+
+                // Only walk up when this is the deepest we've reached the context.
+                if (!depthByContext.TryGetValue(context, out var knownDepth) || depth > knownDepth)
+                {
+                    depthByContext[context] = depth;
+                    foreach (var slot in contextEffectiveInputLinks[context])
+                        foreach (var link in slot)
+                            Visit(link.context, depth + 1);
+                }
+
+                currentPath.Remove(context);
+            }
+
+            foreach (var context in discoveryOrder)
+                if (!depthByContext.ContainsKey(context))
+                    Visit(context, 0);
+
+            var result = new List<VFXSpawnContextLayer>(discoveryOrder.Count);
+            foreach (var context in discoveryOrder)
+                result.Add(new VFXSpawnContextLayer { context = context, depth = depthByContext[context] });
+            return result;
         }
 
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext, ref SubgraphInfos subgraphContexts)
