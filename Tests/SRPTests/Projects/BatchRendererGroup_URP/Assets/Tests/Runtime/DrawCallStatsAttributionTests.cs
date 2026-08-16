@@ -30,18 +30,24 @@ public class DrawCallStatsAttributionTests
     const int k_CubeGrid = 8;            // 8x8 = 64 cubes, enough to form a batch
     const int k_WarmupFrames = 120;      // GRD processes renderers over several frames; be generous
 
+    const string k_GRDDisabledQualityLevel = "NormalGRDDisabled";
+
     GameObject m_Camera;
     GameObject m_Root;
     Material m_Material;
     GPUResidentDrawerMode m_PreviousGrdMode;
     bool m_PreviousSrpBatching;
     bool m_HasPipeline;
+    int m_PreviousQualityLevel;
 
     IGPUResidentRenderPipeline Pipeline => GraphicsSettings.currentRenderPipeline as IGPUResidentRenderPipeline;
+
+    static int FindQualityLevel(string name) => System.Array.IndexOf(QualitySettings.names, name);
 
     [SetUp]
     public void SetUp()
     {
+        m_PreviousQualityLevel = QualitySettings.GetQualityLevel();
         m_HasPipeline = Pipeline != null;
         if (m_HasPipeline)
             m_PreviousGrdMode = Pipeline.gpuResidentDrawerMode;
@@ -72,6 +78,8 @@ public class DrawCallStatsAttributionTests
     [TearDown]
     public void TearDown()
     {
+        if (QualitySettings.GetQualityLevel() != m_PreviousQualityLevel)
+            QualitySettings.SetQualityLevel(m_PreviousQualityLevel, true);
         if (m_HasPipeline)
             Pipeline.gpuResidentDrawerMode = m_PreviousGrdMode;
         GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSrpBatching;
@@ -106,9 +114,10 @@ public class DrawCallStatsAttributionTests
     [UnityTest]
     public IEnumerator SrpBatcherDrawCalls_AreAttributedToSrpBatcherBucket_WhenSrpBatchingEnabled()
     {
-        // Force the static-batch / SRP Batcher path: GRD off + SRP Batcher on.
-        if (m_HasPipeline)
-            Pipeline.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+        // Force the static-batch / SRP Batcher path: switch to the GRD-disabled quality level + SRP Batcher on.
+        int grdDisabledLevel = FindQualityLevel(k_GRDDisabledQualityLevel);
+        Assert.GreaterOrEqual(grdDisabledLevel, 0, $"Quality level '{k_GRDDisabledQualityLevel}' not found in QualitySettings.");
+        QualitySettings.SetQualityLevel(grdDisabledLevel, true);
         GraphicsSettings.useScriptableRenderPipelineBatching = true;
 
         using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "SRP Batcher Draw Calls Count", k_WarmupFrames);

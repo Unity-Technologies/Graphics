@@ -1,6 +1,9 @@
 #ifndef UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 
+// Legacy keyword, behavior is determined dynamically
+#define LOD_FADE_PERCENTAGE 1
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "SpeedTree7CommonPasses.hlsl"
 

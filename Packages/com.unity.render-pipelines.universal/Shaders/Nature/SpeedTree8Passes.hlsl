@@ -1,6 +1,9 @@
 #ifndef UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 
+// Legacy keyword, behavior is determined dynamically
+#define LOD_FADE_PERCENTAGE 1
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"

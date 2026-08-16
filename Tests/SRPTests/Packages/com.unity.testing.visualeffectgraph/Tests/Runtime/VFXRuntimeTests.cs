@@ -538,6 +538,8 @@ namespace UnityEngine.VFX.Test
 //See UUM-6235
 #if !(VFX_TESTS_HAS_URP && UNITY_STANDALONE_OSX)
         //@gabriel: See VFXG-414, the following test is inspecting the instancing status of the test 025_ShaderKeywords.
+        // Editor-only: players hit UUM-149622 and the 025 scene is stripped from player builds
+        [UnityPlatform(RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor)]
         [UnityTest]
         public IEnumerator Load_Keyword_Scene_With_Instancing()
         {

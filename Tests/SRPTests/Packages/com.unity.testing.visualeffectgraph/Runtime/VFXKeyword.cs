@@ -16,6 +16,15 @@ namespace Unity.Testing.VisualEffectGraph
         private bool green;
         private float waiting;
 
+        void OnEnable()
+        {
+            // Select an option for every keyword axis before the first frame renders: VFX-generated
+            // materials enable no enum entry by default (UUM-149622), which strict variant matching rejects
+            green = true;
+            waiting = kWaitTime;
+            ApplyKeywords();
+        }
+
         void Update()
         {
             waiting -= Time.deltaTime;
@@ -25,11 +34,15 @@ namespace Unity.Testing.VisualEffectGraph
                 green = !green;
             }
 
+            ApplyKeywords();
+        }
+
+        void ApplyKeywords()
+        {
             Shader.DisableKeyword("SG_KEYWORD_GLOBAL_EXPOSED_RED");
             Shader.DisableKeyword("SG_KEYWORD_GLOBAL_EXPOSED_GREEN");
             Shader.DisableKeyword("SG_KEYWORD_GLOBAL_EXPOSED_BLUE");
 
-            Shader.DisableKeyword("SG_KEYWORD_GLOBAL_NOT_EXPOSED_RED");
             Shader.DisableKeyword("SG_KEYWORD_GLOBAL_NOT_EXPOSED_GREEN");
             Shader.DisableKeyword("SG_KEYWORD_GLOBAL_NOT_EXPOSED_BLUE");
 
@@ -37,7 +50,6 @@ namespace Unity.Testing.VisualEffectGraph
             Shader.DisableKeyword("SG_KEYWORD_LOCAL_EXPOSED_GREEN");
             Shader.DisableKeyword("SG_KEYWORD_LOCAL_EXPOSED_BLUE");
 
-            Shader.DisableKeyword("SG_KEYWORD_LOCAL_NOT_EXPOSED_RED");
             Shader.DisableKeyword("SG_KEYWORD_LOCAL_NOT_EXPOSED_GREEN");
             Shader.DisableKeyword("SG_KEYWORD_LOCAL_NOT_EXPOSED_BLUE");
 
@@ -51,11 +63,9 @@ namespace Unity.Testing.VisualEffectGraph
             {
                 if (material.name.ToUpperInvariant().Contains("SG_KEYWORD_LOCAL_NOT_EXPOSED"))
                 {
-                    var localKeywordRed = new LocalKeyword(material.shader, "SG_KEYWORD_LOCAL_NOT_EXPOSED_RED");
                     var localKeywordGreen = new LocalKeyword(material.shader, "SG_KEYWORD_LOCAL_NOT_EXPOSED_GREEN");
                     var localKeywordBlue = new LocalKeyword(material.shader, "SG_KEYWORD_LOCAL_NOT_EXPOSED_BLUE");
 
-                    material.SetKeyword(localKeywordRed, false);
                     material.SetKeyword(localKeywordGreen, green);
                     material.SetKeyword(localKeywordBlue, !green);
                 }
