@@ -84,6 +84,11 @@ namespace UnityEngine.Rendering.Universal
 
         PostProcess m_PostProcess;
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
+        
+        // To read/write global shader variables at execute time,
+        // supporting both Persistent Constant Buffer mode and default SetGlobal() loose uniform path.
+        // Injected into the per-frame UniversalGlobalShaderData ContextItem.
+        GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
@@ -205,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Setting the engine wide feature flags here as well. We can likely phase these out. 
+            // Setting the engine wide feature flags here as well. We can likely phase these out.
             SupportedRenderingFeatures.active.supportsHDR = supportedRenderingFeatures.supportsHDR;
         }
 
@@ -463,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
                 if (ppc != null && ppc.enabled)
                 {
                     forceCreateColorTexture = (ppc.offscreenRTSize != Vector2Int.zero);
-   
+
                     cameraTargetFilterMode = FilterMode.Point;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
 
@@ -828,7 +833,15 @@ namespace UnityEngine.Rendering.Universal
             var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
             shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
 
-            BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.AsBase());
+            // Uploader will be available in RG execute timeline only.
+            // We don't want users to modify the global shader variables in record timeline:
+            // - [recording] pass A modifies varA = 2, then pass B does the same with varA = 3
+            // - [executing] pass A reads varA = 3 while executing -> unexpected behavior / bug
+            // We could provide a read-only version but it means reading a potential obsoleted value:
+            // - [recording] pass B reads varA == 2 and takes some decisions based on that
+            // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug            
+            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(is3D: false);
+            BuildGlobalShaderVariablesBase(cameraData, ref m_GlobalShaderVariablesUploader.m_DefaultVars.varsBase);
 
             // URP CB TIER 2 WIP
             // Once we add more shader vars from feature passes, we will fill them here
@@ -858,7 +871,7 @@ namespace UnityEngine.Rendering.Universal
                     // Renderer is responsible for init/resetting the keywords it manages, for now we can use the default reset
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(cmd);
+                    data.shaderData.Get().PushDefaultToGlobal(cmd);
                 });
             }
         }
@@ -880,7 +893,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd);
+                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
                 });
             }
         }
@@ -961,8 +974,12 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+            Universal2DGlobalShaderData globalShaderData = frameData.Get<Universal2DGlobalShaderData>();
             universal2DResourceData.EndFrame();
             commonResourceData.EndFrame();
+
+            // Recording is over, the uploader can now be handed out: its staging is only coherent on the execute timeline
+            globalShaderData.Set(m_GlobalShaderVariablesUploader);
         }
 
         internal override void OnFinishRenderGraphRendering(CommandBuffer cmd)

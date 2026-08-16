@@ -171,11 +171,11 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        // The camera matrices are set straight to the engine and not through BaseGlobalShaderVars
+        // The camera matrices are set straight to the engine and not through GlobalShaderVariablesBase
         // as CommandBuffer.SetViewMatrix()/ SetViewProjectionMatrices() affect them.
-        // So a centralized BaseGlobalShaderVars values would be overwritten by any command buffer pushing a view or projection matrix.
+        // So a centralized GlobalShaderVariablesBase values would be overwritten by any command buffer pushing a view or projection matrix.
         // Also, worldSpaceCameraPos is a float3 so it cannot be packed safely in a constant buffer across our supported devices range as its size differ (on Metal float3 == float4)
-        // So we keep it away from BaseGlobalShaderVars for now
+        // So we keep it away from GlobalShaderVariablesBase for now
         internal static void SetCameraMatricesAndPos(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool isTargetFlipped)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
         }
 
-        // Kept outside BaseGlobalShaderVars to avoid handling y-flip issues in the centralized workflow
+        // Kept outside GlobalShaderVariablesBase to avoid handling y-flip issues in the centralized workflow
         static void SetPerCameraProjectionParams(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool isTargetFlipped)
         {
             Camera camera = cameraData.camera;
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.projectionParams, new Vector4(projectionFlipSign, camera.nearClipPlane, far, 1.0f * invFar));
         }
 
-        void SetPerCameraShaderVariables(ref BaseGlobalShaderVars vars, UniversalCameraData cameraData)
+        void SetPerCameraShaderVariables(ref GlobalShaderVariablesBase vars, UniversalCameraData cameraData)
         {
             Camera camera = cameraData.camera;
 
@@ -311,11 +311,11 @@ namespace UnityEngine.Rendering.Universal
                 float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
                 mipBias = Math.Min(mipBias, taaMipBias);
             }
-            vars._GlobalMipBiasVec4 = new Vector4(mipBias, Mathf.Pow(2.0f, mipBias), 0.0f, 0.0f);
+            vars._GlobalMipBias = new Vector2(mipBias, Mathf.Pow(2.0f, mipBias));
         }
 
-        // Kept outside BaseGlobalShaderVars: SetViewProjectionMatrices() also recomputes these engine-side (see SetBillboardShaderProps),
-        // so centralized BaseGlobalShaderVars values would be overwritten by any command buffer pushing a view matrix.
+        // Kept outside GlobalShaderVariablesBase: SetViewProjectionMatrices() also recomputes these engine-side (see SetBillboardShaderProps),
+        // so centralized GlobalShaderVariablesBase values would be overwritten by any command buffer pushing a view matrix.
         static void SetPerCameraBillboardProperties(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
             Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void SetShaderTimeValues(ref BaseGlobalShaderVars vars)
+        static void SetShaderTimeValues(ref GlobalShaderVariablesBase vars)
         {
 #if UNITY_EDITOR
             float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // None of these vars depend on the target UV origin, so a single set covers both backbuffer and offscreen rendering.
-        internal void BuildBaseGlobalShaderVars(UniversalCameraData cameraData, ref BaseGlobalShaderVars vars)
+        internal void BuildGlobalShaderVariablesBase(UniversalCameraData cameraData, ref GlobalShaderVariablesBase vars)
         {
             SetPerCameraShaderVariables(ref vars, cameraData);
             SetShaderTimeValues(ref vars);
@@ -610,11 +610,11 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        // Default implementation set the global shader vars contained in BaseGlobalShaderVars
+        // Default implementation set the global shader vars contained in GlobalShaderVariablesBase
         // URP 3D and 2D will set their own list of global shader vars
         internal virtual void InitRenderGraphFrame(RenderGraph renderGraph)
         {
-            InitBaseGlobalShaderVars();
+            InitGlobalShaderVariablesBase();
 
             using (var builder = renderGraph.AddUnsafePass<InitPassData>(Profiling.initRenderGraphFrame.name, out var passData,
                 Profiling.initRenderGraphFrame))
@@ -630,7 +630,7 @@ namespace UnityEngine.Rendering.Universal
 
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(cmd);
+                    data.shaderData.GetDefaultVars().SetGlobals(cmd, GlobalShaderVariablesBaseDirty.All);
                 });
             }
         }
@@ -663,12 +663,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
         }
 
-        void InitBaseGlobalShaderVars()
+        void InitGlobalShaderVariablesBase()
         {
             var shaderData = frameData.Create<DefaultGlobalShaderData>();
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars);
+            BuildGlobalShaderVariablesBase(cameraData, ref shaderData.m_GlobalShaderVars);
         }
 
         // Default Camera setup that can be called by a custom ScriptableRenderer, URP 3D and 2D renderers have their own implementations
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd);
+                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd, GlobalShaderVariablesBaseDirty.All);
                 });
             }
         }

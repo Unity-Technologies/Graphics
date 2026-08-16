@@ -5,10 +5,10 @@ namespace UnityEngine.Rendering.Universal
     // - Use Universal2DGlobalShaderData instead for URP 2D Renderer.
     internal class DefaultGlobalShaderData : ContextItem
     {
-        internal BaseGlobalShaderVars m_GlobalShaderVars;
+        internal GlobalShaderVariablesBase m_GlobalShaderVars;
 
-        // Returns the stored GlobalShaderVars by ref-readonly so callers with in parameter can avoid its copy, no modification possible
-        internal ref readonly BaseGlobalShaderVars GetDefaultVars() => ref m_GlobalShaderVars;
+        // Returns the stored default vars by ref-readonly so callers with in parameter can avoid its copy, no modification possible
+        internal ref readonly GlobalShaderVariablesBase GetDefaultVars() => ref m_GlobalShaderVars;
 
         public override void Reset()
         {

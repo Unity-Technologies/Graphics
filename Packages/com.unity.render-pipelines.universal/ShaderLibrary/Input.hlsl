@@ -5,9 +5,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal-config/Runtime/ShaderConfig.cs.hlsl"
 
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalShaderVariables.hlsl"
 
 // Must match: UniversalRenderPipeline.maxVisibleAdditionalLights
 #if defined(SHADER_API_MOBILE) && defined(SHADER_API_GLES30)
@@ -100,11 +100,6 @@ TEXTURECUBE(_GlossyEnvironmentCubeMap);
 #define sampler_GlossyEnvironmentCubeMap sampler_TrilinearClamp
 
 #define _InvCameraViewProj unity_MatrixInvVP
-float4 _ScaledScreenParams;
-
-// x = Mip Bias
-// y = 2.0 ^ [Mip Bias]
-float2 _GlobalMipBias;
 
 // 1.0 if it's possible for AlphaToMask to be enabled for this draw and 0.0 otherwise
 float _AlphaToMaskAvailable;
@@ -129,10 +124,6 @@ half4 _ScreenSpaceReflectionParam;
 half4 _AdditionalLightsCount;
 
 uint _RenderingLayerMaxInt;
-
-// Screen coord override.
-float4 _ScreenCoordScaleBias;
-float4 _ScreenSizeOverride;
 
 uint _EnableProbeVolumes;
 

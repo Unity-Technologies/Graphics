@@ -224,6 +224,11 @@ namespace UnityEngine.Rendering.Universal
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
         PostProcess m_PostProcess;
 
+        // To read/write global shader variables at execute time,
+        // supporting both Persistent Constant Buffer mode and default SetGlobal() loose uniform path.
+        // Injected into the per-frame UniversalGlobalShaderData ContextItem.
+        GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
+
         private void CleanupRenderGraphResources()
         {
             s_RenderGraphCameraColorHandles[0]?.Release();
@@ -668,9 +673,18 @@ namespace UnityEngine.Rendering.Universal
             var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
             shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
 
+            // Uploader will be available in RG execute timeline only.
+            // We don't want users to modify the global shader variables in record timeline:
+            // - [recording] pass A modifies varA = 2, then pass B does the same with varA = 3
+            // - [executing] pass A reads varA = 3 while executing -> unexpected behavior / bug
+            // We could provide a read-only version but it means reading a potential obsoleted value:
+            // - [recording] pass B reads varA == 2 and takes some decisions based on that
+            // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug
+            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(is3D: true);
+
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            BuildBaseGlobalShaderVars(cameraData, ref shaderData.m_GlobalShaderVars.AsBase());
+            BuildGlobalShaderVariablesBase(cameraData, ref m_GlobalShaderVariablesUploader.m_DefaultVars.varsBase);
 
             // URP CB TIER 2 WIP
             // Once we add more shader vars from feature passes, we will fill them here
@@ -702,7 +716,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
                     cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(cmd);
+                    data.shaderData.Get().PushDefaultToGlobal(cmd);
                 });
             }
         }
@@ -761,7 +775,8 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd);
+                    // push default vars again, some were re-written by cmd.SetupCameraProperties() call above
+                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
                 });
             }
         }
@@ -849,7 +864,11 @@ namespace UnityEngine.Rendering.Universal
         public override void OnEndRenderGraphFrame()
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalGlobalShaderData globalShaderData = frameData.Get<UniversalGlobalShaderData>();
             resourceData.EndFrame();
+
+            // Recording is over, the uploader can now be handed out: its staging is only coherent on the execute timeline
+            globalShaderData.Set(m_GlobalShaderVariablesUploader);
         }
 
         internal override void OnFinishRenderGraphRendering(CommandBuffer cmd)
