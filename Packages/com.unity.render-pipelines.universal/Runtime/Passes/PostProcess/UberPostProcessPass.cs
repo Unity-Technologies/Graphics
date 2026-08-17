@@ -120,9 +120,20 @@ namespace UnityEngine.Rendering.Universal
             var bloomTexture = resourceData.bloom;
 
             TextureHandle destinationTexture;
+            AccessFlags destinationAccessFlag = AccessFlags.Write;
             if (resourceData.isActiveTargetBackBuffer)
             {
                 destinationTexture = resourceData.backBufferColor;
+
+                // Full-screen blit to backbuffer with no alpha will overwrite every pixel, so use flag
+                // WriteAll for the compiler to set load op DontCare later and skip the color load
+                if (cameraData.isDefaultViewport && !cameraData.isAlphaOutputEnabled)
+                    destinationAccessFlag = AccessFlags.WriteAll;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh) // Not a full-screen blit
+                    destinationAccessFlag = AccessFlags.Write;
+#endif
             }
             else
             {
@@ -165,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destinationTexture;
-                builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(destinationTexture, 0, destinationAccessFlag);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
