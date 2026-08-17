@@ -25,6 +25,17 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
+        public void AddPointLight(Vector3 position, Vector3 linearColor, float range)
+        {
+            m_World.AddLight(new SurfaceCacheWorld.LightDescriptor
+            {
+                Type = LightType.Point,
+                LinearLightColor = linearColor,
+                Transform = Matrix4x4.Translate(position),
+                Range = range,
+            });
+        }
+
         public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, Vector3 normal)
         {
             var materialHandle = m_World.AddMaterial(CreateUniformAlbedoDescriptor(albedo), UVChannel.UV0);

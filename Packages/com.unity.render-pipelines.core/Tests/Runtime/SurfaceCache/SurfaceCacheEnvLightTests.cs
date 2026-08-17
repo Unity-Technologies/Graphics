@@ -28,12 +28,7 @@ namespace UnityEngine.Rendering.Tests
         public IEnumerator TearDown()
         {
             m_Harness?.Dispose();
-
-            // This is not elegant but we need it: Dispose only queues GPU memory for release, and on Metal it is
-            // reclaimed later, at frame boundaries. Synchronous tests never yield, so per-test allocations stack
-            // up, which on iOS exhausts the per-process memory cap.
-            for (int i = 0; i < 8; ++i)
-                yield return null;
+            return TestHarness.DrainDisposedGpuMemory();
         }
 
         [Test]

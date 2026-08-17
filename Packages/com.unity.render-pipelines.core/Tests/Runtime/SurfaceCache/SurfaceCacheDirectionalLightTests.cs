@@ -39,10 +39,7 @@ namespace UnityEngine.Rendering.Tests
         {
             m_Harness?.Dispose();
             m_Scene?.Dispose();
-
-            // Disposed buffers are freed at frame boundaries; drain so per-test GPU memory does not stack past iOS's per-app cap.
-            for (int i = 0; i < 8; ++i)
-                yield return null;
+            return TestHarness.DrainDisposedGpuMemory();
         }
 
         // Observer patch just above the origin, looking straight down at the plane.

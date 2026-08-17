@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
@@ -291,6 +292,16 @@ namespace UnityEngine.Rendering.Tests
             _rtContext.Dispose();
             _worldScratch?.Dispose();
             _cmd?.Dispose();
+        }
+
+        // Return this from [UnityTearDown] after disposing. It is not elegant but we need it: Dispose only queues
+        // GPU memory for release, and on Metal it is reclaimed later, at frame boundaries. Synchronous tests never
+        // yield, so per-test allocations stack up, which on iOS exhausts the per-process memory cap.
+        public static IEnumerator DrainDisposedGpuMemory()
+        {
+            const int frames = 8;
+            for (int i = 0; i < frames; ++i)
+                yield return null;
         }
     }
 }
