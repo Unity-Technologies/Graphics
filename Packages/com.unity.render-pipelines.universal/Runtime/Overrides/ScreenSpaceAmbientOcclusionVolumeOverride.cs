@@ -9,22 +9,16 @@ namespace UnityEngine.Rendering.Universal
     public enum ScreenSpaceAmbientOcclusionMode
     {
         /// <summary>
-        /// Disables Screen Space Ambient Occlusion.
-        /// </summary>
-        [InspectorName("Disabled")]
-        Disabled = 0,
-
-        /// <summary>
         /// Alchemy-based SSAO with configurable noise and blur.
         /// </summary>
         [InspectorName("SSAO")]
-        SSAO = 1,
+        SSAO = 0,
 
         /// <summary>
         /// Ground Truth Ambient Occlusion.
         /// </summary>
         [InspectorName("GTAO")]
-        GTAO = 2,
+        GTAO = 1,
 
     }
 
@@ -204,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("The ambient occlusion algorithm to use. SSAO uses the Alchemy method. GTAO (Ground Truth Ambient Occlusion) provides higher quality.")]
         [SerializeField]
-        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.Disabled);
+        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.SSAO);
 
         /// <summary>
         /// Quality preset for ambient occlusion. Selecting a preset automatically configures all quality-related parameters.
@@ -231,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_Intensity.value;
             set => m_Intensity.value = value;
         }
-        [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.")]
+        [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas. A value of '0' disables the effect.")]
         [SerializeField]
         private ClampedFloatParameter m_Intensity = new ClampedFloatParameter(1f, 0f, 5f);
 
@@ -557,7 +551,7 @@ namespace UnityEngine.Rendering.Universal
         /// Query if the effect is active and should be rendered.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
-        public bool IsActive() => m_Mode.value != ScreenSpaceAmbientOcclusionMode.Disabled && m_Intensity.value > 0f && m_Radius.value > 0f && m_FalloffDistance.value > 0f;
+        public bool IsActive() => m_Intensity.value > 0f && m_Radius.value > 0f && m_FalloffDistance.value > 0f;
 
         /// <summary>
         /// Query if the effect is using the SSAO mode.

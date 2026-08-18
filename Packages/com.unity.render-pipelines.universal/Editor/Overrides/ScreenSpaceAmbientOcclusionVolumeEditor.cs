@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_DirectionCount;
         SerializedDataParameter m_StepCount;
 
+        bool m_ShowDisabledInfoBox;
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -85,12 +87,18 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            // Refresh only while idle: toggling the box mid-drag shifts the layout and displaces the slider under the cursor.
+            if (GUIUtility.hotControl == 0 && !EditorGUIUtility.editingTextField)
+                m_ShowDisabledInfoBox = m_Intensity.value.floatValue <= 0f;
+
+            if (m_ShowDisabledInfoBox)
+                EditorGUILayout.HelpBox("Screen Space Ambient Occlusion is disabled and won't be rendered, set 'Intensity' to > 0 to enable it.", MessageType.Info);
+
             EditorGUILayout.LabelField("SSAO", EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
             PropertyField(m_Mode);
             bool modeChanged = EditorGUI.EndChangeCheck();
-            bool isDisabled = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.Disabled;
             bool isSSAO = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.SSAO;
             bool isGTAO = m_Mode.value.intValue == (int)ScreenSpaceAmbientOcclusionMode.GTAO;
 
@@ -130,8 +138,8 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_Quality);
             bool qualityChanged = EditorGUI.EndChangeCheck();
 
-            // Apply presets when quality or mode changes, but only for an active algorithm and when the quality override is enabled.
-            if (!isDisabled && (qualityChanged || modeChanged) && m_Quality.overrideState.boolValue)
+            // Apply presets when quality or mode changes, but only when the quality override is enabled.
+            if ((qualityChanged || modeChanged) && m_Quality.overrideState.boolValue)
             {
                 var qualityValue = (ScreenSpaceAmbientOcclusionQuality)m_Quality.value.intValue;
                 if (qualityValue != ScreenSpaceAmbientOcclusionQuality.Custom)
