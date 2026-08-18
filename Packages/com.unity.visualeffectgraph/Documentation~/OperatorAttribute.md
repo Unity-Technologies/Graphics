@@ -41,7 +41,7 @@ Get the data from [particle attributes](Attributes.md).
 | [Get Attribute: texIndex Operator](Operator-GetAttributeTexIndex.md) | Get the frame number from a flipbook texture a particle uses. |
 | [Get Attribute: velocity Operator](Operator-GetAttributeVelocity.md) | Get the current velocity of a particle. |
 | [Get Custom Attribute Operator](Operator-GetCustomAttribute.md) | Get the value of a custom attribute. |
-| [Get Ratio over Strip Operator](Operator-RatioOverStrip.md) | Get a normalized 0 to 1 value across the strip length. |
+| [Get Ratio Over Strip [0..1] Operator](Operator-RatioOverStrip.md) | Get a normalized 0 to 1 value across the strip length. |
 
 ## Additional resources
 
