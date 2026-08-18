@@ -351,6 +351,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
+                    // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+
                     // Collections
                     renderStates = DecalRenderStates.ScenePicking,
                     pragmas = pragma,
@@ -359,6 +362,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     structs = CoreStructCollections.Default,
                     fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -375,6 +381,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
@@ -385,6 +392,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 keywords = DecalKeywords.DBufferProjector,
                 defines = DecalDefines.Projector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ForwardEmissiveProjector = new PassDescriptor()
@@ -400,6 +410,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.ForwardOnlyEmissive,
 
                 //Fields
@@ -412,6 +423,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ScreenSpaceProjector = GetScreenSpaceProjector(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceProjector);
@@ -431,6 +445,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                     // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
                     validPixelBlocks = DecalBlockMasks.Fragment,
 
                     //Fields
@@ -443,6 +458,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     defines = DecalDefines.ProjectorWithEmission,
                     keywords = keywords,
                     includes = DecalIncludes.ScreenSpace,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -459,6 +477,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
@@ -471,6 +490,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.GBufferProjector,
                 includes = DecalIncludes.GBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor DBufferMesh = new PassDescriptor()
@@ -486,6 +508,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
@@ -499,6 +522,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.Mesh,
                 keywords = DecalKeywords.DBufferMesh,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ForwardEmissiveMesh = new PassDescriptor()
@@ -514,6 +540,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
@@ -527,6 +554,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ScreenSpaceMesh = GetScreenSpaceMesh(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceMesh);
@@ -546,6 +576,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                     // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
                     validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                     //Fields
@@ -558,6 +589,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     defines = DecalDefines.MeshWithEmission,
                     keywords = keywords,
                     includes = DecalIncludes.ScreenSpace,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -574,6 +608,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                 //Fields
@@ -586,6 +621,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.GBufferMesh,
                 includes = DecalIncludes.GBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
         }
         #endregion

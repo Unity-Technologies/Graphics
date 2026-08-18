@@ -59,7 +59,7 @@ Pass
     $Varyings.dynamicLightmapUV:        #define VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV
     $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
 
-    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                  #define FEATURES_GRAPH_VERTEX
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
@@ -99,8 +99,14 @@ Pass
     // Graph Functions
     $splice(GraphFunctions)
 
+    // Custom interpolators pre vertex
+    $splice(CustomInterpolatorPreVertex)
+
     // Graph Vertex
     $splice(GraphVertex)
+
+    // Custom interpolators, pre surface
+    $splice(CustomInterpolatorPreSurface)
 
     // Graph Pixel
     $splice(GraphPixel)
@@ -108,8 +114,7 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
     $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
 
     // --------------------------------------------------
