@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// Tests for terrain shaders in the Universal Render Pipeline.
     /// Verifies that terrain detail shaders are available through both Shader.Find() and UniversalRenderPipelineAsset properties.
     /// </summary>
-    [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-145677")]
     class TerrainShaderTests
     {
         UniversalRenderPipelineAsset m_UrpAsset;
