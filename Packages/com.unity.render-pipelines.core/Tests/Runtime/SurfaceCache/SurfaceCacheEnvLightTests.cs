@@ -136,9 +136,7 @@ namespace UnityEngine.Rendering.Tests
         {
             m_Harness?.Dispose();
             m_Scene?.Dispose();
-
-            for (int i = 0; i < 8; ++i)
-                yield return null;
+            return TestHarness.DrainDisposedGpuMemory();
         }
 
         [Test]
