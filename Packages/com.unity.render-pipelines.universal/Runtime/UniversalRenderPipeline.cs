@@ -679,6 +679,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // camera can be a base or an overlay camera
                     var camera = cameras[i];
+
+                    // Bumped here, not in RenderSingleCamera, so it fires once per stack rendering
+                    // rather than once per camera within the stack.
+                    if (camera.targetTexture != null)
+                    {
+                        camera.targetTexture.IncrementUpdateCount();
+                    }
+
                     bool isLastBaseCamera = i == lastBaseCameraIndex;
                     if (IsGameCamera(camera))
                     {
@@ -843,6 +851,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
+                    if (camera.targetTexture != null)
+                    {
+                        camera.targetTexture.IncrementUpdateCount();
+                    }
+
                     using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
                     {
                         tmp.Add(camera);
