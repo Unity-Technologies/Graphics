@@ -7,7 +7,7 @@ using static UnityEngine.Rendering.Universal.ScreenSpaceReflectionVolumeSettings
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScreenSpaceReflectionVolumeSettings))]
-    class ScreenSpaceReflectionEditor : VolumeComponentEditor
+    class ScreenSpaceReflectionEditor : UniversalRenderPipelineVolumeComponentEditor
     {
         // Serialized properties, performance settings
         SerializedDataParameter m_Resolution;
@@ -42,6 +42,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<ScreenSpaceReflectionVolumeSettings>(serializedObject);
 
             m_Mode = Unpack(o.Find(x => x.mode));

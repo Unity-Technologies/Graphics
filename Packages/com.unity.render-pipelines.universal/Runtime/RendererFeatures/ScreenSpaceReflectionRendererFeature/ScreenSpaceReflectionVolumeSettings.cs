@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection"), SupportedOnRenderPipeline]
     [DisplayInfo(name = "Screen Space Reflection")]
+    [VolumeRequiresRendererFeatures(typeof(ScreenSpaceReflectionRendererFeature))]
     public class ScreenSpaceReflectionVolumeSettings : VolumeComponent
     {
         /// <summary>

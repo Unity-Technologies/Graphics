@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             var typeNameString = new StringBuilder();
 
             foreach (var type in types)
-                typeNameString.AppendFormat("\"{0}\" ", type.Name);
+                typeNameString.AppendFormat("\"{0}\" ", type.GetCustomAttribute<DisallowMultipleRendererFeature>()?.customTitle ?? type.Name);
 
             return typeNameString.ToString();
         }
