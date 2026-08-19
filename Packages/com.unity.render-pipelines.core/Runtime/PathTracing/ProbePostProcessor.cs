@@ -50,6 +50,11 @@ namespace UnityEngine.PathTracing.PostProcessing
 
         public void ConvertToUnityFormat(CommandBuffer cmd, GraphicsBuffer inIrradianceBuffer, GraphicsBuffer outIrradianceBuffer, uint inputOffset, uint outputOffset, uint probeCount)
         {
+            ConvertToUnityFormat(cmd, inIrradianceBuffer, outIrradianceBuffer, inputOffset, outputOffset, probeCount, true);
+        }
+
+        public void ConvertToUnityFormat(CommandBuffer cmd, GraphicsBuffer inIrradianceBuffer, GraphicsBuffer outIrradianceBuffer, uint inputOffset, uint outputOffset, uint probeCount, bool divideByPI)
+        {
             Debug.Assert(_computeShader != null);
             Debug.Assert(inIrradianceBuffer.count == outIrradianceBuffer.count);
             Debug.Assert(inIrradianceBuffer.stride == sizeof(float));
@@ -59,6 +64,7 @@ namespace UnityEngine.PathTracing.PostProcessing
             cmd.SetComputeIntParam(_computeShader, Shader.PropertyToID("g_PrimaryInputOffset"), (int)inputOffset);
             cmd.SetComputeIntParam(_computeShader, Shader.PropertyToID("g_OutputOffset"), (int)outputOffset);
             cmd.SetComputeIntParam(_computeShader, Shader.PropertyToID("g_ProbeCount"), (int)probeCount);
+            cmd.SetComputeFloatParam(_computeShader, Shader.PropertyToID("g_ConventionDivisor"), divideByPI ? Mathf.PI : 1.0f);
 
             _computeShader.GetKernelThreadGroupSizes(_convertToUnityFormatKernel, out uint threadGroupsX, out _, out _);
             cmd.DispatchCompute(_computeShader, _convertToUnityFormatKernel, Mathf.CeilToInt(probeCount / (float)threadGroupsX), 1, 1);

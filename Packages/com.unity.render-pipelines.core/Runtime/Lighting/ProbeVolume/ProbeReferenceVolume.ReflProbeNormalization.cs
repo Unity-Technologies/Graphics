@@ -183,9 +183,13 @@ namespace UnityEngine.Rendering
             {
                 if (IsZero(in sh))
                 {
-                    // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution
+                    // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution.
+                    // Written directly to the L0 coefficients rather than via AddAmbientLight, so the sentinel stays finite regardless of
+                    // the SupportedRenderingFeatures.divideBakedOutputByPI convention scaling.
                     const float k = float.MaxValue;
-                    sh.AddAmbientLight(new Color(k, k, k));
+                    sh[0, 0] = k;
+                    sh[1, 0] = k;
+                    sh[2, 0] = k;
                 }
             }
 
