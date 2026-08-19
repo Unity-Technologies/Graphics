@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering
     /// Common class use to share code between implementation of IES Importeres
     /// </summary>
     [System.Serializable]
-    [ScriptedImporter(2, "ies")]
+    [ScriptedImporter(2, "ies", AllowCaching = true)]
     public partial class IESImporter : ScriptedImporter
     {
         /// <summary>
