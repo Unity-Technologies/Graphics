@@ -78,11 +78,14 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 // Vertex and Mixed both use Vertex sampling
 
 #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+// APV reads its data from StructuredBuffers (SSBOs). On GLES, vertex-stage SSBO support is
+// device-dependent (GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS may be 0), so referencing APV data in
+// the vertex shader can fail to link. On GLES3, APV is evaluated per-pixel instead.
 half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, out float4 probeOcclusion)
 {
     probeOcclusion = 1.0;
 
-#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+#if (defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)) && !defined(SHADER_API_GLES3)
     half3 bakedGI;
     // APV per-renderer. When MeshRenderer.lightProbeUsage == Off, fall back to the ambient sky probe (matches LightProbeGroup behavior).
     if (_EnableProbeVolumes && IsLightProbeSamplingEnabled())
@@ -106,7 +109,7 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
 {
     probeOcclusion = 1.0;
 
-#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+#if (defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)) && !defined(SHADER_API_GLES3)
     probeOcclusion = vertexProbeOcclusion;
     return vertexValue;
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
