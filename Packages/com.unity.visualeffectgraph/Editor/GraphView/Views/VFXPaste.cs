@@ -862,12 +862,15 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            var existingCategories = viewController.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>();
-            var categoryMapping = new Dictionary<string, string>();
+            var existingCategories = viewController.graph.UIInfos.categories?.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var categoryMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (serializableGraph.categories != null)
             {
                 foreach (var category in serializableGraph.categories)
                 {
+                    if (categoryMapping.ContainsKey(category))
+                        continue;
+
                     var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories, true, VFXBlackboardCategory.kMaxCategoryNameLength);
                     existingCategories.Add(newCategoryName);
                     categoryMapping[category] = newCategoryName;
@@ -885,7 +888,7 @@ namespace UnityEditor.VFX.UI
                     {
                         newBlackboardItems.Add(category);
                         newVfxParameter.category = category;
-                        newCategories.Remove(parameter.category);
+                        newCategories.RemoveAll(c => string.Equals(c, parameter.category, StringComparison.OrdinalIgnoreCase));
                     }
                     viewController.AddVFXModel(Vector2.zero, newVfxParameter);
                     var groupChanged = false;
@@ -901,7 +904,7 @@ namespace UnityEditor.VFX.UI
 
         private void PasteCategories(VFXViewController viewController)
         {
-            var existingCategories = viewController.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
+            var existingCategories = viewController.graph.UIInfos.categories.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var category in newCategories)
             {
                 var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories, true, VFXBlackboardCategory.kMaxCategoryNameLength);

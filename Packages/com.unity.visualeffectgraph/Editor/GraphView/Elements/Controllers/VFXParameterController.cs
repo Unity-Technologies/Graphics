@@ -454,7 +454,7 @@ namespace UnityEditor.VFX.UI
 
         public static string MakeNameUnique(VFXViewController viewController, string candidateName, int maxLength = 0)
         {
-            var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName));
+            var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName), StringComparer.OrdinalIgnoreCase);
 
             return MakeNameUnique(candidateName, allNames, true, maxLength, null);
         }
@@ -581,7 +581,7 @@ namespace UnityEditor.VFX.UI
             }
             string candidateMainPart = null;
             int cpt = 0;
-            while (forceSuffix || allNames.Contains(candidateName, StringComparer.OrdinalIgnoreCase))
+            while (forceSuffix || allNames.Contains(candidateName))
             {
                 forceSuffix = false;
                 if (candidateMainPart == null)

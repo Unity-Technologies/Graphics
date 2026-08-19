@@ -818,7 +818,7 @@ namespace UnityEditor.VFX.UI
 
         public void AddCategory(string initialName)
         {
-            var categories = m_Controller.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
+            var categories = m_Controller.graph.UIInfos.categories.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var newCategoryName = VFXParameterController.MakeNameUnique(initialName, categories, true, VFXBlackboardCategory.kMaxCategoryNameLength);
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
@@ -837,7 +837,7 @@ namespace UnityEditor.VFX.UI
         public string DuplicateCategory(string category, string[] parametersToDuplicate = null)
         {
             // Create treeview item first so that duplicated category's parameters (if any) will find the parent category
-            var newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>(), true, VFXParameterController.kMaxExposedNameLength);
+            var newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase), true, VFXBlackboardCategory.kMaxCategoryNameLength);
             var parentId = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.children.Any(x => string.Compare(x.data.title, category, StringComparison.OrdinalIgnoreCase) == 0)).id;
             var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
             m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, new PropertyCategory(newCategoryName, newId, false, true)), parentId, -1, true);
@@ -1326,7 +1326,7 @@ namespace UnityEditor.VFX.UI
                 // Properties
                 if (m_ViewMode.HasFlag(ViewMode.Properties))
                 {
-                    var groupedParameterByCategory = new Dictionary<string, List<VFXParameterController>>();
+                    var groupedParameterByCategory = new Dictionary<string, List<VFXParameterController>>(StringComparer.OrdinalIgnoreCase);
                     var categoryInfos = controller.graph.UIInfos.categories;
                     for (var i = 0; i < categoryInfos.Count; i++)
                     {
@@ -1446,15 +1446,17 @@ namespace UnityEditor.VFX.UI
 
         private int SortCategory(string category, List<VFXParameterController> parameters)
         {
-            switch (category)
+            if (string.IsNullOrEmpty(category))
             {
-                case "":
-                    return 0;
-                case OutputCategory.Label:
-                    return 1;
-                default:
-                    return m_View.controller.GetCategoryIndex(category) + 2;
+                return 0;
             }
+
+            if (string.Compare(category, OutputCategory.Label, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                return 1;
+            }
+
+            return m_View.controller.GetCategoryIndex(category) + 2;
         }
 
         private void SynchronizeExpandState()
@@ -1563,18 +1565,23 @@ namespace UnityEditor.VFX.UI
             m_Treeview.viewController.ExpandItem(treeviewItem.id, false, true);
         }
 
+        public static readonly string[] reservedCategoryNames =
+        {
+            PropertiesCategoryTitle,
+            AttributesCategoryTitle,
+            BuiltInAttributesCategoryTitle,
+            OutputCategory.Label,
+            CustomAttributeCategory.Title,
+        };
+
+        public static bool IsReservedCategoryName(string category)
+        {
+            return reservedCategoryNames.Any(t => string.Equals(t, category, StringComparison.OrdinalIgnoreCase));
+        }
+
         private string FilterOutReservedCategoryName(string category)
         {
-            switch (category)
-            {
-                case PropertiesCategoryTitle:
-                case BuiltInAttributesCategoryTitle:
-                case OutputCategory.Label:
-                case CustomAttributeCategory.Title:
-                    return string.Empty;
-            }
-
-            return category;
+            return IsReservedCategoryName(category) ? string.Empty : category;
         }
 
         internal void ScrollToItem(string itemName)
