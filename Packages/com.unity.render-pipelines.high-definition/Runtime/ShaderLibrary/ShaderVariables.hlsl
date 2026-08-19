@@ -102,6 +102,13 @@ CBUFFER_START(UnityPerDraw)
     //W : Camera only
     float4 unity_MotionVectorsParams;
 
+    // Sprite.
+    float4 unity_SpriteColor;
+    //X : FlipX
+    //Y : FlipY
+    //Z : Reserved for future use.
+    //W : Reserved for future use.
+    float4 unity_SpriteProps;
 CBUFFER_END
 
 static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
