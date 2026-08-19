@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Tests
         GraphicsBuffer _worldScratch;
         uint _frameIdx;
         uint _outputIrradianceBufferIdx;
+        SurfaceCacheEstimationParameterSet _estimationParams;
 
         public SurfaceCacheWorld World => _world;
         public SurfaceCacheResourceSet Resources => _coreResources;
@@ -142,12 +143,13 @@ namespace UnityEngine.Rendering.Tests
             }
 
             _cache = new SurfaceCache(_coreResources, volParams);
-            _cache.SetEstimationParams(new SurfaceCacheEstimationParameterSet
+            _estimationParams = new SurfaceCacheEstimationParameterSet
             {
                 SampleCount = sampleCount,
                 MultiBounce = multiBounce,
                 BouncePatchAllocation = bouncePatchAllocation
-            });
+            };
+            _cache.SetEstimationParams(_estimationParams);
             _cache.SetPatchFilteringParams(new SurfaceCachePatchFilteringParameterSet
             {
                 TemporalSmoothing = 0f,
@@ -208,6 +210,19 @@ namespace UnityEngine.Rendering.Tests
         {
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
             data.World.Commit(cmd, ref scratch, data.EnvCubemapResolution, data.Sun, out _);
+        }
+
+        public void SetDistanceFallback(bool enabled)
+        {
+            _estimationParams.DistanceFallback = enabled;
+            _cache.SetEstimationParams(_estimationParams);
+        }
+
+        public SHRGBL1[] ReadGlobalProbe()
+        {
+            var data = new SHRGBL1[_cache.GlobalProbe.count];
+            _cache.GlobalProbe.GetData(data);
+            return data;
         }
 
         public SHRGBL1 ReadPatchIrradiance(uint patchIndex)

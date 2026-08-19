@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering
         private uint _defragCount = 1;
         private uint _defragOffset = 0;
         private float _emissiveTriangleIntensityMultiplier = 1.0f;
-        private int _lastEnvCubemapHash = Int32.MaxValue;
+        private int _lastGlobalProbeEnvHash = Int32.MaxValue;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
         public SurfaceCachePatchList Patches => _patches;
@@ -542,9 +542,10 @@ namespace UnityEngine.Rendering
                 // When the global probe is turned off we theoretically do not need this buffer.
                 // However, even in these cases Unity requires us to bind _something_ so we keep
                 // it allocated always for this reason.
-                uint floatCount = 12 * SurfaceCacheVolume.AngularResolution * SurfaceCacheVolume.AngularResolution;
-                _globalProbe = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, (int)floatCount * sizeof(float));
-                var initBuffer = new float[floatCount];
+                const uint floatsPerProbe = 12; // Must match the HLSL side SphericalHarmonics::RGBL1.
+                uint probeCount = SurfaceCacheVolume.AngularResolution * SurfaceCacheVolume.AngularResolution;
+                _globalProbe = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)probeCount, (int)floatsPerProbe * sizeof(float));
+                var initBuffer = new float[probeCount * floatsPerProbe];
                 _globalProbe.SetData(initBuffer);
             }
         }
@@ -738,8 +739,10 @@ namespace UnityEngine.Rendering
                 passData.GlobalProbeShader = _resources.GlobalProbeShader;
                 passData.GlobalProbeKernelIndex = _resources.GlobalProbeKernel;
                 int newEnvCubemapHash = world.GetEnvironmentCubemapHash();
-                passData.UpdateGlobalProbe = _estimationParams.DistanceFallback && _lastEnvCubemapHash != newEnvCubemapHash;
-                _lastEnvCubemapHash = newEnvCubemapHash;
+                bool updateGlobalProbe = _estimationParams.DistanceFallback && _lastGlobalProbeEnvHash != newEnvCubemapHash;
+                if (updateGlobalProbe)
+                    _lastGlobalProbeEnvHash = newEnvCubemapHash;
+                passData.UpdateGlobalProbe = updateGlobalProbe;
                 passData.GlobalProbeBuffer = _globalProbe;
                 passData.ShortHysteresis = _shortHysteresis;
                 passData.RingConfigOffset = RingConfig.OffsetA;
