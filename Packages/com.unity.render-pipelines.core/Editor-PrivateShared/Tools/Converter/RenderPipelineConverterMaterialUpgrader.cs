@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Converter
 
         public string name { get; }
 
-        public string info => assetPath;
+        public string info { get; }
 
         public bool isEnabled { get; set; } = true;
         public string isDisabledMessage { get; set; } = string.Empty;
@@ -49,7 +49,8 @@ namespace UnityEditor.Rendering.Converter
             if (material == null)
                 throw new ArgumentException($"Unable to load material at path {materialPath}");
 
-            name = material.name + " - " + shaderPath;
+            name = material.name;
+            info = materialPath;
         }
 
         public Material material => AssetDatabase.LoadAssetAtPath<Material>(assetPath);
@@ -107,11 +108,15 @@ namespace UnityEditor.Rendering.Converter
                 }
 
                 assets.Clear();
+
+                using var pooledDict = UnityEngine.Pool.DictionaryPool<string, List<IRenderPipelineConverterItem>>.Get(out var materialsByShader);
+
                 foreach (var kvp in materialsGroupByShader)
                 {
-                    // This material shader is already on the target pipeline, skip it.
                     if (destinationShaders.Contains(kvp.Key))
                         continue;
+
+                    var shaderPath = kvp.Key;
 
                     foreach (var (parent, variants) in kvp.Value)
                     {
@@ -121,13 +126,46 @@ namespace UnityEditor.Rendering.Converter
                             variantsPaths.Add(AssetDatabase.GetAssetPath(variant));
                         }
 
-                        assets.Add(new RenderPipelineConverterMaterialUpgraderItem(kvp.Key,
+                        var item = new RenderPipelineConverterMaterialUpgraderItem(shaderPath,
                             AssetDatabase.GetAssetPath(parent),
-                            variantsPaths));
+                            variantsPaths);
+
+                        assets.Add(item);
+
+                        if (!materialsByShader.ContainsKey(shaderPath))
+                            materialsByShader[shaderPath] = new List<IRenderPipelineConverterItem>();
+
+                        materialsByShader[shaderPath].Add(item);
                     }
                 }
-                onScanFinish?.Invoke(assets);
-            } 
+
+                var organizedList = new List<IRenderPipelineConverterItem>();
+
+                foreach (var kvp in materialsByShader)
+                {
+                    var shaderPath = kvp.Key;
+                    var materials = kvp.Value;
+
+                    if (materials.Count == 0)
+                        continue;
+
+                    var shaderGroup = new RenderPipelineConverterUtility.AssetGroupItem
+                    {
+                        name = shaderPath,
+                        info = $"{materials.Count} material(s) using {shaderPath}",
+                        assetType = typeof(Shader)
+                    };
+
+                    foreach (var material in materials)
+                    {
+                        shaderGroup.children.Add(material);
+                    }
+
+                    organizedList.Add(shaderGroup);
+                }
+
+                onScanFinish?.Invoke(organizedList);
+            }
         }
 
         public Status Convert(IRenderPipelineConverterItem item, out string message)

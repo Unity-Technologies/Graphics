@@ -149,9 +149,12 @@ namespace UnityEditor.Rendering.Universal.Tools
         [OneTimeTearDown]
         public void OneTimeTeardown()
         {
-            m_Converter.AfterConvert();
-            Assume.That(m_Converter.m_UpgradePathsToNewShaders == null, "Upgraders was not disposed");
-            AssetDatabase.DeleteAsset(k_TestsPath);
+            if (m_Converter != null)
+            {
+                m_Converter.AfterConvert();
+                Assume.That(m_Converter.m_UpgradePathsToNewShaders == null, "Upgraders was not disposed");
+                AssetDatabase.DeleteAsset(k_TestsPath);
+            }
         }
 
         AnimationClip m_AnimationClip;
