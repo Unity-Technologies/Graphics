@@ -6,7 +6,7 @@
 #if USE_CLUSTER_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
-#define CLUSTER_HAS_REFLECTION_PROBES !(defined(_ENVIRONMENTREFLECTIONS_OFF) || (defined(_REFLECTION_PROBE_ATLAS_KEYWORD_DECLARED) && !defined(_REFLECTION_PROBE_ATLAS)))
+#define CLUSTER_HAS_REFLECTION_PROBES !(defined(_REFLECTION_PROBE_ATLAS_KEYWORD_DECLARED) && !defined(_REFLECTION_PROBE_ATLAS))
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.
 #define URP_FP_DISABLE_ZBINNING 0

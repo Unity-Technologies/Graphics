@@ -59,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 uv = input.texcoord;
-                float depth = LoadSceneDepth(uv * _CameraDepthTexture_TexelSize.zw);
+                float depth = LoadSceneDepth(input.positionCS.xy);
                 outDepth = depth; // Write depth out unmodified
 
             #if !UNITY_REVERSED_Z
