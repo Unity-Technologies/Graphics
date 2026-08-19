@@ -118,13 +118,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="renderGraph">Name of the render graph.</param>
         /// <param name="executionId">ID of the execution.</param>
         /// <returns>Debug data for the execution.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if graph not registered.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if graph not registered or execution not found.</exception>
         public DebugData GetDebugData(string renderGraph, EntityId executionId)
         {
             if (!m_Container.TryGetValue(renderGraph, out var debugDataForGraph))
                 throw new InvalidOperationException($"RenderGraph '{renderGraph}' was never registered with the debug session.");
 
-            return debugDataForGraph[executionId];
+            if (!debugDataForGraph.TryGetValue(executionId, out var data))
+                throw new InvalidOperationException($"Execution '{executionId}' not found in graph '{renderGraph}'.");
+
+            return data;
         }
 
         /// <summary>

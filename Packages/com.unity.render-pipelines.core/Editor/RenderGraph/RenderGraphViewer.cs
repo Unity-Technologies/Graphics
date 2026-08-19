@@ -2253,8 +2253,7 @@ namespace UnityEditor.Rendering
         {
             // If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
             // connection changes
-            if (isPaused)
-                OnRegisteredGraphsChangedInternal(true);
+            OnRegisteredGraphsChangedInternal(isPaused);
 
             DisconnectDebugSession();
 
@@ -2279,7 +2278,11 @@ namespace UnityEditor.Rendering
             RenderGraphDebugSession.BeginSession(session);
             RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
             RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
 
+            // Restore the paused state to the new session
+            RenderGraphDebugSession.currentDebugSession.isPaused = m_StoredPausedState;
+            
             OnRegisteredGraphsChanged();
         }
 

@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// Static manager for render graph debug sessions.
     /// Manages the current active session and provides convenience methods for accessing it.
     /// </summary>
-    internal static class RenderGraphDebugSession
+    internal static partial class RenderGraphDebugSession
     {
+        // Cleared via ResetStaticsOnLoad() on domain reload
         static IRenderGraphDebugSession s_CurrentDebugSession;
 
 #if UNITY_EDITOR
@@ -37,8 +38,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <typeparam name="TSession">Type of session to create.</typeparam>
         public static void BeginSession<TSession>() where TSession : IRenderGraphDebugSession, new()
         {
-            EndSession();
-            s_CurrentDebugSession = new TSession();
+            BeginSession(new TSession());
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (!typeof(IRenderGraphDebugSession).IsAssignableFrom(sessionType))
                 throw new ArgumentException("Incorrect session type. Type should implement IRenderGraphDebugSession.");
 
-            s_CurrentDebugSession = Activator.CreateInstance(sessionType) as IRenderGraphDebugSession;
+            BeginSession(Activator.CreateInstance(sessionType) as IRenderGraphDebugSession);
         }
 
         /// <summary>

@@ -50,14 +50,9 @@ namespace UnityEditor.Rendering
         bool IRenderGraphDebugSession.isPaused
         {
             get => m_IsPaused;
-            set
-            {
-                if (value != m_IsPaused)
-                {
-                    m_IsPaused = value;
-                }
-            }
+            set => m_IsPaused = value; // Tests needs to be able to set this, but it won't affect the serialized data
         }
+
         string IRenderGraphDebugSession.connectionName { get => string.Empty; set { } }
 
         public List<string> GetRegisteredGraphs()

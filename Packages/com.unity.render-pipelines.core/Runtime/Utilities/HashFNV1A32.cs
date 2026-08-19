@@ -132,6 +132,19 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>Mixes a string into the running hash by hashing each character.</summary>
+        /// <param name="input">String to fold in.</param>
+        public void Append(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return;
+
+            foreach (char c in input)
+            {
+                Append((int)c);
+            }
+        }
+
         /// <summary>The current hash value as a signed 32-bit integer.</summary>
         public int value => (int)m_Hash;
 
