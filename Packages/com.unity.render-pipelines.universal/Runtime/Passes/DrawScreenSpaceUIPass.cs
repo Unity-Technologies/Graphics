@@ -61,12 +61,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Get a descriptor for the required color texture for offscreen UI pass.
         /// </summary>
-        internal static void ConfigureOffscreenUITextureDesc(ref TextureDesc textureDesc)
+        internal static void ConfigureOffscreenUITextureDesc(ref TextureDesc textureDesc, UniversalCameraData cameraData)
         {
             textureDesc.format = GraphicsFormat.R8G8B8A8_SRGB;
             textureDesc.depthBufferBits = 0;
-            textureDesc.width = Screen.width;
-            textureDesc.height = Screen.height;
+            textureDesc.width = cameraData.backbufferWidth;
+            textureDesc.height = cameraData.backbufferHeight;
             // we dont need multisampling, and not explicitly setting this can violate validation layers on vulkan
             textureDesc.msaaSamples = MSAASamples.None;
             textureDesc.bindTextureMS = false;
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             RenderTextureDescriptor depthDescriptor = cameraData.cameraTargetDescriptor;
-            ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, Screen.width, Screen.height);
+            ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, cameraData.backbufferWidth, cameraData.backbufferHeight);
             TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
 
             // Render uGUI and UIToolkit overlays

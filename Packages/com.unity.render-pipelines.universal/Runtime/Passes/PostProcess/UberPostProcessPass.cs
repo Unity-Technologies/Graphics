@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
                     if(PostProcessUtils.RequireHDROutput(cameraData))
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
+                        RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
                     }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

@@ -214,12 +214,33 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
-        internal static void SetupOffscreenUIViewportParams(Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
+        // Returns the size of the backbuffer the camera renders to, in pixels.
+        internal static Vector2Int GetScreenBackbufferSize(Camera camera)
+        {
+            // Screen.width/height only ever describe the main display, so cameras targeting a secondary
+            // display need to query that display instead.
+            //
+            // UUM-149562: on QNX and Embedded Linux the graphics backend still reports the main display's
+            // resolution for the backbuffer of a secondary display. Returning the secondary display's real
+            // resolution here would no longer match what the backend reports, the render pass would fail
+            // validation and the secondary display would stop rendering altogether. Falling back to the main
+            // display size keeps those platforms rendering as usual. Remove the platform exclusions
+            // above once the backend reports per-display backbuffer dimensions.
+#if ENABLE_MULTIPLE_DISPLAYS && !UNITY_QNX && !UNITY_EMBEDDED_LINUX
+            int targetDisplay = camera.targetDisplay;
+            var displays = Display.displays;
+            if (targetDisplay > 0 && targetDisplay < displays.Length)
+                return new Vector2Int(displays[targetDisplay].renderingWidth, displays[targetDisplay].renderingHeight);
+#endif
+            return new Vector2Int(Screen.width, Screen.height);
+        }
+
+        internal static void SetupOffscreenUIViewportParams(UniversalCameraData cameraData, Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
         {
             Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
             if (isRenderToBackBufferTarget)
             {
-                var rcpScreenSize = new Vector2(1f / Screen.width, 1f / Screen.height);
+                var rcpScreenSize = new Vector2(1f / cameraData.backbufferWidth, 1f / cameraData.backbufferHeight);
                 offscreenUIViewportParams = new Vector4(pixelRect.x * rcpScreenSize.x, pixelRect.y * rcpScreenSize.y, pixelRect.width * rcpScreenSize.x, pixelRect.height * rcpScreenSize.y);
             }
             material.SetVector(ShaderPropertyId.offscreenUIViewportParams, offscreenUIViewportParams);

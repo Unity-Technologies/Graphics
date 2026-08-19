@@ -2032,7 +2032,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor, cameraData);
             RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
 
             // Clear the texture to avoid stale data from previous frames

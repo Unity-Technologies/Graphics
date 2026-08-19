@@ -338,9 +338,11 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 var targetTexture = m_Camera.targetTexture;
-                return targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+                return targetTexture == null ? screenRTSize : new Vector2Int(targetTexture.width, targetTexture.height);
             }
         }
+
+        Vector2Int screenRTSize => RenderingUtils.GetScreenBackbufferSize(m_Camera);
 
         // Snap camera position to pixels using Camera.worldToCameraMatrix.
         void PixelSnap()
@@ -437,7 +439,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var targetTexture = m_Camera.targetTexture;
-            Vector2Int rtSize = targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+            Vector2Int rtSize = targetTexture == null ? screenRTSize : new Vector2Int(targetTexture.width, targetTexture.height);
 
             if (rtSize.x < refResolutionX || rtSize.y < refResolutionY)
             {

@@ -190,6 +190,10 @@ namespace UnityEngine.Rendering.Universal
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal RenderTargetInfo backbufferColor;
         internal RenderTargetInfo backbufferDepth;
+
+        internal int backbufferWidth => backbufferColor.width;
+        internal int backbufferHeight => backbufferColor.height;
+
         internal Rect pixelRect;
         internal bool useScreenCoordOverride;
         internal Vector4 screenSizeOverride;
