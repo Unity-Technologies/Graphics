@@ -90,6 +90,21 @@ namespace UnityEngine.Rendering.Universal
         // Injected into the per-frame UniversalGlobalShaderData ContextItem.
         GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
 
+        // Temporary to ensure Unified Deformer works. Remove when Animation Package Lands.
+        ComputeBuffer m_UnifiedDeform = null;
+        internal ComputeBuffer unifiedDeform
+        {
+            get
+            {
+                // Only called on Renderer2D Init.
+                if (null == m_UnifiedDeform)
+                {
+                    m_UnifiedDeform = new ComputeBuffer(64, 64, ComputeBufferType.Raw);
+                }
+                return m_UnifiedDeform;
+            }
+        }
+
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
         static void ResetStaticsOnLoad()
@@ -189,6 +204,10 @@ namespace UnityEngine.Rendering.Universal
                 XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
             }
 #endif
+
+            // Set Unified Buffer for 2D Animation Compute (to avoid Binding errors).
+            // Remove this once 2D Animation PR lands which does the same.
+            Shader.SetGlobalBuffer("_UnifiedDeformedVerts", unifiedDeform);
         }
 
         internal override void UpdateSupportedRenderingFeatures()
@@ -1340,7 +1359,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_BackdropFilterCompositeMaterial);
-
+            m_UnifiedDeform?.Release();
+            m_UnifiedDeform = null;
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.Dispose();
 #endif

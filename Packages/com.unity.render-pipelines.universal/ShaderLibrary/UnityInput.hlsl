@@ -137,10 +137,12 @@ float4 unity_MotionVectorsParams;
 float4 unity_SpriteColor;
 //X : FlipX
 //Y : FlipY
-//Z : Reserved for future use.
-//W : Reserved for future use.
+//Z : Sprite Skinning Bone Matrix Offset.
+//W : Unified Compute Vertex Pull Offset.
 float4 unity_SpriteProps;
 CBUFFER_END
+
+static const uint unity_SpriteInternal = asuint(unity_SpriteProps.x);
 
 static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
 

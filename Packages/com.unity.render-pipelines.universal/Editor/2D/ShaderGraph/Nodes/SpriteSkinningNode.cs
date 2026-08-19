@@ -7,7 +7,7 @@ using static UnityEditor.PlayerSettings;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Mesh Deformation", "Sprite Skinning")]
-    class SpriteSkinningNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireVertexSkinning, IMayRequirePosition
+    class SpriteSkinningNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireVertexSkinning, IMayRequirePosition, IMayRequireVertexID
     {
         public const int kPositionSlotId = 0;
         public const int kPositionOutputSlotId = 3;
@@ -27,6 +27,11 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new PositionMaterialSlot(kPositionSlotId, kSlotPositionName, kSlotPositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new Vector3MaterialSlot(kPositionOutputSlotId, kOutputSlotPositionName, kOutputSlotPositionName, SlotType.Output, Vector3.zero, ShaderStageCapability.Vertex));
             RemoveSlotsNameNotMatching(new[] { kPositionSlotId, kPositionOutputSlotId });
+        }
+
+        public bool RequiresVertexID(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return true;
         }
 
         bool IsSpriteSubTarget()
@@ -94,11 +99,12 @@ namespace UnityEditor.ShaderGraph
             {
                 sb.AppendLine("$precision3 {0} = {1};", GetVariableNameForSlot(kPositionOutputSlotId), GetSlotValue(kPositionSlotId, generationMode));
                 sb.AppendLine($"{GetFunctionName()}(" +
+                    $"IN.VertexID, " +
                     $"IN.BoneIndices, " +
                     $"IN.BoneWeights, " +
                     $"{GetSlotValue(kPositionSlotId, generationMode)}, " +
                     $"{GetVariableNameForSlot(kPositionOutputSlotId)}, " +
-                    $"unity_SpriteProps.z);");
+                    $"unity_SpriteProps);");
             }
         }
 
@@ -107,11 +113,12 @@ namespace UnityEditor.ShaderGraph
             registry.ProvideFunction(GetFunctionName(), sb =>
             {
                 sb.AppendLine($"void {GetFunctionName()}(" +
+                    "uint vertexId, " +
                     "uint4 indices, " +
                     "$precision4 weights, " +
                     "$precision3 positionIn, " +
                     "out $precision3 positionOut, " +
-                    "in float offset)");
+                    "in float4 spriteProps)");
                 sb.AppendLine("{");
                 using (sb.IndentScope())
                 {
@@ -125,7 +132,22 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine("{");
                         using (sb.IndentScope())
                         {
-                            sb.AppendLine("positionOut = UnitySkinSprite(positionIn, indices, weights, offset, 1.0f );");
+                            sb.AppendLine("int unifiedDeformOffset = asint(unity_SpriteProps.w);");
+                            sb.AppendLine("UNITY_BRANCH");
+                            sb.AppendLine("if (unifiedDeformOffset >= 0)");
+                            sb.AppendLine("{");
+                            using (sb.IndentScope())
+                            {
+                                sb.AppendLine("positionOut = UnifiedSpriteDeform(positionIn, vertexId, spriteProps, 1.0f);");
+                            }
+                            sb.AppendLine("}");
+                            sb.AppendLine("else");
+                            sb.AppendLine("{");
+                            using (sb.IndentScope())
+                            {
+                                sb.AppendLine("positionOut = UnitySkinSprite(positionIn, indices, weights, spriteProps, 1.0f );");
+                            }
+                            sb.AppendLine("}");
                         }
                         sb.AppendLine("}");
                         sb.AppendLine("#else");

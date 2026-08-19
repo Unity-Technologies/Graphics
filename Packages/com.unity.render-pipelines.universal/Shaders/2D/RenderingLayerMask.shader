@@ -50,6 +50,7 @@ Shader "Hidden/2D/RenderingLayerMask"
 
             Varyings UnlitVertex(Attributes input)
             {
+                UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SKINNED_VERTEX_COMPUTE(input);
                 SetUpSpriteInstanceProperties();
                 input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
