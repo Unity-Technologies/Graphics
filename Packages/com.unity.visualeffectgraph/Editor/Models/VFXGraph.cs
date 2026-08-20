@@ -1660,6 +1660,11 @@ namespace UnityEditor.VFX
                             {
                                 subRenderer.SetupMaterial(writableMaterial);
                             }
+                            // After the SRP binder so it isn't reset.
+                            if (model is IVFXShaderGraphOutput shaderGraphOutput && model is IVFXSlotContainer slotContainer)
+                            {
+                                VFXShaderGraphHelpers.EnableEnumKeywordDefaults(shaderGraphOutput.GetShaderGraph(), slotContainer.inputSlots, writableMaterial);
+                            }
 
                             currentProcessor = writableMaterial;
                         }
