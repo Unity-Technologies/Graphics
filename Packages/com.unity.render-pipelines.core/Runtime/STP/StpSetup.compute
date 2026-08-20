@@ -64,8 +64,8 @@ TEXTURE2D_X(_StpPriorFeedback);
     #define STP_FORCE_32BIT_REDUCTION
 #endif
 
-#if defined(SHADER_API_PSSL) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_METAL) || (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE))
-    // Force usage of group shared memory instead using wave operations
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_METAL) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE))
+    // Force usage of group shared memory instead of using wave operations
     #define STP_FORCE_GROUPSHARED
 #endif
 
