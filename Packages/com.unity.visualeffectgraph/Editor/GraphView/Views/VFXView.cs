@@ -1937,7 +1937,22 @@ namespace UnityEditor.VFX.UI
                     tPos.y = (resolvedStyle.height / 2f - pos.y.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.height / 2f;
                 }
 
-                var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, null, null, null);
+                var templateAttributes = templateController.graph.attributesManager.GetCustomAttributes().ToArray();
+                var conflicts = new List<string>();
+                foreach (var attribute in templateAttributes)
+                {
+                    if (controller.graph.attributesManager.TryFind(attribute.name, out var existingAttribute) && existingAttribute.type != attribute.type)
+                        conflicts.Add($"'{attribute.name}' (template type {attribute.type}, existing type {existingAttribute.type})");
+                }
+                if (conflicts.Count > 0)
+                {
+                    Debug.LogError($"Cannot insert template '{System.IO.Path.GetFileName(path)}': the following custom attributes conflict with existing attributes of a different type: {string.Join(", ", conflicts)}. Rename or remove the conflicting attributes before inserting the template.");
+                    templateController.useCount--;
+                    return;
+                }
+
+                var pastedAttributes = templateAttributes.Select(x => new VFXCopyPasteCommon.Attribute { name = x.name, type = x.type, description = x.description, canDuplicate = false });
+                var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, pastedAttributes, null, null);
                 VFXPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 
                 templateController.useCount--;
