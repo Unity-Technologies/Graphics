@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent WorldRenderingLayerMask = EditorGUIUtility.TrTextContent("World Rendering Layer Mask", "Combined (OR) rendering layer mask used for the shared world update this frame. This value is read only.");
             public static GUIContent DebugViewMode = EditorGUIUtility.TrTextContent("Debug View Mode", "Debug visualization mode.");
             public static GUIContent DebugShowSamplePosition = EditorGUIUtility.TrTextContent("Debug Show Sample Position", "Show sample positions in debug view.");
+            public static string UnsupportedRayTracingBackend = "Surface Cache GI will not run on this device because it does not support hardware ray tracing or compute shaders.";
         }
 
         private void OnEnable()
@@ -81,6 +82,10 @@ namespace UnityEditor.Rendering.Universal
                 CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
                     PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
             }
+            else if (!SurfaceCacheGIRendererFeature.HasSupportedRayTracingBackend())
+            {
+                EditorGUILayout.HelpBox(TextContent.UnsupportedRayTracingBackend, MessageType.Warning);
+            }
             else if (SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
             {
                 EditorGUILayout.HelpBox("Enable \"Always Refresh\" in the Scene View to see realtime updates in the Scene View.", MessageType.Info);
@@ -100,7 +105,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(_debugViewMode, TextContent.DebugViewMode);
             EditorGUILayout.PropertyField(_debugShowSamplePosition, TextContent.DebugShowSamplePosition);
 
-            if (_debugEnabled.boolValue)
+            if (_debugEnabled.boolValue && surfaceCacheGIRendererFeature.IsValidForDebugging())
             {
                 using (new EditorGUI.IndentLevelScope())
                 {

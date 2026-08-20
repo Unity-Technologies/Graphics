@@ -114,6 +114,29 @@ namespace UnityEngine.Rendering.Universal
             return camType == CameraType.Game;
         }
 
+        static bool TryGetSupportedRayTracingBackend(out RayTracingBackend backend)
+        {
+            if (RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware))
+            {
+                backend = RayTracingBackend.Hardware;
+                return true;
+            }
+
+            if (RayTracingContext.IsBackendSupported(RayTracingBackend.Compute))
+            {
+                backend = RayTracingBackend.Compute;
+                return true;
+            }
+
+            backend = default;
+            return false;
+        }
+
+        internal static bool HasSupportedRayTracingBackend()
+        {
+            return TryGetSupportedRayTracingBackend(out _);
+        }
+
         static bool IsEligibleCamera(Camera camera)
         {
             if (camera.cullingMask == 0)
@@ -1068,6 +1091,11 @@ namespace UnityEngine.Rendering.Universal
             return _cameraPass != null;
         }
 
+        internal bool IsValidForDebugging()
+        {
+            return _worldPass != null && _cameraPass != null;
+        }
+
         /// <inheritdoc/>
         public override void Create()
         {
@@ -1083,9 +1111,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 #endif
 
-            var rtBackend = SystemInfo.supportsRayTracing
-                ? RayTracingBackend.Hardware
-                : RayTracingBackend.Compute;
+            if (!TryGetSupportedRayTracingBackend(out var rtBackend))
+                return;
 
             {
                 var resources = new RayTracingResources();
