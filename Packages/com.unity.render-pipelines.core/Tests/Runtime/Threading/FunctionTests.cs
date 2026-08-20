@@ -183,7 +183,6 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
-    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
 #if UNITY_ANDROID
@@ -237,7 +236,6 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
-    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void GroupTest([Values]Kernel kernel, [Values]GroupSizeKeyword groupSizeKeyword)
     {
         int groupSize = (int)groupSizeKeyword;
