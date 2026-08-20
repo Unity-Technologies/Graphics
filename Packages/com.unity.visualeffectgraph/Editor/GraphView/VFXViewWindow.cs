@@ -294,6 +294,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (graphView.controller != null)
                     VFXAnalytics.GetInstance().OnGraphClosed(graphView);
+                graphView.SetUnsavedChangesOnClose(hasUnsavedChanges);
                 graphView.Dispose();
                 graphView = null;
             }

@@ -45,6 +45,15 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllVFXWindow();
         }
 
+        // The window syncs its unsaved state from the dirty graph on its Update tick, so wait for it.
+        static IEnumerator WaitUntilWindowIsDirty(VFXViewWindow window, string message)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (!window.hasUnsavedChanges && sw.ElapsedMilliseconds < 5000)
+                yield return null;
+            Assert.IsTrue(window.hasUnsavedChanges, message);
+        }
+
         [SerializeField] private VisualEffectAsset m_Domain_Reload_With_VFX_Live_In_Scene_Asset;
         [SerializeField] private VFXGraph m_Domain_Reload_With_VFX_Live_In_Scene_Graph;
 
@@ -647,6 +656,146 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        [UnityTest, Description("Cover UUM-131449")]
+        public IEnumerator Save_Then_Reimport_Redirties_Graph_Does_Not_Prompt_On_Close()
+        {
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            var window = VFXTestCommon.GetViewWindow();
+            window.LoadResource(graph.visualEffectResource, null);
+            yield return null;
+
+            var mockView = new Mock<IVFXViewEditorAssetEventHandler>();
+            mockView.Setup(x => x.AskAssetChangedBeforeClose(It.IsAny<string>())).Returns(AskAssetChangedBeforeCloseChoice.Save);
+            window.graphView.AssetEventHandler = mockView.Object;
+
+            var initialize = graph.children.OfType<VFXBasicInitialize>().Single();
+            initialize.SetSettingValue("capacity", 431u);
+            yield return null;
+            Assert.IsTrue(window.hasUnsavedChanges);
+
+            window.SaveChanges();
+            Assert.IsFalse(window.hasUnsavedChanges);
+
+            EditorUtility.SetDirty(graph);
+            Assert.IsTrue(EditorUtility.IsDirty(graph));
+            Assert.IsFalse(window.hasUnsavedChanges);
+
+            window.Close();
+            yield return null;
+            mockView.Verify(x => x.AskAssetChangedBeforeClose(It.IsAny<string>()), Times.Never);
+        }
+
+        [UnityTest, Description("Cover UUM-131449: Save All batches per-window VFX imports into a single import")]
+        public IEnumerator Save_All_Batches_Imports_Into_Single_Pass()
+        {
+            const int count = 4;
+            var windows = new List<VFXViewWindow>();
+            for (int i = 0; i < count; i++)
+            {
+                var graph = VFXTestCommon.CreateGraph_And_System();
+                var window = VFXTestCommon.GetWindow(graph.visualEffectResource, true, true);
+                window.LoadResource(graph.visualEffectResource);
+                windows.Add(window);
+                yield return null;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                windows[i].Focus();
+                yield return null;
+                var controller = windows[i].graphView.controller;
+                controller.graph.children.OfType<VFXBasicInitialize>().Single().SetSettingValue("capacity", (uint)(1000 + i));
+                controller.LightApplyChanges();
+                yield return WaitUntilWindowIsDirty(windows[i], $"Window {i} did not become dirty.");
+            }
+
+            VFXTestImportPassCounter.Passes = 0;
+            VFXTestImportPassCounter.Armed = true;
+            try
+            {
+                // Mirror ContainerWindow.AskToClose "Save All": save every window inside one import batch.
+                AssetDatabase.StartAssetEditing();
+                try
+                {
+                    foreach (var window in windows)
+                        window.SaveChanges();
+                }
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+                yield return null;
+            }
+            finally
+            {
+                VFXTestImportPassCounter.Armed = false;
+            }
+
+            foreach (var window in windows)
+                Assert.IsFalse(window.hasUnsavedChanges, "Save All did not clear a window's unsaved state.");
+            Assert.Less(VFXTestImportPassCounter.Passes, count,
+                "Save All should flush every VFX write in one import pass; a pass per window means the imports regressed to un-batched.");
+        }
+
+        [UnityTest, Description("Cover UUM-131449: Save All of graphs sharing a subgraph stays batched (no N*M import fan-out)")]
+        public IEnumerator Save_All_With_Shared_Subgraph_Stays_Batched()
+        {
+            const int count = 4;
+            var subgraph = VFXTestCommon.MakeTemporarySubGraphOperator();
+
+            var windows = new List<VFXViewWindow>();
+            for (int i = 0; i < count; i++)
+            {
+                var graph = VFXTestCommon.CreateGraph_And_System();
+                var window = VFXTestCommon.GetWindow(graph.visualEffectResource, true, true);
+                window.LoadResource(graph.visualEffectResource);
+                windows.Add(window);
+                yield return null;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                windows[i].Focus();
+                yield return null;
+                var controller = windows[i].graphView.controller;
+                // Reference the shared subgraph so the graphs are interdependent (the N*M-prone case).
+                var subgraphOperator = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
+                subgraphOperator.SetSettingValue("m_Subgraph", subgraph);
+                controller.graph.AddChild(subgraphOperator);
+                // Tweak a setting so the window is reliably dirty.
+                controller.graph.children.OfType<VFXBasicInitialize>().Single().SetSettingValue("capacity", (uint)(2000 + i));
+                controller.LightApplyChanges();
+                yield return WaitUntilWindowIsDirty(windows[i], $"Window {i} did not become dirty.");
+            }
+
+            VFXTestImportPassCounter.Passes = 0;
+            VFXTestImportPassCounter.Armed = true;
+            try
+            {
+                // Mirror ContainerWindow.AskToClose "Save All": save every window inside one import batch.
+                AssetDatabase.StartAssetEditing();
+                try
+                {
+                    foreach (var window in windows)
+                        window.SaveChanges();
+                }
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+                yield return null;
+            }
+            finally
+            {
+                VFXTestImportPassCounter.Armed = false;
+            }
+
+            foreach (var window in windows)
+                Assert.IsFalse(window.hasUnsavedChanges, "Save All did not clear a window's unsaved state.");
+            Assert.Less(VFXTestImportPassCounter.Passes, count,
+                "Graphs sharing a subgraph should still flush in one import pass; a pass per window is the N*M regression.");
+        }
+
         static bool[] kRepro_Modify_Save_Modify_With_Window_OpenedCase = { false, true };
         [UnityTest, Description("Cover WriteAssetWithSubAssets which can trigger an reimport switch asset from editor to runtime")]
         public IEnumerator Modify_Save_Modify_With_Window_Opened([ValueSource(nameof(kRepro_Modify_Save_Modify_With_Window_OpenedCase))] bool useReimport)
@@ -808,6 +957,12 @@ namespace UnityEditor.VFX.Test
                 }
 
                 window.graphView.AssetEventHandler = mockView.Object;
+
+                if (choice == AskAssetChangedBeforeCloseChoice.Ignore)
+                {
+                    yield return WaitUntilWindowIsDirty(window, "Reopened window did not reflect the dirty graph before close.");
+                }
+
                 window.Close();
                 yield return null;
 
@@ -934,6 +1089,8 @@ namespace UnityEditor.VFX.Test
                 vfxGraph.children.First().position += Vector2.one;
                 Assert.IsTrue(EditorUtility.IsDirty(vfxGraph));
                 Assert.AreEqual(previousContent, File.ReadAllText(vfxPath));
+
+                yield return WaitUntilWindowIsDirty(window, "Window did not reflect the dirty graph before close.");
 
                 var mockView = new Mock<IVFXViewEditorAssetEventHandler>();
                 mockView.Setup(x => x.AskAssetChangedBeforeClose(It.IsAny<string>())).Returns(AskAssetChangedBeforeCloseChoice.Discard);
@@ -1089,5 +1246,26 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+    }
+
+    // Counts import passes touching the test temp folder, so tests can assert Save All batches its writes into one import.
+    class VFXTestImportPassCounter : AssetPostprocessor
+    {
+        public static bool Armed;
+        public static int Passes;
+
+        static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] movedFrom)
+        {
+            if (!Armed)
+                return;
+            foreach (var path in imported)
+            {
+                if (path.StartsWith(VFXTestCommon.tempBasePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    Passes++;
+                    return;
+                }
+            }
+        }
     }
 }

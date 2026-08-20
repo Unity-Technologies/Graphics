@@ -179,6 +179,10 @@ namespace UnityEditor.VFX.UI
 
         public bool isDisconnecting { get; private set; }
 
+        bool? m_UnsavedChangesOnClose;
+
+        internal void SetUnsavedChangesOnClose(bool hasUnsavedChanges) => m_UnsavedChangesOnClose = hasUnsavedChanges;
+
         internal IVFXViewEditorAssetEventHandler AssetEventHandler { get; set; }
 
         public static string GetSaveChangesMessage(string path)
@@ -227,7 +231,8 @@ namespace UnityEditor.VFX.UI
                 && previousController.graph.GetResource() is { } resource)
             {
                 var previousGraph = previousController.graph;
-                if (EditorUtility.IsDirty(previousGraph))
+                var hasUnsavedChanges = m_UnsavedChangesOnClose ?? EditorUtility.IsDirty(previousGraph);
+                if (hasUnsavedChanges)
                 {
                     var choice = AssetEventHandler.AskAssetChangedBeforeClose(path);
                     if (choice == AskAssetChangedBeforeCloseChoice.Save)
