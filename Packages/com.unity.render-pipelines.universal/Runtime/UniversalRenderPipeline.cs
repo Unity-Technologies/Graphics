@@ -1171,6 +1171,14 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // With Quad Views, defer the outer pass's trailing context.Submit() so both passes' commands
+            // are flushed in a single submission at the end of the inner pass, reducing overhead
+            bool isFirstQuadView = cameraData.xr.enabled
+                && cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews
+                && !cameraData.xr.isQuadViewInnerPass;
+            if (!isFirstQuadView)
+#endif
             using (new ProfilingScope(Profiling.Pipeline.Context.submit, cameraData.camera))
             {
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
