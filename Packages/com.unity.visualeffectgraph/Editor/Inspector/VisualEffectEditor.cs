@@ -1403,6 +1403,9 @@ namespace UnityEditor.VFX
                                 m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
                             EditorGUI.EndProperty();
 
+                            if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.CustomProvided)
+                                EditorGUILayout.HelpBox(Contents.lightProbeCustomProvidedUnsupportedNote.text, MessageType.Warning);
+
 #pragma warning disable CS0618
                             if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
                             {
@@ -1472,6 +1475,7 @@ namespace UnityEditor.VFX
                 public static readonly GUIContent lightProbeVolumeOverrideStyle = EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
                 public static readonly GUIContent lightProbeAnchorStyle = EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
                 public static readonly GUIContent lightProbeVolumeUnsupportedNote = EditorGUIUtility.TrTextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.");
+                public static readonly GUIContent lightProbeCustomProvidedUnsupportedNote = EditorGUIUtility.TrTextContent("Custom Provided light probes are not supported by Visual Effect Graph.");
 
                 public static readonly GUIContent probeSettings = EditorGUIUtility.TrTextContent("Probes");
                 public static readonly GUIContent otherSettings = EditorGUIUtility.TrTextContent("Additional Settings");
