@@ -75,17 +75,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Number of samples for screen-space lookups.
         /// </summary>
-        public ClampedIntParameter screenFilteringLookupSampleCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].screenFilteringLookupSampleCount, 0, 8);
+        public ClampedIntParameter screenFilteringLookupSampleCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].screenFilteringLookupSampleCount, 0, 16);
 
         /// <summary>
-        /// Kernel size for upsampling filtering.
+        /// Number of denoising passes. More passes reduce noise at a performance cost.
         /// </summary>
-        public ClampedFloatParameter screenFilteringUpsamplingKernelSize = new ClampedFloatParameter(k_Presets[(int)k_defaultPresetQuality].screenFilteringUpsamplingKernelSize, 0.0f, 8.0f);
-
-        /// <summary>
-        /// Number of samples for upsampling. Higher values improve quality at performance cost.
-        /// </summary>
-        public ClampedIntParameter screenFilteringUpsamplingSampleCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].screenFilteringUpsamplingSampleCount, 1, 16);
+        public ClampedIntParameter screenFilteringDenoisingPassCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].screenFilteringDenoisingPassCount, 0, 4);
 
         // =======================
         // Volume
@@ -188,8 +183,7 @@ namespace UnityEngine.Rendering.Universal
             public bool patchFilteringPostTemporalEnabled;
             public int volumeResolution;
             public int screenFilteringLookupSampleCount;
-            public float screenFilteringUpsamplingKernelSize;
-            public int screenFilteringUpsamplingSampleCount;
+            public int screenFilteringDenoisingPassCount;
         }
 
 
@@ -201,28 +195,28 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightTransportMultiBounce = false, lightTransportBouncePatchAllocation = false, lightTransportSampleCount = 1, volumeDistanceFallback = false,
                 patchFilteringTemporalSmoothing = 0.9f, patchFilteringSpatialFilterEnabled = false, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = false,
-                volumeResolution = 16, screenFilteringLookupSampleCount = 4, screenFilteringUpsamplingKernelSize = 2.0f, screenFilteringUpsamplingSampleCount = 1,
+                volumeResolution = 16, screenFilteringLookupSampleCount = 2, screenFilteringDenoisingPassCount = 1,
             },
             // Medium
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = false, lightTransportSampleCount = 2, volumeDistanceFallback = false,
                 patchFilteringTemporalSmoothing = 0.8f, patchFilteringSpatialFilterEnabled = true, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 32, screenFilteringLookupSampleCount = 6, screenFilteringUpsamplingKernelSize = 2.0f, screenFilteringUpsamplingSampleCount = 2,
+                volumeResolution = 32, screenFilteringLookupSampleCount = 4, screenFilteringDenoisingPassCount = 2,
             },
             // High
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = true, lightTransportSampleCount = 4, volumeDistanceFallback = true,
                 patchFilteringTemporalSmoothing = 0.7f, patchFilteringSpatialFilterEnabled = true, patchFilteringSpatialSampleCount = 6, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 48, screenFilteringLookupSampleCount = 8, screenFilteringUpsamplingKernelSize = 2.0f, screenFilteringUpsamplingSampleCount = 4,
+                volumeResolution = 48, screenFilteringLookupSampleCount = 8, screenFilteringDenoisingPassCount = 3,
             },
             // Ultra
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = true, lightTransportSampleCount = 8, volumeDistanceFallback = true,
                 patchFilteringTemporalSmoothing = 0.6f, patchFilteringSpatialFilterEnabled = true, patchFilteringSpatialSampleCount = 8, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 64, screenFilteringLookupSampleCount = 8, screenFilteringUpsamplingKernelSize = 2.0f, screenFilteringUpsamplingSampleCount = 8,
+                volumeResolution = 64, screenFilteringLookupSampleCount = 16, screenFilteringDenoisingPassCount = 4,
             },
         };
 
@@ -259,10 +253,8 @@ namespace UnityEngine.Rendering.Universal
             volumeResolution.overrideState = true;
             screenFilteringLookupSampleCount.value = settings.screenFilteringLookupSampleCount;
             screenFilteringLookupSampleCount.overrideState = true;
-            screenFilteringUpsamplingKernelSize.value = settings.screenFilteringUpsamplingKernelSize;
-            screenFilteringUpsamplingKernelSize.overrideState = true;
-            screenFilteringUpsamplingSampleCount.value = settings.screenFilteringUpsamplingSampleCount;
-            screenFilteringUpsamplingSampleCount.overrideState = true;
+            screenFilteringDenoisingPassCount.value = settings.screenFilteringDenoisingPassCount;
+            screenFilteringDenoisingPassCount.overrideState = true;
         }
 
         /// <summary>
@@ -299,8 +291,7 @@ namespace UnityEngine.Rendering.Universal
                 && patchFilteringPostTemporalEnabled.overrideState == true
                 && volumeResolution.overrideState == true
                 && screenFilteringLookupSampleCount.overrideState == true
-                && screenFilteringUpsamplingKernelSize.overrideState == true
-                && screenFilteringUpsamplingSampleCount.overrideState == true;
+                && screenFilteringDenoisingPassCount.overrideState == true;
         }
 
         /// <summary>
@@ -324,8 +315,7 @@ namespace UnityEngine.Rendering.Universal
                 && patchFilteringPostTemporalEnabled.value == preset.patchFilteringPostTemporalEnabled
                 && volumeResolution.value == preset.volumeResolution
                 && screenFilteringLookupSampleCount.value == preset.screenFilteringLookupSampleCount
-                && screenFilteringUpsamplingKernelSize.value == preset.screenFilteringUpsamplingKernelSize
-                && screenFilteringUpsamplingSampleCount.value == preset.screenFilteringUpsamplingSampleCount;
+                && screenFilteringDenoisingPassCount.value == preset.screenFilteringDenoisingPassCount;
         }
 
 #if UNITY_EDITOR

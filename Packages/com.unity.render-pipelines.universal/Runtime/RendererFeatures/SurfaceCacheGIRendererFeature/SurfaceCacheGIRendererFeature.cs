@@ -14,8 +14,7 @@ namespace UnityEngine.Rendering.Universal
     internal struct SurfaceCacheScreenFilteringParameterSet
     {
         public uint LookupSampleCount;
-        public float UpsamplingKernelSize;
-        public uint UpsamplingSampleCount;
+        public uint DenoisingPassCount;
     }
 
     [Serializable]
@@ -24,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
     sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
-        int m_Version = 6;
+        int m_Version = 7;
 
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
@@ -45,6 +44,9 @@ namespace UnityEngine.Rendering.Universal
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/FlatNormalResolution.compute")]
         public ComputeShader m_FlatNormalResolutionShader;
+
+        [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/ScreenResolveDenoising.compute")]
+        public ComputeShader m_ScreenResolveDenoisingShader;
 
         public Material fallbackMaterial
         {
@@ -81,6 +83,12 @@ namespace UnityEngine.Rendering.Universal
             get => m_FlatNormalResolutionShader;
             set => this.SetValueAndNotify(ref m_FlatNormalResolutionShader, value, nameof(m_FlatNormalResolutionShader));
         }
+
+        public ComputeShader screenResolveDenoisingShader
+        {
+            get => m_ScreenResolveDenoisingShader;
+            set => this.SetValueAndNotify(ref m_ScreenResolveDenoisingShader, value, nameof(m_ScreenResolveDenoisingShader));
+        }
     }
 
     /// <summary>
@@ -105,6 +113,9 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
 
         private const int k_UpscaleFactor = 4;
+
+        private const GraphicsFormat k_IrradianceL0Format = GraphicsFormat.R16G16B16A16_SFloat;
+        private const GraphicsFormat k_IrradianceL1Format = GraphicsFormat.R8G8B8A8_UNorm;
 
         // URP currently cannot render motion vectors properly in Scene View, so we disable it.
         // https://jira.unity3d.com/browse/SRP-743
@@ -183,8 +194,7 @@ namespace UnityEngine.Rendering.Universal
                 ScreenFilteringParams = new SurfaceCacheScreenFilteringParameterSet
                 {
                     LookupSampleCount = (uint)volume.screenFilteringLookupSampleCount.value,
-                    UpsamplingKernelSize = volume.screenFilteringUpsamplingKernelSize.value,
-                    UpsamplingSampleCount = (uint)volume.screenFilteringUpsamplingSampleCount.value,
+                    DenoisingPassCount = (uint)volume.screenFilteringDenoisingPassCount.value,
                 },
                 VolumeSize = volume.volumeSize.value,
                 VolumeResolution = (uint)volume.volumeResolution.value,
@@ -235,11 +245,12 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PreviousLowResScreenIrradiancesL11 = Shader.PropertyToID("_PreviousLowResScreenIrradiancesL11");
             public static readonly int _PreviousLowResScreenIrradiancesL12 = Shader.PropertyToID("_PreviousLowResScreenIrradiancesL12");
             public static readonly int _PreviousLowResScreenNdcDepths = Shader.PropertyToID("_PreviousLowResScreenNdcDepths");
-            public static readonly int _FilterRadius = Shader.PropertyToID("_FilterRadius");
+            public static readonly int _PassIndex = Shader.PropertyToID("_PassIndex");
             public static readonly int _ViewMode = Shader.PropertyToID("_ViewMode");
             public static readonly int _ShowSamplePosition = Shader.PropertyToID("_ShowSamplePosition");
             public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
             public static readonly int _ClipToWorldTransform = Shader.PropertyToID("_ClipToWorldTransform");
+            public static readonly int _CameraWorldPos = Shader.PropertyToID("_CameraWorldPos");
             public static readonly int _CurrentClipToWorldTransform = Shader.PropertyToID("_CurrentClipToWorldTransform");
             public static readonly int _PreviousClipToWorldTransform = Shader.PropertyToID("_PreviousClipToWorldTransform");
             public static readonly int _FrameIdx = Shader.PropertyToID("_FrameIdx");
@@ -255,18 +266,23 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
             public static readonly int _GlobalProbe = Shader.PropertyToID("_GlobalProbe");
             public static readonly int _DistanceFallback = Shader.PropertyToID("_DistanceFallback");
+            public static readonly int _InputL0 = Shader.PropertyToID("_InputL0");
+            public static readonly int _InputL10 = Shader.PropertyToID("_InputL10");
+            public static readonly int _InputL11 = Shader.PropertyToID("_InputL11");
+            public static readonly int _InputL12 = Shader.PropertyToID("_InputL12");
+            public static readonly int _LowResNdcDepths = Shader.PropertyToID("_LowResNdcDepths");
         }
 
         internal readonly struct CameraInfo
         {
-            public readonly Matrix4x4 WorldToView;
             public readonly Matrix4x4 ClipToWorld;
+            public readonly Vector3 WorldPos;
             public readonly int2 ScreenResolution;
 
-            public CameraInfo(Matrix4x4 worldToView, Matrix4x4 clipToWorld, int2 screenResolution)
+            public CameraInfo(Matrix4x4 clipToWorld, Vector3 worldPos, int2 screenResolution)
             {
-                WorldToView = worldToView;
                 ClipToWorld = clipToWorld;
+                WorldPos = worldPos;
                 ScreenResolution = screenResolution;
             }
         }
@@ -276,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
             var worldToView = cameraData.GetViewMatrix();
             var viewToClip = cameraData.GetGPUProjectionMatrix(true);
             var clipToWorld = (viewToClip * worldToView).inverse;
-            return new CameraInfo(worldToView, clipToWorld, new int2(cameraData.pixelWidth, cameraData.pixelHeight));
+            return new CameraInfo(clipToWorld, cameraData.worldSpaceCameraPos, new int2(cameraData.pixelWidth, cameraData.pixelHeight));
         }
 
         class SurfaceCacheWorldPass : ScriptableRenderPass, IDisposable
@@ -397,16 +413,14 @@ namespace UnityEngine.Rendering.Universal
                 if (LowResIrradiancesL0 != null && LowResIrradiancesL0.GetScaledSize() == new Vector2Int(lowResWidth, lowResHeight))
                     return;
 
-                var l0Format = GraphicsFormat.R16G16B16A16_SFloat;
-                var l1Format = GraphicsFormat.R8G8B8A8_UNorm;
                 LowResIrradiancesL0?.Release();
-                LowResIrradiancesL0 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, l0Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL0");
+                LowResIrradiancesL0 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, k_IrradianceL0Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL0");
                 LowResIrradiancesL10?.Release();
-                LowResIrradiancesL10 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, l1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL10");
+                LowResIrradiancesL10 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, k_IrradianceL1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL10");
                 LowResIrradiancesL11?.Release();
-                LowResIrradiancesL11 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, l1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL11");
+                LowResIrradiancesL11 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, k_IrradianceL1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL11");
                 LowResIrradiancesL12?.Release();
-                LowResIrradiancesL12 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, l1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL12");
+                LowResIrradiancesL12 = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, k_IrradianceL1Format, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenIrradiancesL12");
                 LowResNdcDepths?.Release();
                 LowResNdcDepths = RTHandles.Alloc(lowResWidth, lowResHeight, 1, DepthBits.None, GraphicsFormat.R16_UNorm, FilterMode.Point, TextureWrapMode.Clamp, TextureDimension.Tex2D, true, name: "_lowResScreenNdcDepths");
             }
@@ -542,10 +556,35 @@ namespace UnityEngine.Rendering.Universal
                 internal TextureHandle LowResScreenIrradiancesL10;
                 internal TextureHandle LowResScreenIrradiancesL11;
                 internal TextureHandle LowResScreenIrradiancesL12;
+                internal TextureHandle LowResScreenNdcDepths;
                 internal TextureHandle FullResIrradiances;
-                internal float FilterRadius;
-                internal uint SampleCount;
                 internal Matrix4x4 ClipToWorldTransform;
+                internal Vector3 CameraWorldPos;
+            }
+
+            private class ScreenResolveDenoisingPassData
+            {
+                internal ComputeShader Shader;
+                internal int KernelIndex;
+                internal uint3 ThreadGroupSize;
+                internal uint3 ThreadCount;
+                internal TextureHandle InputL0;
+                internal TextureHandle InputL10;
+                internal TextureHandle InputL11;
+                internal TextureHandle InputL12;
+                internal TextureHandle DenoisedL0;
+                internal TextureHandle DenoisedL10;
+                internal TextureHandle DenoisedL11;
+                internal TextureHandle DenoisedL12;
+                internal TextureHandle ScratchL0;
+                internal TextureHandle ScratchL10;
+                internal TextureHandle ScratchL11;
+                internal TextureHandle ScratchL12;
+                internal TextureHandle InputNdcDepths;
+                internal TextureHandle ScreenFlatNormals;
+                internal Matrix4x4 ClipToWorldTransform;
+                internal Vector3 CameraWorldPos;
+                internal int PassCount;
             }
 
             private SurfaceCacheWorld _world;
@@ -559,12 +598,15 @@ namespace UnityEngine.Rendering.Universal
 
             private readonly ComputeShader _screenResolveLookupShader;
             private readonly ComputeShader _screenResolveUpsamplingShader;
+            private readonly ComputeShader _screenResolveDenoisingShader;
             private readonly ComputeShader _debugShader;
             private readonly int _screenResolveLookupKernel;
             private readonly int _screenResolveUpsamplingKernel;
+            private readonly int _screenResolveDenoisingKernel;
             private readonly int _debugKernel;
             private uint3 _screenResolveLookupKernelGroupSize;
             private uint3 _screenResolveUpsamplingKernelGroupSize;
+            private uint3 _screenResolveDenoisingKernelGroupSize;
             private uint3 _debugKernelGroupSize;
 
             private readonly bool _debugEnabled;
@@ -581,6 +623,7 @@ namespace UnityEngine.Rendering.Universal
                 ComputeShader flatNormalResolutionShader,
                 ComputeShader screenResolveLookupShader,
                 ComputeShader screenResolveUpsamplingShader,
+                ComputeShader screenResolveDenoisingShader,
                 ComputeShader debugShader,
                 bool debugEnabled,
                 DebugViewMode_ debugViewMode,
@@ -597,14 +640,17 @@ namespace UnityEngine.Rendering.Universal
 
                 _screenResolveLookupShader = screenResolveLookupShader;
                 _screenResolveUpsamplingShader = screenResolveUpsamplingShader;
+                _screenResolveDenoisingShader = screenResolveDenoisingShader;
                 _debugShader = debugShader;
 
                 _screenResolveLookupKernel = _screenResolveLookupShader.FindKernel("Lookup");
                 _screenResolveUpsamplingKernel = _screenResolveUpsamplingShader.FindKernel("Upsample");
+                _screenResolveDenoisingKernel = _screenResolveDenoisingShader.FindKernel("Denoise");
                 _debugKernel = _debugShader.FindKernel("Visualize");
 
                 _screenResolveLookupShader.GetKernelThreadGroupSizes(_screenResolveLookupKernel, out _screenResolveLookupKernelGroupSize.x, out _screenResolveLookupKernelGroupSize.y, out _screenResolveLookupKernelGroupSize.z);
                 _screenResolveUpsamplingShader.GetKernelThreadGroupSizes(_screenResolveUpsamplingKernel, out _screenResolveUpsamplingKernelGroupSize.x, out _screenResolveUpsamplingKernelGroupSize.y, out _screenResolveUpsamplingKernelGroupSize.z);
+                _screenResolveDenoisingShader.GetKernelThreadGroupSizes(_screenResolveDenoisingKernel, out _screenResolveDenoisingKernelGroupSize.x, out _screenResolveDenoisingKernelGroupSize.y, out _screenResolveDenoisingKernelGroupSize.z);
                 _debugShader.GetKernelThreadGroupSizes(_debugKernel, out _debugKernelGroupSize.x, out _debugKernelGroupSize.y, out _debugKernelGroupSize.z);
 
                 _debugEnabled = debugEnabled;
@@ -784,6 +830,92 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext) => LookupScreenIrradiance(data, cgContext));
                 }
 
+                var denoisedL0 = lowResScreenIrradiancesL0Handle;
+                var denoisedL10 = lowResScreenIrradiancesL10Handle;
+                var denoisedL11 = lowResScreenIrradiancesL11Handle;
+                var denoisedL12 = lowResScreenIrradiancesL12Handle;
+
+                int denoisingPassCount = (int)VolumeParams.ScreenFilteringParams.DenoisingPassCount;
+                if (denoisingPassCount > 0)
+                {
+                    int lowResWidth = CurrentPerCameraState.LowResIrradiancesL0.rt.width;
+                    int lowResHeight = CurrentPerCameraState.LowResIrradiancesL0.rt.height;
+
+                    TextureHandle CreateDenoisingTargetTexture(GraphicsFormat format, string name)
+                    {
+                        return renderGraph.CreateTexture(new TextureDesc(lowResWidth, lowResHeight)
+                        {
+                            format = format,
+                            enableRandomWrite = true,
+                            filterMode = FilterMode.Point,
+                            wrapMode = TextureWrapMode.Clamp,
+                            name = name
+                        });
+                    }
+
+                    denoisedL0 = CreateDenoisingTargetTexture(k_IrradianceL0Format, "_lowResScreenDenoisedIrradiancesL0");
+                    denoisedL10 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesL10");
+                    denoisedL11 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesL11");
+                    denoisedL12 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesL12");
+
+                    var scratchL0 = TextureHandle.nullHandle;
+                    var scratchL10 = TextureHandle.nullHandle;
+                    var scratchL11 = TextureHandle.nullHandle;
+                    var scratchL12 = TextureHandle.nullHandle;
+                    if (denoisingPassCount > 1)
+                    {
+                        scratchL0 = CreateDenoisingTargetTexture(k_IrradianceL0Format, "_lowResScreenDenoisedIrradiancesScratchL0");
+                        scratchL10 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesScratchL10");
+                        scratchL11 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesScratchL11");
+                        scratchL12 = CreateDenoisingTargetTexture(k_IrradianceL1Format, "_lowResScreenDenoisedIrradiancesScratchL12");
+                    }
+
+                    using (var builder = renderGraph.AddComputePass("Surface Cache Screen Denoising", out ScreenResolveDenoisingPassData denoisingData))
+                    {
+                        denoisingData.ClipToWorldTransform = cameraInfo.ClipToWorld;
+                        denoisingData.CameraWorldPos = cameraInfo.WorldPos;
+                        denoisingData.ThreadCount = new uint3((uint)lowResWidth, (uint)lowResHeight, 1);
+                        denoisingData.Shader = _screenResolveDenoisingShader;
+                        denoisingData.KernelIndex = _screenResolveDenoisingKernel;
+                        denoisingData.ThreadGroupSize = _screenResolveDenoisingKernelGroupSize;
+                        denoisingData.InputL0 = lowResScreenIrradiancesL0Handle;
+                        denoisingData.InputL10 = lowResScreenIrradiancesL10Handle;
+                        denoisingData.InputL11 = lowResScreenIrradiancesL11Handle;
+                        denoisingData.InputL12 = lowResScreenIrradiancesL12Handle;
+                        denoisingData.DenoisedL0 = denoisedL0;
+                        denoisingData.DenoisedL10 = denoisedL10;
+                        denoisingData.DenoisedL11 = denoisedL11;
+                        denoisingData.DenoisedL12 = denoisedL12;
+                        denoisingData.ScratchL0 = scratchL0;
+                        denoisingData.ScratchL10 = scratchL10;
+                        denoisingData.ScratchL11 = scratchL11;
+                        denoisingData.ScratchL12 = scratchL12;
+                        denoisingData.InputNdcDepths = lowResScreenNdcDepthsHandle;
+                        denoisingData.ScreenFlatNormals = flatNormalsHandle;
+                        denoisingData.PassCount = denoisingPassCount;
+
+                        builder.UseTexture(lowResScreenIrradiancesL0Handle, AccessFlags.Read);
+                        builder.UseTexture(lowResScreenIrradiancesL10Handle, AccessFlags.Read);
+                        builder.UseTexture(lowResScreenIrradiancesL11Handle, AccessFlags.Read);
+                        builder.UseTexture(lowResScreenIrradiancesL12Handle, AccessFlags.Read);
+                        builder.UseTexture(lowResScreenNdcDepthsHandle, AccessFlags.Read);
+                        builder.UseTexture(flatNormalsHandle, AccessFlags.Read);
+                        builder.UseTexture(denoisedL0, AccessFlags.ReadWrite);
+                        builder.UseTexture(denoisedL10, AccessFlags.ReadWrite);
+                        builder.UseTexture(denoisedL11, AccessFlags.ReadWrite);
+                        builder.UseTexture(denoisedL12, AccessFlags.ReadWrite);
+                        if (denoisingPassCount > 1)
+                        {
+                            builder.UseTexture(scratchL0, AccessFlags.ReadWrite);
+                            builder.UseTexture(scratchL10, AccessFlags.ReadWrite);
+                            builder.UseTexture(scratchL11, AccessFlags.ReadWrite);
+                            builder.UseTexture(scratchL12, AccessFlags.ReadWrite);
+                        }
+
+                        builder.SetRenderFunc((ScreenResolveDenoisingPassData data, ComputeGraphContext cgContext) => DenoiseScreenIrradiance(data, cgContext));
+                    }
+                }
+
                 if (_debugEnabled)
                 {
                     using (var builder = renderGraph.AddComputePass("Surface Cache Debug", out DebugPassData passData))
@@ -827,6 +959,7 @@ namespace UnityEngine.Rendering.Universal
                     using (var builder = renderGraph.AddComputePass("Surface Cache Screen Upsampling", out ScreenIrradianceUpsamplingPassData data))
                     {
                         data.ClipToWorldTransform = cameraInfo.ClipToWorld;
+                        data.CameraWorldPos = cameraInfo.WorldPos;
                         data.FullResThreadCount = new uint3((uint)cameraInfo.ScreenResolution.x, (uint)cameraInfo.ScreenResolution.y, 1);
                         data.Shader = _screenResolveUpsamplingShader;
                         data.KernelIndex = _screenResolveUpsamplingKernel;
@@ -834,13 +967,12 @@ namespace UnityEngine.Rendering.Universal
                         data.FullResDepths = resourceData.cameraDepthTexture;
                         data.FullResShadedNormals = resourceData.cameraNormalsTexture;
                         data.FullResFlatNormals = flatNormalsHandle;
-                        data.LowResScreenIrradiancesL0 = lowResScreenIrradiancesL0Handle;
-                        data.LowResScreenIrradiancesL10 = lowResScreenIrradiancesL10Handle;
-                        data.LowResScreenIrradiancesL11 = lowResScreenIrradiancesL11Handle;
-                        data.LowResScreenIrradiancesL12 = lowResScreenIrradiancesL12Handle;
+                        data.LowResScreenIrradiancesL0 = denoisedL0;
+                        data.LowResScreenIrradiancesL10 = denoisedL10;
+                        data.LowResScreenIrradiancesL11 = denoisedL11;
+                        data.LowResScreenIrradiancesL12 = denoisedL12;
+                        data.LowResScreenNdcDepths = lowResScreenNdcDepthsHandle;
                         data.FullResIrradiances = fullResScreenIrradiancesHandle;
-                        data.FilterRadius = VolumeParams.ScreenFilteringParams.UpsamplingKernelSize;
-                        data.SampleCount = VolumeParams.ScreenFilteringParams.UpsamplingSampleCount;
 
                         builder.UseTexture(data.FullResIrradiances, AccessFlags.Write);
                         builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
@@ -850,6 +982,7 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(data.LowResScreenIrradiancesL10, AccessFlags.Read);
                         builder.UseTexture(data.LowResScreenIrradiancesL11, AccessFlags.Read);
                         builder.UseTexture(data.LowResScreenIrradiancesL12, AccessFlags.Read);
+                        builder.UseTexture(data.LowResScreenNdcDepths, AccessFlags.Read);
                         builder.UseBuffer(cellAllocationMarkHandle, AccessFlags.Read);
 
                         builder.SetRenderFunc((ScreenIrradianceUpsamplingPassData data, ComputeGraphContext cgContext) => UpsampleScreenIrradiance(data, cgContext));
@@ -943,6 +1076,50 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
             }
 
+            static void DenoiseScreenIrradiance(ScreenResolveDenoisingPassData data, ComputeGraphContext cgContext)
+            {
+                var cmd = cgContext.cmd;
+                var shader = data.Shader;
+                var kernelIndex = data.KernelIndex;
+                cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResNdcDepths, data.InputNdcDepths);
+                cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenFlatNormals, data.ScreenFlatNormals);
+                cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, data.ClipToWorldTransform);
+                cmd.SetComputeVectorParam(shader, ShaderIDs._CameraWorldPos, data.CameraWorldPos);
+
+                uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
+
+                var inputL0 = data.InputL0;
+                var inputL10 = data.InputL10;
+                var inputL11 = data.InputL11;
+                var inputL12 = data.InputL12;
+
+                for (int passIndex = 0; passIndex < data.PassCount; passIndex++)
+                {
+                    bool writeToScratch = ((data.PassCount - 1 - passIndex) % 2) != 0;
+                    var outputL0 = writeToScratch ? data.ScratchL0 : data.DenoisedL0;
+                    var outputL10 = writeToScratch ? data.ScratchL10 : data.DenoisedL10;
+                    var outputL11 = writeToScratch ? data.ScratchL11 : data.DenoisedL11;
+                    var outputL12 = writeToScratch ? data.ScratchL12 : data.DenoisedL12;
+
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._InputL0, inputL0);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._InputL10, inputL10);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._InputL11, inputL11);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._InputL12, inputL12);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL0, outputL0);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL10, outputL10);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL11, outputL11);
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL12, outputL12);
+                    cmd.SetComputeIntParam(shader, ShaderIDs._PassIndex, passIndex);
+
+                    cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
+
+                    inputL0 = outputL0;
+                    inputL10 = outputL10;
+                    inputL11 = outputL11;
+                    inputL12 = outputL12;
+                }
+            }
+
             static void UpsampleScreenIrradiance(ScreenIrradianceUpsamplingPassData passData, ComputeGraphContext cgContext)
             {
                 var cmd = cgContext.cmd;
@@ -957,9 +1134,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL10, passData.LowResScreenIrradiancesL10);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL11, passData.LowResScreenIrradiancesL11);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL12, passData.LowResScreenIrradiancesL12);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._FilterRadius, passData.FilterRadius);
-                cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)passData.SampleCount);
+                cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultNdcDepths, passData.LowResScreenNdcDepths);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, passData.ClipToWorldTransform);
+                cmd.SetComputeVectorParam(shader, ShaderIDs._CameraWorldPos, passData.CameraWorldPos);
 
                 uint3 groupCount = DivUp(passData.FullResThreadCount, passData.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
@@ -1177,6 +1354,7 @@ namespace UnityEngine.Rendering.Universal
                 universalRenderPipelineResources.flatNormalResolutionShader,
                 universalRenderPipelineResources.screenResolveLookupShader,
                 universalRenderPipelineResources.screenResolveUpsamplingShader,
+                universalRenderPipelineResources.screenResolveDenoisingShader,
                 universalRenderPipelineResources.debugShader,
                 _parameterSet.DebugEnabled,
                 _parameterSet.DebugViewMode,

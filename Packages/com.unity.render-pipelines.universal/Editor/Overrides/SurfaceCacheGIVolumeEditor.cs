@@ -21,8 +21,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_PatchFilteringPostTemporalEnabled;
 
         protected SerializedDataParameter m_ScreenFilteringLookupSampleCount;
-        protected SerializedDataParameter m_ScreenFilteringUpsamplingKernelSize;
-        protected SerializedDataParameter m_ScreenFilteringUpsamplingSampleCount;
+        protected SerializedDataParameter m_ScreenFilteringDenoisingPassCount;
 
         protected SerializedDataParameter m_VolumeSize;
         protected SerializedDataParameter m_VolumeResolution;
@@ -53,8 +52,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_PatchFilteringSpatialRadius = EditorGUIUtility.TrTextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.");
         static GUIContent s_PatchFilteringPostTemporalEnabled = EditorGUIUtility.TrTextContent("Temporal Post Filter", "Enable temporal post-filtering for additional stability.");
         static GUIContent s_ScreenFilteringLookupSampleCount = EditorGUIUtility.TrTextContent("Lookup Sample Count", "Number of samples for screen-space lookups.");
-        static GUIContent s_ScreenFilteringUpsamplingKernelSize = EditorGUIUtility.TrTextContent("Upsampling Kernel Size", "Kernel size for upsampling filtering.");
-        static GUIContent s_ScreenFilteringUpsamplingSampleCount = EditorGUIUtility.TrTextContent("Upsampling Sample Count", "Number of samples for upsampling. Higher values improve quality at performance cost.");
+        static GUIContent s_ScreenFilteringDenoisingPassCount = EditorGUIUtility.TrTextContent("Denoising Pass Count", "Number of denoising passes. More passes reduce noise at a performance cost.");
         static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
         static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
         static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
@@ -86,8 +84,7 @@ namespace UnityEditor.Rendering.Universal
             m_PatchFilteringSpatialRadius = Unpack(o.Find(obj => obj.patchFilteringSpatialRadius));
             m_PatchFilteringPostTemporalEnabled = Unpack(o.Find(obj => obj.patchFilteringPostTemporalEnabled));
             m_ScreenFilteringLookupSampleCount = Unpack(o.Find(obj => obj.screenFilteringLookupSampleCount));
-            m_ScreenFilteringUpsamplingKernelSize = Unpack(o.Find(obj => obj.screenFilteringUpsamplingKernelSize));
-            m_ScreenFilteringUpsamplingSampleCount = Unpack(o.Find(obj => obj.screenFilteringUpsamplingSampleCount));
+            m_ScreenFilteringDenoisingPassCount = Unpack(o.Find(obj => obj.screenFilteringDenoisingPassCount));
             m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
             m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
@@ -160,8 +157,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.LabelField(s_ScreenFilteringHeader, EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
             PropertyField(m_ScreenFilteringLookupSampleCount, s_ScreenFilteringLookupSampleCount);
-            PropertyField(m_ScreenFilteringUpsamplingKernelSize, s_ScreenFilteringUpsamplingKernelSize);
-            PropertyField(m_ScreenFilteringUpsamplingSampleCount, s_ScreenFilteringUpsamplingSampleCount);
+            PropertyField(m_ScreenFilteringDenoisingPassCount, s_ScreenFilteringDenoisingPassCount);
 
             // Volume Configuration section
             EditorGUILayout.Space();
