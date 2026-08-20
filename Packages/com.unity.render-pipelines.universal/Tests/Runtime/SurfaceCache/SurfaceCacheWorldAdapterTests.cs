@@ -862,6 +862,352 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 #endif
 
+        [Test]
+        public void UpdateEntityInstance_ChangedThenDestroyed_InstanceIsAddedThenRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "The fallback material should be acquired for the entity instance.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be gone after it is reported as destroyed.");
+                Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the entity instance.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ChangedWhileInvisible_InstanceIsNotAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var record = CreateEntityRecord(CreateEntityKey(1), mesh, visible: false);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "An invisible entity instance should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ChangedWithoutMesh_InstanceIsNotAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            try
+            {
+                var record = CreateEntityRecord(CreateEntityKey(1), null);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance without a mesh should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_HiddenAfterAdd_InstanceIsRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, visible: false) } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be removed once a record reports it as invisible.");
+                Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the entity instance.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ChangedTwice_InstanceIsNotDuplicated()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "A repeated change report should update the entity instance in place, not duplicate it.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "A repeated change report should not acquire additional materials.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_MeshChanged_InstanceIsRebuiltInPlace()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var meshA = CreateQuadMesh();
+            var meshB = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, meshA) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, meshB) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "A mesh change should rebuild the entity instance in place, leaving exactly one.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "A mesh change should not leak materials.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(meshA);
+                Object.DestroyImmediate(meshB);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_TransformChangedForUnknownKey_WorldIsUnchanged()
+        {
+            // A transform record carries no mesh or material data and so cannot add an unknown instance.
+            var env = CreateEnvironmentOrIgnore();
+            try
+            {
+                var transformRecord = new SurfaceCacheEntityTransformRecord
+                {
+                    Key = CreateEntityKey(1),
+                    LocalToWorld = Matrix4x4.Translate(new Vector3(1f, 2f, 3f)),
+                };
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { transformRecord } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A transform record for an unknown entity should not add anything to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_TransformChangedAndDestroyedInSameChangeSet_InstanceIsRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount());
+
+                var combined = new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = Matrix4x4.identity } },
+                    EntityInstanceDestroyedList = new[] { key },
+                };
+                Update(env.Adapter, combined, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "An in-world entity instance reported as both transform-changed and destroyed should be removed.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_RenderingLayerMaskFilterChanged_InclusionFollowsFilter()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var record = CreateEntityRecord(CreateEntityKey(1), mesh, renderingLayerMask: 2u);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be excluded while the filter does not match its mask.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be added when the filter changes to match its mask.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be removed when the filter changes to exclude its mask again.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_DestroyedWhileFilteredOut_WorldIsUnchanged()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, renderingLayerMask: 2u) } }, env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance excluded by the filter should not be in the world.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Destroying a registered but filtered-out entity instance should be handled cleanly.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A destroyed entity instance should not resurface when the filter changes to match its mask.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_TransformChangedWhileInWorld_WorldTransformIsUpdated()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount());
+
+                var movedTransform = Matrix4x4.Translate(new Vector3(4f, 5f, 6f));
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform } } }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "A transform change should update the instance in place, not duplicate it.");
+#if UNITY_EDITOR
+                Assert.IsTrue(env.Adapter.TryGetEntityInstanceAppliedLocalToWorld(key, out var appliedTransform));
+                Assert.AreEqual(movedTransform, appliedTransform, "A transform record for an in-world instance should be applied to the world.");
+#endif
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_TransformChangedWhileFilteredOut_FilterFlipAddsAtNewTransform()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, renderingLayerMask: 2u) } }, env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance excluded by the filter should not be in the world.");
+
+                var movedTransform = Matrix4x4.Translate(new Vector3(1f, 2f, 3f));
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform } } }, env.World, 1u);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A transform change should not add a filtered-out instance to the world.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The instance should be added when the filter changes to match its mask.");
+#if UNITY_EDITOR
+                Assert.IsTrue(env.Adapter.TryGetEntityInstanceAppliedLocalToWorld(key, out var appliedTransform));
+                Assert.AreEqual(movedTransform, appliedTransform, "The instance should enter the world at the transform received while it was filtered out, not the stale one it was registered with.");
+#endif
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_SharedMaterialWithMeshRenderer_MaterialIsRefCountedAcrossSets()
+        {
+            // Both instances take the fallback path, so they must share a single refcounted material entry.
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateMeshRendererGameObject(mesh, out var renderer);
+                var rendererId = renderer.GetEntityId();
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    MeshRendererChangedList = new Object[] { renderer },
+                    EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) },
+                }, env.World);
+                Assert.AreEqual(2, env.World.GetInstanceCount(), "The renderer and the entity instance should both be in the world.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "Both instances should share a single fallback material entry.");
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Only the entity instance should be removed.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "The shared material should stay while the renderer still references it.");
+
+                Object.DestroyImmediate(go);
+                go = null;
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = new[] { rendererId } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "The renderer should be gone after it is reported as destroyed.");
+                Assert.AreEqual(0, env.World.GetMaterialCount(), "The shared material should be released with its last reference.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        static EntityId CreateEntityKey(int index)
+        {
+            // Version 1 in the [Version:24 | TypeId:12 | Index:28] layout, so index 0 is distinct from EntityId.None.
+            return EntityId.FromULong((1ul << 40) | (uint)index);
+        }
+
+        // No materials are assigned on purpose: null materials take the silent fallback path in the adapter.
+        static SurfaceCacheEntityInstanceRecord CreateEntityRecord(EntityId key, Mesh mesh, uint renderingLayerMask = 1u, bool visible = true)
+        {
+            return new SurfaceCacheEntityInstanceRecord
+            {
+                Key = key,
+                Mesh = mesh,
+                Materials = mesh != null ? new Material[mesh.subMeshCount] : null,
+                LocalToWorld = Matrix4x4.identity,
+                RenderingLayerMask = renderingLayerMask,
+                Visible = visible,
+            };
+        }
+
         readonly struct Environment
         {
             public readonly RayTracingContext Context;

@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.Universal
     {
         readonly SharedMaterialSet _sharedMaterials;
         readonly LightSet _lights;
-        readonly MeshRendererSet _meshRenderers;
+        readonly InstanceSet<EntityId, MeshRendererSource> _meshRenderers;
+        readonly EntityInstanceSet _entityInstances;
 #if ENABLE_TERRAIN_MODULE
         readonly TerrainSet _terrains;
         // Per-frame set of TerrainData EntityIds that were reported changed by ObjectDispatcher.
@@ -30,7 +31,8 @@ namespace UnityEngine.Rendering.Universal
         {
             _lights = new LightSet();
             _sharedMaterials = new SharedMaterialSet(fallbackMaterial);
-            _meshRenderers = new MeshRendererSet(fallbackMaterial);
+            _meshRenderers = new InstanceSet<EntityId, MeshRendererSource>(fallbackMaterial);
+            _entityInstances = new EntityInstanceSet(fallbackMaterial);
 #if ENABLE_TERRAIN_MODULE
             _terrains = new TerrainSet(fallbackMaterial);
 #endif
@@ -39,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public void CleanUp(SurfaceCacheWorld world)
         {
             _meshRenderers.CleanUp(_sharedMaterials, world);
+            _entityInstances.CleanUp(_sharedMaterials, world);
 #if ENABLE_TERRAIN_MODULE
             _terrains.CleanUp(_sharedMaterials, world);
 #endif
@@ -53,6 +56,13 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+#if UNITY_EDITOR
+        internal bool TryGetEntityInstanceAppliedLocalToWorld(EntityId key, out Matrix4x4 localToWorld)
+        {
+            return _entityInstances.TryGetAppliedLocalToWorld(key, out localToWorld);
+        }
+#endif
+
         public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
             bool divideEnvIntensityByPI, uint renderingLayerMaskFilter, SurfaceCacheWorld world)
@@ -61,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
 
             UpdateMeshRenderers(changes.MeshRendererTransformChangedList, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
+            UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
             UpdateTerrains(changes.TerrainTransformChangedList, changes.TerrainChangedList, changes.TerrainDestroyedList, changes.TerrainDataChangedList, world);
 #endif
@@ -73,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
             if (filterChanged)
             {
                 _meshRenderers.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
+                _entityInstances.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
 #if ENABLE_TERRAIN_MODULE
                 _terrains.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
 #endif
@@ -91,25 +103,41 @@ namespace UnityEngine.Rendering.Universal
                 world);
         }
 
+        static readonly Unity.Profiling.ProfilerMarker k_MeshRendererUpdateMarker = new("SurfaceCache.MeshRendererUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_EntityInstanceUpdateMarker = new("SurfaceCache.EntityInstanceUpdate");
+
         void UpdateMeshRenderers(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
+            using var _ = k_MeshRendererUpdateMarker.Auto();
+
             foreach (var component in transformChanged)
             {
-                var meshRenderer = (MeshRenderer)component;
-                _meshRenderers.Refresh(meshRenderer, _sharedMaterials, world, true, _renderingLayerMaskFilter);
+                var source = new MeshRendererSource((MeshRenderer)component);
+                _meshRenderers.Refresh(source, _sharedMaterials, world, true, _renderingLayerMaskFilter);
             }
 
             foreach (var component in changed)
             {
-                var meshRenderer = (MeshRenderer)component;
-                _meshRenderers.Refresh(meshRenderer, _sharedMaterials, world, false, _renderingLayerMaskFilter);
+                var source = new MeshRendererSource((MeshRenderer)component);
+                _meshRenderers.Refresh(source, _sharedMaterials, world, false, _renderingLayerMaskFilter);
             }
 
             foreach (var entityId in destroyed)
-            {
-                if (_meshRenderers.Contains(entityId))
-                    _meshRenderers.Remove(entityId, _sharedMaterials, world);
-            }
+                _meshRenderers.TryRemove(entityId, _sharedMaterials, world);
+        }
+
+        void UpdateEntityInstances(IEnumerable<SurfaceCacheEntityTransformRecord> transformChanged, IEnumerable<SurfaceCacheEntityInstanceRecord> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
+        {
+            using var _ = k_EntityInstanceUpdateMarker.Auto();
+
+            foreach (var record in transformChanged)
+                _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
+
+            foreach (var record in changed)
+                _entityInstances.Refresh(new EntityRecordSource(record), _sharedMaterials, world, false, _renderingLayerMaskFilter);
+
+            foreach (var key in destroyed)
+                _entityInstances.TryRemove(key, _sharedMaterials, world);
         }
 
 #if ENABLE_TERRAIN_MODULE
@@ -127,10 +155,7 @@ namespace UnityEngine.Rendering.Universal
                 _terrains.Refresh((Terrain)component, _sharedMaterials, world, false, _renderingLayerMaskFilter);
 
             foreach (var entityId in destroyed)
-            {
-                if (_terrains.Contains(entityId))
-                    _terrains.Remove(entityId, _sharedMaterials, world);
-            }
+                _terrains.TryRemove(entityId, _sharedMaterials, world);
 
             // TerrainData changes require remove + re-add of the World instance because terrain geometry is baked at AddInstance time and currently cannot be patched in place.
             if (_dirtyTerrainDataThisFrame.Count > 0)
@@ -187,10 +212,7 @@ namespace UnityEngine.Rendering.Universal
                 _lights.Refresh((Light)component, world, _renderingLayerMaskFilter);
 
             foreach (var entityId in destroyed)
-            {
-                if (_lights.Contains(entityId))
-                    _lights.Remove(entityId, world);
-            }
+                _lights.TryRemove(entityId, world);
         }
 
         void UpdateMaterials(IEnumerable<Object> changed, SurfaceCacheWorld world)
@@ -216,53 +238,143 @@ namespace UnityEngine.Rendering.Universal
             //    and tracking. It is a lot of work and cost for little gain.
         }
 
-        // Ensures the right MeshRenderers are present in the SurfaceCacheWorld at the right time, according to game
-        // object state (enabled/active), a valid mesh, and the rendering layer mask filter.
-        class MeshRendererSet
+        interface IInstanceSource<TKey>
         {
-            readonly Dictionary<EntityId, int> _slots = new();
-            readonly List<EntityId> _entityIds = new();
-            readonly List<MeshRenderer> _components = new();
+            TKey Key { get; }
+            bool Visible { get; }
+            Mesh Mesh { get; }
+            uint RenderingLayerMask { get; }
+            Matrix4x4 LocalToWorld { get; }
+            string OwnerName { get; }
+            // May fill and return the given scratch list to avoid heap allocation.
+            IReadOnlyList<Material> GetMaterials(List<Material> scratch);
+        }
+
+        readonly struct MeshRendererSource : IInstanceSource<EntityId>
+        {
+            readonly MeshRenderer _renderer;
+
+            public MeshRendererSource(MeshRenderer renderer)
+            {
+                _renderer = renderer;
+            }
+
+            public EntityId Key => _renderer.GetEntityId();
+
+            // In an open subscene the live-converted entities are the source of truth, not the authoring renderers.
+            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene;
+
+            public Mesh Mesh
+            {
+                get
+                {
+                    Debug.Assert(!_renderer.isPartOfStaticBatch, "Static Batching is not supported by Surface Cache GI.");
+                    return _renderer.TryGetComponent(out MeshFilter meshFilter) ? meshFilter.sharedMesh : null;
+                }
+            }
+
+            public uint RenderingLayerMask => _renderer.renderingLayerMask;
+
+            public Matrix4x4 LocalToWorld => _renderer.transform.localToWorldMatrix;
+
+            public string OwnerName => _renderer.gameObject.name;
+
+            public IReadOnlyList<Material> GetMaterials(List<Material> scratch)
+            {
+                _renderer.GetSharedMaterials(scratch);
+                return scratch;
+            }
+        }
+
+        readonly struct EntityRecordSource : IInstanceSource<EntityId>
+        {
+            readonly SurfaceCacheEntityInstanceRecord _record;
+
+            public EntityRecordSource(in SurfaceCacheEntityInstanceRecord record)
+            {
+                _record = record;
+            }
+
+            public EntityId Key => _record.Key;
+            public bool Visible => _record.Visible;
+            public Mesh Mesh => _record.Mesh;
+            public uint RenderingLayerMask => _record.RenderingLayerMask;
+            public Matrix4x4 LocalToWorld => _record.LocalToWorld;
+            public string OwnerName => _record.Key.ToString();
+
+            public IReadOnlyList<Material> GetMaterials(List<Material> scratch)
+            {
+                return _record.Materials ?? Array.Empty<Material>();
+            }
+
+            public EntityRecordSource WithLocalToWorld(in Matrix4x4 localToWorld)
+            {
+                var record = _record;
+                record.LocalToWorld = localToWorld;
+                return new EntityRecordSource(record);
+            }
+        }
+
+        // Ensures the right instances are present in the SurfaceCacheWorld at the right time.
+        class InstanceSet<TKey, TSource>
+            where TKey : IEquatable<TKey>
+            where TSource : struct, IInstanceSource<TKey>
+        {
+            readonly Dictionary<TKey, int> _slots = new();
+            readonly List<TKey> _keys = new();
+            readonly List<TSource> _sources = new();
             readonly List<bool> _inWorld = new();
             readonly List<InstanceHandle> _handles = new();
             readonly List<Mesh> _meshes = new();
-            // Materials assigned to the renderer the last time we checked ("null materials" are EntityId.None).
+            // The transform last applied to the world instance.
+            readonly List<Matrix4x4> _localToWorlds = new();
+            // Materials provided by the source the last time we checked ("null materials" are EntityId.None).
             readonly List<EntityId[]> _inputMaterialIds = new();
             // Materials currently acquired from the shared set (may include the fallback material).
             readonly List<EntityId[]> _acquiredMaterialIds = new();
 
-            readonly List<MeshRenderer> _reevaluateScratch = new();
+            readonly List<TSource> _reevaluateScratch = new();
             readonly Material _fallbackMaterial;
-            readonly List<Material> _scratch = new();
+            readonly List<Material> _materialScratch = new();
 
-            public MeshRendererSet(Material fallbackMaterial)
+            public InstanceSet(Material fallbackMaterial)
             {
                 _fallbackMaterial = fallbackMaterial;
             }
 
             public void CleanUp(SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                for (int i = 0; i < _components.Count; i++)
+                for (int i = 0; i < _keys.Count; i++)
                 {
                     if (_inWorld[i])
                         RemoveFromWorld(i, sharedMaterials, world);
                 }
             }
 
-            public bool Contains(EntityId rendererId)
+#if UNITY_EDITOR
+            public bool TryGetAppliedLocalToWorld(TKey key, out Matrix4x4 localToWorld)
             {
-                return _slots.ContainsKey(rendererId);
-            }
+                if (_slots.TryGetValue(key, out int slot) && _inWorld[slot])
+                {
+                    localToWorld = _localToWorlds[slot];
+                    return true;
+                }
 
-            public void Refresh(MeshRenderer renderer, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, bool transformChange, uint renderingLayerMaskFilter)
+                localToWorld = default;
+                return false;
+            }
+#endif
+
+            // transformOnly skips the material comparison, for refresh triggers known to only affect the transform.
+            public void Refresh(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, bool transformOnly, uint renderingLayerMaskFilter)
             {
-                var id = renderer.GetEntityId();
-                bool isRegistered = _slots.TryGetValue(id, out int slot);
+                var key = source.Key;
+                bool isRegistered = _slots.TryGetValue(key, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                var mesh = renderer.TryGetComponent(out MeshFilter meshFilter) ? meshFilter.sharedMesh : null;
-                bool shouldBeRegistered = renderer.enabled && renderer.gameObject.activeInHierarchy && mesh != null && mesh.vertexCount != 0;
-                bool matchesWorldFilter = (renderer.renderingLayerMask & renderingLayerMaskFilter) != 0;
+                var mesh = source.Mesh;
+                bool shouldBeRegistered = source.Visible && mesh != null && mesh.vertexCount != 0;
+                bool matchesWorldFilter = (source.RenderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;
 
                 bool shouldAddToWorld = shouldBeInWorld && !isInWorld;
@@ -278,18 +390,21 @@ namespace UnityEngine.Rendering.Universal
                 if (shouldUnregister)
                     Unregister(slot);
                 else if (shouldRegister)
-                    slot = Register(id, renderer);
+                    slot = Register(key, source);
+                else if (isRegistered)
+                    _sources[slot] = source;
 
                 if (shouldAddToWorld)
-                    AddToWorld(slot, renderer, mesh, sharedMaterials, world);
+                    AddToWorld(slot, source, mesh, sharedMaterials, world);
                 else if (shouldUpdateInWorld)
-                    UpdateInWorld(slot, renderer, mesh, transformChange, sharedMaterials, world);
+                    UpdateInWorld(slot, source, mesh, transformOnly, sharedMaterials, world);
             }
 
-            public void Remove(EntityId rendererId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            public void TryRemove(TKey key, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                Debug.Assert(_slots.ContainsKey(rendererId));
-                int slot = _slots[rendererId];
+                if (!_slots.TryGetValue(key, out int slot))
+                    return;
+
                 if (_inWorld[slot])
                     RemoveFromWorld(slot, sharedMaterials, world);
                 Unregister(slot);
@@ -299,26 +414,50 @@ namespace UnityEngine.Rendering.Universal
             {
                 // A copy is required because we mutate below.
                 Debug.Assert(_reevaluateScratch.Count == 0);
-                _reevaluateScratch.AddRange(_components);
+                _reevaluateScratch.AddRange(_sources);
 
-                foreach (var component in _reevaluateScratch)
+                foreach (var source in _reevaluateScratch)
                 {
-                    Debug.Assert(component != null);
-                    Refresh(component, sharedMaterials, world, false, renderingLayerMaskFilter);
+                    Refresh(source, sharedMaterials, world, false, renderingLayerMaskFilter);
                 }
 
                 _reevaluateScratch.Clear();
             }
 
-            int Register(EntityId id, MeshRenderer component)
+            protected bool TryGetSlot(TKey key, out int slot)
             {
-                int slot = _components.Count;
-                _slots[id] = slot;
-                _entityIds.Add(id);
-                _components.Add(component);
+                return _slots.TryGetValue(key, out slot);
+            }
+
+            protected TSource GetSource(int slot)
+            {
+                return _sources[slot];
+            }
+
+            protected void SetSource(int slot, in TSource source)
+            {
+                _sources[slot] = source;
+            }
+
+            protected void ApplyTransform(int slot, in Matrix4x4 localToWorld, SurfaceCacheWorld world)
+            {
+                if (!_inWorld[slot] || localToWorld == _localToWorlds[slot])
+                    return;
+
+                world.UpdateInstanceTransform(_handles[slot], localToWorld);
+                _localToWorlds[slot] = localToWorld;
+            }
+
+            int Register(TKey key, in TSource source)
+            {
+                int slot = _keys.Count;
+                _slots[key] = slot;
+                _keys.Add(key);
+                _sources.Add(source);
                 _inWorld.Add(false);
                 _handles.Add(default);
                 _meshes.Add(null);
+                _localToWorlds.Add(default);
                 _inputMaterialIds.Add(null);
                 _acquiredMaterialIds.Add(null);
                 return slot;
@@ -327,37 +466,37 @@ namespace UnityEngine.Rendering.Universal
             void Unregister(int slot)
             {
                 Debug.Assert(!_inWorld[slot]);
-                int last = _components.Count - 1;
-                _slots.Remove(_entityIds[slot]);
+                int last = _keys.Count - 1;
+                _slots.Remove(_keys[slot]);
                 if (slot != last)
                 {
-                    _entityIds[slot] = _entityIds[last];
-                    _components[slot] = _components[last];
+                    _keys[slot] = _keys[last];
+                    _sources[slot] = _sources[last];
                     _inWorld[slot] = _inWorld[last];
                     _handles[slot] = _handles[last];
                     _meshes[slot] = _meshes[last];
+                    _localToWorlds[slot] = _localToWorlds[last];
                     _inputMaterialIds[slot] = _inputMaterialIds[last];
                     _acquiredMaterialIds[slot] = _acquiredMaterialIds[last];
-                    _slots[_entityIds[slot]] = slot;
+                    _slots[_keys[slot]] = slot;
                 }
-                _entityIds.RemoveAt(last);
-                _components.RemoveAt(last);
+                _keys.RemoveAt(last);
+                _sources.RemoveAt(last);
                 _inWorld.RemoveAt(last);
                 _handles.RemoveAt(last);
                 _meshes.RemoveAt(last);
+                _localToWorlds.RemoveAt(last);
                 _inputMaterialIds.RemoveAt(last);
                 _acquiredMaterialIds.RemoveAt(last);
             }
 
-            void AddToWorld(int slot, MeshRenderer renderer, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            void AddToWorld(int slot, in TSource source, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
                 Debug.Assert(!_inWorld[slot]);
-                Debug.Assert(!renderer.isPartOfStaticBatch, "Static Batching is not supported by Surface Cache GI.");
                 Debug.Assert(mesh != null && mesh.vertexCount != 0);
 
-                Debug.Assert(_scratch.Count == 0);
-                var inputMats = _scratch;
-                renderer.GetSharedMaterials(inputMats); // We call GetSharedMaterials to avoid heap allocation.
+                Debug.Assert(_materialScratch.Count == 0);
+                var inputMats = source.GetMaterials(_materialScratch);
 
                 Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
                 ResolveMaterialIds(inputMats, inputMatIds);
@@ -365,59 +504,87 @@ namespace UnityEngine.Rendering.Universal
                 Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
                 Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
                 Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
+                ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
-                _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, renderer.transform.localToWorldMatrix);
+                var localToWorld = source.LocalToWorld;
+                _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, localToWorld);
                 _meshes[slot] = mesh;
+                _localToWorlds[slot] = localToWorld;
                 _inputMaterialIds[slot] = inputMatIds.ToArray();
                 _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
                 _inWorld[slot] = true;
 
-                _scratch.Clear();
+                _materialScratch.Clear();
             }
 
-            void UpdateInWorld(int slot, MeshRenderer renderer, Mesh mesh, bool transformChange, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            void UpdateInWorld(int slot, in TSource source, Mesh mesh, bool transformOnly, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
                 if (_meshes[slot] != mesh)
                 {
                     RemoveFromWorld(slot, sharedMaterials, world);
-                    AddToWorld(slot, renderer, mesh, sharedMaterials, world);
-                    return;
-                }
-
-                if (transformChange)
-                {
-                    world.UpdateInstanceTransform(_handles[slot], renderer.transform.localToWorldMatrix);
+                    AddToWorld(slot, source, mesh, sharedMaterials, world);
                     return;
                 }
 
                 Debug.Assert(mesh != null && mesh.vertexCount != 0);
-                Debug.Assert(_scratch.Count == 0);
-                var inputMats = _scratch;
-                renderer.GetSharedMaterials(inputMats);
 
-                Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
-                ResolveMaterialIds(inputMats, inputMatIds);
-
-                bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
-                if (materialsChanged)
+                if (!transformOnly)
                 {
-                    Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                    Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
-                    Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, renderer, inputMats, _fallbackMaterial, acquiredMatHandles, acquiredMatIds, masks);
+                    Debug.Assert(_materialScratch.Count == 0);
+                    var inputMats = source.GetMaterials(_materialScratch);
 
-                    world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
-                    world.UpdateInstanceMask(_handles[slot], masks);
+                    Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
+                    ResolveMaterialIds(inputMats, inputMatIds);
 
-                    foreach (var matEntityId in _acquiredMaterialIds[slot])
-                        sharedMaterials.Release(matEntityId, world);
+                    bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
+                    if (materialsChanged)
+                    {
+                        Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
+                        Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
+                        Span<uint> masks = stackalloc uint[mesh.subMeshCount];
+                        ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
-                    _inputMaterialIds[slot] = inputMatIds.ToArray();
-                    _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
+                        world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
+                        world.UpdateInstanceMask(_handles[slot], masks);
+
+                        foreach (var matEntityId in _acquiredMaterialIds[slot])
+                            sharedMaterials.Release(matEntityId, world);
+
+                        _inputMaterialIds[slot] = inputMatIds.ToArray();
+                        _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
+                    }
+
+                    _materialScratch.Clear();
                 }
 
-                _scratch.Clear();
+                ApplyTransform(slot, source.LocalToWorld, world);
+            }
+
+            void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, in TSource source, IReadOnlyList<Material> inputMats, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
+            {
+                for (int i = 0; i < acquiredMaterialHandles.Length; i++)
+                {
+                    Material inputMat = i < inputMats.Count ? inputMats[i] : null;
+
+                    masks[i] = inputMat == null ? 0u : 1u;
+
+                    bool matIsSet = inputMat != null;
+                    bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
+                    bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
+                    bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
+
+                    if (matIsSetAndNoMetaPass)
+                        Debug.LogError($"The material '{inputMat.name}' used by '{source.OwnerName}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
+
+                    // Acquiring the fallback even for unset materials buys the assumption that a handle always exists.
+                    var acquiredMat = inputMat;
+                    if (matIsUnsetOrNoMetaPass)
+                        acquiredMat = _fallbackMaterial;
+
+                    var acquiredMatEntityId = acquiredMat.GetEntityId();
+                    acquiredMaterialHandles[i] = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
+                    acquiredMaterialEntityIds[i] = acquiredMatEntityId;
+                }
             }
 
             void RemoveFromWorld(int slot, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
@@ -428,46 +595,38 @@ namespace UnityEngine.Rendering.Universal
                     sharedMaterials.Release(matEntityId, world);
                 _handles[slot] = default;
                 _meshes[slot] = null;
+                _localToWorlds[slot] = default;
                 _inputMaterialIds[slot] = null;
                 _acquiredMaterialIds[slot] = null;
                 _inWorld[slot] = false;
             }
+        }
 
-            static void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, MeshRenderer renderer, List<Material> rendererMats, Material fallbackMaterial, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
+        // Transform records carry no mesh or material data and cannot go through Refresh.
+        sealed class EntityInstanceSet : InstanceSet<EntityId, EntityRecordSource>
+        {
+            public EntityInstanceSet(Material fallbackMaterial)
+                : base(fallbackMaterial)
             {
-                for (int i = 0; i < acquiredMaterialHandles.Length; i++)
-                {
-                    Material inputMat = i < rendererMats.Count ? rendererMats[i] : null;
-
-                    masks[i] = inputMat == null ? 0u : 1u;
-
-                    bool matIsSet = inputMat != null;
-                    bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
-                    bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
-                    bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
-
-                    if (matIsSetAndNoMetaPass)
-                        Debug.LogError($"The material '{inputMat.name}' used by Game Object '{renderer.gameObject.name}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
-
-                    // Using fallback material when there is no input material is redundant, but we do it anyway
-                    // because this buys us the simplifying assumption that we always have some material handle.
-                    var acquiredMat = inputMat;
-                    if (matIsUnsetOrNoMetaPass)
-                        acquiredMat = fallbackMaterial;
-
-                    var acquiredMatEntityId = acquiredMat.GetEntityId();
-                    acquiredMaterialHandles[i] = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
-                    acquiredMaterialEntityIds[i] = acquiredMatEntityId;
-                }
             }
 
-            static void ResolveMaterialIds(List<Material> rendererMaterials, Span<EntityId> materialEntityIds)
+            public void UpdateTransform(EntityId key, in Matrix4x4 localToWorld, SurfaceCacheWorld world)
             {
-                for (int i = 0; i < materialEntityIds.Length; i++)
-                {
-                    Material material = i < rendererMaterials.Count ? rendererMaterials[i] : null;
-                    materialEntityIds[i] = material != null ? material.GetEntityId() : EntityId.None;
-                }
+                // Transform records may arrive for entities that were filtered out (no mesh, hidden, masked).
+                if (!TryGetSlot(key, out int slot))
+                    return;
+
+                SetSource(slot, GetSource(slot).WithLocalToWorld(localToWorld));
+                ApplyTransform(slot, localToWorld, world);
+            }
+        }
+
+        static void ResolveMaterialIds(IReadOnlyList<Material> materials, Span<EntityId> materialEntityIds)
+        {
+            for (int i = 0; i < materialEntityIds.Length; i++)
+            {
+                Material material = i < materials.Count ? materials[i] : null;
+                materialEntityIds[i] = material != null ? material.GetEntityId() : EntityId.None;
             }
         }
 
@@ -518,11 +677,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            public bool Contains(EntityId terrainEntityId)
-            {
-                return _slots.ContainsKey(terrainEntityId);
-            }
-
             public void Refresh(Terrain terrain, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, bool transformChange, uint renderingLayerMaskFilter)
             {
                 var id = terrain.GetEntityId();
@@ -561,10 +715,11 @@ namespace UnityEngine.Rendering.Universal
                     UpdateInWorld(slot, terrain, transformChange, sharedMaterials, world);
             }
 
-            public void Remove(EntityId terrainEntityId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            public void TryRemove(EntityId terrainEntityId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                Debug.Assert(_slots.ContainsKey(terrainEntityId));
-                int slot = _slots[terrainEntityId];
+                if (!_slots.TryGetValue(terrainEntityId, out int slot))
+                    return;
+
                 if (_inWorld[slot])
                     RemoveFromWorld(slot, sharedMaterials, world);
                 Unregister(slot);
@@ -800,11 +955,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            public bool Contains(EntityId lightId)
-            {
-                return _slots.ContainsKey(lightId);
-            }
-
             public void Refresh(Light light, SurfaceCacheWorld world, uint renderingLayerMaskFilter)
             {
                 var id = light.GetEntityId();
@@ -836,10 +986,11 @@ namespace UnityEngine.Rendering.Universal
                     UpdateInWorld(slot, light, world);
             }
 
-            public void Remove(EntityId lightId, SurfaceCacheWorld world)
+            public void TryRemove(EntityId lightId, SurfaceCacheWorld world)
             {
-                Debug.Assert(_slots.ContainsKey(lightId));
-                int slot = _slots[lightId];
+                if (!_slots.TryGetValue(lightId, out int slot))
+                    return;
+
                 if (_inWorld[slot])
                     RemoveFromWorld(slot, world);
                 Unregister(slot);

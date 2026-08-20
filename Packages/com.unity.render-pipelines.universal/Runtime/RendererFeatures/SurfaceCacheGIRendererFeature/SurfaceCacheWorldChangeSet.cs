@@ -17,6 +17,10 @@ namespace UnityEngine.Rendering.Universal
 
         public IEnumerable<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
 
+        public IEnumerable<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; } = Array.Empty<SurfaceCacheEntityInstanceRecord>();
+        public IEnumerable<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; } = Array.Empty<SurfaceCacheEntityTransformRecord>();
+        public IEnumerable<EntityId> EntityInstanceDestroyedList { get; set; } = Array.Empty<EntityId>();
+
 #if ENABLE_TERRAIN_MODULE
         public IEnumerable<Component> TerrainTransformChangedList { get; set; } = Array.Empty<Component>();
         public IEnumerable<Object> TerrainChangedList { get; set; } = Array.Empty<Object>();

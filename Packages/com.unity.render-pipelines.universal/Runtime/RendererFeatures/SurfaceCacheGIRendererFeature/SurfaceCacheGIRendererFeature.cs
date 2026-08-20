@@ -308,7 +308,8 @@ namespace UnityEngine.Rendering.Universal
 
             private readonly SurfaceCacheWorld _world;
             private readonly SurfaceCacheWorldAdapter _worldAdapter;
-            private readonly ObjectDispatcherChangeSource _changeSource;
+            private readonly ObjectDispatcherChangeSource _objectChangeSource;
+            private readonly EntityChangeSource _entityChangeSource;
             private GraphicsBuffer _worldUpdateScratch;
             private readonly uint _environmentCubemapResolution = 32;
             private readonly bool _conformToUnityGIFormat;
@@ -327,7 +328,8 @@ namespace UnityEngine.Rendering.Universal
                 _conformToUnityGIFormat = conformToUnityGIFormat;
                 _world = new SurfaceCacheWorld();
                 _world.Init(rtContext, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader);
-                _changeSource = new ObjectDispatcherChangeSource();
+                _objectChangeSource = new ObjectDispatcherChangeSource();
+                _entityChangeSource = new EntityChangeSource();
                 _worldAdapter = new SurfaceCacheWorldAdapter(fallbackMaterial);
             }
 
@@ -339,8 +341,10 @@ namespace UnityEngine.Rendering.Universal
                 // the case for the standard ambient probe lighting, which is assumed to be in gamma space and then converted to
                 // linear space. We will make this more coherent for the ambient probe in the future.
                 // Similarly, the ambient colors are all defined in sRGB space and must be converted to linear.
-                using (var changeSet = _changeSource.CollectChanges())
+                using (var changeSet = _objectChangeSource.CollectChanges())
                 {
+                    _entityChangeSource.CollectChanges(changeSet.WorldChangeSet);
+
                     _worldAdapter.Update(
                         changeSet.WorldChangeSet,
                         RenderSettings.ambientMode,
@@ -379,8 +383,9 @@ namespace UnityEngine.Rendering.Universal
 
             public void Dispose()
             {
+                _entityChangeSource.Dispose();
                 _worldAdapter.CleanUp(_world);
-                _changeSource.Dispose();
+                _objectChangeSource.Dispose();
                 _world.Dispose();
                 _worldUpdateScratch?.Dispose();
             }

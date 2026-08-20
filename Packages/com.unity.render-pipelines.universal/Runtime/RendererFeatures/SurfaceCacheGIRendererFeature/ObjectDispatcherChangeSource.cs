@@ -28,8 +28,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        static readonly Unity.Profiling.ProfilerMarker k_CollectMarker = new("SurfaceCache.ObjectChangeCollection");
+
         public ObjectDispatcherChangeSet CollectChanges()
         {
+            using var _ = k_CollectMarker.Auto();
+
             var meshRendererTransforms = _dispatcher.GetTransformChangesAndClear<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
             var meshRendererTypeChanges = _dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.Temp);
             var lightTransforms = _dispatcher.GetTransformChangesAndClear<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
