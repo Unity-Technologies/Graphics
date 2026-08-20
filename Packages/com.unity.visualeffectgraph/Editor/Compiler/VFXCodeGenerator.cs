@@ -229,7 +229,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             VFXTask task,
             VFXCompilationMode compilationMode,
             VFXTaskCompiledData taskData,
-            HashSet<string> dependencies,
+            HashSet<GUID> dependencies,
             bool forceShadeDebugSymbols,
             Cache codeGeneratorCache,
             out List<string> errors)
@@ -238,7 +238,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!string.IsNullOrEmpty(task.templatePath))
             {
                 templatePath = $"{task.templatePath}.template";
-                dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
+                var templateGuid = AssetDatabase.GUIDFromAssetPath(templatePath);
+                if (!templateGuid.Empty())
+                    dependencies.Add(templateGuid);
             }
 
             return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols, codeGeneratorCache, out errors);
@@ -566,7 +568,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             string templatePath,
             VFXCompilationMode compilationMode,
             VFXTaskCompiledData taskData,
-            HashSet<string> dependencies,
+            HashSet<GUID> dependencies,
             bool enableShaderDebugSymbols,
             Cache codeGeneratorCache,
             out List<string> errors)

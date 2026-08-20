@@ -832,7 +832,7 @@ namespace UnityEditor.VFX
             outEventDesc.AddRange(eventDescTemp);
         }
 
-        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, VFXCompiledData compiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies, bool enableShaderDebugSymbols, Dictionary<VFXContext, VFXExpressionMapper> gpuMappers)
+        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, VFXCompiledData compiledData, VFXCompilationMode compilationMode, HashSet<GUID> dependencies, bool enableShaderDebugSymbols, Dictionary<VFXContext, VFXExpressionMapper> gpuMappers)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
@@ -1111,7 +1111,7 @@ namespace UnityEditor.VFX
         {
             public bool success;
 
-            public HashSet<string> sourceDependencies;
+            public HashSet<GUID> sourceDependencies;
 
             public VisualEffectAssetDesc assetDesc;
         }
@@ -1141,7 +1141,7 @@ namespace UnityEditor.VFX
             float nbSteps,
             out IEnumerable<VFXContext> compilableContexts,
             out IEnumerable<VFXData> compilableData,
-            out HashSet<string> sourceDependencies,
+            out HashSet<GUID> sourceDependencies,
             out List<VFXExpressionDesc> expressionDescs,
             out List<VFXExpressionDesc> expressionPerSpawnEventAttributesDescs)
         {
@@ -1151,7 +1151,7 @@ namespace UnityEditor.VFX
             var models = new HashSet<ScriptableObject>();
             m_Graph.CollectDependencies(models, false);
 
-            sourceDependencies = new HashSet<string>();
+            sourceDependencies = new HashSet<GUID>();
             foreach (VFXModel model in models.Where(t => t is IVFXSlotContainer))
             {
                 model.GetSourceDependentAssets(sourceDependencies);
@@ -1205,7 +1205,7 @@ namespace UnityEditor.VFX
         {
             var output = new VFXCompileOutput()
             {
-                sourceDependencies = new HashSet<string>()
+                sourceDependencies = new HashSet<GUID>()
             };
 
             // Early out in case: (Not even displaying the popup)

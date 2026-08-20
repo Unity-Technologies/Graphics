@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXSlotObject : VFXSlot
     {
-        public override void GetSourceDependentAssets(HashSet<string> dependencies)
+        public override void GetSourceDependentAssets(HashSet<GUID> dependencies)
         {
             base.GetSourceDependentAssets(dependencies);
 
@@ -17,7 +17,9 @@ namespace UnityEditor.VFX
             if (!object.ReferenceEquals(obj, null))
             {
                 var entityId = obj.GetEntityId();
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(entityId)));
+                var guid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(entityId));
+                if (!guid.Empty())
+                    dependencies.Add(guid);
             }
         }
     }

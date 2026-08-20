@@ -90,7 +90,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnSRPChanged() { }
 
-        public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
+        public virtual void GetSourceDependentAssets(HashSet<GUID> dependencies)
         {
             foreach (var child in children)
                 child.GetSourceDependentAssets(dependencies);
