@@ -138,7 +138,7 @@ namespace UnityEditor.VFX.Test
     class GraphViewTemplateWindowTest : EditorWindowUITestFixture<GraphViewTemplateWindow>
     {
         static readonly string k_SampleExpectedPath = "Assets/Samples";
-        static readonly string k_AltSamplePackageName = "Visual Effect Graph Additions";
+        static readonly string k_LearningSamplePackageName = "Learning Templates";
 
         readonly VFXTemplateHelperInternal m_vfxTemplateHelper = new();
         readonly Mock<ITemplateHelper> m_templateHelperMock;
@@ -158,10 +158,7 @@ namespace UnityEditor.VFX.Test
             m_templateHelperMock.SetupGet(x => x.builtInCategory).Returns(m_vfxTemplateHelper.builtInCategory);
             m_templateHelperMock.SetupGet(x => x.builtInTemplatePath).Returns(m_vfxTemplateHelper.builtInTemplatePath);
             m_templateHelperMock.SetupGet(x => x.createNewAssetTitle).Returns(m_vfxTemplateHelper.createNewAssetTitle);
-            m_templateHelperMock.SetupGet(x => x.learningSampleName).Returns(k_AltSamplePackageName);
-            m_templateHelperMock
-                .Setup(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()))
-                .Callback((PackageManager.PackageInfo pkg, Sample sample) => m_vfxTemplateHelper.RaiseImportSampleDependencies(pkg, sample));
+            m_templateHelperMock.SetupGet(x => x.learningSampleName).Returns(k_LearningSamplePackageName);
             m_templateHelperMock
                 .Setup(x => x.TryGetTemplate(It.IsAny<string>(), out It.Ref<GraphViewTemplateDescriptor>.IsAny))
                 .Returns(new TryGetTemplateDelegate((string guid, out GraphViewTemplateDescriptor descriptor) => m_vfxTemplateHelper.TryGetTemplate(guid, out descriptor)));
@@ -322,15 +319,17 @@ namespace UnityEditor.VFX.Test
             var installButton = window.rootVisualElement.Q<Button>("InstallButton");
             Assert.NotNull(installButton);
 
-            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Never);
             Assert.IsFalse(Directory.Exists(k_SampleExpectedPath), $"The directory {k_SampleExpectedPath} should not exist before installing the sample.");
             yield return ClickButton(window.rootVisualElement, "InstallButton");
 
             Assert.IsTrue(Directory.Exists(k_SampleExpectedPath), $"Fail to find: {k_SampleExpectedPath}");
             yield return null;
 
+            // The sample's shared "Common" dependencies must be imported alongside it.
+            var dependencyDirs = Directory.GetDirectories(k_SampleExpectedPath, "Common", SearchOption.AllDirectories);
+            Assert.IsNotEmpty(dependencyDirs, $"Expected sample dependency assets under {k_SampleExpectedPath} after install.");
+
             Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
-            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Once);
 
             AssetDatabase.DeleteAsset(k_SampleExpectedPath);
         }
