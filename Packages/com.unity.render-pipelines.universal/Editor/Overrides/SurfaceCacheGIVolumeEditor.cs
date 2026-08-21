@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
         static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
         static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
+        static GUIContent s_VolumeDistanceFallback = EditorGUIUtility.TrTextContent("Distance Fallback", "When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.");
         static GUIContent s_PatchWarping = EditorGUIUtility.TrTextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.");
         static GUIContent s_FocusTarget = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.");
         static GUIContent s_FocusTargetProfile = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.");
@@ -166,7 +167,7 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_VolumeResolution, s_VolumeResolution);
             PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
             DrawFocusTarget();
-            PropertyField(m_VolumeDistanceFallback);
+            PropertyField(m_VolumeDistanceFallback, s_VolumeDistanceFallback);
 
             if (showAdditionalProperties)
             {

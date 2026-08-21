@@ -302,7 +302,8 @@ namespace UnityEngine.Rendering
         private uint _defragCount = 1;
         private uint _defragOffset = 0;
         private float _emissiveTriangleIntensityMultiplier = 1.0f;
-        private int _lastGlobalProbeEnvHash = Int32.MaxValue;
+        private int _globalProbeCubemapHash = Int32.MaxValue;
+        float _globalProbeEnvIntensity = -1.0f;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
         public SurfaceCachePatchList Patches => _patches;
@@ -739,9 +740,12 @@ namespace UnityEngine.Rendering
                 passData.GlobalProbeShader = _resources.GlobalProbeShader;
                 passData.GlobalProbeKernelIndex = _resources.GlobalProbeKernel;
                 int newEnvCubemapHash = world.GetEnvironmentCubemapHash();
-                bool updateGlobalProbe = _estimationParams.DistanceFallback && _lastGlobalProbeEnvHash != newEnvCubemapHash;
+                bool updateGlobalProbe = _estimationParams.DistanceFallback && (_globalProbeCubemapHash != newEnvCubemapHash || _globalProbeEnvIntensity != world.GetEnvironmentIntensityMultiplier());
                 if (updateGlobalProbe)
-                    _lastGlobalProbeEnvHash = newEnvCubemapHash;
+                {
+                    _globalProbeCubemapHash = newEnvCubemapHash;
+                    _globalProbeEnvIntensity = world.GetEnvironmentIntensityMultiplier();
+                }
                 passData.UpdateGlobalProbe = updateGlobalProbe;
                 passData.GlobalProbeBuffer = _globalProbe;
                 passData.ShortHysteresis = _shortHysteresis;
