@@ -93,8 +93,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             colorLinear = sign(colorLinear) * pow(abs(colorLinear), _Gamma.xyz);
 
             // HSV operations
+            // Lift can push channels below zero, but RgbToHsv requires non-negative input. Clamp to 0.
             float satMult;
-            float3 hsv = RgbToHsv(colorLinear);
+            float3 hsv = RgbToHsv2(max(colorLinear, 0.0));
             {
                 // Hue Vs Sat
                 satMult = EvaluateCurve(_CurveHueVsSat, hsv.x) * 2.0;
@@ -109,9 +110,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
                 float hue = hsv.x + _HueSatCon.x;
                 float offset = EvaluateCurve(_CurveHueVsHue, hue) - 0.5;
                 hue += offset;
-                hsv.x = RotateHue(hue, 0.0, 1.0);
+                hsv.x = RotateHue2(hue, 0.0, 1.0);
             }
-            colorLinear = HsvToRgb(hsv);
+            colorLinear = HsvToRgb2(hsv);
 
             // Global saturation
             luma = GetLuminance(colorLinear);

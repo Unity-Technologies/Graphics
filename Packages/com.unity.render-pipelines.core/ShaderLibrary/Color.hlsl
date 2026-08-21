@@ -272,11 +272,8 @@ float3 LMSToLinear(float3 x)
     return mul(LMS_2_LIN_MAT, x);
 }
 
-// Hue, Saturation, Value
-// Ranges:
-//  Hue [0.0, 1.0]
-//  Sat [0.0, 1.0]
-//  Lum [0.0, HALF_MAX]
+// Input should be non-negative.
+// NOTE: Backwards compatibility. Additive error desaturates the darkest colors.
 real3 RgbToHsv(real3 c)
 {
     const real4 K = real4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -287,6 +284,41 @@ real3 RgbToHsv(real3 c)
     return real3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
+// Convert RGB color to HSV (Hue, Saturation, Value) color.
+// Input should be non-negative.
+// NOTE: Half math is accurate for 8-bit colors. Use the float overload above 8-bit.
+half3 RgbToHsv2(half3 c)
+{
+    half4 p = lerp(half4(c.bg, -1.0, 2.0 / 3.0), half4(c.gb, 0.0, -1.0 / 3.0), step(c.b, c.g));
+    half4 q = lerp(half4(p.xyw, c.r), half4(c.r, p.yzx), step(p.x, c.r));
+    half d = q.x - min(q.w, q.y);
+
+    // Clamp the divisors, 'x + e' would desaturate the darkest colors.
+    // Scaling by 1/6 after the divide keeps 6 * d from overflowing half on HDR input.
+    return half3(abs(q.z + (q.w - q.y) / max(d, HALF_MIN) * (1.0 / 6.0)), // Hue = sector offset + sector position
+                 d / max(q.x, HALF_MIN),                                  // Sat = Delta / Cmax
+                 q.x);                                                    // Val = Cmax
+}
+
+// Convert RGB color to HSV (Hue, Saturation, Value) color.
+// Input should be non-negative.
+// Ranges:
+//  Hue [0.0, 1.0) - wraps, 0.0 and 1.0 are both red
+//  Sat [0.0, 1.0]
+//  Val [0.0, input max channel]
+float3 RgbToHsv2(float3 c)
+{
+    float4 p = lerp(float4(c.bg, -1.0, 2.0 / 3.0), float4(c.gb, 0.0, -1.0 / 3.0), step(c.b, c.g)); // p = (max(g,b), min(g,b), offsets)
+    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));                       // q = (Cmax, min(g,b), offset, remaining channel)
+    float d = q.x - min(q.w, q.y);                                                                 // Delta = Cmax - Cmin
+
+    // Clamp the divisors, 'x + e' would desaturate the darkest colors.
+    return float3(abs(q.z + (q.w - q.y) / max(d, FLT_MIN) * (1.0 / 6.0)), // Hue = sector offset + sector position
+                 d / max(q.x, FLT_MIN),                                   // Sat = Delta / Cmax
+                 q.x);                                                    // Val = Cmax
+}
+
+// Convert HSV color to RGB color.
 real3 HsvToRgb(real3 c)
 {
     const real4 K = real4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -294,7 +326,48 @@ real3 HsvToRgb(real3 c)
     return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
 }
 
+// Convert HSV color to RGB color.
+// NOTE: Half math is accurate for 8-bit colors. Use the float overload above 8-bit.
+half3 HsvToRgb2(half3 c)
+{
+    half3 p = abs(frac(c.xxx + half3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    return c.z * lerp((half3)1.0, saturate(p - 1.0), c.y);
+}
+
+// Convert HSV color to RGB color.
+// Ranges:
+//  Hue [0.0, 1.0) - wraps, 0.0 and 1.0 are both red
+//  Sat [0.0, 1.0]
+//  Val [0.0, +inf)
+float3 HsvToRgb2(float3 c)
+{
+    float3 p = abs(frac(c.xxx + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    return c.z * lerp((float3)1.0, saturate(p - 1.0), c.y);
+}
+
+// Wraps value into [low, hi]
+// NOTE: Backwards compatibility. Use explicit half/float instead.
 real RotateHue(real value, real low, real hi)
+{
+    return (value < low)
+            ? value + hi
+            : (value > hi)
+                ? value - hi
+                : value;
+}
+
+// Wraps value into [low, hi]
+half RotateHue2(half value, half low, half hi)
+{
+    return (value < low)
+            ? value + hi
+            : (value > hi)
+                ? value - hi
+                : value;
+}
+
+// Wraps value into [low, hi]
+float RotateHue2(float value, float low, float hi)
 {
     return (value < low)
             ? value + hi
