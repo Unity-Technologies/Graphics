@@ -21,6 +21,7 @@ Texture2D<float3> _LowResIrradiancesL11;
 Texture2D<float3> _LowResIrradiancesL12;
 RWTexture2D<float4> _FullResIrradiances;
 
+float _Intensity;
 float4x4 _ClipToWorldTransform;
 float3 _CameraWorldPos;
 
@@ -186,5 +187,5 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID, int groupIndex : SV_Gr
         output = max(0.0f, SphericalHarmonics::Eval(irradiance, unpackedNormal));
     }
 
-    _FullResIrradiances[targetPixelPos] = float4(output, 1);
+    _FullResIrradiances[targetPixelPos] = float4(output * _Intensity, 1);
 }

@@ -12,11 +12,21 @@ namespace UnityEngine.Rendering.Universal
         const PresetQuality k_defaultPresetQuality = PresetQuality.Medium;
 
         /// <summary>
-        /// Enables or disables Surface Cache Global Illumination. When disabled, the feature
-        /// performs no work and contributes no indirect lighting.
+        /// Enables or disables Surface Cache Global Illumination for the cameras this volume affects.
+        /// When enabled, it calculates indirect lighting at any <see cref="intensity"/> value, which keeps
+        /// the Surface Cache warm. When disabled, it does no per-frame work and discards its Surface Cache,
+        /// so enabling it again costs a warm-up.
         /// </summary>
-        [Tooltip("Enables Surface Cache Global Illumination. When disabled, the feature performs no work.")]
-        public BoolParameter enabled = new BoolParameter(true);
+        [Tooltip("When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.")]
+        public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
+
+        /// <summary>
+        /// Scales the indirect lighting from Surface Cache Global Illumination.
+        /// At 0 it adds no indirect lighting to the scene, but the feature keeps calculating, so the
+        /// cache stays warm. Set <see cref="enabled"/> to false to stop the work altogether.
+        /// </summary>
+        [Tooltip("Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.")]
+        public ClampedFloatParameter intensity = new ClampedFloatParameter(1.0f, 0.0f, 4.0f);
 
         // ====================
         // Sampling Parameters

@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.Universal
         protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
         private bool m_QualityDirty = true;
         protected SerializedDataParameter m_Enabled;
+        protected SerializedDataParameter m_Intensity;
         protected SerializedDataParameter m_LightTransportMultiBounce;
         protected SerializedDataParameter m_LightTransportBouncePatchAllocation;
         protected SerializedDataParameter m_VolumeDistanceFallback;
@@ -41,7 +42,8 @@ namespace UnityEditor.Rendering.Universal
         const float k_OverrideCheckboxOffset = 9f;
         SerializedObject m_VolumeSerializedObject;
 
-        static GUIContent s_Enabled = EditorGUIUtility.TrTextContent("Enabled", "Enables Surface Cache Global Illumination. When disabled, the feature performs no work.");
+        static GUIContent s_State = EditorGUIUtility.TrTextContent("State", "When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.");
+        static GUIContent s_Intensity = EditorGUIUtility.TrTextContent("Intensity", "Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.");
         static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
         static GUIContent s_LightTransportMultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.");
         static GUIContent s_LightTransportBouncePatchAllocation = EditorGUIUtility.TrTextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail");
@@ -75,6 +77,7 @@ namespace UnityEditor.Rendering.Universal
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
             m_Enabled = Unpack(o.Find(obj => obj.enabled));
+            m_Intensity = Unpack(o.Find(obj => obj.intensity));
             m_LightTransportMultiBounce = Unpack(o.Find(obj => obj.lightTransportMultiBounce));
             m_LightTransportBouncePatchAllocation = Unpack(o.Find(obj => obj.lightTransportBouncePatchAllocation));
             m_VolumeDistanceFallback = Unpack(o.Find(obj => obj.volumeDistanceFallback));
@@ -110,8 +113,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Enabled, s_Enabled);
-            EditorGUI.BeginDisabledGroup(m_Enabled.overrideState.boolValue && !m_Enabled.value.boolValue);
+            PropertyField(m_Enabled, s_State);
+            PropertyField(m_Intensity, s_Intensity);
 
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
@@ -135,7 +138,6 @@ namespace UnityEditor.Rendering.Universal
             // Light Transport section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_LightTransportHeader, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
             PropertyField(m_LightTransportMultiBounce, s_LightTransportMultiBounce);
             PropertyField(m_LightTransportBouncePatchAllocation, s_LightTransportBouncePatchAllocation);
             PropertyField(m_LightTransportSampleCount, s_LightTransportSampleCount);
@@ -143,7 +145,6 @@ namespace UnityEditor.Rendering.Universal
             // Patch Filtering section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_PatchFilteringHeader, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
             PropertyField(m_PatchFilteringTemporalSmoothing, s_PatchFilteringTemporalSmoothing);
             PropertyField(m_PatchFilteringSpatialFilterEnabled, s_PatchFilteringSpatialFilterEnabled);
             using (new IndentLevelScope())
@@ -156,7 +157,6 @@ namespace UnityEditor.Rendering.Universal
             // Screen Filtering section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_ScreenFilteringHeader, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
             PropertyField(m_ScreenFilteringLookupSampleCount, s_ScreenFilteringLookupSampleCount);
             PropertyField(m_ScreenFilteringDenoisingPassCount, s_ScreenFilteringDenoisingPassCount);
 
@@ -177,8 +177,6 @@ namespace UnityEditor.Rendering.Universal
                 PropertyField(m_AdvancedDefragCount, s_DefragCount);
                 PropertyField(m_AdvancedPatchWarpingEnabled, s_PatchWarping);
             }
-
-            EditorGUI.EndDisabledGroup();
         }
 
         // Focus Target is bound to the owning Volume's GameObject instead of the shared profile. When editing

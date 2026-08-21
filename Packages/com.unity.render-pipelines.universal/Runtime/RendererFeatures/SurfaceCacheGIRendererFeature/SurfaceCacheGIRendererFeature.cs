@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
 
     /// <summary>
     /// The renderer feature for Surface Cache Global Illumination.
+    /// When enabled, Surface Cache Global Illumination replaces baked global illumination, and the two are not combined.
     /// Use the <see cref="SurfaceCacheGIVolumeOverride"/> volume component to control the effect.
     /// </summary>
     [DisallowMultipleRendererFeature("Surface Cache Global Illumination")]
@@ -170,38 +171,39 @@ namespace UnityEngine.Rendering.Universal
             return focusTarget != null ? focusTarget.transform.position : camera.transform.position;
         }
 
-        private static VolumeParameterSet GetVolumeParameters(SurfaceCacheGIVolumeOverride volume)
+        private static VolumeParameterSet GetVolumeParameters(SurfaceCacheGIVolumeOverride volumeOverride)
         {
-            Debug.Assert(volume != null);
+            Debug.Assert(volumeOverride != null);
 
             return new VolumeParameterSet
             {
                 EstimationParams = new SurfaceCacheEstimationParameterSet
                 {
-                    MultiBounce = volume.lightTransportMultiBounce.value,
-                    BouncePatchAllocation = volume.lightTransportBouncePatchAllocation.value,
-                    SampleCount = (uint)volume.lightTransportSampleCount.value,
-                    DistanceFallback = volume.volumeDistanceFallback.value
+                    MultiBounce = volumeOverride.lightTransportMultiBounce.value,
+                    BouncePatchAllocation = volumeOverride.lightTransportBouncePatchAllocation.value,
+                    SampleCount = (uint)volumeOverride.lightTransportSampleCount.value,
+                    DistanceFallback = volumeOverride.volumeDistanceFallback.value
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
-                    TemporalSmoothing = volume.patchFilteringTemporalSmoothing.value,
-                    SpatialFilterEnabled = volume.patchFilteringSpatialFilterEnabled.value,
-                    SpatialFilterSampleCount = (uint)volume.patchFilteringSpatialSampleCount.value,
-                    SpatialFilterRadius = volume.patchFilteringSpatialRadius.value,
-                    TemporalPostFilterEnabled = volume.patchFilteringPostTemporalEnabled.value
+                    TemporalSmoothing = volumeOverride.patchFilteringTemporalSmoothing.value,
+                    SpatialFilterEnabled = volumeOverride.patchFilteringSpatialFilterEnabled.value,
+                    SpatialFilterSampleCount = (uint)volumeOverride.patchFilteringSpatialSampleCount.value,
+                    SpatialFilterRadius = volumeOverride.patchFilteringSpatialRadius.value,
+                    TemporalPostFilterEnabled = volumeOverride.patchFilteringPostTemporalEnabled.value
                 },
                 ScreenFilteringParams = new SurfaceCacheScreenFilteringParameterSet
                 {
-                    LookupSampleCount = (uint)volume.screenFilteringLookupSampleCount.value,
-                    DenoisingPassCount = (uint)volume.screenFilteringDenoisingPassCount.value,
+                    LookupSampleCount = (uint)volumeOverride.screenFilteringLookupSampleCount.value,
+                    DenoisingPassCount = (uint)volumeOverride.screenFilteringDenoisingPassCount.value,
                 },
-                VolumeSize = volume.volumeSize.value,
-                VolumeResolution = (uint)volume.volumeResolution.value,
-                VolumeCascadeCount = (uint)volume.volumeCascadeCount.value,
-                DefragCount = (uint)volume.advancedDefragCount.value,
-                RenderingLayerMask = volume.advancedRenderingLayerMask.value,
-                PatchWarpingEnabled = volume.advancedPatchWarpingEnabled.value
+                Intensity = volumeOverride.intensity.value,
+                VolumeSize = volumeOverride.volumeSize.value,
+                VolumeResolution = (uint)volumeOverride.volumeResolution.value,
+                VolumeCascadeCount = (uint)volumeOverride.volumeCascadeCount.value,
+                DefragCount = (uint)volumeOverride.advancedDefragCount.value,
+                RenderingLayerMask = volumeOverride.advancedRenderingLayerMask.value,
+                PatchWarpingEnabled = volumeOverride.advancedPatchWarpingEnabled.value
             };
         }
 
@@ -246,6 +248,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PreviousLowResScreenIrradiancesL12 = Shader.PropertyToID("_PreviousLowResScreenIrradiancesL12");
             public static readonly int _PreviousLowResScreenNdcDepths = Shader.PropertyToID("_PreviousLowResScreenNdcDepths");
             public static readonly int _PassIndex = Shader.PropertyToID("_PassIndex");
+            public static readonly int _Intensity = Shader.PropertyToID("_Intensity");
             public static readonly int _ViewMode = Shader.PropertyToID("_ViewMode");
             public static readonly int _ShowSamplePosition = Shader.PropertyToID("_ShowSamplePosition");
             public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
@@ -563,6 +566,7 @@ namespace UnityEngine.Rendering.Universal
                 internal TextureHandle LowResScreenIrradiancesL12;
                 internal TextureHandle LowResScreenNdcDepths;
                 internal TextureHandle FullResIrradiances;
+                internal float Intensity;
                 internal Matrix4x4 ClipToWorldTransform;
                 internal Vector3 CameraWorldPos;
             }
@@ -978,6 +982,7 @@ namespace UnityEngine.Rendering.Universal
                         data.LowResScreenIrradiancesL12 = denoisedL12;
                         data.LowResScreenNdcDepths = lowResScreenNdcDepthsHandle;
                         data.FullResIrradiances = fullResScreenIrradiancesHandle;
+                        data.Intensity = VolumeParams.Intensity;
 
                         builder.UseTexture(data.FullResIrradiances, AccessFlags.Write);
                         builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
@@ -1140,6 +1145,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL11, passData.LowResScreenIrradiancesL11);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL12, passData.LowResScreenIrradiancesL12);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultNdcDepths, passData.LowResScreenNdcDepths);
+                cmd.SetComputeFloatParam(shader, ShaderIDs._Intensity, passData.Intensity);
                 cmd.SetComputeMatrixParam(shader, ShaderIDs._ClipToWorldTransform, passData.ClipToWorldTransform);
                 cmd.SetComputeVectorParam(shader, ShaderIDs._CameraWorldPos, passData.CameraWorldPos);
 
@@ -1230,6 +1236,7 @@ namespace UnityEngine.Rendering.Universal
             public SurfaceCacheEstimationParameterSet EstimationParams;
             public SurfaceCachePatchFilteringParameterSet PatchFilteringParams;
             public SurfaceCacheScreenFilteringParameterSet ScreenFilteringParams;
+            public float Intensity;
             public float VolumeSize;
             public uint VolumeResolution;
             public uint VolumeCascadeCount;
@@ -1388,8 +1395,7 @@ namespace UnityEngine.Rendering.Universal
             var surfaceCacheVolumeOverride = VolumeManager.instance.stack.GetComponent<SurfaceCacheGIVolumeOverride>();
             Debug.Assert(surfaceCacheVolumeOverride != null);
 
-            bool enabled = surfaceCacheVolumeOverride.enabled.value;
-            if (!enabled)
+            if (!surfaceCacheVolumeOverride.enabled.value)
             {
                 if (_cameraStates.TryGetValue(camera, out var disabledState))
                 {
