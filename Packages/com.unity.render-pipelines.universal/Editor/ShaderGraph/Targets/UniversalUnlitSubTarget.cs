@@ -577,6 +577,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
 
+                if (target.activeSubTarget is UniversalUnlitSubTarget unlitSubTarget)
+                {
+                    UnlitPasses.AddDefaultDecalBlendingControlToPass(ref result, unlitSubTarget);
+                    UnlitPasses.AddDefaultSSAOControlToPass(ref result, unlitSubTarget);
+                }
+
                 return result;
             }
 

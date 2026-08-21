@@ -51,19 +51,19 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     surfaceData.albedo = surfaceDescription.BaseColor;
 #endif
 
-#if defined(_DBUFFER)
+#if defined(_DBUFFER) && defined(UNLIT_DEFAULT_DECAL_BLENDING)
     ApplyDecalToBaseColor(unpacked.positionCS, surfaceData.albedo);
 #endif
 
     InputData inputData;
     InitializeInputData(unpacked, inputData);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    surfaceData.occlusion = 1;
+
+    #if defined(_SCREEN_SPACE_OCCLUSION) && defined(UNLIT_DEFAULT_SSAO) // GBuffer never has transparents
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(unpacked.positionCS);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
-        surfaceData.albedo.rgb *= aoFactor.directAmbientOcclusion;
-    #else
-        surfaceData.occlusion = 1;
+        surfaceData.occlusion = aoFactor.directAmbientOcclusion;
     #endif
 
     return PackGBuffersSurfaceData(surfaceData, inputData, float3(0,0,0));
