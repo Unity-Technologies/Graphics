@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
+using UnityEditor.Rendering.Converter;
 using UnityEngine.TestTools;
 using UnityEngine;
 
@@ -12,6 +14,274 @@ namespace UnityEditor.Rendering.Universal.Tools
         class NotAConverterType
         {
 
+        }
+
+        // Mirrors the json layout written by Converters.ScanToFile
+        [Serializable]
+        class ScanFileItem
+        {
+            public string name;
+            public string info;
+            public string type;
+        }
+
+        [Serializable]
+        class ScanFileConverter
+        {
+            public string container;
+            public string converterType;
+            public List<ScanFileItem> items;
+        }
+
+        [Serializable]
+        class ScanFile
+        {
+            public string status;
+            public int convertersCompleted;
+            public int convertersFailed;
+            public List<ScanFileConverter> converters;
+        }
+
+        static ScanFile ReadScanFile(string filePath)
+        {
+            return JsonUtility.FromJson<ScanFile>(File.ReadAllText(filePath));
+        }
+
+        class TestConverterItem : IRenderPipelineConverterItem
+        {
+            public string name { get; set; }
+            public string info { get; set; }
+            public bool isEnabled { get; set; } = true;
+            public string isDisabledMessage { get; set; }
+
+            public void OnClicked() { }
+        }
+
+        class TestFolderConverterItem : TestConverterItem, IFolderRenderPipelineConverterItem
+        {
+            public IList<IRenderPipelineConverterItem> children { get; } = new List<IRenderPipelineConverterItem>();
+        }
+
+        class ScanOnlyConverter : IRenderPipelineConverter
+        {
+            public static bool converted;
+
+            public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+            {
+                var folder = new TestFolderConverterItem { name = "Folder", info = "FolderInfo" };
+                folder.children.Add(new TestConverterItem { name = "ItemB", info = "InfoB" });
+
+                onScanFinish(new List<IRenderPipelineConverterItem>
+                {
+                    new TestConverterItem { name = "ItemA", info = "InfoA" },
+                    folder
+                });
+            }
+
+            public Status Convert(IRenderPipelineConverterItem item, out string message)
+            {
+                converted = true;
+                message = null;
+                return Status.Success;
+            }
+        }
+
+        // Reports its items only when the test tells it to, the way the asset converters report once the Search
+        // service has finished indexing
+        class DeferredScanConverter : IRenderPipelineConverter
+        {
+            public static DeferredScanConverter instance;
+
+            Action<List<IRenderPipelineConverterItem>> m_OnScanFinish;
+
+            public DeferredScanConverter()
+            {
+                instance = this;
+            }
+
+            public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+            {
+                m_OnScanFinish = onScanFinish;
+            }
+
+            public void FinishScan()
+            {
+                m_OnScanFinish(new List<IRenderPipelineConverterItem>
+                {
+                    new TestConverterItem { name = "DeferredItem", info = "DeferredInfo" }
+                });
+            }
+
+            public Status Convert(IRenderPipelineConverterItem item, out string message)
+            {
+                message = null;
+                return Status.Success;
+            }
+        }
+
+        class ThrowingScanConverter : IRenderPipelineConverter
+        {
+            public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+            {
+                throw new InvalidOperationException("Scan failed");
+            }
+
+            public Status Convert(IRenderPipelineConverterItem item, out string message)
+            {
+                message = null;
+                return Status.Success;
+            }
+        }
+
+        [Test]
+        public void ScanToFile_WritesScannedItemsWithoutConverting()
+        {
+            ScanOnlyConverter.converted = false;
+
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(ScanOnlyConverter) }, "ConverterScanTest.json");
+
+            Assert.IsFalse(ScanOnlyConverter.converted, "ScanToFile must not convert any item.");
+            Assert.IsFalse(Converters.IsScanInProgress, "A synchronous converter must leave the scan finished.");
+            FileAssert.Exists(filePath);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual(1, scanFile.convertersCompleted);
+            Assert.AreEqual(0, scanFile.convertersFailed);
+
+            Assert.AreEqual(1, scanFile.converters.Count);
+            Assert.AreEqual(nameof(ScanOnlyConverter), scanFile.converters[0].converterType);
+
+            // Folders are flattened, so only the leaf items are reported
+            var items = scanFile.converters[0].items;
+            CollectionAssert.AreEqual(new[] { "ItemA", "ItemB" }, items.ConvertAll(item => item.name));
+            CollectionAssert.AreEqual(new[] { "InfoA", "InfoB" }, items.ConvertAll(item => item.info));
+            CollectionAssert.AreEqual(
+                new[] { typeof(TestConverterItem).FullName, typeof(TestConverterItem).FullName },
+                items.ConvertAll(item => item.type));
+        }
+
+        [Test]
+        public void ScanToFile_ReportsScanInProgressUntilConvertersFinish()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(DeferredScanConverter) },
+                "ConverterScanPendingTest.json", status => finishedStatus = status);
+
+            try
+            {
+                Assert.IsTrue(Converters.IsScanInProgress, "The scan must be in progress until the converter reports.");
+                Assert.IsNull(finishedStatus, "The scan must not be reported as finished until the converter reports.");
+
+                // Results are only written once the scan has finished, there is nothing to read before that
+                FileAssert.DoesNotExist(filePath);
+            }
+            finally
+            {
+                // Never leave a scan in progress behind, it would make every following scan throw
+                DeferredScanConverter.instance.FinishScan();
+            }
+
+            Assert.IsFalse(Converters.IsScanInProgress, "The scan must be finished once the converter has reported.");
+            Assert.AreEqual("Completed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual(1, scanFile.convertersCompleted);
+            CollectionAssert.AreEqual(new[] { "DeferredItem" }, scanFile.converters[0].items.ConvertAll(item => item.name));
+        }
+
+        [Test]
+        public void CancelScan_AbandonsScanAndDiscardsLateResults()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(DeferredScanConverter) },
+                "ConverterScanCancelTest.json", status => finishedStatus = status);
+
+            Converters.CancelScan();
+
+            Assert.AreEqual("Cancelled", finishedStatus);
+            Assert.IsFalse(Converters.IsScanInProgress, "A cancelled scan must no longer be in progress.");
+
+            // Converters cannot be interrupted, so the one that was scanning still reports its results
+            DeferredScanConverter.instance.FinishScan();
+
+            Assert.AreEqual("Cancelled", finishedStatus, "A cancelled scan must only be reported once.");
+            FileAssert.DoesNotExist(filePath);
+
+            // Cancelling releases the scan, so the next one can start
+            var completedFilePath = Converters.ScanToFile(new List<Type> { typeof(ScanOnlyConverter) }, "ConverterScanAfterCancelTest.json");
+            Assert.AreEqual("Completed", ReadScanFile(completedFilePath).status);
+            File.Delete(completedFilePath);
+        }
+
+        [Test]
+        public void CancelScan_WithoutScan_DoesNothing()
+        {
+            Assert.IsFalse(Converters.IsScanInProgress);
+            Assert.DoesNotThrow(Converters.CancelScan);
+        }
+
+        [Test]
+        public void ScanToFile_ConverterThrowing_FinishesScanAndReportsFailure()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            try
+            {
+                var filePath = Converters.ScanToFile(new List<Type> { typeof(ThrowingScanConverter) }, "ConverterScanFailureTest.json");
+
+                Assert.IsFalse(Converters.IsScanInProgress, "A converter that throws must not leave the scan hanging.");
+
+                var scanFile = ReadScanFile(filePath);
+                File.Delete(filePath);
+
+                Assert.AreEqual("Failed", scanFile.status);
+                Assert.AreEqual(0, scanFile.convertersCompleted);
+                Assert.AreEqual(1, scanFile.convertersFailed);
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = false;
+            }
+        }
+
+        [Test]
+        public void ScanToFile_NoConverterCanBeCreated_ReportsFailure()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(NotAConverterType) },
+                "ConverterScanUncreatableTest.json", status => finishedStatus = status);
+
+            // Nothing was scanned, so this must not look like a successful, empty scan
+            Assert.AreEqual("Failed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Failed", scanFile.status);
+            Assert.AreEqual(0, scanFile.convertersCompleted);
+            Assert.AreEqual(1, scanFile.convertersFailed);
+            Assert.That(scanFile.converters, Is.Null.Or.Empty);
+        }
+
+        [Test]
+        public void ScanToFile_SomeConvertersCannotBeCreated_ReportsTheFailuresWithTheResults()
+        {
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(ScanOnlyConverter), typeof(NotAConverterType) },
+                "ConverterScanPartialTest.json");
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            // The converter which did run leaves usable results, but the failure is still reported
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual(1, scanFile.convertersCompleted);
+            Assert.AreEqual(1, scanFile.convertersFailed);
+            Assert.AreEqual(1, scanFile.converters.Count);
         }
 
         [Test]

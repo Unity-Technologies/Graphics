@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using UnityEditor.Rendering.Converter;
@@ -31,8 +32,64 @@ namespace UnityEditor.Rendering.Universal
         const string k_ListCommand = "--list";
         const string k_ContainerCommand = "-container";
         const string k_TypesFilterCommand = "-typesFilter";
+        const string k_ScanToFileCommand = "-scanToFile";
         const string k_InclusiveFlag = "--inclusive";
         const string k_ExclusiveFlag = "--exclusive";
+
+        // Json layout written by the -scanToFile command
+        [Serializable]
+        class ScanResultItem
+        {
+            public string name;
+            public string info;
+            public string type;
+        }
+
+        [Serializable]
+        class ScanResultConverter
+        {
+            public string container;
+            public string converterType;
+            public List<ScanResultItem> items = new();
+        }
+
+        [Serializable]
+        class ScanResult
+        {
+            // One of the k_ScanStatus values
+            public string status;
+            public int convertersCompleted;
+            public int convertersFailed;
+            public List<ScanResultConverter> converters = new();
+        }
+
+        // The scan started by ScanToFile, until it completes or is cancelled. Converters report the items they found
+        // through a callback, so a scan outlives the ScanToFile call that started it.
+        class ScanOperation
+        {
+            public readonly string filePath;
+            public readonly int converterCount;
+            public readonly Action<string> onScanFinished;
+            public readonly ScanResult result = new();
+
+            public int pendingScans;
+
+            public ScanOperation(string filePath, int converterCount, Action<string> onScanFinished)
+            {
+                this.filePath = filePath;
+                this.converterCount = converterCount;
+                this.onScanFinished = onScanFinished;
+                pendingScans = converterCount;
+            }
+        }
+
+        static ScanOperation s_CurrentScan;
+
+        /// <summary>
+        /// True while a scan started by ScanToFile is still waiting for converters to report. Converters can scan
+        /// asynchronously, so this can remain true after ScanToFile has returned.
+        /// </summary>
+        internal static bool IsScanInProgress => s_CurrentScan != null;
 
         // List all available containers
         static void ListAvailableConverters()
@@ -80,7 +137,8 @@ namespace UnityEditor.Rendering.Universal
             // Usage
             helpMessage.AppendLine($"usage: \t<path to Unity executable> -projectPath <project path> {k_BatchmodeCommand} -executeMethod UnityEditor.Rendering.Universal.Converters.RunInBatchModeCmdLine\n" +
                                    $"\t \t[{k_HelpCommand}] [{k_ListCommand}]\n" +
-                                   $"\t \t[{k_ContainerCommand} <name of container>] [{k_TypesFilterCommand} <types to include or exclude>] [{k_InclusiveFlag}|{k_ExclusiveFlag}]");
+                                   $"\t \t[{k_ContainerCommand} <name of container>] [{k_TypesFilterCommand} <types to include or exclude>] [{k_InclusiveFlag}|{k_ExclusiveFlag}]\n" +
+                                   $"\t \t[{k_ScanToFileCommand} <file name>]");
             helpMessage.AppendLine("\n");
 
             // Commands
@@ -94,6 +152,7 @@ namespace UnityEditor.Rendering.Universal
             helpMessage.AppendLine($"\t{k_ContainerCommand} <name of container> \t \t \t The name of the container which will be batched (required).");
             helpMessage.AppendLine($"\t{k_TypesFilterCommand} <types to include or exclude> \t The list of converters types that will be either included or excluded from batching. These converters need to be part of the passed in container for them to run.");
             helpMessage.AppendLine($"\t{k_InclusiveFlag}|{k_ExclusiveFlag} \t \t \t Whether the list of converters specified with {k_TypesFilterCommand} will be included or excluded when batching.");
+            helpMessage.AppendLine($"\t{k_ScanToFileCommand} <file name> \t \t \t Only scan the selected converters and write the results as json to <file name> in the project's temporary folder. Nothing is converted.");
             helpMessage.AppendLine("\n");
 
             helpMessage.AppendLine("Notes");
@@ -119,6 +178,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var allConverters = TypeCache.GetTypesWithAttribute<BatchModeConverterClassInfo>();
             var filteredList = new List<Type>(allConverters.Count);
+            convertedTypesFilter ??= new List<string>();
 
             // early return
             if (isInclusive && convertedTypesFilter.Count == 0)
@@ -244,7 +304,24 @@ namespace UnityEditor.Rendering.Universal
                     throw new ArgumentException($"When using {k_InclusiveFlag} mode, please specify types to include using {k_TypesFilterCommand} otherwise nothing will be converted. " +
                                                 $"Use {k_ListCommand} to see available types.");
 
-                RunInBatchMode(converter[0], filteredTypes, hasInclusive);
+                // ScanToFile ------
+                if (args.TryGetValue(k_ScanToFileCommand, out var scanFileName))
+                {
+                    if (scanFileName.Count != 1 || string.IsNullOrEmpty(scanFileName[0]))
+                        throw new ArgumentException($"Please specify a single file name: {k_ScanToFileCommand} <file name>.");
+
+                    string scanStatus = null;
+                    var scanFilePath = ScanToFile(FilterConverters(converter[0], filteredTypes, hasInclusive),
+                        scanFileName[0], status => scanStatus = status);
+
+                    // Batch mode exits as soon as this method returns, so a scan which didn't finish, or which couldn't write its results, is an error
+                    if (scanStatus != "Completed")
+                        throw new InvalidOperationException($"The converters did not complete their scan (status: {scanStatus ?? "still scanning"}), {scanFilePath} does not contain usable results.");
+                }
+                else
+                {
+                    RunInBatchMode(converter[0], filteredTypes, hasInclusive);
+                }
             }
             catch (Exception ex)
             {
@@ -266,9 +343,19 @@ namespace UnityEditor.Rendering.Universal
         {
             Debug.LogWarning($"Using this API can lead to incomplete or unpredictable conversion outcomes. For reliable results, please perform the conversion via the dedicated window: Window > Rendering > Render Pipeline Converter.");
 
-            List<IRenderPipelineConverter> convertersToExecute = new();
+            var convertersToExecute = CreateConverters(converterTypes, out var errors);
 
-            bool errors = false;
+            BatchConverters(convertersToExecute);
+
+            return !errors;
+        }
+
+        // Instantiate the given converter types, reporting the ones we could not create
+        static List<IRenderPipelineConverter> CreateConverters(List<Type> converterTypes, out bool errors)
+        {
+            List<IRenderPipelineConverter> converters = new();
+
+            errors = false;
             foreach (var type in converterTypes)
             {
                 try
@@ -280,7 +367,7 @@ namespace UnityEditor.Rendering.Universal
                         errors = true;
                     }
                     else
-                        convertersToExecute.Add(instance);
+                        converters.Add(instance);
                 }
                 catch
                 {
@@ -295,9 +382,138 @@ namespace UnityEditor.Rendering.Universal
                 ListAvailableConverters();
             }
 
-            BatchConverters(convertersToExecute);
+            return converters;
+        }
 
-            return !errors;
+        // Scan the given converters and write the results to json, without converting anything.
+        // Some converters scan asynchronously, so the scan may still be running when this returns. onScanFinished is
+        // invoked with "Completed", "Failed" if nothing could be scanned or the results could not be written, or
+        // "Cancelled" if CancelScan was called before the converters finished.
+        internal static string ScanToFile(List<Type> converterTypes, string fileName, Action<string> onScanFinished = null)
+        {
+            if (s_CurrentScan != null)
+                throw new InvalidOperationException("A converter scan is already in progress.");
+
+            var filePath = Path.Combine(Path.GetDirectoryName(FileUtil.GetUniqueTempPathInProject()), fileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(filePath)));
+
+            // Remove any previous results, so that they can't be mistaken for the results of this scan
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            var converters = CreateConverters(converterTypes, out var hasCreationErrors);
+            var scan = new ScanOperation(filePath, converters.Count, onScanFinished);
+
+            // A converter could not be created
+            if (hasCreationErrors)
+                scan.result.convertersFailed = converterTypes.Count - converters.Count;
+
+            s_CurrentScan = scan;
+
+            foreach (var converter in converters)
+            {
+                var converterInfo = converter.GetType().GetCustomAttribute<BatchModeConverterClassInfo>();
+                var converterResult = new ScanResultConverter
+                {
+                    container = converterInfo != null ? converterInfo.containerName : string.Empty,
+                    converterType = converterInfo != null ? converterInfo.converterType : converter.GetType().Name
+                };
+                scan.result.converters.Add(converterResult);
+
+                var converterFinished = false;
+
+                try
+                {
+                    converter.Scan(OnConverterCompleteDataCollection);
+                }
+                catch (Exception e)
+                {
+                    // A converter that throws must not leave the scan hanging
+                    Debug.LogError($"Converter {converterResult.converterType} failed to scan: {e.Message}\n{e}");
+                    OnConverterScanFinished(succeeded: false);
+                }
+
+                void OnConverterCompleteDataCollection(List<IRenderPipelineConverterItem> items)
+                {
+                    // Flatten folders to leaf items, those are the ones that would be converted
+                    var leafItems = new List<IRenderPipelineConverterItem>();
+                    RenderPipelineConverterUtility.CollectLeafItems(items, leafItems);
+
+                    foreach (var item in leafItems)
+                    {
+                        converterResult.items.Add(new ScanResultItem
+                        {
+                            name = item.name,
+                            info = item.info,
+                            type = item.GetType().FullName
+                        });
+                    }
+
+                    OnConverterScanFinished(succeeded: true);
+                }
+
+                void OnConverterScanFinished(bool succeeded)
+                {
+                    // A cancelled scan ignores the converters which report after it was abandoned
+                    if (converterFinished || s_CurrentScan != scan)
+                        return;
+                    converterFinished = true;
+
+                    if (succeeded)
+                        scan.result.convertersCompleted++;
+                    else
+                        scan.result.convertersFailed++;
+
+                    if (--scan.pendingScans == 0)
+                        CompleteScan(scan);
+                }
+            }
+
+            if (converters.Count == 0)
+                CompleteScan(scan);
+
+            return filePath;
+        }
+
+        internal static void CancelScan()
+        {
+            var scan = s_CurrentScan;
+            if (scan == null)
+                return;
+
+            // Converters have no way of being interrupted, so cancelling detaches from the scan instead: the
+            // converters which are still scanning are left to finish, and whatever they report is discarded.
+            s_CurrentScan = null;
+
+            Debug.Log($"Converter scan cancelled, {scan.result.convertersCompleted} of {scan.converterCount} converters had finished scanning.");
+
+            scan.onScanFinished?.Invoke("Cancelled");
+        }
+
+        static void CompleteScan(ScanOperation scan)
+        {
+            // Individual converters may have failed and still leave usable results.
+            var status = scan.result.convertersCompleted == 0 && scan.result.convertersFailed > 0
+                ? "Failed"
+                : "Completed";
+
+            scan.result.status = status;
+
+            try
+            {
+                File.WriteAllText(scan.filePath, JsonUtility.ToJson(scan.result, true));
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Unable to write the scan results to {Path.GetFullPath(scan.filePath)}: {e.Message}\n{e}");
+                status = "Failed";
+            }
+            finally
+            {
+                s_CurrentScan = null;
+            }
+
+            scan.onScanFinished?.Invoke(status);
         }
 
         static void BatchConverters(List<IRenderPipelineConverter> converters)
