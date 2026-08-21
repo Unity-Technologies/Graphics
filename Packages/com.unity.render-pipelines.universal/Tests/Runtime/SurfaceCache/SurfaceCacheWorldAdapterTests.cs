@@ -707,6 +707,18 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
 #if ENABLE_TERRAIN_MODULE
+        static Material s_TerrainTemplateMaterial;
+
+        [OneTimeTearDown]
+        public void DestroyTerrainTemplateMaterial()
+        {
+            if (s_TerrainTemplateMaterial != null)
+            {
+                Object.DestroyImmediate(s_TerrainTemplateMaterial);
+                s_TerrainTemplateMaterial = null;
+            }
+        }
+
         static GameObject CreateTerrainGameObject(out Terrain terrain, out TerrainData terrainData)
         {
             terrainData = new TerrainData
@@ -717,6 +729,11 @@ namespace UnityEngine.Rendering.Universal.Tests
             var go = Terrain.CreateTerrainGameObject(terrainData);
             go.name = "SurfaceCacheWorldAdapterTest Terrain";
             terrain = go.GetComponent<Terrain>();
+
+            // Pipeline-agnostic template with a Meta pass; URP terrain shaders resolve to a Meta-less fallback in batchmode where the pipeline never initializes.
+            if (s_TerrainTemplateMaterial == null)
+                s_TerrainTemplateMaterial = new Material(Shader.Find("Nature/Terrain/Standard"));
+            terrain.materialTemplate = s_TerrainTemplateMaterial;
             return go;
         }
 
