@@ -136,7 +136,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         bool fogParticleVisible = startSliceIndex <= uint(_MaxSliceCount);
 
 #if defined(VFX_FEATURE_FRUSTUM_CULL)
-        if (!IsSphereOutsideFrustum(vPosWS, radius, _FrustumPlanes))
+        if (!IsSphereOutsideFrustum(vPosWS, radius, unity_CameraWorldClipPlanes))
 #endif
 
         if (attributes.alive && fogParticleVisible)

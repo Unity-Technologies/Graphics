@@ -171,7 +171,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                 radius *= radiusScale;
 
 #if VFX_FEATURE_FRUSTUM_CULL
-                if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, _FrustumPlanes))
+                if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, unity_CameraWorldClipPlanes))
                     return;
 #endif
 #endif
@@ -182,7 +182,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #if !VFX_FEATURE_FRUSTUM_CULL
                 // If particle is out of frustum and frustum culling is disabled, use the lowest LOD
                 // This is useful for shadow passes for instance to avoid out of frustum particles to be culled from shadows
-                if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, _FrustumPlanes))
+                if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, unity_CameraWorldClipPlanes))
                     outputIndex = INDIRECT_BUFFER_COUNT - 1;
                 else
 #endif
