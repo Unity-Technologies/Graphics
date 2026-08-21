@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Moq;
 using NUnit.Framework;
@@ -267,6 +268,21 @@ namespace UnityEditor.VFX.Test
 
             var emptyResultLabel = window.rootVisualElement.Q<Label>("EmptyResults");
             Assert.AreEqual(DisplayStyle.Flex, emptyResultLabel.resolvedStyle.display);
+        }
+
+        [Test, Description("Covers UUM-143138")]
+        public void Creating_From_A_Deleted_Template_Warns_And_Does_Not_Error()
+        {
+            // Simulate a selection whose template asset no longer exists (e.g. deleted while the window was open).
+            var testAccess = new GraphViewTemplateWindow.TestAccess(window);
+            testAccess.SelectedTemplate = new GraphViewTemplateDescriptor { assetGuid = "00000000000000000000000000000000" };
+
+            LogAssert.Expect(LogType.Warning, new Regex("could not be found"));
+
+            testAccess.OnCreate();
+
+            // Creation is skipped (no loader errors, which the test framework would fail on) and the window stays open.
+            Assert.IsTrue(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
         }
 
         [Test, Description("Covers UUM-95871")]
