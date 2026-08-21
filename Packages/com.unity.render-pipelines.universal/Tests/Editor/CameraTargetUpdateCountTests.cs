@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Tests
             camera.Render();
             uint afterSecond = rt.updateCount;
 
+            camera.targetTexture = null; // unbind before Release: releasing an RT still set as targetTexture logs an error
             rt.Release();
             Object.DestroyImmediate(rt);
             GameObject.DestroyImmediate(cameraGO);
