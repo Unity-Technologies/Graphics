@@ -20,7 +20,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(31, Extension, -905)]
+    [ScriptedImporter(31, Extension, -905, AllowCaching = true)]
     [CoreRPHelpURL("Sub-graph", "com.unity.shadergraph")]
     class ShaderSubGraphImporter : ScriptedImporter
     {
