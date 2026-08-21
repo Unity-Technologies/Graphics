@@ -457,6 +457,179 @@ namespace UnityEditor.VFX.Test
             yield return null;
             Assert.Throws<System.ArgumentNullException>(() => fnSet_UsingBindings(valueType.type, vfx, "null", null));
         }
+
+        static bool IsAnyFloatOverridden(VisualEffect vfx)
+        {
+            var serializedObject = new UnityEditor.SerializedObject(vfx);
+            var array = serializedObject.FindProperty("m_PropertySheet.m_Float.m_Array");
+            if (array != null)
+            {
+                for (int i = 0; i < array.arraySize; ++i)
+                {
+                    if (array.GetArrayElementAtIndex(i).FindPropertyRelative("m_Overridden").boolValue)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        static int FloatEntryCount(VisualEffect vfx)
+        {
+            var serializedObject = new UnityEditor.SerializedObject(vfx);
+            var array = serializedObject.FindProperty("m_PropertySheet.m_Float.m_Array");
+            return array != null ? array.arraySize : 0;
+        }
+
+        static void AddExposedParameter(VFXGraph graph, string name, Type type)
+        {
+            var parameter = ScriptableObject.CreateInstance<VFXParameter>();
+            parameter.Init(type);
+            graph.AddChild(parameter);
+            parameter.SetSettingValue("m_ExposedName", name);
+            parameter.SetSettingValue("m_Exposed", true);
+        }
+
+        VisualEffect RecreateVfx(VFXGraph graph)
+        {
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            return vfx;
+        }
+
+        static void SeedDisabledOverrideEntry(VisualEffect vfx)
+        {
+            // A serialized entry with override disabled.
+            vfx.SetFloat("MyFloat", 1.0f);
+            var setup = new UnityEditor.SerializedObject(vfx);
+            var entries = setup.FindProperty("m_PropertySheet.m_Float.m_Array");
+            Assert.Greater(entries.arraySize, 0, "Expected a serialized entry for the exposed property.");
+            entries.GetArrayElementAtIndex(0).FindPropertyRelative("m_Overridden").boolValue = false;
+            setup.ApplyModifiedProperties();
+        }
+
+        AnimationClip MakeMyFloatPreviewClip()
+        {
+            var binding = UnityEditor.AnimationUtility.GetAnimatableBindings(m_mainObject, m_mainObject)
+                .FirstOrDefault(b => b.type == typeof(VisualEffect) && b.propertyName.Contains("MyFloat"));
+            Assert.IsNotNull(binding.propertyName, "Expected an animatable binding for the exposed property.");
+
+            var clip = new AnimationClip();
+            UnityEditor.AnimationUtility.SetEditorCurve(clip, binding, AnimationCurve.Constant(0f, 1f, 3f));
+            return clip;
+        }
+
+        void BeginPreview(AnimationClip clip)
+        {
+            UnityEditor.AnimationMode.StartAnimationMode();
+            UnityEditor.AnimationMode.BeginSampling();
+            UnityEditor.AnimationMode.SampleAnimationClip(m_mainObject, clip, 0.5f);
+            UnityEditor.AnimationMode.EndSampling();
+        }
+
+        [UnityTest]
+        public IEnumerator PreviewingProperty_With_AnimationMode_Does_Not_Persist_Override()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            AddExposedParameter(graph, "MyFloat", typeof(float));
+            VFXTestCommon.ReimportVFXGraph(graph);
+
+            var vfx = RecreateVfx(graph);
+            yield return null;
+
+            SeedDisabledOverrideEntry(vfx);
+            yield return null;
+
+            Assert.IsFalse(IsAnyFloatOverridden(vfx), "Property should not be overridden before preview.");
+
+            var clip = MakeMyFloatPreviewClip();
+            var valueBeforePreview = vfx.GetFloat("MyFloat");
+
+            BeginPreview(clip);
+            var overriddenDuringPreview = IsAnyFloatOverridden(vfx);
+            var valueDuringPreview = vfx.GetFloat("MyFloat");
+            UnityEditor.AnimationMode.StopAnimationMode();
+            var overriddenAfterPreview = IsAnyFloatOverridden(vfx);
+            var valueAfterPreview = vfx.GetFloat("MyFloat");
+
+            // Animated value applied during preview, but doesn't write to serialized sheet.
+            Assert.AreEqual(3.0f, valueDuringPreview, "Animated value should apply while previewing.");
+            Assert.IsFalse(overriddenDuringPreview, "Preview must not persist the override into the serialized sheet.");
+            Assert.IsFalse(overriddenAfterPreview, "Property override must not persist after the preview ends.");
+            Assert.AreEqual(valueBeforePreview, valueAfterPreview, "Value should revert to its pre-preview value after preview.");
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PreviewingProperty_With_ConcurrentWrite_Does_Not_Persist_Override()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            AddExposedParameter(graph, "MyFloat", typeof(float));
+            // A separate property to write mid-preview, forcing a property sheet flush.
+            AddExposedParameter(graph, "MyTrigger", typeof(bool));
+            VFXTestCommon.ReimportVFXGraph(graph);
+
+            var vfx = RecreateVfx(graph);
+            yield return null;
+
+            SeedDisabledOverrideEntry(vfx);
+            yield return null;
+
+            Assert.IsFalse(IsAnyFloatOverridden(vfx), "Property should not be overridden before preview.");
+
+            var clip = MakeMyFloatPreviewClip();
+
+            BeginPreview(clip);
+
+            // Writing another property flushes the sheet mid-preview; the animated override must not tag along.
+            vfx.SetBool("MyTrigger", true);
+            var floatOverriddenAfterConcurrentWrite = IsAnyFloatOverridden(vfx);
+            var valueDuringPreview = vfx.GetFloat("MyFloat");
+
+            UnityEditor.AnimationMode.StopAnimationMode();
+            var floatOverriddenAfterPreview = IsAnyFloatOverridden(vfx);
+
+            Assert.AreEqual(3.0f, valueDuringPreview, "Animated value should still apply while previewing.");
+            Assert.IsFalse(floatOverriddenAfterConcurrentWrite, "A concurrent write must not persist the animated override.");
+            Assert.IsFalse(floatOverriddenAfterPreview, "Animated override must not persist after the preview ends.");
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PreviewingProperty_With_No_Serialized_Entry_Creates_None()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            AddExposedParameter(graph, "MyFloat", typeof(float));
+            AddExposedParameter(graph, "MyTrigger", typeof(bool));
+            VFXTestCommon.ReimportVFXGraph(graph);
+
+            var vfx = RecreateVfx(graph);
+            yield return null;
+
+            // No SetFloat here, so the property has no serialized entry.
+            Assert.AreEqual(0, FloatEntryCount(vfx), "Expected no serialized float entry before preview.");
+
+            var clip = MakeMyFloatPreviewClip();
+
+            BeginPreview(clip);
+
+            // Writing another property flushes the sheet mid-preview; the animated value must not create an entry.
+            vfx.SetBool("MyTrigger", true);
+            var entryCountDuringPreview = FloatEntryCount(vfx);
+            var valueDuringPreview = vfx.GetFloat("MyFloat");
+
+            UnityEditor.AnimationMode.StopAnimationMode();
+            var entryCountAfterPreview = FloatEntryCount(vfx);
+
+            Assert.AreEqual(3.0f, valueDuringPreview, "Animated value should apply while previewing.");
+            Assert.AreEqual(0, entryCountDuringPreview, "Preview must not create a serialized entry for the animated property.");
+            Assert.AreEqual(0, entryCountAfterPreview, "No serialized entry should remain after preview.");
+
+            yield return null;
+        }
     }
 }
 #endif
