@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
             public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing requires DX12 on Windows. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings. You can use the HDRP Wizard to configure these settings.", null, CoreEditorStyles.iconWarn);
-            public static string rayTracingNotSupportedBuildTarget = L10n.Tr("The {0} does not support Ray tracing. Consider disabling it or switch to a platform that supports it.");
+            public static string rayTracingNotSupportedBuildTarget = L10n.Tr("The {0} does not support Ray tracing. Consider disabling it or switch to a platform that supports it.", null);
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
@@ -390,11 +390,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
 #if ENABLE_UPSCALER_FRAMEWORK
             // Contextual help for a framework upscaler's Resolution Mode (drawn under the dropdown in the IUpscaler section).
-            public static readonly string iUpscalerQualityModeInfo = L10n.Tr("Quality Mode fixes the render resolution from the upscaler's quality preset. The Dynamic Resolution screen-percentage range is ignored for cameras using this upscaler. Switch to Custom Scaling to drive the render resolution from Dynamic Resolution.");
-            public static readonly string iUpscalerCustomSingleResInfo = L10n.Tr("This quality preset supports a single render resolution (~{0:0}% render scale), so Dynamic Resolution is ignored (the render resolution is pinned to that recommended size).");
-            public static readonly string iUpscalerCustomClampInfo = L10n.Tr("Dynamic Resolution drives the render resolution, clamped to this upscaler's supported range [{0:0}%..{1:0}%]. Values outside the range are clamped at runtime.");
-            public static readonly string iUpscalerCustomMinBelowRangeWarning = L10n.Tr("Minimum Screen Percentage ({0:0}%) is below {2}'s supported minimum ({1:0}%); it will be clamped at runtime. Raise the minimum to stay within the upscaler's range.");
-            public static readonly string iUpscalerCustomAdvisoryInfo = L10n.Tr("Dynamic Resolution drives the render resolution. Below about {0:0}% render scale this upscaler still works but quality degrades (advisory; not clamped).");
+            public static readonly string iUpscalerQualityModeInfo = L10n.Tr("Quality Mode fixes the render resolution from the upscaler's quality preset. The Dynamic Resolution screen-percentage range is ignored for cameras using this upscaler. Switch to Custom Scaling to drive the render resolution from Dynamic Resolution.", null);
+            public static readonly string iUpscalerCustomSingleResInfo = L10n.Tr("This quality preset supports a single render resolution (~{0:0}% render scale), so Dynamic Resolution is ignored (the render resolution is pinned to that recommended size).", null);
+            public static readonly string iUpscalerCustomClampInfo = L10n.Tr("Dynamic Resolution drives the render resolution, clamped to this upscaler's supported range [{0:0}%..{1:0}%]. Values outside the range are clamped at runtime.", null);
+            public static readonly string iUpscalerCustomMinBelowRangeWarning = L10n.Tr("Minimum Screen Percentage ({0:0}%) is below {2}'s supported minimum ({1:0}%); it will be clamped at runtime. Raise the minimum to stay within the upscaler's range.", null);
+            public static readonly string iUpscalerCustomAdvisoryInfo = L10n.Tr("Dynamic Resolution drives the render resolution. Below about {0:0}% render scale this upscaler still works but quality degrades (advisory; not clamped).", null);
 #endif
             public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
             public static readonly GUIContent lowResSSGIMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Screen Space GI Min Threshold", "The minimum percentage threshold allowed to clamp low resolution Screen Space Global Illumination. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
@@ -437,9 +437,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent staticBatchingInfoMessage =
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
 
-            public static readonly string featureNotRecommendedWarning = L10n.Tr("This feature is not optimized for this platform, enabling it may affect performance.");
-            public static readonly string maxFogBudgetWarning = L10n.Tr("The maximum recommended fog budget for this platform is {0}. Lower the tier to stay under this for optimal performance.");
-            public static readonly string minFogBudgetForDensityCutoffWarning = L10n.Tr("It is recommended to use Density cutoff when the fog budget is > {0} for this platform.");
+            public static readonly string featureNotRecommendedWarning = L10n.Tr("This feature is not optimized for this platform, enabling it may affect performance.", null);
+            public static readonly string maxFogBudgetWarning = L10n.Tr("The maximum recommended fog budget for this platform is {0}. Lower the tier to stay under this for optimal performance.", null);
+            public static readonly string minFogBudgetForDensityCutoffWarning = L10n.Tr("It is recommended to use Density cutoff when the fog budget is > {0} for this platform.", null);
 
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";

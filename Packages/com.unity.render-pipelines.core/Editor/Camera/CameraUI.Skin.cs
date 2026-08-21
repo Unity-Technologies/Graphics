@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering
             /// <summary>
             /// Message displayed about unsupported fields for Camera Presets
             /// </summary>
-            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Camera Component, only a subset of properties are supported.  Unsupported properties are hidden.");
+            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Camera Component, only a subset of properties are supported.  Unsupported properties are hidden.", null);
         }
     }
 }

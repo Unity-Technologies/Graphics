@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering
 
             public static readonly GUIContent k_NoneText = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
 
-            public static string toggleAllText { get; } = L10n.Tr("Toggle All");
+            public static string toggleAllText { get; } = L10n.Tr("Toggle All", null);
 
             public const int overrideCheckboxWidth = 14;
             public const int overrideCheckboxOffset = 9;

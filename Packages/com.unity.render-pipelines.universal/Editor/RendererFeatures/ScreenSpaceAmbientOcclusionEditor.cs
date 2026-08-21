@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
         private HeaderBool m_ShowDeprecatedSettings;
         private bool m_ShowAfterOpaqueTileOnlyError;
 
-        private static readonly string k_AfterOpaqueIncompatibleWithTileOnlyMode = L10n.Tr("'After Opaque' is incompatible with the enabled 'Tile-Only Mode'. Disable After Opaque.");
+        private static readonly string k_AfterOpaqueIncompatibleWithTileOnlyMode = L10n.Tr("'After Opaque' is incompatible with the enabled 'Tile-Only Mode'. Disable After Opaque.", null);
 
         /// <summary>
         /// The renderer data that owns the feature when the inspector is drawn.

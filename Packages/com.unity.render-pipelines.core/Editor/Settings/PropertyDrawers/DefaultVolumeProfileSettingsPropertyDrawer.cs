@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering
 
         void ShowNoActivePipelineWarning()
         {
-            m_EditorContainer.Add(new HelpBox(L10n.Tr("Default Volume Profile requires an active Scriptable Render Pipeline."), HelpBoxMessageType.Warning));
+            m_EditorContainer.Add(new HelpBox(L10n.Tr("Default Volume Profile requires an active Scriptable Render Pipeline.", null), HelpBoxMessageType.Warning));
             ShowEditorContainerIfExpanded();
         }
 

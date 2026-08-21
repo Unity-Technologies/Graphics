@@ -162,17 +162,17 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
             public static GUIContent staticBatchingInfoMessage =
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
-            public static readonly string lightModeErrorFormatter = L10n.Tr("Rendering Path must be set to Forward+ or Deferred+ for correct lighting and reflections. Renderers to change: {0}.");
+            public static readonly string lightModeErrorFormatter = L10n.Tr("Rendering Path must be set to Forward+ or Deferred+ for correct lighting and reflections. Renderers to change: {0}.", null);
             public static GUIContent renderGraphNotEnabledErrorMessage =
                 EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
             public static GUIContent stencilLodCrossFadeWarningMessage =
                 EditorGUIUtility.TrTextContent("LOD Cross Fade with stencil dithering is not compatible with stencil override in Renderer.");
             
-            public static readonly string formatterTileOnlyMode = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'Tile-Only Mode'. Affected renderers: {1}.");
-            public static readonly string tileOnlyModeMaybeMessage = L10n.Tr("'{0}' might be skipped when 'Tile-Only Mode' is enabled. Renderer Features can provide this functionality, so behavior can vary. Affected renderers: {1}.");
-            public static readonly string msaaTileOnlyInfo = L10n.Tr("'{0}' is supported in 'Tile-Only Mode'. However, in the Editor and on platforms where the back buffer does not support MSAA, URP forces MSAA to None to keep data in Tile Memory. Affected renderers: {1}.");
-            public static readonly string msaaTileOnlyDeferredWarning = L10n.Tr("'{0}' is incompatible with 'Tile-Only Mode' + Deferred rendering. On platforms with MSAA back buffer support, the renderer will silently fall back to Forward(+) at runtime. On other platforms, MSAA is dropped to 1. Set MSAA to Disabled to keep Deferred consistently, or switch the renderer to Forward(+). Affected renderers: {1}.");
-            public static readonly string suffixWhenDifferentPositionTileOnlyMode = L10n.Tr(" (different position)");
+            public static readonly string formatterTileOnlyMode = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'Tile-Only Mode'. Affected renderers: {1}.", null);
+            public static readonly string tileOnlyModeMaybeMessage = L10n.Tr("'{0}' might be skipped when 'Tile-Only Mode' is enabled. Renderer Features can provide this functionality, so behavior can vary. Affected renderers: {1}.", null);
+            public static readonly string msaaTileOnlyInfo = L10n.Tr("'{0}' is supported in 'Tile-Only Mode'. However, in the Editor and on platforms where the back buffer does not support MSAA, URP forces MSAA to None to keep data in Tile Memory. Affected renderers: {1}.", null);
+            public static readonly string msaaTileOnlyDeferredWarning = L10n.Tr("'{0}' is incompatible with 'Tile-Only Mode' + Deferred rendering. On platforms with MSAA back buffer support, the renderer will silently fall back to Forward(+) at runtime. On other platforms, MSAA is dropped to 1. Set MSAA to Disabled to keep Deferred consistently, or switch the renderer to Forward(+). Affected renderers: {1}.", null);
+            public static readonly string suffixWhenDifferentPositionTileOnlyMode = L10n.Tr(" (different position)", null);
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

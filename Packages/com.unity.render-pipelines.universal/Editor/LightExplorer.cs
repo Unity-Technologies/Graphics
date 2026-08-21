@@ -40,7 +40,7 @@ namespace UnityEditor
             public static readonly GUIContent Emission = EditorGUIUtility.TrTextContent("Emission");
             // The order of the following lists have to match. Unlike the default light explorer, URP also
             // exposes the realtime direct emission flag, which drives the _EMISSION keyword of URP shaders.
-            public static readonly string[] EmissionOptions = { L10n.Tr("Realtime Direct Emission"), L10n.Tr("Realtime Indirect Emission"), L10n.Tr("Baked Emission") };
+            public static readonly string[] EmissionOptions = { L10n.Tr("Realtime Direct Emission", null), L10n.Tr("Realtime Indirect Emission", null), L10n.Tr("Baked Emission", null) };
             public static readonly MaterialGlobalIlluminationFlags[] EmissionOptionsInternal = { MaterialGlobalIlluminationFlags.RealtimeDirectEmission, MaterialGlobalIlluminationFlags.RealtimeIndirectEmission, MaterialGlobalIlluminationFlags.BakedEmission };
         }
 

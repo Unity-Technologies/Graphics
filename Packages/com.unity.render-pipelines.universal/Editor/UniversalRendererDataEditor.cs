@@ -42,8 +42,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture (Obsolete)", "Should be set to Auto. Controls when URP renders via an intermediate texture.");
             public static readonly GUIContent warningIntermediateTextureMode = EditorGUIUtility.TrTextContent("'Always' is Obsolete. Change it to Auto. This can improve performance. The setting will disappear once it is corrected to 'Auto'.");
             public static readonly GUIContent tileOnlyMode = EditorGUIUtility.TrTextContent("Tile-Only Mode", "Restricts render passes to avoid memory load/store of main camera targets, keeping them in on‑chip tile memory. This is a potential GPU performance optimization on Tile-Based GPU architectures. It activates additional RenderGaph validation. Some features may be disabled or fall back. See docs for details.");
-            public static readonly string tileOnlyModeWarning = L10n.Tr("Tile-Only mode will disable or block features, including Renderer Features and Render Passes, that would trigger GPU memory store/load actions.");
-            public static readonly string postProcessingTileOnlyModeWarning = L10n.Tr("'Post-processing' is incompatible with the enabled 'Tile-Only Mode'. Disable this setting. Renderer Features can add On-Tile Post Processing.");
+            public static readonly string tileOnlyModeWarning = L10n.Tr("Tile-Only mode will disable or block features, including Renderer Features and Render Passes, that would trigger GPU memory store/load actions.", null);
+            public static readonly string postProcessingTileOnlyModeWarning = L10n.Tr("'Post-processing' is incompatible with the enabled 'Tile-Only Mode'. Disable this setting. Renderer Features can add On-Tile Post Processing.", null);
         }
 
         SerializedProperty m_PrepassLayerMask;

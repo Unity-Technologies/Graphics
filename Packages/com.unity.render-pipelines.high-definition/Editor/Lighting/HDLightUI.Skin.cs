@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent enableShadowMap = EditorGUIUtility.TrTextContent("Enable", "When enabled, this Light casts shadows.");
 
             // Warnings
-            public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.");
+            public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.", null);
             public readonly GUIContent areaLightVolumetricsWarning = EditorGUIUtility.TrTextContent("Area Light Volumetrics settings are only taken into account with Path Tracing.");
         }
 

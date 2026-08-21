@@ -103,8 +103,8 @@ namespace UnityEditor.Rendering
         const string k_PassListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}PassInspector@2x.png";
         const string k_EditorName ="Editor";
 
-        static readonly string k_AutoUpdateText = L10n.Tr("Auto Update");
-        static readonly string k_PauseText = L10n.Tr("Pause");
+        static readonly string k_AutoUpdateText = L10n.Tr("Auto Update", null);
+        static readonly string k_PauseText = L10n.Tr("Pause", null);
 
         // keep in sync with .uss
         const int kPassWidthPx = 26;
@@ -191,31 +191,31 @@ namespace UnityEditor.Rendering
         static readonly string[] kEmptyStateMessages =
         {
             "",
-            L10n.Tr("No Render Graph has been registered. The Render Graph Viewer is only functional when Render Graph API is in use."),
-            L10n.Tr("Waiting for the selected camera to render. Depending on the camera, you may need to trigger rendering by selecting the Scene or Game view.\n\nEnsure Render Graph is not disabled in Project Settings > Graphics."),
-            L10n.Tr("No passes to display. Select a different Pass Filter to display contents."),
-            L10n.Tr("No resources to display. Select a different Resource Filter to display contents."),
-            L10n.Tr("Editor received incompatible data. Rebuild the player with this version of the editor, or switch to an older version of the editor."),
+            L10n.Tr("No Render Graph has been registered. The Render Graph Viewer is only functional when Render Graph API is in use.", null),
+            L10n.Tr("Waiting for the selected camera to render. Depending on the camera, you may need to trigger rendering by selecting the Scene or Game view.\n\nEnsure Render Graph is not disabled in Project Settings > Graphics.", null),
+            L10n.Tr("No passes to display. Select a different Pass Filter to display contents.", null),
+            L10n.Tr("No resources to display. Select a different Resource Filter to display contents.", null),
+            L10n.Tr("Editor received incompatible data. Rebuild the player with this version of the editor, or switch to an older version of the editor.", null),
         };
 
         private static readonly string[] kLoadActionNames =
         {
             "",
-            L10n.Tr("Load"),
-            L10n.Tr("Clear"),
-            L10n.Tr("Don't Care"),
+            L10n.Tr("Load", null),
+            L10n.Tr("Clear", null),
+            L10n.Tr("Don't Care", null),
         };
 
         private static readonly string[] kStoreActionNames =
         {
             "",
-            L10n.Tr("Store"),
-            L10n.Tr("Resolve"),
-            L10n.Tr("Store and Resolve"),
-            L10n.Tr("Don't Care"),
+            L10n.Tr("Store", null),
+            L10n.Tr("Resolve", null),
+            L10n.Tr("Store and Resolve", null),
+            L10n.Tr("Don't Care", null),
         };
 
-        static readonly string kOpenInCSharpEditorTooltip = L10n.Tr("Click to open <b>{0}</b> definition in C# editor.");
+        static readonly string kOpenInCSharpEditorTooltip = L10n.Tr("Click to open <b>{0}</b> definition in C# editor.", null);
 
         [MenuItem("Window/Analysis/Render Graph Viewer", false, 10006)]
         static void Init()
@@ -1051,14 +1051,14 @@ namespace UnityEditor.Rendering
         {
             var viewOptions = rootVisualElement.Q<ToggleDropdown>(Names.kViewOptionsField);
             BuildEnumFlagsToggleDropdown(viewOptions, m_ViewOptions, kViewOptionsEditorPrefsKey, val => m_ViewOptions = val, false);
-            viewOptions.text = L10n.Tr("View Options");
+            viewOptions.text = L10n.Tr("View Options", null);
         }
 
         void RebuildResourceFilterUI()
         {
             var resourceFilter = rootVisualElement.Q<ToggleDropdown>(Names.kResourceFilterField);
             BuildEnumFlagsToggleDropdown(resourceFilter, m_ResourceFilter, kResourceFilterEditorPrefsKey, val => m_ResourceFilter = val, true);
-            resourceFilter.text = L10n.Tr("Resource Filter");
+            resourceFilter.text = L10n.Tr("Resource Filter", null);
         }
 
         void RebuildPassFilterUI()
@@ -1067,7 +1067,7 @@ namespace UnityEditor.Rendering
 
             BuildEnumFlagsToggleDropdown(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val, true);
 
-            passFilter.text = L10n.Tr("Pass Filter");
+            passFilter.text = L10n.Tr("Pass Filter", null);
         }
 
         void RebuildAutoPlayUI()

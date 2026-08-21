@@ -670,7 +670,7 @@ namespace UnityEditor.Rendering.Universal
 
 #endif
 
-        public static readonly string disabledPostprocessing = L10n.Tr("HDR is not supported by one of the Universal Render Pipeline renderers.");
+        public static readonly string disabledPostprocessing = L10n.Tr("HDR is not supported by one of the Universal Render Pipeline renderers.", null);
 
         static void DrawHDR(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {

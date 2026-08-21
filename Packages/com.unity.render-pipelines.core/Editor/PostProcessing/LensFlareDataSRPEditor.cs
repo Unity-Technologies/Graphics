@@ -33,14 +33,14 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent elementHeader = EditorGUIUtility.TrTextContent("Lens Flare Element", "Elements in the Lens Flare.");
 
             // Cathegory headers
-            static public readonly string typeCathegory = L10n.Tr("Type");
-            static public readonly string noiseCathegory = L10n.Tr("Noise");
-            static public readonly string colorCathegory = L10n.Tr("Color");
-            static public readonly string cutoffCathegory = L10n.Tr("Cutoff");
-            static public readonly string transformCathegory = L10n.Tr("Transform");
-            static public readonly string axisTransformCathegory = L10n.Tr("Axis Transform");
-            static public readonly string radialDistortionCathegory = L10n.Tr("Radial Distortion");
-            static public readonly string multipleElementsCathegory = L10n.Tr("Multiple Elements");
+            static public readonly string typeCathegory = L10n.Tr("Type", null);
+            static public readonly string noiseCathegory = L10n.Tr("Noise", null);
+            static public readonly string colorCathegory = L10n.Tr("Color", null);
+            static public readonly string cutoffCathegory = L10n.Tr("Cutoff", null);
+            static public readonly string transformCathegory = L10n.Tr("Transform", null);
+            static public readonly string axisTransformCathegory = L10n.Tr("Axis Transform", null);
+            static public readonly string radialDistortionCathegory = L10n.Tr("Radial Distortion", null);
+            static public readonly string multipleElementsCathegory = L10n.Tr("Multiple Elements", null);
 
             // Type
             static public readonly GUIContent type = EditorGUIUtility.TrTextContent("Type", "Specifies the type of this lens flare element.");

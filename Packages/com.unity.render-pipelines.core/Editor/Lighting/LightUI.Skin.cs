@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent colorTemperature = EditorGUIUtility.TrTextContent("Temperature", "Specifies a temperature (in Kelvin) used to correlate a color for the Light. For reference, White is 6500K.");
 
             /// <summary>When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.</summary>
-            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.");
+            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.", null);
 
             /// <summary>Label for light intensity (with light units)</summary>
             public static readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");

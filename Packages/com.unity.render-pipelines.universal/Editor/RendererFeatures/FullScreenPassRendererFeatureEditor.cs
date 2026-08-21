@@ -33,10 +33,10 @@ namespace UnityEditor.Rendering.Universal
         private static readonly GUIContent k_BindDepthStencilAttachmentGuiContent = new GUIContent("Bind Depth-Stencil", "Enable this to bind the active camera's depth-stencil attachment to the framebuffer (only use this if depth-stencil ops are used by the assigned material as this could have a performance impact).");
         private static readonly GUIContent k_PassMaterialGuiContent = new GUIContent("Pass Material", "The material used to render the full screen pass.");
         private static readonly GUIContent k_PassGuiContent = new GUIContent("Pass", "The name of the shader pass to use from the assigned material.");
-        private static readonly string k_FetchColorBufferIncompatibleWithTileOnlyMode = L10n.Tr("Fetch Color Buffer is incompatible with the enabled 'Tile-Only Mode'. Disable this setting.");
-        private static readonly string k_RequirementsColorIncompatibleWithTileOnlyMode = L10n.Tr("Color is incompatible with the enabled 'Tile-Only Mode'. Clear Color from Requirements.");
-        private static readonly string k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Depth without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Depth.");
-        private static readonly string k_RequirementsMotionWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Motion without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Motion.");
+        private static readonly string k_FetchColorBufferIncompatibleWithTileOnlyMode = L10n.Tr("Fetch Color Buffer is incompatible with the enabled 'Tile-Only Mode'. Disable this setting.", null);
+        private static readonly string k_RequirementsColorIncompatibleWithTileOnlyMode = L10n.Tr("Color is incompatible with the enabled 'Tile-Only Mode'. Clear Color from Requirements.", null);
+        private static readonly string k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Depth without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Depth.", null);
+        private static readonly string k_RequirementsMotionWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Motion without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Motion.", null);
 
         /// <summary>
         /// The renderer data that owns the feature when the inspector is drawn.

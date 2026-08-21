@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The string for applying custom vertex streams from material.
             /// </summary>
-            public static string undoApplyCustomVertexStreams = L10n.Tr("Apply custom vertex streams from material");
+            public static string undoApplyCustomVertexStreams = L10n.Tr("Apply custom vertex streams from material", null);
 
             /// <summary>
             /// The vertex stream icon.

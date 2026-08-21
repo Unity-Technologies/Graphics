@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
-            public static readonly string isGlobalDropdownTooltip = L10n.Tr("Global Volumes affect the Camera wherever the Camera is in the Scene. Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.");
+            public static readonly string isGlobalDropdownTooltip = L10n.Tr("Global Volumes affect the Camera wherever the Camera is in the Scene. Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.", null);
             public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
             public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");
             public static readonly GUIContent capsuleBoxCollider = EditorGUIUtility.TrTextContent("Add a Capsule Collider");

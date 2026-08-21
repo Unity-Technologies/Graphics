@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
                     baseMessage.Append(".");
                     baseMessage.AppendLine();
                     baseMessage.Append("More information in overlay in scene view.");
-                    options.errorText = L10n.Tr(baseMessage.ToString());
+                    options.errorText = L10n.Tr(baseMessage.ToString(), null);
                 }
             }
             return options;

@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering
         public void InitializeSearchField(string searchFieldName)
         {
             var searchField = m_RootElement.Q<ToolbarSearchField>(searchFieldName);
-            searchField.placeholderText = L10n.Tr("Search");
+            searchField.placeholderText = L10n.Tr("Search", null);
             searchField.Q<TextField>().maxLength = k_SearchStringLimit;
             searchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(evt.newValue));
 

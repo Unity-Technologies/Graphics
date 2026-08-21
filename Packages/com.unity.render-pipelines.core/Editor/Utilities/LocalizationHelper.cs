@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Utilities
             if (string.IsNullOrWhiteSpace(extractedText))
                 return;
 
-            var localizedString = L10n.Tr(extractedText);
+            var localizedString = L10n.Tr(extractedText, null);
             set.Invoke(visualElement, localizedString);
         }
 

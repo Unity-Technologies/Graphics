@@ -41,17 +41,17 @@ namespace UnityEditor.ShaderGraph
 
         private class Styles
         {
-            public static readonly GUIContent shaderVariantLimitLabel = L10n.TextContent("Shader Variant Limit", "");
-            public static readonly GUIContent overrideShaderVariantLimitLabel = L10n.TextContent("Override Variant Limit", $"The Shader Graph internal default limit Shader Variant Limit is {ShaderGraphProjectSettings.defaultVariantLimit}.");
-            public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
-            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
-            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
+            public static readonly GUIContent shaderVariantLimitLabel = L10n.TextContent("Shader Variant Limit", "", null, null);
+            public static readonly GUIContent overrideShaderVariantLimitLabel = L10n.TextContent("Override Variant Limit", $"The Shader Graph internal default limit Shader Variant Limit is {ShaderGraphProjectSettings.defaultVariantLimit}.", null, null);
+            public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "", null, null);
+            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.", null, null);
+            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.", null, null);
             public static readonly string kLearnMore = "Learn More";
             public static readonly GUIStyle helpBoxIconStyle;
             public static readonly GUIStyle learnMoreStyle;
 
-            public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "");
-            public static readonly GUIContent HeatmapAssetLabel = L10n.TextContent("Custom Values", "Specifies a custom Heatmap Values asset with data to display in the Heatmap color mode. If empty, a set of default values will be used.");
+            public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "", null, null);
+            public static readonly GUIContent HeatmapAssetLabel = L10n.TextContent("Custom Values", "Specifies a custom Heatmap Values asset with data to display in the Heatmap color mode. If empty, a set of default values will be used.", null, null);
 
             static Styles()
             {
