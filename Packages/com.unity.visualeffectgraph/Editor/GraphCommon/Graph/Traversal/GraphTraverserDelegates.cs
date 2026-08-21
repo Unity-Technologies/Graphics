@@ -5,31 +5,19 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /*public*/ partial class GraphTraverser
     {
         /// <summary>
-        /// Delegate called when visiting a <see cref="TaskNode"/>.
+        /// Delegate called when visiting a node.
         /// </summary>
-        /// <param name="taskNode">The node being visited.</param>
+        /// <typeparam name="TNode">The node type being visited (<see cref="DataNode"/> or <see cref="TaskNode"/>).</typeparam>
+        /// <param name="node">The node being visited.</param>
         /// <returns>true to continue traversal, false to stop.</returns>
-        public delegate bool OnVisitTaskNode(TaskNode taskNode);
+        public delegate bool OnVisitNode<in TNode>(TNode node);
 
         /// <summary>
-        /// Delegate called when visiting a <see cref="DataNode"/>.
+        /// Delegate called to filter a node.
         /// </summary>
-        /// <param name="dataNode">The node being visited.</param>
-        /// <returns>true to continue traversal, false to stop.</returns>
-        public delegate bool OnVisitDataNode(DataNode dataNode);
-
-        /// <summary>
-        /// Delegate called to filter a <see cref="TaskNode"/>.
-        /// </summary>
-        /// <param name="taskNode">The node being filtered.</param>
+        /// <typeparam name="TNode">The node type being filtered (<see cref="DataNode"/> or <see cref="TaskNode"/>).</typeparam>
+        /// <param name="node">The node being filtered.</param>
         /// <returns>The traversal control used to determine whether to visit the node and/or continue graph traversal.</returns>
-        public delegate TraversalControl OnFilterTaskNode(TaskNode taskNode);
-
-        /// <summary>
-        /// Delegate called to filter a <see cref="DataNode"/>.
-        /// </summary>
-        /// <param name="dataNode">Thhe node being filtered.</param>
-        /// <returns>The traversal control used to determine whether to visit the node and/or continue graph traversal.</returns>
-        public delegate TraversalControl OnFilterDataNode(DataNode dataNode);
+        public delegate TraversalControl OnFilterNode<in TNode>(TNode node);
     }
 }

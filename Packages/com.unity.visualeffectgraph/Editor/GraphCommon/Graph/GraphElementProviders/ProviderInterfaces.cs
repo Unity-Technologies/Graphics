@@ -4,7 +4,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Allocation-free struct enumerator over the live task nodes of a graph.
     /// </summary>
-    /*public*/ struct TaskNodeEnumerator
+    /*public*/ struct TaskNodeEnumerator : IValueEnumerator<TaskNode>
     {
         GraphDataList<TaskNodeInfo>.Enumerator m_Inner;
         IIndexable<TaskNodeId, TaskNode> m_Provider;
@@ -33,7 +33,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Allocation-free struct enumerator over the live data nodes of a graph.
     /// </summary>
-    /*public*/ struct DataNodeEnumerator
+    /*public*/ struct DataNodeEnumerator : IValueEnumerator<DataNode>
     {
         GraphDataList<DataNodeInfo>.Enumerator m_Inner;
         IIndexable<DataNodeId, DataNode> m_Provider;
@@ -62,7 +62,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Allocation-free struct enumerator over the live data views of a graph.
     /// </summary>
-    /*public*/ struct DataViewEnumerator
+    /*public*/ struct DataViewEnumerator : IValueEnumerator<DataView>
     {
         GraphDataList<DataViewInfo>.Enumerator m_Inner;
         IIndexable<DataViewId, DataView> m_Provider;
@@ -91,7 +91,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Allocation-free struct enumerator over the live data bindings of a graph.
     /// </summary>
-    /*public*/ struct DataBindingEnumerator
+    /*public*/ struct DataBindingEnumerator : IValueEnumerator<DataBinding>
     {
         GraphDataList<DataBindingInfo>.Enumerator m_Inner;
         IIndexable<DataBindingId, DataBinding> m_Provider;
@@ -120,7 +120,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Allocation-free struct enumerator over the live data containers of a graph.
     /// </summary>
-    /*public*/ struct DataContainerEnumerator
+    /*public*/ struct DataContainerEnumerator : IValueEnumerator<DataContainer>
     {
         GraphDataList<DataContainerInfo>.Enumerator m_Inner;
         IIndexable<DataContainerId, DataContainer> m_Provider;

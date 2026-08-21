@@ -157,7 +157,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 {
                     LegacyExpressionTask legacyExpressionTask =>
                         $"{legacyExpressionTask.Expression.GetType().Name}",
-                    Task task => task.DebugName,
                     TemplatedTask templatedTask => $"TemplatedTask-{templatedTask.TemplateName}",
                     _ => taskNode.Task.GetType().Name,
 
