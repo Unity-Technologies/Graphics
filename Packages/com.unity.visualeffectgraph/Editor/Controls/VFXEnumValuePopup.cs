@@ -39,14 +39,20 @@ namespace UnityEditor.VFX.UI
                 using var evt = ChangeEvent<long>.GetPooled(value, newValue);
                 evt.target = this;
                 SetValueWithoutNotify(newValue);
-                m_DropDownButton.value = m_DropDownButton.choices[(int)m_Value];
                 SendEvent(evt);
             }
         }
 
         public void SetValueWithoutNotify(long newValue)
         {
+            if (m_DropDownButton.choices.Count == 0)
+            {
+                m_Value = 0;
+                return;
+            }
             m_Value = Math.Clamp(newValue, 0, m_DropDownButton.choices.Count - 1);
+            // Update the dropdown to show the new value.
+            m_DropDownButton.SetValueWithoutNotify(m_DropDownButton.choices[(int)m_Value]);
         }
     }
 }

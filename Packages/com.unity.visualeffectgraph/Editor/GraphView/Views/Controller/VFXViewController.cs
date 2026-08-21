@@ -318,6 +318,7 @@ namespace UnityEditor.VFX.UI
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
                 RemoveInvalidateDelegate(m_Graph, ReinitIfNeeded);
+                m_Graph.onRuntimeDataChanged -= OnGraphRecompiled;
 
                 UnRegisterNotification(m_Graph, GraphChanged);
 
@@ -913,6 +914,7 @@ namespace UnityEditor.VFX.UI
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
                     AddInvalidateDelegate(m_Graph, ReinitIfNeeded);
+                    m_Graph.onRuntimeDataChanged += OnGraphRecompiled;
 
                     m_UI = m_Graph.UIInfos;
 
