@@ -12,6 +12,7 @@ public class FSR2OptionsEditor : UpscalerOptionsEditor
     private SerializedProperty m_QualityMode;
     private SerializedProperty m_EnableSharpening;
     private SerializedProperty m_Sharpness;
+
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -20,6 +21,7 @@ public class FSR2OptionsEditor : UpscalerOptionsEditor
         m_EnableSharpening = serializedObject.FindProperty("m_EnableSharpening");
         m_Sharpness = serializedObject.FindProperty("m_Sharpness");
     }
+
     protected override void DrawOptions()
     {
         EditorGUILayout.PropertyField(m_QualityMode);

@@ -1,16 +1,21 @@
 using System;
-using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+using UnityEngine.AMD;
+#endif
 
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Utility functions relating to FidelityFX Super Resolution (FSR)
-    ///
-    /// These functions are expected to be used in conjuction with the helper functions provided by FSRCommon.hlsl.
+    /// Utility functions for FidelityFX Super Resolution (FSR).
+    /// - FSR1: Spatial upscaling via EASU/RCAS shaders (used with FSRCommon.hlsl)
+    /// - FSR2/3/4: Temporal upscaling via AMD plugin
     /// </summary>
     public static class FSRUtils
     {
+        #region FSR1 Spatial Upscaling
+
         /// Shader constant ids used to communicate with the FSR shader implementation
         static class ShaderConstants
         {
@@ -200,5 +205,206 @@ namespace UnityEngine.Rendering
         {
             return SystemInfo.graphicsShaderLevel >= 45;
         }
+
+        #endregion
+
+        #region FSR2/3/4 Temporal Upscaling (AMD Plugin)
+
+#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+
+        /// <summary>
+        /// Checks if the AMD plugin and graphics device are available for FSR2/3/4.
+        /// </summary>
+        public static bool CheckPluginAvailable()
+        {
+            if (!AMDUnityPlugin.IsLoaded())
+            {
+                Debug.LogWarning("AMDUnityPlugin not loaded.");
+                return false;
+            }
+
+            // Check if device already exists to avoid redundant re-initialization
+            if (GraphicsDevice.device != null)
+                return true;
+
+            GraphicsDevice device = GraphicsDevice.CreateGraphicsDevice();
+            if (device == null)
+            {
+                Debug.LogWarning("AMDUnityPlugin failed to create device.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calculates the number of jitter phases based on the upscale ratio.
+        /// FSR uses Halton sequence jittering for temporal anti-aliasing.
+        /// </summary>
+        public static int CalculateJitterPhaseCount(float upscaleRatio)
+        {
+            const float basePhaseCount = 8.0f;
+            // Round half up, don't truncate: upscaleRatio is reconstructed as display/round(renderSize), so a clean preset
+            // (e.g. 1.5x) arrives slightly low (~1.497) and 8*1.497^2 = 17.93 would truncate to 17 instead of 18.
+            return Mathf.FloorToInt(basePhaseCount * upscaleRatio * upscaleRatio + 0.5f);
+        }
+
+        /// <summary>
+        /// Calculates jitter offset using Halton sequence for temporal upscaling.
+        /// </summary>
+        public static Vector2 CalculateJitter(int frameIndex, float upscaleRatio)
+        {
+            int numPhases = CalculateJitterPhaseCount(upscaleRatio);
+            int haltonIndex = (frameIndex % numPhases) + 1;
+            float x = HaltonSequence.Get(haltonIndex, 2) - 0.5f;
+            float y = HaltonSequence.Get(haltonIndex, 3) - 0.5f;
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Calculates mip bias to compensate for upscaling resolutions.
+        /// </summary>
+        public static float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
+        {
+            float xBias = Mathf.Log((float)preUpscaleResolution.x / postUpscaleResolution.x, 2f);
+            float yBias = Mathf.Log((float)preUpscaleResolution.y / postUpscaleResolution.y, 2f);
+            return Mathf.Min(xBias, yBias) - 1.0f;
+        }
+
+        /// <summary>
+        /// Creates output texture for upscaled result in RenderGraph.
+        /// </summary>
+        public static TextureHandle CreateOutputTexture(RenderGraph renderGraph, UpscalingIO io, string textureName)
+        {
+            TextureDesc inputDesc = io.cameraColor.GetDescriptor(renderGraph);
+            TextureDesc outputDesc = inputDesc;
+            outputDesc.width = io.postUpscaleResolution.x;
+            outputDesc.height = io.postUpscaleResolution.y;
+            outputDesc.format = GraphicsFormatUtility.GetLinearFormat(inputDesc.format);
+            outputDesc.msaaSamples = MSAASamples.None;
+            outputDesc.useMipMap = false;
+            outputDesc.autoGenerateMips = false;
+            outputDesc.useDynamicScale = false;
+            outputDesc.anisoLevel = 0;
+            outputDesc.discardBuffer = false;
+            outputDesc.enableRandomWrite = true;
+            outputDesc.name = textureName;
+            outputDesc.clearBuffer = false;
+            outputDesc.filterMode = FilterMode.Bilinear;
+            return renderGraph.CreateTexture(outputDesc);
+        }
+
+        /// <summary>
+        /// Populates FSR2/3/4 execution data from UpscalingIO.
+        /// </summary>
+        public static void PopulateExecutionData(
+            ref FSR2CommandExecutionData execData,
+            UpscalingIO io,
+            Vector2 jitter,
+            bool enableSharpening,
+            float sharpness)
+        {
+            float motionVectorSign = io.motionVectorDirection == UpscalingIO.MotionVectorDirection.PreviousFrameToCurrentFrame ? -1.0f : 1.0f;
+            float motionVectorScaleX = io.motionVectorDomain == UpscalingIO.MotionVectorDomain.NDC ? io.motionVectorTextureSize.x : 1.0f;
+            float motionVectorScaleY = io.motionVectorDomain == UpscalingIO.MotionVectorDomain.NDC ? io.motionVectorTextureSize.y : 1.0f;
+
+            execData.enableSharpening = enableSharpening ? 1 : 0;
+            execData.sharpness = sharpness;
+            execData.MVScaleX = motionVectorSign * motionVectorScaleX;
+            execData.MVScaleY = motionVectorSign * motionVectorScaleY;
+            execData.renderSizeWidth = (uint)io.preUpscaleResolution.x;
+            execData.renderSizeHeight = (uint)io.preUpscaleResolution.y;
+            execData.jitterOffsetX = jitter.x;
+            execData.jitterOffsetY = jitter.y;
+            execData.cameraNear = io.nearClipPlane;
+            execData.cameraFar = io.farClipPlane;
+            execData.cameraFovAngleVertical = 2.0f * (float)Math.PI * (1 / 360.0f) * io.fieldOfViewDegrees;
+            execData.preExposure = 1.0f;
+            execData.frameTimeDelta = io.deltaTime * 1000.0f;
+            execData.reset = io.resetHistory ? 1 : 0;
+        }
+
+        internal class ResolutionSuggestion
+        {
+            // Below it FSR still runs but quality degrades. Advisory only, never clamped.
+            // Two bounds, because the recommended max upscale is tighter under dynamic resolution (~1.5x → ~0.667)
+            // than for static scaling (~3x → ~0.33).
+            public float m_CachedScaleStatic = -1.0f;  // < 0 means not yet queried
+            public float m_CachedScaleDynamic = -1.0f; // < 0 means not yet queried
+
+            // Last render scale (rounded to 2 decimals) we logged a notice for; NaN means none. Tracked so a sustained or
+            // jittering below-recommended scale logs once per distinct value instead of every frame.
+            public float m_LastNotifiedBelowScale = float.NaN;
+
+            private string m_tag; // "FSR2", "FSR3", or "FSR4"
+            private Func<float> m_staticMinScaleQuery;
+            private Func<float> m_dynamicMinScaleQuery;
+
+            public ResolutionSuggestion(string tag, Func<float> staticMinScaleQuery, Func<float> dynamicMinScaleQuery)
+            {
+                m_tag = tag;
+                m_staticMinScaleQuery = staticMinScaleQuery;
+                m_dynamicMinScaleQuery = dynamicMinScaleQuery;
+            }
+
+            public float GetRecommendedMinScale()
+            {
+                return QueryRecommendedMinScale(m_staticMinScaleQuery, ref m_CachedScaleStatic);
+            }
+
+            private float QueryRecommendedMinScale(Func<float> ratioQuery, ref float cache)
+            {
+                if (cache >= 0.0f)
+                    return cache;
+                if (GraphicsDevice.device == null)
+                    return 0.0f; // 0 = no recommendation
+                float upscaleRatio = ratioQuery();
+                if (upscaleRatio <= 0.0f)
+                    return 0.0f; // not cached; allow retry
+                return cache = 1.0f / upscaleRatio;
+            }
+
+            // FSR keeps working below its recommended render scale but image quality degrades, so log an informational notice
+            // (never clamp the user's chosen scale). INFO severity matches the editor's HelpBox for this soft floor; hard
+            // [min,max] clamps warn instead. preUpscaleResolution reflects both Render Scale and hardware DRS
+            // (ScalableBufferManager), so this covers both.
+            public void NotifyIfBelowRecommendedRenderScale(UpscalingIO io)
+            {
+                bool dynamicResolution = io.dynamicResolution.HasValue;
+                float recommendedMinScale = dynamicResolution
+                    ? QueryRecommendedMinScale(m_dynamicMinScaleQuery, ref m_CachedScaleDynamic)
+                    : QueryRecommendedMinScale(m_staticMinScaleQuery, ref m_CachedScaleStatic);
+
+                if (recommendedMinScale <= 0.0f)
+                    return; // device provided no ratio
+
+                if (io.postUpscaleResolution.x <= 0.0f)
+                    return; // guard against a degenerate display size (early init / resize) before dividing
+
+                float scale = (float)io.preUpscaleResolution.x / io.postUpscaleResolution.x;
+                if (scale >= recommendedMinScale)
+                {
+                    m_LastNotifiedBelowScale = float.NaN; // at/above the recommendation: clear it so dropping below notifies again
+                    return;
+                }
+
+                float roundedScale = Mathf.Floor(scale * 100f + 0.5f) / 100f;
+                if (Mathf.Approximately(m_LastNotifiedBelowScale, roundedScale))
+                    return;
+
+                m_LastNotifiedBelowScale = roundedScale;
+
+                string mode = dynamicResolution ? "with dynamic resolution" : "at a fixed Render Scale";
+                Debug.Log(
+                    $"{m_tag} is rendering at Render Scale {scale:0.00} {mode}, below its recommended minimum of " +
+                    $"{recommendedMinScale:0.00} (beyond {m_tag}'s recommended maximum upscale ratio for this mode). {m_tag} still " +
+                    "runs, but image quality degrades at this scale. Raise Render Scale / dynamic resolution to stay at or " +
+                    "above the recommended minimum.");
+            }
+        }
+
+#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+
+        #endregion
     }
 }

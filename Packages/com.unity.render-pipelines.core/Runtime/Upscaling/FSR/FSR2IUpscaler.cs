@@ -79,7 +79,7 @@ public class FSR2UpscalerContext : PluginUpscalerContext<FSR2Context, FSR2Option
         }
         if (m_NativeContext == null)
         {
-            m_NativeContext = GraphicsDevice.device.CreateFeature(cmd, settings);
+            m_NativeContext = GraphicsDevice.device.CreateFSRUpscale2(cmd, settings);
             createdWithMaxRenderSize = requestedMaxRenderSize;
             createdWithFlags = settings.ffxFsrFlags;
         }
@@ -143,6 +143,10 @@ public class FSR2IUpscaler : AbstractUpscaler
     public FSR2IUpscaler()
     {
         m_FSR2Ready = CheckFSR2FeatureAvailable();
+
+        m_ResolutionSuggestion = new FSRUtils.ResolutionSuggestion("FSR2",
+            () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR2Quality.UltraPerformance),
+            () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR2Quality.Quality));
     }
 
     public override string name => upscalerName;
@@ -160,20 +164,8 @@ public class FSR2IUpscaler : AbstractUpscaler
 
     public override void CalculateJitter(int frameIndex, float upscaleRatio, out Vector2 jitter, out bool allowScaling)
     {
-        int numPhases = CalculateJitterPhaseCount(upscaleRatio);
-        int haltonIndex = (frameIndex % numPhases) + 1;
-        float x = HaltonSequence.Get(haltonIndex, 2) - 0.5f;
-        float y = HaltonSequence.Get(haltonIndex, 3) - 0.5f;
-        jitter = new Vector2(x, y);
         allowScaling = false;
-    }
-
-    static int CalculateJitterPhaseCount(float upscaleRatio)
-    {
-        const float basePhaseCount = 8.0f;
-        // Round half up, don't truncate: upscaleRatio is reconstructed as display/round(renderSize), so a clean preset
-        // (e.g. 1.5x) arrives slightly low (~1.497) and 8*1.497^2 = 17.93 would truncate to 17 instead of 18.
-        return Mathf.FloorToInt(basePhaseCount * upscaleRatio * upscaleRatio + 0.5f);
+        jitter = m_FSR2Ready ? FSRUtils.CalculateJitter(frameIndex, upscaleRatio) : Vector2.zero;
     }
 
     public override UpscalerResolutionInfo GetResolutionInfo(Vector2Int displayResolution, UpscalerOptions options)
@@ -200,79 +192,16 @@ public class FSR2IUpscaler : AbstractUpscaler
         }
 
         // Resolution- and mode-independent, so report it on both resolution-mode branches.
-        info.recommendedMinScale = GetRecommendedMinScale();
+        info.recommendedMinScale = m_ResolutionSuggestion.GetRecommendedMinScale();
         return info;
-    }
-
-    // FSR2's recommended minimum render scale: below it FSR2 still runs but quality degrades — advisory only, never clamped.
-    // Two bounds, because the recommended max upscale is tighter under dynamic resolution (~1.5x → ~0.667) than for static
-    // scaling (~3x → ~0.33). Each is cached on first success to avoid a per-frame P/Invoke; not cached on failure so a
-    // device-not-ready result can be retried.
-    float m_CachedRecommendedMinScale = -1f;        // static scaling; < 0 = not yet queried
-    float m_CachedRecommendedMinScaleDynamic = -1f; // dynamic resolution; < 0 = not yet queried
-
-    // Static-scaling floor: FSR2's largest upscale ratio (UltraPerformance).
-    float GetRecommendedMinScale() => RecommendedMinScaleFor(FSR2Quality.UltraPerformance, ref m_CachedRecommendedMinScale);
-
-    // Dynamic-resolution floor: FSR2's recommended ~1.5x max upscale (the Quality preset's ratio). See GPUOpen GDC 2022 presentation.
-    float GetRecommendedMinScaleForDynamicResolution() => RecommendedMinScaleFor(FSR2Quality.Quality, ref m_CachedRecommendedMinScaleDynamic);
-
-    float RecommendedMinScaleFor(FSR2Quality qualityMode, ref float cache)
-    {
-        if (cache >= 0f)
-            return cache;
-        if (!m_FSR2Ready || GraphicsDevice.device == null)
-            return 0f; // not cached; retry once ready
-        float upscaleRatio = GraphicsDevice.device.GetUpscaleRatioFromQualityMode(qualityMode);
-        if (upscaleRatio <= 0f)
-            return 0f; // not cached; allow retry
-        return cache = 1f / upscaleRatio;
-    }
-
-    // Last render scale (rounded to 2 decimals) we logged a notice for; NaN means none. Tracked so a sustained or
-    // jittering below-recommended scale logs once per distinct value instead of every frame.
-    float m_LastNotifiedBelowScale = float.NaN;
-
-    // FSR2 keeps working below its recommended render scale but image quality degrades, so log an informational notice
-    // (never clamp the user's chosen scale). INFO severity matches the editor's HelpBox for this soft floor; hard
-    // [min,max] clamps warn instead. preUpscaleResolution reflects both Render Scale and hardware DRS
-    // (ScalableBufferManager), so this covers both.
-    void NotifyIfBelowRecommendedRenderScale(UpscalingIO io)
-    {
-        bool dynamicResolution = io.dynamicResolution.HasValue;
-        float recommendedMinScale = dynamicResolution ? GetRecommendedMinScaleForDynamicResolution() : GetRecommendedMinScale();
-        if (recommendedMinScale <= 0f)
-            return; // device gave no ratio
-
-        if (io.postUpscaleResolution.x <= 0)
-            return; // guard against a degenerate display size (early init / resize) before dividing
-
-        float scale = (float)io.preUpscaleResolution.x / io.postUpscaleResolution.x;
-        if (scale >= recommendedMinScale)
-        {
-            m_LastNotifiedBelowScale = float.NaN; // at/above the recommendation: clear it so dropping below notifies again
-            return;
-        }
-
-        float roundedScale = Mathf.Floor(scale * 100f + 0.5f) / 100f;
-        if (Mathf.Approximately(m_LastNotifiedBelowScale, roundedScale))
-            return;
-        m_LastNotifiedBelowScale = roundedScale;
-
-        string mode = dynamicResolution ? "with dynamic resolution" : "at a fixed Render Scale";
-        Debug.Log(
-            $"FSR2 is rendering at Render Scale {scale:0.00} {mode}, below its recommended minimum of " +
-            $"{recommendedMinScale:0.00} (beyond FSR2's recommended maximum upscale ratio for this mode). FSR2 still " +
-            "runs, but image quality degrades at this scale. Raise Render Scale / dynamic resolution to stay at or " +
-            "above the recommended minimum.");
     }
 
     public override float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution)
     {
-        // AMDUnityPlugin should provide this value.
-        float xBias = Mathf.Log((float)preUpscaleResolution.x / postUpscaleResolution.x, 2f);
-        float yBias = Mathf.Log((float)preUpscaleResolution.y / postUpscaleResolution.y, 2f);
-        return Mathf.Min(xBias, yBias) - 1.0f;
+        if (!m_FSR2Ready)
+            return base.CalculateMipBias(preUpscaleResolution, postUpscaleResolution);
+
+        return FSRUtils.CalculateMipBias(preUpscaleResolution, postUpscaleResolution);
     }
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -293,42 +222,23 @@ public class FSR2IUpscaler : AbstractUpscaler
         }
 
         if (Debug.isDebugBuild)
-            NotifyIfBelowRecommendedRenderScale(io);
+            m_ResolutionSuggestion.NotifyIfBelowRecommendedRenderScale(io);
 
-        // describe output texture
-        TextureHandle outputColor;
-        {
-            TextureDesc inputDesc = io.cameraColor.GetDescriptor(renderGraph);
-            TextureDesc outputDesc = inputDesc;
-            outputDesc.width = io.postUpscaleResolution.x;
-            outputDesc.height = io.postUpscaleResolution.y;
-
-            outputDesc.format = GraphicsFormatUtility.GetLinearFormat(inputDesc.format);
-            outputDesc.msaaSamples = MSAASamples.None;
-            outputDesc.useMipMap = false;
-            outputDesc.autoGenerateMips = false;
-            outputDesc.useDynamicScale = false;
-            outputDesc.anisoLevel = 0;
-            outputDesc.discardBuffer = false;
-            outputDesc.enableRandomWrite = true; // compute shader resource
-            outputDesc.name = "_FSR2OutputTarget";
-            outputDesc.clearBuffer = false;
-            outputDesc.filterMode = FilterMode.Bilinear;
-            outputColor = renderGraph.CreateTexture(outputDesc);
-        }
+        TextureHandle outputColor = FSRUtils.CreateOutputTexture(renderGraph, io, "_FSR2OutputTarget");
 
         using (var builder = renderGraph.AddUnsafePass<FSR2GraphData>("FidelityFX Super Resolution 2", out FSR2GraphData passData, new ProfilingSampler("FSR2")))
         {
-            float motionVectorSign = io.motionVectorDirection == UpscalingIO.MotionVectorDirection.PreviousFrameToCurrentFrame ? -1.0f : 1.0f;
-            float motionVectorScaleX = io.motionVectorDomain == UpscalingIO.MotionVectorDomain.NDC ? io.motionVectorTextureSize.x : 1.0f;
-            float motionVectorScaleY = io.motionVectorDomain == UpscalingIO.MotionVectorDomain.NDC ? io.motionVectorTextureSize.y : 1.0f;
+            var currentOptions = io.options as FSR2Options;
+
+            bool enableSharpening = (currentOptions != null) ? currentOptions.enableSharpening : false;
+            float sharpness = (currentOptions != null) ? currentOptions.sharpness : 0.0f;
 
             // Filled every frame (cheap), but EnsureNativeContext only (re)creates the native context when the max render
             // size or init flags actually change (see those fields) — both rare, so this is not a per-frame reallocation.
             passData.upscalerContext = upscalerContext;
             {
                 bool displayResolutionMotionVectors = io.motionVectorTextureSize.x == io.postUpscaleResolution.x &&
-                                                       io.motionVectorTextureSize.y == io.postUpscaleResolution.y;
+                                                      io.motionVectorTextureSize.y == io.postUpscaleResolution.y;
                 passData.initSettings = new FSR2CommandInitializationData();
                 passData.initSettings.SetFlag(FfxFsr2InitializationFlags.EnableHighDynamicRange, io.hdrInput);
                 passData.initSettings.SetFlag(FfxFsr2InitializationFlags.EnableDisplayResolutionMotionVectors, displayResolutionMotionVectors);
@@ -343,35 +253,18 @@ public class FSR2IUpscaler : AbstractUpscaler
                 passData.initSettings.displaySizeHeight = (uint)io.postUpscaleResolution.y;
             }
 
-            // Per-frame execution data read from io.options, so live changes (e.g. sharpness) apply without recreating
-            // the context. Null-guarded only defensively; FSR2 always has framework-resolved options.
-            var currentOptions = io.options as FSR2Options;
-            passData.execData.enableSharpening = (currentOptions != null && currentOptions.enableSharpening) ? 1 : 0;
-            passData.execData.sharpness = currentOptions != null ? currentOptions.sharpness : 0f;
-            passData.execData.MVScaleX = motionVectorSign * motionVectorScaleX;
-            passData.execData.MVScaleY = motionVectorSign * motionVectorScaleY;
-            passData.execData.renderSizeWidth = (uint)io.preUpscaleResolution.x;
-            passData.execData.renderSizeHeight = (uint)io.preUpscaleResolution.y;
-            passData.execData.jitterOffsetX = io.subpixelJitter.x;
-            passData.execData.jitterOffsetY = io.subpixelJitter.y;
-            passData.execData.cameraNear = io.nearClipPlane;
-            passData.execData.cameraFar = io.farClipPlane;
-            passData.execData.cameraFovAngleVertical = 2.0f * (float)Math.PI * (1 / 360.0f) * io.fieldOfViewDegrees; // radians
-            passData.execData.preExposure = 1.0f; // Mathf.Clamp(io.preExposureValue, 0.20f, 2.0f); // clamp to a reasonable value to prevent ghosting
-            passData.execData.frameTimeDelta = io.deltaTime * 1000.0f; // in milliseconds
-            passData.execData.reset = io.resetHistory ? 1 : 0;
+            FSRUtils.PopulateExecutionData(ref passData.execData, io, io.subpixelJitter, enableSharpening, sharpness);
 
-            // Texture handles
             builder.UseTexture(io.cameraColor);
             builder.UseTexture(io.cameraDepth);
             builder.UseTexture(io.motionVectorColor);
             builder.UseTexture(outputColor, AccessFlags.Write);
+
             passData.colorInput = io.cameraColor;
             passData.depth = io.cameraDepth;
             passData.motionVectors = io.motionVectorColor;
             passData.colorOutput = outputColor;
 
-            // set render function
             builder.SetRenderFunc((FSR2GraphData data, UnsafeGraphContext ctx) =>
             {
                 CommandBuffer cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
@@ -391,7 +284,7 @@ public class FSR2IUpscaler : AbstractUpscaler
                     colorOutput = data.colorOutput,
                 };
 
-                GraphicsDevice.device.ExecuteFSR2(cmd, nativeContext, textureTable);
+                GraphicsDevice.device.ExecuteFSRUpscale2(cmd, nativeContext, textureTable);
             });
         }
 
@@ -402,6 +295,7 @@ public class FSR2IUpscaler : AbstractUpscaler
 
 #region DATA
     private bool m_FSR2Ready = false;
+    private FSRUtils.ResolutionSuggestion m_ResolutionSuggestion = null;
 #endregion
 }
 

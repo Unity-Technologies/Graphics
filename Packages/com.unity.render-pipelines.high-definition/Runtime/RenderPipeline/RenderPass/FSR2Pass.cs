@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Device = device;
         }
 
-        private static uint s_ExpectedDeviceVersion = 0x00;
+        private static uint s_ExpectedDeviceVersion = 0x01;
 
         private struct Fsr2ViewData
         {
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     settings.maxRenderSizeHeight  = viewData.outputRes.height;
                     settings.displaySizeWidth     = viewData.outputRes.width;;
                     settings.displaySizeHeight    = viewData.outputRes.height;;
-                    m_Fsr2Context = m_Device.CreateFeature(cmdBuffer, settings);
+                    m_Fsr2Context = m_Device.CreateFSRUpscale2(cmdBuffer, settings);
                 }
 
                 m_Data = viewData;
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     biasColorMask = biasColorMask
                 };
 
-                m_Device.ExecuteFSR2(cmdBuffer, m_Fsr2Context, textureTable);
+                m_Device.ExecuteFSRUpscale2(cmdBuffer, m_Fsr2Context, textureTable);
             }
 
             public void Cleanup(CommandBuffer cmdBuffer)

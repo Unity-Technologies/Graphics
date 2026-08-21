@@ -826,6 +826,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
 #endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            m_DebugDisplaySettings.amdDebugView.Reset();
+#endif
             HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
@@ -2377,6 +2380,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
+#endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            m_DebugDisplaySettings.amdDebugView.Update();
 #endif
 
             if (DebugManager.instance.isAnyDebugUIActive)

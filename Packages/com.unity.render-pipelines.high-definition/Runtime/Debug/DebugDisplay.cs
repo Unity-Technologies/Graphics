@@ -275,6 +275,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
 #endif
 
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+        internal UnityEngine.AMD.DebugView amdDebugView { get; } = new UnityEngine.AMD.DebugView();
+#endif
+
+
         /// <summary>
         /// Debug data.
         /// </summary>
@@ -2165,6 +2170,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             widgetList.Add(nvidiaDebugView.CreateWidget());
+#endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            widgetList.Add(amdDebugView.CreateWidget());
 #endif
 
             m_DebugRenderingItems = widgetList.ToArray();
