@@ -227,6 +227,74 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
+        public void UpdateMeshRenderer_DisabledAndOnlyTransformChanged_RendererStaysInWorld()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateMeshRendererGameObject(mesh, out var renderer);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererChangedList = new Object[] { renderer } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount());
+
+                renderer.enabled = false;
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererTransformChangedList = new Component[] { renderer } }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(),
+                    "A transform-only report should not re-evaluate registration. Disabling dispatches as a type change, so it arrives on the changed list, which UpdateMeshRenderer_DisabledAfterAdd_RendererIsRemoved covers.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        // Driven through the real ObjectDispatcher rather than a hand-built change set: the transform-only path
+        // relies on a mesh assignment being reported as a renderer change, and that guarantee is the dispatcher's.
+        [Test]
+        public void UpdateMeshRenderer_MeshClearedAndMovedInSameFrame_RendererIsRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var changeSource = new ObjectDispatcherChangeSource();
+            GameObject go = null;
+            try
+            {
+                go = CreateMeshRendererGameObject(mesh, out var renderer);
+                var meshFilter = renderer.GetComponent<MeshFilter>();
+
+                using (var collected = changeSource.CollectChanges())
+                    Update(env.Adapter, collected.WorldChangeSet, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The renderer should be in the world before the mesh is cleared.");
+
+                // Both in one frame, so the renderer lands on the transform list. Only the MeshFilter change can
+                // put it on the changed list, which is the propagation being tested.
+                meshFilter.sharedMesh = null;
+                go.transform.position = new Vector3(1f, 2f, 3f);
+
+                using (var collected = changeSource.CollectChanges())
+                    Update(env.Adapter, collected.WorldChangeSet, env.World);
+
+                Assert.AreEqual(0, env.World.GetInstanceCount(),
+                    "Clearing the mesh should remove the renderer even when it moved in the same frame.");
+            }
+            finally
+            {
+                changeSource.Dispose();
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
         public void UpdateMeshRenderer_ChangedTwice_RendererIsNotDuplicated()
         {
             var env = CreateEnvironmentOrIgnore();

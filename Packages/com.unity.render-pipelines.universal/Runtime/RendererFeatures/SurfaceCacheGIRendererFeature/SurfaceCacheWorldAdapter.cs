@@ -122,13 +122,13 @@ namespace UnityEngine.Rendering.Universal
             foreach (var component in transformChanged)
             {
                 var source = new MeshRendererSource((MeshRenderer)component);
-                _meshRenderers.Refresh(source, _sharedMaterials, world, true, _renderingLayerMaskFilter);
+                _meshRenderers.RefreshTransform(source, _sharedMaterials, world, _renderingLayerMaskFilter);
             }
 
             foreach (var component in changed)
             {
                 var source = new MeshRendererSource((MeshRenderer)component);
-                _meshRenderers.Refresh(source, _sharedMaterials, world, false, _renderingLayerMaskFilter);
+                _meshRenderers.Refresh(source, _sharedMaterials, world, _renderingLayerMaskFilter);
             }
 
             foreach (var entityId in destroyed)
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
                 _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
 
             foreach (var record in changed)
-                _entityInstances.Refresh(new EntityRecordSource(record), _sharedMaterials, world, false, _renderingLayerMaskFilter);
+                _entityInstances.Refresh(new EntityRecordSource(record), _sharedMaterials, world, _renderingLayerMaskFilter);
 
             foreach (var key in destroyed)
                 _entityInstances.TryRemove(key, _sharedMaterials, world);
@@ -382,8 +382,20 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            // transformOnly skips the material comparison, for refresh triggers known to only affect the transform.
-            public void Refresh(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, bool transformOnly, uint renderingLayerMaskFilter)
+            // Registration is not re-evaluated here. Everything the predicate reads dispatches as a type change,
+            // so it arrives on the changed list instead.
+            public void RefreshTransform(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, uint renderingLayerMaskFilter)
+            {
+                if (TryGetSlot(source.Key, out int slot))
+                {
+                    ApplyTransform(slot, source.LocalToWorld, world);
+                    return;
+                }
+
+                Refresh(source, sharedMaterials, world, renderingLayerMaskFilter);
+            }
+
+            public void Refresh(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, uint renderingLayerMaskFilter)
             {
                 var key = source.Key;
                 bool isRegistered = _slots.TryGetValue(key, out int slot);
@@ -414,7 +426,7 @@ namespace UnityEngine.Rendering.Universal
                 if (shouldAddToWorld)
                     AddToWorld(slot, source, mesh, sharedMaterials, world);
                 else if (shouldUpdateInWorld)
-                    UpdateInWorld(slot, source, mesh, transformOnly, sharedMaterials, world);
+                    UpdateInWorld(slot, source, mesh, sharedMaterials, world);
             }
 
             public void TryRemove(TKey key, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
@@ -435,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
 
                 foreach (var source in _reevaluateScratch)
                 {
-                    Refresh(source, sharedMaterials, world, false, renderingLayerMaskFilter);
+                    Refresh(source, sharedMaterials, world, renderingLayerMaskFilter);
                 }
 
                 _reevaluateScratch.Clear();
@@ -534,7 +546,7 @@ namespace UnityEngine.Rendering.Universal
                 _materialScratch.Clear();
             }
 
-            void UpdateInWorld(int slot, in TSource source, Mesh mesh, bool transformOnly, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            void UpdateInWorld(int slot, in TSource source, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
                 if (_meshes[slot] != mesh)
                 {
@@ -544,35 +556,31 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 Debug.Assert(mesh != null && mesh.vertexCount != 0);
+                Debug.Assert(_materialScratch.Count == 0);
+                var inputMats = source.GetMaterials(_materialScratch);
 
-                if (!transformOnly)
+                Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
+                ResolveMaterialIds(inputMats, inputMatIds);
+
+                bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
+                if (materialsChanged)
                 {
-                    Debug.Assert(_materialScratch.Count == 0);
-                    var inputMats = source.GetMaterials(_materialScratch);
+                    Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
+                    Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
+                    Span<uint> masks = stackalloc uint[mesh.subMeshCount];
+                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
-                    Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
-                    ResolveMaterialIds(inputMats, inputMatIds);
+                    world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
+                    world.UpdateInstanceMask(_handles[slot], masks);
 
-                    bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
-                    if (materialsChanged)
-                    {
-                        Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                        Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
-                        Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                        ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
+                    foreach (var matEntityId in _acquiredMaterialIds[slot])
+                        sharedMaterials.Release(matEntityId, world);
 
-                        world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
-                        world.UpdateInstanceMask(_handles[slot], masks);
-
-                        foreach (var matEntityId in _acquiredMaterialIds[slot])
-                            sharedMaterials.Release(matEntityId, world);
-
-                        _inputMaterialIds[slot] = inputMatIds.ToArray();
-                        _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
-                    }
-
-                    _materialScratch.Clear();
+                    _inputMaterialIds[slot] = inputMatIds.ToArray();
+                    _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
                 }
+
+                _materialScratch.Clear();
 
                 ApplyTransform(slot, source.LocalToWorld, world);
             }
