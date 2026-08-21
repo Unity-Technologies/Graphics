@@ -270,6 +270,120 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(DisplayStyle.Flex, emptyResultLabel.resolvedStyle.display);
         }
 
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Preserved_When_Changing_Sort()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Simple Loop");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+
+            var selectedBefore = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual("Simple Loop", selectedBefore.header);
+
+            GraphViewTemplateWindowHelpers.SortBy(window, "Order");
+            yield return null;
+
+            Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem,
+                "Selection should be restored after the sort completes.");
+            var selectedAfter = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual(selectedBefore.assetGuid, selectedAfter.assetGuid,
+                "Selection should follow the same template across a sort change, not stick to the old position.");
+        }
+
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Restored_After_Search_Is_Cleared()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Simple Loop");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+            var selectedBefore = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual("Simple Loop", selectedBefore.header);
+
+            // A search that filters out the selected template must not discard the selection.
+            m_SearchField.value = "*adbonly* zzz_no_such_template";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            m_SearchField.value = string.Empty;
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            var selectedAfter = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual(selectedBefore.assetGuid, selectedAfter.assetGuid,
+                "Selection should return to the chosen template once a search that filtered it out is cleared.");
+        }
+
+        [UnityTest, Explicit("Soak test: run explicitly by name, not in regular suites")]
+        [Description("Cycles select -> filter -> clear to shake out selection/scroll timing issues")]
+        [Timeout(30 * 60 * 1000)]
+        public IEnumerator Soak_Filter_Selection_Cycle()
+        {
+            const int k_Iterations = 1000;
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            var targets = new[] { "Head & Trail", "Empty VFX", "Simple Trail", "Firework" };
+
+            for (var i = 0; i < k_Iterations; i++)
+            {
+                var header = targets[i % targets.Length];
+                var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == header);
+                treeView.SetSelectionById(target.id);
+                yield return null;
+
+                m_SearchField.value = "*adbonly* Simple";
+                simulate.FrameUpdate();
+                yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+                yield return null;
+
+                m_SearchField.value = string.Empty;
+                simulate.FrameUpdate();
+                yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+                yield return null;
+
+                Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem,
+                    $"Iteration {i} ({header}): selection should be restored after the search is cleared.");
+                var restored = (GraphViewTemplateDescriptor)treeView.selectedItem;
+                Assert.AreEqual(header, restored.header,
+                    $"Iteration {i}: selection should return to the template selected before the search.");
+            }
+        }
+
+        [UnityTest, Description("Covers UUM-144963")]
+        public IEnumerator Search_Field_Keeps_Focus_On_Input()
+        {
+            m_SearchField.Focus();
+            yield return null;
+
+            m_SearchField.value = "*adbonly* S";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            var focused = window.rootVisualElement.focusController?.focusedElement as VisualElement;
+            Assert.IsTrue(focused != null && (focused == m_SearchField || m_SearchField.Contains(focused)),
+                "Search field should keep focus after typing yields results.");
+        }
+
+        [UnityTest, Description("Covers UUM-144972")]
+        public IEnumerator Template_Rows_Are_Not_Individually_Focusable()
+        {
+            yield return null;
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            var rows = treeView.Query<VisualElement>(className: "unity-tree-view__item").ToList();
+            Assert.IsNotEmpty(rows, "Expected realized tree rows to inspect.");
+
+            foreach (var row in rows)
+                Assert.IsFalse(row.focusable,
+                    "Template rows must not be individually focusable; keyboard focus and selection are owned by the tree.");
+        }
+
         [Test, Description("Covers UUM-143138")]
         public void Creating_From_A_Deleted_Template_Warns_And_Does_Not_Error()
         {
