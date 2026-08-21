@@ -47,7 +47,7 @@ GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inp
     materialFlags |= kMaterialFlagReceiveShadowsOff;
     #endif
 
-    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    #if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
     materialFlags |= kMaterialFlagSubtractiveMixedLighting;
     #endif
 
@@ -101,7 +101,7 @@ GBufferFragOutput PackGBuffersBRDFData(BRDFData brdfData, InputData inputData, h
     packedSpecular = 0.0.xxx;
     #endif
 
-    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    #if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
     materialFlags |= kMaterialFlagSubtractiveMixedLighting;
     #endif
 

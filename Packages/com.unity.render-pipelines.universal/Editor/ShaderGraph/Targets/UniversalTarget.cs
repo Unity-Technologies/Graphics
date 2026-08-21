@@ -2720,15 +2720,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         };
 
-        public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
-        {
-            displayName = "Mixed Lighting Subtractive",
-            referenceName = "_MIXED_LIGHTING_SUBTRACTIVE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
         public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
         {
             displayName = "Lightmap Shadow Mixing",

@@ -27,9 +27,12 @@ half3 SampleScreenSpaceGI(float2 pos)
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 
-// Renamed -> LIGHTMAP_SHADOW_MIXING
+// Legacy: _MIXED_LIGHTING_SUBTRACTIVE was an alias for (LIGHTMAP_SHADOW_MIXING && !SHADOWS_SHADOWMASK).
+// Derived both ways so shaders that still read or declare it keep working; nothing else should reference it.
 #if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
     #define _MIXED_LIGHTING_SUBTRACTIVE
+#elif defined(_MIXED_LIGHTING_SUBTRACTIVE) && !defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+    #define LIGHTMAP_SHADOW_MIXING 1
 #endif
 
 #if !defined(_REFLECTION_PROBE_BLENDING_KEYWORD_DECLARED) && !defined(_REFLECTION_PROBE_BLENDING)
@@ -635,7 +638,7 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
 {
-#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+#if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 }

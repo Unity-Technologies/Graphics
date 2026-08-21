@@ -1095,7 +1095,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for high quality soft shadows. </summary>
         public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
 
-        /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
+        /// <summary> Deprecated keyword, equivalent to LightmapShadowMixing without ShadowsShadowMask. Use those instead. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
 
         /// <summary> Keyword used for mixing lightmap shadows. </summary>
