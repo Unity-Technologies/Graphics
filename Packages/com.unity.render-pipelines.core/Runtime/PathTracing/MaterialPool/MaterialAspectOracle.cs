@@ -71,7 +71,7 @@ namespace UnityEngine.PathTracing.Core
             }
 
             // Otherwise, if the material only has an emissive color, we use that
-            if (mat.HasProperty(SID.EmissionColor))
+            if (mat.HasColor(SID.EmissionColor))
             {
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.Color, Color = ToFloat3(mat.GetColor(SID.EmissionColor)) };
             }
@@ -103,7 +103,7 @@ namespace UnityEngine.PathTracing.Core
         public static TransmissionDesc GetTransmission(Material mat)
         {
             // Full RGB transmission
-            bool hasRGBTransparencyTexture = mat.HasProperty(SID.TransparencyLm) && mat.GetTexture(SID.TransparencyLm) != null;
+            bool hasRGBTransparencyTexture = mat.HasTexture(SID.TransparencyLm) && mat.GetTexture(SID.TransparencyLm) != null;
             if (hasRGBTransparencyTexture)
             {
                 return new TransmissionDesc
@@ -117,7 +117,7 @@ namespace UnityEngine.PathTracing.Core
 
             // Alpha-only transmission, alpha from main texture (if exists)
             bool isOnTransparentQueue = mat.renderQueue >= (int)RenderQueue.AlphaTestRenderQueue && mat.renderQueue < (int)RenderQueue.OverlayRenderQueue;
-            bool hasMainTexture = MaterialHasPropertyWithFlag(mat, ShaderPropertyFlags.MainTexture) || mat.HasProperty(SID.MainTex);
+            bool hasMainTexture = MaterialHasPropertyWithFlag(mat, ShaderPropertyFlags.MainTexture) || mat.HasTexture(SID.MainTex);
             if (isOnTransparentQueue && hasMainTexture)
             {
                 return new TransmissionDesc
@@ -135,17 +135,17 @@ namespace UnityEngine.PathTracing.Core
 
         private static bool HasEmissionMap(Material mat)
         {
-            return (mat.HasProperty(SID.EmissionMap) && mat.GetTexture(SID.EmissionMap) != null)
-                && (!mat.HasProperty(SID.UseEmissiveMap) || mat.GetInt(SID.UseEmissiveMap) == 1);
+            return (mat.HasTexture(SID.EmissionMap) && mat.GetTexture(SID.EmissionMap) != null)
+                && (!mat.HasInt(SID.UseEmissiveMap) || mat.GetInt(SID.UseEmissiveMap) == 1);
         }
 
         public static float GetAlpha(Material mat)
         {
-            if (mat.HasProperty(SID.BaseColor))
+            if (mat.HasColor(SID.BaseColor))
             {
                 return mat.GetColor(SID.BaseColor).a;
             }
-            else if (mat.HasProperty(SID.Color))
+            else if (mat.HasColor(SID.Color))
             {
                 return mat.GetColor(SID.Color).a;
             }
@@ -169,16 +169,16 @@ namespace UnityEngine.PathTracing.Core
             if (!alphaTestQueue)
                 return false;
 
-            return mat.HasProperty(SID.Cutoff) || mat.HasProperty(SID.AlphaTestRef);
+            return mat.HasFloat(SID.Cutoff) || mat.HasFloat(SID.AlphaTestRef);
         }
 
         public static float GetAlphaCutoff(Material mat)
         {
-            if (mat.HasProperty(SID.Cutoff))
+            if (mat.HasFloat(SID.Cutoff))
             {
                 return mat.GetFloat(SID.Cutoff);
             }
-            else if (mat.HasProperty(SID.AlphaTestRef))
+            else if (mat.HasFloat(SID.AlphaTestRef))
             {
                 return mat.GetFloat(SID.AlphaTestRef);
             }
