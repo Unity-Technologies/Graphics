@@ -758,6 +758,7 @@ namespace UnityEngine.Experimental.Rendering
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
                 spaceWarpRightHandedNDC = xrRenderPass.spaceWarpRightHandedNDC,
+                skipFDMForFinalPasses   = xrRenderPass.skipFDMForFinalPasses,
                 xrSdkRenderPass         = xrRenderPass,
                 xrLayoutType            = layoutType,
                 uvScales                 = uvScales,

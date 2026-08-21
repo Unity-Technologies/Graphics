@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
+        internal bool skipFDMForFinalPasses;
         internal XRLayoutType xrLayoutType;
         internal Vector4 uvScales;
         internal Vector4 uvOffsets;
@@ -129,6 +130,13 @@ namespace UnityEngine.Experimental.Rendering
         /// > application is using the Vulkan graphics API.
         /// </remarks>
         public bool spaceWarpRightHandedNDC { get; private set; }
+
+        /// <summary>
+        /// When true, the Fragment Density Map (FDM) is not attached to the FinalBlit and UberPost passes.
+        /// Set by platform-specific XR features (e.g., Meta Quest) to allow the GPU driver to use Direct
+        /// rendering mode instead of Binning mode, reducing overhead from tile-incompatible post effects.
+        /// </summary>
+        public bool skipFDMForFinalPasses { get; private set; }
 
         /// <summary>
         /// If true, is the first pass of a xr camera
@@ -615,6 +623,7 @@ namespace UnityEngine.Experimental.Rendering
             motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
             hasMotionVectorPass = createInfo.hasMotionVectorPass;
             spaceWarpRightHandedNDC = createInfo.spaceWarpRightHandedNDC;
+            skipFDMForFinalPasses = createInfo.skipFDMForFinalPasses;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;

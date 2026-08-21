@@ -167,13 +167,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 AccessFlags targetAccessFlag = cameraData.isDefaultViewport && !outputsAlpha ? AccessFlags.WriteAll : AccessFlags.Write;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                bool passSupportsFoveation = (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0;
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
-                if (!cameraData.xr.isQuadViewInnerPass)
+                if (cameraData.xr.enabled)
                 {
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    // Disable foveated rendering in most cases since it doesn't provide a lot of benefit to a blit pass
+                    // Enable only when all the following conditions are false:
+                    //      - NonUniformRaster: FinalBlitPass is a screen-space pass, cannot apply to non-uniform renders
+                    //      - canFoveateIntermediatePasses: When intermediate passes cannot be foveated (because of dynamic resolution) we consider applying to FinalBlitPass instead
+                    //      - skipFDMForFinalPasses: XR plugin can request skipping foveation in final pass (better performance if Direct mode is achieved)
+                    bool passSupportsFoveation = (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0 && !cameraData.xrUniversal.canFoveateIntermediatePasses && !cameraData.xr.skipFDMForFinalPasses;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
                 }
 #endif
                 builder.SetRenderAttachment(passData.destination, 0, targetAccessFlag);
