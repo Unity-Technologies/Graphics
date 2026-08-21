@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.Universal
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
             bool divideEnvIntensityByPI, uint renderingLayerMaskFilter, SurfaceCacheWorld world)
         {
+            using var _ = k_WorldAdapterUpdateMarker.Auto();
+
             bool filterChanged = renderingLayerMaskFilter != _renderingLayerMaskFilter;
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
 
@@ -103,12 +105,19 @@ namespace UnityEngine.Rendering.Universal
                 world);
         }
 
-        static readonly Unity.Profiling.ProfilerMarker k_MeshRendererUpdateMarker = new("SurfaceCache.MeshRendererUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_WorldAdapterUpdateMarker = new("SurfaceCache.WorldAdapterUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_GameObjectInstanceUpdateMarker = new("SurfaceCache.GameObjectInstanceUpdate");
         static readonly Unity.Profiling.ProfilerMarker k_EntityInstanceUpdateMarker = new("SurfaceCache.EntityInstanceUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_GameObjectLightUpdateMarker = new("SurfaceCache.GameObjectLightUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_MaterialUpdateMarker = new("SurfaceCache.MaterialUpdate");
+        static readonly Unity.Profiling.ProfilerMarker k_EnvironmentUpdateMarker = new("SurfaceCache.EnvironmentUpdate");
+#if ENABLE_TERRAIN_MODULE
+        static readonly Unity.Profiling.ProfilerMarker k_GameObjectTerrainUpdateMarker = new("SurfaceCache.GameObjectTerrainUpdate");
+#endif
 
         void UpdateMeshRenderers(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
-            using var _ = k_MeshRendererUpdateMarker.Auto();
+            using var _ = k_GameObjectInstanceUpdateMarker.Auto();
 
             foreach (var component in transformChanged)
             {
@@ -143,6 +152,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_TERRAIN_MODULE
         void UpdateTerrains(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, IEnumerable<Object> terrainDataChanged, SurfaceCacheWorld world)
         {
+            using var _ = k_GameObjectTerrainUpdateMarker.Auto();
+
             Debug.Assert(_dirtyTerrainDataThisFrame.Count == 0);
 
             foreach (var obj in terrainDataChanged)
@@ -173,6 +184,8 @@ namespace UnityEngine.Rendering.Universal
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
             bool divideEnvIntensityByPI, SurfaceCacheWorld world)
         {
+            using var _ = k_EnvironmentUpdateMarker.Auto();
+
             float envIntensityMultiplier = divideEnvIntensityByPI ? 1.0f / Mathf.PI : 1.0f;
 
             switch (ambientMode)
@@ -205,6 +218,8 @@ namespace UnityEngine.Rendering.Universal
 
         void UpdateLights(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
+            using var _ = k_GameObjectLightUpdateMarker.Auto();
+
             foreach (var component in transformChanged)
                 _lights.Refresh((Light)component, world, _renderingLayerMaskFilter);
 
@@ -217,6 +232,8 @@ namespace UnityEngine.Rendering.Universal
 
         void UpdateMaterials(IEnumerable<Object> changed, SurfaceCacheWorld world)
         {
+            using var _ = k_MaterialUpdateMarker.Auto();
+
 #if UNITY_EDITOR
             _sharedMaterials.Update(world);
 #endif

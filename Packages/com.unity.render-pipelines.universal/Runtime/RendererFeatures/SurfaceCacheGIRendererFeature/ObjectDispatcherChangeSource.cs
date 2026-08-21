@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static readonly Unity.Profiling.ProfilerMarker k_CollectMarker = new("SurfaceCache.ObjectChangeCollection");
+        static readonly Unity.Profiling.ProfilerMarker k_CollectMarker = new("SurfaceCache.GameObjectChangeCollection");
 
         public ObjectDispatcherChangeSet CollectChanges()
         {
