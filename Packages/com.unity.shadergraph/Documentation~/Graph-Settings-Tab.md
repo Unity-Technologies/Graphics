@@ -38,6 +38,18 @@ Each graph target added in the list of **Active Targets** has its own set of pro
 | **Custom Editor GUI** | Renders a custom editor GUI in the Inspector window of the material. Enter the name of the GUI class in the field. For more information, refer to [Control material properties in the Inspector window](xref:um-writing-shader-display-types) and [Custom Editor block in ShaderLab reference](xref:um-sl-custom-editor). |
 | **Support VFX Graph** | Enables this shader graph to support the [Visual Effect Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest) to render particles.<br />**Note**: This option is only available for certain material types. |
 
+## Preprocessor Directives
+
+Use the **Preprocessor Directives** foldout to add **Pragmas**, **Local Defines**, and **Graph Includes** to the shader. This section is not available in [sub graphs](Sub-graph.md).
+
+| Property | Description |
+| :--- | :--- |
+| **Pragmas** | A list of pragma directives to add to the shader. Enter what comes after `#pragma`, for example `enable_debug_symbols`. For more information, refer to [HLSL pragma directives reference](xref:um-sl-pragma-directives). |
+| **Local Defines** | A list of `#define` directives to add to the shader. Enter what comes after `#define`, for example `_DEBUG` or `MAX_STEPS 32`. Toggle the checkbox next to a define to include it in or exclude it from the shader, without removing it from the list. For more information, refer to [Pass information to shader compilers in HLSL](xref:um-writing-shader-programs-pragma-directives). |
+| **Graph Includes** | A list of HLSL files to include in the shader. Toggle **with pragmas** to also include any pragma directives defined in the file. For more information, refer to [Reuse HLSL code](xref:um-writing-shader-include-shader-program). |
+
+For more information and examples, refer to [Preprocessor directives in Graph Settings](https://discussions.unity.com/t/preprocessor-directives-in-graph-settings/1719940).
+
 ## Additional resources
 
 - [Precision Modes](Precision-Modes.md)
