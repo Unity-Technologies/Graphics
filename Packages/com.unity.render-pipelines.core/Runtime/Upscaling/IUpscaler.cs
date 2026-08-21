@@ -149,6 +149,24 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// The texture component from which an upscaler retrieves the reactive mask information.
+    /// </summary>
+    public enum ReactiveMaskSource
+    {
+        /// <summary>
+        /// The upscaler does not require reactive mask.
+        /// </summary>
+        None,
+        /// <summary>
+        /// The upscaler reads reactive mask from color components.
+        /// </summary>
+        Color,
+        /// <summary>
+        /// The upscaler reads reactive mask from stencil component.
+        /// </summary>
+        Stencil,
+    }
 
     /// <summary>
     /// Defines the essential contract for any upscaling technology.
@@ -183,6 +201,11 @@ namespace UnityEngine.Rendering
         /// resolution (e.g. STP, spatial filters), which is equivalent to <see cref="UpscalerResolutionMode.CustomScaling"/>.
         /// </summary>
         bool hasQualityMode { get; }
+
+        /// <summary>
+        /// Returns the type of reactive mask that the upscaler requires.
+        /// </summary>
+        ReactiveMaskSource reactiveMaskSource { get; }
         #endregion
 
         #region METHODS
@@ -269,6 +292,9 @@ namespace UnityEngine.Rendering
 
         /// <inheritdoc cref="IUpscaler.hasQualityMode"/>
         public virtual bool hasQualityMode => false;
+
+        /// <inheritdoc cref="IUpscaler.reactiveMaskSource"/>
+        public virtual ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.None;
 
         /// <inheritdoc cref="IUpscaler.CreateContext(UpscalerOptions, Vector2Int)"/>
         public virtual IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution) => null;
@@ -481,6 +507,7 @@ namespace UnityEngine.Rendering
         private TextureHandle m_CameraDepth;
         private TextureHandle m_MotionVectorColor;
         private TextureHandle m_ExposureTexture;
+        private TextureHandle m_ReactiveMask;
         private Vector2Int m_PreUpscaleResolution;
         private Vector2Int m_MaxPreUpscaleResolution;
         private Vector2Int m_PreviousPreUpscaleResolution;
@@ -560,6 +587,15 @@ namespace UnityEngine.Rendering
         {
             get { return m_ExposureTexture; }
             set { m_ExposureTexture = value; }
+        }
+
+        /// <summary>
+        /// The texture containing reactive mask data.
+        /// </summary>
+        public TextureHandle reactiveMask
+        {
+            get { return m_ReactiveMask; }
+            set { m_ReactiveMask = value; }
         }
 
         /// <summary>
@@ -978,6 +1014,7 @@ namespace UnityEngine.Rendering
             cameraDepth = TextureHandle.nullHandle;
             motionVectorColor = TextureHandle.nullHandle;
             exposureTexture = TextureHandle.nullHandle;
+            reactiveMask = TextureHandle.nullHandle;
             preUpscaleResolution = new();
             maxPreUpscaleResolution = new();
             previousPreUpscaleResolution = new();

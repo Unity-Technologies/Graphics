@@ -337,6 +337,18 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _ssrTexture;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        /// <summary>
+        /// Copy of camera color before post processing is executed.
+        /// </summary>
+        internal TextureHandle cameraColorBeforePP
+        {
+            get => CheckAndGetTextureHandle(ref _cameraColorBeforePP);
+            set => CheckAndSetTextureHandle(ref _cameraColorBeforePP, value);
+        }
+        private TextureHandle _cameraColorBeforePP;
+#endif
+
         /// <summary>
         /// STP debug visualization written to by the STP upscaler.
         /// </summary>
@@ -381,6 +393,9 @@ namespace UnityEngine.Rendering.Universal
             _ssaoTexture = TextureHandle.nullHandle;
             _irradianceTexture = TextureHandle.nullHandle;
             _ssrTexture = TextureHandle.nullHandle;
+#if ENABLE_UPSCALER_FRAMEWORK
+            _cameraColorBeforePP = TextureHandle.nullHandle;
+#endif
             _stpDebugView = TextureHandle.nullHandle;
             _destinationCameraColor = TextureHandle.nullHandle;
 

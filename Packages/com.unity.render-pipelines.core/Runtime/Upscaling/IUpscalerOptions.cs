@@ -46,6 +46,36 @@ namespace UnityEngine.Rendering
             set => m_ResolutionMode = value;
         }
 
+        /// <summary>
+        /// Reactive mask generation pass is executed only if current upscaler supports reactive mask and this option is true.
+        /// </summary>
+        public bool enableReactiveMaskPass => m_EnableReactiveMaskPass;
+
+        /// <summary>
+        /// Use max difference among R, G, B channels instead of length of delta of (R, G, B) when calculating reactivity.
+        /// </summary>
+        public bool reactiveMaskUseComponentMax => m_ReactiveMaskUseComponentMax;
+
+        /// <summary>
+        /// Scale factor for reactive mask values. It is applied before thresholding.
+        /// </summary>
+        public float reactiveMaskScale => m_ReactiveMaskScale;
+
+        /// <summary>
+        /// Set reactive mask value to zero or Reactive Mask Binary Value given the threshold.
+        /// </summary>
+        public bool applyReactiveMaskThreshold => m_ApplyReactiveMaskThreshold;
+
+        /// <summary>
+        /// Determines the threshold value for reactive mask values.
+        /// </summary>
+        public float reactiveMaskThreshold => m_ReactiveMaskThreshold;
+
+        /// <summary>
+        /// The value that reactive mask will have if it passes the threshold.
+        /// </summary>
+        public float reactiveMaskBinaryValue => m_ReactiveMaskBinaryValue;
+
         [SerializeField, HideInInspector]
         private string m_UpscalerName = "";
 
@@ -57,6 +87,30 @@ namespace UnityEngine.Rendering
                  "Mode), or driven by the pipeline's own render scaling / dynamic resolution (Custom Scaling). " +
                  "Ignored by upscalers without a quality mode.")]
         private UpscalerResolutionMode m_ResolutionMode = UpscalerResolutionMode.QualityMode;
+
+        [SerializeField]
+        [Tooltip("Execute reactive mask generation pass if current upscaler supports reactive mask.")]
+        private bool m_EnableReactiveMaskPass = true;
+
+        [SerializeField]
+        [Tooltip("Use max difference among R, G, B channels instead of length of delta of (R, G, B) when calculating reactivity. This option is applied before thresholding.")]
+        private bool m_ReactiveMaskUseComponentMax = false;
+
+        [SerializeField]
+        [Tooltip("Scale factor for reactive mask values. This option is applied before thresholding.")]
+        private float m_ReactiveMaskScale = 1.0f;
+
+        [SerializeField]
+        [Tooltip("Set reactive mask value to zero or Reactive Mask Binary Value given the threshold.")]
+        private bool m_ApplyReactiveMaskThreshold = false;
+
+        [SerializeField]
+        [Tooltip("Determines the threshold value for reactive mask values.")]
+        private float m_ReactiveMaskThreshold = 0.2f;
+
+        [SerializeField]
+        [Tooltip("The value that reactive mask will have if it passes the threshold.")]
+        private float m_ReactiveMaskBinaryValue = 1.0f;
 
 #if UNITY_EDITOR
         /// <summary>

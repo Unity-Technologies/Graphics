@@ -71,6 +71,7 @@ public class STPIUpscaler : AbstractUpscaler
 
     public override bool isTemporal => true;
     public override bool supportsSharpening => true;
+    public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Stencil;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
     {
@@ -132,10 +133,16 @@ public class STPIUpscaler : AbstractUpscaler
             config.nearPlane = io.nearClipPlane;
             config.farPlane = io.farClipPlane;
 
-            // TODO (Apoorva): Support stencil masking. URP doesn't support this, HDRP does. We should add support for
-            // both.
-            config.inputStencil = TextureHandle.nullHandle;
-            config.stencilMask = 0;
+            if (io.reactiveMask.IsValid())
+            {
+                config.inputStencil = io.reactiveMask;
+                config.stencilMask = 0x1;
+            }
+            else
+            {
+                config.inputStencil = TextureHandle.nullHandle;
+                config.stencilMask = 0;
+            }
 
             // TODO (Apoorva): Add support for debug views.
             config.debugView = TextureHandle.nullHandle;
