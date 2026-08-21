@@ -1,10 +1,8 @@
 # Output Advanced Contexts reference
 
-Render particles as decals or volumetric fog for specialized effects.
+Explore specialized Contexts for advanced particle rendering, such as decals and volumetric effects.
 
-These Contexts require specific render pipeline support (URP or HDRP) and cover more specialized rendering needs than the basic outputs.
-
-| **Topic** | **Description** |
+| **Page** | **Description** |
 | --- | --- |
 | [Output Distortion Context](Context-OutputDistortion.md) | In HDRP, use distortion to simulate effects like heat haze from fire. Covers the **Output Particle Distortion Mesh** variant. |
 | [Output Particle HDRP Lit Decal Context](Context-OutputParticleHDRPLitDecal.md) | Use a decal to render a particle system in the High Definition Render Pipeline (HDRP). |

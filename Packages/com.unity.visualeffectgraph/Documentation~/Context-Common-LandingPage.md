@@ -1,10 +1,8 @@
 # Common Contexts reference
 
-Spawn particles, set their starting values, and update them each frame.
+Explore the core Contexts you use to build the spawn-to-render lifecycle of a particle system.
 
-These Contexts form the core simulation loop that every particle system relies on, regardless of how the particles are rendered.
-
-| **Topic** | **Description** |
+| **Page** | **Description** |
 | --- | --- |
 | [Initialize Particle Context](Context-Initialize.md) | Process an event and initialize new particle elements. |
 | [Spawn Context](Context-Spawn.md) | Control the spawn rate of particles, or create a custom spawning behavior. |
