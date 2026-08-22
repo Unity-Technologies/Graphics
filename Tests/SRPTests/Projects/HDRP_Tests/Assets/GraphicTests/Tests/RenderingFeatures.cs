@@ -126,6 +126,18 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor,
             GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
         )]
+        [IgnoreGraphicsTest(
+            "9301_MotionVectorsOff-Forward-Static",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOff-Deffered-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12
+        )]
         [TestNotSupportedOn(
             "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
             "Not XR compatible",
