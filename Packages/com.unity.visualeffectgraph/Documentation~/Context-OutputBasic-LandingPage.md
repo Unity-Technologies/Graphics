@@ -1,10 +1,8 @@
 # Output Basic Contexts reference
 
-Render particles as meshes, quads, triangles, or octagons.
+Explore the most commonly used Contexts for rendering particles.
 
-These are the most commonly used output Contexts and cover the majority of everyday particle rendering needs.
-
-| **Topic** | **Description** |
+| **Page** | **Description** |
 | --- | --- |
 | [Output Particle Mesh Context](Context-OutputParticleMesh.md) | Render particles as meshes. |
 | [Output Particle Primitive Context](Context-OutputPrimitive.md) | Render particles as lit quads, triangles, or octagons. |

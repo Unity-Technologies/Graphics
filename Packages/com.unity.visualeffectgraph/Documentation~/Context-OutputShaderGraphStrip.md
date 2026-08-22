@@ -1,6 +1,6 @@
-# Output Particle ShaderGraph Strip Context
+# Output ParticleStrip ShaderGraph Context
 
-Menu Path : **Context** > **Output Particle ShaderGraph Strip**
+Menu Path : **Context** > **Output ParticleStrip ShaderGraph**
 
 [!include[](Snippets/Context-OutputShaderGraph-InlineIntro.md)]
 
