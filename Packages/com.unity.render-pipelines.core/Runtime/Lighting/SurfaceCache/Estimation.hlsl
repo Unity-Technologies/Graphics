@@ -57,16 +57,14 @@ void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1>
     SphericalHarmonics::CosineConvolve(radianceSample);
 
     PatchUtil::PatchStatisticsSet oldStats = patchStatistics[patchIdx];
-    const uint oldUpdateCount = PatchUtil::GetUpdateCount(oldStats.counters);
-    const uint newUpdateCount = min(oldUpdateCount + 1, PatchUtil::updateMax);
-
+    const uint newUpdateCount = min(oldStats.updateCount + 1, PatchUtil::updateMax);
     const SphericalHarmonics::RGBL1 oldIrradiance = patchIrradiances[patchIdx];
 
     float shortIrradianceUpdateWeight;
-    if (oldUpdateCount == 0)
+    if (oldStats.updateCount == 0)
         shortIrradianceUpdateWeight = 0;
     else
-        shortIrradianceUpdateWeight = min(1.0f - rcp(oldUpdateCount), shortHysteresis);
+        shortIrradianceUpdateWeight = min(1.0f - rcp(oldStats.updateCount), shortHysteresis);
 
     const float3 newL0ShortIrradiance = lerp(radianceSample.l0, oldStats.mean, shortIrradianceUpdateWeight);
     const float3 varianceSample = (radianceSample.l0 - newL0ShortIrradiance) * (radianceSample.l0 - oldStats.mean);
@@ -76,12 +74,9 @@ void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1>
 
     patchIrradiances[patchIdx] = output;
 
-    PatchUtil::PatchStatisticsSet newStats;
-    newStats.mean = newL0ShortIrradiance;
-    newStats.variance = newVariance;
-    newStats.counters = oldStats.counters;
-    PatchUtil::SetUpdateCount(newStats.counters, newUpdateCount);
-    patchStatistics[patchIdx] = newStats;
+    patchStatistics[patchIdx].mean = newL0ShortIrradiance;
+    patchStatistics[patchIdx].variance = newVariance;
+    patchStatistics[patchIdx].updateCount = newUpdateCount;
 }
 
 void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sampleRadiance, float3 sampleDirection)
@@ -277,7 +272,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
     bool enablePatchAllocation;
     if (_BouncePatchAllocation)
-        enablePatchAllocation = (PatchUtil::GetRank(_PatchStatistics[patchIdx].counters) == 0);
+        enablePatchAllocation = (PatchUtil::GetRank(_PatchStatistics[patchIdx].requestState) == 0);
     else
         enablePatchAllocation = false;
 

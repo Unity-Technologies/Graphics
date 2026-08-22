@@ -61,7 +61,7 @@ SphericalHarmonics::RGBL1 ResolveIrradianceAndRankCheck(StructuredBuffer<Spheric
     if (PatchUtil::HasValidPatchIndex(result))
     {
         // rank used to exclude patches that are not visible from the camera to reduce leaking
-        if (PatchUtil::GetRank(_PatchStatistics[PatchUtil::GetPatchIndex(result)].counters) == 0)
+        if (PatchUtil::GetRank(_PatchStatistics[PatchUtil::GetPatchIndex(result)].requestState) == 0)
             irradiance = patchIrradiances[PatchUtil::GetPatchIndex(result)];
     }
     else if (result.patchIdxOrCode == PatchUtil::patchIndexLookupCodeOutsideVolume && distanceFallback)

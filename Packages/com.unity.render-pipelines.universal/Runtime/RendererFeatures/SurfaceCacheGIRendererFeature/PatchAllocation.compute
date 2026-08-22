@@ -151,10 +151,10 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
         if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeLookup)
         {
             // Visible this frame: refresh keep-alive and force rank 0 so bounce-spawned patches can trigger bounce alloc.
-            PatchUtil::PatchCounterSet counters = _PatchStatistics[resolutionResult.patchIdx].counters;
-            PatchUtil::SetRank(counters, 0);
-            PatchUtil::SetHeartbeat(counters, _FrameIdx);
-            _PatchStatistics[resolutionResult.patchIdx].counters = counters;
+            PatchUtil::PatchRequestState reqState = _PatchStatistics[resolutionResult.patchIdx].requestState;
+            PatchUtil::SetRank(reqState, 0);
+            PatchUtil::SetHeartbeat(reqState, _FrameIdx);
+            _PatchStatistics[resolutionResult.patchIdx].requestState = reqState;
         }
         else if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeAllocationSuccess)
         {
@@ -163,78 +163,42 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
             if (_FrameIdx != 0)
             {
+                const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
+                float2 reprojectedThreadUvPos = threadUvPos;
                 if (_UseMotionVectorSeeding)
+                    reprojectedThreadUvPos -= _CurrentFullResScreenMotionVectors[fullResPixelPos];
+                if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
                 {
-                    const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
-                    float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[fullResPixelPos];
-                    if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
+                    const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
+                    const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;
+                    const float seedNdcDepth = _PreviousLowResScreenNdcDepths[seedLowResPixelPos];
+
+                    if (seedNdcDepth != invalidNdcDepth)
                     {
-                        const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
-                        const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;
-                        const float seedNdcDepth = _PreviousLowResScreenNdcDepths[seedLowResPixelPos];
-
-                        if (seedNdcDepth != invalidNdcDepth)
+                        const float2 seedFullResUvPos = PixelPosToUvPos(seedLowResPixelPos * lowResScreenScaling, rcpFullResScreenSize);
+                        const float3 seedWorldPosition = ComputeWorldSpacePosition(seedFullResUvPos, seedNdcDepth, _PreviousClipToWorldTransform);
+                        const float voxelSize = PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, patchPosResolution.cascadeIdx);
+                        const float patchPlaneToSeedPositionDistance = dot(sourceWorldFlatNormal, seedWorldPosition - sourceWorldPosition);
+                        if (patchPlaneToSeedPositionDistance < voxelSize)
                         {
-                            const float2 seedFullResUvPos = PixelPosToUvPos(seedLowResPixelPos * lowResScreenScaling, rcpFullResScreenSize);
-                            const float3 seedWorldPosition = ComputeWorldSpacePosition(seedFullResUvPos, seedNdcDepth, _PreviousClipToWorldTransform);
-                            const float voxelSize = PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, patchPosResolution.cascadeIdx);
-                            const float patchPlaneToSeedPositionDistance = dot(sourceWorldFlatNormal, seedWorldPosition - sourceWorldPosition);
-                            if (patchPlaneToSeedPositionDistance < voxelSize)
-                            {
-                                irradianceSeed = IrradianceCompression::LoadAndDecompress(
-                                    _PreviousLowResScreenIrradiancesL0,
-                                    _PreviousLowResScreenIrradiancesL10,
-                                    _PreviousLowResScreenIrradiancesL11,
-                                    _PreviousLowResScreenIrradiancesL12,
-                                    seedLowResPixelPos);
+                            irradianceSeed = IrradianceCompression::LoadAndDecompress(
+                                _PreviousLowResScreenIrradiancesL0,
+                                _PreviousLowResScreenIrradiancesL10,
+                                _PreviousLowResScreenIrradiancesL11,
+                                _PreviousLowResScreenIrradiancesL12,
+                                seedLowResPixelPos);
 
-                                if (PatchUtil::IsValid(irradianceSeed))
-                                    patchUpdateCount = PatchUtil::updateMax / 2;
-                                #ifdef SEED_DEBUGGING
-                                else
-                                {
-                                    irradianceSeed = (SphericalHarmonics::RGBL1)0;
-                                    patchUpdateCount = PatchUtil::updateMax;
-                                    irradianceSeed.l0 = float3(10, 0, 0);
-                                }
-                                #endif
-                            }
-                            #ifdef SEED_DEBUGGING
-                            else
-                            {
-                                patchUpdateCount = PatchUtil::updateMax;
-                                irradianceSeed.l0 = float3(0, 0, 10);
-                            }
-                            #endif
+                            if (PatchUtil::IsValid(irradianceSeed))
+                                patchUpdateCount = PatchUtil::updateMax / 2;
                         }
                     }
                 }
-                else
-                {
-                    irradianceSeed = IrradianceCompression::LoadAndDecompress(
-                        _PreviousLowResScreenIrradiancesL0,
-                        _PreviousLowResScreenIrradiancesL10,
-                        _PreviousLowResScreenIrradiancesL11,
-                        _PreviousLowResScreenIrradiancesL12,
-                        lowResPixelPos);
-
-                    if (PatchUtil::IsValid(irradianceSeed))
-                        patchUpdateCount = PatchUtil::updateMax / 2;
-                }
-                #ifdef SEED_DEBUGGING
-                // For debugging: Add color to unseeded patches.
-                if (PatchUtil::GetUpdateCount(counterSet) == 0)
-                {
-                    patchUpdateCount = PatchUtil::updateMax;
-                    irradianceSeed.l0 = float3(0, 10, 0);
-                }
-                #endif
             }
 
             _PatchIrradiances0[resolutionResult.patchIdx] = irradianceSeed;
             _PatchIrradiances1[resolutionResult.patchIdx] = irradianceSeed;
             PatchUtil::PatchStatisticsSet stats = PatchUtil::InitPatchStatistics(irradianceSeed.l0, _FrameIdx, 0);
-            PatchUtil::SetUpdateCount(stats.counters, patchUpdateCount);
+            stats.updateCount = patchUpdateCount;
             _PatchStatistics[resolutionResult.patchIdx] = stats;
         }
     }

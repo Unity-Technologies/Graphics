@@ -70,11 +70,11 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             }
             else
             {
-                output = PatchUtil::GetRank(_PatchStatistics[patchIdx].counters) == 0 ? green : yellow;
+                output = PatchUtil::GetRank(_PatchStatistics[patchIdx].requestState) == 0 ? green : yellow;
                 if (pixelPosYPercentage < statusBarHeightPercentage * 0.5f)
                 {
                     PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
-                    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.counters));
+                    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.requestState));
                     output *= 1.0f - float(framesSinceHeartbeat) / float(PatchUtil::evictionThreshold);
                 }
             }
@@ -189,8 +189,7 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             {
                 if (hasPatch)
                 {
-                    const PatchUtil::PatchCounterSet counterSet = _PatchStatistics[patchIdx].counters;
-                    const uint updateCount = PatchUtil::GetUpdateCount(counterSet);
+                    const uint updateCount = _PatchStatistics[patchIdx].updateCount;
                     const float s = float(updateCount) / PatchUtil::updateMax;
                     const float3 redGreenMix = lerp(red, green, s);
                     const float3 checker = UintToFloat01(LowBiasHash32(cellIdx, 0)); // To make cells visible.

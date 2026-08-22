@@ -25,7 +25,7 @@ void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
     const SphericalHarmonics::RGBL1 oldIrradiance = _InputOutputPatchIrradiances[patchIdx];
 
     const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
-    const uint updateCount = PatchUtil::GetUpdateCount(_PatchStatistics[patchIdx].counters);
+    const uint updateCount = _PatchStatistics[patchIdx].updateCount;
     SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(_ShortHysteresis, updateCount, stats.variance, stats.mean, newIrradiance, oldIrradiance);
 
     _InputOutputPatchIrradiances[patchIdx] = output;

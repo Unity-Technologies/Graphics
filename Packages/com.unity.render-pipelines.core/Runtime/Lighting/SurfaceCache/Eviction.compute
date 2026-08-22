@@ -26,7 +26,7 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
 
     PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
 
-    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.counters));
+    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.requestState));
 
     if (PatchUtil::evictionThreshold < framesSinceHeartbeat)
     {
@@ -34,10 +34,10 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
         // first demoted to rank 1, then later they are evicted.
         // If Bounce Patch Allocation is disabled we go directly to
         // eviction.
-        if (_BouncePatchAllocation && PatchUtil::GetRank(stats.counters) == 0)
+        if (_BouncePatchAllocation && PatchUtil::GetRank(stats.requestState) == 0)
         {
-            PatchUtil::SetRank(stats.counters, 1);
-            PatchUtil::SetHeartbeat(stats.counters, _FrameIdx);
+            PatchUtil::SetRank(stats.requestState, 1);
+            PatchUtil::SetHeartbeat(stats.requestState, _FrameIdx);
             _PatchStatistics[patchIdx] = stats;
         }
         else

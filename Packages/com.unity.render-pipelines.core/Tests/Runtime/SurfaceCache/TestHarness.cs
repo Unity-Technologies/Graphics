@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.Tests
     {
         public Vector3 mean;
         public Vector3 variance;
-        public uint counters;
+        public uint updateCount;
+        public uint requestState;
     }
 
     internal sealed class TestHarness : IDisposable

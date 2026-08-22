@@ -537,11 +537,11 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
                 }
                 else
                 {
-                    PatchUtil::PatchCounterSet counters = patchStatistics[bouncePatchIndex].counters;
-                    if (PatchUtil::GetRank(counters) == 1)
+                    PatchUtil::PatchRequestState reqState = patchStatistics[bouncePatchIndex].requestState;
+                    if (PatchUtil::GetRank(reqState) == 1)
                     {
-                        PatchUtil::SetHeartbeat(counters, frameIndex);
-                        patchStatistics[bouncePatchIndex].counters = counters;
+                        PatchUtil::SetHeartbeat(reqState, frameIndex);
+                        patchStatistics[bouncePatchIndex].requestState = reqState;
                     }
                 }
             }

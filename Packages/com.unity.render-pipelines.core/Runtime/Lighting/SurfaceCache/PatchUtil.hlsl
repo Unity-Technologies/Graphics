@@ -51,11 +51,11 @@ namespace PatchUtil
         float3 normal;
     };
 
-    struct PatchCounterSet
+    struct PatchRequestState
     {
         // Layout
-        // 0x000000FF: Update count.
-        // 0x0000FF00: Rank.
+        // 0x000000FF: Rank.
+        // 0x0000FF00: Unused.
         // 0xFFFF0000: Heartbeat.
         uint data;
     };
@@ -64,7 +64,8 @@ namespace PatchUtil
     {
         float3 mean;
         float3 variance;
-        PatchCounterSet counters;
+        uint updateCount;
+        PatchRequestState requestState;
     };
 
     struct VolumeParamSet
@@ -94,51 +95,41 @@ namespace PatchUtil
             modulo);
     }
 
-    void Reset(out PatchCounterSet set)
+    void Reset(out PatchRequestState state)
     {
-        set.data = 0;
+        state.data = 0;
     }
 
-    uint GetUpdateCount(PatchCounterSet set)
+    uint GetRank(PatchRequestState state)
     {
-        return set.data & 0xFF;
+        return state.data & 0xFF;
     }
 
-    uint GetRank(PatchCounterSet set)
+    uint GetHeartbeat(PatchRequestState state)
     {
-        return (set.data & 0xFF00) >> 8;
+        return state.data >> 16;
     }
 
-    void SetRank(inout PatchCounterSet set, uint rank)
+    void SetHeartbeat(inout PatchRequestState state, uint heartbeat)
     {
-        set.data = (rank << 8) | (set.data & 0xFFFF00FF);
+        state.data = (heartbeat << 16) | (state.data & 0xFFFF);
     }
 
-    uint GetHeartbeat(PatchCounterSet set)
+    void SetRank(inout PatchRequestState state, uint rank)
     {
-        return set.data >> 16;
+        state.data = rank | (state.data & 0xFFFFFF00);
     }
 
-    void SetUpdateCount(inout PatchCounterSet set, uint updateCount)
-    {
-        set.data = updateCount | (set.data & 0xFFFFFF00);
-    }
-
-    void SetHeartbeat(inout PatchCounterSet set, uint heartbeat)
-    {
-        set.data = (heartbeat << 16) | (set.data & 0xFFFF);
-    }
-
-    bool IsEqual(PatchCounterSet a, PatchCounterSet b)
+    bool IsEqual(PatchRequestState a, PatchRequestState b)
     {
         return a.data == b.data;
     }
 
     void UpdateHeartbeat(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
     {
-        PatchCounterSet counterSet = statisticsSets[patchIdx].counters;
-        SetHeartbeat(counterSet, frameIdx);
-        statisticsSets[patchIdx].counters = counterSet;
+        PatchRequestState reqState = statisticsSets[patchIdx].requestState;
+        SetHeartbeat(reqState, frameIdx);
+        statisticsSets[patchIdx].requestState = reqState;
     }
 
     float GetVoxelSize(float voxelMinSize, uint cascadeIdx)
@@ -445,10 +436,10 @@ namespace PatchUtil
         PatchStatisticsSet stats;
         stats.mean = irradianceSeed;
         stats.variance = 0;
-        Reset(stats.counters);
-        SetHeartbeat(stats.counters, frameIndex);
-        SetRank(stats.counters, rank);
-
+        stats.updateCount = 0;
+        Reset(stats.requestState);
+        SetHeartbeat(stats.requestState, frameIndex);
+        SetRank(stats.requestState, rank);
         return stats;
     }
 }
