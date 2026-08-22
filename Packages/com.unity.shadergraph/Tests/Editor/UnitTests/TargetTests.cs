@@ -274,6 +274,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
+#if ENABLE_CORECLR
+        [Explicit("MultiJson-serialized ShaderGraph written to disk fails to reimport on CoreCLR (JSON parse error: The document root must not follow by other values), so no Shader sub-assets are produced, see https://jira.unity3d.com/browse/UUM-150435")]
+#endif
         [Test]
         public void CanBuildMultipleShaders()
         {
