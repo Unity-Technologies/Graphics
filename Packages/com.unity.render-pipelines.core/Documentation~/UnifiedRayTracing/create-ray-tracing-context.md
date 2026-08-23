@@ -36,19 +36,19 @@ rtResources.Load();
 **Note:** Since the Player doesn't give access to the Asset Database, this method only works in the Editor.
 
 To load the [`RayTracingResources`](xref:UnityEngine.Rendering.UnifiedRayTracing.RayTracingResources) in the Player, you can also build an AssetBundle that includes the following SRP Core files:
-- Runtime/UnifiedRayTracing/Common/GeometryPool/GeometryPoolKernels.compute
-- Runtime/UnifiedRayTracing/Common/Utilities/CopyBuffer.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/copyPositions.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/bit_histogram.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/block_reduce_part.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/block_scan.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/build_hlbvh.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/restructure_bvh.compute
-- Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/scatter.compute
+- `Runtime/UnifiedRayTracing/Common/GeometryPool/GeometryPoolKernels.compute`
+- `Runtime/UnifiedRayTracing/Common/Utilities/CopyBuffer.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/copyPositions.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/bit_histogram.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/block_reduce_part.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/block_scan.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/build_hlbvh.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/restructure_bvh.compute`
+- `Runtime/UnifiedRayTracing/Compute/RadeonRays/kernels/scatter.compute`
 
-For more information about how to build and load AssetBundles, refer to [AssetBundles](xref:AssetBundlesIntro).
+For more information about building and loading AssetBundles, refer to [AssetBundles](xref:AssetBundlesIntro).
 
-Once the AssetBundle is built, you can load it using the following:
+After you build the AssetBundle, use the following code to load it:
 ```C# 
 var rtResources = new RayTracingResources();
 
