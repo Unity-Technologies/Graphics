@@ -121,11 +121,7 @@ namespace UnityEditor.VFX.UI
                     m_SourceController.RemoveElement(element);
                 }
 
-                foreach (var element in parameterNodeControllers)
-                {
-                    if (element.infos.linkedSlots == null || element.infos.linkedSlots.Count() == 0)
-                        m_SourceController.RemoveElement(element);
-                }
+                RemoveConvertedParameters(new HashSet<Controller>());
 
                 if (m_TargetController.useCount != 1)
                     Debug.LogError($"Controller for resource {m_TargetController.graph} is expected to be transient in convert to subgraph workflows.");
@@ -177,17 +173,37 @@ namespace UnityEditor.VFX.UI
                     m_SourceController.RemoveElement(element);
                 }
 
-                foreach (var element in parameterNodeControllers)
-                {
-                    if (element.infos.linkedSlots == null || element.infos.linkedSlots.Count() == 0)
-                        m_SourceController.RemoveElement(element);
-                }
+                RemoveConvertedParameters(nodeNotToDelete);
 
                 if (m_TargetController.useCount != 1)
                     Debug.LogError($"Controller for resource {m_TargetController.graph} is expected to be transient in convert to subgraph workflow.");
 
                 m_TargetController.useCount--;
                 m_SourceController.useCount--;
+            }
+
+            // Keep a parameter only if it still links to a node that stays in the source graph.
+            void RemoveConvertedParameters(HashSet<Controller> nodesToKeep)
+            {
+                var convertedNodes = new HashSet<Controller>(m_SourceControllersWithBlocks);
+
+                bool StaysInGraph(VFXNodeController node) => !convertedNodes.Contains(node) || nodesToKeep.Contains(node);
+
+                foreach (var element in parameterNodeControllers)
+                {
+                    bool linksToRemainingNode = false;
+
+                    foreach (var port in element.outputPorts)
+                        foreach (var connection in port.connections)
+                            linksToRemainingNode |= StaysInGraph(connection.input.sourceNode);
+
+                    foreach (var port in element.inputPorts)
+                        foreach (var connection in port.connections)
+                            linksToRemainingNode |= StaysInGraph(connection.output.sourceNode);
+
+                    if (!linksToRemainingNode)
+                        m_SourceController.RemoveElement(element);
+                }
             }
 
             void CopyPasteNodes()
@@ -432,12 +448,23 @@ namespace UnityEditor.VFX.UI
 
             void TransferEdges()
             {
-                for (int i = 0; i < m_TargetParameters.Count; ++i)
+                foreach (var targetParameter in m_TargetParameters)
                 {
-                    var input = m_SourceNodeController.inputPorts.First(t => t.model == m_SourceSlotContainer.inputSlots[i]);
-                    var output = m_SourceParameters[m_TargetParameters[i].exposedName].outputPorts.First();
+                    // Output parameters have no input slot; match input slots by name, not position.
+                    if (targetParameter.isOutput)
+                        continue;
 
-                    m_TargetController.CreateLink(input, output);
+                    var inputSlot = m_SourceSlotContainer.inputSlots.FirstOrDefault(t => t.name == targetParameter.exposedName);
+                    if (inputSlot == null)
+                        continue;
+
+                    var input = m_SourceNodeController.inputPorts.FirstOrDefault(t => t.model == inputSlot);
+                    if (input == null || !m_SourceParameters.TryGetValue(targetParameter.exposedName, out var sourceParameter))
+                        continue;
+
+                    var output = sourceParameter.outputPorts.FirstOrDefault();
+                    if (output != null)
+                        m_TargetController.CreateLink(input, output);
                 }
                 TransfertDataEdges();
             }
