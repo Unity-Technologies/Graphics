@@ -1,0 +1,80 @@
+Pass
+{
+    $splice(PassName)
+    Tags
+    {
+        $splice(LightMode)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    #define FILTER_SHADERGRAPH
+
+    // Defines
+    $Attributes.uv0:                        #define ATTRIBUTES_NEED_TEXCOORD0
+    $Attributes.rectIndex:                  #define ATTRIBUTES_NEED_TEXCOORD1
+    $Attributes.instanceID:                 #define ATTRIBUTES_NEED_INSTANCEID
+    $Attributes.vertexID:                   #define ATTRIBUTES_NEED_VERTEXID
+    $Varyings.texCoord0:                    #define VARYINGS_NEED_TEXCOORD0
+    $Varyings.instanceID:                   #define VARYINGS_NEED_INSTANCEID
+    $Varyings.vertexID:                     #define VARYINGS_NEED_VERTEXID
+    $features.graphVertex:                  #define FEATURES_GRAPH_VERTEX
+
+    $splice(GraphDefines)
+
+    $splice(PreGraphIncludes)
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+
+    // Graph Includes
+    $splice(GraphIncludes)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
+    $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
+
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
+
+    ENDHLSL
+}

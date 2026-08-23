@@ -17,7 +17,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(134, Extension, -902)]
+    [ScriptedImporter(135, Extension, -902)]
     [CoreRPHelpURL("Shader-Graph-Asset", "com.unity.shadergraph")]
     class ShaderGraphImporter : ScriptedImporter
     {
@@ -196,6 +196,19 @@ Shader ""Hidden/GraphErrorShader2""
                         // only the main shader gets a material created
                         Material material = new Material(shader) { name = primaryShaderName };
                         importContext.AddObjectToAsset("Material", material);
+
+                        // Gather import artifacts from targets.
+                        void AddImportArtifact(IHasImportArtifact provider)
+                        {
+                            var artifact = provider?.GetImportArtifact(graph, material, primaryShaderName);
+                            if (artifact != null)
+                                importContext.AddObjectToAsset(artifact.GetType().Name, artifact);
+                        }
+                        foreach (var activeTarget in graph.activeTargets)
+                        {
+                            AddImportArtifact(activeTarget as IHasImportArtifact);
+                            AddImportArtifact(activeTarget.activeSubTarget as IHasImportArtifact);
+                        }
 
                         first = false;
                     }
