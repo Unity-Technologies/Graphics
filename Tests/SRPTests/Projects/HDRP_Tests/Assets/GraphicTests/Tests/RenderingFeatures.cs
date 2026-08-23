@@ -138,6 +138,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor,
             GraphicsDeviceType.Direct3D12
         )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOff-DefferedDecal-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-150493",
+            RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
+        )]
         [TestNotSupportedOn(
             "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
             "Not XR compatible",
