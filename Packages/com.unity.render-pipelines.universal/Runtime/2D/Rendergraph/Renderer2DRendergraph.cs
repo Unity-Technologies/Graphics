@@ -85,11 +85,6 @@ namespace UnityEngine.Rendering.Universal
         PostProcess m_PostProcess;
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
         
-        // To read/write global shader variables at execute time,
-        // supporting both Persistent Constant Buffer mode and default SetGlobal() loose uniform path.
-        // Injected into the per-frame UniversalGlobalShaderData ContextItem.
-        GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
-
         // Temporary to ensure Unified Deformer works. Remove when Animation Package Lands.
         ComputeBuffer m_UnifiedDeform = null;
         internal ComputeBuffer unifiedDeform
@@ -847,8 +842,7 @@ namespace UnityEngine.Rendering.Universal
         void InitGlobalShaderVars(UniversalCameraData cameraData)
         {
             Universal2DGlobalShaderData shaderData = frameData.Create<Universal2DGlobalShaderData>();
-            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-            shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
+            shaderData.useConstantBuffers = UniversalRenderPipeline.usePersistentConstantBuffers;
 
             // Uploader will be available in RG execute timeline only.
             // We don't want users to modify the global shader variables in record timeline:
@@ -857,8 +851,9 @@ namespace UnityEngine.Rendering.Universal
             // We could provide a read-only version but it means reading a potential obsoleted value:
             // - [recording] pass B reads varA == 2 and takes some decisions based on that
             // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug            
-            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(is3D: false);
-            BuildGlobalShaderVariablesBase(cameraData, ref m_GlobalShaderVariablesUploader.m_DefaultVars.varsBase);
+            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only2D);
+            m_GlobalShaderVariablesUploader.BeginFill();
+            BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 
             // URP CB TIER 2 WIP
             // Once we add more shader vars from feature passes, we will fill them here
@@ -868,6 +863,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal UniversalCameraData cameraData;
             internal Universal2DGlobalShaderData shaderData;
+            internal GlobalShaderVariablesUploader uploader;
             internal TextureHandle target;
         };
 
@@ -899,7 +895,7 @@ namespace UnityEngine.Rendering.Universal
                 Profiling.setupCamera))
             {
                 passData.cameraData = frameData.Get<UniversalCameraData>();
-                passData.shaderData = frameData.Get<Universal2DGlobalShaderData>();
+                passData.uploader = m_GlobalShaderVariablesUploader;
                 passData.target = target;
 
                 builder.AllowGlobalStateModification(true);
@@ -910,7 +906,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
+                    data.uploader.PushDefaultToGlobal(context.cmd, GlobalShaderVariablesGroup.Base);
                 });
             }
         }
@@ -995,7 +991,9 @@ namespace UnityEngine.Rendering.Universal
             universal2DResourceData.EndFrame();
             commonResourceData.EndFrame();
 
-            // Recording is over, the uploader can now be handed out: its staging is only coherent on the execute timeline
+            // Recording is over: freeze what it staged as the frame defaults, then hand the uploader out, 
+            // its staging is only coherent on the execute timeline.
+            m_GlobalShaderVariablesUploader.EndFill();
             globalShaderData.Set(m_GlobalShaderVariablesUploader);
         }
 

@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.projectionParams, new Vector4(projectionFlipSign, camera.nearClipPlane, far, 1.0f * invFar));
         }
 
-        void SetPerCameraShaderVariables(ref GlobalShaderVariablesBase vars, UniversalCameraData cameraData)
+        void SetPerCameraShaderVariables(GlobalShaderVariablesUploader vars, UniversalCameraData cameraData)
         {
             Camera camera = cameraData.camera;
 
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void SetShaderTimeValues(ref GlobalShaderVariablesBase vars)
+        static void SetShaderTimeValues(GlobalShaderVariablesUploader vars)
         {
 #if UNITY_EDITOR
             float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
@@ -436,10 +436,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // None of these vars depend on the target UV origin, so a single set covers both backbuffer and offscreen rendering.
-        internal void BuildGlobalShaderVariablesBase(UniversalCameraData cameraData, ref GlobalShaderVariablesBase vars)
+        // Writes through the uploader accessors so its dirty flags track the writes.
+        internal void BuildGlobalShaderVariablesBase(UniversalCameraData cameraData, GlobalShaderVariablesUploader vars)
         {
-            SetPerCameraShaderVariables(ref vars, cameraData);
-            SetShaderTimeValues(ref vars);
+            SetPerCameraShaderVariables(vars, cameraData);
+            SetShaderTimeValues(vars);
         }
 
         /// <summary>
@@ -479,12 +480,14 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
 
-        // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
-        // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
-        bool m_IsPipelineExecuting = false;
-
         ContextContainer m_frameData = new();
         internal ContextContainer frameData => m_frameData;
+
+        // To read/write global shader variables at execute time, supporting both Persistent Constant Buffer mode and
+        // the default SetGlobal() loose uniform path. Injected into the per-frame global shader data ContextItem.
+        // Owned here so every renderer shares one lifetime, but each of them creates it with the var groups it fills:
+        // the base group only for a custom renderer, plus Only3D or Only2D for the URP 3D and 2D renderers.
+        internal GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
 
         // Scratch buffers for SetPerCameraClippingPlaneProperties  to avoid per-call allocations
         private static readonly Plane[] s_Planes = new Plane[6];
@@ -630,7 +633,7 @@ namespace UnityEngine.Rendering.Universal
 
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(cmd, GlobalShaderVariablesBaseDirty.All);
+                    data.shaderData.Get().PushDefaultToGlobal(cmd);
                 });
             }
         }
@@ -668,7 +671,14 @@ namespace UnityEngine.Rendering.Universal
             var shaderData = frameData.Create<DefaultGlobalShaderData>();
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            BuildGlobalShaderVariablesBase(cameraData, ref shaderData.m_GlobalShaderVars);
+            // A custom renderer only gets the base vars, the URP 3D and 2D renderers add their own group.
+            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base);
+            m_GlobalShaderVariablesUploader.BeginFill();
+            BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
+
+            // Nothing else fills this uploader, close the fill window right away.
+            m_GlobalShaderVariablesUploader.EndFill();
+            shaderData.Set(m_GlobalShaderVariablesUploader);
         }
 
         // Default Camera setup that can be called by a custom ScriptableRenderer, URP 3D and 2D renderers have their own implementations
@@ -691,7 +701,8 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.shaderData.GetDefaultVars().SetGlobals(context.cmd, GlobalShaderVariablesBaseDirty.All);
+                    // Push the vars again, some were re-written by cmd.SetupCameraProperties() call above.
+                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
                 });
             }
         }
@@ -1221,11 +1232,7 @@ namespace UnityEngine.Rendering.Universal
                 // Happens when rendering the last camera in the camera stack.
                 if (resolveFinalTarget)
                 {
-
                     FinishRendering(cmd);
-
-                    // We finished camera stacking and released all intermediate pipeline textures.
-                    m_IsPipelineExecuting = false;
                 }
                 m_ActiveRenderPassQueue.Clear();
             }

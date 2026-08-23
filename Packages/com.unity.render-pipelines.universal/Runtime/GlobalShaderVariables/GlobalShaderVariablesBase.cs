@@ -59,9 +59,8 @@ namespace UnityEngine.Rendering.Universal
     internal static class GlobalShaderVariablesBaseExtensions
     {
         /// <summary>
-        /// Sets the shader variables flagged in <paramref name="dirty"/> as global uniforms using the provided CommandBuffer,
-        /// only use it directly for custom ScriptableRenderer.
-        /// Extension with `in` receiver so callers can invoke it on the ref-readonly return of GetDefaultVars without copying the struct.
+        /// Sets the shader variables flagged in <paramref name="dirty"/> as global uniforms using the provided CommandBuffer.
+        /// Extension with `in` receiver so callers can invoke it without copying the struct.
         /// </summary>
         internal static void SetGlobals(this in GlobalShaderVariablesBase vars, IBaseCommandBuffer cmd, Dirty dirty)
         {

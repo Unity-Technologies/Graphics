@@ -652,6 +652,10 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                 GraphicsSettings.lightsUseColorTemperature = true;
                 SetupPerFrameShaderConstants();
+
+                var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+                usePersistentConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
+
                 XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
 #if UNITY_ENABLE_CHECKS
@@ -2578,6 +2582,12 @@ namespace UnityEngine.Rendering.Universal
 
             return GetBrightestDirectionalLightIndex(settings, visibleLights);
         }
+
+        /// <summary>
+        /// Whether URP uploads its global shader variables as a persistent constant buffer.
+        /// Read once per frame, and the setting cannot change between the cameras of a frame.
+        /// </summary>
+        internal static bool usePersistentConstantBuffers { get; private set; }
 
         void SetupPerFrameShaderConstants()
         {

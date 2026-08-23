@@ -224,11 +224,6 @@ namespace UnityEngine.Rendering.Universal
         ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
         PostProcess m_PostProcess;
 
-        // To read/write global shader variables at execute time,
-        // supporting both Persistent Constant Buffer mode and default SetGlobal() loose uniform path.
-        // Injected into the per-frame UniversalGlobalShaderData ContextItem.
-        GlobalShaderVariablesUploader m_GlobalShaderVariablesUploader;
-
         private void CleanupRenderGraphResources()
         {
             s_RenderGraphCameraColorHandles[0]?.Release();
@@ -680,11 +675,12 @@ namespace UnityEngine.Rendering.Universal
             // We could provide a read-only version but it means reading a potential obsoleted value:
             // - [recording] pass B reads varA == 2 and takes some decisions based on that
             // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug
-            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(is3D: true);
+            m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only3D);
+            m_GlobalShaderVariablesUploader.BeginFill();
 
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            BuildGlobalShaderVariablesBase(cameraData, ref m_GlobalShaderVariablesUploader.m_DefaultVars.varsBase);
+            BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 
             // URP CB TIER 2 WIP
             // Once we add more shader vars from feature passes, we will fill them here
@@ -867,7 +863,9 @@ namespace UnityEngine.Rendering.Universal
             UniversalGlobalShaderData globalShaderData = frameData.Get<UniversalGlobalShaderData>();
             resourceData.EndFrame();
 
-            // Recording is over, the uploader can now be handed out: its staging is only coherent on the execute timeline
+            // Recording is over: freeze what it staged as the defaults of this camera, then hand the uploader out,
+            // its staging is only coherent on the execute timeline.
+            m_GlobalShaderVariablesUploader.EndFill();
             globalShaderData.Set(m_GlobalShaderVariablesUploader);
         }
 

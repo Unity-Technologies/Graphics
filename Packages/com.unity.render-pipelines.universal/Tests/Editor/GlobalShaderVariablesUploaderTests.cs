@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal.Tests
     class GlobalShaderVariablesUploaderTests
     {
         // Derived from the dirty flags themselves so adding a variable does not break these tests.
-        // Only base vars are counted, we don't push anything on the 3D / 2D sides yet.
+        // Only base vars are counted, these tests only ever exercise the base group.
         static int fullPushCount => CountBits((uint)GlobalShaderVariablesDirty.all.varsBase);
 
         // System.Numerics.BitOperations is not available here.
@@ -26,6 +26,8 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             return count;
         }
+
+        static readonly Vector4 k_DefaultTime = new Vector4(11f, 22f, 33f, 44f);
 
         CommandBuffer m_NativeCmd;
         UnsafeCommandBuffer m_Cmd;
@@ -67,22 +69,50 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         // An uploader whose pending changes have already been flushed, i.e. staging is in sync with the command buffer.
-        GlobalShaderVariablesUploader CreateFlushedUploader(bool is3D = true)
+        GlobalShaderVariablesUploader CreateFlushedUploader(GlobalShaderVariablesGroup groups = GlobalShaderVariablesGroup.All)
         {
-            var uploader = new GlobalShaderVariablesUploader(is3D);
+            var uploader = new GlobalShaderVariablesUploader(groups);
             uploader.ResetToDefault();
             uploader.PushGlobal(m_Cmd);
             return uploader;
         }
 
-        [Test]
-        public void PushGlobal_AfterResetToDefault_PushesEveryVariable([Values(true, false)] bool is3D)
+        // Mimics one camera record: BuildGlobalShaderVariablesBase writing every base var inside a fill window, so
+        // the frame defaults cover the whole base mask. Tests asserting a full push need those defaults to exist first.
+        static void FillBaseDefaults(GlobalShaderVariablesUploader uploader)
         {
-            var uploader = new GlobalShaderVariablesUploader(is3D);
+            uploader.BeginFill();
+
+            uploader._Time = k_DefaultTime;
+            uploader._SinTime = new Vector4(0.1f, 0.2f, 0.3f, 0.4f);
+            uploader._CosTime = new Vector4(0.5f, 0.6f, 0.7f, 0.8f);
+            uploader.unity_DeltaTime = new Vector4(0.016f, 60f, 0.016f, 60f);
+            uploader._TimeParameters = new Vector4(1f, 0.1f, 0.5f, 0f);
+            uploader._LastTimeParameters = new Vector4(0.9f, 0.09f, 0.45f, 0f);
+            uploader._ScreenParams = new Vector4(1920f, 1080f, 1f + 1f / 1920f, 1f + 1f / 1080f);
+            uploader._ZBufferParams = new Vector4(-0.99f, 1f, -0.001f, 0.001f);
+            uploader.unity_OrthoParams = new Vector4(16f, 9f, 0f, 0f);
+            uploader._RTHandleScale = Vector4.one;
+            uploader._ScaledScreenParams = new Vector4(960f, 540f, 1f, 1f);
+            uploader._ScreenSize = new Vector4(1920f, 1080f, 1f / 1920f, 1f / 1080f);
+            uploader._ScreenSizeOverride = new Vector4(1920f, 1080f, 0f, 0f);
+            uploader._ScreenCoordScaleBias = new Vector4(1f, 1f, 0f, 0f);
+            uploader._GlobalMipBias = new Vector2(0f, 1f);
+
+            uploader.EndFill();
+        }
+
+        [Test]
+        public void PushGlobal_AfterResetToDefault_PushesEveryVariable(
+            [Values(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only3D,
+                GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only2D)] GlobalShaderVariablesGroup groups)
+        {
+            var uploader = new GlobalShaderVariablesUploader(groups);
+            FillBaseDefaults(uploader);
             uploader.ResetToDefault();
 
             Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
-                "ResetToDefault must mark everything dirty.");
+                "ResetToDefault must mark everything the frame uses dirty.");
         }
 
         [Test]
@@ -158,24 +188,23 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void PushDefaultToGlobal_DiscardsLocalChanges()
         {
-            var uploader = new GlobalShaderVariablesUploader(is3D: true);
-            var defaultTime = new Vector4(11f, 22f, 33f, 44f);
-            uploader.m_DefaultVars.varsBase._Time = defaultTime;
+            var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All);
+            FillBaseDefaults(uploader);
 
-            uploader.ResetToDefault();
-            uploader.PushGlobal(m_Cmd);
             uploader._Time = new Vector4(99f, 99f, 99f, 99f);
 
             uploader.PushDefaultToGlobal(m_Cmd);
 
-            Assert.That(uploader._Time, Is.EqualTo(defaultTime),
+            Assert.That(uploader._Time, Is.EqualTo(k_DefaultTime),
                 "PushDefaultToGlobal re-baselines staging onto the frame defaults.");
         }
 
         [Test]
         public void PushDefaultToGlobal_RepushesEverythingEvenWhenOnlyOneVariableChanged()
         {
-            var uploader = CreateFlushedUploader();
+            var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All);
+            FillBaseDefaults(uploader);
+            uploader.PushDefaultToGlobal(m_Cmd);
 
             uploader._Time = new Vector4(1f, 2f, 3f, 4f);
 

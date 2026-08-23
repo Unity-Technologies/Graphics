@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added a `ReadOnlySpan<Matrix4x4>` overload of `SetGlobalMatrixArray` on the render graph command buffers, so matrices that are already stored contiguously can be pushed without being copied into an array first.
+
 ### Fixed
 - Fixed a `variant DISABLE_TEXTURE2D_X_ARRAY not found` shader error when copying MSAA textures on OpenGL ES 3.1 drivers that lack per-sample shading (`gl_SampleID`); these devices now fall back to a regular blit instead.
 - Fixed a "Shader 'Hidden/Core/ProbeVolumeDebug': All SubShaders were stripped" warning when building an HDRP project, caused by a leftover URP-specific RenderPipeline tag on the shared probe volume debug shader.

@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.Universal
@@ -47,6 +48,16 @@ namespace UnityEngine.Rendering.Universal
         internal GlobalShaderVariablesOnly2D vars2D;
     }
 
+    [Flags]
+    internal enum GlobalShaderVariablesGroup
+    {
+        None = 0,
+        Base = 1 << 0,
+        Only3D = 1 << 1,
+        Only2D = 1 << 2,
+        All = Base | Only3D | Only2D,
+    }
+
     // Tracks which fields of GlobalShaderVariables were modified since the last push to avoid useless SetGlobal() calls.
     internal struct GlobalShaderVariablesDirty
     {
@@ -65,6 +76,13 @@ namespace UnityEngine.Rendering.Universal
             || vars3D != GlobalShaderVariablesOnly3DDirty.None
             || vars2D != GlobalShaderVariablesOnly2DDirty.None;
 
+        public void Add(in GlobalShaderVariablesDirty other)
+        {
+            varsBase |= other.varsBase;
+            vars3D |= other.vars3D;
+            vars2D |= other.vars2D;
+        }
+
         public void Clear()
         {
             varsBase = GlobalShaderVariablesBaseDirty.None;
@@ -80,13 +98,15 @@ namespace UnityEngine.Rendering.Universal
         /// This is a fallback when persistent constant buffer mode is disabled.
         /// Extension with `in` receiver so callers can invoke it without copying the struct.
         /// </summary>
-        internal static void SetGlobals(this in GlobalShaderVariables vars, IBaseCommandBuffer cmd, in GlobalShaderVariablesDirty dirty, bool is3D = true)
+        internal static void SetGlobals(this in GlobalShaderVariables vars, IBaseCommandBuffer cmd, in GlobalShaderVariablesDirty dirty, GlobalShaderVariablesGroup groups = GlobalShaderVariablesGroup.All)
         {
-            vars.varsBase.SetGlobals(cmd, dirty.varsBase);
+            if ((groups & GlobalShaderVariablesGroup.Base) != 0)
+                vars.varsBase.SetGlobals(cmd, dirty.varsBase);
 
-            if (is3D)
+            if ((groups & GlobalShaderVariablesGroup.Only3D) != 0)
                 vars.vars3D.SetGlobals(cmd, dirty.vars3D);
-            else
+
+            if ((groups & GlobalShaderVariablesGroup.Only2D) != 0)
                 vars.vars2D.SetGlobals(cmd, dirty.vars2D);
         }
     }
