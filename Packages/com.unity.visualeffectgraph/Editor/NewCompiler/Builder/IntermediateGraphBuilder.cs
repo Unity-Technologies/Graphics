@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
+using Unity.Profiling;
 using UnityEngine.VFX;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace UnityEditor.VFX
 {
     class IntermediateGraphBuilder
     {
+        static readonly ProfilerMarker k_BuildGraphMarker = new("IntermediateGraphBuilder.BuildGraph");
+
         public static IDataKey DefaultAttributeKey { get; } = new NameDataKey("Attributes");
         public static IDataKey SourceAttributeKey { get; } = new NameDataKey("SourceAttributes");
 
@@ -27,6 +30,8 @@ namespace UnityEditor.VFX
 
         public IReadOnlyGraph BuildGraph(VFXGraph graph, VFXCompilationMode compilationMode)
         {
+            using var _ = k_BuildGraphMarker.Auto();
+
             var intermediateGraph = new TaskGraph();
 
             m_BuildContext.Begin(graph, compilationMode, intermediateGraph);

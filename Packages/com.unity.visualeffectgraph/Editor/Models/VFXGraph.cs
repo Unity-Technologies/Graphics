@@ -1427,16 +1427,15 @@ namespace UnityEditor.VFX
             SyncContextLetters();
         }
 
-        internal VFXGraphCompiledData.VFXCompileOutput Compile()
+        internal VFXCompileOutput Compile()
         {
             bool generateShadersDebugSymbols = VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols;
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::Compile {this.GetEntityId()} {AssetDatabase.GetAssetPath(this)} {m_CompilationMode}");
 
-            var output = VFXViewPreference.useNewCompiler
-                ? m_NewCompiler.Compile(this, m_CompilationMode, generateShadersDebugSymbols)
-                : compiledData.Compile(m_CompilationMode, generateShadersDebugSymbols, VFXAnalytics.GetInstance());
+            var output = activeCompiler.Compile(this, m_CompilationMode, generateShadersDebugSymbols);
 
+            m_ExpressionCompiledData = output.compiledData;
             errorManager.GenerateErrors();
             return output;
         }
@@ -1458,7 +1457,7 @@ namespace UnityEditor.VFX
 
         class AuthoringBackupResult
         {
-            public VFXGraphCompiledData.VFXCompileOutput output;
+            public VFXCompileOutput output;
             public bool instancingEnabled;
             public bool initialVariant;
             public VFXCompilationMode mode;
@@ -1489,7 +1488,7 @@ namespace UnityEditor.VFX
                 Debug.LogError("Already registered authoring guid: " + guid);
         }
 
-        public static void UpdateAuthoringCompileData(GUID guid, VFXGraphCompiledData.VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode)
+        public static void UpdateAuthoringCompileData(GUID guid, VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode)
         {
             if (guid.Empty())
                 throw new InvalidOperationException("Unexpected empty guid");
@@ -1539,7 +1538,7 @@ namespace UnityEditor.VFX
             ctx.AddObjectToAsset(currentId, newObject);
         }
 
-        internal (VisualEffectAssetDesc desc, VFXGraphCompiledData.VFXCompileOutput output, List<UnityObject> previewShaders) GenerateVisualEffectAssetDesc(bool instancingEnabled, bool compileInitialVariant, AssetImportContext ctx)
+        internal (VisualEffectAssetDesc desc, VFXCompileOutput output, List<UnityObject> previewShaders) GenerateVisualEffectAssetDesc(bool instancingEnabled, bool compileInitialVariant, AssetImportContext ctx)
         {
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::GenerateVisualAssetDesc {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)}");
@@ -1554,7 +1553,7 @@ namespace UnityEditor.VFX
         static readonly ProfilerMarker k_GenerateVisualEffectAssetDescMaker = new("VFXEditor.GenerateVisualEffectAssetDescFromCompileOutput");
         static readonly ProfilerMarker k_CreateMaterialMaker = new("VFXEditor.CreateMaterial");
 
-        static VisualEffectAssetDesc GenerateVisualEffectAssetDesc(VFXGraphCompiledData.VFXCompileOutput compilationOutput, bool instancingEnabled, bool compileInitialVariant, VFXCompilationMode compilationMode, AssetImportContext ctx, List<UnityObject> previewAsset)
+        static VisualEffectAssetDesc GenerateVisualEffectAssetDesc(VFXCompileOutput compilationOutput, bool instancingEnabled, bool compileInitialVariant, VFXCompilationMode compilationMode, AssetImportContext ctx, List<UnityObject> previewAsset)
         {
             using var globalAutoScope = k_GenerateVisualEffectAssetDescMaker.Auto();
 
@@ -1711,7 +1710,7 @@ namespace UnityEditor.VFX
             return new VisualEffectAssetDesc() { compilationMode = compilationMode };
         }
 
-        internal (VFXGraphCompiledData.VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode) CompileAndUpdateAsset(VisualEffectAsset asset)
+        internal (VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode) CompileAndUpdateAsset(VisualEffectAsset asset)
         {
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::CompileAndUpdateAsset {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)}");
@@ -1747,10 +1746,10 @@ namespace UnityEditor.VFX
             VFXExpressionValueContainerDesc[] updatedValues = null;
             if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
-                updatedValues = compiledData.UpdateValues();
+                if (ExpressionCompiledData != null)
+                    updatedValues = ExpressionCompiledData.UpdateValues(GetResource().asset);
                 m_ExpressionValuesDirty = false;
             }
-
             return updatedValues;
         }
 
@@ -1762,16 +1761,18 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            m_CompiledData = null;
+            m_ExpressionCompiledData = null;
         }
 
-        internal VFXGraphCompiledData compiledData
+        private IVFXCompiler activeCompiler => VFXViewPreference.useNewCompiler ? m_NewCompiler : m_LegacyCompiler;
+
+        internal VFXExpressionCompiledData ExpressionCompiledData
         {
             get
             {
-                if (m_CompiledData == null)
-                    m_CompiledData = new VFXGraphCompiledData(this);
-                return m_CompiledData;
+                if (m_ExpressionCompiledData == null)
+                    m_ExpressionCompiledData = activeCompiler.CompileExpressionsOnly(this, m_CompilationMode);
+                return m_ExpressionCompiledData;
             }
         }
 
@@ -1789,7 +1790,8 @@ namespace UnityEditor.VFX
         private bool m_CustomAttributesDirty = false;
 
         [NonSerialized]
-        private VFXGraphCompiledData m_CompiledData;
+        private VFXExpressionCompiledData m_ExpressionCompiledData;
+        private VFXLegacyCompiler m_LegacyCompiler = new();
         private VfxGraphCompiler m_NewCompiler = new();
 
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;

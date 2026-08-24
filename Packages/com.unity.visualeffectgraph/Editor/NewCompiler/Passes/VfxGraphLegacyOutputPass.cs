@@ -9,7 +9,9 @@ namespace UnityEditor.VFX
 {
     class VfxGraphLegacyCompilationOutput
     {
-        public List<UnityEditor.VFX.VFXExpressionDesc> SheetExpressions { get; } = new();
+        public List<UnityEditor.VFX.VFXExpression> SheetExpressions { get; } = new();
+        public Dictionary<UnityEditor.VFX.VFXExpression, uint> SheetExpressionIndices { get; } = new();
+        public List<UnityEditor.VFX.VFXExpressionDesc> SheetExpressionsDescs { get; } = new();
         public List<UnityEditor.VFX.VFXExpressionDesc> SheetExpressionsPerSpawnEventAttribute { get; } = new();
         public List<UnityEditor.VFX.VFXExpressionValueContainerDesc> SheetValues { get; } = new();
         public List<UnityEditor.VFX.VFXExposedMapping> SheetExposed { get; } = new();
@@ -35,7 +37,7 @@ namespace UnityEditor.VFX
             vfxAssetDesc.sheet = new VFXExpressionSheet()
             {
                 exposed = SheetExposed.ToArray(),
-                expressions = SheetExpressions.ToArray(),
+                expressions = SheetExpressionsDescs.ToArray(),
                 expressionsPerSpawnEventAttribute = SheetExpressionsPerSpawnEventAttribute.ToArray(),
                 values = SheetValues.ToArray()
             };
@@ -48,6 +50,13 @@ namespace UnityEditor.VFX
             vfxAssetDesc.instancingDisabledReason = VFXInstancingDisabledReason.Unknown;
 
             return vfxAssetDesc;
+        }
+
+        public VFXExpressionCompiledData CreateCompiledData()
+        {
+            // TODO: SheetExpressionIndices only holds reduced expressions, so FindReducedExpressionIndexFromSlotCPU
+            // misses for slot expressions that were reduced away. The pre-reduction mapping isn't tracked yet
+            return new VFXExpressionCompiledData(SheetExpressions, SheetValues.ToArray(), SheetExpressionIndices);
         }
     }
 
@@ -111,6 +120,9 @@ namespace UnityEditor.VFX
 
         uint AddExpressionRecursively(VFXExpression expression)
         {
+            if (m_currentOutput.SheetExpressionIndices.TryGetValue(expression, out var cachedIndex))
+                return cachedIndex;
+
             List<uint> parentExpressionIndices = new();
             foreach (var parentExpression in expression.parents)
             {
@@ -126,6 +138,8 @@ namespace UnityEditor.VFX
                 data[VFXExpression.Operands.OperandCount - expression.additionalOperands.Length + i] = expression.additionalOperands[i];
 
             uint vfxExpressionIndex = AddExpression(expression.operation, data[0], data[1], data[2], data[3]);
+            m_currentOutput.SheetExpressions.Add(expression);
+            m_currentOutput.SheetExpressionIndices[expression] = vfxExpressionIndex;
 
             if (expression.Is(VFXExpression.Flags.Value))
             {
@@ -746,8 +760,8 @@ namespace UnityEditor.VFX
             vfxExpression.data[1] = data1;
             vfxExpression.data[2] = data2;
             vfxExpression.data[3] = data3;
-            var vfxExpressionIndex = (uint)m_currentOutput.SheetExpressions.Count;
-            m_currentOutput.SheetExpressions.Add(vfxExpression);
+            var vfxExpressionIndex = (uint)m_currentOutput.SheetExpressionsDescs.Count;
+            m_currentOutput.SheetExpressionsDescs.Add(vfxExpression);
             return vfxExpressionIndex;
         }
 
