@@ -45,6 +45,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Set to true if the render texture needs to be bound as a multisampled texture in a shader.
         /// </summary>
         public bool bindMS;
+        /// <summary>
+        /// Set to true if this render target should use memoryless storage.
+        /// Mainly intended for the backbuffer depth on Metal iOS/tvOS/visionOS when PlayerSettings depth memoryless mode is enabled.
+        /// Memoryless resources can't be loaded or stored, so importing one forces discard on last use regardless of
+        /// <see cref="ImportResourceParams.discardOnLastUse"/>. If the resource ends up used across more than one native
+        /// render pass, the graph falls back to a regular resource so its contents survive the pass boundary.
+        /// </summary>
+        public bool isMemoryless;
     }
 
     /// <summary>
@@ -64,6 +72,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Discard the imported texture the last time it is used by the graph.
         /// If MSAA enabled, only the multisampled version is discarded while the MSAA surface is always resolved.
         /// Fully discarding both multisampled and resolved data is not currently possible.
+        /// Always true for memoryless resources, whose contents can never be stored. See <see cref="RenderTargetInfo.isMemoryless"/>.
         /// </summary>
         public bool discardOnLastUse;
         /// <summary>
@@ -516,7 +525,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
-            texResource.desc.discardBuffer = importParams.discardOnLastUse;
+            // Memoryless resources can't be stored, so they must always be discarded.
+            texResource.desc.discardBuffer = importParams.discardOnLastUse || texResource.desc.memoryless != RenderTextureMemoryless.None;
             texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
             texResource.isBackBuffer = (rt != null) ? rt.m_NameID == BuiltinRenderTextureType.CameraTarget || rt.m_NameID == BuiltinRenderTextureType.Depth : false;
 
@@ -558,10 +568,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     texResource.desc.bindTextureMS = info.bindMS;
                     texResource.desc.clearBuffer = importParams.clearOnFirstUse;
                     texResource.desc.clearColor = importParams.clearColor;
-                    texResource.desc.discardBuffer = importParams.discardOnLastUse;
                     texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
                     texResource.validDesc = false; // The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
                                                    // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
+                    if (info.isMemoryless)
+                    {
+                        texResource.desc.memoryless = GraphicsFormatUtility.IsDepthStencilFormat(info.format)
+                            ? RenderTextureMemoryless.Depth
+                            : RenderTextureMemoryless.Color;
+                        if ((MSAASamples)info.msaaSamples != MSAASamples.None)
+                            texResource.desc.memoryless |= RenderTextureMemoryless.MSAA;
+                    }
+                    else
+                    {
+                        texResource.desc.memoryless = RenderTextureMemoryless.None;
+                    }
+
+                    // Memoryless resources require DontCare load/store actions, so force discard
+                    // whenever the resource is memoryless, even if the caller didn't request it.
+                    texResource.desc.discardBuffer = importParams.discardOnLastUse || texResource.desc.memoryless != RenderTextureMemoryless.None;
                 }
                 // Anything else is an error and should take the overload not taking a RenderTargetInfo
                 else
@@ -674,10 +699,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.format = info.format;
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
-            texResource.desc.discardBuffer = importParams.discardOnLastUse;
             texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
             texResource.validDesc = false;// The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
                                           // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
+            if (info.isMemoryless)
+            {
+                texResource.desc.memoryless = GraphicsFormatUtility.IsDepthStencilFormat(info.format)
+                    ? RenderTextureMemoryless.Depth
+                    : RenderTextureMemoryless.Color;
+                if ((MSAASamples)info.msaaSamples != MSAASamples.None)
+                    texResource.desc.memoryless |= RenderTextureMemoryless.MSAA;
+            }
+
+            // Memoryless resources require DontCare load/store actions, so force discard
+            // whenever the resource is memoryless, even if the caller didn't request it.
+            texResource.desc.discardBuffer = importParams.discardOnLastUse || texResource.desc.memoryless != RenderTextureMemoryless.None;
 
             var texHandle = new TextureHandle(newHandle);
 
@@ -730,6 +766,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     outInfo.format = GetFormat(handle.m_RT.graphicsFormat, handle.m_RT.depthStencilFormat);
                     outInfo.msaaSamples = handle.m_RT.antiAliasing;
                     outInfo.bindMS = handle.m_RT.bindTextureMS;
+                    outInfo.isMemoryless = handle.m_RT.memorylessMode != RenderTextureMemoryless.None;
                 }
                 else if (handle.m_ExternalTexture != null)
                 {
@@ -751,6 +788,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         outInfo.msaaSamples = 1;
                     }
                     outInfo.bindMS = false;
+                    outInfo.isMemoryless = false;
                 }
                 else if (handle.m_NameID != emptyId)
                 {
@@ -773,6 +811,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     outInfo.msaaSamples = (int)desc.msaaSamples;
                     outInfo.format = desc.format;
                     outInfo.bindMS = desc.bindTextureMS;
+
+                    outInfo.isMemoryless = desc.memoryless != RenderTextureMemoryless.None;
                 }
                 else
                 {
@@ -792,6 +832,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 outInfo.msaaSamples = (int)desc.msaaSamples;
                 outInfo.bindMS = desc.bindTextureMS;
                 outInfo.format = desc.format;
+
+                outInfo.isMemoryless = desc.memoryless != RenderTextureMemoryless.None;
             }
         }
 

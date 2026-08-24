@@ -61,7 +61,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
-            memoryLess = false;
+
+            // Check if imported texture is memoryless
+            memoryLess = desc.memoryless != RenderTextureMemoryless.None;
 
             width = info.width;
             height = info.height;

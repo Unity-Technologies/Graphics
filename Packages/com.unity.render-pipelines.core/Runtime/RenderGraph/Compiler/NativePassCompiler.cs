@@ -1159,6 +1159,29 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (!SystemInfo.supportsMemorylessTextures)
                     return;
 
+                // Imported resources can be requested as memoryless at import time (see RenderTargetInfo.isMemoryless), but a
+                // memoryless surface only survives within a single native pass. If its lifetime spans several of them - e.g. a
+                // non-raster pass breaks the merge between two raster passes both using the backbuffer depth - a later pass
+                // would have to Load contents that were never retained, so clear the flag again for those.
+                var textureData = contextData.resources.unversionedData[(int)RenderGraphResourceType.Texture];
+                for (int i = 1; i < textureData.Length; ++i)
+                {
+                    ref var resourceData = ref textureData.ElementAt(i);
+
+                    if (!resourceData.isImported || !resourceData.memoryLess)
+                        continue;
+
+                    // Unused or culled, nothing to adjust.
+                    if (resourceData.firstUsePassID < 0 || resourceData.lastUsePassID < 0)
+                        continue;
+
+                    int firstNativePass = contextData.passData[resourceData.firstUsePassID].nativePassIndex;
+                    int lastNativePass = contextData.passData[resourceData.lastUsePassID].nativePassIndex;
+
+                    if (firstNativePass != lastNativePass)
+                        resourceData.memoryLess = false;
+                }
+
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp
                 foreach (ref readonly var nativePass in contextData.NativePasses)
@@ -1436,6 +1459,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_ENABLE_CHECKS
                                     if (generateAudits)
                                         currLoadAudit = new LoadAudit(LoadReason.ClearImported);
+#endif
+                                }
+                                else if (resourceData.memoryLess)
+                                {
+                                    loadAction = RenderBufferLoadAction.DontCare;
+#if UNITY_ENABLE_CHECKS
+                                    if (generateAudits)
+                                        currLoadAudit = new LoadAudit(LoadReason.DontCareMemoryless);
 #endif
                                 }
                                 else

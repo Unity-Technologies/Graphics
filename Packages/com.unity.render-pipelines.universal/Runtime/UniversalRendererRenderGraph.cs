@@ -1823,6 +1823,8 @@ namespace UnityEngine.Rendering.Universal
             // Backbuffer info was built once in CreateBackbufferInfo / UpdateCameraData (XR).
             RenderTargetInfo importInfo = cameraData.backbufferColor;
             RenderTargetInfo importInfoDepth = cameraData.backbufferDepth;
+            importInfoDepth.isMemoryless = cameraData.targetTexture == null && !cameraData.xr.enabled
+                && UniversalRenderPipeline.IsBackbufferDepthMemorylessActive();
 
             bool noStoreOnlyResolveBBColor = !intermediateTexturesAreSampledAsTextures && !isNativeRenderingAfterURP && (importInfo.msaaSamples > 1);
 

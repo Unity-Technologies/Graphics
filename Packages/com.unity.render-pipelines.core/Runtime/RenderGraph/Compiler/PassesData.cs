@@ -518,6 +518,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         ClearImported,
         ClearCreated,
         FullyRewritten,
+        DontCareMemoryless,
 
         Count
     }
@@ -532,6 +533,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The resource is imported in the graph but was imported with the 'clear on first use' option enabled. The data is cleared.",
             "The resource is created in this pass and cleared on first use.",
             "The pass indicated it will rewrite the full resource contents. Existing contents are not loaded or cleared.",
+            "The resource is marked as memoryless. No data is loaded."
         };
 
         public readonly LoadReason reason;
@@ -1130,7 +1132,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 return totalSize > SystemInfo.maxTiledPixelStorageSize;
             }
-            
+
             return false;
         }
 

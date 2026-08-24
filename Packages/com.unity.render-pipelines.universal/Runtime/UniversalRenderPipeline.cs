@@ -2792,6 +2792,13 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+        // Returns true when the platform supports backbuffer depth memoryless AND
+        // the user has enabled it in PlayerSettings. Should only be called from
+        // the builtin backbuffer import path (caller already guarantees this).
+        internal static bool IsBackbufferDepthMemorylessActive()
+            => SystemInfo.supportsBackbufferDepthMemoryless
+               && UnityEngineInternal.MemorylessManager.isDepthMemoryless;
+
         /// <summary>
         /// Checks if the hardware (main display and platform) and the render pipeline support HDR.
         /// </summary>
