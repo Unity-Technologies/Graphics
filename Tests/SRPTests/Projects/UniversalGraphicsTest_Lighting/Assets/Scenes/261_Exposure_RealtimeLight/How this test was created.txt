@@ -1,0 +1,1 @@
+This test was created by having an exposure value of 0 and update the ref image. Then I set the exposure to 2 and multiplied all lights' intensity by 2^2 and saved the scene. The test should have the same image as before. This is only possible because there is no light contribution from the environment(no sky or ambient color).

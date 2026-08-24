@@ -27,7 +27,7 @@ struct GrassVertexOutput
     half3  normal                   : TEXCOORD3;
     half3 viewDir                   : TEXCOORD4;
 
-    half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
+    URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD6;
@@ -46,6 +46,7 @@ struct GrassVertexOutput
 void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.posWSShininess.xyz;
 
@@ -68,7 +69,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, NOT_USED, input.vertexSH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
@@ -123,9 +124,9 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, vertData.lightmapUV);
     OUTPUT_SH4(vertexInput.positionWS, vertData.normal.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), vertData.vertexSH, vertData.probeOcclusion);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
     half fogFactor = 0;
-    vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    vertData.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     vertData.shadowCoord = GetShadowCoord(vertexInput);
@@ -214,11 +215,11 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.uv, _MainTex);
 
 #ifdef TERRAIN_GBUFFER
-    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
-    return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
+    URP_LIGHT_ACCUM4 color = URP_LIGHT_ACCUM4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
+    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
 #else
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif
 };

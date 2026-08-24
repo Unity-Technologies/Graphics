@@ -4,6 +4,7 @@
 #define UNIVERSAL_FOG_DEFERRED
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
 struct Attributes
@@ -47,7 +48,7 @@ half4 Frag(Varyings input) : SV_Target
     half fogIntensity = DistanceFogOcclusionFactor(nearToFarZ);
 
     // TODO: a perspective/ortho multi_compile would drop this per-pixel branch.
-    return half4(unity_FogColor.rgb, fogIntensity);
+    return half4(ClampExposed(unity_FogColor.rgb * GetPreExposureMultiplier()), fogIntensity);
 }
 
 #endif

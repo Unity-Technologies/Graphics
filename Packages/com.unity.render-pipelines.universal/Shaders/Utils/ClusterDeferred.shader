@@ -69,6 +69,7 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
@@ -133,6 +134,7 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
@@ -173,6 +175,7 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _EXPOSURE
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"

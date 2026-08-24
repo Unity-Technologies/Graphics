@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripBicubicLightmapSamplingVariants { get; set; }
             public bool stripReflectionProbeRotationVariants { get; set; }
+            public bool stripExposureVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -69,6 +70,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripBicubicLightmapSamplingVariants { get; set; }
             public bool stripReflectionProbeRotationVariants { get; set; }
+            public bool stripExposureVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -197,6 +199,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ReflectionProbeBoxProjection;
         LocalKeyword m_ReflectionProbeAtlas;
         LocalKeyword m_ReflectionProbeRotation;
+        LocalKeyword m_Exposure;
         LocalKeyword m_CastingPunctualLightShadow;
         LocalKeyword m_SoftShadows;
         LocalKeyword m_SoftShadowsLow;
@@ -274,6 +277,7 @@ namespace UnityEditor.Rendering.Universal
             m_ReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
             m_ReflectionProbeAtlas = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeAtlas);
             m_ReflectionProbeRotation = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeRotation);
+            m_Exposure = TryGetLocalKeyword(shader, ShaderKeywordStrings.Exposure);
             m_CastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
             m_SoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
             m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
@@ -490,6 +494,16 @@ namespace UnityEditor.Rendering.Universal
             {
                 bool useRotation = !strippingData.stripReflectionProbeRotationVariants;
                 return useRotation != strippingData.IsKeywordEnabled(m_ReflectionProbeRotation);
+            }
+            return false;
+        }
+
+        internal bool StripUnusedFeatures_Exposure(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.PassHasKeyword(m_Exposure))
+            {
+                bool useExposure = !strippingData.stripExposureVariants;
+                return useExposure != strippingData.IsKeywordEnabled(m_Exposure);
             }
             return false;
         }
@@ -955,6 +969,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_ReflectionProbeRotation(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_Exposure(ref strippingData))
                 return true;
 
             if (StripUnusedFeatures_MixedLighting(ref strippingData))
@@ -1428,6 +1445,7 @@ namespace UnityEditor.Rendering.Universal
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,
                 stripBicubicLightmapSamplingVariants = ShaderBuildPreprocessor.s_StripBicubicLightmapSamplingVariants,
                 stripReflectionProbeRotationVariants = ShaderBuildPreprocessor.s_StripReflectionProbeRotationVariants,
+                stripExposureVariants = ShaderBuildPreprocessor.s_StripExposureVariants,
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,

@@ -42,6 +42,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _EXPOSURE
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
@@ -107,6 +108,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _EXPOSURE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 

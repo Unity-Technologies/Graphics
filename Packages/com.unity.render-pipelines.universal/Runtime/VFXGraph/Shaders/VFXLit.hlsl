@@ -45,6 +45,7 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     //SampleSH could partially be done on vertex using SampleSHVertex & SampleSHPixel
     //For now, use directly the simpler per pixel fallback

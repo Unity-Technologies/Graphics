@@ -12,6 +12,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
 
 #define TERRAIN_STREAM_INFO float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f) // 0-15 are reserved for per-texture codes (use "6" to indicate terrain); per-material code "4" signifies "warnings/issues"
 #define SETUP_DEBUG_TEXTURE_DATA(inputData, uv)                   SetupDebugDataTexture(inputData, TRANSFORM_TEX(uv.xy, unity_MipmapStreaming_DebugTex), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
@@ -286,7 +287,15 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
     return half4(lerp(base.rgb, overlay.rgb, overlay.a), 1);
 }
 
-bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
+float4 CompensateDebugColorForPreExposure(float4 debugColor)
+{
+#if defined(_EXPOSURE)
+    debugColor.rgb *= GetInvPreExposureMultiplier();
+#endif
+    return debugColor;
+}
+
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout float4 debugColor)
 {
     if (_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
@@ -295,13 +304,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_GLOBAL_ILLUMINATION)
     {
-        debugColor = half4(inputData.bakedGI, surfaceData.alpha);
+        debugColor = float4(ClampExposed(inputData.preExposureMultiplier * inputData.bakedGI), surfaceData.alpha);
         return true;
     }
     else
     {
-        debugColor = half4(0, 0, 0, 1);
-
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
@@ -333,11 +340,14 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         InitializeBRDFData(surfaceData, brdfData);
 
-        return CalculateColorForDebug(inputData, surfaceData, debugColor);
+        half4 overrideColor = half4(0, 0, 0, 1);
+        bool overridden = CalculateColorForDebug(inputData, surfaceData, overrideColor);
+        debugColor = overrideColor;
+        return overridden;
     }
 }
 
-bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout half4 debugColor)
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout float4 debugColor)
 {
     if (_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
@@ -346,7 +356,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_GLOBAL_ILLUMINATION)
     {
-        debugColor = half4(inputData.bakedGI, surfaceData.alpha);
+        debugColor = float4(ClampExposed(inputData.preExposureMultiplier * inputData.bakedGI), surfaceData.alpha);
         return true;
     }
     else
@@ -379,7 +389,10 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
-        return CalculateColorForDebug(inputData, surfaceData, debugColor);
+        half4 overrideColor = half4(0, 0, 0, 1);
+        bool overridden = CalculateColorForDebug(inputData, surfaceData, overrideColor);
+        debugColor = overrideColor;
+        return overridden;
     }
 }
 

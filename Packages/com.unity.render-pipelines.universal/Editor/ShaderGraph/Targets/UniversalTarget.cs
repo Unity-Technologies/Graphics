@@ -3016,6 +3016,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
         };
+
+        public static readonly KeywordDescriptor Exposure = new KeywordDescriptor()
+        {
+            displayName = "Exposure",
+            referenceName = ShaderKeywordStrings.Exposure,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
     }
     #endregion
 

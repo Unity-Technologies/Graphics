@@ -370,6 +370,14 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _destinationCameraColor;
 
+        // A 1x1 texture used to hold the exposure value.
+        internal TextureHandle exposureMultiplier
+        {
+            get => CheckAndGetTextureHandle(ref _exposureMultiplier);
+            set => CheckAndSetTextureHandle(ref _exposureMultiplier, value);
+        }
+        private TextureHandle _exposureMultiplier;
+
         /// <inheritdoc />
         public override void Reset()
         {
@@ -398,6 +406,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             _stpDebugView = TextureHandle.nullHandle;
             _destinationCameraColor = TextureHandle.nullHandle;
+            _exposureMultiplier = TextureHandle.nullHandle;
 
             for (int i = 0; i < _gBuffer.Length; i++)
                 _gBuffer[i] = TextureHandle.nullHandle;

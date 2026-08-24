@@ -7,6 +7,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
+// Defines URP_LIGHT_ACCUM3/4 (float when _EXPOSURE is enabled, else half). Needed by InputData.bakedGI below.
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalShaderVariables.hlsl"
 
 // Must match: UniversalRenderPipeline.maxVisibleAdditionalLights
@@ -43,11 +45,12 @@ struct InputData
     half3   viewDirectionWS;
     float4  shadowCoord;
     half    fogCoord;
-    half3   vertexLighting;
-    half3   bakedGI;
+    URP_LIGHT_ACCUM3 vertexLighting;
+    URP_LIGHT_ACCUM3 bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
     half3x3 tangentToWorld;
+    float   preExposureMultiplier;
 
 #if defined(DEBUG_DISPLAY)
     half2   dynamicLightmapUV;
@@ -200,6 +203,7 @@ float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the 
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
 float4 urp_ReflProbes_Rotation[MAX_REFLECTION_PROBES];
+float4 urp_ReflProbes_ExposureMultipliers[MAX_REFLECTION_PROBES];
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif

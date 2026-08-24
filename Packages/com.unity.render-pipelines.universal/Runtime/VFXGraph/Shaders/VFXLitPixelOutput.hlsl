@@ -12,15 +12,15 @@
 float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, InputData inputData)
 {
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    float4 color = UniversalFragmentSixWay(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentSixWay(inputData, surfaceData);
 #else
     #if defined(_DBUFFER)
         ApplyDecalToSurfaceData(i.VFX_VARYING_POSCS, surfaceData, inputData);
     #endif
-    float4 color = UniversalFragmentPBR(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
 #endif
 
-    color.rgb = BlendDistanceFog(color.rgb, i.VFX_VARYING_POSCS);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, i.VFX_VARYING_POSCS));
 
 #if IS_OPAQUE_PARTICLE
     bool isTransparent = false;
@@ -73,7 +73,7 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                              inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
@@ -81,7 +81,7 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
     ApplyDecalToBaseColor(i.VFX_VARYING_POSCS, surfaceData.albedo);
 #endif
 
-    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, ClampExposed(inputData.preExposureMultiplier * (surfaceData.emission + color)), surfaceData.occlusion);
 }
 
 #else
@@ -97,7 +97,7 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                                  inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                                  inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
@@ -105,7 +105,7 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
     ApplyDecalToBaseColor(i.VFX_VARYING_POSCS, surfaceData.albedo);
 #endif
 
-    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, ClampExposed(inputData.preExposureMultiplier * (surfaceData.emission + color)), surfaceData.occlusion);
 }
 
 #endif

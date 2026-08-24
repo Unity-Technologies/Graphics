@@ -283,9 +283,10 @@ Varyings BuildVaryings(Attributes input
     #endif
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
         half fogFactor = 0;
-        half3 vertexLight = VertexLighting(positionWS, normalWS);
-        output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-    #endif
+
+        URP_LIGHT_ACCUM3 vertexLight = VertexLighting(positionWS, normalWS);
+        output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
+#endif
 
     #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         output.shadowCoord = GetShadowCoord(vertexInput);

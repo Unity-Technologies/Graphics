@@ -50,6 +50,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.shadowData = shadowData;
                 passData.gbuffer = gbuffer;
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
                 passData.deferredLights = m_DeferredLights;

@@ -88,8 +88,7 @@ namespace UnityEngine.Rendering.Universal
             io.motionVectorDomain = UpscalingIO.MotionVectorDomain.NDC;
             io.motionVectorDirection = UpscalingIO.MotionVectorDirection.PreviousFrameToCurrentFrame;
             io.jitteredMotionVectors = false; // URP has no jittering in MVs
-            // io.exposureTexture; // TODO: set exposure texture when available
-            io.preExposureValue = 1.0f; // TODO: set if exposure value is pre-multiplied
+            // Exposure left at UpscalingIO defaults (null texture, preExposureValue 1.0): URP handles pre-exposure in-pipeline, so the upscaler stays exposure-neutral.
             io.hdrDisplayInformation = cameraData.isHDROutputActive ? cameraData.hdrDisplayInformation : new HDROutputUtils.HDRDisplayInformation(-1, -1, -1, 160.0f);
             io.postUpscaleResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
 

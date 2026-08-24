@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
 
 // Normalize the fog keywords so they can be read as plain runtime values everywhere,
 // whether they are multi-compile, dynamic-branch, absent or manually defined.
@@ -163,6 +164,11 @@ half3 BlendDistanceFogFromEyeDepth(half3 color, float linearEyeDepth)
 float3 BlendDistanceFogFromEyeDepth(float3 color, float linearEyeDepth)
 {
     return BlendDistanceFogColorFromEyeDepth(color, linearEyeDepth, unity_FogColor.rgb);
+}
+
+URP_LIGHT_ACCUM3 BlendDistanceFogExposed(half3 color, float4 positionCS, float preExposureMultiplier)
+{
+    return BlendDistanceFogColor(color, positionCS, unity_FogColor.rgb * preExposureMultiplier);
 }
 
 #endif // UNIVERSAL_DISTANCE_FOG_INCLUDED

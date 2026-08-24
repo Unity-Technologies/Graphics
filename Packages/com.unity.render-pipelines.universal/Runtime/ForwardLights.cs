@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (lightData.reflectionProbeAtlas)
                     {
-                        m_ReflectionProbeManager.UpdateGpuData(CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
+                        m_ReflectionProbeManager.UpdateGpuData(cameraData, CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
                     }
 
                     using (new ProfilingScope(m_ProfilingSamplerFPComplete))
@@ -603,6 +603,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData, renderingData.reuseCullingResult);
+
+                bool useExposure = GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting) && exposureSetting.UseExposure;
+                cmd.SetKeyword(ShaderGlobalKeywords.Exposure, useExposure);
 
                 bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);

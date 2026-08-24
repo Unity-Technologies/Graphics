@@ -821,6 +821,7 @@ namespace UnityEngine.Rendering.Universal
             ReportRealBackbufferMSAA(cameraData, s_RequiresIntermediateAttachments);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
+            m_ExposurePass.RecordRenderGraph(renderGraph, frameData);
 
             // The On-Tile validation only applies when rendering to the screen backbuffer.
             m_ValidationHandler.active = cameraData.resolveToScreen;

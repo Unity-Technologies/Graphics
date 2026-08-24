@@ -946,6 +946,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword WriteSmoothness = GlobalKeyword.Create(ShaderKeywordStrings.WriteSmoothness);
         public static readonly GlobalKeyword ScreenSpaceOcclusion = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceOcclusion);
         public static readonly GlobalKeyword ScreenSpaceIrradiance = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceIrradiance);
+        public static readonly GlobalKeyword Exposure = GlobalKeyword.Create(ShaderKeywordStrings.Exposure);
         public static readonly GlobalKeyword _SPOT = GlobalKeyword.Create(ShaderKeywordStrings._SPOT);
         public static readonly GlobalKeyword _DIRECTIONAL = GlobalKeyword.Create(ShaderKeywordStrings._DIRECTIONAL);
         public static readonly GlobalKeyword _POINT = GlobalKeyword.Create(ShaderKeywordStrings._POINT);
@@ -1226,6 +1227,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
+
+        /// <summary> Keyword used for Exposure. </summary>
+        public const string Exposure = "_EXPOSURE";
 
         /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public const string Rcas = "_RCAS";

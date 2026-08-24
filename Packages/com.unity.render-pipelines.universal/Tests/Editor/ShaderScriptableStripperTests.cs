@@ -42,6 +42,7 @@ namespace ShaderStrippingAndPrefiltering
 
             public bool IsHDRShaderVariantValid { get; set; }
 
+            public bool stripExposureVariants { get; set; }
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
             {

@@ -9,6 +9,7 @@
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
 
@@ -76,7 +77,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
     half fogFactor = 0.0;
 
 #ifdef _NORMALMAP
@@ -131,8 +132,8 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.texcoord, _BaseMap);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
-    color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     return color;

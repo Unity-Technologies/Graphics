@@ -36,7 +36,7 @@ struct SpeedTreeVertexOutput
         half3 detail                : TEXCOORD1;
     #endif
 
-    half4 fogFactorAndVertexLight   : TEXCOORD2;    // x: fogFactor, yzw: vertex light
+    URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD2;    // x: fogFactor, yzw: vertex light
 
     #ifdef EFFECT_BUMP
         half4 normalWS              : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -92,6 +92,7 @@ struct SpeedTreeVertexDepthNormalOutput
 void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
     inputData.positionCS = input.clipPos;
@@ -214,12 +215,12 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     surfaceData.normalTS = normalTs;
 
     #ifdef GBUFFER
-        half4 color = half4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
+        URP_LIGHT_ACCUM4 color = URP_LIGHT_ACCUM4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
         surfaceData.occlusion = 1.0;
-        return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
+        return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
     #else
-        half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-        color.rgb = BlendDistanceFog(color.rgb, input.clipPos);
+        URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+        color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
         color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif

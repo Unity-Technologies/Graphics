@@ -20,7 +20,7 @@ struct Varyings
     float2  UV01            : TEXCOORD0; // UV0
     DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
     half4   Color           : TEXCOORD2; // Vertex Color
-    half3   VertexLighting  : TEXCOORD3; // Vertex Lighting
+    URP_LIGHT_ACCUM3 VertexLighting : TEXCOORD3; // Vertex Lighting
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
     #endif
@@ -38,6 +38,7 @@ struct Varyings
 void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionCS = input.PositionCS;
     inputData.normalWS = half3(0, 1, 0);
@@ -56,7 +57,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.positionWS = input.PositionWS;
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, input.NormalWS.xyz);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, input.NormalWS.xyz, GetInvPreExposureMultiplier());
 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
@@ -94,23 +95,23 @@ void InitializeSurfaceData(half3 albedo, half alpha, out SurfaceData surfaceData
     surfaceData.normalTS = half3(0, 0, 1);
 }
 
-half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
-    half4 debugColor;
+    float4 debugColor;
 
     if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
-        return debugColor;
+        return CompensateDebugColorForPreExposure(debugColor);
     }
     #endif
 
     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    half3 lighting = inputData.vertexLighting * MainLightRealtimeShadow(inputData.shadowCoord);
+    URP_LIGHT_ACCUM3 lighting = inputData.vertexLighting * MainLightRealtimeShadow(inputData.shadowCoord);
     #else
-    half3 lighting = inputData.vertexLighting;
+    URP_LIGHT_ACCUM3 lighting = inputData.vertexLighting;
     #endif
-    half4 color = half4(surfaceData.albedo, surfaceData.alpha);
+    URP_LIGHT_ACCUM4 color = half4(surfaceData.albedo, surfaceData.alpha);
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
     {
@@ -122,7 +123,7 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     return color;
 }
 
-half4 UniversalTerrainLit(InputData inputData, half3 albedo, half alpha)
+URP_LIGHT_ACCUM4 UniversalTerrainLit(InputData inputData, half3 albedo, half alpha)
 {
     SurfaceData surfaceData;
     InitializeSurfaceData(albedo, alpha, surfaceData);
@@ -154,7 +155,7 @@ Varyings TerrainLitVertex(Attributes input)
     OUTPUT_SH4(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-    half3 diffuseColor = half3(0, 0, 0);
+    URP_LIGHT_ACCUM3 diffuseColor = half3(0, 0, 0);
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
@@ -191,9 +192,9 @@ half4 TerrainLitForwardFragment(Varyings input) : SV_Target
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(inputData);
     half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
-    half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
+    URP_LIGHT_ACCUM4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
-    color.rgb = BlendDistanceFog(color.rgb, input.PositionCS);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.PositionCS));
     return color;
 }
 
@@ -208,7 +209,7 @@ GBufferFragOutput TerrainLitGBufferFragment(Varyings input)
     SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(inputData);
     SurfaceData surfaceData;
     InitializeSurfaceData(tex.rgb, tex.a, surfaceData);
-    half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
+    URP_LIGHT_ACCUM4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
-    return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
+    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
 }

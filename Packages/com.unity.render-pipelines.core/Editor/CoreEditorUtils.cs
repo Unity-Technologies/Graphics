@@ -98,6 +98,7 @@ namespace UnityEditor.Rendering
         static float s_HighlightStart = -1.0f;
         static Texture2D s_HighlightBackground;
         static object s_View;
+        static Rect s_LastActiveRectPos;
 
         static readonly FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
         static readonly FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
@@ -119,7 +120,7 @@ namespace UnityEditor.Rendering
             }
 
             // Item is in view for the first time, register highlight drawer delegate
-            if (Highlighter.activeVisible && s_HighlightStart <= 0.0f)
+            if ((Highlighter.activeVisible || Highlighter.activeRect == s_LastActiveRectPos) && s_HighlightStart <= 0.0f)
             {
                 s_HighlightStart = Time.realtimeSinceStartup;
 
@@ -135,6 +136,7 @@ namespace UnityEditor.Rendering
                 else
                 {
                     Highlighter.Stop();
+                    s_LastActiveRectPos = new(-1, -1, -1, -1);
                 }
             }
 
@@ -144,10 +146,12 @@ namespace UnityEditor.Rendering
                 {
                     Highlighter.Stop();
 
+                    s_LastActiveRectPos = new(-1, -1, -1, -1);
                     var windowBackend = k_WindowBackendInfo.GetValue(s_View);
                     k_GUIHandlerInfo.RemoveEventHandler(windowBackend, (Action)ControlHighlightGUI);
                 }
             }
+            s_LastActiveRectPos = Highlighter.activeRect;
         }
 
         static void ControlHighlightGUI()

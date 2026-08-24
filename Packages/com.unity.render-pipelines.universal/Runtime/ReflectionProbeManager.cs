@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.Universal
         const int k_ProbePositionChannel  = 2;                                            // urp_ReflProbes_ProbePosition
         const int k_MipScaleOffsetChannel = 3;                                            // urp_ReflProbes_MipScaleOffset (k_MaxMipCount channels)
         const int k_RotationChannel       = k_MipScaleOffsetChannel + k_MaxMipCount;      // urp_ReflProbes_Rotation
-        const int k_ReflectionProbeChannelCount = k_RotationChannel + 1;
+        const int k_ExposureMultiplierChannel = k_RotationChannel + 1;                    // urp_ReflProbes_ExposureMultipliers
+        const int k_ReflectionProbeChannelCount = k_ExposureMultiplierChannel + 1;
         NativeArray<Vector4> m_ReflectionProbeData;
         GraphicsBuffer m_ReflectionProbeBuffer;
 
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         Vector4[] m_ProbePosition;
         Vector4[] m_MipScaleOffset;
         Vector4[] m_Rotations;
+        Vector4[] m_ExposureMultipliers;
 
         int m_MaxReflectionProbes;
         bool m_UseConstantBuffer;
@@ -60,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
             public int lastUsed;
             public Vector4 hdrData;
             public ReflectionProbe sourceProbe;
+            public float exposureValue;
         }
 
         static class ShaderProperties
@@ -76,6 +79,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int Count = Shader.PropertyToID("urp_ReflProbes_Count");
             public static readonly int Atlas = Shader.PropertyToID("urp_ReflProbes_Atlas");
+            public static readonly int ExposureMultipliers = Shader.PropertyToID("urp_ReflProbes_ExposureMultipliers");
         }
 
         public RenderTexture atlasRT => m_AtlasTexture0;
@@ -189,14 +193,16 @@ namespace UnityEngine.Rendering.Universal
             m_ProbePosition = new Vector4[m_MaxReflectionProbes];
             m_MipScaleOffset = new Vector4[m_MaxReflectionProbes * k_MaxMipCount];
             m_Rotations = new Vector4[m_MaxReflectionProbes];
+            m_ExposureMultipliers = new Vector4[m_MaxReflectionProbes];
         }
         
-        public unsafe void UpdateGpuData(CommandBuffer cmd, ref CullingResults cullResults)
+        public unsafe void UpdateGpuData(UniversalCameraData cameraData, CommandBuffer cmd, ref CullingResults cullResults)
         {
             var probes = cullResults.visibleReflectionProbes;
             int maxProbes = m_MaxReflectionProbes;
             var probeCount = math.min(probes.Length, maxProbes);
             var frameIndex = Time.renderedFrameCount;
+            var probeBeingRendered = cameraData.cameraType == CameraType.Reflection ? cameraData.camera.reflectionProbeRendered : null;
 
             // Populate list of probes we need to remove to avoid modifying dictionary while iterating.
             foreach (var (id, cachedProbe) in m_Cache)
@@ -209,7 +215,9 @@ namespace UnityEngine.Rendering.Universal
                 if (Math.Abs(cachedProbe.lastUsed - frameIndex) > 1 ||
                     !cachedProbe.texture ||
                     cachedProbe.size != cachedProbe.texture.width ||
-                    (cachedProbe.sourceProbe && cachedProbe.texture != cachedProbe.sourceProbe.texture))
+                    (cachedProbe.sourceProbe && (cachedProbe.texture != cachedProbe.sourceProbe.texture || cachedProbe.exposureValue != cachedProbe.sourceProbe.exposureValue)) ||
+                    (cameraData.cameraType == CameraType.Reflection &&
+                    probeBeingRendered == cachedProbe.sourceProbe))
                 {
                     m_NeedsRemove.Add(id);
                     for (var i = 0; i < k_MaxMipCount; i++)
@@ -261,13 +269,17 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!wasCached)
                 {
+                    if (cameraData.cameraType == CameraType.Reflection && probeBeingRendered == probe.reflectionProbe)
+                    {
+                        continue;
+                    }
                     cachedProbe.size = texture.width;
                     var mipCount = math.ceillog2(cachedProbe.size * 4) + 1;
                     var level = m_AtlasAllocator.levelCount + 2 - mipCount;
                     cachedProbe.mipCount = math.min(mipCount, k_MaxMipCount);
                     cachedProbe.texture = texture;
                     cachedProbe.sourceProbe = probe.reflectionProbe;
-
+                    cachedProbe.exposureValue = cachedProbe.sourceProbe.exposureValue;
                     var mip = 0;
                     for (; mip < cachedProbe.mipCount; mip++)
                     {
@@ -363,8 +375,10 @@ namespace UnityEngine.Rendering.Universal
             int probePositionOffset = maxProbes * k_ProbePositionChannel;
             int mipScaleOffset      = maxProbes * k_MipScaleOffsetChannel;  // occupies k_MaxMipCount channels
             int rotationOffset      = maxProbes * k_RotationChannel;
+            int exposureOffset      = maxProbes * k_ExposureMultiplierChannel;
 
             var skipCount = 0;
+            bool useExposure = GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSettings) && exposureSettings.UseExposure;
             for (var probeIndex = 0; probeIndex < probeCount; probeIndex++)
             {
                 var probe = probes[probeIndex];
@@ -383,6 +397,9 @@ namespace UnityEngine.Rendering.Universal
                 var probePosition = new Vector4(probe.localToWorldMatrix.m03, probe.localToWorldMatrix.m13, probe.localToWorldMatrix.m23, (probe.isBoxProjection ? 1 : -1) * (cachedProbe.mipCount));
                 var rot           = Quaternion.Inverse(probe.reflectionProbe.transform.rotation);
                 var rotation      = new Vector4(rot.x, rot.y, rot.z, rot.w);
+                var exposureMultiplier = Vector4.one; // identity — never 0, so reflections are never zeroed when exposure is disabled
+                if (useExposure)
+                    exposureMultiplier = new Vector4(Mathf.Pow(2, probe.reflectionProbe.exposureValue), 0, 0, 0);
 
                 if (m_UseConstantBuffer)
                 {
@@ -392,6 +409,7 @@ namespace UnityEngine.Rendering.Universal
                     for (var i = 0; i < cachedProbe.mipCount; i++)
                         m_ReflectionProbeData[mipScaleOffset + dataIndex * k_MaxMipCount + i] = GetScaleOffset(cachedProbe.levels[i], cachedProbe.dataIndices[i], false, false);
                     m_ReflectionProbeData[rotationOffset + dataIndex] = rotation;
+                    m_ReflectionProbeData[exposureOffset + dataIndex] = exposureMultiplier;
                 }
                 else
                 {
@@ -401,6 +419,7 @@ namespace UnityEngine.Rendering.Universal
                     for (var i = 0; i < cachedProbe.mipCount; i++)
                         m_MipScaleOffset[dataIndex * k_MaxMipCount + i] = GetScaleOffset(cachedProbe.levels[i], cachedProbe.dataIndices[i], false, false);
                     m_Rotations[dataIndex] = rotation;
+                    m_ExposureMultipliers[dataIndex] = exposureMultiplier;
                 }
             }
 
@@ -443,6 +462,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVectorArray(ShaderProperties.ProbePosition, m_ProbePosition);
                     cmd.SetGlobalVectorArray(ShaderProperties.MipScaleOffset, m_MipScaleOffset);
                     cmd.SetGlobalVectorArray(ShaderProperties.Rotation, m_Rotations);
+                    cmd.SetGlobalVectorArray(ShaderProperties.ExposureMultipliers, m_ExposureMultipliers);
                 }
                 cmd.SetGlobalFloat(ShaderProperties.Count, probeCount - skipCount);
                 cmd.SetGlobalTexture(ShaderProperties.Atlas, m_AtlasTexture0);

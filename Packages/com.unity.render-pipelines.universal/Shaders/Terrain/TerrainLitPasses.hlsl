@@ -33,7 +33,7 @@ struct Varyings
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+        URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
     #else
         half  fogFactor                 : TEXCOORD6;
     #endif
@@ -59,6 +59,7 @@ struct Varyings
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = IN.positionWS;
     inputData.positionCS = IN.clipPos;
@@ -122,7 +123,7 @@ void InitializeBakedGIData(Varyings IN, inout InputData inputData)
     #endif
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
@@ -252,7 +253,8 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 }
 #endif
 
-void SplatmapFinalColor(inout half4 color, float4 positionCS)
+
+void SplatmapFinalColor(inout URP_LIGHT_ACCUM4 color, float4 positionCS)
 {
     color.rgb *= color.a;
 
@@ -476,7 +478,7 @@ void SplatmapFragment(
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
     // Baked lighting.
-    half4 color;
+    URP_LIGHT_ACCUM4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
@@ -494,14 +496,14 @@ void SplatmapFragment(
     inputData.normalWS = inputData.normalWS * alpha;
     smoothness *= alpha;
 
-    return PackGBuffersBRDFData(brdfData, inputData, smoothness, color.rgb, occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), occlusion);
 #else
 
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, IN.clipPos);
 
-    outColor = half4(color.rgb, 1.0h);
+    outColor = half4(ClampExposed(inputData.preExposureMultiplier * color.rgb), 1.0h);
 
 #ifdef _WRITE_RENDERING_LAYERS
     outRenderingLayers = EncodeMeshRenderingLayer();

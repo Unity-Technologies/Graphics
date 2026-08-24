@@ -103,6 +103,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma multi_compile_fragment _ _EXPOSURE
 
             // -------------------------------------
             // Unity defined keywords

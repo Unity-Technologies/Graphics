@@ -30,6 +30,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
 
@@ -71,6 +72,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX //_ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile _ _EXPOSURE
 
             // -------------------------------------
             // Unity defined keywords
@@ -101,14 +103,14 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             struct Varyings
             {
-                float2  UV01            : TEXCOORD0; // UV0
+                float2              UV01            : TEXCOORD0; // UV0
                 DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
-                half4   Color           : TEXCOORD2; // Vertex Color
-                half3   VertexLighting  : TEXCOORD3; // Vertex Lighting
-                float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
-                half3   NormalWS        : TEXCOORD5; // World Space Normal
-                float3  PositionWS      : TEXCOORD6;
-                float4  PositionCS      : SV_POSITION; // Clip Position
+                half4               Color           : TEXCOORD2; // Vertex Color
+                URP_LIGHT_ACCUM3    VertexLighting  : TEXCOORD3; // Vertex Lighting
+                float4              ShadowCoords    : TEXCOORD4; // Shadow UVs
+                half3               NormalWS        : TEXCOORD5; // World Space Normal
+                float3              PositionWS      : TEXCOORD6;
+                float4              PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -139,7 +141,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-                half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, output.NormalWS);
+                URP_LIGHT_ACCUM3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, output.NormalWS);
             #ifdef _ADDITIONAL_LIGHTS
                 int pixelLightCount = GetAdditionalLightsCount();
                 for (int i = 0; i < pixelLightCount; ++i)
@@ -161,6 +163,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+                float preExposureMultiplier = GetPreExposureMultiplier();
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
                 half3 bakedGI = SAMPLE_GI(input.vertexSH,
                     GetAbsolutePositionWS(input.PositionWS),
@@ -173,10 +176,10 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS);
 #endif
 
-                half3 lighting = input.VertexLighting * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                URP_LIGHT_ACCUM3 lighting = input.VertexLighting * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
-                half4 color = 1.0;
+                URP_LIGHT_ACCUM4 color = 1.0;
                 color.rgb = input.Color.rgb * tex.rgb * lighting;
 
                 SurfaceData surfaceData = (SurfaceData)0;
@@ -184,10 +187,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 surfaceData.occlusion = 1.0;
 
                 InputData inputData = (InputData)0;
+                inputData.preExposureMultiplier = preExposureMultiplier;
                 inputData.normalWS = input.NormalWS;
                 inputData.positionCS = input.PositionCS;
 
-                return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
+                return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
             }
             ENDHLSL
         }

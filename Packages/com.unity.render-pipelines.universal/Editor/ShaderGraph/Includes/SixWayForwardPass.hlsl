@@ -42,6 +42,8 @@ void InitializeInputData(Varyings input, bool frontFace, out InputData inputData
     #endif
     inputData.positionCS = input.positionCS;
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 PackedVaryings vert(Attributes input)
@@ -111,9 +113,8 @@ void frag(
     surfaceData.absorptionRange = INV_PI + saturate(surfaceDescription.AbsorptionStrength) * (1 - INV_PI);
 #endif
 
-
-    half4 color = UniversalFragmentSixWay(inputData, surfaceData);
-    color.rgb = BlendDistanceFog(color.rgb, unpacked.positionCS);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentSixWay(inputData, surfaceData);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, unpacked.positionCS));
 
     color.a = OutputAlpha(color.a, isTransparent);
 

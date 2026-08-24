@@ -282,6 +282,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(irradianceTexture, AccessFlags.Read);
                 }
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
+
                 TextureHandle ssrTexture = resourceData.ssrTexture;
                 if (ssrTexture.IsValid())
                 {
@@ -413,6 +418,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // depth-stencil attachment, so it must be read-write, not read-only.
                 passData.basePassData.depthHdl = depthTarget;
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
+
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
 
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, AccessFlags.Read);

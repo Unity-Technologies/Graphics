@@ -23,6 +23,7 @@ namespace ShaderStrippingAndPrefiltering
             internal bool stripReflectionProbeRotation = true;
             internal bool stripScreenSpaceIrradiance = true;
             internal bool stripScreenCoordOverride = true;
+            internal bool stripExposure = true;
             internal bool stripUnusedVariants = true;
             internal List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>();
             internal ShaderPrefilteringData defaultPrefilteringData;
@@ -34,8 +35,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderPrefilteringData CreatePrefilteringSettings(ShaderFeatures shaderFeatures)
             {
-                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, everyRendererHasSSR, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripBicubicLightmapSampling, stripReflectionProbeRotation, stripScreenSpaceIrradiance, stripUnusedVariants, ref ssaoRendererFeatures);
-
+                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, everyRendererHasSSR, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripBicubicLightmapSampling, stripReflectionProbeRotation, stripExposure, stripScreenSpaceIrradiance, stripUnusedVariants, ref ssaoRendererFeatures);
             }
 
             internal void AssertPrefilteringData(ShaderPrefilteringData expected, ShaderPrefilteringData actual)
@@ -268,6 +268,18 @@ namespace ShaderStrippingAndPrefiltering
             helper.AssertPrefilteringData(expected, actual);
 
             helper.stripReflectionProbeRotation = true;
+            expected = helper.defaultPrefilteringData;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            // Exposure
+            helper.stripExposure = false;
+            expected = helper.defaultPrefilteringData;
+            expected.stripExposure = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            helper.stripExposure = true;
             expected = helper.defaultPrefilteringData;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
             helper.AssertPrefilteringData(expected, actual);

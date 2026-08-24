@@ -54,12 +54,14 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 
     inputData.positionCS = input.positionCS;
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -163,8 +165,8 @@ void frag(
 
     InitializeBakedGIData(unpacked, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surface);
-    color.rgb = BlendDistanceFog(color.rgb, unpacked.positionCS);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, unpacked.positionCS));
 
     color.a = OutputAlpha(color.a, isTransparent);
 

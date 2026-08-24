@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 11;
+        internal const int k_LastVersion = 12;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -159,6 +159,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 MigrateFilmGrainTextures();
                 asset.m_AssetVersion = 11;
+            }
+
+            if (asset.m_AssetVersion < 12)
+            {
+                var exposureSettings = GetOrCreateGraphicsSettings<URPExposureSettings>(asset);
+                exposureSettings.UseExposure = false;
+                asset.m_AssetVersion = 12;
             }
 
             // If the asset version has changed, means that a migration step has been executed

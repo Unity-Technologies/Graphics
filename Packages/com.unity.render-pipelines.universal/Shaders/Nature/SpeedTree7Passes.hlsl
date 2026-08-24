@@ -133,10 +133,10 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
 
     half fogFactor = 0;
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 

@@ -234,6 +234,10 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.PointSampling)]
         [SerializeField] private bool m_PrefilterPointSamplingUpsampling = false;
 
+        // Exposure (_EXPOSURE)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.Exposure)]
+        [SerializeField] private bool m_PrefilterExposure = false;
+
         // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
         // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
         // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
@@ -290,6 +294,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripReflectionProbeAtlas;
 
             public bool stripPointSamplingUpsampling;
+
+            public bool stripExposure;
 
             public bool stripScreenSpaceIrradiance;
 
@@ -365,6 +371,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterReflectionProbeAtlas          = prefilteringData.stripReflectionProbeAtlas;
 
             m_PrefilterPointSamplingUpsampling       = prefilteringData.stripPointSamplingUpsampling;
+
+            m_PrefilterExposure                      = prefilteringData.stripExposure;
 
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 

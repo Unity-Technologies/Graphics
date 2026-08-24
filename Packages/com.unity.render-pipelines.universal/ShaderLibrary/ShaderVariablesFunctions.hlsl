@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
-
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
@@ -324,6 +324,16 @@ float3 NormalizeNormalPerPixel(float3 normalWS)
 
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.deprecated.hlsl"
+
+half3 MixFogExposed(half3 fragColor, half fogFactor, float preExposureMultiplier)
+{
+    return MixFogColor(fragColor, preExposureMultiplier * half3(unity_FogColor.rgb), fogFactor);
+}
+
+float3 MixFogExposed(float3 fragColor, float fogFactor, float preExposureMultiplier)
+{
+    return MixFogColor(fragColor, preExposureMultiplier * float3(unity_FogColor.rgb), fogFactor);
+}
 
 // Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
 half LinearDepthToEyeDepth(half rawDepth)

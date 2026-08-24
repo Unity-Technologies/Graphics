@@ -177,6 +177,8 @@ namespace UnityEngine.Rendering.Universal
         CopyColorPass m_HistoryBeforeTransparentsColorCopyPass;
         CopyDepthPass m_HistoryRawDepthCopyPass;
 
+        ExposurePass m_ExposurePass;
+
         StencilCrossFadeRenderPass m_StencilCrossFadeRenderPass;
 
         RTHandle m_TargetColorHandle;
@@ -358,8 +360,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            m_ExposurePass = new ExposurePass();
             m_ShadowPassGroup = new ShadowPassGroup();
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass

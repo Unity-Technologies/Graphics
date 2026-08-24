@@ -8,6 +8,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     half3 SH = 0.0h;
     CalculateTerrainNormalWS(input, surfaceDescription, inputData);
@@ -103,7 +104,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
 
     // Baked lighting.
-    half4 color;
+    URP_LIGHT_ACCUM4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, (BRDFData)0, 0,
@@ -122,7 +123,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     inputData.normalWS = inputData.normalWS * alpha;
     surfaceDescription.Smoothness *= alpha;
 
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, color.rgb, surfaceDescription.Occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), surfaceDescription.Occlusion);
 }
 
 #endif

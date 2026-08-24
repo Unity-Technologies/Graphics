@@ -43,7 +43,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get; set; }
             public bool IsRenderCompatibilityMode { get; set; }
-
+            public bool stripExposureVariants { get; set; }
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
             {

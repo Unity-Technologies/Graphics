@@ -74,6 +74,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData.positionWS = positionWS;
     inputData.normalWS = normalWS;
     inputData.viewDirectionWS = viewDirectionWS;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
 #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
@@ -88,7 +89,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #endif
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, normalWS, GetInvPreExposureMultiplier());
 #elif defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, half3(input.sh), normalWS);
     #if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
@@ -341,10 +342,10 @@ void Frag(PackedVaryings packedInput,
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
 
-    half4 color = UniversalFragmentPBR(inputData, surface);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface);
 
     float linearEyeDepth = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
-    color.rgb = BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth));
 
     outColor = color;
 #elif defined(DECAL_GBUFFER)
@@ -368,9 +369,9 @@ void Frag(PackedVaryings packedInput,
 #ifdef _MATERIAL_AFFECTS_ALBEDO
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, surfaceData.normalWS.xyz, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, surfaceData.normalWS.xyz, inputData.viewDirectionWS);
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, surfaceData.normalWS.xyz, inputData.viewDirectionWS);
 #else
-    half3 color = 0;
+    URP_LIGHT_ACCUM3 color = 0;
 #endif
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
@@ -379,7 +380,7 @@ void Frag(PackedVaryings packedInput,
     fragmentOutput.gBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.gBuffer1 = 0;
     fragmentOutput.gBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
-    fragmentOutput.color = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
+    fragmentOutput.color = half4(ClampExposed(inputData.preExposureMultiplier * (surfaceData.emissive + color)), surfaceData.baseColor.a);
 
 #if defined(GBUFFER_FEATURE_SHADOWMASK)
     fragmentOutput.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
@@ -389,7 +390,7 @@ void Frag(PackedVaryings packedInput,
 
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed
-    outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
+    outEmissive.rgb = ClampExposed(GetPreExposureMultiplier() * surfaceData.emissive);
     outEmissive.a = surfaceData.baseColor.a;
 #else
 #endif

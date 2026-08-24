@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_StripScreenCoordOverrideVariants;
         public static bool s_StripBicubicLightmapSamplingVariants;
         public static bool s_StripReflectionProbeRotationVariants;
+        public static bool s_StripExposureVariants;
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
         public static bool s_StripXRVariants;
@@ -380,6 +381,11 @@ namespace UnityEditor.Rendering.Universal
             else
                 s_StripReflectionProbeRotationVariants = true;
 
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSettings))
+                s_StripExposureVariants = !exposureSettings.UseExposure;
+            else
+                s_StripExposureVariants = true;
+
             PlatformBuildTimeDetect platformBuildTimeDetect = PlatformBuildTimeDetect.GetInstance();
             bool isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
             if (platformBuildTimeDetect.isSwitch || platformBuildTimeDetect.isSwitch2 || isShaderAPIMobileDefined)
@@ -579,6 +585,7 @@ namespace UnityEditor.Rendering.Universal
                     s_StripScreenCoordOverrideVariants,
                     s_StripBicubicLightmapSamplingVariants,
                     s_StripReflectionProbeRotationVariants,
+                    s_StripExposureVariants,
                     stripScreenSpaceIrradiance,
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
@@ -1124,6 +1131,7 @@ namespace UnityEditor.Rendering.Universal
             bool stripScreenCoord,
             bool stripBicubicLightmap,
             bool stripReflectionProbeRotation,
+            bool stripExposure,
             bool stripScreenSpaceIrradiance,
             bool stripUnusedVariants,
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
@@ -1150,6 +1158,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
             spd.stripReflectionProbeRotation = stripReflectionProbeRotation;
+            spd.stripExposure = stripExposure;
             spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
             spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
             spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);

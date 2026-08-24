@@ -237,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _CurrentFullResScreenDepths = Shader.PropertyToID("_CurrentFullResScreenDepths");
             public static readonly int _CurrentFullResScreenFlatNormals = Shader.PropertyToID("_CurrentFullResScreenFlatNormals");
             public static readonly int _CurrentFullResScreenMotionVectors = Shader.PropertyToID("_CurrentFullResScreenMotionVectors");
+            public static readonly int _ExposureMultiplier = Shader.PropertyToID("_ExposureMultiplier");
             public static readonly int _ScreenShadedNormals = Shader.PropertyToID("_ScreenShadedNormals");
             public static readonly int _LowResIrradiancesL0 = Shader.PropertyToID("_LowResIrradiancesL0");
             public static readonly int _LowResIrradiancesL10 = Shader.PropertyToID("_LowResIrradiancesL10");
@@ -536,6 +537,7 @@ namespace UnityEngine.Rendering.Universal
                 internal TextureHandle LowResScreenIrradiancesL11;
                 internal TextureHandle LowResScreenIrradiancesL12;
                 internal TextureHandle LowResScreenNdcDepths;
+                internal TextureHandle ExposureMultiplier;
                 internal GraphicsBuffer CellPatchIndices;
                 internal GraphicsBuffer PatchIrradiances;
                 internal GraphicsBuffer PatchStatistics;
@@ -808,6 +810,7 @@ namespace UnityEngine.Rendering.Universal
                     data.Shader = _screenResolveLookupShader;
                     data.KernelIndex = _screenResolveLookupKernel;
                     data.ThreadGroupSize = _screenResolveLookupKernelGroupSize;
+                    data.ExposureMultiplier = resourceData.exposureMultiplier;
                     data.FullResDepths = resourceData.cameraDepthTexture;
                     data.FullResFlatNormals = flatNormalsHandle;
                     data.LowResScreenIrradiancesL0 = lowResScreenIrradiancesL0Handle;
@@ -835,6 +838,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(data.LowResScreenIrradiancesL11, AccessFlags.Write);
                     builder.UseTexture(data.LowResScreenIrradiancesL12, AccessFlags.Write);
                     builder.UseTexture(data.LowResScreenNdcDepths, AccessFlags.Write);
+                    if (data.ExposureMultiplier.IsValid())
+                    {
+                        builder.UseTexture(data.ExposureMultiplier, AccessFlags.Read);
+                    }
 
                     builder.SetRenderFunc((ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext) => LookupScreenIrradiance(data, cgContext));
                 }
@@ -1061,6 +1068,10 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = cgContext.cmd;
                 var shader = data.Shader;
                 var kernelIndex = data.KernelIndex;
+                if (data.ExposureMultiplier.IsValid())
+                {
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ExposureMultiplier, data.ExposureMultiplier);
+                }
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL0, data.LowResScreenIrradiancesL0);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL10, data.LowResScreenIrradiancesL10);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL11, data.LowResScreenIrradiancesL11);

@@ -48,12 +48,14 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -135,9 +137,9 @@ GBufferFragOutput frag(PackedVaryings packedInput)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                             inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS,
                                             inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, surfaceDescription.Occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, ClampExposed(inputData.preExposureMultiplier * (surfaceDescription.Emission + color)), surfaceDescription.Occlusion);
 }

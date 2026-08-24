@@ -202,7 +202,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
    {
        float4 fog = (float4)0;
-       fog.rgb = unity_FogColor.rgb;
+       fog.rgb = ClampExposed(GetPreExposureMultiplier() * unity_FogColor.rgb);
 
        fog.a = DistanceFogOcclusionFactor(DistanceFogNearToFarZ(posCS));
 #if VFX_BLENDMODE_ALPHA || IS_OPAQUE_PARTICLE

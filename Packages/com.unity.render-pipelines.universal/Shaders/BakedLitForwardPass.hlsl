@@ -81,6 +81,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
@@ -168,9 +170,10 @@ void BakedLitForwardPassFragment(
 
     InitializeBakedGIData(input, inputData);
 
-    half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
+    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
     finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.positionCS);
 
+    finalColor.rgb = ClampExposed(inputData.preExposureMultiplier * finalColor.rgb);
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
     outColor = finalColor;
 

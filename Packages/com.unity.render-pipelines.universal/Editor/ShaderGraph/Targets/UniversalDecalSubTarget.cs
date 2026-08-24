@@ -1016,6 +1016,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static KeywordCollection ForwardEmissiveProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { Descriptors.DecalLayers },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
             };
@@ -1028,6 +1029,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.UseLegacyLightmaps },
                 { CoreKeywordDescriptors.LightmapBicubicSampling },
                 { CoreKeywordDescriptors.ReflectionProbeRotation },
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
@@ -1049,6 +1051,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.AdditionalLights },
@@ -1064,6 +1067,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferMesh = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -1083,6 +1087,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },

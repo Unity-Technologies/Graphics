@@ -121,7 +121,7 @@ half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tang
     return PI * cbsdf_R * radiance; // *PI because URP doesn't multiply by the Lambert term in its Lit implementation
 }
 
-half4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData)
 {
     if(surfaceData.alpha == 0)
         return half4(0,0,0,0);

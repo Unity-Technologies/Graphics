@@ -58,6 +58,8 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 Varyings UnlitPassVertex(Attributes input)
@@ -128,7 +130,7 @@ void UnlitPassFragment(
     finalColor.rgb *= aoFactor.directAmbientOcclusion;
 #endif
 
-    finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.positionCS);
+    finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.positionCS, inputData.preExposureMultiplier));
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     outColor = finalColor;

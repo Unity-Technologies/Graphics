@@ -272,7 +272,7 @@ half4 DeferredShading(Varyings input) : SV_Target
 
     GBufferData gBufferData = UnpackGBuffers(input.positionCS.xy);
 
-    half3 color = 0.0;
+    URP_LIGHT_ACCUM3 color = 0.0;
     half alpha = 1.0;
 
     #if defined(GBUFFER_FEATURE_SHADOWMASK)
@@ -316,6 +316,7 @@ half4 DeferredShading(Varyings input) : SV_Target
     #endif
 
     InputData inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = posWS.xyz;
     inputData.normalWS = gBufferData.normalWS;
@@ -341,7 +342,7 @@ half4 DeferredShading(Varyings input) : SV_Target
         color = diffuseColor * surfaceData.albedo + specularColor;
     #endif
 
-    return half4(color, alpha);
+    return half4(ClampExposed(inputData.preExposureMultiplier * color), alpha);
 }
 
 half4 FragSSAOOnly(Varyings input) : SV_Target

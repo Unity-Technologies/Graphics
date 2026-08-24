@@ -32,7 +32,7 @@ struct SpeedTreeVertexOutput
     half2 uv                        : TEXCOORD0;
     half4 color                     : TEXCOORD1;
 
-    half4 fogFactorAndVertexLight   : TEXCOORD2;    // x: fogFactor, yzw: vertex light
+    URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD2;    // x: fogFactor, yzw: vertex light
 
     #ifdef EFFECT_BUMP
         half4 normalWS              : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -252,9 +252,9 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
     half fogFactor = 0.0;
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
@@ -323,6 +323,7 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.interpolated.positionWS.xyz;
     inputData.positionCS = input.interpolated.clipPos;
@@ -469,10 +470,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
                                      inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return PackGBuffersBRDFData(brdfData, inputData, smoothness, emission + color, occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * (emission + color)), occlusion);
 
 #else
     SurfaceData surfaceData;
@@ -492,9 +493,9 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     inputData.uv = uv;
 #endif
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-    color.rgb = BlendDistanceFog(color.rgb, input.interpolated.clipPos);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.interpolated.clipPos));
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;

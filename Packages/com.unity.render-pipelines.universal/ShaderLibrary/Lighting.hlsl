@@ -102,6 +102,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Lig
 }
 
 // Backwards compatibility
+// Pre-exposure is fixed to 1
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
     #ifdef _SPECULARHIGHLIGHTS_OFF
@@ -113,6 +114,8 @@ half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, ha
     return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
 }
 
+// Backwards compatibility
+// Pre-exposure is fixed to 1
 half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
     Light light;
@@ -123,12 +126,16 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     return LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS);
 }
 
+// Backwards compatibility
+// Pre-exposure is fixed to 1
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     const BRDFData noClearCoat = (BRDFData)0;
     return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
 }
 
+// Backwards compatibility
+// Pre-exposure is fixed to 1
 half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     Light light;
@@ -139,9 +146,9 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     return LightingPhysicallyBased(brdfData, light, viewDirectionWS, specularHighlightsOff, specularHighlightsOff);
 }
 
-half3 VertexLighting(float3 positionWS, half3 normalWS)
+URP_LIGHT_ACCUM3 VertexLighting(float3 positionWS, half3 normalWS)
 {
-    half3 vertexLightColor = half3(0.0, 0.0, 0.0);
+    URP_LIGHT_ACCUM3 vertexLightColor = 0.0;
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
     uint lightsCount = GetAdditionalLightsCount();
@@ -166,21 +173,22 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     LIGHT_LOOP_END
 #endif
 
-    return vertexLightColor;
+    return vertexLightColor; // HDR is preserved in the accumulator; ClampExposed narrows it at the shading output
 }
 
 struct LightingData
 {
-    half3 giColor;
-    half3 mainLightColor;
-    half3 additionalLightsColor;
-    half3 vertexLightingColor;
-    half3 emissionColor;
+    // Accumulator precision toggles with _EXPOSURE (half when off, float when on). See ExposureFunctions.hlsl.
+    URP_LIGHT_ACCUM3 giColor;
+    URP_LIGHT_ACCUM3 mainLightColor;
+    URP_LIGHT_ACCUM3 additionalLightsColor;
+    URP_LIGHT_ACCUM3 vertexLightingColor;
+    URP_LIGHT_ACCUM3 emissionColor;
 };
 
-half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
+URP_LIGHT_ACCUM3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
-    half3 lightingColor = 0;
+    URP_LIGHT_ACCUM3 lightingColor = 0;
 
     if (IsOnlyAOLightingFeatureEnabled())
     {
@@ -217,20 +225,21 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
     return lightingColor;
 }
 
-half4 CalculateFinalColor(LightingData lightingData, half alpha)
+URP_LIGHT_ACCUM4 CalculateFinalColor(LightingData lightingData, half alpha)
 {
-    half3 finalColor = CalculateLightingColor(lightingData, 1);
+    URP_LIGHT_ACCUM3 finalColor = CalculateLightingColor(lightingData, 1);
 
-    return half4(finalColor, alpha);
+    return URP_LIGHT_ACCUM4(finalColor, alpha);
 }
 
-// Deprecated: use CalculateFinalColor(lightingData, alpha) + BlendDistanceFog. fogCoord is view-space z.
-half4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, float fogCoord)
-{
-    half3 lightingColor = CalculateLightingColor(lightingData, albedo);
-    half3 finalColor = BlendDistanceFogFromEyeDepth(lightingColor, -fogCoord);
 
-    return half4(finalColor, alpha);
+// Deprecated: use CalculateFinalColor(lightingData, alpha) + BlendDistanceFog. fogCoord is view-space z.
+URP_LIGHT_ACCUM4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, float fogCoord)
+{
+    URP_LIGHT_ACCUM3 lightingColor = CalculateLightingColor(lightingData, albedo);
+    URP_LIGHT_ACCUM3 finalColor = BlendDistanceFogFromEyeDepth(lightingColor, -fogCoord);
+
+    return URP_LIGHT_ACCUM4(finalColor, alpha);
 }
 
 LightingData CreateLightingData(InputData inputData, SurfaceData surfaceData)
@@ -273,7 +282,7 @@ half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceD
 ////////////////////////////////////////////////////////////////////////////////
 /// PBR lighting...
 ////////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_SPECULARHIGHLIGHTS_OFF)
     bool specularHighlightsOff = true;
@@ -286,11 +295,11 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     InitializeBRDFData(surfaceData, brdfData);
 
     #if defined(DEBUG_DISPLAY)
-    half4 debugColor;
+    float4 debugColor;
 
     if (CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
     {
-        return debugColor;
+        return CompensateDebugColorForPreExposure(debugColor);
     }
     #endif
 
@@ -369,7 +378,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     lightingData.vertexLightingColor += inputData.vertexLighting * brdfData.diffuse;
     #endif
 
-#if REAL_IS_HALF && !defined(UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
+#if !defined(_EXPOSURE) && REAL_IS_HALF && !defined(UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only
     // Clamp any half.inf+ to HALF_MAX
     return min(CalculateFinalColor(lightingData, surfaceData.alpha), HALF_MAX);
 #else
@@ -378,7 +387,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
     SurfaceData surfaceData;
@@ -400,14 +409,14 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
-    half4 debugColor;
+    float4 debugColor;
 
     if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
-        return debugColor;
+        return CompensateDebugColorForPreExposure(debugColor);
     }
     #endif
 
@@ -468,7 +477,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
 {
     SurfaceData surfaceData;
 
@@ -489,14 +498,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 ////////////////////////////////////////////////////////////////////////////////
 /// Unlit
 ////////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
-    half4 debugColor;
+    float4 debugColor;
 
     if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
-        return debugColor;
+        return CompensateDebugColorForPreExposure(debugColor);
     }
     #endif
 
@@ -513,7 +522,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-half4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
+URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
 {
     SurfaceData surfaceData;
 

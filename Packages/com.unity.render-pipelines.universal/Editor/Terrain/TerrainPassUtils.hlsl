@@ -1,7 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
-void SplatmapFinalColor(inout half4 color, float4 positionCS)
+void SplatmapFinalColor(inout URP_LIGHT_ACCUM4 color, float4 positionCS)
 {
     color.rgb *= color.a;
 

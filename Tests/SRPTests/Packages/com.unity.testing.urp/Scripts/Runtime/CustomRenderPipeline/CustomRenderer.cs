@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         ForwardLights m_ForwardLights;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        ExposurePass m_ExposurePass;
 
         private RTHandle m_TargetColorHandle, m_TargetDepthHandle;
 
@@ -24,6 +25,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_TargetColorHandle = null;
             m_TargetDepthHandle = null;
+
+            m_ExposurePass = new ExposurePass();
         }
 
         /// <inheritdoc />
@@ -135,6 +138,8 @@ namespace UnityEngine.Rendering.Universal
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
             SetupRenderGraphDefaultCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
+
+            m_ExposurePass.RecordRenderGraph(renderGraph, frameData);
 
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }

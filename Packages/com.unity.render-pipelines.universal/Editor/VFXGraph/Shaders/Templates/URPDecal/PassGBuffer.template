@@ -33,6 +33,7 @@ Pass
     #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
     #pragma multi_compile _DECAL_NORMAL_BLEND_LOW _DECAL_NORMAL_BLEND_MEDIUM _DECAL_NORMAL_BLEND_HIGH
     #pragma multi_compile _ _DECAL_LAYERS
+    #pragma multi_compile_fragment _ _EXPOSURE
     #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
     #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
@@ -109,10 +110,10 @@ Pass
     half3 normalGI = normalize(lerp(geomNormalWS.xyz, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w));
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, normalGI, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, normalGI, inputData.viewDirectionWS);
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, normalGI, inputData.viewDirectionWS);
     // GI needs blended normal
 #else
-        half3 color = 0;
+        URP_LIGHT_ACCUM3 color = 0;
 #endif
 
         // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
@@ -122,7 +123,7 @@ Pass
         fragmentOutput.gBuffer1 = 0;
         fragmentOutput.gBuffer2 = half4(packedNormalWS, decalSurfaceData.normalWS.a);
 #if defined(AFFECT_BASE_COLOR) || defined(AFFECT_EMISSIVE)
-        fragmentOutput.color = half4(decalSurfaceData.emissive + color, decalSurfaceData.baseColor.a);
+        fragmentOutput.color = half4(ClampExposed(inputData.preExposureMultiplier * (decalSurfaceData.emissive + color)), decalSurfaceData.baseColor.a);
 #else
         fragmentOutput.color = 0;
 #endif

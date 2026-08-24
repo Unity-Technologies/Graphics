@@ -100,7 +100,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
 
     GBufferData gBufferData = UnpackGBuffers(input.positionCS.xy);
 
-    half3 color = 0.0;
+    URP_LIGHT_ACCUM3 color = 0.0;
     half alpha = 1.0;
 
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -114,6 +114,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     posWS.xyz *= rcp(posWS.w);
 
     InputData inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = posWS.xyz;
     inputData.normalWS = gBufferData.normalWS;
@@ -187,6 +188,6 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
         color += DeferredLightContribution(light, inputData, gBufferData);
     }
 
-    return half4(color, alpha);
+    return half4(ClampExposed(inputData.preExposureMultiplier * color), alpha);
 }
 #endif //UNIVERSAL_CLUSTER_DEFERRED

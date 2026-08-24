@@ -34,7 +34,7 @@ struct Varyings
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half4 fogFactorAndVertexLight  : TEXCOORD5; // x: fogFactor, yzw: vertex light
+        URP_LIGHT_ACCUM4 fogFactorAndVertexLight  : TEXCOORD5; // x: fogFactor, yzw: vertex light
     #else
         half  fogFactor                 : TEXCOORD5;
     #endif
@@ -110,12 +110,14 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -171,8 +173,8 @@ Varyings LitPassVertexSimple(Attributes input)
     OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-        output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+        URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+        output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
     #else
         output.fogFactor = fogFactor;
     #endif
@@ -213,8 +215,8 @@ void LitPassFragmentSimple(
 
     InitializeBakedGIData(input, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = BlendDistanceFog(color.rgb, input.positionCS);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.positionCS));
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     outColor = color;

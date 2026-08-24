@@ -121,6 +121,11 @@ namespace UnityEngine.Rendering.Universal
                 if (passData.decalLayers && renderingLayersTexture.IsValid())
                     builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
+
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>

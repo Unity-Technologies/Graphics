@@ -8,6 +8,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     half3 SH = 0.0h;
     CalculateTerrainNormalWS(input, surfaceDescription, inputData);
@@ -100,13 +101,13 @@ void frag(PackedVaryings packedInput,
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif
 
-    color = UniversalFragmentPBR(inputData, surface);
-    SplatmapFinalColor(color, unpacked.positionCS);
+    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentPBR(inputData, surface);
+    SplatmapFinalColor(finalColor, unpacked.positionCS);
 
 #ifdef _WRITE_RENDERING_LAYERS
     outRenderingLayers = EncodeMeshRenderingLayer();
 #endif
-    color = half4(color.rgb, 1.0h);
+    color = half4(ClampExposed(inputData.preExposureMultiplier * finalColor.rgb), 1.0h);
 }
 
 #endif

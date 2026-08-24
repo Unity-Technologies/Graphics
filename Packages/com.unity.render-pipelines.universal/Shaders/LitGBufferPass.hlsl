@@ -45,7 +45,7 @@ struct Varyings
     half4 tangentWS                 : TEXCOORD3;    // xyz: tangent, w: sign
 #endif
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    half3 vertexLighting            : TEXCOORD4;    // xyz: vertex lighting
+    URP_LIGHT_ACCUM3 vertexLighting            : TEXCOORD4;    // xyz: vertex lighting
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -108,12 +108,14 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
 #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
 #elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -178,7 +180,7 @@ Varyings LitGBufferPassVertex(Attributes input)
     OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+        URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
         output.vertexLighting = vertexLight;
     #endif
 
@@ -238,11 +240,12 @@ GBufferFragOutput LitGBufferPassFragment(Varyings input)
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
 
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                               inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                               inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    half3 gbufferLighting = ClampExposed(inputData.preExposureMultiplier * (surfaceData.emission + color));
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, gbufferLighting, surfaceData.occlusion);
 }
 
 #endif

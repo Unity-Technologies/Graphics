@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SampleScreenSpaceReflection.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
 
 #define AMBIENT_PROBE_BUFFER 0
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/AmbientProbe.hlsl"
@@ -19,9 +20,10 @@
 #if defined(_SCREEN_SPACE_IRRADIANCE)
 TEXTURE2D_X(_ScreenSpaceIrradiance);
 
-half3 SampleScreenSpaceGI(float2 pos)
+URP_LIGHT_ACCUM3 SampleScreenSpaceGI(float2 pos, float invPreExposureMultiplier)
 {
-    return LOAD_TEXTURE2D_X(_ScreenSpaceIrradiance, pos).rgb;
+    // The irradiance texture is stored pre-exposed so its fp32 values fit fp16. Undo that here, as lighting inputs are un-exposed.
+    return LOAD_TEXTURE2D_X(_ScreenSpaceIrradiance, pos).rgb * invPreExposureMultiplier;
 }
 #endif
 
@@ -216,9 +218,9 @@ half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 
 #if defined(_SCREEN_SPACE_IRRADIANCE)
     #if !defined(_SURFACE_TYPE_TRANSPARENT)
-        #define SAMPLE_GI(irradianceTex, pos, normal) SampleScreenSpaceGI(pos)
+        #define SAMPLE_GI(irradianceTex, pos, normal, invPreExposureMultiplier) SampleScreenSpaceGI(pos, invPreExposureMultiplier)
     #else
-        #define SAMPLE_GI(irradianceTex, pos, normal) EvaluateAmbientProbe(normal)
+        #define SAMPLE_GI(irradianceTex, pos, normal, invPreExposureMultiplier) EvaluateAmbientProbe(normal)
     #endif
 #elif defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, dynamicLmName, normalWSName)
@@ -337,9 +339,10 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         float4 scaleOffset0 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip0];
         float4 scaleOffset1 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip1];
 
+        float preExposure = urp_ReflProbes_ExposureMultipliers[probeIndex].x;
         half3 irradiance0 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, sampler_LinearClamp, uv * scaleOffset0.xy + scaleOffset0.zw, 0.0)).rgb;
         half3 irradiance1 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, sampler_LinearClamp, uv * scaleOffset1.xy + scaleOffset1.zw, 0.0)).rgb;
-        irradiance += weight * lerp(irradiance0, irradiance1, mipBlend);
+        irradiance += preExposure * weight * lerp(irradiance0, irradiance1, mipBlend);
         totalWeight += weight;
     }
 #else
@@ -395,7 +398,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector0, mip));
 
-        irradiance += weightProbe0 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        irradiance += weightProbe0 * SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
     }
 
     // Sample the second reflection probe
@@ -412,7 +415,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         }
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector1, mip));
 
-        irradiance += weightProbe1 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += weightProbe1 * SelectProbeExposureMultiplier(unity_SpecCube1_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
     }
 #endif
 
@@ -434,6 +437,8 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
     half4 ssrColor = 0;
     #else
     half4 ssrColor = GetScreenSpaceReflection(normalizedScreenSpaceUV, positionWS, perceptualRoughness);
+    // The SSR texture is resolved from the pre-exposed camera color; undo that, as lighting inputs are un-exposed.
+    ssrColor.rgb *= GetInvPreExposureMultiplier();
     #endif
 
     // We skip sampling reflection probes if they would be overwritten by SSR anyways.
@@ -467,7 +472,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
             half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
             half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-            irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+            irradiance = SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
         }
         #else // _ENVIRONMENTREFLECTIONS_OFF
         irradiance = _GlossyEnvironmentColor.rgb;
@@ -493,7 +498,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+    irradiance = SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 
     return irradiance * occlusion;
 #else
@@ -502,7 +507,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #endif // _ENVIRONMENTREFLECTIONS_OFF
 }
 
-half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)
+URP_LIGHT_ACCUM3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, URP_LIGHT_ACCUM3 bakedGI)
 {
     // Let's try to make realtime shadows work on a surface, which already contains
     // baked lighting and shadowing from the main sun light.
@@ -520,18 +525,18 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     half contributionTerm = saturate(dot(mainLight.direction, normalWS));
     half3 lambert = mainLight.color * contributionTerm;
     half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.shadowAttenuation);
-    half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
+    URP_LIGHT_ACCUM3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
-    half3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
+    URP_LIGHT_ACCUM3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
     realtimeShadow = lerp(bakedGI, realtimeShadow, shadowStrength);
 
     // 3) Pick darkest color
     return min(bakedGI, realtimeShadow);
 }
 
-half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
-    half3 bakedGI, half occlusion, float3 positionWS,
+URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
+    URP_LIGHT_ACCUM3 bakedGI, half occlusion, float3 positionWS,
     half3 normalWS, half3 viewDirectionWS, float2 normalizedScreenSpaceUV)
 {
 // Prevent calling 'reflect' from causing NdotV to be computed twice on Adreno GPUs
@@ -549,10 +554,10 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
     half fresnelTerm = Pow4(1.0 - NoV);
 
-    half3 indirectDiffuse = bakedGI;
+    URP_LIGHT_ACCUM3 indirectDiffuse = bakedGI;
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV);
 
-    half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
+    URP_LIGHT_ACCUM3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
     if (IsOnlyAOLightingFeatureEnabled())
     {
@@ -575,8 +580,8 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 }
 
 #if !USE_CLUSTER_LIGHT_LOOP
-half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
-    half3 bakedGI, half occlusion, float3 positionWS,
+URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
+    URP_LIGHT_ACCUM3 bakedGI, half occlusion, float3 positionWS,
     half3 normalWS, half3 viewDirectionWS)
 {
     return GlobalIllumination(brdfData, brdfDataClearCoat, clearCoatMask, bakedGI, occlusion, positionWS, normalWS, viewDirectionWS, float2(0.0f, 0.0f));
@@ -584,14 +589,14 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
 
 // Backwards compatiblity
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, float3 positionWS, half3 normalWS, half3 viewDirectionWS)
+URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, URP_LIGHT_ACCUM3 bakedGI, half occlusion, float3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, positionWS, normalWS, viewDirectionWS, 0);
 }
 
-half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
-    half3 bakedGI, half occlusion,
+URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
+    URP_LIGHT_ACCUM3 bakedGI, half occlusion,
     half3 normalWS, half3 viewDirectionWS)
 {
 // Prevent calling 'reflect' from causing NdotV to be computed twice on Adreno GPUs
@@ -609,10 +614,10 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
     half fresnelTerm = Pow4(1.0 - NoV);
 
-    half3 indirectDiffuse = bakedGI;
+    URP_LIGHT_ACCUM3 indirectDiffuse = bakedGI;
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, half(1.0));
 
-    half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
+    URP_LIGHT_ACCUM3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, half(1.0));
@@ -630,13 +635,13 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 }
 
 
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, URP_LIGHT_ACCUM3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout URP_LIGHT_ACCUM3 bakedGI)
 {
 #if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
@@ -644,12 +649,12 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 }
 
 // Backwards compatibility
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout URP_LIGHT_ACCUM3 bakedGI, half4 shadowMask)
 {
     MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, AmbientOcclusionFactor aoFactor)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout URP_LIGHT_ACCUM3 bakedGI, AmbientOcclusionFactor aoFactor)
 {
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {

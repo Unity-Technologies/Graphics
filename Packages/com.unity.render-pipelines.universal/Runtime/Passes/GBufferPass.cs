@@ -158,6 +158,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.screenSpaceIrradianceHdl = irradianceTexture;
                 builder.UseTexture(irradianceTexture, AccessFlags.Read);
             }
+            if (resourceData.exposureMultiplier.IsValid())
+            {
+                builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+            }
 
             TextureHandle ssrTexture = resourceData.ssrTexture;
             if (ssrTexture.IsValid())

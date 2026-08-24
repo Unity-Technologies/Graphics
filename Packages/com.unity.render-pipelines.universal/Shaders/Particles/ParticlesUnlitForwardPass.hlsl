@@ -9,6 +9,7 @@
 void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
 
@@ -155,7 +156,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
     #endif
 
-    finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.clipPos);
+    finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.clipPos, inputData.preExposureMultiplier));
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     return finalColor;

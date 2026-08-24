@@ -18,6 +18,7 @@ ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${V
 ${VFXBegin:VFXPassForwardAdditionalPragma}
 #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 #pragma multi_compile _ DEBUG_DISPLAY
+#pragma multi_compile_fragment _ _EXPOSURE
 #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
@@ -37,6 +38,7 @@ ${VFXBegin:VFXPassForwardLitAdditionalPragma}
 #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
 #pragma multi_compile _ _LIGHT_LAYERS
 #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+#pragma multi_compile_fragment _ _EXPOSURE
 #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
@@ -63,6 +65,7 @@ ${VFXBegin:VFXPassGBufferAdditionalPragma}
 #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+#pragma multi_compile_fragment _ _EXPOSURE
 #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 ${VFXEnd}
 
@@ -72,10 +75,11 @@ ${VFXBegin:VFXUnlitDebugDisplay}
     SurfaceData surfaceData;
     ZERO_INITIALIZE(SurfaceData, surfaceData);
     ZERO_INITIALIZE(InputData, inputData);
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
     surfaceData.albedo = o.color.rgb;
     surfaceData.alpha = o.color.a;
 
-    half4 debugColor;
+    float4 debugColor;
     if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         o.color = debugColor;
