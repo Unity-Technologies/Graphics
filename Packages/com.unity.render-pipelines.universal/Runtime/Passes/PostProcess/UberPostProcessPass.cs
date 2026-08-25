@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
         private class UberPostPassData
         {
             internal TextureHandle destinationTexture;
+            internal Rect viewport;
             internal TextureHandle sourceTexture;
             internal TextureHandle internalLutTexture;
 
@@ -120,11 +121,15 @@ namespace UnityEngine.Rendering.Universal
             var bloomTexture = resourceData.bloom;
 
             TextureHandle destinationTexture;
+            Rect viewport;
             AccessFlags destinationAccessFlag = AccessFlags.Write;
             if (resourceData.isActiveTargetBackBuffer)
             {
                 destinationTexture = resourceData.backBufferColor;
 
+                // camera.pixelRect is the final output viewport-rect. It offsets the output into the final target.
+                viewport = cameraData.pixelRect;
+                
                 // Full-screen blit to backbuffer with no alpha will overwrite every pixel, so use flag
                 // WriteAll for the compiler to set load op DontCare later and skip the color load
                 if (cameraData.isDefaultViewport && !cameraData.isAlphaOutputEnabled)
@@ -153,6 +158,17 @@ namespace UnityEngine.Rendering.Universal
                     destinationTexture = renderGraph.CreateTexture(desc);
                 }
                 resourceData.destinationCameraColor = TextureHandle.nullHandle;
+
+                // The intermediate target has no viewport rect, the viewport covers the whole target. Two cases:
+                // 1. URP internal intermediate color target: the viewport size is baked into the target size on
+                //    allocation, so its offset is always 0 and its size matches the viewport size. The overlay
+                //    cameras inherit the base viewport, a necessary limitation since the target covers only the
+                //    base viewport area.
+                // 2. Pass custom color target: a pass can swap cameraColor to a custom texture of any size. URP RG
+                //    uses resourceData to pass the targets between passes, so the size must be read from the
+                //    render graph texture itself (UUM-145833).
+                var destinationDesc = destinationTexture.GetDescriptor(renderGraph);
+                viewport = new Rect(0, 0, destinationDesc.width, destinationDesc.height);
             }
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>(passName, out var passData, profilingSampler))
@@ -177,6 +193,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destinationTexture;
+                passData.viewport = viewport;
                 builder.SetRenderAttachment(destinationTexture, 0, destinationAccessFlag);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
@@ -292,10 +309,10 @@ namespace UnityEngine.Rendering.Universal
 
                     // Done with Uber, blit it
                     if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh)
-                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
+                        PostProcessUtils.SetViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.viewport);
                     else
 #endif
-                        PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
+                        PostProcessUtils.SetViewportAndBlit(context, data.sourceTexture, data.destinationTexture, material, data.viewport);
                 });
             }
 
