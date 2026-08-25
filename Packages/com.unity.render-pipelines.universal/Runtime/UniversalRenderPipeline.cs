@@ -950,13 +950,18 @@ namespace UnityEngine.Rendering.Universal
         internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, bool isLastBaseCamera = true)
         {
             UniversalAdditionalCameraData additionalCameraData = null;
+
             camera.gameObject.TryGetComponent(out additionalCameraData);
 
             // Some scene view effects (e.g. screen space reflections and ssao) require camera history, which is owned
             // by UniversalAdditionalCameraData. Add the component on demand so those effects can access history
             // for the scene view camera.
             if (camera.cameraType == CameraType.SceneView && additionalCameraData == null)
+            {
                 additionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                additionalCameraData.hideFlags = HideFlags.HideAndDontSave;
+            }
+
             RenderSingleCameraInternal(context, camera, ref additionalCameraData, isLastBaseCamera);
         }
 
@@ -1106,7 +1111,9 @@ namespace UnityEngine.Rendering.Universal
                 // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
                 // NOTE: Shared between both Execute and Render (RG) paths.
                 if (additionalCameraData != null)
+                {
                     additionalCameraData.motionVectorsPersistentData.Update(cameraData);
+                }
 
                 // TODO: Move into the renderer. Problem: It modifies the AdditionalCameraData which is copied into RenderingData which causes value divergence for value types.
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.

@@ -758,12 +758,18 @@ namespace UnityEngine.Rendering.Universal
 
             inputSummary.requiresColorTexture |= cameraData.requiresOpaqueTexture;
 
-            // Object motion blur requires motion vectors.
+            // CameraAndObjects needs the motion vector textures; CameraOnly reads no textures but still consumes the camera history,
+            // so it must arm the engine's motion vector frame index.
             if (postProcessingEnabled)
             {
                 var motionBlur = VolumeManager.instance.stack.GetComponent<MotionBlur>();
-                if (motionBlur != null && motionBlur.IsActive() && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
-                    inputSummary.requiresMotionVectors = true;
+                if (motionBlur != null && motionBlur.IsActive())
+                {
+                    if (motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+                        inputSummary.requiresMotionVectors = true;
+                    else
+                        cameraData.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+                }
 
                 if (cameraData.postProcessingRequiresDepthTexture)
                 {
@@ -774,8 +780,16 @@ namespace UnityEngine.Rendering.Universal
                 // TAA in postprocess requires it to function.
                 if (cameraData.IsTemporalAAEnabled())
                     inputSummary.requiresMotionVectors = true;
-
             }
+
+#if UNITY_EDITOR
+            if (!inputSummary.requiresMotionVectors &&
+                DebugHandler != null && DebugHandler.TryGetFullscreenDebugMode(out var fullScreenDebugMode, out _))
+            {
+                if (fullScreenDebugMode == DebugFullScreenMode.MotionVector)
+                    inputSummary.requiresMotionVectors = true;
+            }
+#endif
 
             // Motion vectors imply depth
             if (inputSummary.requiresMotionVectors)

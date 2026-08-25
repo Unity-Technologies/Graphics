@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.writesSmoothnessToDepthNormalsAlpha = true;
 
             // Motion vectors are needed for reprojection (before opaque) and temporal filtering.
-            if ((!m_AfterOpaque || settings.temporalFiltering.value) && (cameraType == CameraType.VR || cameraType == CameraType.Game))
+            if ((!m_AfterOpaque || settings.temporalFiltering.value) && (cameraType == CameraType.VR || cameraType == CameraType.Game || cameraType == CameraType.SceneView))
                 requiredInputs |= ScriptableRenderPassInput.Motion;
 
             ConfigureInput(requiredInputs);
@@ -593,7 +593,7 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.SetKeyword(data.material, k_HiZTrace, !data.linearMarching);
             CoreUtils.SetKeyword(data.material, k_RefineDepth, data.hitRefinementSteps > 0);
-            CoreUtils.SetKeyword(data.material, k_UseMotionVectors, !data.afterOpaque && !cameraData.isSceneViewCamera);
+            CoreUtils.SetKeyword(data.material, k_UseMotionVectors, !data.afterOpaque);
         }
 
         // Instead of calculating the 'floor' depth by adding a constant thickness to the linear depth from the depth buffer, we treat thickness as a multiplier

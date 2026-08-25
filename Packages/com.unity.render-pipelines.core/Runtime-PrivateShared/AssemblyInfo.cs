@@ -24,4 +24,9 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
         public static System.Collections.Generic.IEnumerator<System.Action<UnityEngine.Rendering.RenderTargetIdentifier, UnityEngine.Rendering.CommandBuffer>>
             GetCachedCaptureActionsEnumerator(UnityEngine.Camera camera) => UnityEngine.Rendering.CameraCaptureBridge.GetCachedCaptureActionsEnumerator(camera);
     }
+
+    internal static class RendererUpdateManagerBridge
+    {
+        public static int GetMotionVectorFrameIndex() => UnityEngine.Rendering.RendererUpdateManagerBridge.motionVectorFrameIndex;
+    }
 }

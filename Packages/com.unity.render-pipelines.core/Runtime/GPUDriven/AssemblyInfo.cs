@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 [assembly: InternalsVisibleTo("UnityEngine.TestTools.Graphics.Contexts")]
 [assembly: InternalsVisibleTo("Unity.Entities.Graphics")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Runtime.Shared")]

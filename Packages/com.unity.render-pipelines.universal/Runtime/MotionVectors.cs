@@ -217,10 +217,18 @@ namespace UnityEngine.Rendering.Universal
         {
             int eyeIndex = GetXRMultiPassId(cameraData.xr);
 
-            // XR multipass renders the frame twice, avoid updating camera history twice.
-            bool isNewFrame = (eyeIndex == 0);
+            // Engine motion vector frame index: advances once per logical frame / editor repaint,
+            // and is stable across duplicate renders of the same camera within one frame.
+            int frameIndex = Unity.RenderPipelines.Core.Runtime.Shared.RendererUpdateManagerBridge.GetMotionVectorFrameIndex();
 
-            int frameIndex = Time.frameCount;
+            // XR multipass renders the frame twice, avoid updating camera history twice.
+            bool isNewFrame = (eyeIndex == 0) && (m_LastFrameIndex[0] != frameIndex);
+
+            // Reset independent of isNewFrame: aspectChanged alone (e.g. viewport resize) can re-enter the loop below without a new frameIndex.
+            if (eyeIndex == 0)
+            {
+                m_numPreviousViews = 0;
+            }
 
             // Update per-frame data once regardless of how many eyes are being rendered
             if (isNewFrame)
@@ -249,8 +257,6 @@ namespace UnityEngine.Rendering.Universal
                 m_previousPreviousWorldSpaceCameraPos = m_previousWorldSpaceCameraPos;
                 m_previousWorldSpaceCameraPos = m_worldSpaceCameraPos;
                 m_worldSpaceCameraPos = worldSpaceCameraPos;
-
-                m_numPreviousViews = 0;
             }
 
             // A camera could be rendered multiple times per frame, only update the view projections if needed
