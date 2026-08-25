@@ -1,6 +1,7 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using NUnit.Framework;
+using Unity.Collections;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
@@ -1089,7 +1090,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                     LocalToWorld = Matrix4x4.Translate(new Vector3(1f, 2f, 3f)),
                 };
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { transformRecord } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = TransformChanges(transformRecord) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "A transform record for an unknown entity should not add anything to the world.");
             }
             finally
@@ -1112,7 +1113,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 var combined = new SurfaceCacheWorldChangeSet
                 {
-                    EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = Matrix4x4.identity } },
+                    EntityInstanceTransformChangedList = TransformChanges(new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = Matrix4x4.identity }),
                     EntityInstanceDestroyedList = new[] { key },
                 };
                 Update(env.Adapter, combined, env.World);
@@ -1188,7 +1189,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Assert.AreEqual(1, env.World.GetInstanceCount());
 
                 var movedTransform = Matrix4x4.Translate(new Vector3(4f, 5f, 6f));
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform } } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = TransformChanges(new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform }) }, env.World);
 
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A transform change should update the instance in place, not duplicate it.");
 #if UNITY_EDITOR
@@ -1216,7 +1217,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance excluded by the filter should not be in the world.");
 
                 var movedTransform = Matrix4x4.Translate(new Vector3(1f, 2f, 3f));
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = new[] { new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform } } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = TransformChanges(new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = movedTransform }) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "A transform change should not add a filtered-out instance to the world.");
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
@@ -1271,6 +1272,11 @@ namespace UnityEngine.Rendering.Universal.Tests
                     Object.DestroyImmediate(go);
                 Object.DestroyImmediate(mesh);
             }
+        }
+
+        static NativeArray<SurfaceCacheEntityTransformRecord> TransformChanges(params SurfaceCacheEntityTransformRecord[] records)
+        {
+            return new NativeArray<SurfaceCacheEntityTransformRecord>(records, Allocator.Temp);
         }
 
         static EntityId CreateEntityKey(int index)
@@ -1363,6 +1369,9 @@ namespace UnityEngine.Rendering.Universal.Tests
                 false,
                 renderingLayerMaskFilter,
                 world);
+
+            if (changes.EntityInstanceTransformChangedList.IsCreated)
+                changes.EntityInstanceTransformChangedList.Dispose();
         }
 
         static Mesh CreateQuadMesh()

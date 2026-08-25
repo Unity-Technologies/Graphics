@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -18,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         public IEnumerable<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
 
         public IEnumerable<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; } = Array.Empty<SurfaceCacheEntityInstanceRecord>();
-        public IEnumerable<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; } = Array.Empty<SurfaceCacheEntityTransformRecord>();
+        public NativeArray<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; }
         public IEnumerable<EntityId> EntityInstanceDestroyedList { get; set; } = Array.Empty<EntityId>();
 
 #if ENABLE_TERRAIN_MODULE

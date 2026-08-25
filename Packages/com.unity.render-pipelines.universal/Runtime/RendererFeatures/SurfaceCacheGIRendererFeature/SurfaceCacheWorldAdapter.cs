@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.PathTracing.Core;
 using InstanceHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Instance>;
 using LightHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Light>;
@@ -135,12 +136,18 @@ namespace UnityEngine.Rendering.Universal
                 _meshRenderers.TryRemove(entityId, _sharedMaterials, world);
         }
 
-        void UpdateEntityInstances(IEnumerable<SurfaceCacheEntityTransformRecord> transformChanged, IEnumerable<SurfaceCacheEntityInstanceRecord> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
+        void UpdateEntityInstances(NativeArray<SurfaceCacheEntityTransformRecord> transformChanged, IEnumerable<SurfaceCacheEntityInstanceRecord> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
             using var _ = k_EntityInstanceUpdateMarker.Auto();
 
-            foreach (var record in transformChanged)
-                _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
+            if (transformChanged.IsCreated)
+            {
+                for (int i = 0; i < transformChanged.Length; i++)
+                {
+                    var record = transformChanged[i];
+                    _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
+                }
+            }
 
             foreach (var record in changed)
                 _entityInstances.Refresh(new EntityRecordSource(record), _sharedMaterials, world, _renderingLayerMaskFilter);

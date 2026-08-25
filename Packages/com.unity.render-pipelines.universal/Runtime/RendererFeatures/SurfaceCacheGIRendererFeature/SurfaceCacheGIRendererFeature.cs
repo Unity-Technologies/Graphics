@@ -360,6 +360,8 @@ namespace UnityEngine.Rendering.Universal
                         _conformToUnityGIFormat,
                         RenderingLayerMask,
                         _world);
+
+                    _entityChangeSource.EndCollectChanges();
                 }
 
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache World Update", out WorldUpdatePassData passData))
