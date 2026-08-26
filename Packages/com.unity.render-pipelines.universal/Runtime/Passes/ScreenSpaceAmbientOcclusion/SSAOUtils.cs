@@ -431,13 +431,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.aoTexture = aoTexture;
 
                 builder.SetRenderAttachment(passData.aoTexture, 0, AccessFlags.WriteAll);
-
-                Debug.Assert(cameraDepthTexture.IsValid(), "Camera depth texture is invalid. SSAO raster AO pass requires a depth texture.");
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
                 if (settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
                 {
-                    Debug.Assert(cameraNormalsTexture.IsValid(), "Camera normals texture is invalid. SSAO raster AO pass requires a normals texture when Source is DepthNormals.");
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
                     passData.cameraNormalsTexture = cameraNormalsTexture;
                 }

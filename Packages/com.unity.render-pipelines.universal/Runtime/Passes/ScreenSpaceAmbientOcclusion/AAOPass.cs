@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSAO;
         private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
         private SSAOUtils.SSAOMaterialParams m_SSAOParamsPrev = new SSAOUtils.SSAOMaterialParams();
+        private bool m_WarnedMissingTextures;
 
         internal AAOPass(Shader shader, Texture2D[] blueNoiseTextures)
         {
@@ -89,15 +90,28 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+            TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
+
+            if (!cameraDepthTexture.IsValid() || (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals && !cameraNormalsTexture.IsValid()))
+            {
+                if (Debug.isDebugBuild && !m_WarnedMissingTextures)
+                {
+                    m_WarnedMissingTextures = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: skipped because the active renderer does not provide the required camera depth/normals textures.");
+                }
+                return;
+            }
+
+            if (Debug.isDebugBuild) // Saw valid textures: reset so a later renderer without them warns again.
+                m_WarnedMissingTextures = false;
+
             // Builds a TextureDesc compatible with the active camera color target, safe for both intermediate render textures and imported back-buffer handles.
             TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, resourceData.activeColorTexture, cameraData.camera.allowDynamicResolution);
 
             SSAOUtils.CreateRenderTextureHandles(renderGraph, resourceData, cameraColorDesc,
                 m_CurrentSettings, m_SupportsR8RenderTextureFormat, m_BlurType, enableRandomWrite: false,
                 out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle temporalTexture, out TextureHandle finalTexture);
-
-            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-            TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
