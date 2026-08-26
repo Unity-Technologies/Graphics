@@ -32,6 +32,7 @@ Shader "Hidden/Universal Render Pipeline/ComputeScreenSpaceReflection"
                 #pragma multi_compile_local_fragment _ _HIZ_TRACE
                 #pragma multi_compile_local_fragment _ _REFINE_DEPTH
                 #pragma multi_compile_local_fragment _ _USE_MOTION_VECTORS
+                #pragma multi_compile_local_fragment _ _CONTACT_HARDENING
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"

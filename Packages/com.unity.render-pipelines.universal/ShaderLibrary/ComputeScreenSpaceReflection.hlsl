@@ -378,13 +378,21 @@ float3 ClampColor(float3 color)
     return scale * color;
 }
 
-float4 ComputeSSR(Varyings input) : SV_Target
+float4 ComputeSSR(Varyings input
+    #ifdef _CONTACT_HARDENING
+    , out float4 rayDistancesAndValidity : SV_Target1
+    #endif
+    ) : SV_Target0
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+    #ifdef _CONTACT_HARDENING
+    rayDistancesAndValidity = 0;
+    #endif
+
     float2 positionNDC = input.texcoord;
     float2 positionSS = input.positionCS.xy;
-    float deviceDepth = LoadSceneDepth(uint2(positionSS) * _Downsample).r;
+    float deviceDepth = LoadSceneDepth(uint2(positionSS * _Downsample)).r;
 
     // If the smoothness is below our minimum, don't do any raymarching
     float perceptualSmoothness = SampleSmoothness(positionNDC);
@@ -397,7 +405,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // If the pixel is showing an object, output 1 alpha ->
         //   avoids bleeding 0 alpha into reflections when blurring, which would cause peter-panning.
         float alpha = deviceDepth != UNITY_RAW_FAR_CLIP_VALUE;
-        return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), alpha);
+        return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb) * alpha, alpha);
     }
 
     // Calculate ray origin and direction in world space
@@ -498,7 +506,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // value instead.
         const float k_MinimumWeight = 1e-3;
         if (weightSum < k_MinimumWeight)
-            return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), 0);
+            return 0;
         else
             hitColor /= weightSum;
         #else
@@ -511,14 +519,28 @@ float4 ComputeSSR(Varyings input) : SV_Target
         const float normalFadeFactor = 0.1;
         float fade = smoothstep(viewConeDot, viewConeDot + normalFadeFactor, viewDotRay);
 
-        // Fade rays hitting near the max distance, if we aren't reflecting the sky.
-        #ifndef _HIZ_TRACE
         if (!hitIsSky)
         {
-            float4 rayHitPosCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
-            float4 rayHitPosVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitPosCS);
-            rayHitPosVS.xyz /= rayHitPosVS.w;
-            fade *= smoothstep(maxRayLength, GetRayLengthFadeStart(), distance(positionVS, rayHitPosVS.xyz));
+            float4 rayHitCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
+            float3 rayHitVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitCS).xyz;
+            rayHitVS *= LinearEyeDepth(rayHitPosNDC.z, _ZBufferParams) * rcp(-rayHitVS.z);
+            float3 rayOriginVS = positionVS * (LinearEyeDepth(deviceDepth, _ZBufferParams) * rcp(-positionVS.z));
+            float hitDistance = distance(rayOriginVS, rayHitVS);
+
+            #ifdef _CONTACT_HARDENING
+            const float k_MinDistance = 0.001;
+            rayDistancesAndValidity = float4(hitDistance, rcp(max(hitDistance, k_MinDistance)), 1.0, 0.0);
+            #endif
+
+            // Fade rays hitting near the max distance, if we aren't reflecting the sky.
+            #ifndef _HIZ_TRACE
+            fade *= smoothstep(maxRayLength, GetRayLengthFadeStart(), hitDistance);
+            #endif
+        }
+        #ifdef _CONTACT_HARDENING
+        else
+        {
+            rayDistancesAndValidity = float4(0.0, 0.0, 0.0, 1.0);
         }
         #endif
 
@@ -529,13 +551,10 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // Scale the SSR contribution by the user-defined strength.
         fade *= GetStrength();
 
-        return float4(ClampColor(hitColor), fade);
+        return float4(ClampColor(hitColor) * fade, fade);
     }
 
-    // Even if we hit nothing, we output the framebuffer color (but with 0 weight).
-    // This provides the blur/upscale kernel with data needed to avoid blurring black into
-    // the reflections, which leads to ugly borders.
-    return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb), 0);
+    return 0;
 }
 
 // ------------------------------------------------------------------
@@ -556,8 +575,10 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(perceptualSmoothness);
 
     // Map roughness to mip level to get blur.
-    float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness);
+    float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness, uv);
     float4 reflColor = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_TrilinearClamp, uv, mipLevel);
+    if (reflColor.a > 0)
+        reflColor.rgb *= rcp(reflColor.a);
 
     // Fade out reflections with smoothness.
     // Not physically correct, but we can't do much better without more data.

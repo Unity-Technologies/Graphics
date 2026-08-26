@@ -77,6 +77,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (useSSR)
             {
                 cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflection, data.screenSpaceReflectionHdl);
+
+                if (data.screenSpaceReflectionRayDistanceHdl.IsValid())
+                    cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.screenSpaceReflectionRayDistanceHdl);
             }
 
             cmd.DrawRendererList(rendererList);
@@ -100,6 +103,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             internal TextureHandle screenSpaceIrradianceHdl;
             internal TextureHandle screenSpaceReflectionHdl;
+            internal TextureHandle screenSpaceReflectionRayDistanceHdl;
         }
 
         private void InitRendererLists( ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, uint batchLayerMask = uint.MaxValue)
@@ -172,6 +176,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
             {
                 passData.screenSpaceReflectionHdl = TextureHandle.nullHandle;
+            }
+
+            TextureHandle ssrRayDistanceTexture = resourceData.ssrRayDistanceTexture;
+            if (ssrRayDistanceTexture.IsValid())
+            {
+                passData.screenSpaceReflectionRayDistanceHdl = ssrRayDistanceTexture;
+                builder.UseTexture(ssrRayDistanceTexture, AccessFlags.Read);
+            }
+            else
+            {
+                passData.screenSpaceReflectionRayDistanceHdl = TextureHandle.nullHandle;
             }
 
             RenderGraphUtils.UseDBufferIfValid(builder, resourceData);

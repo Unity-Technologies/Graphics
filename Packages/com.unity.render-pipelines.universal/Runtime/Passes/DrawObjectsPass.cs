@@ -158,6 +158,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle depthHdl;
             internal TextureHandle screenSpaceIrradianceHdl;
             internal TextureHandle screenSpaceReflectionHdl;
+            internal TextureHandle screenSpaceReflectionRayDistanceHdl;
 
             internal UniversalCameraData cameraData;
             internal UniversalShadowData shadowData;
@@ -298,6 +299,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                     passData.screenSpaceReflectionHdl = TextureHandle.nullHandle;
                 }
 
+                TextureHandle ssrRayDistanceTexture = resourceData.ssrRayDistanceTexture;
+                if (ssrRayDistanceTexture.IsValid())
+                {
+                    passData.screenSpaceReflectionRayDistanceHdl = ssrRayDistanceTexture;
+                    builder.UseTexture(ssrRayDistanceTexture, AccessFlags.Read);
+                }
+                else
+                {
+                    passData.screenSpaceReflectionRayDistanceHdl = TextureHandle.nullHandle;
+                }
+
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
                 InitRendererLists(renderingData, cameraData, lightData, ref passData, renderGraph, disableZWrite);
@@ -354,6 +366,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (useSSR)
                     {
                         context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflection, data.screenSpaceReflectionHdl);
+
+                        if (data.screenSpaceReflectionRayDistanceHdl.IsValid())
+                            context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.screenSpaceReflectionRayDistanceHdl);
                     }
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);

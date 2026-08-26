@@ -861,6 +861,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int offscreenUIViewportParams = Shader.PropertyToID("_OffscreenUIViewportParams");
         public static readonly int screenSpaceIrradiance = Shader.PropertyToID("_ScreenSpaceIrradiance");
         public static readonly int screenSpaceReflection = Shader.PropertyToID("_ScreenSpaceReflectionTexture");
+        public static readonly int screenSpaceReflectionRayDistance = Shader.PropertyToID("_ScreenSpaceReflectionRayDistanceTexture");
     }
 
     /// <summary>

@@ -25,14 +25,23 @@
 #pragma kernel ColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=ColorDownsample
 
 #pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
+#pragma multi_compile_local TARGET_UNORM TARGET_HALF TARGET_FLOAT
 
 //#define NO_ALPHA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 
+#ifdef TARGET_FLOAT
+RW_TEXTURE2D_X(float4, _Source);
+RW_TEXTURE2D_X(float4, _Destination);
+#elif defined(TARGET_HALF)
+RW_TEXTURE2D_X(half4, _Source);
+RW_TEXTURE2D_X(half4, _Destination);
+#else
 RW_TEXTURE2D_X(unorm float4, _Source);
 RW_TEXTURE2D_X(unorm float4, _Destination);
+#endif
 
 CBUFFER_START(cb)
     float4 _Size;       // x: src width, y: src height, zw: unused

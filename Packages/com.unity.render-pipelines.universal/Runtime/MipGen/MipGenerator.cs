@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
@@ -138,6 +139,9 @@ namespace UnityEngine.Rendering
         bool m_SupportCompute;
 
         LocalKeyword m_DisableTexture2DArrayColorKeyword;
+        LocalKeyword m_TargetUnormColorKeyword;
+        LocalKeyword m_TargetHalfColorKeyword;
+        LocalKeyword m_TargetFloatColorKeyword;
         LocalKeyword m_DisableTexture2DArrayColorPSKeyword;
         LocalKeyword m_DisableTexture2DArrayDepthKeyword;
         LocalKeyword m_EnableCheckerboardKeyword;
@@ -177,6 +181,9 @@ namespace UnityEngine.Rendering
                 m_ColorDownsampleKernel = m_ColorPyramidCS.FindKernel("ColorDownsample");
                 m_ColorGaussianKernel = m_ColorPyramidCS.FindKernel("ColorGaussian");
                 m_DisableTexture2DArrayColorKeyword = new LocalKeyword(m_ColorPyramidCS, ShaderKeywordStrings.DisableTexture2DXArray);
+                m_TargetUnormColorKeyword = new LocalKeyword(m_ColorPyramidCS, "TARGET_UNORM");
+                m_TargetHalfColorKeyword = new LocalKeyword(m_ColorPyramidCS, "TARGET_HALF");
+                m_TargetFloatColorKeyword = new LocalKeyword(m_ColorPyramidCS, "TARGET_FLOAT");
 
                 m_DepthDownsampleKernel = m_DepthPyramidCS.FindKernel("DepthDownsample");
                 m_DisableTexture2DArrayDepthKeyword = new LocalKeyword(m_DepthPyramidCS, ShaderKeywordStrings.DisableTexture2DXArray);
@@ -310,6 +317,8 @@ namespace UnityEngine.Rendering
             public TextureHandle tempDownsamplePyramid, destination;
             public ComputeShader cs;
             public LocalKeyword disableTexture2DArrayKeyword;
+            public LocalKeyword targetUnormKeyword, targetHalfKeyword, targetFloatKeyword;
+            public bool targetHalf, targetFloat;
             public int downsampleKernel, gaussianKernel;
             public bool sourceIsArray;
         }
@@ -458,6 +467,11 @@ namespace UnityEngine.Rendering
                         passData.destination = destination;
                         passData.cs = m_ColorPyramidCS;
                         passData.disableTexture2DArrayKeyword = m_DisableTexture2DArrayColorKeyword;
+                        passData.targetUnormKeyword = m_TargetUnormColorKeyword;
+                        passData.targetHalfKeyword = m_TargetHalfColorKeyword;
+                        passData.targetFloatKeyword = m_TargetFloatColorKeyword;
+                        passData.targetHalf = GraphicsFormatUtility.IsHalfFormat(descDst.colorFormat);
+                        passData.targetFloat = !passData.targetHalf && GraphicsFormatUtility.IsFloatFormat(descDst.colorFormat);
                         passData.downsampleKernel = m_ColorDownsampleKernel;
                         passData.gaussianKernel = m_ColorGaussianKernel;
                         passData.sourceIsArray = sourceIsArray;
@@ -470,6 +484,9 @@ namespace UnityEngine.Rendering
                         builder.SetRenderFunc(static (PassDataMipChainCompute data, ComputeGraphContext context) =>
                         {
                             context.cmd.SetKeyword(data.cs, data.disableTexture2DArrayKeyword, !data.sourceIsArray);
+                            context.cmd.SetKeyword(data.cs, data.targetFloatKeyword, data.targetFloat);
+                            context.cmd.SetKeyword(data.cs, data.targetHalfKeyword, data.targetHalf);
+                            context.cmd.SetKeyword(data.cs, data.targetUnormKeyword, !data.targetFloat && !data.targetHalf);
 
                             // Downsample.
                             context.cmd.SetComputeVectorParam(data.cs, _Size, new Vector4(data.srcMipWidth, data.srcMipHeight, 0f, 0f));

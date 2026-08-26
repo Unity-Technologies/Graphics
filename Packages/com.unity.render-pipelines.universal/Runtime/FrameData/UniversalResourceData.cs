@@ -350,6 +350,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>
+        /// Screen Space reflection ray travel distances, blurred into a mip chain. Only valid when contact hardening
+        /// is enabled.
+        /// </summary>
+        internal TextureHandle ssrRayDistanceTexture
+        {
+            get => CheckAndGetTextureHandle(ref _ssrRayDistanceTexture);
+            set => CheckAndSetTextureHandle(ref _ssrRayDistanceTexture, value);
+        }
+        private TextureHandle _ssrRayDistanceTexture;
+
+        /// <summary>
         /// STP debug visualization written to by the STP upscaler.
         /// </summary>
         internal TextureHandle stpDebugView
@@ -401,6 +412,7 @@ namespace UnityEngine.Rendering.Universal
             _ssaoTexture = TextureHandle.nullHandle;
             _irradianceTexture = TextureHandle.nullHandle;
             _ssrTexture = TextureHandle.nullHandle;
+            _ssrRayDistanceTexture = TextureHandle.nullHandle;
 #if ENABLE_UPSCALER_FRAMEWORK
             _cameraColorBeforePP = TextureHandle.nullHandle;
 #endif

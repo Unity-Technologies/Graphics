@@ -189,6 +189,14 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Controls how blurry rough reflections appear on a logarithmic scale. A value of 0 is neutral, negative values reduce blurriness, positive values increase it.")]
         public ClampedFloatParameter roughnessScale = new(0.0f, -10.0f, 10.0f);
 
+        /// <summary>Controls how much of a reflection stays sharp where the reflected object is close to the reflecting surface. Larger values result in sharper reflections. Setting this above 0 incurs a performance penalty. A value of 0 disables the effect.</summary>
+        [Tooltip("Controls how much of a reflection stays sharp where the reflected object is close to the reflecting surface. Larger values result in sharper reflections. Setting this above 0 incurs a performance penalty. A value of 0 disables the effect.")]
+        public MinFloatParameter contactHardeningScale = new(0.0f, 0.0f);
+
+        /// <summary>Controls how strongly short distances are weighed against long distances when applying contact hardening. A value of 0 strongly weights long distances, while a value of 1 strongly weights short distances.</summary>
+        [Tooltip("Controls how strongly short distances are weighed against long distances when applying contact hardening. A value of 0 strongly weights long distances, while a value of 1 strongly weights short distances. Increasing this can help mitigate reflections that appear too blurry at the contact.")]
+        public ClampedFloatParameter contactDistanceBias = new(0.0f, 0.0f, 1.0f);
+
         /// <summary>The minimum amount of surface smoothness at which Screen Space Reflections are used.</summary>
         [Tooltip("The minimum amount of surface smoothness at which Screen Space Reflections are used. Higher values will result in less objects receiving Screen Space Reflections.")]
         public ClampedFloatParameter minimumSmoothness = new(0.05f, 0.0f, 1.0f);
@@ -236,6 +244,7 @@ namespace UnityEngine.Rendering.Universal
         // Helpers
         internal bool ShouldRenderTransparents() => mode.value == ReflectionMode.OpaquesAndTransparents;
         internal bool ShouldUseGaussianBlurRoughness() => roughnessFilter.value == RoughReflectionsQuality.GaussianBlur;
+        internal bool ShouldUseContactHardening() => contactHardeningScale.value > 0f && roughnessFilter.value != RoughReflectionsQuality.Disabled;
         internal bool ShouldUseLinearMarching() => marchingMethod.value == MarchingMethod.Linear || !SystemInfo.supportsComputeShaders;
 
         // Allow listening for property changes, to support presets in the presence of undo and changing values from script etc.

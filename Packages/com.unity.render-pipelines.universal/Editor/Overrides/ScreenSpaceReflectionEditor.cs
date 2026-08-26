@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_AfterOpaque;
         SerializedDataParameter m_RoughnessFilter;
         SerializedDataParameter m_RoughnessScale;
+        SerializedDataParameter m_ContactHardeningScale;
+        SerializedDataParameter m_ContactDistanceBias;
         SerializedDataParameter m_MinimumSmoothness;
         SerializedDataParameter m_SmoothnessFadeStart;
         SerializedDataParameter m_NormalFade;
@@ -57,6 +59,8 @@ namespace UnityEditor.Rendering.Universal
             m_FinalThicknessMultiplier = Unpack(o.Find(x => x.finalThicknessMultiplier));
             m_RoughnessFilter = Unpack(o.Find(x => x.roughnessFilter));
             m_RoughnessScale = Unpack(o.Find(x => x.roughnessScale));
+            m_ContactHardeningScale = Unpack(o.Find(x => x.contactHardeningScale));
+            m_ContactDistanceBias = Unpack(o.Find(x => x.contactDistanceBias));
             m_MinimumSmoothness = Unpack(o.Find(x => x.minimumSmoothness));
             m_SmoothnessFadeStart =  Unpack(o.Find(x => x.smoothnessFadeStart));
             m_NormalFade = Unpack(o.Find(x => x.normalFade));
@@ -153,6 +157,8 @@ namespace UnityEditor.Rendering.Universal
                     using (new IndentLevelScope())
                     {
                         PropertyField(m_RoughnessScale);
+                        PropertyField(m_ContactHardeningScale);
+                        PropertyField(m_ContactDistanceBias);
                     }
                 }
             }

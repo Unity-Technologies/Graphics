@@ -4,15 +4,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-//#define SSR_USE_DISTANCE_BASED_BLUR
-
-static const float k_SSRBlurReferenceDistance = 1.0;
-
 // x : Blurriness - Exposed as a volume parameter; see ScreenSpaceReflectionVolumeSettings.blurriness.
 // y : Delta between the screen Space Reflection texture last mip index and a reference last mip index.
 // z : Screen Space Reflection texture last valid mip index
-// w : Unused
+// w : Delta between the screen Space Reflection texture last mip index and the ray distance texture last mip index.
 float4 _ScreenSpaceReflectionParam2;
+
+// x : Contact hardening scale. Zero disables contact hardening.
+// y : Contact distance bias
+// zw : Unused
+float4 _ScreenSpaceReflectionParam3;
+
+TEXTURE2D_X(_ScreenSpaceReflectionRayDistanceTexture);
 
 float GetSSRBlurriness()
 {
@@ -27,6 +30,26 @@ float GetSSRTextureMipOffset()
 float GetSSRTextureLastValidMipIndex()
 {
     return _ScreenSpaceReflectionParam2.z;
+}
+
+float GetSSRRayDistanceMipOffset()
+{
+    return GetSSRTextureMipOffset() - _ScreenSpaceReflectionParam2.w;
+}
+
+float GetSSRRayDistanceLastValidMipIndex()
+{
+    return GetSSRTextureLastValidMipIndex() - _ScreenSpaceReflectionParam2.w;
+}
+
+float GetSSRContactHardeningScale()
+{
+    return _ScreenSpaceReflectionParam3.x;
+}
+
+float GetSSRContactDistanceBias()
+{
+    return _ScreenSpaceReflectionParam3.y;
 }
 
 float GetSSRBlurConeHalfAngle(float perceptualRoughness)
@@ -45,28 +68,72 @@ float GetSSRBlurConeHalfAngle(float perceptualRoughness)
     return 0.2094 * (roughness + 5.6667 * (1.0 - shininess2 * shininess2));
 }
 
-float GetSSRMipLevelFromPerceptualRoughness(float3 positionWS, float perceptualRoughness)
+float GetSSRContactFactor(float2 uv, float radius, float distanceToReflector)
+{
+    // Read the blurred ray distance and validity at the given blur radius
+    const float k_MinimumRadius = 0.001;
+    float guideMip = log2(max(k_MinimumRadius, radius)) + GetSSRRayDistanceMipOffset();
+    guideMip = clamp(guideMip, 0, GetSSRRayDistanceLastValidMipIndex());
+
+    float4 rayDistancesAndValidity = SAMPLE_TEXTURE2D_X_LOD(_ScreenSpaceReflectionRayDistanceTexture, sampler_TrilinearClamp, uv, guideMip);
+    float blurredRayDistance = rayDistancesAndValidity.x;
+    float blurredRcpRayDistance = rayDistancesAndValidity.y;
+    float blurredValidity = rayDistancesAndValidity.z;
+    float blurredSkyValidity = rayDistancesAndValidity.w;
+
+    // Use these to calculate the arithmetic and harmonic mean of the ray distance.
+    // Arithmetic mean biases towards large values (long distances) and harmonic mean
+    // biases towards small values (short distances). We let the user tune the weighting
+    // by lerping between these metrics.
+    float arithmeticMeanRayDistance = blurredRayDistance * rcp(max(blurredValidity, HALF_EPS));
+    float harmonicMeanRayDistance = blurredValidity * rcp(max(blurredRcpRayDistance, HALF_EPS));
+    float representativeRayDistance = lerp(arithmeticMeanRayDistance, harmonicMeanRayDistance, GetSSRContactDistanceBias());
+
+    // Divide by distance to reflector so the factor is independent of scene scale.
+    float contactFactor = saturate(representativeRayDistance * rcp(distanceToReflector * GetSSRContactHardeningScale()));
+
+    // Sky is infinitely far away, fully blurred. When the footprint partially covers the
+    // sky, we lerp between the geometric contact factor and full blur.
+    float totalValidity = blurredValidity + blurredSkyValidity;
+    return lerp(contactFactor, 1.0, blurredSkyValidity * rcp(max(totalValidity, FLT_EPS)));
+}
+
+// Blur radius of the reflection footprint, expressed in pixels of the reference resolution.
+float GetSSRBlurRadiusFromPerceptualRoughness(float3 positionWS, float perceptualRoughness, float2 uv)
 {
     // Map perceptual roughness to a blur cone radius
     float blurConeAngle = GetSSRBlurConeHalfAngle(perceptualRoughness);
     float blurRadius = GetSSRBlurriness() * tan(blurConeAngle);
 
-    #ifdef SSR_USE_DISTANCE_BASED_BLUR
-    // Adjust based on camera distance
-    if (IsPerspectiveProjection())
+    // Using unity_StereoEyeIndex to index unity_StereoWorldSpaceCameraPos directly causes
+    // FXC to miscompile this code. Do NOT attempt to optimize this.
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    float3 cameraPos = unity_StereoEyeIndex == 0 ? unity_StereoWorldSpaceCameraPos[0] : unity_StereoWorldSpaceCameraPos[1];
+#else
+    float3 cameraPos = GetCameraPositionWS();
+#endif
+
+    UNITY_BRANCH
+    if (GetSSRContactHardeningScale() > 0.0)
     {
-        float fragZ = TransformWorldToView(positionWS).z;
-        // Assume we have the blur radius at a distance BLUR_REFERENCE_DISTANCE to the camera and divide this radius
-        // by 2 if the ratio between that reference distance and the fragment Z doubles.
-        const float k_MinimumZ = 0.01;
-        float scalingRatio = k_SSRBlurReferenceDistance / max(k_MinimumZ, abs(fragZ));
-        blurRadius *= scalingRatio;
+        float distanceToReflector = distance(positionWS, cameraPos);
+
+        // Calculate a contact factor using a radius based _only_ on roughness.
+        float contactFactor = GetSSRContactFactor(uv, blurRadius, distanceToReflector);
+
+        // Refine the contact factor by adjusting the previous radius with the contact factor.
+        // We could repeat this to a fixed point, but only take 1 iteration for performance reasons.
+        contactFactor = GetSSRContactFactor(uv, blurRadius * contactFactor, distanceToReflector);
+
+        blurRadius *= contactFactor;
     }
-    else
-    {
-        // TODO : handle orthographic projection. see https://jira.unity3d.com/browse/GFXLIGHT-1849
-    }
-    #endif
+
+    return blurRadius;
+}
+
+float GetSSRMipLevelFromPerceptualRoughness(float3 positionWS, float perceptualRoughness, float2 uv)
+{
+    float blurRadius = GetSSRBlurRadiusFromPerceptualRoughness(positionWS, perceptualRoughness, uv);
 
     // Map this blur radius back to a mip level, but assuming the reference resolution.
     const float k_MinimumRadius = 0.001;
