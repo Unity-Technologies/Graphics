@@ -20,21 +20,49 @@ The subgraphs are broken into the following categories:
 This subgraph outputs the UI element color in linear space, performing color space conversion on vertex color if the Canvas is set to store vertex colors in gamma space.
 Make sure to check "Disable Color Tint" in the Graph Settings when using the Canvas Color node, to not tint the final output.
 
+### MeterValue
+
+This subgraph outputs the normalized value of the `_MeterValue` property. This requires a **Meter** component on the element to provide the value. For example, to display a progress bar.
+
+For an example, refer to the `Examples/Indicators/Dial Meter` shader graph.
+
+### RangeBarValue
+
+This subgraph outputs the minimum and maximum values and the direction of a range bar. This requires a **Range Bar** component on the element to provide the values. For example, to create a stamina bar with a target range.
+
+For an example, refer to the `Default Materials/RangeBar Simple Fill` shader graph.
+
+### RectTransformSize
+
+This subgraph outputs the size of the UI element, the canvas scale factor, and the canvas reference pixels per unit. This requires a **RectTransform Size** component on the element to provide the values. For example, to create a rectangle that scales with the UI element.
+
+For an example, refer to the `Examples/Backgrounds/Rounded Rectangle Bubble` shader graph.
+
+### SelectableState
+
+This subgraph outputs the current state of a selectable element: `0` for normal, `1` for highlighted, `2` for pressed, `3` for selected, and `4` for disabled. This requires a **Button**, **Slider**, or **Toggle** component on the element to provide the value.
+
+For an example, refer to the `Examples/Buttons/SciFi Button` shader graph.
+
+### SliderValue
+
+This subgraph outputs the normalized value and direction of a slider. This requires a **Slider** component on the element to provide the values.
+
+For an example, refer to the `Examples/Indicators/SciFi Meter` shader graph.
+
+### ToggleState
+
+This subgraph outputs the current state of a toggle. This requires a **Toggle** component on the element to provide the value.
+
+For an example, refer to the `Examples/TabButton` shader graph.
+
 ## Utilities
 
 ### SelectableStateCompare
 This subgraph takes a Selectable State as a float and outputs Boolean values to inform on the states.
 
-### SelectableStatePreview
-This subgraph takes a Selectable State as a float input and features a dropdown to override its value withing Shader Graph only. This allows previewing what things look like when in a given state.
-This has no effect on the final shader that will always use the provided input.
-
 ### SliderDirectionCompare
 This subgraph takes a Direction as a Vector2 and outputs Boolean values to inform on cardinals.
-
-### SliderDirectionPreview
-This subgraph takes a Direction as a Vector2 input and features a dropdown to override its value withing Shader Graph only. This allows previewing what things look like with a different direction is used.
-This has no effect on the final shader that will always use the provided input.
 
 ### Gradients
 This node is a collection of commonly used gradients. You can select the gradient you want to use from the Style dropdown. By default, a horizontal LinearGradient is used as the input, but you can pass in any input gradient you want.
