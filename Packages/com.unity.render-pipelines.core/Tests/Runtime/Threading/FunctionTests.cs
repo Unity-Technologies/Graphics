@@ -180,7 +180,17 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
         {
             Assert.Ignore("These tests are not supported on WebGPU");
         }
+
+        // Compute output buffer reads back all zeros under UGK on D3D12; Vulkan UGK is unaffected.
+        if (IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+        {
+            Assert.Ignore("Compute buffer readback returns all zeros under UGK on D3D12 - https://jira.unity3d.com/browse/UGK-2877");
+        }
     }
+
+    private static bool IsForcedUGK() =>
+        System.Array.Exists(System.Environment.GetCommandLineArgs(),
+            arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
 
     [Test]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
