@@ -200,6 +200,11 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 }
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
+
                 builder.SetRenderFunc(static (LensFlarePassData data, UnsafeGraphContext ctx) =>
                 {
                     Camera camera = data.cameraData.camera;
