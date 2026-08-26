@@ -1,43 +1,48 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
-#pragma kernel Denoise
+#pragma kernel DenoiseMono DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel DenoiseSinglePassStereoInstancing
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
-Texture2D<float3> _InputL0;
-Texture2D<float3> _InputL10;
-Texture2D<float3> _InputL11;
-Texture2D<float3> _InputL12;
-Texture2D<float> _LowResNdcDepths;
-Texture2D<float3> _ScreenFlatNormals;
+TYPED_TEXTURE2D_X(float3, _InputL0);
+TYPED_TEXTURE2D_X(float3, _InputL10);
+TYPED_TEXTURE2D_X(float3, _InputL11);
+TYPED_TEXTURE2D_X(float3, _InputL12);
+TYPED_TEXTURE2D_X(float, _LowResNdcDepths);
+TYPED_TEXTURE2D_X(float3, _ScreenFlatNormals);
 
-RWTexture2D<float3> _ResultL0;
-RWTexture2D<float3> _ResultL10;
-RWTexture2D<float3> _ResultL11;
-RWTexture2D<float3> _ResultL12;
+RW_TEXTURE2D_X(float3, _ResultL0);
+RW_TEXTURE2D_X(float3, _ResultL10);
+RW_TEXTURE2D_X(float3, _ResultL11);
+RW_TEXTURE2D_X(float3, _ResultL12);
 
-float4x4 _ClipToWorldTransform;
+float4x4 _ClipToWorldTransforms[2];
+#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+float4x4 _NoiseWorldToClipTransform;
+#endif
 float3 _CameraWorldPos;
 int _PassIndex;
 
-[numthreads(8, 8, 1)]
-void Denoise(uint2 pixelLowResPos : SV_DispatchThreadID)
+void Denoise(uint2 pixelLowResPos)
 {
     uint2 lowResSize;
-    _InputL0.GetDimensions(lowResSize.x, lowResSize.y);
+    GET_TEXTURE2D_X_SIZE(_InputL0, lowResSize.x, lowResSize.y);
     if (any(pixelLowResPos >= lowResSize))
         return;
 
     uint2 fullResSize;
-    _ScreenFlatNormals.GetDimensions(fullResSize.x, fullResSize.y);
+    GET_TEXTURE2D_X_SIZE(_ScreenFlatNormals, fullResSize.x, fullResSize.y);
 
     SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
     PatchUtil::MarkInvalid(irradianceSum);
 
-    const float centerDepth = _LowResNdcDepths[pixelLowResPos];
+    const float centerDepth = _LowResNdcDepths[COORD_TEXTURE2D_X(pixelLowResPos)];
     if (centerDepth == invalidNdcDepth)
         return;
 
@@ -52,16 +57,24 @@ void Denoise(uint2 pixelLowResPos : SV_DispatchThreadID)
     const int2 fullResPixelPos = pixelLowResPos * lowResScreenScaling;
     const float2 rcpFullResSize = rcp(float2(fullResSize));
     const float2 centerUv = PixelPosToUvPos(fullResPixelPos, rcpFullResSize);
-    const float3 centerWorldPos = ComputeWorldSpacePosition(centerUv, centerDepth, _ClipToWorldTransform);
-    const float3 centerWorldNormal = _ScreenFlatNormals[fullResPixelPos];
+    const float3 centerWorldPos = ComputeWorldSpacePosition(centerUv, centerDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+    const float3 centerWorldNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(fullResPixelPos)];
 
     // Atrous can cause ringing artifacts due to under-sampling, especially towards the later passes.
     // We add some noise to convert these structured artifacts to a dither.
     int2 jitter = 0;
     if (_PassIndex > 1)
     {
-        float ditherX = InterleavedGradientNoise(float2(pixelLowResPos), _PassIndex);
-        float ditherY = InterleavedGradientNoise(float2(pixelLowResPos), _PassIndex * 4);
+#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+        // Reproject the jitter pattern using the left eye's camera. For stereo rendering, this
+        // causes the noise pattern to appear 'attached' to surfaces, rather than at a fixed depth.
+        const float4 jitterClipPos = mul(_NoiseWorldToClipTransform, float4(centerWorldPos, 1.0f));
+        const float2 jitterPixelPos = floor((jitterClipPos.xy / jitterClipPos.w * 0.5f + 0.5f) * float2(lowResSize));
+#else
+        const float2 jitterPixelPos = float2(pixelLowResPos);
+#endif
+        float ditherX = InterleavedGradientNoise(jitterPixelPos, _PassIndex);
+        float ditherY = InterleavedGradientNoise(jitterPixelPos, _PassIndex * 4);
         jitter = int2(round((float2(ditherX, ditherY) - 0.5) * (0.5 * (1 << _PassIndex))));
     }
 
@@ -86,7 +99,7 @@ void Denoise(uint2 pixelLowResPos : SV_DispatchThreadID)
         if (any(neighborLowResPos < 0) || any(uint2(neighborLowResPos) >= lowResSize))
             continue;
 
-        const float neighborDepth = _LowResNdcDepths[neighborLowResPos];
+        const float neighborDepth = _LowResNdcDepths[COORD_TEXTURE2D_X(neighborLowResPos)];
         if (neighborDepth == invalidNdcDepth)
             continue;
 
@@ -97,8 +110,8 @@ void Denoise(uint2 pixelLowResPos : SV_DispatchThreadID)
 
         const int2 neighborFullResPos = neighborLowResPos * lowResScreenScaling;
         const float2 neighborUv = PixelPosToUvPos(neighborFullResPos, rcpFullResSize);
-        const float3 neighborWorldPos = ComputeWorldSpacePosition(neighborUv, neighborDepth, _ClipToWorldTransform);
-        const float3 neighborNormal = _ScreenFlatNormals[neighborFullResPos];
+        const float3 neighborWorldPos = ComputeWorldSpacePosition(neighborUv, neighborDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+        const float3 neighborNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(neighborFullResPos)];
 
         // Gaussian kernel weight.
         const float k_GaussianTightness = 0.6931472f; // -log(0.5), chosen empirically
@@ -123,5 +136,18 @@ void Denoise(uint2 pixelLowResPos : SV_DispatchThreadID)
     else
         PatchUtil::MarkInvalid(output);
     IrradianceCompression::CompressAndStore(output, _ResultL0, _ResultL10, _ResultL11, _ResultL12, pixelLowResPos);
+}
+
+[numthreads(8, 8, 1)]
+void DenoiseMono(uint2 pixelLowResPos : SV_DispatchThreadID)
+{
+    Denoise(pixelLowResPos);
+}
+
+[numthreads(8, 8, 1)]
+void DenoiseSinglePassStereoInstancing(uint3 pixelLowResPos : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(pixelLowResPos.z);
+    Denoise(pixelLowResPos.xy);
 }
 

@@ -54,6 +54,7 @@
 
     #define COORD_TEXTURE2D_X(pixelCoord)                                    uint3(pixelCoord, SLICE_ARRAY_INDEX)
     #define INDEX_TEXTURE2D_ARRAY_X(slot)                                    ((slot) * _XRViewCount + SLICE_ARRAY_INDEX)
+    #define GET_TEXTURE2D_X_SIZE(textureName, width, height)                 { uint elementCount_; textureName.GetDimensions(width, height, elementCount_); }
 
     #define TEXTURE2D_X                                                      TEXTURE2D_ARRAY
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_ARRAY_PARAM
@@ -80,6 +81,7 @@
 
     #define COORD_TEXTURE2D_X(pixelCoord)                                    pixelCoord
     #define INDEX_TEXTURE2D_ARRAY_X(slot)                                    (slot)
+    #define GET_TEXTURE2D_X_SIZE(textureName, width, height)                 textureName.GetDimensions(width, height)
 
     #define TEXTURE2D_X                                                      TEXTURE2D
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_PARAM

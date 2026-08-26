@@ -1,9 +1,11 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
-#pragma kernel Visualize
+#pragma kernel VisualizeMono DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel VisualizeSinglePassStereoInstancing
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
@@ -17,17 +19,17 @@ RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _VolumeCascadeOffsets;
 
-RWTexture2D<float4> _Result;
-Texture2D<float> _ScreenDepths;
-Texture2D<float3> _ScreenShadedNormals;
-Texture2D<float3> _ScreenFlatNormals;
+RW_TEXTURE2D_X(float4, _Result);
+TYPED_TEXTURE2D_X(float, _ScreenDepths);
+TYPED_TEXTURE2D_X(float3, _ScreenShadedNormals);
+TYPED_TEXTURE2D_X(float3, _ScreenFlatNormals);
 
 uint _RingConfigOffset;
 uint _VolumeSpatialResolution;
 uint _VolumeCascadeCount;
 uint _ViewMode;
 uint _ShowSamplePosition;
-float4x4 _ClipToWorldTransform;
+float4x4 _ClipToWorldTransforms[2];
 uint _FrameIdx;
 float _VolumeVoxelMinSize;
 float3 _VolumeTargetPos;
@@ -42,8 +44,7 @@ float3 IsActuallyInf(float3 val) {
     return isinf(asfloat(_DummyBlackbox ^ asuint(val)));
 }
 
-[numthreads(8,8,1)]
-void Visualize(uint2 threadIdx : SV_DispatchThreadID)
+void Visualize(uint2 threadIdx)
 {
     const float3 green = float3(0, 1, 0);
     const float3 red = float3(1, 0, 0);
@@ -52,9 +53,9 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
     const float3 yellow = float3(1, 1, 0);
 
     uint2 screenSize;
-    _ScreenDepths.GetDimensions(screenSize.x, screenSize.y);
+    GET_TEXTURE2D_X_SIZE(_ScreenDepths, screenSize.x, screenSize.y);
 
-    float3 output;
+    float3 output = 0.0f;
 
     const float pixelPosYPercentage = float(threadIdx.y) / screenSize.y;
     const float statusBarHeightPercentage = 0.05f;
@@ -91,9 +92,9 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
             return;
 
         const float2 uv = (float2(threadIdx.xy) + 0.5f) / float2(screenSize);
-        const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransform);
-        const float3 worldShadedNormal = UnpackGBufferNormal(_ScreenShadedNormals[threadIdx.xy]);
-        const float3 worldFlatNormal = _ScreenFlatNormals[threadIdx.xy];
+        const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+        const float3 worldShadedNormal = UnpackNormalWSFromTexture(_ScreenShadedNormals[COORD_TEXTURE2D_X(threadIdx.xy)]);
+        const float3 worldFlatNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(threadIdx.xy)];
 
         PatchUtil::VolumeParamSet volumeParams;
         volumeParams.targetPos = _VolumeTargetPos;
@@ -203,5 +204,18 @@ void Visualize(uint2 threadIdx : SV_DispatchThreadID)
         }
     }
 
-    _Result[threadIdx.xy] = float4(output, 1.0f);
+    _Result[COORD_TEXTURE2D_X(threadIdx.xy)] = float4(output, 1.0f);
+}
+
+[numthreads(8,8,1)]
+void VisualizeMono(uint2 threadIdx : SV_DispatchThreadID)
+{
+    Visualize(threadIdx);
+}
+
+[numthreads(8,8,1)]
+void VisualizeSinglePassStereoInstancing(uint3 threadIdx : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(threadIdx.z);
+    Visualize(threadIdx.xy);
 }

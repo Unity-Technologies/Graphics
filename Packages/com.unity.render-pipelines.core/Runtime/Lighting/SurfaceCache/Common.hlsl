@@ -2,6 +2,8 @@
 #define SURFACE_CACHE_COMMON
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "VectorLogic.hlsl"
 
 static const uint patchCapacity = 65536; // Must match C# side.
@@ -14,9 +16,9 @@ static const float invalidNdcDepth = 1.0f;
 
 static const uint lowResScreenScaling = 4; // must match cpu side.
 
-float LoadNdcDepth(Texture2D<float> depthBuffer, uint2 pos)
+float LoadNdcDepth(TYPED_TEXTURE2D_X(float, depthBuffer), uint2 pos)
 {
-    const float depthBufferDepth = depthBuffer[pos];
+    const float depthBufferDepth = depthBuffer[COORD_TEXTURE2D_X(pos)];
     #if UNITY_REVERSED_Z
     return depthBufferDepth;
     #else
