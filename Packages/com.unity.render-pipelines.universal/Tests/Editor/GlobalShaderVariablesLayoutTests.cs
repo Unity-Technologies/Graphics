@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -37,6 +39,22 @@ namespace UnityEditor.Rendering.Universal.Tests
             typeof(Vector4),
             typeof(Matrix4x4),
         };
+
+        // Mirror of k_AllowedFieldTypes, used to compare the C# layout against the hlsl declaration.
+        static readonly Dictionary<Type, string> k_HlslTypeNames = new Dictionary<Type, string>
+        {
+            { typeof(int), "int" },
+            { typeof(uint), "uint" },
+            { typeof(float), "float" },
+            { typeof(Vector2), "float2" },
+            { typeof(Vector2Int), "int2" },
+            { typeof(Vector4), "float4" },
+            { typeof(Matrix4x4), "float4x4" },
+        };
+
+        // Matches any "<type> <name>;" so an unregistered type fails loudly below instead of being skipped,
+        // which would hide the drift this test exists to catch.
+        static readonly Regex k_HlslDeclaration = new Regex(@"^\s*([A-Za-z_]\w*)\s+(\w+)\s*;");
 
         [Test]
         public void FieldTypesAreConstantBufferSafe([ValueSource(nameof(k_LayoutTypes))] Type layoutType)
@@ -145,6 +163,74 @@ namespace UnityEditor.Rendering.Universal.Tests
 
                 seen[value] = name;
             }
+        }
+
+        // The hlsl and these structs are two hand-maintained copies of one cbuffer layout. A rename or reorder in
+        // either compiles cleanly on both sides and silently feeds shaders the wrong register
+        [Test]
+        public void HlslDeclarationMatchesLayoutStructs()
+        {
+            // Sorted by offset rather than trusting reflection's declaration order, which is not guaranteed.
+            var fields = new List<(int offset, string declaration)>();
+            ForEachLeafField(typeof(GlobalShaderVariables), 0, (field, offset) =>
+                fields.Add((offset, $"{HlslTypeFor(field.FieldType)} {field.Name}")));
+            fields.Sort((a, b) => a.offset.CompareTo(b.offset));
+
+            var expected = new List<string>();
+            foreach (var field in fields)
+                expected.Add(field.declaration);
+
+            Assert.That(ParseHlslDeclarations(), Is.EqualTo(expected),
+                "GlobalShaderVariables.hlsl and the GlobalShaderVariables structs have drifted apart. They are two " +
+                "copies of the same cbuffer layout and must match in name, type and order.");
+        }
+
+        static string HlslTypeFor(Type type)
+        {
+            Assert.That(k_HlslTypeNames.ContainsKey(type), Is.True,
+                $"No HLSL equivalent registered for {type.Name}. Add one to k_HlslTypeNames (and to k_AllowedFieldTypes).");
+
+            return k_HlslTypeNames[type];
+        }
+
+        // Pulls the "float4 _Time;" declarations out of the hlsl, dropping comments, preprocessor lines and the
+        // CBUFFER_START/CBUFFER_END macros so only the field list is compared.
+        static List<string> ParseHlslDeclarations()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(GlobalShaderVariables).Assembly);
+            Assert.That(package, Is.Not.Null, "Could not resolve the URP package from its runtime assembly.");
+
+            var path = Path.Combine(package.resolvedPath, "ShaderLibrary", "GlobalShaderVariables.hlsl");
+            Assert.That(File.Exists(path), Is.True, $"Could not find {path}.");
+
+            var declarations = new List<string>();
+
+            foreach (var rawLine in File.ReadAllLines(path))
+            {
+                var line = rawLine;
+
+                int comment = line.IndexOf("//", StringComparison.Ordinal);
+                if (comment >= 0)
+                    line = line.Substring(0, comment);
+
+                if (line.TrimStart().StartsWith("#", StringComparison.Ordinal))
+                    continue;
+
+                var match = k_HlslDeclaration.Match(line);
+                if (!match.Success)
+                    continue;
+
+                var hlslType = match.Groups[1].Value;
+                var hlslName = match.Groups[2].Value;
+
+                Assert.That(k_HlslTypeNames.ContainsValue(hlslType), Is.True,
+                    $"GlobalShaderVariables.hlsl declares '{hlslType} {hlslName};' but '{hlslType}' has no entry in " +
+                    $"k_HlslTypeNames. Register it there and in k_AllowedFieldTypes.");
+
+                declarations.Add($"{hlslType} {hlslName}");
+            }
+
+            return declarations;
         }
 
         // Walks the fields of layoutType, recursing into our own nested layout structs so offsets stay absolute.

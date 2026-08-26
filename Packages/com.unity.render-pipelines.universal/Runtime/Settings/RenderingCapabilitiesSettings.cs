@@ -33,17 +33,23 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("When enabled, URP uploads global shader variables as persistent GPU constant buffers instead of rebuilding them from loose uniforms before every draw call. " +
-                 "This reduces CPU overhead on native graphics APIs. Has no effect on GLES3 (constant buffers are not supported on that backend).")]
+        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs. Only the shader side changes for now, so this costs memory without saving CPU.")]
         bool m_UsePersistentConstantBuffers = false;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
-        /// When enabled, URP uploads global shader variables as persistent GPU constant buffers,
-        /// reducing CPU overhead on native graphics APIs (D3D11/12, Metal, Vulkan, NVN, GNM).
+        /// When enabled, URP declares its global shader variables as a constant buffer instead of loose uniforms,
+        /// by adding the URP_PERSISTENT_CONSTANT_BUFFERS shader define. The define is global and applies to every
+        /// graphics API. Work in progress: this currently affects only the shader-side declaration, the runtime
+        /// still uploads loose uniforms.
         /// </summary>
+        // KNOWN LIMITATION: the value is serialized in the project but read through a per-machine preference, so
+        // leaving Developer Mode strips a committed define and reimports every shader, and re-entering adds it back.
+        // Tolerable while nothing reads useConstantBuffers, but the gate has to go before the upload path lands:
+        // it is #if UNITY_EDITOR, so a player reads the field directly and a non-dev-mode build would ship
+        // loose-uniform shaders against a cbuffer-pushing runtime.
         public bool usePersistentConstantBuffers
         {
             get
@@ -51,7 +57,10 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 // Outside of Developer Mode the feature is hidden and treated as off,
                 // so a value set in dev mode doesn't accidentally affect normal editor sessions.
-                if (!UnityEditor.EditorPrefs.GetBool("DeveloperMode"))
+                // Must be Unsupported.IsDeveloperMode(), the same source the inspector uses to decide whether to
+                // ignore HideInInspector: EditorPrefs.GetBool("DeveloperMode") defaults to false, while the native
+                // side defaults it to "is this a source build", so on a source build the toggle would show but read off.
+                if (!UnityEditor.Unsupported.IsDeveloperMode())
                     return false;
 #endif
                 return m_UsePersistentConstantBuffers;

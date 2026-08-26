@@ -2,7 +2,11 @@
 #define GLOBALSHADERVARS_HLSL
 
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
-//CBUFFER_START(GlobalShaderVars) - WIP disabled for now to avoid a serious memory regression, we will enable it only if Persistent CB mode is ON in a next PR
+// URP_PERSISTENT_CONSTANT_BUFFERS is a shader constant define driven by the Project Settings > Graphics > URP > Rendering Capabilities > Use Persistent Constant Buffers
+// Only available in Editor Developer mode for now, still wip
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+CBUFFER_START(GlobalShaderVars)
+#endif
     // (t/20, t, t*2, t*3)
     float4 _Time;
     // sin(t/8), sin(t/4), sin(t/2), sin(t)
@@ -51,7 +55,9 @@
     float4 _URPDummy3D;
     // === Variables only present in 2D renderer start here ===
     float4 _URPDummy2D;
-//CBUFFER_END
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+CBUFFER_END
+#endif
 
 
 #endif
