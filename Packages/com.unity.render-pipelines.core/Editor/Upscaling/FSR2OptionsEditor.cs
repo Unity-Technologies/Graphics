@@ -7,6 +7,7 @@ using UnityEngine.AMD;
 public class FSR2OptionsEditor : UpscalerOptionsEditor
 {
     protected override bool showsResolutionMode => true;
+    protected override bool showsReactiveMaskGeneration => true;
 
     // Declare variables to hold each property
     private SerializedProperty m_QualityMode;

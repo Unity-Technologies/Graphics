@@ -135,6 +135,7 @@ public class FSR2IUpscaler : AbstractUpscaler
         public TextureHandle colorInput;
         public TextureHandle depth;
         public TextureHandle motionVectors;
+        public TextureHandle reactiveMask;
         public TextureHandle colorOutput;
     };
 #endregion
@@ -153,6 +154,7 @@ public class FSR2IUpscaler : AbstractUpscaler
     public override bool isTemporal => true;
     public override bool supportsSharpening => true;
     public override bool hasQualityMode => true;
+    public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Color;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
     {
@@ -258,11 +260,14 @@ public class FSR2IUpscaler : AbstractUpscaler
             builder.UseTexture(io.cameraColor);
             builder.UseTexture(io.cameraDepth);
             builder.UseTexture(io.motionVectorColor);
+            if (io.reactiveMask.IsValid())
+                builder.UseTexture(io.reactiveMask);
             builder.UseTexture(outputColor, AccessFlags.Write);
 
             passData.colorInput = io.cameraColor;
             passData.depth = io.cameraDepth;
             passData.motionVectors = io.motionVectorColor;
+            passData.reactiveMask = io.reactiveMask;
             passData.colorOutput = outputColor;
 
             builder.SetRenderFunc((FSR2GraphData data, UnsafeGraphContext ctx) =>
@@ -281,6 +286,7 @@ public class FSR2IUpscaler : AbstractUpscaler
                     colorInput = data.colorInput,
                     depth = data.depth,
                     motionVectors = data.motionVectors,
+                    reactiveMask = data.reactiveMask,
                     colorOutput = data.colorOutput,
                 };
 
