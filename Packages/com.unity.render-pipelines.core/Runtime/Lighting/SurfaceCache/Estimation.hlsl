@@ -102,6 +102,7 @@ void SamplePunctualLightBounceRadiance(
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::DispatchInfo dispatchInfo,
     uint sampleCount,
+    MaterialPoolParamSet matPoolParams,
     StructuredBuffer<PunctualLight> lights,
     StructuredBuffer<PunctualLightSample> punctualLightSamples,
     uint punctualLightSampleCount,
@@ -119,6 +120,7 @@ void SamplePunctualLightBounceRadiance(
         RadianceSample sample_ = SamplePunctualLightBounceRadiance(
             dispatchInfo,
             accelStruct,
+            matPoolParams,
             lights,
             punctualLightSamples,
             punctualLightSampleCount,
@@ -325,6 +327,7 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
             accelStruct,
             dispatchInfo,
             _SampleCount,
+            matPoolParams,
             _PunctualLights,
             _PunctualLightSamples,
             _PunctualLightSampleCount,

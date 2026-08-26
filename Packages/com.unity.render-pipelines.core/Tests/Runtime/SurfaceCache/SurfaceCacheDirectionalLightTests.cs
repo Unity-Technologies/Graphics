@@ -162,6 +162,40 @@ namespace UnityEngine.Rendering.Tests
             AssertObserverIrradiance(Vector3.zero, actual);
         }
 
+        // Plane with normal pointing down. Directional light pointing down. Patch above plane with normal pointing down.
+        // Directional light bounces off plane, into patch, only when double sided GI is enabled.
+        [Test]
+        public void Directional_OnlyWhenPlaneHasDoubleSidedGI_BouncesOffPlane([Values(true, false)] bool doubleSided)
+        {
+            Vector3 albedo = new Vector3(0.5f, 0.9f, 0.3f);
+            Vector3 lightColor = new Vector3(0.8f, 0.4f, 1.0f);
+            m_Scene.AddDirectionalLight(Vector3.down, lightColor);
+            m_Scene.AddPlane(albedo, k_PlaneHalfSize, Vector3.zero, Vector3.down, doubleSidedGI: doubleSided);
+            SeedObserver();
+            Estimate();
+
+            // Derivation from Directional_WhenObliqueIncidence_ThenCosineWeighted
+            Vector3 expected = doubleSided
+                ? Mathf.Sqrt(Mathf.PI) * Vector3.Scale(albedo, lightColor)
+                : Vector3.zero;
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            AssertObserverIrradiance(expected, actual);
+        }
+
+        // Plane with normal pointing down. Directional light pointing up. Patch above plane with normal pointing down.
+        // The light hits the underside of the plane, so no light arrives at the patch above, with or without double sided GI.
+        [Test]
+        public void Directional_IsOccludedByPlane_RegardlessOfDoubleSidedGIMode([Values(true, false)] bool doubleSided)
+        {
+            m_Scene.AddDirectionalLight(Vector3.up, new Vector3(0.8f, 0.4f, 1.0f));
+            m_Scene.AddPlane(albedo: new Vector3(0.5f, 0.9f, 0.3f), k_PlaneHalfSize, Vector3.zero, Vector3.down, doubleSidedGI: doubleSided);
+            SeedObserver();
+            Estimate();
+
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            AssertObserverIrradiance(Vector3.zero, actual);
+        }
+
         [Test]
         public void Directional_WhenLightBelowPlane_ThenZero()
         {

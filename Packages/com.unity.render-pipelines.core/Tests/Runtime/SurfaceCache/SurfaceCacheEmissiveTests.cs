@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Tests
                 emission: new Vector3(1.0f, 0.6f, 0.3f),
                 halfSize: 1.0f,
                 center: new Vector3(0.0f, 1.0f, 0.0f),
-                frontFaceUp: backfacing);
+                emissiveFacesUp: backfacing);
             CreateObserverPatch();
             Estimate();
 
@@ -82,6 +82,61 @@ namespace UnityEngine.Rendering.Tests
                 Assert.AreNotEqual(k_ZeroSH, actual);
         }
 
+        // Emissive quad above the patch with normal pointing up. Patch below quad with normal pointing up.
+        // The quad's backface emits light only when double sided GI is enabled.
+        [Test]
+        public void Emissive_OnlyWhenEmitterHasDoubleSidedGI_EmitsLightFromBackface([Values(true, false)] bool doubleSided)
+        {
+            m_Scene.AddEmissiveQuad(
+                emission: new Vector3(1.0f, 0.6f, 0.3f),
+                halfSize: 1.0f,
+                center: new Vector3(0.0f, 1.0f, 0.0f),
+                emissiveFacesUp: true,
+                doubleSidedGI: doubleSided);
+            CreateObserverPatch();
+            Estimate();
+
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            if (doubleSided)
+                Assert.AreNotEqual(k_ZeroSH, actual);
+            else
+                Assert.AreEqual(k_ZeroSH, actual);
+        }
+
+        // Emissive quad facing down. Infinite occluding plane with normal pointing up, between quad and patch.
+        // Patch below plane with normal pointing up, with pre-seeded irradiance. Rays from the patch hit backfaces.
+        // With double sided GI, that results in black. Without, the samples never contribute, so the patch
+        // keeps its existing value (see IsValidSample() in PathTracing.hlsl).
+        [Test]
+        public void Emissive_OnlyWhenOccluderHasDoubleSidedGI_SamplesOccludedByBackfaceContribute([Values(true, false)] bool doubleSided)
+        {
+            var seeded = new SHRGBL1 { L0 = new Vector3(0.5f, 0.5f, 0.5f) };
+
+            m_Scene.AddEmissiveQuad(
+                emission: new Vector3(1.0f, 0.6f, 0.3f),
+                halfSize: 1.0f,
+                center: new Vector3(0.0f, 2.0f, 0.0f),
+                emissiveFacesUp: false);
+            m_Scene.AddPlane(
+                albedo: Vector3.one,
+                halfSize: 100.0f,
+                center: new Vector3(0.0f, 1.0f, 0.0f),
+                normal: Vector3.up,
+                doubleSidedGI: doubleSided);
+            m_Harness.SetPatches(
+                worldPositions: new[] { Vector3.zero },
+                worldNormals:   new[] { Vector3.up },
+                cellIndices:    new uint[] { 0 },
+                irradiances:    new[] { seeded });
+            Estimate();
+
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            if (doubleSided)
+                TestHarness.AssertSphericalHarmonicsApproximatelyEqual(k_ZeroSH, actual, epsilon: Vector3.one * 1e-3f);
+            else
+                Assert.AreEqual(seeded, actual, "An invalid sample should leave the patch untouched.");
+        }
+
         [Test]
         public void Emissive_OnlyWhenEmitterBehindPatch_ThenZeroIrradiance([Values(true, false)] bool behindPatch)
         {
@@ -89,7 +144,7 @@ namespace UnityEngine.Rendering.Tests
                 emission: new Vector3(1.0f, 0.6f, 0.3f),
                 halfSize: 1.0f,
                 center: new Vector3(0.0f, behindPatch ? -1.0f : 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             CreateObserverPatch();
             Estimate();
 
@@ -107,7 +162,7 @@ namespace UnityEngine.Rendering.Tests
                 emission: new Vector3(1.0f, 0.6f, 0.3f),
                 halfSize: 1.0f,
                 center: new Vector3(0.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             if (occluded)
             {
                 m_Scene.AddPlane(
@@ -134,7 +189,7 @@ namespace UnityEngine.Rendering.Tests
                 emission,
                 halfSize: 1.0f,
                 center: new Vector3(0.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             CreateObserverPatch();
             Estimate();
 
@@ -163,17 +218,17 @@ namespace UnityEngine.Rendering.Tests
                 emission: new Vector3(1.0f, 0.0f, 0.0f), // red
                 halfSize: 0.5f,
                 center: new Vector3(-1.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             m_Scene.AddEmissiveQuad(
                 emission: new Vector3(0.0f, 1.0f, 0.0f), // green
                 halfSize: 0.5f,
                 center: new Vector3(0.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             m_Scene.AddEmissiveQuad(
                 emission: new Vector3(0.0f, 0.0f, 1.0f), // blue
                 halfSize: 0.5f,
                 center: new Vector3(1.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             CreateObserverPatch();
             Estimate();
 
@@ -190,7 +245,7 @@ namespace UnityEngine.Rendering.Tests
                 emission: Vector3.one * 10000f,
                 halfSize: 0.01f,
                 center: new Vector3(-1.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             CreateObserverPatch();
             Estimate();
 
@@ -198,6 +253,36 @@ namespace UnityEngine.Rendering.Tests
             Assert.Greater(actual.L0[0], 0.25f); // significantly above 0
             Assert.Greater(actual.L0[1], 0.25f);
             Assert.Greater(actual.L0[2], 0.25f);
+        }
+
+        // Double sided emissive quad above the patch, large enough to fill its hemisphere, facing either up or down.
+        // Patch below quad with normal pointing up.
+        // Both faces of the quad emit, so flipping which way it faces must not change the irradiance. The two
+        // emitter sampling strategies must agree on the quad's cosine, or their MIS weights stop summing to one.
+        [Test]
+        public void Emissive_WhenDoubleSidedFillsHemisphere_IrradianceIsFaceOrientationIndependent([Values(true, false)] bool emissiveFacesUp)
+        {
+            Vector3 emission = new Vector3(1.0f, 0.6f, 0.3f);
+            m_Scene.AddEmissiveQuad(
+                emission: emission,
+                halfSize: 100000.0f,
+                center: new Vector3(0.0f, 1.0f, 0.0f),
+                emissiveFacesUp: emissiveFacesUp,
+                doubleSidedGI: true);
+            CreateObserverPatch();
+            Estimate();
+
+            // Same analytical result as Emissive_WhenFillsHemisphere_IrradianceMatchesAnalyticalResult; see its
+            // derivation. A double-sided emitter must produce it from either orientation.
+            SHRGBL1 expected = new SHRGBL1
+            {
+                L0 = Mathf.PI * Mathf.Sqrt(Mathf.PI) * emission,
+                L10 = Mathf.Pow(Mathf.PI, 3.0f / 2.0f) / Mathf.Sqrt(3.0f) * emission,
+                L11 = Vector3.zero,
+                L12 = Vector3.zero,
+            };
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            TestHarness.AssertSphericalHarmonicsApproximatelyEqual(expected, actual, epsilon: Vector3.one * 1e-2f);
         }
 
         [Test]
@@ -208,7 +293,7 @@ namespace UnityEngine.Rendering.Tests
                 emission: emission,
                 halfSize: 100000.0f,
                 center: new Vector3(0.0f, 1.0f, 0.0f),
-                frontFaceUp: false);
+                emissiveFacesUp: false);
             CreateObserverPatch();
             Estimate();
 

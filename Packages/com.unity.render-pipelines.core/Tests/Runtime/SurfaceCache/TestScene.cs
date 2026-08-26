@@ -36,15 +36,17 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
-        public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, Vector3 normal)
+        public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, Vector3 normal, bool doubleSidedGI = false)
         {
-            var materialHandle = m_World.AddMaterial(CreateUniformAlbedoDescriptor(albedo), UVChannel.UV0);
+            var descriptor = CreateUniformAlbedoDescriptor(albedo);
+            descriptor.DoubleSidedGI = doubleSidedGI;
+            var materialHandle = m_World.AddMaterial(descriptor, UVChannel.UV0);
             var mesh = CreateQuad(halfSize, normal);
             m_Resources.Add(mesh);
             m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
         }
 
-        public void AddEmissiveQuad(Vector3 emission, float halfSize, Vector3 center, bool frontFaceUp = true)
+        public void AddEmissiveQuad(Vector3 emission, float halfSize, Vector3 center, bool emissiveFacesUp = true, bool doubleSidedGI = false)
         {
             var materialHandle = m_World.AddMaterial(new MaterialPool.MaterialDescriptor
             {
@@ -56,8 +58,9 @@ namespace UnityEngine.Rendering.Tests
                 EmissionType = PathTracing.Core.MaterialPropertyType.Color,
                 EmissionColor = emission,
                 PointSampleEmission = true,
+                DoubleSidedGI = doubleSidedGI,
             }, UVChannel.UV0);
-            var mesh = CreateQuad(halfSize, frontFaceUp ? Vector3.up : Vector3.down);
+            var mesh = CreateQuad(halfSize, emissiveFacesUp ? Vector3.up : Vector3.down);
             m_Resources.Add(mesh);
             m_World.AddInstance(mesh, new[] { materialHandle }, new[] { 0xFFFFFFFFu }, Matrix4x4.Translate(center));
         }

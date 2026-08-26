@@ -21,13 +21,13 @@ struct SurfaceGeometry
     float2 uv1;
 };
 
-bool IsValidSample(bool isFrontFace)
+bool IsValidSample(bool isFrontFace, bool materialUsesDoubleSidedGI)
 {
     // If we hit backface geometry then we assume that a patch is inside geometry. In this case we
     // effectively pause the update process by skipping samples to prevent accumulating "irrelevant"
     // darkness which can give artifacts if/when a patch reappears after temporarily being inside
-    // moving geometry.
-    return isFrontFace;
+    // moving geometry. When using double-sided GI, backfaces are treated the same as frontfaces.
+    return isFrontFace || materialUsesDoubleSidedGI;
 }
 
 SurfaceGeometry FetchSurfaceGeometry(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
@@ -136,6 +136,7 @@ bool IsSpotLight(float cosOuterAngle)
 RadianceSample SamplePunctualLightBounceRadiance(
     UnifiedRT::DispatchInfo dispatchInfo,
     UnifiedRT::RayTracingAccelStruct accelStruct,
+    MaterialPoolParamSet matPoolParams,
     StructuredBuffer<PunctualLight> lights,
     StructuredBuffer<PunctualLightSample> punctualLightSamples,
     uint punctualLightSampleCount,
@@ -160,14 +161,21 @@ RadianceSample SamplePunctualLightBounceRadiance(
             reconnectionRay.tMax = FLT_MAX;
             UnifiedRT::Hit reconnectionResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, reconnectionRay, UnifiedRT::kRayFlagNone);
 
-            if (!IsValidSample(reconnectionResult.isFrontFace))
+            if (!reconnectionResult.IsValid())
             {
                 result.MarkInvalid();
             }
             else
             {
-                if (reconnectionResult.IsValid() &&
-                    reconnectionResult.instanceID == punctualLightSample.hitInstanceId &&
+                const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(reconnectionResult.instanceID);
+                const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+                const bool materialUsesDoubleSidedGI = MaterialPool::UsesDoubleSidedGI(matEntry.flags);
+
+                if (!IsValidSample(reconnectionResult.isFrontFace, materialUsesDoubleSidedGI))
+                {
+                    result.MarkInvalid();
+                }
+                else if (reconnectionResult.instanceID == punctualLightSample.hitInstanceId &&
                     reconnectionResult.primitiveIndex == punctualLightSample.hitPrimitiveIndex)
                 {
                     const PunctualLight light = lights[punctualLightSample.lightIndex];
@@ -185,7 +193,7 @@ RadianceSample SamplePunctualLightBounceRadiance(
                     const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * light.intensity * brdf;
 
                     // We transform from patch solid angle measure to (common) surface area measure to punctual light solid angle measure.
-                    const float patchSolidAngleToBounceAreaJacobian = dot(-reconnectionRay.direction, punctualLightSample.hitNormal) / (reconnectionResult.hitDistance * reconnectionResult.hitDistance);
+                    const float patchSolidAngleToBounceAreaJacobian = max(0.0f, dot(-reconnectionRay.direction, punctualLightSample.hitNormal)) / (reconnectionResult.hitDistance * reconnectionResult.hitDistance);
                     const float bounceAreaToLightSolidAngleJacobian = distanceSquared / dot(-punctualLightSample.rayDirection, punctualLightSample.hitNormal);
                     const float patchSolidAngleToLightSolidAngleJacobian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
 
@@ -205,7 +213,7 @@ RadianceSample SamplePunctualLightBounceRadiance(
                             angularAttenuation = SharpSpotLightAngleAttenuation(light.direction, punctualLightSample.rayDirection, light.angleAttenuationValue1, light.angleAttenuationValue2);
 
                         result.radianceOverDensity =
-                            INV_PI * dot(-reconnectionRay.direction, punctualLightSample.hitNormal) *
+                            INV_PI * max(0.0f, dot(-reconnectionRay.direction, punctualLightSample.hitNormal)) *
                             punctualLightSample.reciprocalDensity *
                             light.intensity * punctualLightSample.hitAlbedo *
                             Square(reciprocalReconnectionDistance * rangeWindow * angularAttenuation);
@@ -282,6 +290,7 @@ EmissiveTriangleSample SampleEmissiveTriangles(
     StructuredBuffer<EmissiveTriangle> emissiveTriangles,
     uint emissiveTriangleCount,
     MaterialPoolParamSet matPoolParams,
+    float3 receiverPosition,
     float triangleSelectionRand,
     float2 pointRand)
 {
@@ -312,6 +321,9 @@ EmissiveTriangleSample SampleEmissiveTriangles(
         emissiveSample.normal = crossProduct * instance.localToWorldDetSign / doubleArea;
         emissiveSample.emission = emission;
         emissiveSample.reciprocalDensity = EmissiveTriangleReciprocalDensity(emissiveTriangleCount, 0.5f * doubleArea);
+
+        if (MaterialPool::UsesDoubleSidedGI(matEntry.flags) && dot(emissiveSample.normal, receiverPosition - emissiveSample.pos) < 0.0f)
+            emissiveSample.normal = -emissiveSample.normal;
     }
     else
     {
@@ -340,6 +352,7 @@ RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
         emissiveTriangles,
         emissiveTriangleCount,
         matPoolParams,
+        position,
         triangleSelectionRand,
         pointRand);
 
@@ -373,7 +386,9 @@ RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
     UnifiedRT::Hit shadowHit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, shadowRay, UnifiedRT::kRayFlagNone);
     if (shadowHit.IsValid())
     {
-        if (!IsValidSample(shadowHit.isFrontFace))
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(shadowHit.instanceID);
+        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+        if (!IsValidSample(shadowHit.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
         {
             result.MarkInvalid();
         }
@@ -478,15 +493,16 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
     float3 radiance;
     if (hitResult.IsValid())
     {
-        if (!IsValidSample(hitResult.isFrontFace))
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
+        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+        if (!IsValidSample(hitResult.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
         {
             radiance = invalidRadiance;
         }
         else
         {
-            const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
             const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
-            const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+            const float3 hitNormal = dot(ray.direction, hitGeo.normal) >= 0.0f ? -hitGeo.normal : hitGeo.normal;
             const float3 hitAlbedo = MaterialPool::LoadAlbedoWithBoost(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, matPoolParams.albedoBoost, hitGeo.uv0, hitGeo.uv1);
             const float3 hitEmission = MaterialPool::LoadEmission(matEntry, matPoolParams.emissionTextures, matPoolParams.emissionSampler, matPoolParams.atlasTexelSize, hitGeo.uv0, hitGeo.uv1);
 
@@ -495,7 +511,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
             if (any(hitEmission > 0.0f))
             {
                 const float lightArea = CalculateTriangleArea(hitInstance, hitResult.primitiveIndex);
-                const float lightCosTerm = dot(-ray.direction, hitGeo.normal);
+                const float lightCosTerm = dot(-ray.direction, hitNormal);
                 if (lightArea > 0 && lightCosTerm > 0)
                 {
                     const float areaToSolidAngleJacobian = Square(hitResult.hitDistance) / lightCosTerm; // dA/dω
@@ -507,7 +523,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
             uint bouncePatchIndex;
             radiance = OutgoingDirectionalBounceAndMultiBounceRadiance(
                 hitGeo.position,
-                hitGeo.normal,
+                hitNormal,
                 dispatchInfo,
                 accelStruct,
                 dirLightDirection,
@@ -531,7 +547,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
                     {
                         PatchAllocationRequest req;
                         req.position = hitGeo.position;
-                        req.normal = hitGeo.normal;
+                        req.normal = hitNormal;
                         allocationRequests[requestIdx] = req;
                     }
                 }

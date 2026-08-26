@@ -215,6 +215,96 @@ namespace UnityEngine.Rendering.Tests
             TestHarness.AssertSphericalHarmonicsApproximatelyEqual(expected, actual, tolerance);
         }
 
+        // Patch 0 below a double sided plane whose normal points up, so it sees the plane's backface.
+        // Patch 1 sees the frontface of an identical plane, mirrored below it.
+        // The backface behaves like a frontface, so patch 0 matches patch 1.
+        [Test]
+        public void Env_WhenPlaneHasDoubleSidedGI_BouncesOffBackface()
+        {
+            const int frameCount = 64;
+            const float relativeTolerance = 0.03f;
+            const float absoluteTolerance = 1e-3f;
+            const float planeHalfSize = 0.5f; // fairly small - we want a good portion of rays to miss
+            const float planeDistance = 0.5f;
+
+            Vector3 albedo = new Vector3(0.2f, 0.4f, 0.1f);
+            var envRadiance = new Vector3(1.5f, 0.4f, 0.9f);
+
+            m_Harness.World.SetEnvironmentColor(new Color(envRadiance.x, envRadiance.y, envRadiance.z));
+            m_Scene.AddPlane(albedo, planeHalfSize, center: new Vector3(0f, planeDistance, 0f), normal: Vector3.up, doubleSidedGI: true);
+            m_Scene.AddPlane(albedo, planeHalfSize, center: new Vector3(0f, -2f - planeDistance, 0f), normal: Vector3.up);
+            m_Harness.SetPatches(
+                worldPositions: new[] { Vector3.zero, new Vector3(0f, -2f, 0f) },
+                worldNormals:   new[] { Vector3.up, Vector3.down },
+                cellIndices:    new uint[] { 0, 1 },
+                irradiances:    new SHRGBL1[2]);
+
+            m_Harness.BeginFrame();
+            m_Harness.CommitWorld();
+            m_Harness.Estimate();
+            m_Harness.EndFrame();
+
+            for (int i = 1; i < frameCount; ++i)
+            {
+                m_Harness.BeginFrame();
+                m_Harness.Estimate();
+                m_Harness.EndFrame();
+            }
+
+            Vector3 frontfaceBounceIrradiance = m_Harness.ReadPatchIrradiance(patchIndex: 1).L0;
+            Vector3 actualIrradiance = m_Harness.ReadPatchIrradiance(patchIndex: 0).L0;
+
+            Vector3 tolerance = relativeTolerance * frontfaceBounceIrradiance + absoluteTolerance * Vector3.one;
+            Assert.AreEqual(frontfaceBounceIrradiance.x, actualIrradiance.x, tolerance.x);
+            Assert.AreEqual(frontfaceBounceIrradiance.y, actualIrradiance.y, tolerance.y);
+            Assert.AreEqual(frontfaceBounceIrradiance.z, actualIrradiance.z, tolerance.z);
+        }
+
+        // Patch 0 below a single sided plane whose normal points up, so it sees the plane's backface.
+        // Patch 1 has an unobstructed view of the sky.
+        // The backface samples don't contribute, so the plane neither bounces light into patch 0
+        // nor occludes the sky, and patch 0 matches patch 1.
+        [Test]
+        public void Env_WhenPlaneDoesNotHaveDoubleSidedGI_BackfaceNeitherBouncesNorOccludes()
+        {
+            const int frameCount = 64;
+            const float relativeTolerance = 0.03f;
+            const float absoluteTolerance = 1e-3f;
+            const float planeHalfSize = 0.5f; // fairly small - we want a good portion of rays to miss
+            const float planeDistance = 0.5f;
+
+            Vector3 albedo = new Vector3(0.2f, 0.4f, 0.1f);
+            var envRadiance = new Vector3(1.5f, 0.4f, 0.9f);
+
+            m_Harness.World.SetEnvironmentColor(new Color(envRadiance.x, envRadiance.y, envRadiance.z));
+            m_Scene.AddPlane(albedo, planeHalfSize, center: new Vector3(0f, planeDistance, 0f), normal: Vector3.up, doubleSidedGI: false);
+            m_Harness.SetPatches(
+                worldPositions: new[] { Vector3.zero, new Vector3(4f, 0f, 0f) },
+                worldNormals:   new[] { Vector3.up, Vector3.up },
+                cellIndices:    new uint[] { 0, 1 },
+                irradiances:    new SHRGBL1[2]);
+
+            m_Harness.BeginFrame();
+            m_Harness.CommitWorld();
+            m_Harness.Estimate();
+            m_Harness.EndFrame();
+
+            for (int i = 1; i < frameCount; ++i)
+            {
+                m_Harness.BeginFrame();
+                m_Harness.Estimate();
+                m_Harness.EndFrame();
+            }
+
+            Vector3 unoccludedSkyIrradiance = m_Harness.ReadPatchIrradiance(patchIndex: 1).L0;
+            Vector3 actualIrradiance = m_Harness.ReadPatchIrradiance(patchIndex: 0).L0;
+
+            Vector3 tolerance = relativeTolerance * unoccludedSkyIrradiance + absoluteTolerance * Vector3.one;
+            Assert.AreEqual(unoccludedSkyIrradiance.x, actualIrradiance.x, tolerance.x);
+            Assert.AreEqual(unoccludedSkyIrradiance.y, actualIrradiance.y, tolerance.y);
+            Assert.AreEqual(unoccludedSkyIrradiance.z, actualIrradiance.z, tolerance.z);
+        }
+
         [Test]
         public void Env_WhenPatchFullyEnclosed_ThenNoContribution()
         {

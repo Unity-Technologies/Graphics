@@ -136,6 +136,34 @@ namespace UnityEngine.Rendering.Tests
             AssertBounceIrradiance(lightCount: 1, albedo, actual);
         }
 
+        // Plane with normal pointing down. Point light above plane. Patch above plane with normal pointing down.
+        // Point light bounces off plane, into patch, only when double sided GI is enabled.
+        [Test]
+        public void Point_OnlyWhenPlaneHasDoubleSidedGI_BouncesOffPlane([Values(true, false)] bool doubleSided)
+        {
+            m_Scene.AddPointLight(new Vector3(0f, k_Height, 0f), k_LightColor, k_LightRange);
+            m_Scene.AddPlane(k_BaseAlbedo, k_PlaneHalfSize, Vector3.zero, Vector3.down, doubleSidedGI: doubleSided);
+            SeedObserver();
+            Estimate();
+
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            AssertBounceIrradiance(lightCount: doubleSided ? 1 : 0, k_BaseAlbedo, actual);
+        }
+
+        // Plane with normal pointing up. Point light below plane. Patch above plane with normal pointing down.
+        // The light hits the underside of the plane, so no light arrives at the patch above, with or without double sided GI.
+        [Test]
+        public void Point_IsOccludedByPlane_RegardlessOfDoubleSidedGIMode([Values(true, false)] bool doubleSided)
+        {
+            m_Scene.AddPointLight(new Vector3(0f, -k_Height, 0f), k_LightColor, k_LightRange);
+            m_Scene.AddPlane(k_BaseAlbedo, k_PlaneHalfSize, Vector3.zero, Vector3.up, doubleSidedGI: doubleSided);
+            SeedObserver();
+            Estimate();
+
+            SHRGBL1 actual = m_Harness.ReadPatchIrradiance(patchIndex: 0);
+            AssertBounceIrradiance(lightCount: 0, k_BaseAlbedo, actual);
+        }
+
         [Test]
         public void Point_WhenNIdenticalColocatedLights_ThenBounceAdditive([Values(0, 1, 5)] int lightCount)
         {

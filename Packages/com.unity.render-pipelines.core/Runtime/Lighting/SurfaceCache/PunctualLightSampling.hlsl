@@ -53,21 +53,28 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     lightSample.rayDirection = ray.direction;
 
     UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
-    if (hitResult.IsValid() && hitResult.isFrontFace)
+    if (hitResult.IsValid())
     {
         const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
-        const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
         const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
-        const float3 hitAlbedo = MaterialPool::LoadAlbedoWithBoost(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, matPoolParams.albedoBoost, hitGeo.uv0, hitGeo.uv1);
+        if (IsValidSample(hitResult.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
+        {
+            const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
+            const float3 hitAlbedo = MaterialPool::LoadAlbedoWithBoost(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, matPoolParams.albedoBoost, hitGeo.uv0, hitGeo.uv1);
 
-        lightSample.hitPos = ray.origin + ray.direction * hitResult.hitDistance;
-        lightSample.hitNormal = hitGeo.normal;
-        lightSample.distance = hitResult.hitDistance;
-        lightSample.hitAlbedo = hitAlbedo;
-        lightSample.reciprocalDensity = AreaOfSphericalCapWithRadiusOne(light.cosOuterAngle) * _PunctualLightCount;
-        lightSample.hitInstanceId = hitResult.instanceID;
-        lightSample.hitPrimitiveIndex = hitResult.primitiveIndex;
-        lightSample.lightIndex = punctualLightIndex;
+            lightSample.hitPos = ray.origin + ray.direction * hitResult.hitDistance;
+            lightSample.hitNormal = dot(ray.direction, hitGeo.normal) >= 0.0f ? -hitGeo.normal : hitGeo.normal;
+            lightSample.distance = hitResult.hitDistance;
+            lightSample.hitAlbedo = hitAlbedo;
+            lightSample.reciprocalDensity = AreaOfSphericalCapWithRadiusOne(light.cosOuterAngle) * _PunctualLightCount;
+            lightSample.hitInstanceId = hitResult.instanceID;
+            lightSample.hitPrimitiveIndex = hitResult.primitiveIndex;
+            lightSample.lightIndex = punctualLightIndex;
+        }
+        else
+        {
+            lightSample.MarkNoHit();
+        }
     }
     else
     {
