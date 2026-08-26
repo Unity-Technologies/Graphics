@@ -85,7 +85,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        [Shortcut("Visual Effect Graph/Restart VFX", typeof(VFXViewWindow), KeyCode.Space, ShortcutModifiers.Shift)]
+        // Slash matches ParticleSystem/TrailRenderer Restart and keeps Shift+Space free for Maximize View.
+        [Shortcut("Visual Effect Graph/Restart VFX", typeof(VFXViewWindow), KeyCode.Slash)]
         static void RestartComponent(ShortcutArguments args)
         {
             if (args.context is VFXViewWindow window)

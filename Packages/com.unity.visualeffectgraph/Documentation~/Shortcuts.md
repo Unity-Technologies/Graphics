@@ -18,7 +18,7 @@ For more information, refer to [Shortcuts Manager](xref:um-shortcuts-manager).
 | **Deselect All**                           | `Shift`+`D`                  | `Shift`+`D`            | Deselects all nodes in the graph.                                             |
 | **Compile**                                | `Shift`+`C`                  | `Shift`+`C`            | Compiles the graph by generating the associated compute and fragment shaders. |
 | **Duplicate with Link**                    | `Alt`+`Shift`+`D`            | `Option`+`Shift`+`D`   | Duplicates the selected nodes and links them to the original nodes.           |
-| **Restart VFX**                            | `Shift`+`Space`              | `Shift`+`Space`        | Restarts the VFX Graph (stops and starts the VFX Graph simulation).           |
+| **Restart VFX**                            | `/`                          | `/`                    | Restarts the VFX Graph (stops and starts the VFX Graph simulation).           |
 | **Toggle all debug panels**                | `Shift`+`5`                  | `Shift`+`5`            | Toggles all debug panels visibility.                                          |
 | **Toggle Blackboard**                      | `Shift`+`1`                  | `Shift`+`1`            | Shows/hides the blackboard.                                                   |
 | **Toggle Control Panel**                   | `Shift`+`3`                  | `Shift`+`3`            | Shows/hides the control panel.                                                |
