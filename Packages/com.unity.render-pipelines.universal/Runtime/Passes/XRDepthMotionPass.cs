@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private LocalKeyword m_SubsampleDepthKeyword;
         private static readonly ShaderTagId k_MotionOnlyShaderTagId = new ShaderTagId(k_MotionOnlyShaderTagIdName);
         private static readonly int k_SpaceWarpNDCModifier = Shader.PropertyToID("_SpaceWarpNDCModifier");
+        private static readonly int k_XRDepthTextureUVScale = Shader.PropertyToID("_XRDepthTextureUVScale");
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;
         private RTHandle m_XRMotionVectorDepth;
@@ -54,6 +55,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle xrDepthSrc;
             internal bool requiresSubsampleDepth;
             internal LocalKeyword subsampleDepthKeyword;
+            internal Vector2 uvScale;
         }
 
         ///  View projection data
@@ -260,6 +262,10 @@ namespace UnityEngine.Rendering.Universal
                     bool subsampleDepth = cameraData.xr.motionVectorRenderTargetDesc.width < cameraData.xr.renderTargetDesc.width;
                     passData.requiresSubsampleDepth = subsampleDepth;
                     passData.subsampleDepthKeyword = m_SubsampleDepthKeyword;
+
+                    var xrSrcInfo = renderGraph.GetRenderTargetInfo(resourceData.backBufferDepth);
+                    passData.uvScale = new Vector2(cameraData.pixelRect.width  / (float)xrSrcInfo.width,
+                                                            cameraData.pixelRect.height / (float)xrSrcInfo.height);
                 }
                 else
                 {
@@ -286,6 +292,7 @@ namespace UnityEngine.Rendering.Universal
                     if (data.hasValidXRDepth)
                     {
                         context.cmd.SetGlobalTexture(k_XRDepthTextureNameID, data.xrDepthSrc, RenderTextureSubElement.Depth);
+                        context.cmd.SetGlobalVector(k_XRDepthTextureUVScale, new Vector4(data.uvScale.x, data.uvScale.y, 0f, 0f));
 
                         if (data.requiresSubsampleDepth)
                         {

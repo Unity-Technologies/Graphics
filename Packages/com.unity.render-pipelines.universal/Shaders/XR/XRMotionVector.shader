@@ -122,6 +122,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
             // -------------------------------------
             // Constants
             float _SpaceWarpNDCModifier;
+            float2 _XRDepthTextureUVScale;
 
             // -------------------------------------
             // Structs
@@ -149,7 +150,10 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
                 
                 output.position = GetFullScreenTriangleVertexPosition(input.vertexID, 1 - UNITY_NEAR_CLIP_VALUE);
                 output.posCS = output.position;
-                output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
+
+                float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                uv *= _XRDepthTextureUVScale;
+                output.uv = uv;
 
                 return output;
             }
@@ -164,12 +168,6 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 float2 uv = input.uv;
-
-                // The backbuffer depth is imported with textureUVOrigin = TopLeft on Vulkan,
-                // while the motion vector depth target defaults to BottomLeft. Compensate here.
-                #if UNITY_UV_STARTS_AT_TOP
-                uv.y = 1.0 - uv.y;
-                #endif
 
              #if _SUBSAMPLE_DEPTH && SHADER_TARGET >= 45 && defined(PLATFORM_SUPPORT_GATHER)
                 float4 depth4 = GATHER_RED_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, uv);
