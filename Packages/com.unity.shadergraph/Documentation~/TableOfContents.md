@@ -60,6 +60,7 @@
         * [Create Custom Function node using HLSL](Custom-nodes-hlsl-create-custom-function-node.md)
         * [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
         * [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)
+    * [Introduction to particle shaders](Particle-Shaders-Introduction.md)
 * [Node Library](Node-Library.md)
     * [Artistic](Artistic-Nodes.md)
         * Adjustment
