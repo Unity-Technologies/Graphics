@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                 var buildTargetSettings = XR.Management.XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
-                if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                 {
                     EditorGUILayout.HelpBox("Orthographic projection is not supported in XR. Please change the Camera Projection setting to Perspective to avoid rendering issues", MessageType.Warning);
                 }

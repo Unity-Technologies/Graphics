@@ -285,8 +285,8 @@ namespace UnityEditor.Rendering.Universal
 
             var buildTargetSettings = XR.Management.XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
             return buildTargetSettings != null
-                && buildTargetSettings.AssignedSettings != null
-                && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0;
+                && buildTargetSettings.Manager != null
+                && buildTargetSettings.Manager.activeLoaders.Count > 0;
 #else
             return false;
 #endif
