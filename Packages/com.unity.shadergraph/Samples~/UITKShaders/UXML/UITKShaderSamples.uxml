@@ -1,0 +1,199 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <!-- Relative reference (same folder), so the stylesheet resolves wherever the sample is
+         imported — the absolute path would embed the package version and break on every bump. -->
+    <Style src="UITKShaderSamples.uss"/>
+    <ui:VisualElement name="root" class="root">
+        <!-- Full-panel themed backdrop (Warped Gradient). Absolutely positioned so it sits
+             behind the chrome without affecting the flex layout. The controller binds the
+             shader material here (size only); the scrim below tones it down. -->
+        <ui:VisualElement name="background" class="background" picking-mode="Ignore"/>
+        <!-- A dark scrim laid over the backdrop so the gradient recedes and the foreground
+             cards/shaders pop. Pure USS, no material. -->
+        <ui:VisualElement name="background-scrim" class="background-scrim" picking-mode="Ignore"/>
+
+        <!-- App chrome: a left side panel of tab buttons + a content pane that swaps pages. -->
+        <ui:VisualElement name="app" class="app">
+
+            <!-- ===== Left side panel: vertical list of tab buttons ===== -->
+            <ui:VisualElement name="side-panel" class="side-panel">
+                <ui:VisualElement class="brand">
+                    <ui:VisualElement class="brand-mark" picking-mode="Ignore"/>
+                    <ui:VisualElement class="brand-text">
+                        <ui:Label text="Shader Samples" class="side-title"/>
+                        <ui:Label text="UI Toolkit" class="side-subtitle"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:Toggle name="tab-all" value="true" class="tab">
+                    <ui:VisualElement name="tab-all-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="All samples" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:Toggle name="tab-buttons" value="false" class="tab">
+                    <ui:VisualElement name="tab-buttons-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="Buttons" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:Toggle name="tab-indicators" value="false" class="tab">
+                    <ui:VisualElement name="tab-indicators-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="Indicators" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:Toggle name="tab-progress" value="false" class="tab">
+                    <ui:VisualElement name="tab-progress-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="Progress bars" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:Toggle name="tab-backgrounds" value="false" class="tab">
+                    <ui:VisualElement name="tab-backgrounds-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="Backgrounds" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:Toggle name="tab-interactive" value="false" class="tab">
+                    <ui:VisualElement name="tab-interactive-face" class="tab-face" picking-mode="Ignore"/>
+                    <ui:VisualElement class="tab-accent" picking-mode="Ignore"/>
+                    <ui:Label text="Interactive" class="tab-label" picking-mode="Ignore"/>
+                </ui:Toggle>
+
+                <ui:VisualElement class="side-spacer"/>
+                <ui:Label text="Shader Graph" class="side-footer"/>
+            </ui:VisualElement>
+
+            <!-- ===== Content pane: one page visible at a time ===== -->
+            <ui:VisualElement name="content" class="content">
+
+                <!-- === Page: All Samples (the responsive grid of every example) === -->
+                <ui:VisualElement name="page-all" class="page">
+                    <ui:VisualElement name="header" class="header">
+                        <ui:Label name="header-label" text="UITK Shader Samples" class="header-label"/>
+                        <ui:VisualElement name="progress-track" class="progress-track">
+                            <ui:VisualElement name="progress-fill" class="progress-fill"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <!-- The grid rows + cells are built by the controller (ported showcase logic). -->
+                    <ui:VisualElement name="grid" class="grid"/>
+                    <ui:Label text="Every example shader in the sample, rendered live with its own material. Click a tab to explore a category." class="page-desc"/>
+                </ui:VisualElement>
+
+                <!-- === Page: Buttons === -->
+                <ui:VisualElement name="page-buttons" class="page">
+                    <ui:Label text="Buttons" class="page-title"/>
+                    <ui:VisualElement class="feature-row">
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="button-simple" class="feature-swatch"/>
+                            <ui:Label text="Simple Button" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="button-aqua" class="feature-swatch"/>
+                            <ui:Label text="Aqua Button" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="button-scifi" class="feature-swatch"/>
+                            <ui:Label text="SciFi Button" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="button-scifi2" class="feature-swatch"/>
+                            <ui:Label text="SciFi2 Button" class="caption"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Interactive button shaders — hover and press to drive their visual state." class="page-desc"/>
+                </ui:VisualElement>
+
+                <!-- === Page: Indicators === -->
+                <ui:VisualElement name="page-indicators" class="page">
+                    <ui:Label text="Indicators" class="page-title"/>
+                    <ui:VisualElement class="feature-row">
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="meter-aqua" class="feature-swatch"/>
+                            <ui:Label text="Aqua Meter" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="meter-dial" class="feature-swatch"/>
+                            <ui:Label text="Dial Meter" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="meter-fantasy" class="feature-swatch"/>
+                            <ui:Label text="Fantasy Meter" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="meter-scifi" class="feature-swatch"/>
+                            <ui:Label text="SciFi Meter" class="caption"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Meter shaders driven by an animated value — health, shields, charge." class="page-desc"/>
+                </ui:VisualElement>
+
+                <!-- === Page: Progress Bars === -->
+                <ui:VisualElement name="page-progress" class="page">
+                    <ui:Label text="Progress bars" class="page-title"/>
+                    <ui:VisualElement class="feature-row">
+                        <ui:VisualElement class="feature-wrap feature-wrap--wide">
+                            <ui:VisualElement name="progress-gradient" class="feature-swatch feature-swatch--bar"/>
+                            <ui:Label text="Gradient Bar" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="progress-circle" class="feature-swatch"/>
+                            <ui:Label text="Progress Circle" class="caption"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="feature-row">
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="progress-fancy" class="feature-swatch"/>
+                            <ui:Label text="Fancy Loading" class="caption"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="feature-wrap">
+                            <ui:VisualElement name="progress-simple" class="feature-swatch feature-swatch--square"/>
+                            <ui:Label text="Simple Loading" class="caption"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Loading and progress shaders — some read a fill value, others animate on their own." class="page-desc"/>
+                </ui:VisualElement>
+
+                <!-- === Page: Backgrounds === -->
+                <ui:VisualElement name="page-backgrounds" class="page">
+                    <ui:Label text="Backgrounds" class="page-title"/>
+                    <!-- Rows + cells are built by the controller (same builder as the All
+                         Samples grid, three columns so each background reads at feature size). -->
+                    <ui:VisualElement name="backgrounds-grid" class="grid"/>
+                    <ui:Label text="Procedural background shaders, plus two custom backdrop-filters (Blurred Hexagon, Pixelation) that process the content rendered behind them." class="page-desc"/>
+                </ui:VisualElement>
+
+                <!-- === Page: Interactive === -->
+                <ui:VisualElement name="page-interactive" class="page">
+                    <ui:Label text="Interactive" class="page-title"/>
+                    <ui:VisualElement class="interactive-row">
+                        <ui:VisualElement class="interactive-block">
+                            <ui:Label text="Tab button toggles" class="block-label"/>
+                            <ui:VisualElement class="demo-tab-row">
+                                <ui:Toggle name="itab-1" value="true" class="demo-tab">
+                                    <ui:VisualElement name="itab-1-face" class="demo-tab-face" picking-mode="Ignore"/>
+                                    <ui:VisualElement class="demo-tab-accent" picking-mode="Ignore"/>
+                                </ui:Toggle>
+                                <ui:Toggle name="itab-2" value="false" class="demo-tab">
+                                    <ui:VisualElement name="itab-2-face" class="demo-tab-face" picking-mode="Ignore"/>
+                                    <ui:VisualElement class="demo-tab-accent" picking-mode="Ignore"/>
+                                </ui:Toggle>
+                                <ui:Toggle name="itab-3" value="false" class="demo-tab">
+                                    <ui:VisualElement name="itab-3-face" class="demo-tab-face" picking-mode="Ignore"/>
+                                    <ui:VisualElement class="demo-tab-accent" picking-mode="Ignore"/>
+                                </ui:Toggle>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="interactive-block">
+                            <ui:Label text="Slider drives gradient bar" class="block-label"/>
+                            <ui:Slider name="interactive-slider" low-value="0" high-value="1" value="0.5" direction="Horizontal" class="slider"/>
+                            <ui:VisualElement name="interactive-bar" class="feature-swatch feature-swatch--bar"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Drive shader properties straight from UI controls — a toggle row and a slider." class="page-desc"/>
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

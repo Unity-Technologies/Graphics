@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19107, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: BlurredHexagonFilter
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.FilterFunctionDefinition
+  m_FilterName: blurredHexagon
+  m_Parameters:
+  - m_Name: tiles
+    m_InterpolationDefaultValue:
+      m_Type: 0
+      m_FloatValue: 0
+      m_ColorValue: {r: 0, g: 0, b: 0, a: 0}
+  - m_Name: blur
+    m_InterpolationDefaultValue:
+      m_Type: 0
+      m_FloatValue: 0
+      m_ColorValue: {r: 0, g: 0, b: 0, a: 0}
+  - m_Name: dissolve
+    m_InterpolationDefaultValue:
+      m_Type: 0
+      m_FloatValue: 0
+      m_ColorValue: {r: 0, g: 0, b: 0, a: 0}
+  - m_Name: saturation
+    m_InterpolationDefaultValue:
+      m_Type: 0
+      m_FloatValue: 0
+      m_ColorValue: {r: 0, g: 0, b: 0, a: 0}
+  m_Passes:
+  - m_Material: {fileID: 2100000, guid: 85d0ae48595dd4a4e95bde94bf1ac269, type: 2}
+    m_PassIndex: 0
+    m_ParameterBindings:
+    - m_Index: 0
+      m_Name: _HexTiles
+    - m_Index: 1
+      m_Name: _BlurTexels
+    - m_Index: 2
+      m_Name: _Dissolve
+    - m_Index: 3
+      m_Name: _Saturation
+    m_ReadMargins:
+      m_Left: 0
+      m_Top: 0
+      m_Right: 0
+      m_Bottom: 0
+    m_WriteMargins:
+      m_Left: 0
+      m_Top: 0
+      m_Right: 0
+      m_Bottom: 0
+    m_OutputTextureName: 
+    m_RequiredInputTextureName: 
