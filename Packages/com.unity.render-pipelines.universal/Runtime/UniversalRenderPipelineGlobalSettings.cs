@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 12;
+        internal const int k_LastVersion = 13;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -166,6 +166,13 @@ namespace UnityEngine.Rendering.Universal
                 var exposureSettings = GetOrCreateGraphicsSettings<URPExposureSettings>(asset);
                 exposureSettings.UseExposure = false;
                 asset.m_AssetVersion = 12;
+            }
+
+            if (asset.m_AssetVersion < 13)
+            {
+                var shadowBiasSettings = GetOrCreateGraphicsSettings<URPShadowBiasSettings>(asset);
+                shadowBiasSettings.depthBiasMode = ShadowDepthBiasMode.Legacy;
+                asset.m_AssetVersion = 13;
             }
 
             // If the asset version has changed, means that a migration step has been executed

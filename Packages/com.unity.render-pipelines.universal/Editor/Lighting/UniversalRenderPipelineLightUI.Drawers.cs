@@ -457,7 +457,17 @@ namespace UnityEditor.Rendering.Universal
                     {
                         using (var checkScope = new EditorGUI.ChangeCheckScope())
                         {
-                            EditorGUILayout.Slider(serializedLight.settings.shadowsBias, 0f, 10f, Styles.ShadowDepthBias);
+                            UniversalRenderPipelineAssetUI.GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(), Styles.ShadowDepthBias, Styles.ShadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
+                            var shadowsBiasProp = serializedLight.settings.shadowsBias;
+                            Rect depthBiasRect = EditorGUILayout.GetControlRect();
+                            using (var propertyScope = new EditorGUI.PropertyScope(depthBiasRect, depthBiasStyle, shadowsBiasProp))
+                            using (new EditorGUI.MixedValueScope(shadowsBiasProp.hasMultipleDifferentValues))
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                float newDepthBias = EditorGUI.Slider(depthBiasRect, propertyScope.content, Mathf.Min(shadowsBiasProp.floatValue, maxDepthBias), 0f, maxDepthBias);
+                                if (EditorGUI.EndChangeCheck())
+                                    shadowsBiasProp.floatValue = newDepthBias;
+                            }
                             EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
                             if (checkScope.changed)
                                 serializedLight.Apply();

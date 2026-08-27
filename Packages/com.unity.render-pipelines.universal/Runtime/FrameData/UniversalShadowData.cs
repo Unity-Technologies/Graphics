@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public List<int> resolution;
 
+        internal ShadowDepthBiasMode depthBiasMode;
+
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
         internal int mainLightShadowResolution;
@@ -126,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
             shadowmapDepthBufferBits = 0;
             bias?.Clear();
             resolution?.Clear();
+            depthBiasMode = ShadowDepthBiasMode.Legacy;
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;

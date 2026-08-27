@@ -243,6 +243,77 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        // Slope factor applied to every shadow slice in the legacy depth bias mode, and by the deprecated RenderShadowSlice overloads regardless of the mode; matches HDRP defaults.
+        const float k_LegacySlopeScaleDepthBias = 2.5f;
+
+        // The fixed base slope from HDRP's HDGpuLightsBuilder.GetBaseBias. HDRP raises it further as softness grows; URP deliberately takes the fixed base only and scales by the soft shadow kernel radius in GetSlopeScaleDepthBias instead.
+        const float k_MaxSlopeScale = 5.0f;
+
+        internal static float maxNormalizedSlopeScale => 1.0f;
+
+        internal static ShadowDepthBiasMode GetConfiguredDepthBiasMode()
+        {
+            return GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings)
+                ? shadowBiasSettings.depthBiasMode
+                : ShadowDepthBiasMode.Legacy;
+        }
+
+        /// <summary>
+        /// Returns the slope-scale depth bias to set while rendering the shadow slices of a visible light, respecting the depth bias mode configured in the URP graphics settings.
+        /// In the slope-scale depth bias mode the value is scaled by the light's soft shadow PCF kernel radius, since wider kernels sample farther from the receiver.
+        /// Pair this with the RenderShadowSlice overloads taking a slopeScaleDepthBias when writing a custom shadow pass.
+        /// </summary>
+        /// <param name="shadowLight">The visible light casting the shadows.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="visibleLightIndex">The index of the visible light.</param>
+        /// <returns>The slope-scale depth bias to apply while rendering the light's shadow slices.</returns>
+        public static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, UniversalShadowData shadowData, int visibleLightIndex)
+        {
+            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex);
+        }
+
+        /// <summary>
+        /// Returns the slope-scale depth bias to set while rendering the shadow slices of a visible light, respecting the depth bias mode configured in the URP graphics settings.
+        /// In the slope-scale depth bias mode the value is scaled by the light's soft shadow PCF kernel radius, since wider kernels sample farther from the receiver.
+        /// Pair this with the RenderShadowSlice overloads taking a slopeScaleDepthBias when writing a custom shadow pass.
+        /// </summary>
+        /// <param name="shadowLight">The visible light casting the shadows.</param>
+        /// <param name="shadowData">Data containing shadow settings.</param>
+        /// <param name="visibleLightIndex">The index of the visible light.</param>
+        /// <returns>The slope-scale depth bias to apply while rendering the light's shadow slices.</returns>
+        public static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, ref ShadowData shadowData, int visibleLightIndex)
+        {
+            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex);
+        }
+
+        static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex)
+        {
+            float normalizedSlopeScale = 0.0f;
+            float softShadowKernelRadius = 1.0f;
+            if (depthBiasMode == ShadowDepthBiasMode.SlopeScale)
+            {
+                Debug.Assert(bias != null && visibleLightIndex >= 0 && visibleLightIndex < bias.Count, "GetSlopeScaleDepthBias expects a visible light index with an entry in the shadow bias data.");
+                normalizedSlopeScale = bias[visibleLightIndex].x;
+                softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows);
+            }
+
+            return GetSlopeScaleDepthBias(normalizedSlopeScale, depthBiasMode, softShadowKernelRadius);
+        }
+
+        internal static float GetSlopeScaleDepthBias(float normalizedSlopeScale, ShadowDepthBiasMode depthBiasMode, float softShadowKernelRadius)
+        {
+            switch (depthBiasMode)
+            {
+                case ShadowDepthBiasMode.SlopeScale:
+                    return Mathf.Clamp(normalizedSlopeScale, 0.0f, maxNormalizedSlopeScale) * k_MaxSlopeScale * softShadowKernelRadius;
+                case ShadowDepthBiasMode.Legacy:
+                    return k_LegacySlopeScaleDepthBias;
+                default:
+                    Debug.Assert(false, "Unexpected depth bias mode.");
+                    return k_LegacySlopeScaleDepthBias;
+            }
+        }
+
         /// <summary>
         /// Renders shadows to a shadow slice.
         /// </summary>
@@ -252,11 +323,29 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="settings"></param>
         /// <param name="proj"></param>
         /// <param name="view"></param>
+        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view)
         {
-            cmd.SetGlobalDepthBias(1.0f, 2.5f); // these values match HDRP defaults (see https://github.com/Unity-Technologies/Graphics/blob/9544b8ed2f98c62803d285096c91b44e9d8cbc47/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAtlas.cs#L197 )
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, k_LegacySlopeScaleDepthBias);
+        }
+
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd">The command buffer to record rendering commands on.</param>
+        /// <param name="context">The rendering context.</param>
+        /// <param name="shadowSliceData">The shadow slice to render.</param>
+        /// <param name="settings">The shadow drawing settings.</param>
+        /// <param name="proj">The projection matrix used while rendering.</param>
+        /// <param name="view">The view matrix used while rendering.</param>
+        /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
+        {
+            cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -271,9 +360,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void RenderShadowSlice(RasterCommandBuffer cmd,
             ref ShadowSliceData shadowSliceData, ref RendererList shadowRendererList,
-            Matrix4x4 proj, Matrix4x4 view)
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
         {
-            cmd.SetGlobalDepthBias(1.0f, 2.5f); // these values match HDRP defaults (see https://github.com/Unity-Technologies/Graphics/blob/9544b8ed2f98c62803d285096c91b44e9d8cbc47/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAtlas.cs#L197 )
+            cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -291,11 +380,27 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context"></param>
         /// <param name="shadowSliceData"></param>
         /// <param name="settings"></param>
+        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, k_LegacySlopeScaleDepthBias);
+        }
+
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd">The command buffer to record rendering commands on.</param>
+        /// <param name="context">The rendering context.</param>
+        /// <param name="shadowSliceData">The shadow slice to render.</param>
+        /// <param name="settings">The shadow drawing settings.</param>
+        /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings, float slopeScaleDepthBias)
+        {
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias);
         }
 
         /// <summary>
@@ -345,10 +450,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is 0; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, lightProjectionMatrix, shadowResolution);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, lightProjectionMatrix, shadowResolution);
         }
 
         /// <summary>
@@ -359,13 +464,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is 0; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, lightProjectionMatrix, shadowResolution);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, lightProjectionMatrix, shadowResolution);
         }
 
-        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, Matrix4x4 lightProjectionMatrix, float shadowResolution)
+        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
             if (shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
@@ -412,7 +517,20 @@ namespace UnityEngine.Rendering.Universal
 
             // depth and normal bias scale is in shadowmap texel size in world space
             float texelSize = frustumSize / shadowResolution;
-            float depthBias = -bias[shadowLightIndex].x * texelSize;
+            float depthBias;
+            switch (depthBiasMode)
+            {
+                case ShadowDepthBiasMode.SlopeScale:
+                    depthBias = 0.0f;
+                    break;
+                case ShadowDepthBiasMode.Legacy:
+                    depthBias = -bias[shadowLightIndex].x * texelSize;
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected depth bias mode.");
+                    depthBias = -bias[shadowLightIndex].x * texelSize;
+                    break;
+            }
             float normalBias = -bias[shadowLightIndex].y * texelSize;
 
             // The current implementation of NormalBias in Universal RP is the same as in Unity Built-In RP (i.e moving shadow caster vertices along normals when projecting them to the shadow map).
@@ -421,32 +539,43 @@ namespace UnityEngine.Rendering.Universal
             if (shadowLight.lightType == LightType.Point)
                 normalBias = 0.0f;
 
-            if (supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
-            {
-                SoftShadowQuality softShadowQuality = SoftShadowQuality.Medium;
-                if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                    softShadowQuality = additionalLightData.softShadowQuality;
-
-                // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
-                // This is not true with PCF. Ideally we need to do either
-                // cone base bias (based on distance to center sample)
-                // or receiver place bias based on derivatives.
-                // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
-                float kernelRadius = 2.5f;
-
-                switch (softShadowQuality)
-                {
-                    case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
-                    case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5
-                    case SoftShadowQuality.Low: kernelRadius = 1.5f; break; // 3x3
-                    default: break;
-                }
-
-                depthBias *= kernelRadius;
-                normalBias *= kernelRadius;
-            }
+            float softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows);
+            depthBias *= softShadowKernelRadius;
+            normalBias *= softShadowKernelRadius;
 
             return new Vector4(depthBias, normalBias, (float)shadowLight.lightType, 0.0f);
+        }
+
+        static float GetSoftShadowKernelRadius(ref VisibleLight shadowLight, bool supportsSoftShadows)
+        {
+            if (!supportsSoftShadows || shadowLight.light.shadows != LightShadows.Soft)
+                return 1.0f;
+
+            SoftShadowQuality softShadowQuality = SoftShadowQuality.Medium;
+            if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                softShadowQuality = additionalLightData.softShadowQuality;
+
+            return GetSoftShadowKernelRadius(softShadowQuality);
+        }
+
+        internal static float GetSoftShadowKernelRadius(SoftShadowQuality softShadowQuality)
+        {
+            // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
+            // This is not true with PCF. Ideally we need to do either
+            // cone base bias (based on distance to center sample)
+            // or receiver place bias based on derivatives.
+            // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
+            float kernelRadius = 2.5f;
+
+            switch (softShadowQuality)
+            {
+                case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
+                case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5
+                case SoftShadowQuality.Low: kernelRadius = 1.5f; break; // 3x3
+                default: break;
+            }
+
+            return kernelRadius;
         }
 
 

@@ -882,6 +882,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel = indentLevel;
         }
 
+        internal static void GetDepthBiasSliderParameters(ShadowDepthBiasMode depthBiasMode, GUIContent depthBiasLabel, GUIContent slopeScaleDepthBiasLabel, out GUIContent label, out float maxValue)
+        {
+            bool useSlopeScaleDepthBias = depthBiasMode == ShadowDepthBiasMode.SlopeScale;
+            label = useSlopeScaleDepthBias ? slopeScaleDepthBiasLabel : depthBiasLabel;
+            maxValue = useSlopeScaleDepthBias ? ShadowUtils.maxNormalizedSlopeScale : UniversalRenderPipeline.maxShadowBias;
+        }
+
         static void DrawShadows(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             using (new EditorGUI.MixedValueScope(serialized.shadowDistanceProp.hasMultipleDifferentValues))
@@ -941,8 +948,10 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.MixedValueScope(serialized.shadowDepthBiasProp.hasMultipleDifferentValues))
             {
+                GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(), Styles.shadowDepthBias, Styles.shadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
+
                 EditorGUI.BeginChangeCheck();
-                float newDepthBias = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                float newDepthBias = EditorGUILayout.Slider(depthBiasStyle, Mathf.Min(serialized.shadowDepthBiasProp.floatValue, maxDepthBias), 0.0f, maxDepthBias);
                 if (EditorGUI.EndChangeCheck())
                     serialized.shadowDepthBiasProp.floatValue = newDepthBias;
             }
