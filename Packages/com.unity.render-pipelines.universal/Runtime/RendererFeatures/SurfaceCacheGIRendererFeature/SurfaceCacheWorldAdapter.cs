@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
             bool filterChanged = renderingLayerMaskFilter != _renderingLayerMaskFilter;
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
 
-            UpdateMeshRenderers(changes.MeshRendererTransformChangedList, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
+            UpdateMeshRenderers(changes.MeshRendererTransformChangedIds, changes.MeshRendererTransformChangedLocalToWorlds, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
             UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
             UpdateTerrains(changes.TerrainTransformChangedList, changes.TerrainChangedList, changes.TerrainDestroyedList, changes.TerrainDataChangedList, world);
@@ -116,14 +116,24 @@ namespace UnityEngine.Rendering.Universal
         static readonly Unity.Profiling.ProfilerMarker k_GameObjectTerrainUpdateMarker = new("SurfaceCache.GameObjectTerrainUpdate");
 #endif
 
-        void UpdateMeshRenderers(IEnumerable<Component> transformChanged, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
+        void UpdateMeshRenderers(NativeArray<EntityId> transformChangedIds, NativeArray<Matrix4x4> transformChangedLocalToWorlds, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
             using var _ = k_GameObjectInstanceUpdateMarker.Auto();
 
-            foreach (var component in transformChanged)
+            if (transformChangedIds.IsCreated)
             {
-                var source = new MeshRendererSource((MeshRenderer)component);
-                _meshRenderers.RefreshTransform(source, _sharedMaterials, world, _renderingLayerMaskFilter);
+                Debug.Assert(transformChangedIds.Length == transformChangedLocalToWorlds.Length);
+
+                for (int i = 0; i < transformChangedIds.Length; i++)
+                {
+                    // Nothing is read off the Component here. The renderer is only resolved when it is not
+                    // registered yet, which needs the full record anyway.
+                    if (_meshRenderers.TryApplyTransform(transformChangedIds[i], transformChangedLocalToWorlds[i], world))
+                        continue;
+
+                    if (Resources.EntityIdToObject(transformChangedIds[i]) is MeshRenderer renderer)
+                        _meshRenderers.Refresh(new MeshRendererSource(renderer), _sharedMaterials, world, _renderingLayerMaskFilter);
+                }
             }
 
             foreach (var component in changed)
@@ -405,16 +415,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // Registration is not re-evaluated here. Everything the predicate reads dispatches as a type change,
-            // so it arrives on the changed list instead.
-            public void RefreshTransform(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, uint renderingLayerMaskFilter)
+            // so it arrives on the changed list instead. False when the key is unknown, which the caller resolves.
+            public bool TryApplyTransform(TKey key, in Matrix4x4 localToWorld, SurfaceCacheWorld world)
             {
-                if (TryGetSlot(source.Key, out int slot))
-                {
-                    ApplyTransform(slot, source.LocalToWorld, world);
-                    return;
-                }
+                if (!TryGetSlot(key, out int slot))
+                    return false;
 
-                Refresh(source, sharedMaterials, world, renderingLayerMaskFilter);
+                ApplyTransform(slot, localToWorld, world);
+                return true;
             }
 
             public void Refresh(in TSource source, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, uint renderingLayerMaskFilter)

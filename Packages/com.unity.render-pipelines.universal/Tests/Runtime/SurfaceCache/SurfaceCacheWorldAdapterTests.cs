@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Assert.AreEqual(1, env.World.GetInstanceCount());
 
                 renderer.enabled = false;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererTransformChangedList = new Component[] { renderer } }, env.World);
+                Update(env.Adapter, TransformChanges(renderer), env.World);
 
                 Assert.AreEqual(1, env.World.GetInstanceCount(),
                     "A transform-only report should not re-evaluate registration. Disabling dispatches as a type change, so it arrives on the changed list, which UpdateMeshRenderer_DisabledAfterAdd_RendererIsRemoved covers.");
@@ -328,10 +328,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 go = CreateMeshRendererGameObject(mesh, out var renderer);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererTransformChangedList = new Component[] { renderer } }, env.World);
+                Update(env.Adapter, TransformChanges(renderer), env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A transform-change report for an unknown renderer should add it to the world.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererTransformChangedList = new Component[] { renderer } }, env.World);
+                Update(env.Adapter, TransformChanges(renderer), env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A transform-change report for an in-world renderer should update it in place, not duplicate it.");
             }
             finally
@@ -370,7 +370,8 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 var combined = new SurfaceCacheWorldChangeSet
                 {
-                    MeshRendererTransformChangedList = new Component[] { renderer },
+                    MeshRendererTransformChangedIds = TransformIds(renderer),
+                    MeshRendererTransformChangedLocalToWorlds = TransformMatrices(renderer),
                     MeshRendererDestroyedList = new[] { renderer.GetEntityId() },
                     LightTransformChangedList = new Component[] { light },
                     LightDestroyedList = new[] { light.GetEntityId() },
@@ -1478,6 +1479,34 @@ namespace UnityEngine.Rendering.Universal.Tests
             return new NativeArray<SurfaceCacheEntityTransformRecord>(records, Allocator.Temp);
         }
 
+        // The adapter takes transform changes as the ids and matrices the dispatcher produced, so tests build the
+        // same pair. Update disposes them.
+        static SurfaceCacheWorldChangeSet TransformChanges(params MeshRenderer[] renderers)
+        {
+            return new SurfaceCacheWorldChangeSet
+            {
+                MeshRendererTransformChangedIds = TransformIds(renderers),
+                MeshRendererTransformChangedLocalToWorlds = TransformMatrices(renderers),
+            };
+        }
+
+        static NativeArray<EntityId> TransformIds(params MeshRenderer[] renderers)
+        {
+            var ids = new NativeArray<EntityId>(renderers.Length, Allocator.Temp);
+            for (int i = 0; i < renderers.Length; i++)
+                ids[i] = renderers[i].GetEntityId();
+
+            return ids;
+        }
+
+        static NativeArray<Matrix4x4> TransformMatrices(params MeshRenderer[] renderers)
+        {
+            var matrices = new NativeArray<Matrix4x4>(renderers.Length, Allocator.Temp);
+            for (int i = 0; i < renderers.Length; i++)
+                matrices[i] = renderers[i].transform.localToWorldMatrix;
+
+            return matrices;
+        }
         static EntityId CreateEntityKey(int index)
         {
             // Version 1 in the [Version:24 | TypeId:12 | Index:28] layout, so index 0 is distinct from EntityId.None.
@@ -1571,6 +1600,12 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             if (changes.EntityInstanceTransformChangedList.IsCreated)
                 changes.EntityInstanceTransformChangedList.Dispose();
+
+            if (changes.MeshRendererTransformChangedIds.IsCreated)
+            {
+                changes.MeshRendererTransformChangedIds.Dispose();
+                changes.MeshRendererTransformChangedLocalToWorlds.Dispose();
+            }
         }
 
         static Mesh CreateQuadMesh()

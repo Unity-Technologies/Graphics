@@ -8,7 +8,9 @@ namespace UnityEngine.Rendering.Universal
 {
     sealed class SurfaceCacheWorldChangeSet
     {
-        public IEnumerable<Component> MeshRendererTransformChangedList { get; set; } = Array.Empty<Component>();
+        // Ids and matrices as the dispatcher produced them; parallel arrays, same length.
+        public NativeArray<EntityId> MeshRendererTransformChangedIds { get; set; }
+        public NativeArray<Matrix4x4> MeshRendererTransformChangedLocalToWorlds { get; set; }
         public IEnumerable<Object> MeshRendererChangedList { get; set; } = Array.Empty<Object>();
         public IEnumerable<EntityId> MeshRendererDestroyedList { get; set; } = Array.Empty<EntityId>();
 

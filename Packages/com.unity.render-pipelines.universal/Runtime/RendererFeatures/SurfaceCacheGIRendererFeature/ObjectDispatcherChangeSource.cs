@@ -4,6 +4,7 @@ using System;
 using Unity.Collections;
 using ObjectDispatcher = UnityEngine.InternalBridge.ObjectDispatcher;
 using TypeDispatchData = UnityEngine.InternalBridge.TypeDispatchData;
+using TransformDispatchData = UnityEngine.InternalBridge.TransformDispatchData;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -34,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
         {
             using var _ = k_CollectMarker.Auto();
 
-            var meshRendererTransforms = _dispatcher.GetTransformChangesAndClear<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
+            var meshRendererTransforms = _dispatcher.GetTransformChangesAndClear<MeshRenderer>(ObjectDispatcher.TransformTrackingType.GlobalTRS, Allocator.Temp);
             var meshRendererTypeChanges = _dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.Temp);
             var lightTransforms = _dispatcher.GetTransformChangesAndClear<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
             var lightTypeChanges = _dispatcher.GetTypeChangesAndClear<Light>(Allocator.Temp);
@@ -47,7 +48,8 @@ namespace UnityEngine.Rendering.Universal
 
             var changeSet = new SurfaceCacheWorldChangeSet
             {
-                MeshRendererTransformChangedList = meshRendererTransforms,
+                MeshRendererTransformChangedIds = meshRendererTransforms.transformedID,
+                MeshRendererTransformChangedLocalToWorlds = meshRendererTransforms.localToWorldMatrices,
                 MeshRendererChangedList = meshRendererTypeChanges.changed,
                 MeshRendererDestroyedList = meshRendererTypeChanges.destroyedID,
                 LightTransformChangedList = lightTransforms,
@@ -64,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
 
             return new ObjectDispatcherChangeSet(
                 changeSet,
+                meshRendererTransforms,
                 meshRendererTypeChanges,
                 lightTypeChanges,
                 materialTypeChanges
@@ -82,6 +85,7 @@ namespace UnityEngine.Rendering.Universal
 
     readonly struct ObjectDispatcherChangeSet : IDisposable
     {
+        readonly TransformDispatchData _meshRendererTransforms;
         readonly TypeDispatchData _meshRendererTypeChanges;
         readonly TypeDispatchData _lightTypeChanges;
         readonly TypeDispatchData _materialTypeChanges;
@@ -94,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal ObjectDispatcherChangeSet(
             SurfaceCacheWorldChangeSet changeSet,
+            TransformDispatchData meshRendererTransforms,
             TypeDispatchData meshRendererTypeChanges,
             TypeDispatchData lightTypeChanges,
             TypeDispatchData materialTypeChanges
@@ -104,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
         )
         {
             WorldChangeSet = changeSet;
+            _meshRendererTransforms = meshRendererTransforms;
             _meshRendererTypeChanges = meshRendererTypeChanges;
             _lightTypeChanges = lightTypeChanges;
             _materialTypeChanges = materialTypeChanges;
@@ -115,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
+            _meshRendererTransforms.Dispose();
             _meshRendererTypeChanges.Dispose();
             _lightTypeChanges.Dispose();
             _materialTypeChanges.Dispose();
