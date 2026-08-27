@@ -3,6 +3,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -197,6 +198,21 @@ float4 VFXTransformFinalColor(float4 color, float4 posCS)
     return color;
 }
 
+float4 VFXApplyVolumetricFog(float4 color, float4 posCS)
+{
+#if !defined(SHADER_STAGE_COMPUTE) && !IS_OPAQUE_PARTICLE
+#if VFX_BLENDMODE_ADD
+    const half fogBlendMode = 2.0;
+#elif VFX_BLENDMODE_PREMULTIPLY
+    const half fogBlendMode = 1.0;
+#else
+    const half fogBlendMode = 0.0;
+#endif
+    color.rgb = MixVolumetricFog(color.rgb, color.a, fogBlendMode, posCS);
+#endif
+    return color;
+}
+
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
@@ -213,7 +229,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
        color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
    }
-   return color;
+   return VFXApplyVolumetricFog(color, posCS);
 }
 
 float3 VFXGetCameraWorldDirection()

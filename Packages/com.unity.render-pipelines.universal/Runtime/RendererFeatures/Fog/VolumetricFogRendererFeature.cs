@@ -3,12 +3,11 @@
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Renderer feature that drives URP's volumetric fog: voxelizes global and local fog
-    /// volumes, ray-marches lit volume slices, and composites the result before transparents.
+    /// Renderer feature that drives URP's volumetric fog.
     /// </summary>
     [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Volumetric Fog")]
-    [Tooltip("Renders volumetric fog by voxelizing global and local fog volumes, ray-marching lit volume slices, and compositing the result before transparents.")]
+    [Tooltip("Renders volumetric fog by voxelizing global and local fog volumes, ray-marching lit volume slices, and compositing the result.")]
     public sealed class VolumetricFogRendererFeature : ScriptableRendererFeature
     {
         // IDs used by more than one pass live here. Single-callsite IDs are declared
@@ -65,21 +64,29 @@ namespace UnityEngine.Rendering.Universal
                 renderingData.cameraData.renderType == CameraRenderType.Overlay)
                 return;
 
-            m_MaxZPass.ConfigureInput(ScriptableRenderPassInput.Depth);
-            m_LightingPass.ConfigureInput(ScriptableRenderPassInput.Depth);
-            m_ApplyPass.ConfigureInput(ScriptableRenderPassInput.Depth);
-
             renderer.EnqueuePass(m_GlobalsPass);
-            renderer.EnqueuePass(m_MaxZPass);
-            renderer.EnqueuePass(m_VoxelizationPass);
-            renderer.EnqueuePass(m_LightingPass);
-            // Always enqueued; the pass internally no-ops when the Gaussian bit isn't set.
-            renderer.EnqueuePass(m_FilteringPass);
-            renderer.EnqueuePass(m_ApplyPass);
-            // Always enqueued, but no-ops when multiple scattering intensity is 0 (the default).
-            // That's the same condition under which the apply pass skips writing the opacity
-            // buffer this pass would consume, so the two stay in lockstep.
-            renderer.EnqueuePass(m_SSMSPass);
+
+            if (!fog.volumetricFogEnabled.value)
+            {
+                if (fog.analyticFogEnabled.value)
+                {
+                    m_ApplyPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                    renderer.EnqueuePass(m_ApplyPass);
+                }
+            }
+            else
+            {
+                m_MaxZPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                m_LightingPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                m_ApplyPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+
+                renderer.EnqueuePass(m_MaxZPass);
+                renderer.EnqueuePass(m_VoxelizationPass);
+                renderer.EnqueuePass(m_LightingPass);
+                renderer.EnqueuePass(m_FilteringPass);
+                renderer.EnqueuePass(m_ApplyPass);
+                renderer.EnqueuePass(m_SSMSPass);
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -87,6 +87,10 @@ void frag(
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
     #endif
 
+    #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+        finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, VolumetricFogBlendModeFromDefines(), unpacked.positionCS);
+    #endif
+
     outColor = finalColor;
 
 #ifdef _WRITE_RENDERING_LAYERS

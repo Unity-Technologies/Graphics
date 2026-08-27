@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
             featureSettings.afterOpaque = volume.afterOpaque;
             featureSettings.passEvent = usesDeferred
                 ? (featureSettings.afterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses)
-                : (featureSettings.afterOpaque ? RenderPassEvent.BeforeRenderingTransparents : RenderPassEvent.AfterRenderingPrePasses + 1);
+                : (featureSettings.afterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1);
 
             featureSettings.requirements = ScriptableRenderPassInput.Depth;
             bool isGTAO = !volume.IsSSAOMode();
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
             if (usesDeferred)
                 featureSettings.passEvent = featureSettings.afterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
             else
-                featureSettings.passEvent = featureSettings.afterOpaque ? RenderPassEvent.BeforeRenderingTransparents : RenderPassEvent.AfterRenderingPrePasses + 1;
+                featureSettings.passEvent = featureSettings.afterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
 
             featureSettings.requirements = featureSettings.effectiveDepthSource == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth
                 ? ScriptableRenderPassInput.Depth

@@ -932,6 +932,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword BillboardFaceCameraPos = GlobalKeyword.Create(ShaderKeywordStrings.BillboardFaceCameraPos);
         public static readonly GlobalKeyword LightCookies = GlobalKeyword.Create(ShaderKeywordStrings.LightCookies);
         public static readonly GlobalKeyword VolumetricFog = GlobalKeyword.Create(ShaderKeywordStrings.VolumetricFog);
+        public static readonly GlobalKeyword FogAnalytic = GlobalKeyword.Create(ShaderKeywordStrings.FogAnalytic);
+        public static readonly GlobalKeyword FogVolumetric = GlobalKeyword.Create(ShaderKeywordStrings.FogVolumetric);
         public static readonly GlobalKeyword DepthNoMsaa = GlobalKeyword.Create(ShaderKeywordStrings.DepthNoMsaa);
         public static readonly GlobalKeyword DepthMsaa2 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa2);
         public static readonly GlobalKeyword DepthMsaa4 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa4);
@@ -1118,8 +1120,17 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Light Cookies. </summary>
         public const string LightCookies = "_LIGHT_COOKIES";
 
-        /// <summary> Keyword used to dim lit surfaces by volumetric height-fog attenuation. </summary>
+        /// <summary> Keyword used when any volume-driven fog is active, to dim lit surfaces by its height-fog attenuation. </summary>
         public const string VolumetricFog = "_VOLUMETRIC_FOG";
+
+        /// <summary> Keyword used when the volume-driven analytic fog renders without a v-buffer. </summary>
+        public const string FogAnalytic = "_FOG_ANALYTIC";
+
+        /// <summary> Keyword used when the volumetric fog v-buffer is available for sampling. </summary>
+        public const string FogVolumetric = "_FOG_VOLUMETRIC";
+
+        /// <summary> Keyword used on transparent materials that sample the volume-driven fog in their forward pass. </summary>
+        public const string TransparentReceiveFog = "_TRANSPARENT_RECEIVE_FOG";
 
         /// <summary> Keyword used for no Multi Sampling Anti-Aliasing (MSAA). </summary>
         public const string DepthNoMsaa = "_DEPTH_NO_MSAA";

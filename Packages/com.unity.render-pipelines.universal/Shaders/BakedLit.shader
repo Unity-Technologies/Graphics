@@ -10,6 +10,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         // BlendMode
         _Surface("__surface", Float) = 0.0
         _Blend("__mode", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 1.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
@@ -77,6 +78,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"

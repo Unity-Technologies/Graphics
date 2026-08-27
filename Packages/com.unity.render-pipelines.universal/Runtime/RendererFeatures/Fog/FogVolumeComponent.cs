@@ -12,17 +12,16 @@ namespace UnityEngine.Rendering.Universal
     public sealed class FogVolumeComponent : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
-        /// The color of the fog.
+        /// The color of the analytic fog.
         /// </summary>
-        [Tooltip("The color of the fog.")]
-        public ColorParameter color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        [Tooltip("The color of the analytic fog.")]
+        public ColorParameter analyticFogColor = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
 
         /// <summary>
-        /// Average distance (in meters) light travels before scattering. Lower values produce denser fog.
-        /// Extinction coefficient = 1 / meanFreePath.
+        /// The albedo of the volumetric fog.
         /// </summary>
-        [Tooltip("Average distance (in meters) light travels before scattering. Lower values produce denser fog. Extinction coefficient = 1 / meanFreePath.")]
-        public MinFloatParameter meanFreePath = new MinFloatParameter(400.0f, 1.0f);
+        [Tooltip("The albedo of the volumetric fog.")]
+        public ColorParameter volumetricFogAlbedo = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
 
         /// <summary>
         /// Controls the angular distribution of scattered light via the Cornette-Shanks phase function. 0 means that
@@ -87,31 +86,31 @@ namespace UnityEngine.Rendering.Universal
         /// this distance fog falls back to a simpler approximation with no shadowed lights.
         /// Increasing it stretches the same <see cref="volumeSliceCount"/> slices over a longer range, so each slice covers more depth.
         /// </summary>
-        [Tooltip("How far (in meters) the high-quality volumetric fog reaches in front of the camera; past this distance fog falls back to a simpler approximation with no shadowed lights. Increasing it stretches the same Volume Slice Count slices over a longer range, so each slice covers more depth.")]
-        public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
+        [Tooltip("How far (in meters) the high-quality volumetric fog reaches in front of the camera; past this distance fog falls back to lower-quality analytic fog. Increasing it stretches the same Volume Slice Count slices over a longer range, so each slice covers more depth.")]
+        public MinFloatParameter cutoffDistance = new MinFloatParameter(64.0f, 0.1f);
 
         /// <summary>
-        /// How the fog's depth slices are spread out between the camera and the far end of <see cref="depthExtent"/>.
+        /// How the fog's depth slices are spread out between the camera and the far end of <see cref="cutoffDistance"/>.
         /// 0 packs more slices close to the camera for sharper near-field fog (far slices get coarse);
         /// 1 spaces them evenly so every slice covers the same depth.
         /// </summary>
-        [Tooltip("How the fog's depth slices are spread out between the camera and the far end of Depth Extent. 0 packs more slices close to the camera for sharper near-field fog (far slices get coarse); 1 spaces them evenly so every slice covers the same depth.")]
+        [Tooltip("How the fog's depth slices are spread out between the camera and the far end of Cutoff Distance. 0 packs more slices close to the camera for sharper near-field fog (far slices get coarse); 1 spaces them evenly so every slice covers the same depth.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
         /// The height (in meters) up to which the fog stays at full density. Above it, the fog
-        /// gradually thins out, fading away by <see cref="maximumHeight"/>.
+        /// gradually thins out, fading away by <see cref="analyticFogMaximumHeight"/>.
         /// </summary>
         [Tooltip("The height (in meters) up to which the fog stays at full density. Above it, the fog gradually thins out, fading away by Maximum Height.")]
-        public FloatParameter baseHeight = new FloatParameter(0.0f);
+        public FloatParameter analyticFogBaseHeight = new FloatParameter(0.0f);
 
         /// <summary>
         /// The height (in meters) at which the fog has essentially faded to nothing. Together with
-        /// <see cref="baseHeight"/> it sets how quickly fog thins with height, which also dims
+        /// <see cref="analyticFogBaseHeight"/> it sets how quickly fog thins with height, which also dims
         /// directional light passing through it.
         /// </summary>
         [Tooltip("The height (in meters) at which the fog has essentially faded to nothing. Together with Base Height it sets how quickly fog thins with height, which also dims directional light passing through it.")]
-        public FloatParameter maximumHeight = new FloatParameter(50.0f);
+        public FloatParameter analyticFogMaximumHeight = new FloatParameter(50.0f);
 
         /// <summary>
         /// The distance (in meters) at which fog reaches its maximum. Objects get progressively foggier
@@ -121,11 +120,171 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The distance (in meters) at which fog reaches its maximum. Objects get progressively foggier up to this distance; past it the fog stops increasing, so the sky and anything farther away all show the same maximum amount of fog.")]
         public MinFloatParameter maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
 
+        /// <summary>
+        /// Whether analytic fog is rendered.
+        /// </summary>
+        [Tooltip("Whether analytic fog is rendered.")]
+        public BoolParameter analyticFogEnabled = new BoolParameter(false);
+
+        /// <summary>
+        /// How the analytic fog density is distributed. <see cref="AnalyticFogDensityMode.Constant"/> applies a uniform
+        /// density everywhere; <see cref="AnalyticFogDensityMode.Height"/> fades the density out with
+        /// height between <see cref="analyticFogBaseHeight"/> and <see cref="analyticFogMaximumHeight"/>.
+        /// </summary>
+        [Tooltip("How the analytic fog density is distributed. Constant applies a uniform density everywhere; Height additionally fades the density out with height between Base Height and Max Height.")]
+        public AnalyticFogDensityModeParameter analyticFogDensityMode = new AnalyticFogDensityModeParameter(AnalyticFogDensityMode.Constant);
+
+        /// <summary>
+        /// How thick the analytic fog is. Higher values make it denser and harder to see through.
+        /// </summary>
+        [Tooltip("How thick the analytic fog is. Higher values make it denser and harder to see through.")]
+        public ClampedFloatParameter analyticFogDensity = new ClampedFloatParameter(0.01f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Whether volumetric fog is rendered.
+        /// </summary>
+        [Tooltip("Whether volumetric fog is rendered.")]
+        public BoolParameter volumetricFogEnabled = new BoolParameter(false);
+
+        /// <summary>
+        /// How the volumetric fog density is distributed. <see cref="VolumetricFogDensityMode.Constant"/> applies a
+        /// uniform density everywhere; <see cref="VolumetricFogDensityMode.Height"/> fades the density out with
+        /// height between <see cref="volumetricFogBaseHeight"/> and <see cref="volumetricFogMaximumHeight"/>;
+        /// <see cref="VolumetricFogDensityMode.Texture"/> applies the same height falloff and additionally
+        /// modulates the density by a repeating 3D texture.
+        /// </summary>
+        [Tooltip("How the volumetric fog density is distributed. Constant applies a uniform density everywhere; Height additionally fades the density out with height between Base Height and Max Height; Texture applies the same height falloff and additionally modulates the density by a repeating 3D texture.")]
+        public VolumetricFogDensityModeParameter volumetricFogDensityMode = new VolumetricFogDensityModeParameter(VolumetricFogDensityMode.Constant);
+
+        /// <summary>
+        /// How thick the volumetric fog is. Higher values make it denser and harder to see through.
+        /// </summary>
+        [Tooltip("How thick the volumetric fog is. Higher values make it denser and harder to see through.")]
+        public MinFloatParameter volumetricFogDensity = new MinFloatParameter(0.01f, 0.0f);
+
+        /// <summary>
+        /// A 3D texture whose red channel modulates the height-based volumetric fog density when
+        /// <see cref="volumetricFogDensityMode"/> is <see cref="VolumetricFogDensityMode.Texture"/>. The texture
+        /// tiles and repeats across world space, so a small tiling noise texture can drive large-scale fog variation.
+        /// </summary>
+        [Tooltip("A 3D texture whose red channel modulates the volumetric fog density. The texture tiles and repeats across world space, so a small noise texture can drive large-scale fog variation.")]
+        public Texture3DParameter volumetricFogDensityTexture = new Texture3DParameter(null);
+
+        /// <summary>
+        /// How many times <see cref="volumetricFogDensityTexture"/> repeats per world-space meter. Higher values
+        /// repeat the texture more often, producing higher-frequency density variation.
+        /// </summary>
+        [Tooltip("How many times the density texture repeats per world-space meter. Higher values repeat the texture more often, producing higher-frequency density variation.")]
+        public MinFloatParameter volumetricFogDensityTextureTiling = new MinFloatParameter(1.0f, 0.001f);
+
+        /// <summary>
+        /// The height (in meters) up to which the volumetric fog stays at full density. Above it, the fog
+        /// gradually thins out, fading away by <see cref="volumetricFogMaximumHeight"/>.
+        /// </summary>
+        [Tooltip("The height (in meters) up to which the volumetric fog stays at full density. Above it, the fog gradually thins out, fading away by Max Height.")]
+        public FloatParameter volumetricFogBaseHeight = new FloatParameter(0.0f);
+
+        /// <summary>
+        /// The height (in meters) at which the volumetric fog has essentially faded to nothing. Together with
+        /// <see cref="volumetricFogBaseHeight"/> it sets how quickly the fog thins with height.
+        /// </summary>
+        [Tooltip("The height (in meters) at which the volumetric fog has essentially faded to nothing. Together with Base Height it sets how quickly the fog thins with height.")]
+        public FloatParameter volumetricFogMaximumHeight = new FloatParameter(50.0f);
+
         /// <inheritdoc/>
-        // The volume stack always hands back a default Fog component, so returning true would fog
-        // every URP scene even when no one asked for it. AnyPropertiesIsOverridden() is true only
-        // when a scene Volume actually overrode a Fog parameter, which is the real on/off signal.
-        public bool IsActive() => AnyPropertiesIsOverridden();
+        public override void Override(VolumeComponent state, float interpFactor)
+        {
+            // When blending between fog off -> on, interpolate the density too. Otherwise the fog
+            // just snaps on suddenly.
+            //
+            // Volumes blend into the stack one at a time in priority order, so when several volumes
+            // toggle the same enable flag, each fade starts from whatever density lower-priority
+            // volumes already wrote — the same sequential composition as standard parameter blending.
+            var stack = (FogVolumeComponent)state;
+            bool volumetricWasEnabled = stack.volumetricFogEnabled.value;
+            float volumetricStackDensity = stack.volumetricFogDensity.value;
+            bool analyticWasEnabled = stack.analyticFogEnabled.value;
+            float analyticStackDensity = stack.analyticFogDensity.value;
+
+            base.Override(state, interpFactor);
+
+            if (volumetricFogEnabled.overrideState && volumetricFogEnabled.value != volumetricWasEnabled)
+            {
+                float targetDensity = volumetricFogDensity.overrideState ? volumetricFogDensity.value : volumetricStackDensity;
+                float fromDensity = volumetricWasEnabled ? volumetricStackDensity : 0.0f;
+                float toDensity = volumetricFogEnabled.value ? targetDensity : 0.0f;
+                stack.volumetricFogDensity.value = Mathf.Lerp(fromDensity, toDensity, interpFactor);
+                stack.volumetricFogDensity.overrideState = true;
+                stack.volumetricFogEnabled.value = interpFactor < 1.0f || volumetricFogEnabled.value;
+            }
+
+            if (analyticFogEnabled.overrideState && analyticFogEnabled.value != analyticWasEnabled)
+            {
+                float targetDensity = analyticFogDensity.overrideState ? analyticFogDensity.value : analyticStackDensity;
+                float fromDensity = analyticWasEnabled ? analyticStackDensity : 0.0f;
+                float toDensity = analyticFogEnabled.value ? targetDensity : 0.0f;
+                stack.analyticFogDensity.value = Mathf.Lerp(fromDensity, toDensity, interpFactor);
+                stack.analyticFogDensity.overrideState = true;
+                stack.analyticFogEnabled.value = interpFactor < 1.0f || analyticFogEnabled.value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool IsActive() => analyticFogEnabled.value || volumetricFogEnabled.value;
+    }
+
+    /// <summary>
+    /// How the analytic fog density is distributed in space.
+    /// </summary>
+    public enum AnalyticFogDensityMode
+    {
+        /// <summary>Uniform density everywhere.</summary>
+        Constant,
+        /// <summary>Density fades out with height between the base and maximum heights.</summary>
+        Height,
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> wrapper for <see cref="AnalyticFogDensityMode"/>.
+    /// </summary>
+    [Serializable]
+    public sealed class AnalyticFogDensityModeParameter : VolumeParameter<AnalyticFogDensityMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="AnalyticFogDensityModeParameter"/>.
+        /// </summary>
+        /// <param name="value">The initial density mode.</param>
+        /// <param name="overrideState">Whether the parameter is overridden in the volume profile.</param>
+        public AnalyticFogDensityModeParameter(AnalyticFogDensityMode value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// How the volumetric fog density is distributed in space.
+    /// </summary>
+    public enum VolumetricFogDensityMode
+    {
+        /// <summary>Uniform density everywhere.</summary>
+        Constant,
+        /// <summary>Density fades out with height between the base and maximum heights.</summary>
+        Height,
+        /// <summary>Density fades out with height and is additionally modulated by a 3D texture that tiles and repeats across world space.</summary>
+        Texture,
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> wrapper for <see cref="VolumetricFogDensityMode"/>.
+    /// </summary>
+    [Serializable]
+    public sealed class VolumetricFogDensityModeParameter : VolumeParameter<VolumetricFogDensityMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="VolumetricFogDensityModeParameter"/>.
+        /// </summary>
+        /// <param name="value">The initial density mode.</param>
+        /// <param name="overrideState">Whether the parameter is overridden in the volume profile.</param>
+        public VolumetricFogDensityModeParameter(VolumetricFogDensityMode value, bool overrideState = false)
+            : base(value, overrideState) { }
     }
 
     /// <summary>

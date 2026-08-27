@@ -21,6 +21,7 @@ float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surf
 #endif
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, i.VFX_VARYING_POSCS));
+    color = VFXApplyVolumetricFog(color, i.VFX_VARYING_POSCS);
 
 #if IS_OPAQUE_PARTICLE
     bool isTransparent = false;

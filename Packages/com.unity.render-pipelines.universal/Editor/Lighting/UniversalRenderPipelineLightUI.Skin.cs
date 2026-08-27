@@ -62,6 +62,13 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows separately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
             public static readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
 
+#if VOLUMETRIC_FOG
+            public static readonly GUIContent VolumetricsHeader = EditorGUIUtility.TrTextContent("Volumetrics", "Settings that control how this light interacts with volumetric fog.");
+            public static readonly GUIContent VolumetricEnable = EditorGUIUtility.TrTextContent("Enable", "When enabled, this light interacts with volumetric fog.");
+            public static readonly GUIContent VolumetricMultiplier = EditorGUIUtility.TrTextContent("Multiplier", "Controls the intensity of the scattered volumetric lighting.");
+            public static readonly GUIContent VolumetricShadowDimmer = EditorGUIUtility.TrTextContent("Shadow Dimmer", "Dims the volumetric shadows this light casts. Set to 0 to skip shadow sampling in volumetric fog.");
+#endif
+
             public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
             public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
             /// <summary>Title with "Rendering Layer"</summary>

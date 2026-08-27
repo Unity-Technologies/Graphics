@@ -394,30 +394,32 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 // returns 1.0 if position is in light
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData)
 {
+    half shadow = half(1.0);
+
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
         int shadowSliceIndex = shadowParams.w;
-        if (shadowSliceIndex < 0)
-            return 1.0;
-
-    // Add cube-face offset to shadowSliceIndex when this is a point light.
-    // - FORWARD_RENDER_PATH: Apply offset code behind if-statement, since we determine light type at runtime.
-    // - _POINT: Deferred point path applies offset code unconditionally since we know light type at compile time.
-    // - _SPOT / _DIRECTIONAL: Deferred spot/directional paths skip the offset code entirely.
-    #if defined(FORWARD_RENDER_PATH)
-        half isPointLight = shadowParams.z;
-        UNITY_BRANCH
-        if (isPointLight)
+        if (shadowSliceIndex >= 0)
+        {
+            // Add cube-face offset to shadowSliceIndex when this is a point light.
+            // - FORWARD_RENDER_PATH: Apply offset code behind if-statement, since we determine light type at runtime.
+            // - _POINT: Deferred point path applies offset code unconditionally since we know light type at compile time.
+            // - _SPOT / _DIRECTIONAL: Deferred spot/directional paths skip the offset code entirely.
+        #if defined(FORWARD_RENDER_PATH)
+            half isPointLight = shadowParams.z;
+            UNITY_BRANCH
+            if (isPointLight)
+                shadowSliceIndex += CubeMapFaceID(-lightDirection);
+        #elif defined(_POINT)
             shadowSliceIndex += CubeMapFaceID(-lightDirection);
-    #elif defined(_POINT)
-        shadowSliceIndex += CubeMapFaceID(-lightDirection);
-    #endif
-    
-        float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+        #endif
 
-        return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
-    #else
-        return half(1.0);
+            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+
+            shadow = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
+        }
     #endif
+
+    return shadow;
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)

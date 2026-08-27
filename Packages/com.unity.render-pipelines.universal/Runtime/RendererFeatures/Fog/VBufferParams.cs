@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 decodingParams;      // logarithmic-depth decoding
         public Matrix4x4 coordToViewDirWS;  // pixel coord → world-space view direction
 
-        internal VBufferParams(Camera camera, RenderTextureDescriptor descriptor, float screenFraction, int sliceCount, float depthExtent, float sliceDistributionUniformity)
+        internal VBufferParams(Camera camera, RenderTextureDescriptor descriptor, float screenFraction, int sliceCount, float cutoffDistance, float sliceDistributionUniformity)
         {
             int screenWidth = descriptor.width;
             int screenHeight = descriptor.height;
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Logarithmic depth encoding/decoding parameters
             {
-                float farPlane = nearPlane + depthExtent;
+                float farPlane = nearPlane + cutoffDistance;
                 float c = Mathf.Max(2.0f - 2.0f * sliceDistributionUniformity, 0.001f);
 
                 encodingParams.y = 1.0f / Mathf.Log(c * (farPlane - nearPlane) + 1, 2);

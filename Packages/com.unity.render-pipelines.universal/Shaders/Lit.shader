@@ -49,6 +49,7 @@ Shader "Universal Render Pipeline/Lit"
         // Blending state
         _Surface("__surface", Float) = 0.0
         _Blend("__blend", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 1.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
@@ -155,6 +156,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _EXPOSURE

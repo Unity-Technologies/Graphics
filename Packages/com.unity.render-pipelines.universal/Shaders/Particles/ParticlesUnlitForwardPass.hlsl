@@ -4,6 +4,7 @@
 #include "ParticlesUnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
 void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData inputData)
@@ -157,6 +158,9 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     #endif
 
     finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.clipPos, inputData.preExposureMultiplier));
+    #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+        finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, input.clipPos);
+    #endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     return finalColor;

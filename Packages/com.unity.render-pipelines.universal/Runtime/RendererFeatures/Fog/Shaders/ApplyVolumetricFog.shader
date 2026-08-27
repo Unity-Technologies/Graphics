@@ -20,24 +20,14 @@ Shader "Hidden/Universal Render Pipeline/ApplyVolumetricFog"
 
             // Enabled when the screen-space multiple-scattering pass is going to run afterwards.
             #pragma multi_compile_local _ _WRITE_FOG_OPACITY
+            // This pass only draws while one of the fog modes is active, so there is no off variant.
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma multi_compile_fragment _ _EXPOSURE
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-
-            TEXTURE3D(_VBuffer);
-
-            float4 _DepthEncodingParams;
-            float4 _DepthDecodingParams;
-            float4 _VBufferSize;
-            float  _VBufferRcpSliceCount;
-            float  _VBufferLastSliceDist;       // Distance at the center of the last slice (along ray).
-            float4 _FogColor;                   // RGB used, A unused
-            float  _MaxFogDistance;             // Sky pixels are fogged as if at this along-ray distance.
-            float  _VolumetricFilteringEnabled; // 1 when the Gaussian spatial filter ran this frame.
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
 
             struct FragOutput
             {
@@ -65,29 +55,27 @@ Shader "Hidden/Universal Render Pipeline/ApplyVolumetricFog"
                 // use _MaxFogDistance.
                 float tFrag = isSky ? _MaxFogDistance : length(toFragment);
 
+#if defined(_FOG_VOLUMETRIC)
+                float lastSliceDist = _VBufferLastSliceDist;
+
                 // Map this pixel's depth to the V-buffer's logarithmic Z slice coordinate (w). Sky
                 // pixels decode from w=1.0, the deepest slice; everything else encodes its linear eye
                 // depth, matching the froxel-Z parameterization the voxelizer/compute write with.
                 float linearEyeDepth = isSky ? DecodeLogarithmicDepthGeneralized(1.0, _DepthDecodingParams)
                                              : LinearEyeDepth(deviceDepth, _ZBufferParams);
-                float w = saturate(EncodeLogarithmicDepthGeneralized(linearEyeDepth, _DepthEncodingParams));
-
-                // Bias the lookup toward the camera to prevent the trilinear filter from bleeding into
-                // zeroed slices past the MaxZ early-out.
-                w -= (sqrt(3.0) / 2.0) * _VBufferRcpSliceCount;
+                float w = VolumetricFogSliceCoord(linearEyeDepth);
 
                 // V-buffer reconstruction
                 float4 vbufferSample;
                 if (_VolumetricFilteringEnabled != 0.0)
                 {
-                    // The Gaussian spatial filter already ran this frame, so a single trilinear tap
-                    // (bilinear XY × linear Z) is enough.
-                    vbufferSample = SAMPLE_TEXTURE3D_LOD(_VBuffer, sampler_LinearClamp, float3(uv, w), 0);
+                    // The Gaussian spatial filter already ran this frame, so a single tap is enough.
+                    vbufferSample = SampleVBufferTrilinear(uv, w);
                 }
                 else
                 {
-                    // Do a 4-tap biquadratic (B-spline) reconstruction that hides the 8×8 blocks
-                    // the jitter would otherwise show.
+                    // A 4-tap biquadratic (B-spline) reconstruction hides the 8x8 blocks the jitter
+                    // would otherwise show.
                     float2 xy = uv * _VBufferSize.xy;
                     float2 ic = floor(xy);
                     float2 fc = frac(xy);
@@ -100,29 +88,28 @@ Shader "Hidden/Universal Render Pipeline/ApplyVolumetricFog"
                     float2 texUv2 = (ic + float2(bqOffsets[0].x, bqOffsets[1].y)) * _VBufferSize.zw;
                     float2 texUv3 = (ic + float2(bqOffsets[1].x, bqOffsets[1].y)) * _VBufferSize.zw;
 
-                    vbufferSample = (bqWeights[0].x * bqWeights[0].y) * SAMPLE_TEXTURE3D_LOD(_VBuffer, sampler_LinearClamp, float3(texUv0, w), 0)
-                                  + (bqWeights[1].x * bqWeights[0].y) * SAMPLE_TEXTURE3D_LOD(_VBuffer, sampler_LinearClamp, float3(texUv1, w), 0)
-                                  + (bqWeights[0].x * bqWeights[1].y) * SAMPLE_TEXTURE3D_LOD(_VBuffer, sampler_LinearClamp, float3(texUv2, w), 0)
-                                  + (bqWeights[1].x * bqWeights[1].y) * SAMPLE_TEXTURE3D_LOD(_VBuffer, sampler_LinearClamp, float3(texUv3, w), 0);
+                    vbufferSample = (bqWeights[0].x * bqWeights[0].y) * SampleVBufferTrilinear(texUv0, w)
+                                  + (bqWeights[1].x * bqWeights[0].y) * SampleVBufferTrilinear(texUv1, w)
+                                  + (bqWeights[0].x * bqWeights[1].y) * SampleVBufferTrilinear(texUv2, w)
+                                  + (bqWeights[1].x * bqWeights[1].y) * SampleVBufferTrilinear(texUv3, w);
                 }
-                float4 fogData = DelinearizeRGBD(vbufferSample);
-                float3 fogRadiance  = fogData.rgb;
-                float  opticalDepth = fogData.a;
-                float  opacity = OpacityFromOpticalDepth(opticalDepth);
 
-                // Analytic height-fog fallback beyond the V-buffer.
-                float distDelta = tFrag - _VBufferLastSliceDist;
-                if (distDelta > 0.0)
-                {
-                    float cosZenith = rayDirWS.y;
-                    float startHeight = _WorldSpaceCameraPos.y + _VBufferLastSliceDist * cosZenith;
-                    float odFallback = OpticalDepthHeightFog(_VolumetricFogBaseExtinction, _VolumetricFogBaseHeight,
-                                                             _VolumetricFogExponents, cosZenith, startHeight, distDelta);
-                    float trFallback = TransmittanceFromOpticalDepth(odFallback);
-                    float trCamera = 1.0 - opacity;
-                    fogRadiance += trCamera * _FogColor.rgb * (1.0 - trFallback);
-                    opacity = 1.0 - (trCamera * trFallback);
-                }
+                float4 fogSample = DelinearizeRGBD(vbufferSample);
+                float3 fogRadiance  = fogSample.rgb;
+                float  opacity = OpacityFromOpticalDepth(fogSample.a);
+#else
+                // No V-buffer this frame: the analytic fog starts at the camera and covers the whole ray.
+                float3 fogRadiance = 0.0;
+                float  opacity = 0.0;
+                float  lastSliceDist = 0.0;
+#endif
+
+                // Analytic fog fallback beyond the V-buffer (or the whole ray in analytic-only mode).
+                ApplyAnalyticFog(rayDirWS.y, _WorldSpaceCameraPos.y, lastSliceDist, tFrag, fogRadiance, opacity);
+
+                // The fog stack accumulates unexposed radiance, but this blends onto the
+                // pre-exposed color target.
+                fogRadiance *= GetPreExposureMultiplier();
 
                 FragOutput o;
                 o.color = float4(fogRadiance, opacity);

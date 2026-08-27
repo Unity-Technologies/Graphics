@@ -235,6 +235,10 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_LODFadeCrossFade;
         LocalKeyword m_LightCookies;
         LocalKeyword m_VolumetricFog;
+        LocalKeyword m_FogAnalytic;
+        LocalKeyword m_FogVolumetric;
+        LocalKeyword m_TransparentReceiveFog;
+        LocalKeyword m_SurfaceTypeTransparent;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
         LocalKeyword m_BloomLQ;
@@ -313,6 +317,10 @@ namespace UnityEditor.Rendering.Universal
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
             m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
             m_VolumetricFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.VolumetricFog);
+            m_FogAnalytic = TryGetLocalKeyword(shader, ShaderKeywordStrings.FogAnalytic);
+            m_FogVolumetric = TryGetLocalKeyword(shader, ShaderKeywordStrings.FogVolumetric);
+            m_TransparentReceiveFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.TransparentReceiveFog);
+            m_SurfaceTypeTransparent = TryGetLocalKeyword(shader, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
             m_DepthAsInputAttachment = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
             m_DepthAsInputAttachmentMSAA = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
@@ -854,9 +862,30 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies);
         }
 
-        internal bool StripUnusedFeatures_VolumetricFog(ref ShaderStripTool<ShaderFeatures> stripTool)
+        internal bool StripUnusedFeatures_VolumetricFog(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            return stripTool.StripMultiCompileKeepOffVariant(m_VolumetricFog, ShaderFeatures.VolumetricFog);
+            // The fog mode pair (_FOG_ANALYTIC _FOG_VOLUMETRIC) has no off variant; the runtime keeps _FOG_ANALYTIC
+            // enabled as the do-nothing default, so that one must always survive. When the project doesn't use the
+            // fog renderer feature the runtime never enables the master or volumetric keywords, so those variants
+            // can go. _TRANSPARENT_RECEIVE_FOG variants must stay: materials enable that keyword independently of
+            // the renderer feature, and stripping a requested variant fails under strict shader variant matching.
+            if (stripTool.StripMultiCompileKeepOffVariant(m_VolumetricFog, ShaderFeatures.VolumetricFog,
+                    m_FogVolumetric, ShaderFeatures.VolumetricFog))
+                return true;
+
+            // _FOG_VOLUMETRIC is only ever enabled together with the _VOLUMETRIC_FOG master keyword, so where a pass
+            // declares both, the volumetric variants without the master can never be requested.
+            if (strippingData.IsKeywordEnabled(m_FogVolumetric)
+                && !strippingData.IsKeywordEnabled(m_VolumetricFog) && strippingData.PassHasKeyword(m_VolumetricFog))
+                return true;
+
+            // Materials only enable _TRANSPARENT_RECEIVE_FOG together with _SURFACE_TYPE_TRANSPARENT, and the shader
+            // gates fog sampling on both.
+            if (strippingData.IsKeywordEnabled(m_TransparentReceiveFog)
+                && !strippingData.IsKeywordEnabled(m_SurfaceTypeTransparent) && strippingData.PassHasKeyword(m_SurfaceTypeTransparent))
+                return true;
+
+            return false;
         }
 
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -1058,7 +1087,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_LightCookies(ref strippingData, ref stripTool))
                 return true;
 
-            if (StripUnusedFeatures_VolumetricFog(ref stripTool))
+            if (StripUnusedFeatures_VolumetricFog(ref strippingData, ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))

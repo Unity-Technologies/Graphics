@@ -838,6 +838,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_WriteRenderingLayers(shader);
             TestStripUnusedFeatures_AccurateGbufferNormals(shader);
             TestStripUnusedFeatures_LightCookies(shader);
+            TestStripUnusedFeatures_VolumetricFog(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
             TestStripUnusedFeatures_SHAuto(shader);
             TestStripUnusedFeatures_DataDrivenLensFlare(shader);
@@ -2330,6 +2331,109 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightCookies };
             TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightCookies };
             helper.IsFalse(helper.stripper.StripUnusedFeatures_LightCookies(ref helper.data, ref helper.featureStripTool));
+        }
+
+        public void TestStripUnusedFeatures_VolumetricFog(Shader shader)
+        {
+            TestHelper helper;
+
+            // The Lit family's keyword space: master, fog mode pair, receive-fog and surface type.
+            List<string> litPassKeywords = new List<string>()
+            {
+                ShaderKeywordStrings.VolumetricFog,
+                ShaderKeywordStrings.FogAnalytic,
+                ShaderKeywordStrings.FogVolumetric,
+                ShaderKeywordStrings.TransparentReceiveFog,
+                ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
+            };
+
+            // The Unlit family's keyword space: no _VOLUMETRIC_FOG master.
+            List<string> unlitPassKeywords = new List<string>()
+            {
+                ShaderKeywordStrings.FogAnalytic,
+                ShaderKeywordStrings.FogVolumetric,
+                ShaderKeywordStrings.TransparentReceiveFog,
+                ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
+            };
+
+            // Fog feature unused: the analytic default variant must survive as the mode pair has
+            // no off variant and the runtime keeps _FOG_ANALYTIC enabled as the resting state...
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogAnalytic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // ...while master and volumetric variants are stripped.
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogAnalytic };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogVolumetric };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // Receive-fog variants survive even without the feature: materials enable the keyword
+            // regardless of the renderer features, and stripping a variant a material requests
+            // breaks strict shader variant matching.
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogAnalytic, ShaderKeywordStrings.TransparentReceiveFog, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // Fog feature in use: the runtime states (analytic default, analytic + master,
+            // volumetric + master) survive, with and without receive-fog.
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogAnalytic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogAnalytic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogVolumetric };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogVolumetric, ShaderKeywordStrings.TransparentReceiveFog, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // The volumetric mode is only ever enabled together with the master keyword, so the
+            // Lit family's volumetric variants without the master can never be requested.
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogVolumetric };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // The Unlit family has no master keyword in the pass, so its volumetric variants stay.
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = unlitPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogVolumetric };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // Receive-fog is never enabled on a material without the transparent surface keyword.
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogAnalytic, ShaderKeywordStrings.TransparentReceiveFog };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = litPassKeywords;
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.FogAnalytic, ShaderKeywordStrings.TransparentReceiveFog, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
+
+            // ShaderGraph shaders don't declare the receive-fog keyword; the surface type rule
+            // must leave their variants alone.
+            helper = new TestHelper(shader, ShaderFeatures.VolumetricFog);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogAnalytic, ShaderKeywordStrings.FogVolumetric };
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.VolumetricFog, ShaderKeywordStrings.FogVolumetric };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_ProbesVolumes(Shader shader)

@@ -10,8 +10,13 @@ namespace UnityEngine.Rendering.Universal
     {
         static class ShaderIDs
         {
-            public static readonly int _GlobalFogExtinction = Shader.PropertyToID("_GlobalFogExtinction");
-            public static readonly int _GlobalFogScattering = Shader.PropertyToID("_GlobalFogScattering");
+            public static readonly int _VolumetricFogDensity = Shader.PropertyToID("_VolumetricFogDensity");
+            public static readonly int _VolumetricFogScattering = Shader.PropertyToID("_VolumetricFogScattering");
+            public static readonly int _VolumetricFogDensityMode = Shader.PropertyToID("_VolumetricFogDensityMode");
+            public static readonly int _VolumetricFogBaseHeight = Shader.PropertyToID("_VolumetricFogBaseHeight");
+            public static readonly int _VolumetricFogExponents = Shader.PropertyToID("_VolumetricFogExponents");
+            public static readonly int _VolumetricFogDensityTexture = Shader.PropertyToID("_VolumetricFogDensityTexture");
+            public static readonly int _VolumetricFogDensityTextureTiling = Shader.PropertyToID("_VolumetricFogDensityTextureTiling");
         }
 
         ComputeShader m_Shader;
@@ -30,8 +35,13 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 cameraPositionWS;
             public float cameraNearPlane;
 
-            public Vector4 globalScattering;
-            public float globalExtinction;
+            public Vector4 volumetricFogScattering;
+            public float volumetricFogDensity;
+            public VolumetricFogDensityMode densityMode;
+            public float baseHeight;
+            public Vector2 exponents;
+            public Texture densityTexture;
+            public float densityTextureTiling;
 
             public TextureHandle vbufferDensity;
         }
@@ -55,8 +65,6 @@ namespace UnityEngine.Rendering.Universal
             if (!fogData.fogParamsValid)
                 return;
 
-            fogData.vBufferParams = new VBufferParams(cameraData.camera, cameraData.cameraTargetDescriptor, fogData.screenFraction, fogData.sliceCount, fogData.depthExtent, fogData.sliceDistributionUniformity);
-
             ref readonly var vBufferParams = ref fogData.vBufferParams;
 
             using (var builder = renderGraph.AddUnsafePass<PassData>("Volume Voxelization", out var passData))
@@ -73,8 +81,16 @@ namespace UnityEngine.Rendering.Universal
                 passData.decodingParams = vBufferParams.decodingParams;
                 passData.cameraPositionWS = cameraData.camera.transform.position;
                 passData.cameraNearPlane = cameraData.camera.nearClipPlane;
-                passData.globalScattering = fogData.globalScattering;
-                passData.globalExtinction = fogData.globalExtinction;
+                passData.volumetricFogScattering = fogData.globalScattering;
+                passData.volumetricFogDensity = fogData.volumetricFogDensity;
+                // Texture mode with no texture assigned falls back to height fog.
+                passData.densityMode = fogData.volumetricFogDensityMode;
+                if (passData.densityMode == VolumetricFogDensityMode.Texture && fogData.volumetricFogDensityTexture == null)
+                    passData.densityMode = VolumetricFogDensityMode.Height;
+                passData.baseHeight = fogData.volumetricFogBaseHeight;
+                passData.exponents = fogData.volumetricFogExponents;
+                passData.densityTexture = fogData.volumetricFogDensityTexture != null ? fogData.volumetricFogDensityTexture : CoreUtils.blackVolumeTexture;
+                passData.densityTextureTiling = fogData.volumetricFogDensityTextureTiling;
 
                 // Output texture
                 passData.vbufferDensity = renderGraph.CreateTexture(new TextureDesc(vBufferParams.vbufferW, vBufferParams.vbufferH)
@@ -97,12 +113,17 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeVectorParam(cs, SharedIDs._DepthDecodingParams, data.decodingParams);
                     cmd.SetComputeVectorParam(cs, SharedIDs._VBufferSize, data.vbufferViewportSize);
                     cmd.SetComputeVectorParam(cs, SharedIDs._CameraPositionWS, data.cameraPositionWS);
-                    cmd.SetComputeVectorParam(cs, ShaderIDs._GlobalFogScattering, data.globalScattering);
-                    cmd.SetComputeFloatParam(cs, ShaderIDs._GlobalFogExtinction, data.globalExtinction);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._VolumetricFogScattering, data.volumetricFogScattering);
+                    cmd.SetComputeFloatParam(cs, ShaderIDs._VolumetricFogDensity, data.volumetricFogDensity);
+                    cmd.SetComputeIntParam(cs, ShaderIDs._VolumetricFogDensityMode, (int)data.densityMode);
+                    cmd.SetComputeFloatParam(cs, ShaderIDs._VolumetricFogBaseHeight, data.baseHeight);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._VolumetricFogExponents, data.exponents);
+                    cmd.SetComputeFloatParam(cs, ShaderIDs._VolumetricFogDensityTextureTiling, data.densityTextureTiling);
                     cmd.SetComputeFloatParam(cs, SharedIDs._CameraNearPlane, data.cameraNearPlane);
                     cmd.SetComputeIntParam(cs, SharedIDs._VBufferSliceCount, data.sliceCount);
                     cmd.SetComputeFloatParam(cs, SharedIDs._VBufferRcpSliceCount, 1.0f / data.sliceCount);
 
+                    cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._VolumetricFogDensityTexture, data.densityTexture);
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._VBufferDensity, data.vbufferDensity);
 
                     int dispatchX = CoreUtils.DivRoundUp(data.vbufferW, 8);

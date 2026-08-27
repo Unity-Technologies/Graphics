@@ -23,7 +23,10 @@ namespace UnityEditor.Rendering.Universal
             Emission = 1 << 2,
             Rendering = 1 << 3,
             Shadows = 1 << 4,
-            LightCookie = 1 << 5
+            LightCookie = 1 << 5,
+#if VOLUMETRIC_FOG
+            Volumetrics = 1 << 6
+#endif
         }
 
         static readonly ExpandedState<Expandable, Light> k_ExpandedState = new(~-1, "URP");
@@ -65,6 +68,11 @@ namespace UnityEditor.Rendering.Universal
                 CED.Group(
                     LightUI.DrawColor,
                     DrawEmissionContent)),
+#if VOLUMETRIC_FOG
+            CED.Conditional(
+                (serializedLight, editor) => !serializedLight.settings.isCompletelyBaked && !serializedLight.settings.isAreaLightType,
+                CED.FoldoutGroup(Styles.VolumetricsHeader, Expandable.Volumetrics, k_ExpandedState, DrawVolumetricsContent)),
+#endif
             CED.FoldoutGroup(LightUI.Styles.renderingHeader,
                 Expandable.Rendering,
                 k_ExpandedState,
@@ -264,6 +272,19 @@ namespace UnityEditor.Rendering.Universal
 
             DrawLightCookieContent(serializedLight, owner);
         }
+
+#if VOLUMETRIC_FOG
+        static void DrawVolumetricsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serializedLight.affectsVolumetricFogProp, Styles.VolumetricEnable);
+            using (new EditorGUI.DisabledScope(!serializedLight.affectsVolumetricFogProp.boolValue))
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(serializedLight.volumetricMultiplierProp, Styles.VolumetricMultiplier);
+                EditorGUILayout.PropertyField(serializedLight.volumetricShadowDimmerProp, Styles.VolumetricShadowDimmer);
+            }
+        }
+#endif
 
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {

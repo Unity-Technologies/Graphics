@@ -144,6 +144,9 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, input.clipPos);
+#endif
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     return color;

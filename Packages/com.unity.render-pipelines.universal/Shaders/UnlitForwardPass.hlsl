@@ -131,6 +131,9 @@ void UnlitPassFragment(
 #endif
 
     finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.positionCS, inputData.preExposureMultiplier));
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, input.positionCS);
+#endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     outColor = finalColor;

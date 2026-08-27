@@ -3,22 +3,11 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using SharedIDs = UnityEngine.Rendering.Universal.VolumetricFogRendererFeature.ShaderIDs;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class ApplyVolumetricFogPass : ScriptableRenderPass, IDisposable
     {
-        static class ShaderIDs
-        {
-            public static readonly int _FogColor = Shader.PropertyToID("_FogColor");
-            public static readonly int _MaxFogDistance = Shader.PropertyToID("_MaxFogDistance");
-            public static readonly int _VBufferLastSliceDist = Shader.PropertyToID("_VBufferLastSliceDist");
-            public static readonly int _VolumetricFilteringEnabled = Shader.PropertyToID("_VolumetricFilteringEnabled");
-        }
-
-        static readonly MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
-
         Material m_Material;
         Material m_MaterialWithOpacity;
 
@@ -26,15 +15,6 @@ namespace UnityEngine.Rendering.Universal
         {
             internal Material material;
             internal TextureHandle cameraColor;
-            internal TextureHandle vbuffer;
-            internal Vector4 encodingParams;
-            internal Vector4 decodingParams;
-            internal Vector4 viewportSize;
-            internal float vbufferLastSliceDist;
-            internal float rcpSliceCount;
-            internal Vector4 fogColor;
-            internal float maxFogDistance;
-            internal bool volumetricFilteringEnabled;
         }
 
         public ApplyVolumetricFogPass()
@@ -58,12 +38,19 @@ namespace UnityEngine.Rendering.Universal
             var resourceData = frameData.Get<UniversalResourceData>();
             var fogData = frameData.GetOrCreate<VolumetricFogFrameData>();
 
-            if (!fogData.vbuffer.IsValid())
+            if (!fogData.volumetricFogEnabled)
+            {
+                if (!fogData.analyticFogEnabled)
+                    return;
+            }
+            else if (!fogData.vbuffer.IsValid())
+            {
                 return;
+            }
 
             var cameraColor = resourceData.activeColorTexture;
 
-            bool multipleScatteringEnabled = fogData.multipleScatteringIntensity > 0.0f;
+            bool multipleScatteringEnabled = fogData.volumetricFogEnabled && fogData.multipleScatteringIntensity > 0.0f;
             TextureHandle opacityTexture = TextureHandle.nullHandle;
             if (multipleScatteringEnabled)
             {
@@ -86,27 +73,12 @@ namespace UnityEngine.Rendering.Universal
                 if (multipleScatteringEnabled)
                     builder.SetRenderAttachment(opacityTexture, 1, AccessFlags.Write);
 
-                // Input textures
                 passData.cameraColor = cameraColor;
-                passData.vbuffer = fogData.vbuffer;
-                builder.UseTexture(fogData.vbuffer, AccessFlags.Read);
+                if (fogData.volumetricFogEnabled)
+                    builder.UseTexture(fogData.vbuffer, AccessFlags.Read);
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
-                // Material and uniforms
                 passData.material = multipleScatteringEnabled ? m_MaterialWithOpacity : m_Material;
-                passData.encodingParams = fogData.encodingParams;
-                passData.decodingParams = fogData.decodingParams;
-                passData.viewportSize = fogData.viewportSize;
-                {
-                    float lastSliceDepth = 1.0f - 0.5f / fogData.vBufferParams.sliceCount;
-                    passData.vbufferLastSliceDist =
-                        fogData.decodingParams.x * Mathf.Pow(2.0f, lastSliceDepth * fogData.decodingParams.y)
-                        + fogData.decodingParams.z;
-                }
-                passData.rcpSliceCount = 1.0f / fogData.vBufferParams.sliceCount;
-                passData.fogColor = fogData.fogColor;
-                passData.maxFogDistance = fogData.maxFogDistance;
-                passData.volumetricFilteringEnabled = fogData.enableGaussian;
 
                 builder.SetRenderFunc(static (ApplyFogPassData data, RasterGraphContext context) =>
                 {
@@ -117,19 +89,9 @@ namespace UnityEngine.Rendering.Universal
                         ? new Vector2(colorHdl.rtHandleProperties.rtHandleScale.x, colorHdl.rtHandleProperties.rtHandleScale.y)
                         : Vector2.one;
 
-                    s_PropertyBlock.Clear();
-                    s_PropertyBlock.SetVector(ShaderPropertyId.blitScaleBias, new Vector4(viewportScale.x, viewportScale.y, 0, 0));
-                    s_PropertyBlock.SetTexture(SharedIDs._VBuffer, data.vbuffer);
-                    s_PropertyBlock.SetVector(SharedIDs._DepthEncodingParams, data.encodingParams);
-                    s_PropertyBlock.SetVector(SharedIDs._DepthDecodingParams, data.decodingParams);
-                    s_PropertyBlock.SetVector(SharedIDs._VBufferSize, data.viewportSize);
-                    s_PropertyBlock.SetFloat(SharedIDs._VBufferRcpSliceCount, data.rcpSliceCount);
-                    s_PropertyBlock.SetFloat(ShaderIDs._VBufferLastSliceDist, data.vbufferLastSliceDist);
-                    s_PropertyBlock.SetVector(ShaderIDs._FogColor, data.fogColor);
-                    s_PropertyBlock.SetFloat(ShaderIDs._MaxFogDistance, data.maxFogDistance);
-                    s_PropertyBlock.SetFloat(ShaderIDs._VolumetricFilteringEnabled, data.volumetricFilteringEnabled ? 1.0f : 0.0f);
+                    data.material.SetVector(ShaderPropertyId.blitScaleBias, new Vector4(viewportScale.x, viewportScale.y, 0, 0));
 
-                    cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+                    cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1);
                 });
             }
 

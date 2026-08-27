@@ -86,6 +86,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         float[] m_AdditionalLightsLayerMasks;  // Unity has no support for binding uint arrays. We will use asuint() in the shader instead.
 
+#if VOLUMETRIC_FOG
+        Vector4 m_MainLightVolumetricParams;
+        Vector4[] m_AdditionalLightsVolumetricParams;
+        bool m_VolumetricLightingActive;
+#endif
+
         int m_MaxVisibleAdditionalLights;
 
         bool m_UseAdditionalLightsConstantBuffer;
@@ -184,6 +190,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
             }
             m_AdditionalLightsLayerMasks = new float[m_MaxVisibleAdditionalLights];
+#if VOLUMETRIC_FOG
+            m_AdditionalLightsVolumetricParams = new Vector4[m_MaxVisibleAdditionalLights];
+#endif
         }
 
         void DisposeAdditionalLightsConstantBuffer()
@@ -261,6 +270,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal GraphicsBuffer additionalLightsConstantBuffer => m_AdditionalLightsBuffer;
         internal int additionalLightsConstantBufferSizeBytes => m_AdditionalLightsData.Length * UnsafeUtility.SizeOf<Vector4>();
+
+        internal Vector4 mainLightVolumetricParams => m_MainLightVolumetricParams;
+        internal Vector4[] additionalLightsVolumetricParams => m_AdditionalLightsVolumetricParams;
+
+        // x = intensity multiplier, y = shadow dimmer, z = 1 - y so the shader can apply the dimmer with a single mad.
+        static Vector4 GetLightVolumetricParams(Light light)
+        {
+            if (light == null || !light.TryGetComponent<UniversalAdditionalLightData>(out var additionalLightData))
+                return new Vector4(1f, 1f, 0f, 0f);
+
+            bool affectsFog = additionalLightData.affectsVolumetricFog;
+            float shadowDimmer = affectsFog ? additionalLightData.volumetricShadowDimmer : 0f;
+            return new Vector4(affectsFog ? additionalLightData.volumetricMultiplier : 0f, shadowDimmer, 1f - shadowDimmer, 0f);
+        }
 #endif
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
@@ -602,6 +625,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(LightShaderPropertyId._FPParams2, math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
 
+#if VOLUMETRIC_FOG
+                var fog = VolumeManager.instance.stack.GetComponent<FogVolumeComponent>();
+                m_VolumetricLightingActive = fog != null && fog.volumetricFogEnabled.value &&
+                    !cameraData.camera.orthographic && cameraData.renderType != CameraRenderType.Overlay;
+#endif
+
                 SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData, renderingData.reuseCullingResult);
 
                 bool useExposure = GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting) && exposureSetting.UseExposure;
@@ -754,6 +783,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             InitializeLightConstants(lightData.visibleLights, lightData.mainLightIndex, supportsLightLayers, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel, out lightLayerMask, out isSubtractive);
             lightColor.w = isSubtractive ? 0f : 1f;
 
+#if VOLUMETRIC_FOG
+            m_MainLightVolumetricParams = m_VolumetricLightingActive && lightData.mainLightIndex >= 0
+                ? GetLightVolumetricParams(lightData.visibleLights[lightData.mainLightIndex].light)
+                : Vector4.zero;
+#endif
+
             cmd.SetGlobalVector(LightShaderPropertyId._MainLightPosition, lightPos);
             cmd.SetGlobalVector(LightShaderPropertyId._MainLightColor, lightColor);
             cmd.SetGlobalVector(LightShaderPropertyId._MainLightOcclusionProbesChannel, lightOcclusionChannel);
@@ -805,6 +840,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             if (supportsLightLayers)
                                 m_AdditionalLightsLayerMasks[lightIter] = math.asfloat(lightLayerMask);
+
+#if VOLUMETRIC_FOG
+                            if (m_VolumetricLightingActive)
+                                m_AdditionalLightsVolumetricParams[lightIter] = GetLightVolumetricParams(lights[i].light);
+#endif
 
                             lightIter++;
                         }

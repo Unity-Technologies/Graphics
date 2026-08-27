@@ -1390,6 +1390,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
                     else if (target.alphaMode == AlphaMode.Multiply)
                         pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+
+                    // To composit fog correctly, the material needs to know its blend mode.
+                    if (target.alphaMode == AlphaMode.Additive)
+                        pass.defines.Add(CoreKeywordDescriptors.BlendModeAdditive, 1);
+                    else if (target.alphaMode == AlphaMode.Premultiply)
+                        pass.defines.Add(CoreKeywordDescriptors.BlendModePremultiply, 1);
                 }
             }
 
@@ -2586,6 +2592,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor BlendModePremultiply = new KeywordDescriptor()
+        {
+            displayName = "_BLENDMODE_PREMULTIPLY",
+            referenceName = "_BLENDMODE_PREMULTIPLY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor BlendModeAdditive = new KeywordDescriptor()
+        {
+            displayName = "_BLENDMODE_ADDITIVE",
+            referenceName = "_BLENDMODE_ADDITIVE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ReceiveFog = new KeywordDescriptor()
+        {
+            displayName = "_TRANSPARENT_RECEIVE_FOG",
+            referenceName = "_TRANSPARENT_RECEIVE_FOG",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor EvaluateSh = new KeywordDescriptor()
         {
             displayName = "Evaluate SH",
@@ -2895,6 +2931,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor FogMode = new KeywordDescriptor()
+        {
+            displayName = "Fog Mode",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Analytic", referenceName = "FOG_ANALYTIC" },
+                new KeywordEntry() { displayName = "Volumetric", referenceName = "FOG_VOLUMETRIC" },
+            }
         };
 
         public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()

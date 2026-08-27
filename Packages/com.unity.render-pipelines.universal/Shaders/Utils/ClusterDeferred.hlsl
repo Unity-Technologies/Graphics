@@ -153,7 +153,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
         mainLight.color *= half3(cookieColor);
     #endif
 
-    mainLight.color *= ComputeMainLightVolumetricFogAttenuation(posWS.xyz, mainLight.direction);
+    mainLight.color *= ComputeMainLightFogAttenuation(posWS.xyz, mainLight.direction);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         mainLight.shadowAttenuation *= aoFactor.directAmbientOcclusion;

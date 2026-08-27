@@ -375,6 +375,12 @@ namespace UnityEngine.Rendering.Universal
             // Init global shader keywords
             ShaderGlobalKeywords.InitializeShaderGlobalKeywords();
 
+            // The fog mode pair (_FOG_ANALYTIC _FOG_VOLUMETRIC) has no off variant, so one of the
+            // two must be enabled from the first frame for strict shader variant matching, even on
+            // renderers that never touch the fog keywords (e.g. the 2D Renderer).
+            Shader.SetKeyword(ShaderGlobalKeywords.FogAnalytic, true);
+            Shader.SetKeyword(ShaderGlobalKeywords.FogVolumetric, false);
+
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
             // QualitySettings.antiAliasing syncs engine MSAA state but does not reallocate the back buffer.

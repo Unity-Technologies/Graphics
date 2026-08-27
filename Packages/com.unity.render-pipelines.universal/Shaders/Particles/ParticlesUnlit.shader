@@ -22,6 +22,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
         // Hidden properties - Generic
         _Surface("__surface", Float) = 0.0
         _Blend("__mode", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 0.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
@@ -109,6 +110,8 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"

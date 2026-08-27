@@ -34,6 +34,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_UseColorAbsorption = value;
         }
 
+        [SerializeField]
+        bool m_ReceiveFog = true;
+
+        public bool receiveFog
+        {
+            get => m_ReceiveFog;
+            set => m_ReceiveFog = value;
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
@@ -188,6 +197,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
+#if VOLUMETRIC_FOG
+            if (target.surfaceType == SurfaceType.Transparent)
+            {
+                context.AddProperty("Receive Fog", "When enabled, the transparent surface receives fog from the Fog volume override.", 0, new Toggle() { value = receiveFog }, (evt) =>
+                {
+                    if (Equals(receiveFog, evt.newValue))
+                        return;
+
+                    registerUndo("Change Receive Fog");
+                    receiveFog = evt.newValue;
+                    onChange();
+                });
+            }
+#endif
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
@@ -322,6 +345,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
+
+                if (((target.activeSubTarget as UniversalSixWaySubTarget)?.receiveFog ?? false) && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);

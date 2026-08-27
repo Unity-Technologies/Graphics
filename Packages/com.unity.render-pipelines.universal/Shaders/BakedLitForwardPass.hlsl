@@ -174,6 +174,9 @@ void BakedLitForwardPassFragment(
     finalColor.rgb = BlendDistanceFog(finalColor.rgb, input.positionCS);
 
     finalColor.rgb = ClampExposed(inputData.preExposureMultiplier * finalColor.rgb);
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, input.positionCS);
+#endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
     outColor = finalColor;
 

@@ -1,7 +1,13 @@
 // This kernel only dispatches while volumetric fog is active, so turn the keyword on unconditionally.
 #define _VOLUMETRIC_FOG
 
+#if defined(SUPPORT_LOCAL_LIGHTS_SHADOWS)
+    #define SUPPORT_LOCAL_LIGHTS
+    #define _ADDITIONAL_LIGHT_SHADOWS
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
@@ -16,9 +22,8 @@
 
 #pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
 #pragma multi_compile_local _ ENABLE_REPROJECTION
-#pragma multi_compile_local _ SUPPORT_LOCAL_LIGHTS
+#pragma multi_compile_local _ SUPPORT_LOCAL_LIGHTS SUPPORT_LOCAL_LIGHTS_SHADOWS
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-#pragma multi_compile _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 #pragma multi_compile _ _LIGHT_COOKIES
 
@@ -33,7 +38,9 @@ CBUFFER_START(VolumetricLightingConstants)
     float4   _DepthEncodingParams;
     float4   _VBufferSize; // (w, h, 1/w, 1/h)
     float4   _MainLightDirection; // xyz = -light.forward (toward light)
-    float4   _MainLightColorVolumetric; // rgb = color * intensity
+    float4   _MainLightColorVolumetric; // rgb = color * intensity * volumetric multiplier
+    float2   _MainLightVolumetricShadowParams; // x = multiplier on the main light's volumetric shadow (0 skips the shadow lookup), y = 1 - x
+    float4   _AdditionalLightsVolumetricParams[MAX_VISIBLE_LIGHTS]; // per punctual light, packed like the AdditionalLights constants: x = intensity multiplier, y = shadow multiplier, z = 1 - y
     float    _FogAnisotropy; // Cornette-Shanks asymmetry: 0 isotropic, >0 forward, <0 backward.
     float    _CornetteShanksConstant; // (3/8π)·(1−g²)/(2+g²), uploaded once per frame
     float    _VBufferVoxelSize;
@@ -43,7 +50,7 @@ CBUFFER_START(VolumetricLightingConstants)
     float    _CameraNearPlane;
     float    _HalfVoxelArcLength; // half angular size of one voxel at 1m; used as minimum emission radius
     float    _VolumetricLightingExtinctionCutoff; // skip the light loop when extinction <= this (1/m). 0 disables the cutoff.
-    float4   _FogAmbientProbe; // rgb = ambient probe L0 (Unity SH coeff 0), already scaled by dimmer × (π · √(4π)). w unused.
+    float4   _VolumetricAmbientProbe[7]; // sky ambient probe, phase-convolved and packed for SampleSH9
     float4   _CameraPositionWS; // xyz = world-space camera position
     // Reprojection
     float4   _VBufferSampleOffset; // xy = jitter in [-0.5, 0.5]^2, z = slice jitter in [0, 1], w = frame index
@@ -299,35 +306,43 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         if (extinction > _VolumetricLightingExtinctionCutoff)
         {
-            // Importance-sample the homogeneous medium for the directional light.
-            float tOffset, weight;
-            ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+            float3 lightContrib = 0.0;
+            if (any(lightColor > 0))
+            {
+                // Importance-sample the homogeneous medium for the directional light.
+                float tOffset, weight;
+                ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
 
-            // One sample position, shared by shadow, cookie and height-fog attenuation. Use the
-            // jittered ray so each frame's shadow lookup differs slightly and reprojection averages
-            // them into a smooth result.
-            float3 posSample = ray.originWS + (t0 + tOffset) * ray.jitterDirWS;
+                // One sample position, shared by shadow, cookie and height-fog attenuation. Use the
+                // jittered ray so each frame's shadow lookup differs slightly and reprojection averages
+                // them into a smooth result.
+                float3 posSample = ray.originWS + (t0 + tOffset) * ray.jitterDirWS;
 
-            // Cascaded directional shadow at the sample position. MainLightShadow handles the
-            // shadow-distance fade; white shadowMask + zero occlusion-probe channels make the baked
-            // term resolve to 1, so beyond max shadow distance the light is fully unoccluded,
-            // matching surface lighting.
-            #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                float4 shadowCoord = TransformWorldToShadowCoord(posSample);
-                half shadow = MainLightShadow(shadowCoord, posSample, half4(1, 1, 1, 1), half4(0, 0, 0, 0));
-            #else
                 half shadow = 1.0;
-            #endif
+                // Cascaded directional shadow at the sample position. MainLightShadow handles the
+                // shadow-distance fade; white shadowMask + zero occlusion-probe channels make the baked
+                // term resolve to 1, so beyond max shadow distance the light is fully unoccluded,
+                // matching surface lighting.
+                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                if (_MainLightVolumetricShadowParams.x > 0)
+                {
+                    float4 shadowCoord = TransformWorldToShadowCoord(posSample);
+                    shadow = MainLightShadow(shadowCoord, posSample, half4(1, 1, 1, 1), half4(0, 0, 0, 0));
+                    // This is equivalent to lerp(1, shadow, x), but with the (1 - x) term precomputed on the CPU.
+                    shadow = half(shadow * _MainLightVolumetricShadowParams.x + _MainLightVolumetricShadowParams.y);
+                }
+                #endif
 
-            // Directional light cookie at the sample position.
-            real3 mainCookie = SampleMainLightCookie(posSample);
+                // Directional light cookie at the sample position.
+                real3 mainCookie = SampleMainLightCookie(posSample);
 
-            // Attenuate the directional light by the height-fog optical depth along its travel
-            // direction at the sample position. World up is the height axis.
-            float lightTransmittance = ComputeMainLightVolumetricFogAttenuation(posSample, _MainLightDirection.xyz);
+                // Attenuate the directional light by the height-fog optical depth along its travel
+                // direction at the sample position. World up is the height axis.
+                float lightTransmittance = ComputeMainLightFogAttenuation(posSample, _MainLightDirection.xyz);
 
-            // Compute in-scattered radiance from the directional light, before phase.
-            float3 lightContrib = weight * lightColor * mainCookie * shadow * lightTransmittance;
+                // Compute in-scattered radiance from the directional light, before phase.
+                lightContrib = weight * lightColor * mainCookie * shadow * lightTransmittance;
+            }
 
             // Aggregate per-light contributions, split phase-free / complete so reprojection can
             // blend the phase-free part across history. No scattering scaling here — see VoxelLighting.
@@ -340,7 +355,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
         #endif
 
             // --- Local (point / spot) lights ---
-        #ifdef SUPPORT_LOCAL_LIGHTS
+        #if defined(SUPPORT_LOCAL_LIGHTS)
             // Set up InputData for LIGHT_LOOP_BEGIN (cluster iteration reads screen UV and position).
             InputData inputData = (InputData)0;
             inputData.normalizedScreenSpaceUV = (voxelCoord + 0.5) * _VBufferSize.zw;
@@ -357,6 +372,10 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
 
                 // position.w == 0 means directional — skip (only punctual lights here).
                 if (lightPositionWS.w < 0.5)
+                    continue;
+
+                float4 volumetricParams = _AdditionalLightsVolumetricParams[lightIndex];
+                if (volumetricParams.x <= 0)
                     continue;
 
                 // Ray-cone clip for spot lights. URP packs (distanceX, distanceY, spotInvRange,
@@ -410,6 +429,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
 
                 // Get standard URP light data at the sample position.
                 Light light = GetAdditionalPerObjectLight(lightIndex, samplePos);
+                light.color *= volumetricParams.x;
 
                 // Emission-radius softening: URP's 1/d^2 scaled by d^2/(d^2+r^2) gives 1/(d^2+r^2).
                 float3 lightVector = lightPositionWS.xyz - samplePos;
@@ -419,8 +439,13 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
                 // Realtime shadow at the sample position. Zero occlusion-probe channels (no baked
                 // occlusion in fog) make the baked term resolve to 1, leaving realtime shadow + fade.
                 #if defined(_ADDITIONAL_LIGHT_SHADOWS)
-                    light.shadowAttenuation = AdditionalLightShadow(lightIndex, samplePos, light.direction,
-                                                                    half4(1, 1, 1, 1), half4(0, 0, 0, 0));
+                    if (volumetricParams.y > 0)
+                    {
+                        half shadow = AdditionalLightShadow(lightIndex, samplePos, light.direction,
+                                                            half4(1, 1, 1, 1), half4(0, 0, 0, 0));
+                        // This is equivalent to lerp(1, shadow, y), but with the (1 - y) term precomputed on the CPU.
+                        light.shadowAttenuation = half(shadow * volumetricParams.y + volumetricParams.z);
+                    }
                 #endif
 
                 // Cookie color (spot/point/directional handled inside SampleAdditionalLightCookie,
@@ -457,23 +482,16 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
                 agg.radianceComplete += localContrib * localPhase;
             #endif
             LIGHT_LOOP_END
-        #endif // SUPPORT_LOCAL_LIGHTS
+        #endif // defined(SUPPORT_LOCAL_LIGHTS)
 
             // Transmittance from camera to the start of this voxel.
             float transmittance = TransmittanceFromOpticalDepth(opticalDepth);
 
             // Ambient probe contribution: global GI lights the fog from all directions, so each
-            // voxel scatters a little of it toward the camera.
-            //
-            // _FogAmbientProbe.rgb is the L0 (direction-independent) band, pre-scaled CPU-side by
-            // the artist dimmer and the factors converting "surface irradiance probe" into
-            // "isotropic in-scattering radiance" — see VolumetricLightingPass.cs. The transmittance
-            // integral is the fraction surviving the voxel's extinction over its slab depth dt.
-            //
-            // Only L0 is injected. The L1/L2 directional bands would let bright sky / dark ground
-            // show as a gradient through the fog, but that needs a CPU-side precompute of the phase
-            // function's zonal harmonics; left for a follow-up.
-            float3 probeRadiance = _FogAmbientProbe.rgb * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+            // voxel scatters a little of it toward the camera. _VolumetricAmbientProbe is the sky
+            // ambient probe convolved with the Cornette-Shanks phase function. Sampling it along
+            // the view ray gives the in-scattered radiance for this voxel.
+            float3 probeRadiance = SampleSH9(_VolumetricAmbientProbe, ray.centerDirWS) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
         #ifdef ENABLE_REPROJECTION
             // --- Temporal reprojection on the phase-free channel ---

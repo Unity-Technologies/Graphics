@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         int m_MaxZKernel;
         int m_FinalMaskKernel;
         int m_DilateKernel;
+        LocalKeyword m_DisableTexture2DArrayKeyword;
 
         class GenerateMaxZPassData
         {
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.Universal
             m_MaxZKernel = m_Shader.FindKernel("ComputeMaxZ");
             m_FinalMaskKernel = m_Shader.FindKernel("ComputeFinalMask");
             m_DilateKernel = m_Shader.FindKernel("DilateMask");
+            m_DisableTexture2DArrayKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.DisableTexture2DXArray);
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -80,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddUnsafePass<GenerateMaxZPassData>("Generate Max Z Mask", out var passData))
             {
                 passData.cs = cs;
-                passData.disableTexture2DArrayKeyword = new LocalKeyword(cs, ShaderKeywordStrings.DisableTexture2DXArray);
+                passData.disableTexture2DArrayKeyword = m_DisableTexture2DArrayKeyword;
                 passData.depthIsArray = depthIsArray;
                 passData.maxZKernel = m_MaxZKernel;
                 passData.finalMaskKernel = m_FinalMaskKernel;

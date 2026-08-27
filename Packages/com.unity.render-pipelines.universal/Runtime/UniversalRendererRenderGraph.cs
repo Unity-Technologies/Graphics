@@ -746,6 +746,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceOcclusion, false);
             cmd.SetKeyword(ShaderGlobalKeywords.VolumetricFog, false);
+            // The fog mode pair has no off variant, so exactly one of the two keywords must stay
+            // enabled at all times for strict shader variant matching; analytic is the do-nothing
+            // default the fog globals pass overrides while volumetric fog renders.
+            cmd.SetKeyword(ShaderGlobalKeywords.FogAnalytic, true);
+            cmd.SetKeyword(ShaderGlobalKeywords.FogVolumetric, false);
 
 #if (UNITY_META_QUEST)
             cmd.SetKeyword(ShaderGlobalKeywords.META_QUEST_ORTHO_PROJ, camera.orthographic);

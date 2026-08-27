@@ -259,6 +259,9 @@ void LitPassFragment(
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.positionCS));
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, input.positionCS);
+#endif
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     outColor = color;

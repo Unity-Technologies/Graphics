@@ -167,6 +167,9 @@ void frag(
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface);
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, unpacked.positionCS));
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    color.rgb = MixVolumetricFog(color.rgb, color.a, VolumetricFogBlendModeFromDefines(), unpacked.positionCS);
+#endif
 
     color.a = OutputAlpha(color.a, isTransparent);
 

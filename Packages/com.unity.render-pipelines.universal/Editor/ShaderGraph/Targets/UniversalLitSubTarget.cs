@@ -37,6 +37,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_ScreenSpaceReflectionsContributeTransparent = true;
 
+        [SerializeField]
+        bool m_ReceiveFog = true;
+
         public UniversalLitSubTarget()
         {
             displayName = "Lit";
@@ -89,6 +92,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_ScreenSpaceReflectionsContributeTransparent = value;
         }
 
+        public bool receiveFog
+        {
+            get => m_ReceiveFog;
+            set => m_ReceiveFog = value;
+        }
+
         public override bool IsActive() => true;
 
         internal override bool supportsStencilOverride => true;
@@ -110,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular, receiveFog)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -342,6 +351,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     onChange();
                 });
             }
+
+#if VOLUMETRIC_FOG
+            if (isTransparent)
+            {
+                context.AddProperty("Receive Fog", "When enabled, the transparent surface receives fog from the Fog volume override.", 0, new Toggle() { value = receiveFog }, (evt) =>
+                {
+                    if (Equals(receiveFog, evt.newValue))
+                        return;
+
+                    registerUndo("Change Receive Fog");
+                    receiveFog = evt.newValue;
+                    onChange();
+                });
+            }
+#endif
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
@@ -424,7 +448,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular)
+            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular, bool receiveFog)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -438,9 +462,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward, LitKeywords.Forward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, receiveFog, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward, LitKeywords.Forward));
                 else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.Forward, LitKeywords.Forward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, receiveFog, CorePragmas.Forward, LitKeywords.Forward));
 
                 // ForwardOnly ComplexLit fills GBuffer too for potential custom usage of the GBuffer.
                 result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
@@ -500,6 +524,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalTarget target,
                 WorkflowMode workflowMode,
                 bool blendModePreserveSpecular,
+                bool receiveFog,
                 PragmaCollection pragmas,
                 KeywordCollection keywords)
             {
@@ -535,6 +560,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
+                if (receiveFog && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
+
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
@@ -552,6 +583,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 WorkflowMode workflowMode,
                 bool complexLit,
                 bool blendModePreserveSpecular,
+                bool receiveFog,
                 BlockFieldDescriptor[] vertexBlocks,
                 BlockFieldDescriptor[] pixelBlocks,
                 PragmaCollection pragmas,
@@ -591,6 +623,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (complexLit)
                     result.defines.Add(LitDefines.ClearCoat, 1);
+
+                if (receiveFog && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);

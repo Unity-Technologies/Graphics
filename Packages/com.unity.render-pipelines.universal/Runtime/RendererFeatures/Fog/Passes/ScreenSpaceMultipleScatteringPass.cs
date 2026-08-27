@@ -14,9 +14,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _MultipleScatteringIntensity = Shader.PropertyToID("_MultipleScatteringIntensity");
         }
 
-        static readonly MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
-
         Material m_Material;
+        LocalKeyword m_DisableTexture2DXArrayKeyword;
         MipGenerator m_MipGenerator;
 
         class PassData
@@ -32,7 +31,11 @@ namespace UnityEngine.Rendering.Universal
         {
             GraphicsSettings.TryGetRenderPipelineSettings<VolumetricFogResources>(out var resources);
             var shader = resources != null ? resources.screenSpaceMultipleScatteringPS : null;
-            m_Material = shader != null ? CoreUtils.CreateEngineMaterial(shader) : null;
+            if (shader != null)
+            {
+                m_Material = CoreUtils.CreateEngineMaterial(shader);
+                m_DisableTexture2DXArrayKeyword = new LocalKeyword(shader, ShaderKeywordStrings.DisableTexture2DXArray);
+            }
 
             m_MipGenerator = new MipGenerator();
         }
@@ -75,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
             m_MipGenerator.RenderColorGaussianPyramid(renderGraph, viewportSize, cameraColor, pyramidTexture);
 
             bool sourceIsArray = cameraData.cameraTargetDescriptor.dimension == TextureDimension.Tex2DArray;
-            CoreUtils.SetKeyword(m_Material, ShaderKeywordStrings.DisableTexture2DXArray, !sourceIsArray);
+            m_Material.SetKeyword(m_DisableTexture2DXArrayKeyword, !sourceIsArray);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Volumetric Fog SSMS", out var passData))
             {
@@ -96,13 +99,12 @@ namespace UnityEngine.Rendering.Universal
                         ? new Vector2(colorHdl.rtHandleProperties.rtHandleScale.x, colorHdl.rtHandleProperties.rtHandleScale.y)
                         : Vector2.one;
 
-                    s_PropertyBlock.Clear();
-                    s_PropertyBlock.SetVector(ShaderPropertyId.blitScaleBias, new Vector4(viewportScale.x, viewportScale.y, 0, 0));
-                    s_PropertyBlock.SetTexture(ShaderIDs._ColorPyramidTexture, data.colorPyramid);
-                    s_PropertyBlock.SetTexture(ShaderIDs._OpticalFogOpacity, data.opticalFogOpacity);
-                    s_PropertyBlock.SetFloat(ShaderIDs._MultipleScatteringIntensity, data.intensity);
+                    data.material.SetVector(ShaderPropertyId.blitScaleBias, new Vector4(viewportScale.x, viewportScale.y, 0, 0));
+                    data.material.SetTexture(ShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                    data.material.SetTexture(ShaderIDs._OpticalFogOpacity, data.opticalFogOpacity);
+                    data.material.SetFloat(ShaderIDs._MultipleScatteringIntensity, data.intensity);
 
-                    context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+                    context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1);
                 });
             }
         }

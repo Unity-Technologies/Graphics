@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         ComputeShader m_Shader;
         int m_Kernel;
+        LocalKeyword m_NeedSeparateOutputKeyword;
 
         static readonly bool s_NeedsSeparateOutput = !SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.LoadStore);
 
@@ -40,8 +41,11 @@ namespace UnityEngine.Rendering.Universal
         {
             GraphicsSettings.TryGetRenderPipelineSettings<VolumetricFogResources>(out var resources);
             m_Shader = resources.volumetricLightingFilteringCS;
-            if (m_Shader != null)
-                m_Kernel = m_Shader.FindKernel("FilterVolumetricLighting");
+            if (m_Shader == null)
+                return;
+
+            m_Kernel = m_Shader.FindKernel("FilterVolumetricLighting");
+            m_NeedSeparateOutputKeyword = new LocalKeyword(m_Shader, "NEED_SEPARATE_OUTPUT");
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -62,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cs = cs;
                 passData.kernel = m_Kernel;
-                passData.needSeparateOutputKeyword = new LocalKeyword(cs, "NEED_SEPARATE_OUTPUT");
+                passData.needSeparateOutputKeyword = m_NeedSeparateOutputKeyword;
                 passData.needSeparateOutput = s_NeedsSeparateOutput;
 
                 // Uniforms
@@ -86,6 +90,8 @@ namespace UnityEngine.Rendering.Universal
                         name = "VBuffer Lighting Filtered"
                     });
                     builder.UseTexture(passData.outputTex3D, AccessFlags.Write);
+                    // The filtered buffer replaces the lighting pass output as the globally bound v-buffer.
+                    builder.SetGlobalTextureAfterPass(passData.outputTex3D, SharedIDs._VBuffer);
                 }
                 else
                 {

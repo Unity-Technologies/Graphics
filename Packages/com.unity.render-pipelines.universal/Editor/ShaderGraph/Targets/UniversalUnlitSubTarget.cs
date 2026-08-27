@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_WritesColor = true;
 
+        [SerializeField]
+        bool m_ReceiveFog = false;
+
         public bool keepLightingVariants
         {
             get => m_KeepLightingVariants;
@@ -59,6 +62,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_WritesColor;
             set => m_WritesColor = value;
+        }
+
+        public bool receiveFog
+        {
+            get => m_ReceiveFog;
+            set => m_ReceiveFog = value;
         }
 
         public UniversalUnlitSubTarget()
@@ -274,6 +283,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         screenSpaceReflectionsContributeTransparent = evt.newValue;
                         onChange();
                     });
+
+#if VOLUMETRIC_FOG
+                    context.AddProperty("Receive Fog", "When enabled, the transparent surface receives fog from the Fog volume override.", 0, new Toggle() { value = receiveFog }, (evt) =>
+                    {
+                        if (Equals(receiveFog, evt.newValue))
+                            return;
+
+                        registerUndo("Change Receive Fog");
+                        receiveFog = evt.newValue;
+                        onChange();
+                    });
+#endif
                 }
             }
         }
@@ -477,6 +498,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
+
+                if (((target.activeSubTarget as UniversalUnlitSubTarget)?.receiveFog ?? false) && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);

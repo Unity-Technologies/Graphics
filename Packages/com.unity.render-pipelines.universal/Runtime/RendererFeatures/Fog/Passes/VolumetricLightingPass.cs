@@ -18,11 +18,13 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _HalfVoxelArcLength = Shader.PropertyToID("_HalfVoxelArcLength");
             public static readonly int _MainLightColorVolumetric = Shader.PropertyToID("_MainLightColorVolumetric");
             public static readonly int _MainLightDirection = Shader.PropertyToID("_MainLightDirection");
+            public static readonly int _MainLightVolumetricShadowParams = Shader.PropertyToID("_MainLightVolumetricShadowParams");
+            public static readonly int _AdditionalLightsVolumetricParams = Shader.PropertyToID("_AdditionalLightsVolumetricParams");
             public static readonly int _MaxZMaskTexture = Shader.PropertyToID("_MaxZMaskTexture");
             public static readonly int _VBufferUnitDepthTexelSpacing = Shader.PropertyToID("_VBufferUnitDepthTexelSpacing");
             public static readonly int _VBufferVoxelSize = Shader.PropertyToID("_VBufferVoxelSize");
             public static readonly int _VolumetricLightingExtinctionCutoff = Shader.PropertyToID("_VolumetricLightingExtinctionCutoff");
-            public static readonly int _FogAmbientProbe = Shader.PropertyToID("_FogAmbientProbe");
+            public static readonly int _VolumetricAmbientProbe = Shader.PropertyToID("_VolumetricAmbientProbe");
 
             // Reprojection
             public static readonly int _VBufferHistory = Shader.PropertyToID("_VBufferHistory");
@@ -63,6 +65,10 @@ namespace UnityEngine.Rendering.Universal
 
         ComputeShader m_Shader;
         int m_Kernel;
+        LocalKeyword m_DisableTexture2DXArrayKeyword;
+        LocalKeyword m_EnableReprojectionKeyword;
+        LocalKeyword m_SupportLocalLightsKeyword;
+        LocalKeyword m_SupportLocalLightsShadowsKeyword;
         RTHandle m_MainLightCookieRTHandle;
         Texture m_MainLightCookieSrc;
         // Zero-filled stand-ins
@@ -86,8 +92,10 @@ namespace UnityEngine.Rendering.Universal
             public LocalKeyword disableTexture2DXArrayKeyword;
             public LocalKeyword enableReprojectionKeyword;
             public LocalKeyword supportLocalLightsKeyword;
+            public LocalKeyword supportLocalLightsShadowsKeyword;
             public bool depthIsArray;
             public bool applyLocalLights;
+            public UniversalShadowData shadowData;
 
             // Textures
             public TextureHandle depthTexture;
@@ -121,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
             public float fogAnisotropy;
             public float cornetteShanksConstant;
             public float extinctionCutoff;
-            public Vector4 ambientProbe;
+            public readonly Vector4[] ambientProbe = new Vector4[7];
 
             // Additional lights
             public GraphicsBuffer additionalLightsCB;
@@ -129,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
             public int additionalLightsCount;
             public NativeArray<VisibleLight> visibleLights;
             public int mainLightIndex;
+            public ForwardLights forwardLights;
             public GraphicsBuffer zBinsBuffer;
             public GraphicsBuffer tileMasksBuffer;
             public Vector4 fpParams0, fpParams1, fpParams2;
@@ -162,8 +171,14 @@ namespace UnityEngine.Rendering.Universal
         {
             GraphicsSettings.TryGetRenderPipelineSettings<VolumetricFogResources>(out var resources);
             m_Shader = resources.volumetricLightingCS;
-            if (m_Shader != null)
-                m_Kernel = m_Shader.FindKernel("VolumetricLighting");
+            if (m_Shader == null)
+                return;
+
+            m_Kernel = m_Shader.FindKernel("VolumetricLighting");
+            m_DisableTexture2DXArrayKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.DisableTexture2DXArray);
+            m_EnableReprojectionKeyword = new LocalKeyword(m_Shader, "ENABLE_REPROJECTION");
+            m_SupportLocalLightsKeyword = new LocalKeyword(m_Shader, "SUPPORT_LOCAL_LIGHTS");
+            m_SupportLocalLightsShadowsKeyword = new LocalKeyword(m_Shader, "SUPPORT_LOCAL_LIGHTS_SHADOWS");
         }
 
         public void Dispose()
@@ -230,11 +245,13 @@ namespace UnityEngine.Rendering.Universal
                 passData.kernel = m_Kernel;
                 passData.enableReprojection = reprojectionActive;
 
-                passData.disableTexture2DXArrayKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.DisableTexture2DXArray);
-                passData.enableReprojectionKeyword = new LocalKeyword(m_Shader, "ENABLE_REPROJECTION");
-                passData.supportLocalLightsKeyword = new LocalKeyword(m_Shader, "SUPPORT_LOCAL_LIGHTS");
+                passData.disableTexture2DXArrayKeyword = m_DisableTexture2DXArrayKeyword;
+                passData.enableReprojectionKeyword = m_EnableReprojectionKeyword;
+                passData.supportLocalLightsKeyword = m_SupportLocalLightsKeyword;
+                passData.supportLocalLightsShadowsKeyword = m_SupportLocalLightsShadowsKeyword;
                 passData.depthIsArray = depthIsArray;
                 passData.applyLocalLights = applyLocalLights;
+                passData.shadowData = frameData.Get<UniversalShadowData>();
 
                 passData.vbufferW = vBufferParams.vbufferW;
                 passData.vbufferH = vBufferParams.vbufferH;
@@ -249,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.mainLightIndex = lightData.mainLightIndex;
 
                 var forwardLights = ((UniversalRenderer)cameraData.renderer).forwardLights;
+                passData.forwardLights = forwardLights;
                 passData.zBinsBuffer = forwardLights.zBinsBuffer;
                 passData.tileMasksBuffer = forwardLights.tileMasksBuffer;
                 {
@@ -324,15 +342,86 @@ namespace UnityEngine.Rendering.Universal
                 passData.fogAnisotropy = fogData.fogAnisotropy;
                 passData.extinctionCutoff = fogData.extinctionCutoff;
 
-                // Bake the ambient probe L0 into a single Vector4 the kernel can read with no math.
+                // Convolve the sky ambient probe with the Cornette-Shanks phase
                 {
-                    var probe = RenderSettings.ambientProbe;
-                    float scale = Mathf.PI * Mathf.Sqrt(4.0f * Mathf.PI);
-                    float r = probe[0, 0] * scale;
-                    float g = probe[1, 0] * scale;
-                    float b = probe[2, 0] * scale;
-                    passData.ambientProbe = new Vector4(r, g, b, 0f);
+                    var sh = RenderSettings.ambientProbe;
+
+                    // Undo the cosine rescaling
+                    // -------------------------
+                    // RenderSettings.ambientProbe  stores each coefficient pre-multiplied by
+                    // SphericalHarmonicsL2::kNormalizationConstants, which fold the SH basis
+                    // constants and the clamped-cosine (irradiance) kernel into the coefficients.
+                    // Undo this before convolving with the phase function.
+                    float fC0 = 0.2820947918f, fC1 = 0.3257350079f;
+                    float fC2 = 0.2731371076f, fC3 = 0.0788478913f, fC4 = 0.1365685538f;
+                    for (int c = 0; c < 3; c++)
+                    {
+                        sh[c, 0] /= fC0;
+                        sh[c, 1] /= -fC1; sh[c, 2] /= fC1; sh[c, 3] /= -fC1;
+                        sh[c, 4] /= fC2; sh[c, 5] /= -fC2; sh[c, 6] /= fC3; sh[c, 7] /= -fC2; sh[c, 8] /= fC4;
+                    }
+
+                    // Cornette-Shanks zonal harmonics
+                    // -------------------------------
+                    // A zonal harmonic is just an SH function that is rotationally symmetric about
+                    // an axis. A phase function only depends on the angle between two directions,
+                    // e.g. an incoming light direction and the view direction, i.e. p(cosθ). So it
+                    // is rotationally symmetric, and thus a good fit for zonal harmonics.
+                    float g = fogData.fogAnisotropy;
+                    float g2 = g * g;
+                    float zh0 = 0.282095f;
+                    float zh1 = 0.293162f * g * (4.0f + g2) / (2.0f + g2);
+                    float zh2 = (0.126157f + 1.44179f * g2 + 0.324403f * g2 * g2) / (2.0f + g2);
+
+                    // Convolution of the ambient SH and the phase ZH
+                    // ----------------------------------------------
+                    // According to Peter-Pike Sloan's "Stupid Spherical Harmonics Tricks" (page 6),
+                    // an SH can be convolved with a circularly symmetric function like a ZH using
+                    // the formula:
+                    // convolved_sh_{m, l} = sqrt(4π/(2l + 1)) * zh_l * sh_{m, l}
+                    float p0 = Mathf.Sqrt(4.0f * Mathf.PI) * zh0;        // When l = 0
+                    float p1 = Mathf.Sqrt(4.0f * Mathf.PI / 3.0f) * zh1; // When l = 1
+                    float p2 = Mathf.Sqrt(4.0f * Mathf.PI / 5.0f) * zh2; // When l = 2
+                    // Convolve across R, G, B channels, given by c = 0, c = 1, c = 2 respectively.
+                    for (int c = 0; c < 3; c++)
+                    {
+                        // m = 0 band
+                        sh[c, 0] *= p0;
+                        // m = 1 band
+                        sh[c, 1] *= p1; sh[c, 2] *= p1; sh[c, 3] *= p1;
+                        // m = 2 band
+                        sh[c, 4] *= p2; sh[c, 5] *= p2; sh[c, 6] *= p2; sh[c, 7] *= p2; sh[c, 8] *= p2;
+                    }
+
+                    // Premultiply by the SH basis constants
+                    // --------------------------------------
+                    // Evaluating an SH means summing coefficient_{l,m} * basisFunction_{l,m}(dir) over
+                    // the 9 terms (band l = 0..2, order m = -l..l). Each basis function is a
+                    // polynomial in the direction scaled by a fixed normalization constant. To keep
+                    // per-pixel evaluation cheap, SampleSH9 drops those constants and evaluates the
+                    // bare polynomials, so we have to fold the constants into the coefficients here
+                    // instead. The signs come from the canonical SH convention that
+                    // RenderSettings.ambientProbe uses; without them SampleSH9 reads back a probe that
+                    // is both wrongly scaled and has some directional terms flipped.
+                    float k0 = 0.2820947918f, k1 = 0.4886025119f;
+                    float k2 = 1.0925484306f, k3 = 0.3153915653f, k4 = 0.5462742153f;
+                    for (int c = 0; c < 3; c++)
+                    {
+                        sh[c, 0] *= k0;
+                        sh[c, 1] *= -k1; sh[c, 2] *= k1; sh[c, 3] *= -k1;
+                        sh[c, 4] *= k2; sh[c, 5] *= -k2; sh[c, 6] *= k3; sh[c, 7] *= -k2; sh[c, 8] *= k4;
+                    }
+
+                    // Pack into { x, y, z, DC } order for SampleSH9
+                    // ---------------------------------------------
+                    for (int c = 0; c < 3; c++)
+                    {
+                        passData.ambientProbe[c] = new Vector4(sh[c, 3], sh[c, 1], sh[c, 2], sh[c, 0] - sh[c, 6]);
+                        passData.ambientProbe[3 + c] = new Vector4(sh[c, 4], sh[c, 5], sh[c, 6] * 3.0f, sh[c, 7]);
+                    }
+                    passData.ambientProbe[6] = new Vector4(sh[0, 8], sh[1, 8], sh[2, 8], 1.0f);
                 }
+
                 // (3 / (8π)) · (1 - g²) / (2 + g²) — direction-independent part of the Cornette-Shanks phase function.
                 // Avoids re-multiplying an extra constant per light.
                 {
@@ -369,7 +458,7 @@ namespace UnityEngine.Rendering.Universal
                         0f);
 
                     // Previous-frame log-depth params. Currently reuses the current-frame params, which is correct only
-                    // when depthExtent / sliceDistributionUniformity didn't change since last frame.
+                    // when cutoffDistance / sliceDistributionUniformity didn't change since last frame.
                     passData.prevEncodingParams = vBufferParams.encodingParams;
                     passData.prevDecodingParams = vBufferParams.decodingParams;
 
@@ -436,6 +525,8 @@ namespace UnityEngine.Rendering.Universal
                     name = "VBuffer Lighting"
                 });
                 builder.UseTexture(passData.vbuffer, AccessFlags.ReadWrite);
+                // Bind the v-buffer globally for the apply pass and transparent surfaces.
+                builder.SetGlobalTextureAfterPass(passData.vbuffer, SharedIDs._VBuffer);
 
                 builder.AllowGlobalStateModification(true);
 
@@ -447,7 +538,9 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetKeyword(cs, data.disableTexture2DXArrayKeyword, !data.depthIsArray);
                     cmd.SetKeyword(cs, data.enableReprojectionKeyword, data.enableReprojection);
-                    cmd.SetKeyword(cs, data.supportLocalLightsKeyword, data.applyLocalLights);
+                    bool sampleLocalShadows = data.applyLocalLights && data.shadowData.isKeywordAdditionalLightShadowsEnabled;
+                    cmd.SetKeyword(cs, data.supportLocalLightsKeyword, data.applyLocalLights && !sampleLocalShadows);
+                    cmd.SetKeyword(cs, data.supportLocalLightsShadowsKeyword, sampleLocalShadows);
 
                     cmd.SetComputeMatrixParam(cs, SharedIDs._VBufferCoordToViewDirWS, data.coordToViewDirWS);
                     cmd.SetComputeVectorParam(cs, SharedIDs._DepthDecodingParams, data.decodingParams);
@@ -456,11 +549,19 @@ namespace UnityEngine.Rendering.Universal
                     UniversalRenderPipeline.InitializeLightConstants_Common(data.visibleLights, data.mainLightIndex,
                         out var mainLightPos, out var mainLightCol, out _, out _, out _);
                     cmd.SetComputeVectorParam(cs, ShaderIDs._MainLightDirection, new Vector4(mainLightPos.x, mainLightPos.y, mainLightPos.z, 0f));
-                    cmd.SetComputeVectorParam(cs, ShaderIDs._MainLightColorVolumetric, new Vector4(mainLightCol.x, mainLightCol.y, mainLightCol.z, 0f));
+                    // The per-light volumetric params are filled by ForwardLights' setup pass, which executes before
+                    // this one; they must be read here at render time, not when this pass is recorded.
+                    Vector4 mainLightVolumetricParams = data.forwardLights.mainLightVolumetricParams;
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._MainLightColorVolumetric,
+                        new Vector4(mainLightCol.x, mainLightCol.y, mainLightCol.z, 0f) * mainLightVolumetricParams.x);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._MainLightVolumetricShadowParams,
+                        new Vector4(mainLightVolumetricParams.y, 1f - mainLightVolumetricParams.y, 0f, 0f));
+                    if (data.applyLocalLights)
+                        cmd.SetComputeVectorArrayParam(cs, ShaderIDs._AdditionalLightsVolumetricParams, data.forwardLights.additionalLightsVolumetricParams);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._FogAnisotropy, data.fogAnisotropy);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._CornetteShanksConstant, data.cornetteShanksConstant);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._VolumetricLightingExtinctionCutoff, data.extinctionCutoff);
-                    cmd.SetComputeVectorParam(cs, ShaderIDs._FogAmbientProbe, data.ambientProbe);
+                    cmd.SetComputeVectorArrayParam(cs, ShaderIDs._VolumetricAmbientProbe, data.ambientProbe);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._VBufferVoxelSize, data.voxelSize);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._VBufferUnitDepthTexelSpacing, data.unitDepthTexelSpacing);
                     cmd.SetComputeIntParam(cs, SharedIDs._VBufferSliceCount, data.sliceCount);
@@ -547,9 +648,6 @@ namespace UnityEngine.Rendering.Universal
                 });
 
                 fogData.vbuffer = passData.vbuffer;
-                fogData.encodingParams = vBufferParams.encodingParams;
-                fogData.decodingParams = vBufferParams.decodingParams;
-                fogData.viewportSize = vBufferParams.viewportSize;
             }
         }
 

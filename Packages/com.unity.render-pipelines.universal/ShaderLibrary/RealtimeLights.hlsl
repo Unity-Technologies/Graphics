@@ -140,7 +140,7 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
 
     // Dim the main light by how much height-fog its rays pass through to reach this fragment.
     // Returns 1 (no change) when no Fog volume override is active.
-    light.color *= ComputeMainLightVolumetricFogAttenuation(positionWS, light.direction);
+    light.color *= ComputeMainLightFogAttenuation(positionWS, light.direction);
 
     return light;
 }

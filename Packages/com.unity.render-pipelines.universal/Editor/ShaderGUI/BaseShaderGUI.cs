@@ -208,6 +208,14 @@ namespace UnityEditor
             public static readonly GUIContent preserveSpecularText = EditorGUIUtility.TrTextContent("Preserve Specular Lighting",
                 "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.");
 
+#if VOLUMETRIC_FOG
+            /// <summary>
+            /// The text and tooltip for the receive fog GUI.
+            /// </summary>
+            public static readonly GUIContent receiveFogText = EditorGUIUtility.TrTextContent("Receive Fog",
+                "When enabled, the surface receives fog from the Fog volume override.");
+#endif
+
             /// <summary>
             /// The text and tooltip for the render face GUI.
             /// </summary>
@@ -354,6 +362,10 @@ namespace UnityEditor
         /// The MaterialProperty for preserve specular.
         /// </summary>
         protected MaterialProperty preserveSpecProp { get; set; }
+
+#if VOLUMETRIC_FOG
+        MaterialProperty receiveFogProp { get; set; }
+#endif
 
         /// <summary>
         /// The MaterialProperty for cull mode.
@@ -532,6 +544,9 @@ namespace UnityEditor
             surfaceTypeProp = FindProperty(Property.SurfaceType, properties, false);
             blendModeProp = FindProperty(Property.BlendMode, properties, false);
             preserveSpecProp = FindProperty(Property.BlendModePreserveSpecular, properties, false);  // Separate blend for diffuse and specular.
+#if VOLUMETRIC_FOG
+            receiveFogProp = FindProperty(Property.ReceiveFog, properties, false);
+#endif
             cullingProp = FindProperty(Property.CullMode, properties, false);
             zwriteProp = FindProperty(Property.ZWriteControl, properties, false);
             ztestProp = FindProperty(Property.ZTest, properties, false);
@@ -823,6 +838,10 @@ namespace UnityEditor
 
             DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
             DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
+#if VOLUMETRIC_FOG
+            if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
+                DrawFloatToggleProperty(Styles.receiveFogText, receiveFogProp);
+#endif
         }
 
         /// <summary>
@@ -1463,6 +1482,12 @@ namespace UnityEditor
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(Property.SurfaceType);
                 bool zwrite = false;
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT, surfaceType == SurfaceType.Transparent);
+#if VOLUMETRIC_FOG
+                // Derived from the same surface type as _SURFACE_TYPE_TRANSPARENT so the receive-fog
+                // keyword can never be enabled on an opaque material.
+                bool receiveFog = material.HasProperty(Property.ReceiveFog) && material.GetFloat(Property.ReceiveFog) != 0.0f;
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.TransparentReceiveFog, surfaceType == SurfaceType.Transparent && receiveFog);
+#endif
                 bool alphaToMask = false;
                 if (surfaceType == SurfaceType.Opaque)
                 {
