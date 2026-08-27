@@ -858,6 +858,33 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     format = resource.bufferData.target.ToString();
                 }
 
+                // Compute resource analysis
+                ResourceAnalysis analysis = null;
+                if (type == RenderGraphResourceType.Texture && resource.textureData != null)
+                {
+                    long memoryBytes = ComputeTextureMemory(width, height, depth, samples, format);
+                    long totalPixels = (long)width * height * Math.Max(1, depth) * samples;
+
+                    analysis = new ResourceAnalysis
+                    {
+                        memorySizeBytes = memoryBytes,
+                        memorySizeFormatted = FormatMemorySize(memoryBytes),
+                        bytesPerPixel = totalPixels > 0 ? memoryBytes / totalPixels : 0,
+                        totalPixels = totalPixels
+                    };
+                }
+                else if (type == RenderGraphResourceType.Buffer && resource.bufferData != null)
+                {
+                    long memoryBytes = (long)width * height;
+                    analysis = new ResourceAnalysis
+                    {
+                        memorySizeBytes = memoryBytes,
+                        memorySizeFormatted = FormatMemorySize(memoryBytes),
+                        stride = height,
+                        elementCount = width
+                    };
+                }
+
                 return new ResourceInfo
                 {
                     index = resourceIndex,
@@ -873,8 +900,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     format = format,
                     samples = samples,
                     consumerPasses = resource.consumerList?.ToArray(),
-                    producerPasses = resource.producerList?.ToArray()
+                    producerPasses = resource.producerList?.ToArray(),
+                    analysis = analysis
                 };
+            }
+
+            private static string FormatMemorySize(long bytes)
+            {
+                const long KB = 1024;
+                const long MB = KB * 1024;
+                const long GB = MB * 1024;
+
+                if (bytes >= GB)
+                    return $"{bytes / (double)GB:F1} GB";
+                if (bytes >= MB)
+                    return $"{bytes / (double)MB:F1} MB";
+                if (bytes >= KB)
+                    return $"{bytes / (double)KB:F1} KB";
+                return $"{bytes} B";
             }
         }
     }

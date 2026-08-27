@@ -1,0 +1,28 @@
+{
+    "name": "Unity.RenderPipelines.Core.Editor.CLI",
+    "rootNamespace": "UnityEditor.Rendering.CLI",
+    "references": [
+        "Unity.Pipeline",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_PIPELINE_PACKAGE_AVAILABLE"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.pipeline",
+            "expression": "0.0.1",
+            "define": "UNITY_PIPELINE_PACKAGE_AVAILABLE"
+        }
+    ],
+    "noEngineReferences": false
+}

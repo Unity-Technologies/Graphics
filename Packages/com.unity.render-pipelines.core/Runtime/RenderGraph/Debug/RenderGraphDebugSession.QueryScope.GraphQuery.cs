@@ -82,9 +82,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                                 executionList.Add(new ExecutionInfo
                                 {
                                     graphName = graph,
-                                    executionItem = exec,
+                                    executionId = EntityId.ToULong(exec.id),
+                                    executionName = exec.name,
                                     captureSourceString = debugData.captureSourceString,
                                     captureTimestamp = debugData.captureTimestamp,
+                                    executionItem = exec
                                 });
                             }
                         }

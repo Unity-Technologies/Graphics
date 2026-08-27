@@ -47,9 +47,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
     internal struct ExecutionInfo
     {
         public string graphName;
-        public RenderGraph.DebugExecutionItem executionItem;
+        public ulong executionId;
+        public string executionName;
         public string captureSourceString;
         public string captureTimestamp;
+
+        // Internal reference to the execution item (not serialized)
+        [NonSerialized]
+        internal RenderGraph.DebugExecutionItem executionItem;
     }
 
     [Serializable]
@@ -167,6 +172,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
     }
 
     [Serializable]
+    internal class ResourceAnalysis
+    {
+        public long memorySizeBytes; // Total memory size in bytes
+        public string memorySizeFormatted; // Human-readable size (e.g., "5.7 MB")
+        public float bytesPerPixel; // Bytes per pixel (for textures)
+        public long totalPixels; // Total pixel count (width * height * depth * samples)
+        public float stride;
+        public int elementCount;
+    }
+
+    [Serializable]
     internal struct ResourceInfo
     {
         public int index;
@@ -183,6 +199,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int samples; // MSAA sample count (1 = no MSAA)
         public int[] consumerPasses;
         public int[] producerPasses;
+        public ResourceAnalysis analysis; // Computed analysis data
     }
 
     [Serializable]
