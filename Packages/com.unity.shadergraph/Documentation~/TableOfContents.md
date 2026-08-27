@@ -389,4 +389,5 @@
         * [Components and Blends](Shader-Graph-Sample-Terrain-Components.md)
         * [Problems and Solutions](Shader-Graph-Sample-Terrain-Solutions.md)
         * [Performance Comparison](Shader-Graph-Sample-Terrain-Performance.md)
+    * [Particle Shaders](Shader-Graph-Sample-Particle-Shaders.md)
 

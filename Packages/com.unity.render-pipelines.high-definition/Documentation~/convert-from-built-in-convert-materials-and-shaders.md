@@ -23,11 +23,11 @@ The automatic upgrade options described can't upgrade all materials to HDRP corr
 
 * HDRP can only convert materials from the **Assets** folder of your project. HDRP uses the [error shader](xref:shader-error) for GameObjects that use the default read-only material from the Built-In Render Pipeline, for example [primitives](xref:um-primitive-objects).  
 * Height mapped materials might look incorrect. This is because HDRP supports more height map displacement techniques and decompression options than the Built-In Render Pipeline. To upgrade a material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-In Render Pipeline version.
-* You can't upgrade particle shaders. HDRP doesn't support particle shaders, but it does provide Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+* You can't upgrade particle shaders. HDRP doesn't support particle shaders, but the Shader Graph package provides Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle Shaders** sample:
 
     1. Open the Package Manager window (menu: **Window** > **Package Management** > **Package Manager**).
-    2. Find and click the **High Definition RP** entry.
-    3. In the package information for **High Definition RP**, go to the **Samples** section and click the **Import into Project** button next to **Particle System Shader Samples**.
+    2. Find and click the **Shader Graph** entry.
+    3. In the package information for **Shader Graph**, go to the **Samples** section and click the **Import** button next to **Particle Shaders**.
 
 <a name="render-pipeline-converter"></a>
 
