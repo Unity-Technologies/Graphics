@@ -286,7 +286,22 @@ namespace UnityEngine.Rendering.Universal
             public EntityId Key => _renderer.GetEntityId();
 
             // In an open subscene the live-converted entities are the source of truth, not the authoring renderers.
-            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene;
+            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene && IsInGlobalIlluminationLOD(_renderer);
+
+            // A renderer outside any LODGroup contributes, matching an entity without a MeshLODComponent.
+            static bool IsInGlobalIlluminationLOD(MeshRenderer renderer)
+            {
+                var lodGroup = renderer.LODGroup;
+                if (lodGroup == null)
+                    return true;
+
+                int giLod = lodGroup.globalIlluminationLOD;
+                if (giLod < 0)
+                    return false;
+
+                // LODGroup keeps the selection inside its LOD range, so the shift cannot wrap onto a valid bit.
+                return (renderer.lodGroupMask & (1u << giLod)) != 0;
+            }
 
             public Mesh Mesh
             {

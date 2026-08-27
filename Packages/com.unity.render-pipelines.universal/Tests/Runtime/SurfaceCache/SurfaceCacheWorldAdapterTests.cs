@@ -707,6 +707,205 @@ namespace UnityEngine.Rendering.Universal.Tests
             }
         }
 
+        // Two LOD levels with one renderer each, so instance counts identify which level is in the world.
+        static GameObject CreateLodGroupGameObject(Mesh mesh, out LODGroup lodGroup, out MeshRenderer lod0Renderer, out MeshRenderer lod1Renderer)
+        {
+            var go = new GameObject("SurfaceCacheWorldAdapterTest LODGroup");
+            lodGroup = go.AddComponent<LODGroup>();
+
+            CreateMeshRendererGameObject(mesh, out lod0Renderer).transform.SetParent(go.transform);
+            CreateMeshRendererGameObject(mesh, out lod1Renderer).transform.SetParent(go.transform);
+
+            lodGroup.SetLODs(new[]
+            {
+                new LOD(0.5f, new Renderer[] { lod0Renderer }),
+                new LOD(0.1f, new Renderer[] { lod1Renderer }),
+            });
+            return go;
+        }
+
+        [Test]
+        public void UpdateMeshRenderer_InLodGroup_OnlyGlobalIlluminationLodIsAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                Assert.AreEqual(0, lodGroup.globalIlluminationLOD, "The default GI LOD should be LOD 0.");
+
+                var changed = new SurfaceCacheWorldChangeSet { MeshRendererChangedList = new Object[] { lod0Renderer, lod1Renderer } };
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Only the renderer of the GI LOD level should be added to the world.");
+
+                lod0Renderer.enabled = false;
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Disabling the GI LOD renderer should empty the world, proving the other level was never added.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateMeshRenderer_GlobalIlluminationLodChanged_InclusionFollowsSelection()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                var changed = new SurfaceCacheWorldChangeSet { MeshRendererChangedList = new Object[] { lod0Renderer, lod1Renderer } };
+
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Only the renderer of the GI LOD level should be added to the world.");
+
+                lodGroup.globalIlluminationLOD = -1;
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Selecting 'None' should remove the whole group from the world.");
+
+                lodGroup.globalIlluminationLOD = 1;
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Selecting another level should add its renderer to the world.");
+
+                lod1Renderer.enabled = false;
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "Disabling the selected level's renderer should empty the world, proving the selection moved to LOD 1.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        // The following tests exercise the real ObjectDispatcher path: LODGroup membership and GI LOD changes
+        // must be reported as renderer changes so the adapter re-evaluates registration without manual reports.
+        static bool Reports(ObjectDispatcherChangeSet changes, MeshRenderer renderer)
+        {
+            foreach (var obj in changes.WorldChangeSet.MeshRendererChangedList)
+            {
+                if (ReferenceEquals(obj, renderer))
+                    return true;
+            }
+
+            return false;
+        }
+
+        [Test]
+        public void ObjectDispatcher_SetLODsChangesMembership_AffectedRenderersAreReported()
+        {
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                using var changeSource = new ObjectDispatcherChangeSource();
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                changeSource.CollectChanges().Dispose(); // Drain the creation reports.
+
+                // Swap the renderers between the levels.
+                lodGroup.SetLODs(new[]
+                {
+                    new LOD(0.5f, new Renderer[] { lod1Renderer }),
+                    new LOD(0.1f, new Renderer[] { lod0Renderer }),
+                });
+
+                using var changes = changeSource.CollectChanges();
+                Assert.IsTrue(Reports(changes, lod0Renderer), "A renderer moved out of the GI LOD level should be reported as changed.");
+                Assert.IsTrue(Reports(changes, lod1Renderer), "A renderer moved into the GI LOD level should be reported as changed.");
+            }
+            finally
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void ObjectDispatcher_RendererRemovedFromLodGroup_RendererIsReported()
+        {
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                using var changeSource = new ObjectDispatcherChangeSource();
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                changeSource.CollectChanges().Dispose(); // Drain the creation reports.
+
+                lodGroup.SetLODs(new[] { new LOD(0.5f, new Renderer[] { lod0Renderer }) });
+
+                using var changes = changeSource.CollectChanges();
+                Assert.IsTrue(Reports(changes, lod1Renderer), "A renderer removed from the group should be reported as changed.");
+            }
+            finally
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void ObjectDispatcher_GlobalIlluminationLodChanged_GroupRenderersAreReported()
+        {
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                using var changeSource = new ObjectDispatcherChangeSource();
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                changeSource.CollectChanges().Dispose(); // Drain the creation reports.
+
+                lodGroup.globalIlluminationLOD = 1;
+
+                using var changes = changeSource.CollectChanges();
+                Assert.IsTrue(Reports(changes, lod0Renderer), "A GI LOD change should report every renderer of the group.");
+                Assert.IsTrue(Reports(changes, lod1Renderer), "A GI LOD change should report every renderer of the group.");
+            }
+            finally
+            {
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateMeshRenderer_RemovedFromLodGroup_TreatedAsNormalRenderer()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateLodGroupGameObject(mesh, out var lodGroup, out var lod0Renderer, out var lod1Renderer);
+                var changed = new SurfaceCacheWorldChangeSet { MeshRendererChangedList = new Object[] { lod0Renderer, lod1Renderer } };
+
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "Only the renderer of the GI LOD level should be added to the world.");
+
+                lodGroup.SetLODs(new[] { new LOD(0.5f, new Renderer[] { lod0Renderer }) });
+                Update(env.Adapter, changed, env.World);
+                Assert.AreEqual(2, env.World.GetInstanceCount(), "A renderer removed from the group should be treated as a normal renderer and added.");
+            }
+            finally
+            {
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
 #if ENABLE_TERRAIN_MODULE
         static Material s_TerrainTemplateMaterial;
 
