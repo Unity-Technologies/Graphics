@@ -2520,6 +2520,7 @@ namespace ShaderStrippingAndPrefiltering
                 ShaderKeywordStrings.BloomHQDirt,
                 ShaderKeywordStrings.TonemapACES,
                 ShaderKeywordStrings.TonemapNeutral,
+                ShaderKeywordStrings.TonemapAgX,
                 ShaderKeywordStrings.FilmGrain,
             };
 
@@ -2644,6 +2645,21 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.ToneMapping);
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.TonemapNeutral};
+            TestHelper.s_PassKeywords = passKeywords;
+            helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
+
+            // Tonemap AgX
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.TonemapAgX};
+            TestHelper.s_PassKeywords = passKeywords;
+            helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.ToneMapping);
+            TestHelper.s_PassKeywords = passKeywords;
+            helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.ToneMapping);
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.TonemapAgX};
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 

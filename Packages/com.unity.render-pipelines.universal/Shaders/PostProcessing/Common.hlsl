@@ -98,19 +98,22 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
     return input * lerp(color, (1.0).xxx, vfactor);
 }
 
-half3 ApplyTonemap(half3 input)
+// agxParams (x: contrast, y: mid-grey, z: toe-a, w: slope) only used under _TONEMAP_AGX.
+half3 ApplyTonemap(half3 input, float4 agxParams)
 {
 #if _TONEMAP_ACES
     float3 aces = unity_to_ACES(input);
     input = AcesTonemap(aces);
 #elif _TONEMAP_NEUTRAL
     input = NeutralTonemap(input);
+#elif _TONEMAP_AGX
+    input = AgxTonemap(input, 1.0, agxParams.x, agxParams.y, agxParams.z, agxParams.w);
 #endif
 
     return saturate(input);
 }
 
-half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex, lutSampler), float3 lutParams, TEXTURE2D_PARAM(userLutTex, userLutSampler), float3 userLutParams, float userLutContrib, float paperWhite, float oneOverPaperWhite)
+half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex, lutSampler), float3 lutParams, TEXTURE2D_PARAM(userLutTex, userLutSampler), float3 userLutParams, float userLutContrib, float paperWhite, float oneOverPaperWhite, float4 agxParams)
 {
     // Artist request to fine tune exposure in post without affecting bloom, dof etc
     input *= postExposure;
@@ -148,7 +151,7 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
     //   - Apply internal linear LUT
     #else
     {
-        input = ApplyTonemap(input);
+        input = ApplyTonemap(input, agxParams);
 
         UNITY_BRANCH
         if (userLutContrib > 0.0)

@@ -216,6 +216,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                         case TonemappingMode.ACES: material.EnableKeyword(allowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
+                        case TonemappingMode.AgX:
+                            material.EnableKeyword(ShaderKeywordStrings.TonemapAgX);
+                            Tonemapping.GetAgXCurveConstants(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, out float agxToeA, out float agxSlope);
+                            material.SetVector(ShaderConstants._AgxParams, new Vector4(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, agxToeA, agxSlope));
+                            break;
                         default: break; // None
                     }
 
@@ -358,6 +363,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _CurveHueVsSat = Shader.PropertyToID("_CurveHueVsSat");
             public static readonly int _CurveLumVsSat = Shader.PropertyToID("_CurveLumVsSat");
             public static readonly int _CurveSatVsSat = Shader.PropertyToID("_CurveSatVsSat");
+            public static readonly int _AgxParams = Shader.PropertyToID("_AgxParams");
         }
     }
 }

@@ -290,6 +290,11 @@ namespace UnityEngine.Rendering.Universal
                         {
                             case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                             case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
+                            case TonemappingMode.AgX:
+                                material.EnableKeyword(ShaderKeywordStrings.TonemapAgX);
+                                Tonemapping.GetAgXCurveConstants(data.tonemapping.agxContrast.value, data.tonemapping.agxMidGrey.value, out float agxToeA, out float agxSlope);
+                                material.SetVector(ShaderConstants._AgxParams, new Vector4(data.tonemapping.agxContrast.value, data.tonemapping.agxMidGrey.value, agxToeA, agxSlope));
+                                break;
                             default: break; // None
                         }
                     }
@@ -728,6 +733,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
             public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
+
+            public static readonly int _AgxParams = Shader.PropertyToID("_AgxParams");
 
             // Uber Lut
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");

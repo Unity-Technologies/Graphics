@@ -2955,6 +2955,11 @@ namespace UnityEngine.Rendering.Universal
                 case TonemappingMode.ACES:
                     eetfMode = (int)tonemapping.acesPreset.value;
                     break;
+
+                // AgX does its own range reduction inside the AgX HDR-output path (ProcessColorForHDR),
+                // so it uses neither the EETF reduction mode nor the hue-shift amount.
+                case TonemappingMode.AgX:
+                    break;
             }
 
             hdrOutputParameters = new Vector4(eetfMode, hueShift, 0.0f, 0.0f);

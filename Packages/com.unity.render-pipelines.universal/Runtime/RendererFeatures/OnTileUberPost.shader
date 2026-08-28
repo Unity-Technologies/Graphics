@@ -1,7 +1,7 @@
 Shader "OnTileUberPost"
 {
     HLSLINCLUDE
-    #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
+    #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL _TONEMAP_AGX
     #pragma multi_compile_local_fragment _ _FILM_GRAIN
     #pragma multi_compile_local_fragment _ _DITHERING
     #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
@@ -40,6 +40,7 @@ Shader "OnTileUberPost"
     float4 _Grain_TilingParams;
     float4 _Dithering_Params;
     float4 _HDROutputLuminanceParams;
+    float4 _AgxParams;              // x: contrast, y: mid-grey, z: toe-a, w: slope (AgX)
 
     #define VignetteColor           _Vignette_Params1.xyz
 #ifdef USING_STEREO_MATRICES
@@ -113,7 +114,7 @@ Shader "OnTileUberPost"
 
         // Color grading is always enabled when post-processing/uber is active
         {
-            color = ApplyColorGrading(color, PostExposure, TEXTURE2D_ARGS(_InternalLut, sampler_LinearClamp), LutParams, TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), UserLutParams, UserLutContribution, PaperWhite, OneOverPaperWhite);
+            color = ApplyColorGrading(color, PostExposure, TEXTURE2D_ARGS(_InternalLut, sampler_LinearClamp), LutParams, TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), UserLutParams, UserLutContribution, PaperWhite, OneOverPaperWhite, _AgxParams);
         }
 
         #if _FILM_GRAIN
