@@ -562,6 +562,7 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void Dispose(bool disposing)
         {
             DebugHandler?.Dispose();
+            m_GlobalShaderVariablesUploader?.Release();
         }
 
         internal virtual void ReleaseRenderTargets()

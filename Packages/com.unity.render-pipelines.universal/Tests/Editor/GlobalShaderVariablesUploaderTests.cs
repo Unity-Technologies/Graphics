@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -32,6 +33,10 @@ namespace UnityEditor.Rendering.Universal.Tests
         CommandBuffer m_NativeCmd;
         UnsafeCommandBuffer m_Cmd;
 
+        // Uploaders that ran in persistent constant buffer mode own GPU buffers nobody else releases, so the tests
+        // hand them back here rather than leaking a ComputeBuffer per test.
+        readonly List<GlobalShaderVariablesUploader> m_ConstantBufferUploaders = new List<GlobalShaderVariablesUploader>();
+
         [SetUp]
         public void SetUp()
         {
@@ -42,6 +47,10 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TearDown]
         public void TearDown()
         {
+            foreach (var uploader in m_ConstantBufferUploaders)
+                uploader.Release();
+            m_ConstantBufferUploaders.Clear();
+
             m_NativeCmd.Dispose();
             m_NativeCmd = null;
         }
@@ -60,12 +69,48 @@ namespace UnityEditor.Rendering.Universal.Tests
             return probe.sizeInBytes - before;
         }
 
-        // Bytes the given action records into the command buffer under test.
-        int Recorded(System.Action action)
+        // Bound by the probes below only, so releasing them never unbinds the slot the uploader really uses.
+        static readonly int k_ProbeConstantBufferID = Shader.PropertyToID("_GlobalShaderVariablesUploaderTestsProbeCB");
+
+        // Same two commands the constant buffer path records, measured on a throwaway buffer so expectations read as
+        // "an upload plus a bind" or "a bind" instead of hardcoded byte counts. The probe allocates exactly the
+        // ConstantBuffer<GlobalShaderVariables> the uploader allocates, so it needs nothing the tested path does not.
+        static int CostOfUploadAndBind()
         {
-            int before = m_NativeCmd.sizeInBytes;
-            action();
-            return m_NativeCmd.sizeInBytes - before;
+            using var probe = new CommandBuffer();
+            var constantBuffer = new ConstantBuffer<GlobalShaderVariables>(ComputeBufferMode.Dynamic);
+
+            int before = probe.sizeInBytes;
+            constantBuffer.PushGlobal(probe, default(GlobalShaderVariables), k_ProbeConstantBufferID);
+            int cost = probe.sizeInBytes - before;
+
+            constantBuffer.Release();
+            return cost;
+        }
+
+        static int CostOfBind()
+        {
+            using var probe = new CommandBuffer();
+            var constantBuffer = new ConstantBuffer<GlobalShaderVariables>(ComputeBufferMode.Dynamic);
+
+            int before = probe.sizeInBytes;
+            constantBuffer.SetGlobal(probe, k_ProbeConstantBufferID);
+            int cost = probe.sizeInBytes - before;
+
+            constantBuffer.Release();
+            return cost;
+        }
+
+        // Bytes the given action records into the command buffer it is handed.
+        // That buffer is brand new, the probes above record into a brand new buffer too, which is what
+        // makes the two comparable.
+        static int Recorded(System.Action<UnsafeCommandBuffer> action)
+        {
+            using var measured = new CommandBuffer();
+
+            int before = measured.sizeInBytes;
+            action(CommandBufferHelpers.GetUnsafeCommandBuffer(measured));
+            return measured.sizeInBytes - before;
         }
 
         // An uploader whose pending changes have already been flushed, i.e. staging is in sync with the command buffer.
@@ -111,7 +156,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             FillBaseDefaults(uploader);
             uploader.ResetToDefault();
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
                 "ResetToDefault must mark everything the frame uses dirty.");
         }
 
@@ -120,7 +165,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             var uploader = CreateFlushedUploader();
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.Zero,
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.Zero,
                 "Pushing twice in a row must not re-send anything.");
         }
 
@@ -131,7 +176,7 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             uploader._ScreenSize = new Vector4(1920f, 1080f, 1f / 1920f, 1f / 1080f);
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(1)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(1)),
                 "Assigning one variable must push exactly that one.");
         }
 
@@ -144,7 +189,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             uploader._ZBufferParams = new Vector4(5f, 6f, 7f, 8f);
             uploader._GlobalMipBias = new Vector2(-1f, 0.5f);
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(3)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(3)),
                 "Every variable touched since the last push must be sent, and only those.");
         }
 
@@ -156,7 +201,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             uploader._Time = new Vector4(1f, 2f, 3f, 4f);
             uploader._Time = new Vector4(5f, 6f, 7f, 8f);
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(1)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(1)),
                 "Flags are a set, not a counter.");
         }
 
@@ -170,7 +215,7 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             uploader._ScreenParams = new Vector4(9f, 9f, 9f, 9f);
 
-            Assert.That(Recorded(() => uploader.PushGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(1)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(1)),
                 "A pushed variable must not be pushed again by the following push.");
         }
 
@@ -208,9 +253,110 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             uploader._Time = new Vector4(1f, 2f, 3f, 4f);
 
-            Assert.That(Recorded(() => uploader.PushDefaultToGlobal(m_Cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
                 "It runs right after cmd.SetupCameraProperties, which overwrites part of these globals behind our " +
                 "back, so it must not trust staging and has to re-send all of them.");
+        }
+
+        // Persistent constant buffer mode. What matters here is not the byte count but which of the two GPU buffers a
+        // push goes to, and whether it re-uploads: the whole point of a separate defaults buffer is that restoring the
+        // defaults costs a rebind, no matter what the overrides wrote since.
+        GlobalShaderVariablesUploader CreateConstantBufferUploader()
+        {
+            var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All) { useConstantBuffers = true };
+            m_ConstantBufferUploaders.Add(uploader);
+
+            FillBaseDefaults(uploader);
+            return uploader;
+        }
+
+        [Test]
+        public void PushDefaultToGlobal_ConstantBufferMode_UploadsDefaultsOnceThenRecordsNothing()
+        {
+            var uploader = CreateConstantBufferUploader();
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfUploadAndBind()),
+                "The first push of a camera has to get the frozen defaults onto the GPU.");
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.Zero,
+                "The defaults buffer already holds exactly what an upload would write and still owns the slot, so " +
+                "both the upload and the bind are pure waste.");
+        }
+
+        [Test]
+        public void PushGlobal_ConstantBufferMode_OverrideDoesNotInvalidateDefaults()
+        {
+            var uploader = CreateConstantBufferUploader();
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            uploader._Time = new Vector4(99f, 99f, 99f, 99f);
+
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfUploadAndBind()),
+                "A diverged staging cannot be served by the defaults buffer, it goes to the overrides one.");
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfBind()),
+                "The override wrote to the other buffer, so the defaults are still resident and only need a rebind.");
+        }
+
+        [Test]
+        public void PushGlobal_ConstantBufferMode_OverrideAfterASkippedPushStillCostsTheDefaultsTheirBind()
+        {
+            var uploader = CreateConstantBufferUploader();
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            // A defaults push records nothing while its buffer is up to date and still bound. That skip must not be
+            // read as "the slot is ours forever": the override below takes it over.
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            uploader._Time = new Vector4(99f, 99f, 99f, 99f);
+            uploader.PushGlobal(m_Cmd);
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfBind()),
+                "Whatever was skipped in between, the slot holds the override buffer and has to be bound back.");
+        }
+
+        [Test]
+        public void EndFill_ConstantBufferMode_InvalidatesTheUploadedDefaults()
+        {
+            var uploader = CreateConstantBufferUploader();
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            // Next camera of the frame: same uploader, new defaults.
+            FillBaseDefaults(uploader);
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfUploadAndBind()),
+                "Rebinding here would bind the previous camera's values, the new defaults must reach the GPU first.");
+        }
+
+        [Test]
+        public void Release_ConstantBufferMode_ForcesAReuploadOnTheNextPush()
+        {
+            var uploader = CreateConstantBufferUploader();
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            uploader.Release();
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfUploadAndBind()),
+                "The buffer holding the defaults is gone, whatever replaces it starts empty.");
+        }
+
+        [Test]
+        public void PushGlobal_ConstantBufferMode_WithNoPendingChange_RecordsNothing()
+        {
+            var uploader = CreateConstantBufferUploader();
+            uploader.PushDefaultToGlobal(m_Cmd);
+
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.Zero,
+                "Nothing was staged since the last push, so there is no reason to rebind either.");
+        }
+
+        [Test]
+        public void PushDefaultToGlobal_ConstantBufferMode_UploadsEveryGroupEvenWhenOnlyOneIsAsked()
+        {
+            var uploader = CreateConstantBufferUploader();
+
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd, GlobalShaderVariablesGroup.Base)), Is.EqualTo(CostOfUploadAndBind()),
+                "A constant buffer is uploaded as a whole: group filtering cannot make the push any cheaper.");
         }
     }
 }

@@ -664,9 +664,7 @@ namespace UnityEngine.Rendering.Universal
 
         void InitGlobalShaderVars()
         {
-            UniversalGlobalShaderData shaderData = frameData.Create<UniversalGlobalShaderData>();
-            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-            shaderData.useConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
+            frameData.Create<UniversalGlobalShaderData>();
 
             // Uploader will be available in RG execute timeline only.
             // We don't want users to modify the global shader variables in record timeline:
@@ -676,6 +674,7 @@ namespace UnityEngine.Rendering.Universal
             // - [recording] pass B reads varA == 2 and takes some decisions based on that
             // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug
             m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only3D);
+            m_GlobalShaderVariablesUploader.useConstantBuffers = UniversalRenderPipeline.usePersistentConstantBuffers;
             m_GlobalShaderVariablesUploader.BeginFill();
 
             var cameraData = frameData.Get<UniversalCameraData>();

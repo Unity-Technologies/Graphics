@@ -502,13 +502,13 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
+            m_GlobalShaderVariablesUploader?.Release();
 
             m_FinalBlitPass?.Dispose();
             m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             m_ShadowPassGroup.Dispose();
-
             m_CopyDepthPass?.Dispose();
 #if UNITY_EDITOR
             m_FinalDepthCopyPass?.Dispose();

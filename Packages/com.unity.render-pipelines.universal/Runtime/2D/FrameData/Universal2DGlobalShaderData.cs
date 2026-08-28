@@ -4,11 +4,6 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class Universal2DGlobalShaderData : ContextItem
     {
-        /// <summary>
-        /// Determines whether to use persistent constant buffers or fill dynamic constant buffers with loose uniforms APIs (cmd.SetGlobalFloat, ...)
-        /// </summary>
-        internal bool useConstantBuffers { get; set; }
-
         // Owned and created by the renderer (so its persistent constant buffer survives across frames); this per-frame
         // ContextItem only references it, set once per frame via Set().
         private GlobalShaderVariablesUploader m_Uploader;
@@ -28,7 +23,6 @@ namespace UnityEngine.Rendering.Universal
         public override void Reset()
         {
             m_Uploader = null;
-            useConstantBuffers = false;
         }
     }
 }

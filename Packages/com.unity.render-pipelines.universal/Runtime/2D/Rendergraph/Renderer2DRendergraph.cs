@@ -842,8 +842,7 @@ namespace UnityEngine.Rendering.Universal
 
         void InitGlobalShaderVars(UniversalCameraData cameraData)
         {
-            Universal2DGlobalShaderData shaderData = frameData.Create<Universal2DGlobalShaderData>();
-            shaderData.useConstantBuffers = UniversalRenderPipeline.usePersistentConstantBuffers;
+            frameData.Create<Universal2DGlobalShaderData>();
 
             // Uploader will be available in RG execute timeline only.
             // We don't want users to modify the global shader variables in record timeline:
@@ -853,6 +852,7 @@ namespace UnityEngine.Rendering.Universal
             // - [recording] pass B reads varA == 2 and takes some decisions based on that
             // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug            
             m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only2D);
+            m_GlobalShaderVariablesUploader.useConstantBuffers = UniversalRenderPipeline.usePersistentConstantBuffers;
             m_GlobalShaderVariablesUploader.BeginFill();
             BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 
@@ -1323,6 +1323,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            m_GlobalShaderVariablesUploader?.Release();
             CleanupRenderGraphResources();
             base.Dispose(disposing);
         }
