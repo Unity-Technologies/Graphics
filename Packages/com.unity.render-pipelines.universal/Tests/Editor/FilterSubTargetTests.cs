@@ -202,6 +202,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.AreEqual(FilterUVSpace.Local, node.uvSpace, "Filter Input's UV Space must be settable to Local.");
         }
 
+#if ENABLE_CORECLR
+        [Explicit("MultiJson-serialized ShaderGraph written to disk fails to reimport on CoreCLR (JSON parse error: The document root must not follow by other values), so no Shader sub-assets are produced, see https://jira.unity3d.com/browse/UUM-150436")]
+#endif
         [Test]
         public void UniversalFilterSubTarget_GeneratesCompilingShader_ForTrivialPassthroughGraph()
         {
@@ -228,6 +231,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.IsFalse(ShaderUtil.ShaderHasError(shader), "The generated filter shader has compile errors:\n" + string.Join("\n", ShaderUtil.GetShaderMessages(shader).Select(m => m.message)));
         }
 
+#if ENABLE_CORECLR
+        [Explicit("MultiJson-serialized ShaderGraph written to disk fails to reimport on CoreCLR (JSON parse error: The document root must not follow by other values), so no Shader sub-assets are produced, see https://jira.unity3d.com/browse/UUM-150436")]
+#endif
         [Test]
         public void UniversalFilterSubTarget_GeneratesCompilingShader_ForFilterInputWithLocalUVSpace()
         {

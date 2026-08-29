@@ -1,21 +1,25 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace UnityEditor.ShaderAnalysis.Internal
 {
     class SimpleDataCache
     {
-        [StructLayout(LayoutKind.Explicit)]
+        // Deliberately not a LayoutKind.Explicit union: overlapping the string reference with the
+        // primitives at offset 0 is an invalid type layout (the GC would have to scan a bool as a
+        // pointer). CoreCLR rejects it outright -- the whole assembly fails to load with
+        // "Could not load type 'Item' ... object field at offset 0 that is incorrectly aligned or
+        // overlapped by a non-object field". Every Set writes one field and the matching Get reads
+        // that same field, so nothing ever relied on the aliasing.
         struct Item
         {
-            [FieldOffset(0)] internal bool @bool;
-            [FieldOffset(0)] internal byte @byte;
-            [FieldOffset(0)] internal short @short;
-            [FieldOffset(0)] internal ushort @ushort;
-            [FieldOffset(0)] internal int @int;
-            [FieldOffset(0)] internal uint @uint;
-            [FieldOffset(0)] internal string @string;
+            internal bool @bool;
+            internal byte @byte;
+            internal short @short;
+            internal ushort @ushort;
+            internal int @int;
+            internal uint @uint;
+            internal string @string;
         }
 
         Dictionary<int, Item> m_Items = new Dictionary<int, Item>();
