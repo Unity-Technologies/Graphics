@@ -32,6 +32,11 @@
             "define": "USING_PHYSICS2D"
         },
         {
+            "name": "com.unity.modules.spritemask",
+            "expression": "1.0.0",
+            "define": "USING_SPRITEMASK"
+        },
+        {
             "name": "com.unity.2d.animation",
             "expression": "10.0.0-pre.1",
             "define": "USING_2DANIMATION"
