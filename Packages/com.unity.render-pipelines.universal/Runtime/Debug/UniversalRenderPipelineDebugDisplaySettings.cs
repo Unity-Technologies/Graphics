@@ -39,6 +39,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal DebugDisplayGPUResidentDrawer gpuResidentDrawerSettings { get; private set; }
 
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
+        /// <summary>
+        /// Surface Cache Global Illumination related rendering debugger settings.
+        /// </summary>
+        internal DebugDisplaySettingsSurfaceCache surfaceCacheSettings { get; private set; }
+#endif
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -99,6 +106,9 @@ namespace UnityEngine.Rendering.Universal
             volumeSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsVolume>());
             commonSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsCommon>());
             gpuResidentDrawerSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplayGPUResidentDrawer>());
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
+            surfaceCacheSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsSurfaceCache>());
+#endif
 
             // This is not a debug property owned by any `IDebugDisplaySettingsData`, it is a static property on `Texture`.
             // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the

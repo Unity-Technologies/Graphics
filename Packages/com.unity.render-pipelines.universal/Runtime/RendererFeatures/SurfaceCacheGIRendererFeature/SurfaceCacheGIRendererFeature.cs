@@ -99,18 +99,6 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleRendererFeature("Surface Cache Global Illumination")]
     public class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
     {
-        internal enum DebugViewMode_
-        {
-            CellIndex,
-            StableIrradiance,
-            FastIrradiance,
-            CoefficientOfVariation,
-            Drift,
-            StdDev,
-            UpdateCount,
-            FlatNormal
-        }
-
         internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
 
         private const int k_UpscaleFactor = 4;
@@ -557,7 +545,7 @@ namespace UnityEngine.Rendering.Universal
                 internal GraphicsBuffer PatchGeometries;
                 internal GraphicsBuffer PatchCellIndices;
                 internal GraphicsBuffer PatchStatistics;
-                internal DebugViewMode_ ViewMode;
+                internal SurfaceCacheDebugViewMode ViewMode;
                 internal uint FrameIndex;
                 internal bool ShowSamplePosition;
                 internal uint VolumeSpatialResolution;
@@ -673,10 +661,6 @@ namespace UnityEngine.Rendering.Universal
             private uint3 _screenResolveDenoisingKernelGroupSize;
             private uint3 _debugKernelGroupSize;
 
-            private readonly bool _debugEnabled;
-            private readonly DebugViewMode_ _debugViewMode;
-            private readonly bool _debugShowSamplePosition;
-
             internal Vector3 FocusPos { get; set; }
             internal VolumeParameterSet VolumeParams { get; set; }
             internal PerCameraState CurrentPerCameraState { get; set; }
@@ -688,10 +672,7 @@ namespace UnityEngine.Rendering.Universal
                 ComputeShader screenResolveLookupShader,
                 ComputeShader screenResolveUpsamplingShader,
                 ComputeShader screenResolveDenoisingShader,
-                ComputeShader debugShader,
-                bool debugEnabled,
-                DebugViewMode_ debugViewMode,
-                bool debugShowSamplePosition)
+                ComputeShader debugShader)
             {
                 _flatNormalResolutionShader = flatNormalResolutionShader;
                 _patchAllocationShader = patchAllocationShader;
@@ -722,10 +703,6 @@ namespace UnityEngine.Rendering.Universal
                 _screenResolveUpsamplingShader.GetKernelThreadGroupSizes(_screenResolveUpsamplingMonoKernel, out _screenResolveUpsamplingKernelGroupSize.x, out _screenResolveUpsamplingKernelGroupSize.y, out _screenResolveUpsamplingKernelGroupSize.z);
                 _screenResolveDenoisingShader.GetKernelThreadGroupSizes(_screenResolveDenoisingMonoKernel, out _screenResolveDenoisingKernelGroupSize.x, out _screenResolveDenoisingKernelGroupSize.y, out _screenResolveDenoisingKernelGroupSize.z);
                 _debugShader.GetKernelThreadGroupSizes(_debugMonoKernel, out _debugKernelGroupSize.x, out _debugKernelGroupSize.y, out _debugKernelGroupSize.z);
-
-                _debugEnabled = debugEnabled;
-                _debugViewMode = debugViewMode;
-                _debugShowSamplePosition = debugShowSamplePosition;
             }
 
             internal TextureHandle RecordFlatNormalResolution(RenderGraph renderGraph, in CameraInfo cameraInfo, TextureHandle screenDepths)
@@ -1004,7 +981,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (_debugEnabled)
+                var debugSettings = UniversalRenderPipelineDebugDisplaySettings.Instance.surfaceCacheSettings;
+                if (debugSettings.viewMode != SurfaceCacheDebugViewMode.None)
                 {
                     using (var builder = renderGraph.AddComputePass("Surface Cache Debug", out DebugPassData passData))
                     {
@@ -1029,9 +1007,9 @@ namespace UnityEngine.Rendering.Universal
                         passData.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
                         passData.VolumeCascadeCount = cache.Volume.CascadeCount;
                         passData.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
-                        passData.ViewMode = _debugViewMode;
+                        passData.ViewMode = debugSettings.viewMode;
                         passData.FrameIndex = CurrentPerCameraState.FrameIndex;
-                        passData.ShowSamplePosition = _debugShowSamplePosition;
+                        passData.ShowSamplePosition = debugSettings.showSamplePosition;
                         passData.ClipToWorldTransforms[0] = cameraInfo.ClipToWorld0;
                         passData.ClipToWorldTransforms[1] = cameraInfo.ClipToWorld1;
 
@@ -1284,7 +1262,6 @@ namespace UnityEngine.Rendering.Universal
         };
 
         private RayTracingContext _rtContext;
-        [SerializeField] private ParameterSet _parameterSet = new ParameterSet();
 
         private readonly Dictionary<(Camera camera, int xrMultipassId), PerCameraState> _cameraStates = new Dictionary<(Camera camera, int xrMultipassId), PerCameraState>();
         private readonly List<(Camera camera, int xrMultipassId)> _cacheEvictionScratch = new List<(Camera camera, int xrMultipassId)>();
@@ -1302,16 +1279,6 @@ namespace UnityEngine.Rendering.Universal
         private const float k_EmissiveTriangleIntensityMultiplier = k_ConformToUnityGIFormat ? 1.0f / Mathf.PI : 1.0f;
 
         private int _lastFrameCount = -1;
-
-        // Main parameter set containing advanced and debug settings.
-        [Serializable]
-        class ParameterSet
-        {
-            // Debug settings (will be moved to rendering debugger in the future)
-            public bool DebugEnabled = false;
-            public DebugViewMode_ DebugViewMode = DebugViewMode_.CellIndex;
-            public bool DebugShowSamplePosition = false;
-        }
 
         void ClearResources()
         {
@@ -1462,10 +1429,7 @@ namespace UnityEngine.Rendering.Universal
                 universalRenderPipelineResources.screenResolveLookupShader,
                 universalRenderPipelineResources.screenResolveUpsamplingShader,
                 universalRenderPipelineResources.screenResolveDenoisingShader,
-                universalRenderPipelineResources.debugShader,
-                _parameterSet.DebugEnabled,
-                _parameterSet.DebugViewMode,
-                _parameterSet.DebugShowSamplePosition);
+                universalRenderPipelineResources.debugShader);
 
             _cameraPass.SetWorld(_worldPass.World);
 

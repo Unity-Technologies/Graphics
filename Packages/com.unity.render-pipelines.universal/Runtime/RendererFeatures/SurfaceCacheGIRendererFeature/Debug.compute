@@ -27,7 +27,7 @@ TYPED_TEXTURE2D_X(float3, _ScreenFlatNormals);
 uint _RingConfigOffset;
 uint _VolumeSpatialResolution;
 uint _VolumeCascadeCount;
-uint _ViewMode;
+uint _ViewMode; // Match the C# debug view-mode enum; 0 (None) is never dispatched.
 uint _ShowSamplePosition;
 float4x4 _ClipToWorldTransforms[2];
 uint _FrameIdx;
@@ -127,14 +127,14 @@ void Visualize(uint2 threadIdx)
             {
                 output = 30.0f;
             }
-            else if (_ViewMode == 0)
+            else if (_ViewMode == 1)
             {
                 output = float3(
                     UintToFloat01(LowBiasHash32(cellIdx, 0)),
                     UintToFloat01(LowBiasHash32(cellIdx, 1)),
                     UintToFloat01(LowBiasHash32(cellIdx, 2)));
             }
-            else if (_ViewMode == 1)
+            else if (_ViewMode == 2)
             {
                 if (hasPatch)
                 {
@@ -147,14 +147,14 @@ void Visualize(uint2 threadIdx)
                         output = max(0, shEval);
                 }
             }
-            else if (_ViewMode == 2) // fast irradiance
+            else if (_ViewMode == 3) // fast irradiance
             {
                 if (hasPatch)
                 {
                     output = _PatchStatistics[patchIdx].mean * SphericalHarmonics::y0;
                 }
             }
-            else if (_ViewMode == 3) // coefficient of variation
+            else if (_ViewMode == 4) // coefficient of variation
             {
                 if (hasPatch)
                 {
@@ -162,7 +162,7 @@ void Visualize(uint2 threadIdx)
                     output = sqrt(stats.variance) / max(0.01f, stats.mean) / 20.0f;
                 }
             }
-            else if (_ViewMode == 4)
+            else if (_ViewMode == 5)
             {
                 if (hasPatch)
                 {
@@ -173,7 +173,7 @@ void Visualize(uint2 threadIdx)
                     output = drift * 0.25f;
                 }
             }
-            else if (_ViewMode == 5)
+            else if (_ViewMode == 6)
             {
                 if (hasPatch)
                 {
@@ -186,7 +186,7 @@ void Visualize(uint2 threadIdx)
                         output = sqrt(variance) * 0.1f;
                 }
             }
-            else if (_ViewMode == 6)
+            else if (_ViewMode == 7)
             {
                 if (hasPatch)
                 {
@@ -197,7 +197,7 @@ void Visualize(uint2 threadIdx)
                     output = lerp(redGreenMix, checker, 0.25f);
                 }
             }
-            else if (_ViewMode == 7)
+            else if (_ViewMode == 8)
             {
                 output = worldFlatNormal * 0.5f + 0.5f;
             }
