@@ -291,14 +291,17 @@ namespace UnityEngine.Rendering.Universal
                 cameraWidth = (float)cameraTargetSizeCopy.x;
                 cameraHeight = (float)cameraTargetSizeCopy.y;
 
-                useRenderPassEnabled = false;
+                // pixelWidth/Height is derived from xr.GetViewport() and encodes renderViewportScale (which also handles dynamic res)
+                scaledCameraTargetWidth = cameraData.pixelWidth;
+                scaledCameraTargetHeight = cameraData.pixelHeight;
                 
+                useRenderPassEnabled = false;
+
                 // Multi-pass needs to set unity_StereoEyeIndex builtin param for skybox-panoramic.shader to work correctly (UUM-120719)
                 if (!cameraData.xr.singlePassEnabled)
                     cmd.SetGlobalVector(XRBuiltinShaderConstants.unity_StereoEyeIndex, new Vector4(cameraData.xr.multipassId, 0, 0, 0));
             }
-
-            if (camera.allowDynamicResolution)
+            else if (camera.allowDynamicResolution)
             {
                 scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
                 scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;

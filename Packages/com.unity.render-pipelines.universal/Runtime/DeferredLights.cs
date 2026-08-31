@@ -313,8 +313,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Camera camera = cameraData.camera;
             // Support for dynamic resolution.
-            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
-            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
+            if (cameraData.xr.enabled)
+            {
+                // Must equal scaledCameraTargetWidth and scaledCameraTargetHeight set in ScriptableRenderer.SetPerCameraShaderVariables
+                // _ScreenToWorld (from here) and _ScaledScreenParams/_ScreenSize are both used per-pixel in the deferred pass so a mismatch corrupts world-pos reconstruction
+                this.RenderWidth = cameraData.pixelWidth;
+                this.RenderHeight = cameraData.pixelHeight;
+            }
+            else
+            {
+                this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
+                this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
+            }
 
             // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
             PrecomputeLights(
