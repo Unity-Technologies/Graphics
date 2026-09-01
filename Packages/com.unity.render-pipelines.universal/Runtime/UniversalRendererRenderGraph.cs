@@ -1309,6 +1309,13 @@ namespace UnityEngine.Rendering.Universal
 	                // When we have a partial depth normals prepass, we must wait until the gbuffer pass to set global textures.
 	                // In this case, the incoming global texture data is incomplete and the gbuffer pass is required to complete it.
 	                bool setGlobalTextures = isDepthNormalPrepass && !hasFullPrepass;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    // Draw the inset depth occluder only once before the first GBuffer sub-pass.
+                    // The near-plane depth values it writes persist into subsequent sub-passes because depth is never cleared or invalidated between them
+                    // (thus cannot use with SpaceWarp which reuses the outer pass motion vectors for the inset region too).
+                    if (!cameraData.xr.hasMotionVectorPass && passIndex == 0)
+                        m_XRQuadViewPrepass?.Render(renderGraph, frameData);
+#endif
                     m_GBufferPass.Render(renderGraph, frameData, setGlobalTextures, batchLayerMask);
 
                     if (needsOccluderUpdate)

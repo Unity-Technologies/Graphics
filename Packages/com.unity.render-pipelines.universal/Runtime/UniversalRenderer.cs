@@ -165,6 +165,7 @@ namespace UnityEngine.Rendering.Universal
         XROcclusionMeshPass m_XROcclusionMeshPass;
         CopyDepthPass m_XRCopyDepthPass;
         XRDepthMotionPass m_XRDepthMotionPass;
+        XRQuadViewPrepass m_XRQuadViewPrepass;
 #endif
 #if UNITY_EDITOR
         CopyDepthPass m_FinalDepthCopyPass;
@@ -205,6 +206,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_StencilDeferredMaterial = null;
         Material m_ClusterDeferredMaterial = null;
         Material m_CameraMotionVecMaterial = null;
+        Material m_QuadViewInsetOccluderMaterial = null;
 
         // Is the internal post processing of the renderer enabled.
         // This does not include post processing in extensions.
@@ -246,6 +248,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
                 m_XRDepthMotionPass = new XRDepthMotionPass(RenderPassEvent.AfterRendering + k_AfterXRCopyDepthQueueOffset, xrResources.xrMotionVector, data.transparentLayerMask);
+
+                if (xrResources.xrQuadViewInsetOccluderPS != null)
+                    m_QuadViewInsetOccluderMaterial = CoreUtils.CreateEngineMaterial(xrResources.xrQuadViewInsetOccluderPS);
+
+                if (data.renderingMode == RenderingMode.Deferred || data.renderingMode == RenderingMode.DeferredPlus)
+                    m_XRQuadViewPrepass = new XRQuadViewPrepass(m_QuadViewInsetOccluderMaterial);
             }
 #endif
             if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
@@ -539,6 +547,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_StencilDeferredMaterial);
             CoreUtils.Destroy(m_ClusterDeferredMaterial);
             CoreUtils.Destroy(m_CameraMotionVecMaterial);
+            CoreUtils.Destroy(m_QuadViewInsetOccluderMaterial);
 
             CleanupRenderGraphResources();
 

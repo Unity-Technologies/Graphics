@@ -59,6 +59,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
+        [ResourcePath("Shaders/XR/XRQuadViewInsetOccluder.shader")]
+        private Shader m_xrQuadViewInsetOccluderPS;
+
+        /// <summary>
+        /// Near-plane depth-occluder shader used to early-Z reject the QuadViews focus-inset region during the 
+        /// periphery pass via XRQuadViewPrepass. Drawn before the GBuffer (or DrawObjects in F/F+) render pass; no native pass boundary.
+        /// </summary>
+        public Shader xrQuadViewInsetOccluderPS
+        {
+            get => m_xrQuadViewInsetOccluderPS;
+            set => this.SetValueAndNotify(ref m_xrQuadViewInsetOccluderPS, value, nameof(m_xrQuadViewInsetOccluderPS));
+        }
+
+        [SerializeField]
         [ResourcePath("Shaders/XR/XRMirrorView.shader")]
         private Shader m_xrMirrorViewPS;
 

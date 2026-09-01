@@ -26,6 +26,18 @@ namespace UnityEngine.Experimental.Rendering
             /// Used by the inner view pass to ensure vignette effect is consistent across both views.
             /// </summary>
             public Vector4 cachedPeripheralVignetteCenter;
+
+            /// <summary>
+            /// The inner view's rect within the periphery frustum, as a bottom-left-origin fraction of the periphery viewport (x=left, y=bottom, z=width, w=height).
+            /// Used by <see cref="XRQuadViewPrepass"/> to viewport-scope the inset depth occluder during the periphery pass and reset every frame.
+            /// </summary>
+            public Vector4 peripheryInsetViewport;
+
+            /// <summary>
+            /// Per-axis inward safety margin from the inset edges, as a fraction of the periphery viewport.
+            /// Shrinks the occluder viewport so the device compositor's inset blend band is never rejected, preventing a black border at the inset/periphery boundary.
+            /// </summary>
+            public Vector2 peripheryInsetFeather;
         }
 
         /// <summary>

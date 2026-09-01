@@ -810,6 +810,7 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/XR/XROcclusionMesh")]
         [TestCase("Hidden/Universal Render Pipeline/XR/XRMirrorView")]
         [TestCase("Hidden/Universal Render Pipeline/XR/XRMotionVector")]
+        [TestCase("Hidden/Universal Render Pipeline/XRInsetOccluder")]
         public void TestStripUnusedFeatures(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
@@ -1049,16 +1050,19 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
             helper.IsFalse(helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
             helper.IsFalse(helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_XRQuadViewInsetOccluder(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedXRVariants: true);
             bool isXROcclusion = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XROcclusionMesh";
             bool isXRMirror = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XRMirrorView";
             bool isXRMotionVector = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XRMotionVector";
+            bool isXRQuadViewInsetOccluder = shader != null && shader.name == "Hidden/Universal Render Pipeline/XRInsetOccluder";
 
             //We should strip the shader only if it's the XR shader.
             helper.IsTrue(isXROcclusion ? helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data) : !helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
             helper.IsTrue(isXRMirror ? helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
             helper.IsTrue(isXRMotionVector ? helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data));
+            helper.IsTrue(isXRQuadViewInsetOccluder ? helper.stripper.StripUnusedFeatures_XRQuadViewInsetOccluder(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRQuadViewInsetOccluder(ref helper.data));
 
         }
 

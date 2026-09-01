@@ -175,6 +175,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_XROcclusionMeshShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XROcclusionMesh");
         Shader m_XRMirrorViewShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMirrorView");
         Shader m_XRMotionVectorShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMotionVector");
+        Shader m_XRQuadViewInsetOccluderShader = Shader.Find("Hidden/Universal Render Pipeline/XRInsetOccluder");
         Shader m_Light2DShader = Shader.Find("Hidden/Light2D");
         Shader m_RenderingLayerMask2DShader = Shader.Find("Hidden/2D/RenderingLayerMask");
 
@@ -940,6 +941,14 @@ namespace UnityEditor.Rendering.Universal
             return strippingData.stripUnusedXRVariants;
         }
 
+        internal bool StripUnusedFeatures_XRQuadViewInsetOccluder(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_XRQuadViewInsetOccluderShader)
+                return false;
+
+            return strippingData.stripUnusedXRVariants;
+        }
+
         internal bool StripUnusedFeatures_RenderObjectDepthInputAttachment(ref IShaderScriptableStrippingData strippingData)
         {
             if (!strippingData.IsShaderFeatureEnabled(ShaderFeatures.RenderObjectDepthInputAttachment))
@@ -1105,6 +1114,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_XRMotionVector(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_XRQuadViewInsetOccluder(ref strippingData))
                 return true;
 
             if (StripUnusedFeatures_RenderObjectDepthInputAttachment(ref strippingData))

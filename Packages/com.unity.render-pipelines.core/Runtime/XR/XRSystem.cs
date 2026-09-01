@@ -614,6 +614,37 @@ namespace UnityEngine.Experimental.Rendering
                     uvOffsets.z = (pass1View1Bounds.z - pass0View1Bounds.z) / pass0View1Bounds.x;
                     uvOffsets.w = -(pass1View1Bounds.w - pass0View1Bounds.w) / pass0View1Bounds.y;
 
+                    // Cache the inset rect as a bottom-left origin fraction of the full periphery frustum
+                    // uvScales and uvOffsets are already ratios of inset-to-peripheral spans and bottom-left corner positions, respectively
+                    float insetW = uvScales.x;
+                    float insetH = uvScales.y;
+                    float insetX = uvOffsets.x;
+                    float insetY = uvOffsets.y;
+
+                    // Asymmetric per-eye inner frustums are uncommon (Quest 3 uses conjugate gaze with symmetric frustums),
+                    // but intersect both eye rects when they differ to avoid rejecting pixels the compositor still shows on either eye
+                    float featherBoundsX = pass0View0Bounds.x;
+                    float featherBoundsY = pass0View0Bounds.y;
+                    if (!Mathf.Approximately(insetW, uvScales.z)  || !Mathf.Approximately(insetH, uvScales.w)  ||
+                        !Mathf.Approximately(insetX, uvOffsets.z) || !Mathf.Approximately(insetY, uvOffsets.w))
+                    {
+                        float right = Mathf.Min(insetX + insetW, uvOffsets.z + uvScales.z);
+                        float top   = Mathf.Min(insetY + insetH, uvOffsets.w + uvScales.w);
+                        insetX = Mathf.Max(insetX, uvOffsets.z);
+                        insetY = Mathf.Max(insetY, uvOffsets.w);
+                        insetW = right - insetX;
+                        insetH = top   - insetY;
+
+                        // Use the smaller peripheral extent per axis so the feather fraction is larger (more conservative).
+                        featherBoundsX = Mathf.Min(pass0View0Bounds.x, pass0View1Bounds.x);
+                        featherBoundsY = Mathf.Min(pass0View0Bounds.y, pass0View1Bounds.y);
+                    }
+
+                    layout.quadView.peripheryInsetViewport = new Vector4(insetX, insetY, insetW, insetH);
+
+                    // Cache a safety margin as a fraction of the full periphery frustum to avoid compositor blending issues
+                    const float insetMarginRadians = 0.05f;
+                    layout.quadView.peripheryInsetFeather = new Vector2(insetMarginRadians / featherBoundsX, insetMarginRadians / featherBoundsY);
                 }
 
                 if (CanUseSinglePass(camera, renderPass))
