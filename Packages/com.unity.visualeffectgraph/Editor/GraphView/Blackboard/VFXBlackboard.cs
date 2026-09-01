@@ -557,7 +557,7 @@ namespace UnityEditor.VFX.UI
                     else if (parentItem is CustomAttributeCategory)
                     {
                         // Allow custom attributes to be reordered
-                        if (m_Treeview.selectedItems.All(x => x is AttributeItem))
+                        if (m_Treeview.selectedItems.All(x => x is AttributeItem xAttr && !xAttr.isBuiltIn))
                         {
                             return DragVisualMode.Move;
                         }
