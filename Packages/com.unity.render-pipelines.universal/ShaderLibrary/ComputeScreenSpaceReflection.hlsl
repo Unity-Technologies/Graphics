@@ -371,11 +371,14 @@ float SampleSmoothness(float2 uv)
     return SAMPLE_TEXTURE2D_X(_SmoothnessTexture, sampler_SmoothnessTexture, uv).a;
 }
 
-float3 ClampColor(float3 color)
+float3 ClampAndSanitizeColor(float3 color)
 {
     float maxChannel = Max3(color.r, color.g, color.b);
     float scale = maxChannel > GetClampValue() ? GetClampValue() / maxChannel : 1;
-    return scale * color;
+    float3 clamped = scale * color;
+    if (AnyIsNaN(clamped) || AnyIsInf(clamped))
+        return 0;
+    return color;
 }
 
 float4 ComputeSSR(Varyings input
@@ -405,7 +408,7 @@ float4 ComputeSSR(Varyings input
         // If the pixel is showing an object, output 1 alpha ->
         //   avoids bleeding 0 alpha into reflections when blurring, which would cause peter-panning.
         float alpha = deviceDepth != UNITY_RAW_FAR_CLIP_VALUE;
-        return float4(ClampColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb) * alpha, alpha);
+        return float4(ClampAndSanitizeColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb) * alpha, alpha);
     }
 
     // Calculate ray origin and direction in world space
@@ -551,7 +554,7 @@ float4 ComputeSSR(Varyings input
         // Scale the SSR contribution by the user-defined strength.
         fade *= GetStrength();
 
-        return float4(ClampColor(hitColor) * fade, fade);
+        return float4(ClampAndSanitizeColor(hitColor) * fade, fade);
     }
 
     return 0;
