@@ -395,8 +395,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (m_RenderGraph.renderTextureUVOriginStrategy == RenderTextureUVOriginStrategy.PropagateAttachmentOrientation)
                 {
                     TextureResource texRes = m_Resources.GetTextureResource(input.handle);
-                    CheckTextureUVOriginIsValid(input.handle, texRes);
-                    texRes.textureUVOrigin = TextureUVOriginSelection.BottomLeft;
+                    if (!texRes.imported)
+                    {
+                        CheckTextureUVOriginIsValid(input.handle, texRes);
+                        texRes.textureUVOrigin = TextureUVOriginSelection.BottomLeft;
+                    }
                 }
             }
         }
