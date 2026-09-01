@@ -395,9 +395,11 @@ namespace UnityEngine.Rendering.Universal
                 // pending Screen.SetMSAASamples request hasn't been applied yet (deferred reallocation).
                 int numSamples = Screen.currentBackbufferMSAASamples;
 
-
-                output.importInfo.width = cameraData.backbufferWidth;
-                output.importInfo.height = cameraData.backbufferHeight;
+                //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
+                //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
+                //same with cameraData.camera.pixelWidth
+                output.importInfo.width = Screen.width;
+                output.importInfo.height = Screen.height;
                 output.importInfo.volumeDepth = 1;
                 output.importInfo.msaaSamples = numSamples;
                 output.importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
@@ -796,7 +798,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<CommonResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             TextureDesc textureDesc = new TextureDesc(descriptor);
-            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref textureDesc, cameraData);
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref textureDesc);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_OffscreenUIColorHandle, textureDesc, name: "_OverlayUITexture");
 
             // Clear the texture to avoid stale data from previous frames

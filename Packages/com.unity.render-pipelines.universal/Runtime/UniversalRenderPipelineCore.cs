@@ -1536,14 +1536,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (camera.targetTexture == null)
             {
-                Vector2Int backbufferSize = RenderingUtils.GetScreenBackbufferSize(camera);
-
                 // Describe the real backbuffer's live MSAA. UpdateCameraData later overrides this
                 // with the XR eye texture properties when an XR pass is actually active.
                 cameraData.backbufferColor = new RenderTargetInfo
                 {
-                    width = backbufferSize.x,
-                    height = backbufferSize.y,
+                    width = Screen.width,
+                    height = Screen.height,
                     volumeDepth = 1,
                     msaaSamples = Screen.currentBackbufferMSAASamples,
                     format = colorFormatProxy,
@@ -1570,7 +1568,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
-
         internal static int GetIntermediateTexturesMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer)
         {
             bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
