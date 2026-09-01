@@ -24,6 +24,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         GradientField m_Field;
         public bool isShowingGradientEditor => GradientPicker.visible && m_Field.isShowingGradientPicker;
 
+        GradientUndoSession m_UndoSession;
+
         public GradientSlotControlView(GradientInputMaterialSlot slot, bool showGradientEditor)
         {
             m_Slot = slot;
@@ -40,7 +42,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
             m_Field = new GradientField() { label = m_Slot.hideConnector ? m_Slot.RawDisplayName() : null, value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
             m_Field.RegisterValueChangedCallback(OnValueChanged);
+            m_Field.pickerClosed += OnPickerClosed;
             Add(m_Field);
+
+            m_UndoSession = new GradientUndoSession(
+                () => m_Slot.value,
+                value =>
+                {
+                    m_Slot.value = value;
+                    m_Slot.owner?.Dirty(ModificationScope.Node);
+                },
+                () => m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Modify Gradient"),
+                () => m_Slot?.owner?.owner?.owner != null && !m_Slot.owner.owner.replaceInProgress);
 
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
@@ -59,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_SerializedObject.Update();
             if (!evt.newValue.Equals(m_Slot.value))
             {
-                // Register undo on the temporary GradientObject rather than the graph so the open picker isn't torn down on undo.
+                m_UndoSession.BeginChange();
                 Undo.RegisterCompleteObjectUndo(m_GradientObject, "Modify Gradient Stop");
 
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
@@ -86,9 +99,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_Field.SetValueWithoutNotify(m_GradientObject.gradient);
         }
 
+        void OnPickerClosed()
+        {
+            m_UndoSession.RecordNetChange();
+        }
+
         void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
+            m_UndoSession.RecordNetChange();
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            m_Field.pickerClosed -= OnPickerClosed;
         }
     }
 }

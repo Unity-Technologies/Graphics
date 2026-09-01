@@ -1550,7 +1550,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 },
                 gradientShaderProperty.value,
                 "Default Value",
-                out var propertyGradientField));
+                out var propertyGradientField,
+                preValueChangedCallback: () => this._preChangeValueCallback("Modify Gradient")));
         }
 
         void BuildAttributesFields(PropertySheet propertySheet)

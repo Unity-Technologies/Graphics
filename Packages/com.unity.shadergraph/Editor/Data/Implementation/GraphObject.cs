@@ -16,11 +16,11 @@ namespace UnityEditor.Graphing
             {
                 graphData?.ReplaceWith(newGraphData);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (graphData != null)
                     graphData.replaceInProgress = false;
-                throw e;
+                throw;
             }
         }
 
