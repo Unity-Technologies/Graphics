@@ -130,12 +130,12 @@ namespace UnityEditor.Rendering
 
         internal bool isPaused
         {
-            get => RenderGraphDebugSession.currentDebugSession?.isPaused ?? m_StoredPausedState;
+            get => RenderGraphDebugSessionManager.currentDebugSession?.isPaused ?? m_StoredPausedState;
             set
             {
                 m_StoredPausedState = value;
-                if (RenderGraphDebugSession.currentDebugSession != null)
-                    RenderGraphDebugSession.currentDebugSession.isPaused = value;
+                if (RenderGraphDebugSessionManager.currentDebugSession != null)
+                    RenderGraphDebugSessionManager.currentDebugSession.isPaused = value;
             }
         }
 
@@ -897,7 +897,7 @@ namespace UnityEditor.Rendering
 
         internal void OnAutoPlayStatusChanged(ChangeEvent<bool> evt)
         {
-            if (RenderGraphDebugSession.currentDebugSession == null)
+            if (RenderGraphDebugSessionManager.currentDebugSession == null)
                 ReconnectDebugSession();
 
             // Setting isPaused will trigger OnPausedStateChanged via the session event
@@ -915,13 +915,13 @@ namespace UnityEditor.Rendering
             }
 
             // A play mode transition can reset the session while paused (reconnect was deferred); restore it on unpause.
-            if (!paused && RenderGraphDebugSession.currentDebugSession == null)
+            if (!paused && RenderGraphDebugSessionManager.currentDebugSession == null)
                 ReconnectDebugSession();
 
             // When enabling Auto Update, if the current debug data is from a player that is no longer connected,
             // switch back to Editor target.
             if (!paused &&
-                RenderGraphDebugSession.currentDebugSession is RenderGraphEditorRemoteDebugSession &&
+                RenderGraphDebugSessionManager.currentDebugSession is RenderGraphEditorRemoteDebugSession &&
                 m_PlayerConnection.connectionState.connectedToTarget != ConnectionTarget.Player)
             {
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
@@ -1081,18 +1081,18 @@ namespace UnityEditor.Rendering
 
         void UpdateSelectedGraphAndExecution()
         {
-            var graphs = RenderGraphDebugSession.GetRegisteredGraphs();
+            var graphs = RenderGraphDebugSessionManager.GetRegisteredGraphs();
             var renderGraphDropdownField = rootVisualElement.Q<DropdownField>(Names.kCurrentGraphDropdown);
             if (graphs.Count == 0 || renderGraphDropdownField == null)
             {
                 m_SelectedRenderGraph = null;
-                m_ExecutionItems = RenderGraphDebugSession.GetExecutions(m_SelectedRenderGraph); // will return a valid reference but with 0 elements
+                m_ExecutionItems = RenderGraphDebugSessionManager.GetExecutions(m_SelectedRenderGraph); // will return a valid reference but with 0 elements
                 SetSelectedExecutionIndex(-1);
                 return;
             }
 
             m_SelectedRenderGraph = graphs.Contains(m_SelectedRenderGraph) ? m_SelectedRenderGraph : graphs[0];
-            m_ExecutionItems = RenderGraphDebugSession.GetExecutions(m_SelectedRenderGraph);
+            m_ExecutionItems = RenderGraphDebugSessionManager.GetExecutions(m_SelectedRenderGraph);
             renderGraphDropdownField.choices = graphs;
             renderGraphDropdownField.value = m_SelectedRenderGraph;
 
@@ -1840,13 +1840,13 @@ namespace UnityEditor.Rendering
 
         void RebuildGraphViewerUI()
         {
-            if (rootVisualElement?.childCount == 0 || RenderGraphDebugSession.currentDebugSession == null)
+            if (rootVisualElement?.childCount == 0 || RenderGraphDebugSessionManager.currentDebugSession == null)
                 return;
 
             ClearGraphViewerUI();
             ClearEmptyStateMessage();
 
-            if (RenderGraphDebugSession.GetRegisteredGraphs().Count == 0)
+            if (RenderGraphDebugSessionManager.GetRegisteredGraphs().Count == 0)
             {
                 SetEmptyStateMessage(EmptyStateReason.NoGraphRegistered);
                 return;
@@ -2083,7 +2083,7 @@ namespace UnityEditor.Rendering
             else
             {
                 string sourceLabel;
-                if (RenderGraphDebugSession.currentDebugSession is RenderGraphEditorLocalDebugSession)
+                if (RenderGraphDebugSessionManager.currentDebugSession is RenderGraphEditorLocalDebugSession)
                 {
                     sourceLabel = "Editor";
                 }
@@ -2104,7 +2104,7 @@ namespace UnityEditor.Rendering
 
             if (selectedExecutionItem != null)
             {
-                m_CurrentDebugData = RenderGraphDebugSession.GetDebugData(m_SelectedRenderGraph, selectedExecutionItem.id);
+                m_CurrentDebugData = RenderGraphDebugSessionManager.GetDebugData(m_SelectedRenderGraph, selectedExecutionItem.id);
             }
             else
             {
@@ -2164,7 +2164,7 @@ namespace UnityEditor.Rendering
             var connectionDropdown = rootVisualElement.Q<IMGUIContainer>(Names.kConnectionDropdown);
             connectionDropdown.onGUIHandler = m_PlayerConnection.OnConnectionDropdownIMGUI;
 
-            if (RenderGraphDebugSession.currentDebugSession == null)
+            if (RenderGraphDebugSessionManager.currentDebugSession == null)
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
 
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
@@ -2201,7 +2201,7 @@ namespace UnityEditor.Rendering
             // While paused the viewer shows a frozen capture; defer reconnecting to unpause so it is not cleared.
             if (isPaused)
                 return;
-            if (RenderGraphDebugSession.currentDebugSession != null)
+            if (RenderGraphDebugSessionManager.currentDebugSession != null)
                 return;
 
             ReconnectDebugSession();
@@ -2213,7 +2213,7 @@ namespace UnityEditor.Rendering
             if (playerConnected)
             {
                 ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
-                RenderGraphDebugSession.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
+                RenderGraphDebugSessionManager.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
             }
             else
             {
@@ -2224,7 +2224,7 @@ namespace UnityEditor.Rendering
         void OnPlayerConnected(int playerID)
         {
             ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
-            RenderGraphDebugSession.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
+            RenderGraphDebugSessionManager.currentDebugSession.connectionName = m_PlayerConnection.connectionState.connectionName;
         }
 
         void OnPlayerDisconnected(int playerID)
@@ -2257,13 +2257,13 @@ namespace UnityEditor.Rendering
 
             DisconnectDebugSession();
 
-            RenderGraphDebugSession.BeginSession<TSession>();
-            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
-            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
-            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
+            RenderGraphDebugSessionManager.BeginSession<TSession>();
+            RenderGraphDebugSessionManager.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
+            RenderGraphDebugSessionManager.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+            RenderGraphDebugSessionManager.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
 
             // Restore the paused state to the new session
-            RenderGraphDebugSession.currentDebugSession.isPaused = m_StoredPausedState;
+            RenderGraphDebugSessionManager.currentDebugSession.isPaused = m_StoredPausedState;
 
             OnRegisteredGraphsChanged();
         }
@@ -2275,29 +2275,29 @@ namespace UnityEditor.Rendering
 
             DisconnectDebugSession();
 
-            RenderGraphDebugSession.BeginSession(session);
-            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
-            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
-            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
+            RenderGraphDebugSessionManager.BeginSession(session);
+            RenderGraphDebugSessionManager.currentDebugSession.onRegisteredGraphsChanged += OnRegisteredGraphsChanged;
+            RenderGraphDebugSessionManager.currentDebugSession.onDebugDataUpdated += OnDebugDataUpdated;
+            RenderGraphDebugSessionManager.currentDebugSession.onPausedStateChanged += OnPausedStateChanged;
 
             // Restore the paused state to the new session
-            RenderGraphDebugSession.currentDebugSession.isPaused = m_StoredPausedState;
+            RenderGraphDebugSessionManager.currentDebugSession.isPaused = m_StoredPausedState;
             
             OnRegisteredGraphsChanged();
         }
 
         void DisconnectDebugSession()
         {
-            if (RenderGraphDebugSession.currentDebugSession == null)
+            if (RenderGraphDebugSessionManager.currentDebugSession == null)
                 return;
 
             // Store the paused state before disconnecting so it can be restored later
-            m_StoredPausedState = RenderGraphDebugSession.currentDebugSession.isPaused;
+            m_StoredPausedState = RenderGraphDebugSessionManager.currentDebugSession.isPaused;
 
-            RenderGraphDebugSession.currentDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
-            RenderGraphDebugSession.currentDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
-            RenderGraphDebugSession.currentDebugSession.onPausedStateChanged -= OnPausedStateChanged;
-            RenderGraphDebugSession.EndSession();
+            RenderGraphDebugSessionManager.currentDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
+            RenderGraphDebugSessionManager.currentDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
+            RenderGraphDebugSessionManager.currentDebugSession.onPausedStateChanged -= OnPausedStateChanged;
+            RenderGraphDebugSessionManager.EndSession();
 
             UpdateStatusLabel();
             ClearGraphViewerUI();
@@ -2313,13 +2313,13 @@ namespace UnityEditor.Rendering
 
         void ExportDebugSessionForTests()
         {
-            if (!RenderGraphDebugSession.hasActiveDebugSession)
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
             {
                 Debug.LogWarning("No active debug session found. Please render a frame first.");
                 return;
             }
 
-            string defaultPath = System.IO.Path.Combine(Application.dataPath, $"{nameof(RenderGraphDebugSession)}_{System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.json");
+            string defaultPath = System.IO.Path.Combine(Application.dataPath, $"{nameof(RenderGraphDebugSessionManager)}_{System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.json");
             string path = EditorUtility.SaveFilePanel("Export Debug Session",
                 System.IO.Path.GetDirectoryName(defaultPath),
                 System.IO.Path.GetFileName(defaultPath),
@@ -2330,7 +2330,7 @@ namespace UnityEditor.Rendering
 
             try
             {
-                SerializedRenderGraphDebugSession.Export(RenderGraphDebugSession.currentDebugSession, path);
+                SerializedRenderGraphDebugSession.Export(RenderGraphDebugSessionManager.currentDebugSession, path);
                 Debug.Log($"Debug session exported successfully to: {path}");
             }
             catch (System.Exception ex)

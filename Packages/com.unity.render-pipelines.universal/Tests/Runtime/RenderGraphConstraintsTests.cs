@@ -61,10 +61,10 @@ namespace UnityEngine.Rendering.Universal.Tests
                 UnityEditor.EditorWindow.GetWindow<UnityEditor.Rendering.RenderGraphViewer>().Close();
 #endif
 
-            m_PreviousSessionType = RenderGraphDebugSession.currentDebugSession?.GetType();
+            m_PreviousSessionType = RenderGraphDebugSessionManager.currentDebugSession?.GetType();
             m_PreviousQualityRenderPipelineAsset = QualitySettings.renderPipeline;
 
-            RenderGraphDebugSession.BeginSession<TestRenderGraphDebugSession>();
+            RenderGraphDebugSessionManager.BeginSession<TestRenderGraphDebugSession>();
 
             // Create new URP asset
             m_UniversalRenderPipelineAsset = Create();
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             yield return null;
 
-            if (!RenderGraphDebugSession.GetRegisteredGraphs().Contains("URPRenderGraph"))
+            if (!RenderGraphDebugSessionManager.GetRegisteredGraphs().Contains("URPRenderGraph"))
                 Assert.Ignore("Ignore this test as we couldn't setup debug session for URPRenderGraph.");
         }
 
@@ -139,9 +139,9 @@ namespace UnityEngine.Rendering.Universal.Tests
         public void OneTimeTearDown()
         {
             if (m_PreviousSessionType != null)
-                RenderGraphDebugSession.BeginSession(m_PreviousSessionType);
+                RenderGraphDebugSessionManager.BeginSession(m_PreviousSessionType);
             else
-                RenderGraphDebugSession.EndSession();
+                RenderGraphDebugSessionManager.EndSession();
 
             QualitySettings.renderPipeline = m_PreviousQualityRenderPipelineAsset;
 
@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         bool OnlyBackbufferOrMemoryless(bool outputNonMemoryless = false)
         {
             var onlyMemoryless = true;
-            var debugData = RenderGraphDebugSession.GetDebugData("URPRenderGraph", m_CameraEntityId);
+            var debugData = RenderGraphDebugSessionManager.GetDebugData("URPRenderGraph", m_CameraEntityId);
             var textureList = debugData.resourceLists[(int)RenderGraphResourceType.Texture];
             for (int i = 0; i < textureList.Count; i++)
             {

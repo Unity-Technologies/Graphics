@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
 #if UNITY_ENABLE_CHECKS
             // Does nothing unless debug session is active.
-            if (!RenderGraphDebugSession.hasActiveDebugSession)
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
                 return;
 
             renderPass.debugScriptInfo = new DebugData.ScriptInfo { filePath = file, line = line };
@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
 #if UNITY_ENABLE_CHECKS
             // Does nothing unless debug session is active.
-            if (!RenderGraphDebugSession.hasActiveDebugSession)
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
                 return;
 
             if (!handle.IsValid())

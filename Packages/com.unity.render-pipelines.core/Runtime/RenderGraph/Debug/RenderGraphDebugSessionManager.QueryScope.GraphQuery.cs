@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    static partial class RenderGraphDebugSession
+    static partial class RenderGraphDebugSessionManager
     {
         internal class GraphQuery
         {

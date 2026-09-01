@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Tests
         public void SetUp()
         {
             // Store the previous session so we can restore it later
-            m_PreviousSession = RenderGraphDebugSession.currentDebugSession;
+            m_PreviousSession = RenderGraphDebugSessionManager.currentDebugSession;
 
             // Close any existing viewer window first
             var existingViewer = RenderGraphViewerTestHelpers.FindRenderGraphViewerWindow();
@@ -46,18 +46,18 @@ namespace UnityEditor.Rendering.Tests
                 m_Viewer.Close();
 
             // End the test session
-            RenderGraphDebugSession.EndSession();
+            RenderGraphDebugSessionManager.EndSession();
 
             // Restore the previous session if there was one
             if (m_PreviousSession != null)
-                RenderGraphDebugSession.BeginSession(m_PreviousSession);
+                RenderGraphDebugSessionManager.BeginSession(m_PreviousSession);
         }
 
         [Test]
         public void RenderGraphViewer_FixtureSessionIsActive()
         {
-            Assert.IsTrue(RenderGraphDebugSession.hasActiveDebugSession);
-            Assert.AreSame(m_FixtureSession, RenderGraphDebugSession.currentDebugSession);
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession);
+            Assert.AreSame(m_FixtureSession, RenderGraphDebugSessionManager.currentDebugSession);
         }
 
         [Test]

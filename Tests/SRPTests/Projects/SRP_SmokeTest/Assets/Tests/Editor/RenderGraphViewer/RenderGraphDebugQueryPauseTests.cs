@@ -54,25 +54,25 @@ namespace UnityEditor.Rendering.Tests
             Assert.IsTrue(System.IO.File.Exists(k_FixturePath), $"Test fixture not found at: {k_FixturePath}");
             var serializedSession = SerializedRenderGraphDebugSession.LoadFromFile(k_FixturePath);
             m_MockSession = new MockPausableDebugSession(serializedSession);
-            RenderGraphDebugSession.BeginSession(m_MockSession);
+            RenderGraphDebugSessionManager.BeginSession(m_MockSession);
 
-            Assert.IsTrue(RenderGraphDebugSession.hasActiveDebugSession, "Session should be active after loading fixture");
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after loading fixture");
         }
 
         [TearDown]
         public void TearDown()
         {
-            RenderGraphDebugSession.EndSession();
+            RenderGraphDebugSessionManager.EndSession();
         }
 
         [Test]
         public void Dispose_RestoresPausedState()
         {
-            var session = RenderGraphDebugSession.currentDebugSession;
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
 
             session.isPaused = false;
 
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 Assert.IsTrue(session.isPaused, "Session should be paused after Capture");
             }
@@ -83,11 +83,11 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_InvalidatesWhenSessionUnpaused()
         {
-            var session = RenderGraphDebugSession.currentDebugSession;
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
 
             session.isPaused = false;
 
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 Assert.IsTrue(session.isPaused, "Session should be paused during query");
 
@@ -107,10 +107,10 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_FluentAPI_ThrowsWhenSessionInvalidated()
         {
-            var session = RenderGraphDebugSession.currentDebugSession;
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
             session.isPaused = false;
 
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem(k_ExpectedGraphName);
 

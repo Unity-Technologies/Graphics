@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// Static manager for render graph debug sessions.
     /// Manages the current active session and provides convenience methods for accessing it.
     /// </summary>
-    internal static partial class RenderGraphDebugSession
+    internal static partial class RenderGraphDebugSessionManager
     {
         // Cleared via ResetStaticsOnLoad() on domain reload
         static IRenderGraphDebugSession s_CurrentDebugSession;

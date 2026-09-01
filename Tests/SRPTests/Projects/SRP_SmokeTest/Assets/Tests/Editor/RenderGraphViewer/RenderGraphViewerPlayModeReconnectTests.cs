@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Tests
         // the viewer subscribed to, without touching the render graph's own execution registration.
         static void SimulateFastEnterPlayModeReset()
         {
-            RenderGraphDebugSession.ResetStaticsOnLoad();
+            RenderGraphDebugSessionManager.ResetStaticsOnLoad();
         }
 
         void PopulateDebugData()
@@ -50,14 +50,14 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void ReconnectsSession_WhenResetOnEnteringPlayMode()
         {
-            Assert.IsNotNull(RenderGraphDebugSession.currentDebugSession, "opening the viewer should connect a debug session");
+            Assert.IsNotNull(RenderGraphDebugSessionManager.currentDebugSession, "opening the viewer should connect a debug session");
 
             SimulateFastEnterPlayModeReset();
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession, "precondition: session was cleared");
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession, "precondition: session was cleared");
 
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
 
-            Assert.IsNotNull(RenderGraphDebugSession.currentDebugSession, "viewer must reconnect the debug session after entering play mode");
+            Assert.IsNotNull(RenderGraphDebugSessionManager.currentDebugSession, "viewer must reconnect the debug session after entering play mode");
 
             PopulateDebugData();
             Assert.IsNotNull(m_Viewer.m_CurrentDebugData, "the reconnected session must receive debug data again");
@@ -69,22 +69,22 @@ namespace UnityEditor.Rendering.Tests
         public void ReconnectsSession_WhenResetOnEnteringEditMode()
         {
             SimulateFastEnterPlayModeReset();
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession);
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession);
 
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredEditMode);
 
-            Assert.IsNotNull(RenderGraphDebugSession.currentDebugSession, "viewer must reconnect the debug session after returning to edit mode");
+            Assert.IsNotNull(RenderGraphDebugSessionManager.currentDebugSession, "viewer must reconnect the debug session after returning to edit mode");
         }
 
         [Test]
         public void KeepsSession_WhenStillConnected()
         {
-            var before = RenderGraphDebugSession.currentDebugSession;
+            var before = RenderGraphDebugSessionManager.currentDebugSession;
             Assert.IsNotNull(before);
 
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
 
-            Assert.AreSame(before, RenderGraphDebugSession.currentDebugSession,
+            Assert.AreSame(before, RenderGraphDebugSessionManager.currentDebugSession,
                 "an already-connected session should not be torn down and recreated");
         }
 
@@ -93,11 +93,11 @@ namespace UnityEditor.Rendering.Tests
         {
             m_Viewer.isPaused = true;
             SimulateFastEnterPlayModeReset();
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession);
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession);
 
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
 
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession,
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession,
                 "a paused viewer should defer reconnecting so the frozen capture is not cleared");
         }
 
@@ -107,23 +107,23 @@ namespace UnityEditor.Rendering.Tests
             m_Viewer.isPaused = true;
             SimulateFastEnterPlayModeReset();
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession, "precondition: reconnect deferred while paused");
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession, "precondition: reconnect deferred while paused");
 
             using (var unpause = ChangeEvent<bool>.GetPooled(true, false))
                 m_Viewer.OnAutoPlayStatusChanged(unpause);
 
-            Assert.IsNotNull(RenderGraphDebugSession.currentDebugSession, "unpausing must reconnect the deferred session");
+            Assert.IsNotNull(RenderGraphDebugSessionManager.currentDebugSession, "unpausing must reconnect the deferred session");
         }
 
         [Test]
         public void DoesNothing_ForNonEnteringTransition()
         {
             SimulateFastEnterPlayModeReset();
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession);
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession);
 
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.ExitingEditMode);
 
-            Assert.IsNull(RenderGraphDebugSession.currentDebugSession, "only Entered* transitions should trigger a reconnect");
+            Assert.IsNull(RenderGraphDebugSessionManager.currentDebugSession, "only Entered* transitions should trigger a reconnect");
         }
 
         static bool ValidDataHasBeenLoadedInUI(VisualElement root)
@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.Tests
 
             SimulateFastEnterPlayModeReset();
             m_Viewer.OnPlayModeStateChanged(PlayModeStateChange.EnteredPlayMode);
-            Assert.IsNotNull(RenderGraphDebugSession.currentDebugSession, "viewer must reconnect after entering play mode");
+            Assert.IsNotNull(RenderGraphDebugSessionManager.currentDebugSession, "viewer must reconnect after entering play mode");
 
             PopulateDebugData();
             yield return new WaitUntil(() => ValidDataHasBeenLoadedInUI(root), 5);

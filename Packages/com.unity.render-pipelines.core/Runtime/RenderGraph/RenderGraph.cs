@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>If true, the Render Graph Viewer is active (not considered in release mode).</summary>
         public static bool isRenderGraphViewerActive =>
 #if UNITY_ENABLE_CHECKS
-            RenderGraphDebugSession.hasActiveDebugSession;
+            RenderGraphDebugSessionManager.hasActiveDebugSession;
 #else
             false;
 #endif
@@ -468,8 +468,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             RenderGraph.RenderGraphExceptionMessages.enableCaller = true;
 
 #if !UNITY_EDITOR && UNITY_ENABLE_CHECKS
-            if (RenderGraphDebugSession.currentDebugSession == null)
-                RenderGraphDebugSession.BeginSession<RenderGraphPlayerRemoteDebugSession>();
+            if (RenderGraphDebugSessionManager.currentDebugSession == null)
+                RenderGraphDebugSessionManager.BeginSession<RenderGraphPlayerRemoteDebugSession>();
 #endif
         }
 
@@ -1732,7 +1732,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void ClearCacheIfNewActiveDebugSession()
         {
-            if (RenderGraphDebugSession.hasActiveDebugSession && !s_DebugSessionWasActive)
+            if (RenderGraphDebugSessionManager.hasActiveDebugSession && !s_DebugSessionWasActive)
             {
                 // Invalidate cache whenever a debug session becomes active. This is because while the DebugSession is
                 // inactive, certain debug data (store/load/pass break audits) stored inside the compilation cache is
@@ -1740,12 +1740,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // This needs to be done before the compilation step.
                 m_CompilationCache?.Clear();
             }
-            s_DebugSessionWasActive = RenderGraphDebugSession.hasActiveDebugSession;
+            s_DebugSessionWasActive = RenderGraphDebugSessionManager.hasActiveDebugSession;
         }
 
         void GenerateDebugData(int graphHash)
         {
-            if (!RenderGraphDebugSession.hasActiveDebugSession || !m_CurrentExecutionCanGenerateDebugData || m_ExecutionExceptionWasRaised)
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession || !m_CurrentExecutionCanGenerateDebugData || m_ExecutionExceptionWasRaised)
                 return;
 
             var registeredExecutions = s_RegisteredExecutions[this];
@@ -1773,7 +1773,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 
             if (deletedExecutionIds.Count > 0)
-                RenderGraphDebugSession.currentDebugSession.DeleteExecutionIds(name, deletedExecutionIds); // Clear stale debug data entries for deleted cameras
+                RenderGraphDebugSessionManager.currentDebugSession.DeleteExecutionIds(name, deletedExecutionIds); // Clear stale debug data entries for deleted cameras
 
             if (!alreadyRegistered)
             {
@@ -1785,14 +1785,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (!m_EnableCompilationCaching)
                 graphHash = ComputeGraphHash();
 
-            var debugData = RenderGraphDebugSession.GetDebugData(name, m_CurrentExecutionId);
+            var debugData = RenderGraphDebugSessionManager.GetDebugData(name, m_CurrentExecutionId);
             bool cameraWasRenamed = debugData.executionName != currentExecutionName;
             if (debugData.valid && debugData.graphHash == graphHash && !cameraWasRenamed)
                 return; // No need to update
 
             // Don't update debug data when paused to keep the captured state frozen.
             // However, if paused but no valid data exists yet, capture once to initialize.
-            if ((RenderGraphDebugSession.currentDebugSession?.isPaused ?? false) && debugData.valid)
+            if ((RenderGraphDebugSessionManager.currentDebugSession?.isPaused ?? false) && debugData.valid)
                 return;
 
             debugData.Clear();
@@ -1802,7 +1802,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             nativeCompiler.GenerateNativeCompilerDebugData(ref debugData);
 
             debugData.valid = true;
-            RenderGraphDebugSession.currentDebugSession.SetDebugData(name, m_CurrentExecutionId, debugData);
+            RenderGraphDebugSessionManager.currentDebugSession.SetDebugData(name, m_CurrentExecutionId, debugData);
         }
 
         #endregion

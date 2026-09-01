@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    static partial class RenderGraphDebugSession
+    static partial class RenderGraphDebugSessionManager
     {
         internal class ExecutionQuery
         {
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 try
                 {
-                    var debugData = RenderGraphDebugSession.GetDebugData(graphName, executionId);
+                    var debugData = RenderGraphDebugSessionManager.GetDebugData(graphName, executionId);
                     if (debugData != null && debugData.valid)
                     {
                         var hash = HashFNV1A32.Create();
@@ -750,7 +750,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 errorOutput = null;
                 try
                 {
-                    debugData = RenderGraphDebugSession.currentDebugSession.GetDebugData(graphName, executionId);
+                    debugData = RenderGraphDebugSessionManager.currentDebugSession.GetDebugData(graphName, executionId);
                     if (debugData == null || !debugData.valid)
                     {
                         errorOutput = "Debug data is not valid. Ensure the render graph viewer is open and a frame has been rendered";

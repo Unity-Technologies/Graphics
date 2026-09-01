@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 int activeNativePassId = -1;
 #if UNITY_ENABLE_CHECKS
-                bool generatePassBreakAudits = RenderGraphDebugSession.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
+                bool generatePassBreakAudits = RenderGraphDebugSessionManager.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
 #endif
                 int indexSinceLastCulledPass = 0;
                 bool passWasCulled = false;
@@ -1382,7 +1382,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // As we have no pass reordering for now the merged passes are always a consecutive list and we can simply do a range
                 // check on the create/destroy passid to see if it's allocated/freed in this native renderpass
 #if UNITY_ENABLE_CHECKS
-                bool generateAudits = RenderGraphDebugSession.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
+                bool generateAudits = RenderGraphDebugSessionManager.hasActiveDebugSession || s_ForceGenerateAuditsForTests;
                 ref var currLoadAudit = ref s_EmptyLoadAudit;
                 ref var currStoreAudit = ref s_EmptyStoreAudit;
 #endif

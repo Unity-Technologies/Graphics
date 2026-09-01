@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Tests
 {
     /// <summary>
     /// Tests for RenderGraphDebugQuery using a serialized debug session fixture.
-    /// Tests that the query API correctly retrieves data from RenderGraphDebugSession.
+    /// Tests that the query API correctly retrieves data from RenderGraphDebugSessionManager.
     /// Validates against known data from the fixture file.
     /// </summary>
     [TestFixture]
@@ -79,15 +79,15 @@ namespace UnityEditor.Rendering.Tests
             Assert.IsTrue(System.IO.File.Exists(k_FixturePath), $"Test fixture not found at: {k_FixturePath}");
 
             var serializedSession = SerializedRenderGraphDebugSession.LoadFromFile(k_FixturePath);
-            RenderGraphDebugSession.BeginSession(serializedSession);
+            RenderGraphDebugSessionManager.BeginSession(serializedSession);
 
-            Assert.IsTrue(RenderGraphDebugSession.hasActiveDebugSession, "Session should be active after loading fixture");
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after loading fixture");
         }
 
         [OneTimeTearDown]
         public void TearDown()
         {
-            RenderGraphDebugSession.EndSession();
+            RenderGraphDebugSessionManager.EndSession();
         }
 
         #region Session
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Capture_CreatesValidQuery()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 Assert.IsNotNull(query, "Capture should return a query instance");
                 Assert.IsNotNull(query.session, "Query should have session info");
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphs_ReturnsCorrectGraphName()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var result = query.GetGraphs();
                 Assert.IsTrue(result.TryGetValue(out var graphs), "GetGraphs should succeed");
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetExecutions_ReturnsCorrectExecutionInfo()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var result = query.Graph(k_ExpectedGraphName).GetExecutions();
                 Assert.IsTrue(result.TryGetValue(out var executions), "GetExecutions should succeed");
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPasses_ReturnsCorrectPassCount()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPasses();
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPasses_ReturnsCorrectPassNames()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPasses();
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassByName_ReturnsCorrectPass()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPass_ByIndex_ReturnsCorrectPass()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetCulledPasses_ReturnsCorrectCount()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetCulledPasses();
@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetUnmergedPasses_ReturnsCorrectCount()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetUnmergedPasses();
@@ -252,7 +252,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResources_ReturnsCorrectResourceCount()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetResources();
@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResources_FilterByType_Texture()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetResources("Texture");
@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResources_VerifyTextureNames()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetResources("Texture");
@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceByName_ReturnsCorrectResource()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -326,7 +326,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceByName_ImportedResource()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -343,7 +343,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceByName_VerifyConsumerPasses()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -372,7 +372,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void FluentAPI_GraphExecution_GetPasses()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -387,7 +387,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void FluentAPI_GraphExecution_GetResources()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void FluentAPI_GraphExecution_GetPassByName()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -421,7 +421,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void ExecutionInfo_IncludesCaptureInfo()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var result = query.Graph(k_ExpectedGraphName).Execution(GetExecutionItem());
                 var captureInfo = result.GetCaptureInfo();
@@ -434,7 +434,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetCaptureInfo_ReturnsValidOutput()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetCaptureInfo();
@@ -451,7 +451,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void SessionInfo_DoesNotContainCaptureInfo()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var session = query.session;
 
@@ -474,7 +474,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_ReturnsValidOutput()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -545,7 +545,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_ContainsCullingInsight()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_ContainsResourceInsight()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -593,7 +593,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_ContainsPassDistributionInsight()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -619,7 +619,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_AllInsightsHaveValidData()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -637,7 +637,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetGraphMetrics_NoCulledPassesGeneratesCorrectInsight()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetGraphMetrics();
@@ -666,7 +666,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void ComputeTextureMemory_ValidatesFixtureTextures()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetResources("Texture");
@@ -690,7 +690,7 @@ namespace UnityEditor.Rendering.Tests
                             continue;
 
                         // Use reflection to call the private ComputeTextureMemory method
-                        var queryType = typeof(RenderGraphDebugSession).GetNestedType("ExecutionQuery",
+                        var queryType = typeof(RenderGraphDebugSessionManager).GetNestedType("ExecutionQuery",
                             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
 
                         if (queryType != null)
@@ -740,7 +740,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesByType_ReturnsRasterPasses()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPassesByType("Raster");
@@ -762,7 +762,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesByType_ReturnsComputePasses()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPassesByType("Compute");
@@ -777,7 +777,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesByType_IsCaseInsensitive()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
                 var resultLower = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPassesByType("raster");
@@ -793,7 +793,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesUsingResource_FindsResourceConsumers()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -843,7 +843,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesUsingResource_ReturnsEmptyForUnusedResource()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -861,7 +861,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetPassesUsingResource_IsCaseInsensitive()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -880,7 +880,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceProducerPass_ReturnsCreatorPass()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -902,7 +902,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceProducerPass_FailsForImportedResource()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -922,7 +922,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GetResourceProducerPass_FailsForNonExistentResource()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -941,7 +941,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_ReturnsErrorWhenDisposed()
         {
-            var query = RenderGraphDebugSession.CreateQueryScope();
+            var query = RenderGraphDebugSessionManager.CreateQueryScope();
             query.Dispose();
 
             var result = query.GetGraphs();
@@ -953,7 +953,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_ReturnsErrorForInvalidPassIndex()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -967,7 +967,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_ReturnsErrorForInvalidPassName()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -981,7 +981,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_ReturnsErrorForInvalidResourceType()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 
@@ -995,7 +995,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void Query_ReturnsErrorForInvalidResourceName()
         {
-            using (var query = RenderGraphDebugSession.CreateQueryScope())
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
             {
                 var executionItem = GetExecutionItem();
 

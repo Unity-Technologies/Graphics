@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public GraphInsight[] insights;
     }
 
-    static partial class RenderGraphDebugSession
+    static partial class RenderGraphDebugSessionManager
     {
         public static QueryScope CreateQueryScope()
         {
