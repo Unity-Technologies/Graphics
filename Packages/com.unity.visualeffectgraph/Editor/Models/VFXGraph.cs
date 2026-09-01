@@ -646,11 +646,24 @@ namespace UnityEditor.VFX
                 }
 
                 if (!isReadOnly) // if not from subgraph
+                {
                     Invalidate(InvalidationCause.kStructureChanged);
+                    InvalidateCustomAttributeUsers();
+                }
                 return true;
             }
 
             return false;
+        }
+
+        void InvalidateCustomAttributeUsers()
+        {
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            foreach (var node in GetRecursiveChildren().OfType<IHLSLCodeHolder>().ToArray())
+            {
+                node.ResetHLSLCache();
+                ((VFXModel)node).Invalidate(InvalidationCause.kSettingChanged);
+            }
         }
 
         public bool IsCustomAttributeUsed(string attributeName)
@@ -735,6 +748,7 @@ namespace UnityEditor.VFX
                 m_CustomAttributes.Remove(existingAttribute);
 
                 Invalidate(this, InvalidationCause.kStructureChanged);
+                InvalidateCustomAttributeUsers();
             }
         }
 
@@ -758,6 +772,7 @@ namespace UnityEditor.VFX
                 }
 
                 Invalidate(this, InvalidationCause.kStructureChanged);
+                InvalidateCustomAttributeUsers();
                 return true;
             }
 
@@ -792,7 +807,10 @@ namespace UnityEditor.VFX
                 }
 
                 if (isReadOnly == false || (isReadOnly == null && !customAttributeDescriptor.isReadOnly)) // if not from subgraph
+                {
                     Invalidate(this, InvalidationCause.kStructureChanged);
+                    InvalidateCustomAttributeUsers();
+                }
                 return true;
             }
 
