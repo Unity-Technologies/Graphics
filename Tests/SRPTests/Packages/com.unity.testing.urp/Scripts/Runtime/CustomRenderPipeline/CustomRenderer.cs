@@ -61,23 +61,55 @@ namespace UnityEngine.Rendering.Universal
             resourceData.EndFrame();
         }
 
+        private class InitShadowGlobalsPassData
+        {
+            internal MainLightShadowCasterPass mainLightShadowCasterPass;
+            internal AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass;
+        };
+
+        internal override void InitRenderGraphFrame(RenderGraph renderGraph)
+        {
+            base.InitRenderGraphFrame(renderGraph);
+
+            // The shadow passes record nothing in empty mode, so the default shadowmaps and the empty keywords/params
+            // have to be published here instead. Runs after the pass in base.InitRenderGraphFrame, which resets the shadow keywords.
+            using (var builder = renderGraph.AddUnsafePass<InitShadowGlobalsPassData>("Init Shadow Globals", out var passData))
+            {
+                passData.mainLightShadowCasterPass = m_MainLightShadowCasterPass;
+                passData.additionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPass;
+
+                builder.AllowGlobalStateModification(true);
+
+                TextureHandle defaultShadowTexture = renderGraph.defaultResources.defaultShadowTexture;
+                MainLightShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
+                AdditionalLightsShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
+
+                builder.SetRenderFunc(static (InitShadowGlobalsPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    data.mainLightShadowCasterPass.ApplyEmptyShadowmapGlobals(rgContext.cmd);
+                    data.additionalLightsShadowCasterPass.ApplyEmptyShadowmapGlobals(rgContext.cmd);
+                });
+            }
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
             SetupRenderGraphLights(renderGraph);
 
-            TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
-            TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
+            m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData);
+            m_MainLightShadowCasterPass.RecordRenderGraph(renderGraph, frameData);
+            TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
-                mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
-                additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
+            m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData);
+            m_AdditionalLightsShadowCasterPass.RecordRenderGraph(renderGraph, frameData);
+            TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
 
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;

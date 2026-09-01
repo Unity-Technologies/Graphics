@@ -689,6 +689,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal UniversalCameraData cameraData;
             internal UniversalGlobalShaderData shaderData;
+            internal ShadowPassGroup shadowPassGroup;
             internal TextureHandle target;
         };
 
@@ -699,8 +700,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cameraData = frameData.Get<UniversalCameraData>();
                 passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
+                passData.shadowPassGroup = m_ShadowPassGroup;
 
                 builder.AllowGlobalStateModification(true);
+
+                // Publish the default empty shadowmap as global here, because shadow passes are not recorded when shadows are disabled.
+                TextureHandle defaultShadowTexture = renderGraph.defaultResources.defaultShadowTexture;
+                MainLightShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
+                AdditionalLightsShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
 
                 builder.SetRenderFunc(static (InitPassData data, UnsafeGraphContext rgContext) =>
                 {
@@ -712,6 +719,10 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
 
                     data.shaderData.Get().PushDefaultToGlobal(cmd);
+
+                    // The shadow passes are not recorded when shadows are disabled, so set them here instead.
+                    data.shadowPassGroup.mainLightShadowmapPass.ApplyEmptyShadowmapGlobals(cmd);
+                    data.shadowPassGroup.additionalLightShadowmapPass.ApplyEmptyShadowmapGlobals(cmd);
                 });
             }
         }
@@ -917,14 +928,12 @@ namespace UnityEngine.Rendering.Universal
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             shadowData.shadowPassGroup = m_ShadowPassGroup;
-            m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, allowCachedShadowMap: false, shadowmapStencil: shadowmapStencil);
-            m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, allowCachedShadowMap: false, shadowmapStencil: shadowmapStencil);
 
-            if (m_ShadowPassGroup.isMainLightShadowCasting)
-                resourceData.mainShadowsTexture = m_ShadowPassGroup.mainLightShadowmapTexture;
+            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil);
+            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil);
 
-            if (m_ShadowPassGroup.isAdditionalLightShadowCasting)
-                resourceData.additionalShadowsTexture = m_ShadowPassGroup.additionalLightShadowmapTexture;
+            // Both shadow passes force the empty path for Depth-format targets, so calling SetupRenderGraphCameraProperties() is not needed
+            Debug.Assert(!willRenderShadowGeometry, "Offscreen Depth Texture rendering should not be rendering shadow geometry, as that would invalidate camera parameters that are not being re-setup here.");
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
@@ -950,19 +959,12 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
-            m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil: shadowmapStencil);
-            m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil: shadowmapStencil);
+            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil);
+            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil);
 
-            if (m_ShadowPassGroup.isMainLightShadowCasting)
-                resourceData.mainShadowsTexture = m_ShadowPassGroup.mainLightShadowmapTexture;
-
-            if (m_ShadowPassGroup.isAdditionalLightShadowCasting)
-                resourceData.additionalShadowsTexture = m_ShadowPassGroup.additionalLightShadowmapTexture;
-
-            // The camera need to be setup again after the shadows since those passes override some settings
-            // TODO RENDERGRAPH: move the setup code into the shadow passes
-            if (m_ShadowPassGroup.isRenderingShadows)
-                SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
+            // The camera needs to be set up again if actual shadow geometry was rendered, because it overwrites camera properties.
+            if (willRenderShadowGeometry)
+                SetupRenderGraphCameraProperties(renderGraph, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 

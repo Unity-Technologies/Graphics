@@ -105,12 +105,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal ShadowPassGroup shadowPassGroup;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-        /// <summary>True when this camera pass should reuse the shadow map rendered in the previous XR pass.</summary>
+        // True when this camera pass should reuse a previously rendered shadow map. Currently only used with XR QuadViews.
         internal bool useCachedShadowMap;
-        /// <summary>True when the camera is in a QuadView XR setup that supports shadow map caching.</summary>
-        internal bool supportShadowMapCaching;
-#endif
+        // True when shadow map caching is enabled for the camera. Currently only used with XR QuadViews.
+        internal bool shadowMapCachingEnabled;
 
         /// <inheritdoc/>
         public override void Reset()
@@ -144,10 +142,8 @@ namespace UnityEngine.Rendering.Universal
 
             emptyAdditionalLightShadowsBuffer = null;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
             useCachedShadowMap = false;
-            supportShadowMapCaching = false;
-#endif
+            shadowMapCachingEnabled = false;
         }
     }
 }

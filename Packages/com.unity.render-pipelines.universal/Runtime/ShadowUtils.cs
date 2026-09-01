@@ -5,6 +5,17 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // Mode describing how the main/additional shadow caster pass operates
+    internal enum ShadowPassMode
+    {
+        // Renders shadow casters into the atlas, then sets shadow keywords/params.
+        DrawGeometry,
+        // Reuses the shadow atlas rendered by a previous pass, only keywords/params are set.
+        ReuseCachedAtlas,
+        // Binds the default shadowmap and only sets keywords and empty params.
+        Empty
+    }
+
     /// <summary>
     /// Struct container for shadow slice data.
     /// </summary>
@@ -812,6 +823,24 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(light != null);
             GetShadowStrengthAndSoftShadows(light, additionalLightData, softShadowsEnabled, out float shadowStrength, out float softShadows);
             return new Vector4(shadowStrength, softShadows, lightTypeIdentifier, perLightFirstShadowSliceIndex);
+        }
+
+        internal static bool ShouldEnableKeywordForEmptyShadowmap(bool stripShadowsOffVariants, bool shadowsEnabled)
+        {
+            // Enable the realtime shadow keyword only when realtime shadows are enabled (so the shadows-on
+            // variant is kept in the build) and the shadows-off variants are stripped (so it is the
+            // only one available). The zeroed params below then make that variant resolve to no shadow.
+            return stripShadowsOffVariants && shadowsEnabled;
+        }
+
+        // Decides whether the empty (keyword-only) shadow pass should write real shadow params instead of the
+        // zeroed defaults. They are only needed when the shadows-off variants are stripped and either realtime
+        // shadows are enabled or a light samples shadowmasks (for example so its shadow strength can be used).
+        internal static bool ShouldComputeEmptyShadowmapParams(bool stripShadowsOffVariants, bool shadowsEnabled, bool lightCastsBakedShadows)
+        {
+            // Realtime shadows are off but the light still samples baked/mixed (shadowmask) shadows.
+            bool usesBakedShadows = !shadowsEnabled && lightCastsBakedShadows;
+            return stripShadowsOffVariants && (shadowsEnabled || usesBakedShadows);
         }
 
         internal static bool SupportsPerLightSoftShadowQuality()

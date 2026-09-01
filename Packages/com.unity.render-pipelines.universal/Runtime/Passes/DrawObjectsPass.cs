@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
                     {
                         MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
-                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData.emptyAdditionalLightShadowsBuffer);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
@@ -493,7 +493,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                     {
                         MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
-                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData.emptyAdditionalLightShadowsBuffer);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));
