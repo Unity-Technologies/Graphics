@@ -384,6 +384,25 @@ namespace UnityEditor.VFX.Test
                     "Template rows must not be individually focusable; keyboard focus and selection are owned by the tree.");
         }
 
+        [Test, Description("Covers UUM-150861")]
+        public void Template_Row_Contents_Have_No_Tab_Stops()
+        {
+            simulate.FrameUpdate();
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            Assert.IsTrue(treeView.focusable, "The list view must stay focusable.");
+
+            var rows = treeView.Query<VisualElement>(className: "unity-tree-view__item").ToList();
+            Assert.IsNotEmpty(rows, "Expected realized tree rows to inspect.");
+
+            var stops = rows
+                .SelectMany(row => row.Query<VisualElement>().ToList())
+                .Where(element => element.focusable)
+                .Select(element => $"{element.GetType().Name}#{element.name}")
+                .ToList();
+            Assert.IsEmpty(stops, "No row content may be a Tab stop: " + string.Join(", ", stops));
+        }
+
         [Test, Description("Covers UUM-143138")]
         public void Creating_From_A_Deleted_Template_Warns_And_Does_Not_Error()
         {
