@@ -18,6 +18,8 @@ namespace UnityEngine.TestTools.Graphics.Universal
     {
         // Targets shown in the inspector multi-select. Entry masks are bit-indexed into this array, so the
         // order is load-bearing: append only, never reorder or remove, or existing assets shift meaning.
+        // Obsolete targets keep their slot to preserve the bit indices above them.
+#pragma warning disable 0618
         public static readonly BuildTarget[] SelectableTargets =
         {
             BuildTarget.StandaloneOSX,
@@ -42,6 +44,7 @@ namespace UnityEngine.TestTools.Graphics.Universal
             BuildTarget.Switch2,
             BuildTarget.Kepler,
         };
+#pragma warning restore 0618
 
         [Serializable]
         public struct Entry
