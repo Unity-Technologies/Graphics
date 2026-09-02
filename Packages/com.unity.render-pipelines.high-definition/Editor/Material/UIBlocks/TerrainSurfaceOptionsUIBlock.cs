@@ -101,7 +101,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 terrain.materialTemplate.HasProperty(HDMaterialProperties.kEnableHeightBlend) &&
                 terrain.materialTemplate.GetFloat(HDMaterialProperties.kEnableHeightBlend) > 0;
 
-            terrainLayer.diffuseTexture = EditorGUILayout.ObjectField(Styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var diffuseTexture = EditorGUILayout.ObjectField(Styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Texture");
+                terrainLayer.diffuseTexture = diffuseTexture;
+            }
             TerrainLayerUtility.ValidateDiffuseTextureUI(terrainLayer.diffuseTexture);
 
             var diffuseRemapMin = terrainLayer.diffuseRemapMin;
@@ -138,11 +144,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Remap");
                 terrainLayer.diffuseRemapMin = diffuseRemapMin;
                 terrainLayer.diffuseRemapMax = diffuseRemapMax;
             }
 
-            terrainLayer.normalMapTexture = EditorGUILayout.ObjectField(Styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var normalMapTexture = EditorGUILayout.ObjectField(Styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Normal Map");
+                terrainLayer.normalMapTexture = normalMapTexture;
+            }
             TerrainLayerUtility.ValidateNormalMapTextureUI(terrainLayer.normalMapTexture, TerrainLayerUtility.CheckNormalMapTextureType(terrainLayer.normalMapTexture));
 
             if (terrainLayer.normalMapTexture != null)
@@ -153,11 +166,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.height = 16;
 
                 ++EditorGUI.indentLevel;
-                terrainLayer.normalScale = EditorGUI.FloatField(rect, Styles.normalScale, terrainLayer.normalScale);
+                EditorGUI.BeginChangeCheck();
+                var normalScale = EditorGUI.FloatField(rect, Styles.normalScale, terrainLayer.normalScale);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(terrainLayer, "Terrain Layer Normal Scale");
+                    terrainLayer.normalScale = normalScale;
+                }
                 --EditorGUI.indentLevel;
             }
 
-            terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? Styles.maskMapTexture : Styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? Styles.maskMapTexture : Styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map");
+                terrainLayer.maskMapTexture = maskMapTexture;
+            }
             TerrainLayerUtility.ValidateMaskMapTextureUI(terrainLayer.maskMapTexture);
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
@@ -243,6 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map Remap");
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
                 terrainLayer.smoothness = smoothness;

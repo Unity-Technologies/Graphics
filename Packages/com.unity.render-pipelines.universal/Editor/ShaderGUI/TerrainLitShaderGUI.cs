@@ -167,7 +167,13 @@ namespace UnityEditor.Rendering.Universal
             bool heightBlendAvailable = (terrainLayers.Length <= 4);
             bool heightBlend = heightBlendAvailable && terrain.materialTemplate.HasProperty(kEnableHeightBlend) && (terrain.materialTemplate.GetFloat(kEnableHeightBlend) > 0);
 
-            terrainLayer.diffuseTexture = EditorGUILayout.ObjectField(styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var diffuseTexture = EditorGUILayout.ObjectField(styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Texture");
+                terrainLayer.diffuseTexture = diffuseTexture;
+            }
             TerrainLayerUtility.ValidateDiffuseTextureUI(terrainLayer.diffuseTexture);
 
             var diffuseRemapMin = terrainLayer.diffuseRemapMin;
@@ -204,12 +210,19 @@ namespace UnityEditor.Rendering.Universal
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Remap");
                 terrainLayer.diffuseRemapMin = diffuseRemapMin;
                 terrainLayer.diffuseRemapMax = diffuseRemapMax;
             }
 
             // Display normal map UI
-            terrainLayer.normalMapTexture = EditorGUILayout.ObjectField(styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var normalMapTexture = EditorGUILayout.ObjectField(styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Normal Map");
+                terrainLayer.normalMapTexture = normalMapTexture;
+            }
             TerrainLayerUtility.ValidateNormalMapTextureUI(terrainLayer.normalMapTexture, TerrainLayerUtility.CheckNormalMapTextureType(terrainLayer.normalMapTexture));
 
             if (terrainLayer.normalMapTexture != null)
@@ -220,12 +233,24 @@ namespace UnityEditor.Rendering.Universal
                 rect.height = 16;
 
                 ++EditorGUI.indentLevel;
-                terrainLayer.normalScale = EditorGUI.FloatField(rect, styles.normalScale, terrainLayer.normalScale);
+                EditorGUI.BeginChangeCheck();
+                var normalScale = EditorGUI.FloatField(rect, styles.normalScale, terrainLayer.normalScale);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(terrainLayer, "Terrain Layer Normal Scale");
+                    terrainLayer.normalScale = normalScale;
+                }
                 --EditorGUI.indentLevel;
             }
 
             // Display the mask map UI and the remap controls
-            terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? styles.maskMapTexture : styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? styles.maskMapTexture : styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map");
+                terrainLayer.maskMapTexture = maskMapTexture;
+            }
             TerrainLayerUtility.ValidateMaskMapTextureUI(terrainLayer.maskMapTexture);
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
@@ -302,8 +327,14 @@ namespace UnityEditor.Rendering.Universal
                     // See also: TerrainLitGUI, TerrainLayerInspector.
                     if (TextureHasAlpha(terrainLayer.diffuseTexture))
                     {
-                        terrainLayer.smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(
+                        EditorGUI.BeginChangeCheck();
+                        var smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(
                             EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(terrainLayer, "Terrain Layer Smoothness Source");
+                            terrainLayer.smoothnessSource = smoothnessSource;
+                        }
 
                         if (terrainLayer.smoothnessSource == TerrainLayerSmoothnessSource.DiffuseAlphaChannel)
                         {
@@ -325,6 +356,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map Remap");
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
                 terrainLayer.smoothness = smoothness;
