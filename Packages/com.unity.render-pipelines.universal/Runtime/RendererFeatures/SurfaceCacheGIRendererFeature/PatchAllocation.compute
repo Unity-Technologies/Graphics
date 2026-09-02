@@ -43,7 +43,6 @@ float4x4 _PreviousClipToWorldTransforms[2];
 float3 _VolumeTargetPos;
 uint2 _LowResScreenSize;
 uint2 _FullResPixelOffset;
-int _UseMotionVectorSeeding;
 int _PatchWarping;
 
 uint CountLeadingZeroes(uint x)
@@ -166,9 +165,7 @@ void Allocate(uint2 lowResPixelPos)
             if (_FrameIdx != 0)
             {
                 const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
-                float2 reprojectedThreadUvPos = threadUvPos;
-                if (_UseMotionVectorSeeding)
-                    reprojectedThreadUvPos -= _CurrentFullResScreenMotionVectors[COORD_TEXTURE2D_X(fullResPixelPos)];
+                float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[COORD_TEXTURE2D_X(fullResPixelPos)];
                 if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
                 {
                     const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;

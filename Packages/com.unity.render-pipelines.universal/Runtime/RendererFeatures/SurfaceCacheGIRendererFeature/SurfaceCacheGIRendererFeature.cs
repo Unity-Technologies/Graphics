@@ -106,14 +106,6 @@ namespace UnityEngine.Rendering.Universal
         private const GraphicsFormat k_IrradianceL0Format = GraphicsFormat.R16G16B16A16_SFloat;
         private const GraphicsFormat k_IrradianceL1Format = GraphicsFormat.R8G8B8A8_UNorm;
 
-        // URP currently cannot render motion vectors properly in Scene View, so we disable it.
-        // https://jira.unity3d.com/browse/SRP-743
-        // When this is fixed, we probably want to enable this always.
-        static bool UseMotionVectorPatchSeeding(CameraType camType)
-        {
-            return camType == CameraType.Game;
-        }
-
         static bool TryGetSupportedRayTracingBackend(out RayTracingBackend backend)
         {
             if (RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware))
@@ -214,7 +206,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FullResIrradiances = Shader.PropertyToID("_FullResIrradiances");
             public static readonly int _FullResFlatNormals = Shader.PropertyToID("_FullResFlatNormals");
             public static readonly int _FullResShadedNormals = Shader.PropertyToID("_FullResShadedNormals");
-            public static readonly int _UseMotionVectorSeeding = Shader.PropertyToID("_UseMotionVectorSeeding");
             public static readonly int _ResultL0 = Shader.PropertyToID("_ResultL0");
             public static readonly int _ResultL10 = Shader.PropertyToID("_ResultL10");
             public static readonly int _ResultL11 = Shader.PropertyToID("_ResultL11");
@@ -518,7 +509,6 @@ namespace UnityEngine.Rendering.Universal
                 internal uint VolumeSpatialResolution;
                 internal uint VolumeCascadeCount;
                 internal uint RingConfigOffset;
-                internal bool UseMotionVectorSeeding;
                 internal GraphicsBuffer CascadeOffsets;
                 internal float VoxelMinSize;
                 internal bool PatchWarpingEnabled;
@@ -768,8 +758,6 @@ namespace UnityEngine.Rendering.Universal
                 var lowResScreenNdcDepthsHandle = renderGraph.ImportTexture(CurrentPerCameraState.LowResNdcDepths);
                 var cellAllocationMarkHandle = renderGraph.ImportBuffer(cache.Volume.CellAllocationMarks);
 
-                bool useMotionVectorPatchSeeding = UseMotionVectorPatchSeeding(cameraData.cameraType);
-
                 using (var builder = renderGraph.AddComputePass("Surface Cache Patch Allocation", out PatchAllocationPassData passData))
                 {
                     uint2 fullResScreenSize = new uint2((uint)cameraInfo.ScreenResolution.x, (uint)cameraInfo.ScreenResolution.y);
@@ -810,7 +798,6 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     passData.LowResScreenSize = lowResScreenSize;
-                    passData.UseMotionVectorSeeding = useMotionVectorPatchSeeding;
                     passData.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
                     passData.VoxelMinSize = cache.Volume.VoxelMinSize;
                     passData.PatchWarpingEnabled = cache.Volume.PatchWarpingEnabled;
@@ -1106,7 +1093,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
                 cmd.SetComputeIntParams(shader, ShaderIDs._FullResPixelOffset, (int)data.FullResPixelOffset.x, (int)data.FullResPixelOffset.y);
                 cmd.SetComputeIntParams(shader, ShaderIDs._LowResScreenSize, (int)data.LowResScreenSize.x, (int)data.LowResScreenSize.y);
-                cmd.SetComputeIntParam(shader, ShaderIDs._UseMotionVectorSeeding, data.UseMotionVectorSeeding ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VoxelMinSize);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._CurrentClipToWorldTransforms, data.CurrentClipToWorldTransforms);
@@ -1516,10 +1502,10 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnqueuePass(_worldPass);
             }
 
-            ScriptableRenderPassInput passInputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
-            if (UseMotionVectorPatchSeeding(camera.cameraType))
-                passInputs |= ScriptableRenderPassInput.Motion;
-
+            ScriptableRenderPassInput passInputs =
+                ScriptableRenderPassInput.Depth |
+                ScriptableRenderPassInput.Normal |
+                ScriptableRenderPassInput.Motion;
             _cameraPass.CurrentPerCameraState = perCameraState;
             _cameraPass.VolumeParams = volumeParams;
             _cameraPass.FocusPos = ResolveFocusPos(camera);
