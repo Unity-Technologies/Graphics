@@ -74,7 +74,7 @@ The following table lists the keyboard shortcuts you can use to add nodes in Sha
 | Negate            | Alt + -   | Option + -  |
 | Normal Vector     | Alt + N   | Option + N  |
 | Normalize         | Alt + Z   | Option + Z  |
-| One Minus         | Alt + \|  | Option + \| |
+| One Minus         | Alt + I   | Option + I  |
 | Position          | Alt + V   | Option + V  |
 | Power             | Alt + P   | Option + P  |
 | Remap             | Alt + R   | Option + R  |
