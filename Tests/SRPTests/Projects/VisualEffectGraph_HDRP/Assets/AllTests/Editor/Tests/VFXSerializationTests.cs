@@ -1501,26 +1501,37 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        static readonly Regex k_DiffusionProfileError = new Regex(@".*Diffusion Profile blackboard properties.*");
+        List<string> m_UnexpectedErrors;
+
+        void CollectUnexpectedErrors(string condition, string stackTrace, LogType type)
+        {
+            if ((type == LogType.Error || type == LogType.Exception || type == LogType.Assert)
+                && !k_DiffusionProfileError.IsMatch(condition))
+                m_UnexpectedErrors.Add(condition);
+        }
+
         [UnityTest, Description("Cover regression UUM-13863")]
         public IEnumerator Crash_On_StoreObject_While_Modifying_SG()
         {
             var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
             var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
 
-            var diffusionProfileError = new Regex(@".*Diffusion Profile blackboard properties.*");
+            // The repro's unsupported blackboard property logs one error per full compile, and how many compiles a
+            // refresh runs is not fixed, so the count can't be asserted. Tolerate any number of that one diagnostic
+            // and fail on any other error, which LogAssert alone cannot express.
+            m_UnexpectedErrors = new List<string>();
+            Application.logMessageReceived += CollectUnexpectedErrors;
+            LogAssert.ignoreFailingMessages = true;
 
             System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
 
-            // With OOP import enabled, this error may appear twice (worker & main process)
-            LogAssert.Expect(LogType.Error, diffusionProfileError);
             AssetDatabase.Refresh();
             yield return null;
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
             Assert.IsNotNull(asset);
 
-            // With OOP import enabled, this error may appear twice (worker & main process)
-            LogAssert.Expect(LogType.Error, diffusionProfileError);
             VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0);
             var window = VFXTestCommon.GetWindow(asset);
             window.LoadAsset(asset, null);
@@ -1533,15 +1544,11 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotEmpty(backupSGContent);
             Assert.IsNotEmpty(newSGContent);
 
-            // With OOP import enabled, this error may appear twice (worker & main process)
-            LogAssert.Expect(LogType.Error, diffusionProfileError);
             File.WriteAllBytes(baseFilePath, newSGContent);
             AssetDatabase.Refresh();
             for (int i = 0; i < 4; ++i)
                 yield return null;
 
-            // With OOP import enabled, this error may appear twice (worker & main process)
-            LogAssert.Expect(LogType.Error, diffusionProfileError);
             File.WriteAllBytes(baseFilePath, backupSGContent);
             AssetDatabase.Refresh();
 
@@ -1551,11 +1558,19 @@ namespace UnityEditor.VFX.Test
             window.Close();
             for (int i = 0; i < 4; ++i)
                 yield return null;
+
+            CollectionAssert.IsEmpty(m_UnexpectedErrors, "Unexpected error(s) logged: " + string.Join(" | ", m_UnexpectedErrors));
         }
 
         [TearDown]
         public void Clean()
         {
+            if (m_UnexpectedErrors != null)
+            {
+                Application.logMessageReceived -= CollectUnexpectedErrors;
+                m_UnexpectedErrors = null;
+            }
+
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 

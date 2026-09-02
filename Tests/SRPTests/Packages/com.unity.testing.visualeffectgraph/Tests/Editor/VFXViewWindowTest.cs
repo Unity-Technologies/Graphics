@@ -460,70 +460,6 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(asset));
         }
 
-        static string[] k_Check_Skip_Import_While_Opening_Windows_Scenario = {"Import", "Save"};
-
-        [UnityTest]
-        public IEnumerator Check_Skip_Import_While_Opening_Windows([ValueSource(nameof(k_Check_Skip_Import_While_Opening_Windows_Scenario))] string scenario)
-        {
-            var graph = VFXTestCommon.CreateGraph_And_System();
-
-            //We are using SG Output to detect relevant change among asset listing while switch editor/runtime
-            var sgOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
-            sgOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
-            var updateContext = graph.children.OfType<VFXBasicUpdate>().Single();
-            updateContext.LinkTo(sgOutput);
-            graph.AddChild(sgOutput);
-            Assert.IsTrue(EditorUtility.IsDirty(graph));
-
-            var path = AssetDatabase.GetAssetPath(graph);
-            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            var window = VFXTestCommon.GetViewWindow();
-
-            //Insure Closing is saving to cover runtime mode on save
-            var defaultMockView = new Mock<IVFXViewEditorAssetEventHandler>();
-            defaultMockView.Setup(x => x.AskAssetChangedBeforeClose(It.IsAny<string>())).Returns(AskAssetChangedBeforeCloseChoice.Save);
-            window.graphView.AssetEventHandler = defaultMockView.Object;
-
-            Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(asset));
-            Assert.AreEqual(1, AssetDatabase.LoadAllAssetsAtPath(path).OfType<Material>().Count()); //New SG Output isn't listed
-
-            window.LoadResource(graph.GetResource(), null);
-            for (int i = 0; i < 4; ++i)
-            {
-                if (VisualEffectAssetUtility.GetCompilationMode(asset) == VFXCompilationMode.Edition)
-                    break;
-                yield return null;
-            }
-            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(asset));
-
-            if (scenario == "Import")
-            {
-                AssetDatabase.ImportAsset(path);
-                Assert.IsTrue(EditorUtility.IsDirty(graph));
-            }
-            else
-            {
-                window.SaveChanges();
-                Assert.IsFalse(EditorUtility.IsDirty(graph));
-            }
-
-            for (int i = 0; i < 4; ++i)
-            {
-                Assert.AreEqual(3, AssetDatabase.LoadAllAssetsAtPath(path).OfType<Material>().Count()); //New SG Output is listed in editor mode (with variant)
-                Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(asset));
-                yield return null;
-            }
-
-            window.Close();
-            Assert.IsFalse(EditorUtility.IsDirty(graph));
-            for (int i = 0; i < 4; ++i)
-            {
-                Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(asset));
-                Assert.AreEqual(2, AssetDatabase.LoadAllAssetsAtPath(path).OfType<Material>().Count()); //New SG Output is listed in runtime mode (no variant)
-                yield return null;
-            }
-        }
-
         [UnityTest]
         public IEnumerator Check_Toggle_Behavior()
         {
@@ -1153,40 +1089,6 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNull(view.AssetEventHandler, "DisconnectController might not have been invoked.");
             }
         }
-
-        [UnityTest]
-        public IEnumerator Insure_Unregister_Authoring_Data_Is_Done_When_Closing()
-        {
-            var graph = VFXTestCommon.CreateGraph_And_System();
-            var resource = graph.GetResource();
-            var path = AssetDatabase.GetAssetPath(resource);
-            var guid = AssetDatabase.GUIDFromAssetPath(path);
-
-            VFXTestCommon.CloseAllVFXWindow();
-            var windowSubGraph = VFXTestCommon.GetWindow(resource, true, true);
-            windowSubGraph.LoadResource(resource, null);
-            for (int frame = 0; frame < 2; ++frame)
-                yield return null;
-            Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(resource.asset));
-
-            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
-
-            LogAssert.Expect(LogType.Error, new Regex(@".*Already registered.*"));
-            VFXGraph.RegisterAuthoringCompileData(guid);
-
-            VFXTestCommon.CloseAllVFXWindow();
-            yield return null;
-
-            Assert.AreEqual(0, VFXViewWindow.GetAllWindows().Count());
-            Assert.AreEqual(VFXCompilationMode.Runtime, VisualEffectAssetUtility.GetCompilationMode(resource.asset));
-
-            LogAssert.Expect(LogType.Error, new Regex(@".*unknown authoring guid.*"));
-            VFXGraph.UnregisterAuthoringCompileData(guid);
-
-            Assert.DoesNotThrow(() => VFXGraph.RegisterAuthoringCompileData(guid));
-            Assert.DoesNotThrow(() => VFXGraph.UnregisterAuthoringCompileData(guid));
-        }
-
 
         [UnityTest, Description("Corner case discovered while verifying #73468")]
         public IEnumerator ConvertToSubGraph_With_CustomHLSL()

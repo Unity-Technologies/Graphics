@@ -123,7 +123,6 @@ namespace UnityEditor.VFX
                         {
                             if (resource.asset != null)
                             {
-                                //Not only CompileAndUpdateAsset to be sure UpdateAuthoringCompileData
                                 window.graphView.Compile();
                             }
                             else
@@ -203,7 +202,6 @@ namespace UnityEditor.VFX
         static VFXGraphPreprocessor()
         {
             VisualEffectResource.onFilterImportDependencies = OnFilterImportDependencies;
-            VisualEffectResource.onEarlyGetAuthoringCompileData = VFXGraph.TryRetrieveVisualEffectAssetDescFromAuthoringToImport;
             VisualEffectResource.onCompileResource = OnCompileResource;
         }
     }
@@ -1473,73 +1471,6 @@ namespace UnityEditor.VFX
             m_PreviewAsset.Clear();
         }
 
-        class AuthoringBackupResult
-        {
-            public VFXCompileOutput output;
-            public bool instancingEnabled;
-            public bool initialVariant;
-            public VFXCompilationMode mode;
-        }
-
-        //N.B.: This static won't survive with domain reload: with dirty vfx, entering playmode then save don't use the fast path
-        static readonly Dictionary<GUID, AuthoringBackupResult> s_AuthoringCompilationOutput = new();
-        public static bool TryRetrieveVisualEffectAssetDescFromAuthoringToImport(GUID guid, AssetImportContext ctx, out VisualEffectAssetDesc desc)
-        {
-            if (!s_AuthoringCompilationOutput.TryGetValue(guid, out var authoringBackup)
-                || authoringBackup == null
-                || !authoringBackup.output.success)
-            {
-                desc = default;
-                return false;
-            }
-
-            desc = GenerateVisualEffectAssetDesc(authoringBackup.output, authoringBackup.instancingEnabled, authoringBackup.initialVariant, authoringBackup.mode, ctx, null);
-            return true;
-        }
-
-        public static void RegisterAuthoringCompileData(GUID guid)
-        {
-            if (guid.Empty())
-                throw new InvalidOperationException("Unexpected empty guid");
-
-            if (!s_AuthoringCompilationOutput.TryAdd(guid, new AuthoringBackupResult()))
-                Debug.LogError("Already registered authoring guid: " + guid);
-        }
-
-        public static void UpdateAuthoringCompileData(GUID guid, VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode)
-        {
-            if (guid.Empty())
-                throw new InvalidOperationException("Unexpected empty guid");
-
-            if (!s_AuthoringCompilationOutput.TryGetValue(guid, out var authoringBackup) || authoringBackup == null)
-                throw new InvalidOperationException("Not registered guid: " + guid);
-
-            authoringBackup.output = output;
-            authoringBackup.instancingEnabled = instancingEnabled;
-            authoringBackup.initialVariant = initialVariant;
-            authoringBackup.mode = mode;
-        }
-
-        public static void UpdateAuthoringValues(GUID guid, VFXExpressionValueContainerDesc[] expressionValues)
-        {
-            if (guid.Empty())
-                throw new InvalidOperationException("Unexpected empty guid");
-
-            if (!s_AuthoringCompilationOutput.TryGetValue(guid, out var authoringBackup) || authoringBackup == null)
-                throw new InvalidOperationException("Not registered guid: " + guid);
-
-            authoringBackup.output.assetDesc.sheet.values = expressionValues;
-        }
-
-        public static void UnregisterAuthoringCompileData(GUID guid)
-        {
-            if (guid.Empty())
-                throw new InvalidOperationException("Unexpected empty guid");
-
-            if (!s_AuthoringCompilationOutput.Remove(guid))
-                Debug.LogError("Trying to remove unknown authoring guid: " + guid);
-        }
-
         static void AddObjectToAsset(AssetImportContext ctx, UnityObject newObject, Dictionary<string, int> uniqueIdTracker)
         {
             var currentId = newObject.name;
@@ -1556,7 +1487,7 @@ namespace UnityEditor.VFX
             ctx.AddObjectToAsset(currentId, newObject);
         }
 
-        internal (VisualEffectAssetDesc desc, VFXCompileOutput output, List<UnityObject> previewShaders) GenerateVisualEffectAssetDesc(bool instancingEnabled, bool compileInitialVariant, AssetImportContext ctx)
+        internal (VisualEffectAssetDesc desc, List<UnityObject> previewShaders) GenerateVisualEffectAssetDesc(bool instancingEnabled, bool compileInitialVariant, AssetImportContext ctx)
         {
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::GenerateVisualAssetDesc {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)}");
@@ -1565,7 +1496,7 @@ namespace UnityEditor.VFX
 
             var previewShaders = new List<UnityObject>();
             var desc = GenerateVisualEffectAssetDesc(output, instancingEnabled, compileInitialVariant, m_CompilationMode, ctx, previewShaders);
-            return (desc, output, previewShaders);
+            return (desc, previewShaders);
         }
 
         static readonly ProfilerMarker k_GenerateVisualEffectAssetDescMaker = new("VFXEditor.GenerateVisualEffectAssetDescFromCompileOutput");
@@ -1728,7 +1659,7 @@ namespace UnityEditor.VFX
             return new VisualEffectAssetDesc() { compilationMode = compilationMode };
         }
 
-        internal (VFXCompileOutput output, bool instancingEnabled, bool initialVariant, VFXCompilationMode mode) CompileAndUpdateAsset(VisualEffectAsset asset)
+        internal void CompileAndUpdateAsset(VisualEffectAsset asset)
         {
             if (VFXViewPreference.advancedLogs)
                 Debug.Log($"VfxGraph::CompileAndUpdateAsset {this.GetEntityId()} {name} {AssetDatabase.GetAssetPath(this)}");
@@ -1740,8 +1671,6 @@ namespace UnityEditor.VFX
             ClearPreviewAssets(); //Must precede SetVisualEffectAssetDesc immediately, prevents crash from deleted asset (See MainThreadCleanUp)
             VisualEffectAssetUtility.SetVisualEffectAssetDesc(asset, generate.desc);
             m_PreviewAsset = generate.previewShaders;
-
-            return (generate.output, instancingEnabled, initialVariant, m_CompilationMode);
         }
 
         internal void UpdateMaterialIfDirty()
@@ -1756,19 +1685,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal VFXExpressionValueContainerDesc[] UpdateValuesIfDirty()
+        internal void UpdateValuesIfDirty()
         {
             if (GetResource().isSubgraph)
-                return null;
+                return;
 
-            VFXExpressionValueContainerDesc[] updatedValues = null;
             if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
                 if (ExpressionCompiledData != null)
-                    updatedValues = ExpressionCompiledData.UpdateValues(GetResource().asset);
+                    ExpressionCompiledData.UpdateValues(GetResource().asset);
                 m_ExpressionValuesDirty = false;
             }
-            return updatedValues;
         }
 
         public void RegisterCompileError(string error, string description, VFXModel model)

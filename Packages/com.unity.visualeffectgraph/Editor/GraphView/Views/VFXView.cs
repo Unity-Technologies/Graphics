@@ -222,7 +222,6 @@ namespace UnityEditor.VFX.UI
         void DisconnectController(VFXViewController previousController)
         {
             isDisconnecting = true;
-            VFXGraph.UnregisterAuthoringCompileData(previousController.Guid);
             var path = AssetDatabase.GUIDToAssetPath(previousController.Guid);
 
             //N.B.: This behavior shouldn't belong to view but VFXViewWindow
@@ -367,7 +366,6 @@ namespace UnityEditor.VFX.UI
 
             SceneView.duringSceneGui += OnSceneGUI;
             AssetEventHandler ??= this;
-            VFXGraph.RegisterAuthoringCompileData(controller.Guid);
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler);
         }
 
@@ -1964,24 +1962,16 @@ namespace UnityEditor.VFX.UI
             if (graph == null)
                 return;
 
-            var sheet = graph.UpdateValuesIfDirty();
+            graph.UpdateValuesIfDirty();
             graph.UpdateMaterialIfDirty();
-            if (sheet != null)
-            {
-                var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
-                VFXGraph.UpdateAuthoringValues(assetGuid, sheet);
-            }
         }
 
         public static void CompileAndUpdateAsset(VFXGraph graph)
         {
             var asset = graph.GetResource().asset;
-            var output = graph.CompileAndUpdateAsset(asset);
+            graph.CompileAndUpdateAsset(asset);
             // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
             graph.SetExpressionGraphDirty(false);
-
-            var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
-            VFXGraph.UpdateAuthoringCompileData(assetGuid, output.output, output.instancingEnabled, output.initialVariant, output.mode);
         }
 
         internal void Compile()
