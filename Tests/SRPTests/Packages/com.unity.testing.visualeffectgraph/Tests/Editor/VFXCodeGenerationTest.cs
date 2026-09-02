@@ -1116,12 +1116,13 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        static void CreateSystemFromCustomTemplate(VFXGraph graph)
+        static void CreateSystemFromCustomTemplate(VFXGraph graph, string templatePathWithoutExtension)
         {
             var output = ScriptableObject.CreateInstance<VFXPointOutput>();
             graph.AddChild(output);
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXTestInitializeFromCustomTemplate>();
+            contextInitialize.templatePathWithoutExtension = templatePathWithoutExtension;
             var contextUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
             graph.AddChild(contextUpdate);
             contextInitialize.LinkTo(contextUpdate);
@@ -1145,46 +1146,40 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(templatePath);
             Assert.IsFalse(AssetDatabase.GUIDFromAssetPath(templatePath).Empty(), $"'{templatePath}' must be imported for the code generator to register it as a dependency.");
 
-            VFXTestInitializeFromCustomTemplate.templatePathWithoutExtension = templatePath.Substring(0, templatePath.Length - templateExtension.Length);
+            var templatePathWithoutExtension = templatePath.Substring(0, templatePath.Length - templateExtension.Length);
+
+            var dependentPaths = new List<string>();
+            for (var i = 0; i < 3; ++i)
+            {
+                var dependentGraph = VFXTestCommon.MakeTemporaryGraph();
+                CreateSystemFromCustomTemplate(dependentGraph, templatePathWithoutExtension);
+                VFXTestCommon.ReimportVFXGraph(dependentGraph);
+
+                var dependentPath = AssetDatabase.GetAssetPath(dependentGraph);
+                Assert.IsNotEmpty(dependentPath);
+                AssetDatabase.ImportAsset(dependentPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                dependentPaths.Add(dependentPath);
+            }
+
+            var unrelatedPath = AssetDatabase.GetAssetPath(VFXTestCommon.CreateGraph_And_System());
+            Assert.IsNotEmpty(unrelatedPath);
+
+            ImportedAssetsRecorder.ImportedAssets.Clear();
+            ImportedAssetsRecorder.Enabled = true;
             try
             {
-                var dependentPaths = new List<string>();
-                for (var i = 0; i < 3; ++i)
-                {
-                    var dependentGraph = VFXTestCommon.MakeTemporaryGraph();
-                    CreateSystemFromCustomTemplate(dependentGraph);
-                    VFXTestCommon.ReimportVFXGraph(dependentGraph);
-
-                    var dependentPath = AssetDatabase.GetAssetPath(dependentGraph);
-                    Assert.IsNotEmpty(dependentPath);
-                    AssetDatabase.ImportAsset(dependentPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-                    dependentPaths.Add(dependentPath);
-                }
-
-                var unrelatedPath = AssetDatabase.GetAssetPath(VFXTestCommon.CreateGraph_And_System());
-                Assert.IsNotEmpty(unrelatedPath);
-
-                ImportedAssetsRecorder.ImportedAssets.Clear();
-                ImportedAssetsRecorder.Enabled = true;
-                try
-                {
-                    File.AppendAllText(templatePath, "\n");
-                    AssetDatabase.Refresh();
-                }
-                finally
-                {
-                    ImportedAssetsRecorder.Enabled = false;
-                }
-
-                foreach (var dependentPath in dependentPaths)
-                    Assert.That(ImportedAssetsRecorder.ImportedAssets, Does.Contain(dependentPath));
-
-                Assert.That(ImportedAssetsRecorder.ImportedAssets, Does.Not.Contain(unrelatedPath));
+                File.AppendAllText(templatePath, "\n");
+                AssetDatabase.Refresh();
             }
             finally
             {
-                VFXTestInitializeFromCustomTemplate.templatePathWithoutExtension = null;
+                ImportedAssetsRecorder.Enabled = false;
             }
+
+            foreach (var dependentPath in dependentPaths)
+                Assert.That(ImportedAssetsRecorder.ImportedAssets, Does.Contain(dependentPath));
+
+            Assert.That(ImportedAssetsRecorder.ImportedAssets, Does.Not.Contain(unrelatedPath));
         }
     }
 }

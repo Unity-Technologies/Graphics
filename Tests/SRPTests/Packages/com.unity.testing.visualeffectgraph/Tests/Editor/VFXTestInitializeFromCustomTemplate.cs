@@ -1,9 +1,20 @@
+using UnityEngine;
+
 namespace UnityEditor.VFX.Test
 {
     class VFXTestInitializeFromCustomTemplate : VFXBasicInitialize
     {
-        public static string templatePathWithoutExtension;
+        // Serialized into the .vfx rather than held in a static: codeGeneratorTemplate is read while the effect
+        // is imported, and that import can run on an asset import worker, which has none of our statics.
+        [SerializeField]
+        string m_TemplatePathWithoutExtension;
 
-        public override string codeGeneratorTemplate => templatePathWithoutExtension;
+        public string templatePathWithoutExtension
+        {
+            get => m_TemplatePathWithoutExtension;
+            set => m_TemplatePathWithoutExtension = value;
+        }
+
+        public override string codeGeneratorTemplate => m_TemplatePathWithoutExtension;
     }
 }
