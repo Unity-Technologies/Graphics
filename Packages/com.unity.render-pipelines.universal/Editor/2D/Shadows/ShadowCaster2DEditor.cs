@@ -82,19 +82,19 @@ namespace UnityEditor.Rendering.Universal
 
         private static class Styles
         {
-            public static readonly GUIContent shadowShape2DProvider = EditorGUIUtility.TrTextContent("Shadow Shape 2D Provider", "");
-            public static readonly GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
-            public static readonly GUIContent castingSourcePrefixLabel = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source used for projected shadows");
-            public static readonly GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
-            public static readonly GUIContent shadowShapeTrim = EditorGUIUtility.TrTextContent("Trim Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
-            public static readonly GUIContent alphaCutoff = EditorGUIUtility.TrTextContent("Alpha Cutoff", "Required for correct unshadowed sprite overlap.");
-            public static readonly GUIContent castingOption = EditorGUIUtility.TrTextContent("Casting Option", "Specifies how to draw the shadow used with the ShadowCaster2D");
-            public static readonly GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
-            public static readonly GUIContent buttonText = EditorGUIUtility.TrTextContent("Install 2D Common Package");
-            public static readonly GUIContent helpBox = EditorGUIUtility.TrTextContent("2D Common Package is required to edit ShadowCaster 2D Shape. Please install it by clicking button above");
-            public static readonly GUIContent none = EditorGUIUtility.TrTextContent("None");
-            public static readonly GUIContent providerFoldoutLabel = EditorGUIUtility.TrTextContent("Provider");
-            public static readonly GUIContent shapeEditor = EditorGUIUtility.TrTextContent("Shape Editor");
+            public static readonly GUIContent shadowShape2DProvider = L10n.TextContent("Shadow Shape 2D Provider", "", null, null);
+            public static readonly GUIContent castsShadows = L10n.TextContent("Casts Shadows", "Specifies if this renderer will cast shadows", null, null);
+            public static readonly GUIContent castingSourcePrefixLabel = L10n.TextContent("Casting Source", "Specifies the source used for projected shadows", null, null);
+            public static readonly GUIContent sortingLayerPrefixLabel = L10n.TextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.", null, null);
+            public static readonly GUIContent shadowShapeTrim = L10n.TextContent("Trim Edge", "This contracts the edge of the shape given by the shape provider by the specified amount", null, null);
+            public static readonly GUIContent alphaCutoff = L10n.TextContent("Alpha Cutoff", "Required for correct unshadowed sprite overlap.", null, null);
+            public static readonly GUIContent castingOption = L10n.TextContent("Casting Option", "Specifies how to draw the shadow used with the ShadowCaster2D", null, null);
+            public static readonly GUIContent castingSource = L10n.TextContent("Casting Source", "Specifies the source of the shape used for projected shadows", null, null);
+            public static readonly GUIContent buttonText = L10n.TextContent("Install 2D Common Package", null, null, null);
+            public static readonly GUIContent helpBox = L10n.TextContent("2D Common Package is required to edit ShadowCaster 2D Shape. Please install it by clicking button above", null, null, null);
+            public static readonly GUIContent none = L10n.TextContent("None", null, null, null);
+            public static readonly GUIContent providerFoldoutLabel = L10n.TextContent("Provider", null, null, null);
+            public static readonly GUIContent shapeEditor = L10n.TextContent("Shape Editor", null, null, null);
         }
 
         SerializedProperty m_CastingOption;

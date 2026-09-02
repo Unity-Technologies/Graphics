@@ -1166,22 +1166,22 @@ namespace UnityEditor.Rendering
             /// <summary>
             /// Shader Stripping
             /// </summary>
-            public static readonly GUIContent shaderStrippingSettingsLabel = EditorGUIUtility.TrTextContent("Shader Stripping", "Shader Stripping settings");
+            public static readonly GUIContent shaderStrippingSettingsLabel = L10n.TextContent("Shader Stripping", "Shader Stripping settings", null, null);
 
             /// <summary>
             /// Shader Variant Log Level
             /// </summary>
-            public static readonly GUIContent shaderVariantLogLevelLabel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level of logging of shader variant information outputted during the build process. Information appears in the Unity Console when the build finishes.");
+            public static readonly GUIContent shaderVariantLogLevelLabel = L10n.TextContent("Shader Variant Log Level", "Controls the level of logging of shader variant information outputted during the build process. Information appears in the Unity Console when the build finishes.", null, null);
 
             /// <summary>
             /// Export Shader Variants
             /// </summary>
-            public static readonly GUIContent exportShaderVariantsLabel = EditorGUIUtility.TrTextContent("Export Shader Variants", "Controls whether to output shader variant information to a file.");
+            public static readonly GUIContent exportShaderVariantsLabel = L10n.TextContent("Export Shader Variants", "Controls whether to output shader variant information to a file.", null, null);
 
             /// <summary>
             /// Stripping Of Rendering Debugger Shader Variants is enabled
             /// </summary>
-            public static readonly GUIContent stripRuntimeDebugShadersLabel = EditorGUIUtility.TrTextContent("Strip Runtime Debug Shaders", "When enabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but disables some features of Rendering Debugger in Player builds.");
+            public static readonly GUIContent stripRuntimeDebugShadersLabel = L10n.TextContent("Strip Runtime Debug Shaders", "When enabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but disables some features of Rendering Debugger in Player builds.", null, null);
         }
 
         /// <summary>

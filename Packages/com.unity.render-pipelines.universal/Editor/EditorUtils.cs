@@ -26,11 +26,11 @@ namespace UnityEditor.Rendering.Universal
             //Measurements
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            public static readonly GUIContent alembicMotionVectors = EditorGUIUtility.TrTextContent("Alembic Motion Vectors",
-                "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.");
+            public static readonly GUIContent alembicMotionVectors = L10n.TextContent("Alembic Motion Vectors",
+                "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.", null, null);
 
-            public static readonly GUIContent xrMotionVectorsPass = EditorGUIUtility.TrTextContent("XR Motion Vectors Pass (Space Warp)",
-                "When enabled, the material will run the XR motion vectors pass to be compatible with Space Warp.");
+            public static readonly GUIContent xrMotionVectorsPass = L10n.TextContent("XR Motion Vectors Pass (Space Warp)",
+                "When enabled, the material will run the XR motion vectors pass to be compatible with Space Warp.", null, null);
         }
 
         // Shared by the SG target inspector and the material inspector so the two never drift.

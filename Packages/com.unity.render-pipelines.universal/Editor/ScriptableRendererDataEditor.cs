@@ -248,20 +248,20 @@ namespace UnityEditor.Rendering.Universal
             var menu = new GenericMenu();
 
             if (id == 0)
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
+                menu.AddDisabledItem(L10n.TextContent("Move Up", null, null, null));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
+                menu.AddItem(L10n.TextContent("Move Up", null, null, null), false, () => MoveComponent(id, -1));
 
             if (id == m_RendererFeatures.arraySize - 1)
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
+                menu.AddDisabledItem(L10n.TextContent("Move Down", null, null, null));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
+                menu.AddItem(L10n.TextContent("Move Down", null, null, null), false, () => MoveComponent(id, 1));
 
             if(rendererFeatureObject?.GetType() == typeof(FullScreenPassRendererFeature))
                 menu.AddAdvancedPropertiesBoolMenuItem();
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddItem(L10n.TextContent("Remove", null, null, null), false, () => RemoveComponent(id));
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }

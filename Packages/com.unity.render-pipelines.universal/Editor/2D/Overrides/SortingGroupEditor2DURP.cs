@@ -18,14 +18,14 @@ namespace UnityEditor
 
         private static class GUIStyles
         {
-            public static GUIContent Default = EditorGUIUtility.TrTextContent("Sorting Type",
-               "Default sorting based on sorting layer and sorting order.");
+            public static GUIContent Default = L10n.TextContent("Sorting Type",
+               "Default sorting based on sorting layer and sorting order.", null, null);
 
-            public static GUIContent sortAtRootStyle = EditorGUIUtility.TrTextContent("Sorting Type",
-                "Ignores all parent Sorting Groups and sorts at the root level against other Sorting Groups and Renderers");
+            public static GUIContent sortAtRootStyle = L10n.TextContent("Sorting Type",
+                "Ignores all parent Sorting Groups and sorts at the root level against other Sorting Groups and Renderers", null, null);
 
-            public static GUIContent sort3DAs2D = EditorGUIUtility.TrTextContent("Sorting Type",
-                "Clears z values on 3D meshes affected by a Sorting Group allowing them to sort with other 2D objects and Sort 3D as 2D sorting groups. This option also enables Sort At Root");
+            public static GUIContent sort3DAs2D = L10n.TextContent("Sorting Type",
+                "Clears z values on 3D meshes affected by a Sorting Group allowing them to sort with other 2D objects and Sort 3D as 2D sorting groups. This option also enables Sort At Root", null, null);
         }
 
         private SerializedProperty m_Sort3DAs2D;

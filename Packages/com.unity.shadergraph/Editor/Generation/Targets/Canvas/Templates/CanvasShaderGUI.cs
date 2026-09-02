@@ -19,11 +19,11 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
         {
             // Categories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options",
-                    "Controls the rendering states of the fullscreen material.");
+                L10n.TextContent("Surface Options",
+                    "Controls the rendering states of the fullscreen material.", null, null);
 
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
-                "These settings describe the look and feel of the surface itself.");
+            public static readonly GUIContent SurfaceInputs = L10n.TextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.", null, null);
         }
         public bool m_FirstTimeApply = true;
 

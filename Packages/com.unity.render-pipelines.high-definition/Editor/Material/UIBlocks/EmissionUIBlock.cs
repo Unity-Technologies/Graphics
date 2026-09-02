@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static readonly GUIContent header = EditorGUIUtility.TrTextContent("Emission Inputs");
+            public static readonly GUIContent header = L10n.TextContent("Emission Inputs", null, null, null);
 
             public static GUIContent emissiveMap = new GUIContent("Emissive Map", "Specifies the emissive color (RGB) of the Material.");
 

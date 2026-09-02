@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public ScriptableRendererData owningRendererData { get; set; }
 
-        static readonly GUIContent k_NewFullscreenMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Fullscreen material.");
+        static readonly GUIContent k_NewFullscreenMaterialButtonText = L10n.TextContent("New", "Creates a new Fullscreen material.", null, null);
         static readonly string k_NewBlitShaderText = "SRP Blit Shader";
         static readonly string k_NewSGFullscreenText = "ShaderGraph Fullscreen";
         static readonly string k_NewSGFullscreenFromTemplateText = "ShaderGraph Fullscreen from Template";

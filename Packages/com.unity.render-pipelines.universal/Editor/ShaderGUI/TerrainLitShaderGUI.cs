@@ -329,7 +329,7 @@ namespace UnityEditor.Rendering.Universal
                     {
                         EditorGUI.BeginChangeCheck();
                         var smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(
-                            EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+                            L10n.TextContent("Smoothness Source", null, null, null), terrainLayer.smoothnessSource);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(terrainLayer, "Terrain Layer Smoothness Source");

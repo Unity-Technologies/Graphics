@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Six-way Options");
+            public static GUIContent header { get; } = L10n.TextContent("Six-way Options", null, null, null);
             public static GUIContent receiveShadowsText = new GUIContent("Receive Shadows", "Receive Shadows");
             public static GUIContent useColorAbsorptionText = new GUIContent("Use Color Absorption", "Use Color Absorption");
         }

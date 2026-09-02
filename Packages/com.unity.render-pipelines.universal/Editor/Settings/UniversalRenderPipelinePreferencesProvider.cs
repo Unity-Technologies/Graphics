@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent viewInPackageManagerLabel = new("View in Package Manager", "");
 
-            public static readonly GUIContent urpProjectSettingsPathLabel = EditorGUIUtility.TrTextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to URP as default scene and default settings.");
+            public static readonly GUIContent urpProjectSettingsPathLabel = L10n.TextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to URP as default scene and default settings.", null, null);
         }
 
         static List<string> s_SearchKeywords = new() {

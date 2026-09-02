@@ -12,9 +12,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         static class Styles
         {
-            static public GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Graphics Compositor");
-            static public GUIContent enableCompositor { get; } = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
-            static public GUIContent removeCompositor { get; } = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
+            static public GUIContent windowTitle { get; } = L10n.TextContent("Graphics Compositor", null, null, null);
+            static public GUIContent enableCompositor { get; } = L10n.TextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.", null, null);
+            static public GUIContent removeCompositor { get; } = L10n.TextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.", null, null);
         }
 
         static CompositorWindow s_Window;

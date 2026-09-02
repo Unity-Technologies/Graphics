@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Terrain Options");
+            public static GUIContent optionText { get; } = L10n.TextContent("Terrain Options", null, null, null);
             public static readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
 
             public static readonly GUIContent diffuseTexture = new GUIContent("Diffuse");

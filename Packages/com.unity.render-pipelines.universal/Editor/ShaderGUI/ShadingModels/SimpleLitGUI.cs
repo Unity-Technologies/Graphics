@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// The text and tooltip for the specular map GUI.
             /// </summary>
             public static GUIContent specularMapText =
-                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
+                L10n.TextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.", null, null);
         }
 
         /// <summary>

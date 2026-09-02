@@ -31,18 +31,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class Styles
         {
-            public static readonly GUIContent isGlobal = EditorGUIUtility.TrTextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider. A camera volume is applied only for the target camera.");
-            public static readonly GUIContent fadeRadius = EditorGUIUtility.TrTextContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius");
-            public static readonly GUIContent injectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The stage in the render pipeline to execute this pass.");
-            public static readonly GUIContent priority = EditorGUIUtility.TrTextContent("Priority", "A value which determines the execution order when there are several Custom Pass Volumes with the same injection point overlaps. Custom Pass Volume with a higher value is rendered first.");
-            public static readonly GUIContent targetCamera = EditorGUIUtility.TrTextContent("Target Camera", "Determines on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.");
+            public static readonly GUIContent isGlobal = L10n.TextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider. A camera volume is applied only for the target camera.", null, null);
+            public static readonly GUIContent fadeRadius = L10n.TextContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius", null, null);
+            public static readonly GUIContent injectionPoint = L10n.TextContent("Injection Point", "The stage in the render pipeline to execute this pass.", null, null);
+            public static readonly GUIContent priority = L10n.TextContent("Priority", "A value which determines the execution order when there are several Custom Pass Volumes with the same injection point overlaps. Custom Pass Volume with a higher value is rendered first.", null, null);
+            public static readonly GUIContent targetCamera = L10n.TextContent("Target Camera", "Determines on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.", null, null);
             public static readonly GUIContent addColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
-            public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");
-            public static readonly GUIContent capsuleBoxCollider = EditorGUIUtility.TrTextContent("Add a Capsule Collider");
-            public static readonly GUIContent meshBoxCollider = EditorGUIUtility.TrTextContent("Add a Mesh Collider");
+            public static readonly GUIContent addBoxCollider = L10n.TextContent("Add a Box Collider", null, null, null);
+            public static readonly GUIContent sphereBoxCollider = L10n.TextContent("Add a Sphere Collider", null, null, null);
+            public static readonly GUIContent capsuleBoxCollider = L10n.TextContent("Add a Capsule Collider", null, null, null);
+            public static readonly GUIContent meshBoxCollider = L10n.TextContent("Add a Mesh Collider", null, null, null);
             public static readonly GUIContent enableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent[] modes = { EditorGUIUtility.TrTextContent("Global"), EditorGUIUtility.TrTextContent("Local"), EditorGUIUtility.TrTextContent("Camera") };
+            public static readonly GUIContent[] modes = { L10n.TextContent("Global", null, null, null), L10n.TextContent("Local", null, null, null), L10n.TextContent("Camera", null, null, null) };
         }
 
         class SerializedPassVolume

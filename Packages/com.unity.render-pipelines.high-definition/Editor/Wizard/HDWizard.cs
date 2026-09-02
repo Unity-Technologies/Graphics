@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Style
         {
-            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("HDRP Wizard");
+            public static readonly GUIContent title = L10n.TextContent("HDRP Wizard", null, null, null);
 
             public const string hdrpConfigLabel = "HDRP";
             public static readonly string hdrpConfigTooltip = L10n.Tr("This tab contains configuration check for High Definition Render Pipeline.", null);

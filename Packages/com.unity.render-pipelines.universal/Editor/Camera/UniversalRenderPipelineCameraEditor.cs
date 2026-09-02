@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.Universal
                 var overlayAdditionalData = cam.GetUniversalAdditionalCameraData();
                 var type = overlayAdditionalData.renderType;
 
-                GUIContent errorContent = EditorGUIUtility.TrTextContent(type.GetName()); ;
+                GUIContent errorContent = L10n.TextContent(type.GetName(), null, null, null); ;
 
 
                 var renderer = overlayAdditionalData.scriptableRenderer;
@@ -198,7 +198,7 @@ namespace UnityEditor.Rendering.Universal
                 GUIContent nameContent =
                     outputWarning ?
                     EditorGUIUtility.TrTextContent(cam.name, "Output properties do not match base camera", CoreEditorStyles.iconWarn) :
-                    EditorGUIUtility.TrTextContent(cam.name);
+                    L10n.TextContent(cam.name, null, null, null);
 
                 EditorGUI.BeginProperty(rect, GUIContent.none, m_SerializedCamera.cameras.GetArrayElementAtIndex(index));
                 var labelWidth = EditorGUIUtility.labelWidth;

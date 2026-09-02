@@ -146,8 +146,8 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         {
             s_PlayPauseIcons = new[]
             {
-                EditorGUIUtility.TrIconContent("PlayButton", "Animate preview"),
-                EditorGUIUtility.TrIconContent("PauseButton", "Pause preview animation"),
+                L10n.IconContent("PlayButton", "Animate preview", null),
+                L10n.IconContent("PauseButton", "Pause preview animation", null),
             };
         }
 
@@ -297,7 +297,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         GUI.enabled = m_IsAnimated;
         // Random id=10012 because when set to 0 the button get highlighted by default !?
-        if (EditorGUILayout.IconButton(10012, EditorGUIUtility.TrIconContent("Refresh", "Restart VFX"), EditorStyles.toolbarButton, null))
+        if (EditorGUILayout.IconButton(10012, L10n.IconContent("Refresh", "Restart VFX", null), EditorStyles.toolbarButton, null))
         {
             m_VisualEffect.Reinit();
         }
@@ -440,9 +440,9 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
     private static readonly GUIContent[] k_CullingOptionsContents = new GUIContent[]
     {
-        EditorGUIUtility.TrTextContent("Recompute bounds and simulate when visible"),
-        EditorGUIUtility.TrTextContent("Always recompute bounds, simulate only when visible"),
-        EditorGUIUtility.TrTextContent("Always recompute bounds and simulate")
+        L10n.TextContent("Recompute bounds and simulate when visible", null, null, null),
+        L10n.TextContent("Always recompute bounds, simulate only when visible", null, null, null),
+        L10n.TextContent("Always recompute bounds and simulate", null, null, null)
     };
     static readonly VFXCullingFlags[] k_CullingOptionsValue = new VFXCullingFlags[]
     {
@@ -451,9 +451,9 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         VFXCullingFlags.CullNone,
     };
 
-    private static readonly GUIContent k_InstancingContent = EditorGUIUtility.TrTextContent("Instancing");
-    private static readonly GUIContent k_InstancingModeContent = EditorGUIUtility.TrTextContent("Instancing Mode", "Selects how the visual effect will be handled regarding instancing.");
-    private static readonly GUIContent k_InstancingCapacityContent = EditorGUIUtility.TrTextContent("Max Batch Capacity", "Max number of instances that can be grouped together in a single batch.");
+    private static readonly GUIContent k_InstancingContent = L10n.TextContent("Instancing", null, null, null);
+    private static readonly GUIContent k_InstancingModeContent = L10n.TextContent("Instancing Mode", "Selects how the visual effect will be handled regarding instancing.", null, null);
+    private static readonly GUIContent k_InstancingCapacityContent = L10n.TextContent("Max Batch Capacity", "Max number of instances that can be grouped together in a single batch.", null, null);
 
     SerializedObject resourceObject;
     SerializedProperty resourceUpdateModeProperty;
@@ -478,7 +478,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             int currentStepCount = (int)prewarmStepCount.uintValue;
             var currentTotalTime = currentDeltaTime * currentStepCount;
             EditorGUI.BeginChangeCheck();
-            currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
+            currentTotalTime = EditorGUILayout.FloatField(L10n.TextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. ", null, null), currentTotalTime);
             if (EditorGUI.EndChangeCheck())
             {
                 if (currentStepCount <= 0 && currentTotalTime != 0.0f)
@@ -493,7 +493,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             }
 
             EditorGUI.BeginChangeCheck();
-            currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
+            currentStepCount = EditorGUILayout.IntField(L10n.TextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. ", null, null), (int)currentStepCount);
             if (EditorGUI.EndChangeCheck())
             {
                 bool hasPrewarm = currentTotalTime != 0.0f;
@@ -505,7 +505,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             }
 
             EditorGUI.BeginChangeCheck();
-            currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
+            currentDeltaTime = EditorGUILayout.FloatField(L10n.TextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time.", null, null), currentDeltaTime);
             if (EditorGUI.EndChangeCheck())
             {
                 currentDeltaTime = Math.Max(k_MinimalCommonDeltaTime, currentDeltaTime);
@@ -547,14 +547,14 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             // Total time disabled in this case
             EditorGUI.BeginDisabled(true);
             EditorGUI.showMixedValue = true;
-            EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), 0);
+            EditorGUILayout.FloatField(L10n.TextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. ", null, null), 0);
             EditorGUI.EndDisabled();
 
             EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
+            EditorGUILayout.PropertyField(prewarmStepCount, L10n.TextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to.", null, null));
 
             EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
+            EditorGUILayout.PropertyField(prewarmDeltaTime, L10n.TextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time.", null, null));
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -688,14 +688,14 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         }
 
         EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
-        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode, otherwise, use the default Time.deltaTime.");
-        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.");
-        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).");
+        var deltaTimeContent = L10n.TextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode, otherwise, use the default Time.deltaTime.", null, null);
+        var processEveryFrameContent = L10n.TextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.", null, null);
+        var ignoreTimeScaleContent = L10n.TextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).", null, null);
 
         VisualEffectAsset asset = (VisualEffectAsset)target;
         VisualEffectResource resource = asset.GetResource();
 
-        using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Update mode"), showUpdateModeCategory, out showUpdateModeCategory))
+        using (VisualEffectEditor.ShowAssetHeader(L10n.TextContent("Update mode", null, null, null), showUpdateModeCategory, out showUpdateModeCategory))
         {
             if (showUpdateModeCategory)
             {
@@ -781,7 +781,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                         : "";
                     EditorGUI.BeginChangeCheck();
                     int newOption = EditorGUILayout.Popup(
-                        EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip),
+                        L10n.TextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip, null, null),
                             Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
                             k_CullingOptionsContents);
                     if (EditorGUI.EndChangeCheck())
@@ -797,7 +797,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         DrawInstancingGUI();
 
-        using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Initial state"), showInitialStateCategory, out showInitialStateCategory))
+        using (VisualEffectEditor.ShowAssetHeader(L10n.TextContent("Initial state", null, null, null), showInitialStateCategory, out showInitialStateCategory))
         {
             if (showInitialStateCategory && prewarmDeltaTime != null && prewarmStepCount != null)
             {
@@ -824,7 +824,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             m_OutputContexts.Clear();
             m_OutputContexts.AddRange(resource.GetGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
-            using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Output Render Order"), showOutputOrderCategory, out showOutputOrderCategory))
+            using (VisualEffectEditor.ShowAssetHeader(L10n.TextContent("Output Render Order", null, null, null), showOutputOrderCategory, out showOutputOrderCategory))
             {
                 if (showOutputOrderCategory)
                 {
@@ -832,7 +832,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                 }
             }
 
-            using (VisualEffectEditor.ShowAssetHeader(EditorGUIUtility.TrTextContent("Shaders"), showShadersCategory, out showShadersCategory))
+            using (VisualEffectEditor.ShowAssetHeader(L10n.TextContent("Shaders", null, null, null), showShadersCategory, out showShadersCategory))
             {
                 if (showShadersCategory)
                 {

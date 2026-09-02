@@ -104,17 +104,17 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
         }
 
-        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays in meters. The higher this value is, the more expensive ray traced global illumination is.");
-        static public readonly GUIContent k_FullResolutionSSText = EditorGUIUtility.TrTextContent("Full Resolution", "Controls if the screen space global illumination should be evaluated at half resolution.");
-        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
-        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
-        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.");
-        static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
+        static public readonly GUIContent k_RayLengthText = L10n.TextContent("Max Ray Length", "Controls the maximal length of global illumination rays in meters. The higher this value is, the more expensive ray traced global illumination is.", null, null);
+        static public readonly GUIContent k_FullResolutionSSText = L10n.TextContent("Full Resolution", "Controls if the screen space global illumination should be evaluated at half resolution.", null, null);
+        static public readonly GUIContent k_DepthBufferThicknessText = L10n.TextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.", null, null);
+        static public readonly GUIContent k_RayMissFallbackHierarchyText = L10n.TextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.", null, null);
+        static public readonly GUIContent k_LastBounceFallbackHierarchyText = L10n.TextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.", null, null);
+        static public readonly GUIContent k_MaxMixedRaySteps = L10n.TextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.", null, null);
 
-        static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Denoise the screen space GI.");
-        static public readonly GUIContent k_HalfResolutionDenoiserText = EditorGUIUtility.TrTextContent("Half Resolution Denoiser", "Use a half resolution denoiser.");
-        static public readonly GUIContent k_DenoiserRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of the GI denoiser (First Pass).");
-        static public readonly GUIContent k_SecondDenoiserPassText = EditorGUIUtility.TrTextContent("Second Denoiser Pass", "Enable second denoising pass.");
+        static public readonly GUIContent k_DenoiseText = L10n.TextContent("Denoise", "Denoise the screen space GI.", null, null);
+        static public readonly GUIContent k_HalfResolutionDenoiserText = L10n.TextContent("Half Resolution Denoiser", "Use a half resolution denoiser.", null, null);
+        static public readonly GUIContent k_DenoiserRadiusText = L10n.TextContent("Denoiser Radius", "Controls the radius of the GI denoiser (First Pass).", null, null);
+        static public readonly GUIContent k_SecondDenoiserPassText = L10n.TextContent("Second Denoiser Pass", "Enable second denoising pass.", null, null);
 
         public void DenoiserGUI()
         {
@@ -180,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
+            PropertyField(m_Enable, L10n.TextContent("State", null, null, null));
             EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component

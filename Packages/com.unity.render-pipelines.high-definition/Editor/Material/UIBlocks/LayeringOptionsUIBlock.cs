@@ -16,12 +16,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Layering Options");
-            public static readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");
-            public static readonly GUIContent opacityAsDensityText = EditorGUIUtility.TrTextContent("Use Opacity map as Density map", "When enabled, HDRP uses the opacity map (alpha channel of Base Color) as the Density map.");
-            public static readonly GUIContent inheritBaseNormalText = EditorGUIUtility.TrTextContent("Normal influence", "Controls the strength of the normals inherited from the base layer.");
-            public static readonly GUIContent inheritBaseHeightText = EditorGUIUtility.TrTextContent("Heightmap influence", "Controls the strength of the height map inherited from the base layer.");
-            public static readonly GUIContent inheritBaseColorText = EditorGUIUtility.TrTextContent("BaseColor influence", "Controls the strength of the Base Color inherited from the base layer.");
+            public static GUIContent header { get; } = L10n.TextContent("Layering Options", null, null, null);
+            public static readonly GUIContent layerInfluenceMapMaskText = L10n.TextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.", null, null);
+            public static readonly GUIContent opacityAsDensityText = L10n.TextContent("Use Opacity map as Density map", "When enabled, HDRP uses the opacity map (alpha channel of Base Color) as the Density map.", null, null);
+            public static readonly GUIContent inheritBaseNormalText = L10n.TextContent("Normal influence", "Controls the strength of the normals inherited from the base layer.", null, null);
+            public static readonly GUIContent inheritBaseHeightText = L10n.TextContent("Heightmap influence", "Controls the strength of the height map inherited from the base layer.", null, null);
+            public static readonly GUIContent inheritBaseColorText = L10n.TextContent("BaseColor influence", "Controls the strength of the Base Color inherited from the base layer.", null, null);
         }
 
         // Influence

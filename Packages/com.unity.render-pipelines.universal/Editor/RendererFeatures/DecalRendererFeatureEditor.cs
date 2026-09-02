@@ -9,12 +9,12 @@ namespace UnityEditor.Rendering.Universal
     {
         private struct Styles
         {
-            public static GUIContent Technique = EditorGUIUtility.TrTextContent("Technique", "This option determines what method is used for rendering decals.");
-            public static GUIContent MaxDrawDistance = EditorGUIUtility.TrTextContent("Max Draw Distance", "Maximum global draw distance of decals.");
-            public static GUIContent UseRenderingLayers = EditorGUIUtility.TrTextContent("Use Rendering Layers", "When enabled, you can configure specific Decal Projectors to affect only specific objects. The number of Rendering Layers affects the performance.");
-            public static GUIContent SurfaceData = EditorGUIUtility.TrTextContent("Surface Data", "Allows specifying which decals surface data should be blended with surfaces.");
-            public static GUIContent NormalBlend = EditorGUIUtility.TrTextContent("Normal Blend", "Controls the quality of normal reconstruction. The higher the value the more accurate normal reconstruction and the cost on performance.");
-            public static readonly GUIContent OpenGlSupportWarning = EditorGUIUtility.TrTextContentWithIcon("Rendering Layers are not supported on OpenGL.", "This feature is incompatible with OpenGL. Disable 'Auto Graphics API' in Player Settings and remove OpenGL from the list.", MessageType.Warning);
+            public static GUIContent Technique = L10n.TextContent("Technique", "This option determines what method is used for rendering decals.", null, null);
+            public static GUIContent MaxDrawDistance = L10n.TextContent("Max Draw Distance", "Maximum global draw distance of decals.", null, null);
+            public static GUIContent UseRenderingLayers = L10n.TextContent("Use Rendering Layers", "When enabled, you can configure specific Decal Projectors to affect only specific objects. The number of Rendering Layers affects the performance.", null, null);
+            public static GUIContent SurfaceData = L10n.TextContent("Surface Data", "Allows specifying which decals surface data should be blended with surfaces.", null, null);
+            public static GUIContent NormalBlend = L10n.TextContent("Normal Blend", "Controls the quality of normal reconstruction. The higher the value the more accurate normal reconstruction and the cost on performance.", null, null);
+            public static readonly GUIContent OpenGlSupportWarning = L10n.TextContentWithIcon("Rendering Layers are not supported on OpenGL.", "This feature is incompatible with OpenGL. Disable 'Auto Graphics API' in Player Settings and remove OpenGL from the list.", MessageType.Warning, null);
         }
 
         private SerializedProperty m_Technique;

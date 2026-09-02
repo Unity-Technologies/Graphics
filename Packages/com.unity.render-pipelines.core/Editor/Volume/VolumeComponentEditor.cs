@@ -72,12 +72,12 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
-            public static readonly GUIContent k_OverrideSettingText = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
+            public static readonly GUIContent k_OverrideSettingText = L10n.TextContent("", "Override this setting for this volume.", null, null);
 
             public static readonly GUIContent k_AllText =
-                EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
+                L10n.TextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.", null, null);
 
-            public static readonly GUIContent k_NoneText = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
+            public static readonly GUIContent k_NoneText = L10n.TextContent("NONE", "Toggle all overrides off.", null, null);
 
             public static string toggleAllText { get; } = L10n.Tr("Toggle All", null);
 
@@ -347,7 +347,7 @@ namespace UnityEditor.Rendering
                     }
 
                     var parameter = new SerializedDataParameter(t.Item2);
-                    return (EditorGUIUtility.TrTextContent(name), order, parameter);
+                    return (L10n.TextContent(name, null, null, null), order, parameter);
                 })
                 .OrderBy(t => t.order)
                 .ToList();
@@ -375,9 +375,9 @@ namespace UnityEditor.Rendering
                 defaultProfile != profile)
             {
                 menu.AddSeparator(string.Empty);
-                menu.AddItem(EditorGUIUtility.TrTextContent($"Show Default Volume Profile"), false,
+                menu.AddItem(L10n.TextContent($"Show Default Volume Profile", null, null, null), false,
                     () => Selection.activeObject = defaultProfile);
-                menu.AddItem(EditorGUIUtility.TrTextContent($"Apply Values to Default Volume Profile"), false, copyAction);
+                menu.AddItem(L10n.TextContent($"Apply Values to Default Volume Profile", null, null, null), false, copyAction);
             }
         }
 
@@ -554,7 +554,7 @@ namespace UnityEditor.Rendering
         {
             if (!s_HeadersGuiContents.TryGetValue(header, out GUIContent content))
             {
-                content = EditorGUIUtility.TrTextContent(header);
+                content = L10n.TextContent(header, null, null, null);
                 s_HeadersGuiContents.Add(header, content);
             }
 
@@ -814,7 +814,7 @@ namespace UnityEditor.Rendering
                 drawer = null;
                 displayed = false;
                 isAdditionalProperty = false;
-                this.label = EditorGUIUtility.TrTextContent(label);
+                this.label = L10n.TextContent(label, null, null, null);
                 this.editor = editor;
 
                 Init(property, this.label, editor);

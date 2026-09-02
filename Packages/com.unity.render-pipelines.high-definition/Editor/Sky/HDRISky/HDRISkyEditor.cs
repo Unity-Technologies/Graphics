@@ -14,19 +14,19 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent scrollOrientationLabel { get; } = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
             public static GUIContent scrollSpeedLabel { get; } = new GUIContent("Speed", "Sets the scrolling speed of the distortion. The higher the value, the faster the sky will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
-            public static GUIContent backplate { get; } = EditorGUIUtility.TrTextContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')");
-            public static GUIContent type { get; } = EditorGUIUtility.TrTextContent("Type");
-            public static GUIContent projection { get; } = EditorGUIUtility.TrTextContent("Projection");
-            public static GUIContent rotation { get; } = EditorGUIUtility.TrTextContent("Rotation");
-            public static GUIContent lockSun { get; } = EditorGUIUtility.TrTextContent("Lock Sun");
-            public static GUIContent textureRotation { get; } = EditorGUIUtility.TrTextContent("Texture Rotation");
-            public static GUIContent textureOffset { get; } = EditorGUIUtility.TrTextContent("Texture Offset");
-            public static GUIContent pointSpotShadow { get; } = EditorGUIUtility.TrTextContent("Point/Spot Shadow");
-            public static GUIContent directionalShadow { get; } = EditorGUIUtility.TrTextContent("Directional Shadow");
-            public static GUIContent areaShadow { get; } = EditorGUIUtility.TrTextContent("Area Shadow");
-            public static GUIContent resetColors { get; } = EditorGUIUtility.TrTextContent("Reset Color");
-            public static GUIContent procedural { get; } = EditorGUIUtility.TrTextContent("Procedural");
-            public static GUIContent flowmap { get; } = EditorGUIUtility.TrTextContent("Flowmap");
+            public static GUIContent backplate { get; } = L10n.TextContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')", null, null);
+            public static GUIContent type { get; } = L10n.TextContent("Type", null, null, null);
+            public static GUIContent projection { get; } = L10n.TextContent("Projection", null, null, null);
+            public static GUIContent rotation { get; } = L10n.TextContent("Rotation", null, null, null);
+            public static GUIContent lockSun { get; } = L10n.TextContent("Lock Sun", null, null, null);
+            public static GUIContent textureRotation { get; } = L10n.TextContent("Texture Rotation", null, null, null);
+            public static GUIContent textureOffset { get; } = L10n.TextContent("Texture Offset", null, null, null);
+            public static GUIContent pointSpotShadow { get; } = L10n.TextContent("Point/Spot Shadow", null, null, null);
+            public static GUIContent directionalShadow { get; } = L10n.TextContent("Directional Shadow", null, null, null);
+            public static GUIContent areaShadow { get; } = L10n.TextContent("Area Shadow", null, null, null);
+            public static GUIContent resetColors { get; } = L10n.TextContent("Reset Color", null, null, null);
+            public static GUIContent procedural { get; } = L10n.TextContent("Procedural", null, null, null);
+            public static GUIContent flowmap { get; } = L10n.TextContent("Flowmap", null, null, null);
             public static string flowmapInfoMessage { get; } = "The flowmap needs to be a 2D Texture in LatLong layout.";
         }
 

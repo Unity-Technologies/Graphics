@@ -39,11 +39,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Options");
-            public static GUIContent specularOcclusionModeText { get; } = EditorGUIUtility.TrTextContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
-            public static GUIContent addPrecomputedVelocityText { get; } = EditorGUIUtility.TrTextContent("Add Precomputed Velocity", "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.");
-            public static GUIContent motionVectorForVertexAnimationText { get; } = EditorGUIUtility.TrTextContent("Motion Vectors For Vertex Animation", "When enabled, motion vectors for the material will be forced to be calculated every frame (as opposed to only on object transform changes). This is only needed when the material has time-based vertex animation or when the ShaderGraph writes the 'Velocity' vertex output.");
-            public static GUIContent bakedEmission = EditorGUIUtility.TrTextContent("Baked Emission", "");
+            public static GUIContent header { get; } = L10n.TextContent("Advanced Options", null, null, null);
+            public static GUIContent specularOcclusionModeText { get; } = L10n.TextContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion", null, null);
+            public static GUIContent addPrecomputedVelocityText { get; } = L10n.TextContent("Add Precomputed Velocity", "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.", null, null);
+            public static GUIContent motionVectorForVertexAnimationText { get; } = L10n.TextContent("Motion Vectors For Vertex Animation", "When enabled, motion vectors for the material will be forced to be calculated every frame (as opposed to only on object transform changes). This is only needed when the material has time-based vertex animation or when the ShaderGraph writes the 'Velocity' vertex output.", null, null);
+            public static GUIContent bakedEmission = L10n.TextContent("Baked Emission", "", null, null);
         }
 
         MaterialProperty specularOcclusionMode = null;

@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.Universal
                 // the current pipeline. Add it to the dropdown, since it
                 // would show up as a blank entry.
                 string currentTitle = ((LightType)selectedLightType).ToString();
-                GUIContent[] titles = Styles.LightTypeTitles.Append(EditorGUIUtility.TrTextContent(currentTitle)).ToArray();
+                GUIContent[] titles = Styles.LightTypeTitles.Append(L10n.TextContent(currentTitle, null, null, null)).ToArray();
                 int[] values = Styles.LightTypeValues.Append(selectedLightType).ToArray();
                 type = EditorGUI.IntPopup(rect, Styles.Type, selectedLightType, titles, values);
             }

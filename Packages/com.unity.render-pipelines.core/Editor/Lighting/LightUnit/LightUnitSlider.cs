@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering
                 // Indicate a checkmark if the value is within this preset range.
                 var isInPreset = CurrentRange(floatValue).value == preset.value;
 
-                menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
+                menu.AddItem(L10n.TextContent(preset.content.tooltip, null, null, null), isInPreset, () => SetValueToPreset(value, preset));
             }
 
             menu.DropDown(new Rect(pos, Vector2.zero));

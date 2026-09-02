@@ -38,8 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SimulationFoamWindCurve = o.Find(x => x.simulationFoamWindCurve);
         }
 
-        static public readonly GUIContent k_FoamAreaSize = EditorGUIUtility.TrTextContent("Area Size", "Specifies the size of the foam area in meters.");
-        static public readonly GUIContent k_FoamAreaOffset = EditorGUIUtility.TrTextContent("Area Offset", "Specifies the offset of the foam area in meters.");
+        static public readonly GUIContent k_FoamAreaSize = L10n.TextContent("Area Size", "Specifies the size of the foam area in meters.", null, null);
+        static public readonly GUIContent k_FoamAreaOffset = L10n.TextContent("Area Offset", "Specifies the offset of the foam area in meters.", null, null);
 
         static internal void WaterSurfaceFoamSection(WaterSurfaceEditor serialized, Editor owner)
         {

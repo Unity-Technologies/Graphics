@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Quality Preset Selection
             EditorGUI.BeginChangeCheck();
-            var qualityTextContent = EditorGUIUtility.TrTextContent("Performance Preset", "Select the quality vs. performance preset or use Custom for manual settings");
+            var qualityTextContent = L10n.TextContent("Performance Preset", "Select the quality vs. performance preset or use Custom for manual settings", null, null);
             var newPreset = (PerformancePreset)EditorGUILayout.EnumPopup(qualityTextContent, m_CurrentPreset);
             if (EditorGUI.EndChangeCheck() && newPreset != m_CurrentPreset)
             {

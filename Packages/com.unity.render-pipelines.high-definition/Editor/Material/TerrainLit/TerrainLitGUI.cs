@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private class StylesLayer
         {
-            public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Terrain");
+            public GUIContent header { get; } = L10n.TextContent("Terrain", null, null, null);
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
@@ -349,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EditorGUI.BeginChangeCheck();
                         var smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(
-                            EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+                            L10n.TextContent("Smoothness Source", null, null, null), terrainLayer.smoothnessSource);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(terrainLayer, "Terrain Layer Smoothness Source");

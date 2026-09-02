@@ -11,28 +11,28 @@ namespace UnityEditor.Rendering.Universal
         class Styles
         {
             public static readonly GUIContent overrideStencil =
-                EditorGUIUtility.TrTextContent("Stencil", "Process and override the Stencil buffer values.");
+                L10n.TextContent("Stencil", "Process and override the Stencil buffer values.", null, null);
 
-            public static readonly GUIContent stencilValue = EditorGUIUtility.TrTextContent("Value",
-                "For each pixel, the Compare function compares this value with the value in the Stencil buffer. The function writes this value to the buffer if the Pass property is set to Replace.");
+            public static readonly GUIContent stencilValue = L10n.TextContent("Value",
+                "For each pixel, the Compare function compares this value with the value in the Stencil buffer. The function writes this value to the buffer if the Pass property is set to Replace.", null, null);
 
-            public static readonly GUIContent stencilReadMask = EditorGUIUtility.TrTextContent("Read Mask",
-                "Bitmask applied to both the reference value and the value in the stencil buffer before the comparison.");
+            public static readonly GUIContent stencilReadMask = L10n.TextContent("Read Mask",
+                "Bitmask applied to both the reference value and the value in the stencil buffer before the comparison.", null, null);
 
-            public static readonly GUIContent stencilWriteMask = EditorGUIUtility.TrTextContent("Write Mask",
-                "Bitmask applied when writing to the stencil buffer.");
+            public static readonly GUIContent stencilWriteMask = L10n.TextContent("Write Mask",
+                "Bitmask applied when writing to the stencil buffer.", null, null);
 
-            public static readonly GUIContent stencilFunction = EditorGUIUtility.TrTextContent("Compare Function",
-                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.");
+            public static readonly GUIContent stencilFunction = L10n.TextContent("Compare Function",
+                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.", null, null);
 
             public static readonly GUIContent stencilPass =
-                EditorGUIUtility.TrTextContent("Pass", "What happens to the stencil value when passing.");
+                L10n.TextContent("Pass", "What happens to the stencil value when passing.", null, null);
 
             public static readonly GUIContent stencilFail =
-                EditorGUIUtility.TrTextContent("Fail", "What happens to the stencil value when failing.");
+                L10n.TextContent("Fail", "What happens to the stencil value when failing.", null, null);
 
             public static readonly GUIContent stencilZFail =
-                EditorGUIUtility.TrTextContent("Z Fail", "What happens to the stencil value when failing Z testing.");
+                L10n.TextContent("Z Fail", "What happens to the stencil value when failing Z testing.", null, null);
         }
 
         const int k_LinesWhenOverrideOff = 1;

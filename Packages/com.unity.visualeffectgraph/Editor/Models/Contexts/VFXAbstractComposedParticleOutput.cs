@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
 
         internal class Content
         {
-            public static GUIContent particlesOptionHeader { get; } = EditorGUIUtility.TrTextContent("Particles Options");
+            public static GUIContent particlesOptionHeader { get; } = L10n.TextContent("Particles Options", null, null, null);
         }
 
         private bool m_ShowParticleOptions = true;

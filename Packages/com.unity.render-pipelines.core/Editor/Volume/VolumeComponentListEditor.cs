@@ -385,7 +385,7 @@ namespace UnityEditor.Rendering
 
                     using (var hscope = new EditorGUILayout.HorizontalScope())
                     {
-                        if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Override"), EditorStyles.miniButton))
+                        if (GUILayout.Button(L10n.TextContent("Add Override", null, null, null), EditorStyles.miniButton))
                         {
                             FilterWindow.Show(hscope.rect, new VolumeComponentProvider(asset, this));
                         }
@@ -450,20 +450,20 @@ namespace UnityEditor.Rendering
 
             if (!m_IsDefaultVolumeProfile && m_Editors.Count > 1)
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Top"), false, () => MoveComponent(id, Move.Top));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, Move.Up));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, Move.Down));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, Move.Bottom));
+                menu.AddItem(L10n.TextContent("Move to Top", null, null, null), false, () => MoveComponent(id, Move.Top));
+                menu.AddItem(L10n.TextContent("Move Up", null, null, null), false, () => MoveComponent(id, Move.Up));
+                menu.AddItem(L10n.TextContent("Move Down", null, null, null), false, () => MoveComponent(id, Move.Down));
+                menu.AddItem(L10n.TextContent("Move to Bottom", null, null, null), false, () => MoveComponent(id, Move.Bottom));
                 menu.AddSeparator(string.Empty);
             }
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetComponentEditorsExpanded(false));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetComponentEditorsExpanded(true));
+            menu.AddItem(L10n.TextContent("Collapse All", null, null, null), false, () => SetComponentEditorsExpanded(false));
+            menu.AddItem(L10n.TextContent("Expand All", null, null, null), false, () => SetComponentEditorsExpanded(true));
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponents(new []{ targetComponent }));
+            menu.AddItem(L10n.TextContent("Reset", null, null, null), false, () => ResetComponents(new []{ targetComponent }));
             if (!m_IsDefaultVolumeProfile)
-                menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+                menu.AddItem(L10n.TextContent("Remove", null, null, null), false, () => RemoveComponent(id));
 
 
             if (targetEditor.hasAdditionalProperties)
@@ -477,28 +477,28 @@ namespace UnityEditor.Rendering
                 () => VolumeProfileUtils.CopyValuesToProfile(targetComponent, VolumeManager.instance.globalDefaultProfile));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Open In Rendering Debugger"), false,
+            menu.AddItem(L10n.TextContent("Open In Rendering Debugger", null, null, null), false,
                 () => DebugDisplaySettingsVolume.OpenInRenderingDebugger(targetComponent));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () =>
+            menu.AddItem(L10n.TextContent("Copy Settings", null, null, null), false, () =>
                 VolumeComponentCopyPaste.CopySettings(targetComponent));
 
             if (VolumeComponentCopyPaste.CanPaste(targetComponent))
-                menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () =>
+                menu.AddItem(L10n.TextContent("Paste Settings", null, null, null), false, () =>
                 {
                     VolumeComponentCopyPaste.PasteSettings(targetComponent, asset);
                     VolumeManager.instance.OnVolumeProfileChanged(asset);
                 });
             else
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Paste Settings"));
+                menu.AddDisabledItem(L10n.TextContent("Paste Settings", null, null, null));
 
             if (!m_IsDefaultVolumeProfile)
             {
                 menu.AddSeparator(string.Empty);
-                menu.AddItem(EditorGUIUtility.TrTextContent("Toggle All"), false,
+                menu.AddItem(L10n.TextContent("Toggle All", null, null, null), false,
                     () => m_Editors[id].SetAllOverridesTo(true));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Toggle None"), false,
+                menu.AddItem(L10n.TextContent("Toggle None", null, null, null), false,
                     () => m_Editors[id].SetAllOverridesTo(false));
             }
 

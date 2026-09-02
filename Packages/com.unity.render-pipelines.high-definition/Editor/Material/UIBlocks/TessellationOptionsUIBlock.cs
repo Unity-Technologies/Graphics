@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Tessellation Options");
+            public static GUIContent header { get; } = L10n.TextContent("Tessellation Options", null, null, null);
 
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 

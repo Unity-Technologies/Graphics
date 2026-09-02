@@ -63,18 +63,18 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // General parameters
-        static public readonly GUIContent k_TypeText = EditorGUIUtility.TrTextContent("Type", "Specifies the type of the deformer. Shore Wave will generate foam by default without any additional Foam Generator.");
-        static public readonly GUIContent k_RegionSizeText = EditorGUIUtility.TrTextContent("Size", "Controls the region size of the deformer. Outside this region, there will be no deformation.");
+        static public readonly GUIContent k_TypeText = L10n.TextContent("Type", "Specifies the type of the deformer. Shore Wave will generate foam by default without any additional Foam Generator.", null, null);
+        static public readonly GUIContent k_RegionSizeText = L10n.TextContent("Size", "Controls the region size of the deformer. Outside this region, there will be no deformation.", null, null);
 
         // Material parameters
-        static public readonly GUIContent k_Resolution = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution when written inside the atlas.");
-        static public readonly GUIContent k_Cross = EditorGUIUtility.TrTextContent("x");
+        static public readonly GUIContent k_Resolution = L10n.TextContent("Resolution", "Specifies the resolution when written inside the atlas.", null, null);
+        static public readonly GUIContent k_Cross = L10n.TextContent("x", null, null, null);
 
-        static public readonly GUIContent k_AmplitudeText = EditorGUIUtility.TrTextContent("Amplitude", "Sets the vertical amplitude of the deformation.");
-        static public readonly GUIContent k_SurfaceFoamDimmerText = EditorGUIUtility.TrTextContent("Surface Foam Dimmer", "Specifies the dimmer for the surface foam.");
-        static public readonly GUIContent k_DeepFoamDimmerText = EditorGUIUtility.TrTextContent("Deep Foam Dimmer", "Specifies the dimmer for the deep foam.");
+        static public readonly GUIContent k_AmplitudeText = L10n.TextContent("Amplitude", "Sets the vertical amplitude of the deformation.", null, null);
+        static public readonly GUIContent k_SurfaceFoamDimmerText = L10n.TextContent("Surface Foam Dimmer", "Specifies the dimmer for the surface foam.", null, null);
+        static public readonly GUIContent k_DeepFoamDimmerText = L10n.TextContent("Deep Foam Dimmer", "Specifies the dimmer for the deep foam.", null, null);
 
-        static public readonly GUIContent k_NewWaterDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Water Decal shader and Material asset templates.");
+        static public readonly GUIContent k_NewWaterDecalMaterialButtonText = L10n.TextContent("New", "Creates a new Water Decal shader and Material asset templates.", null, null);
         static public readonly string k_NewEmptyWaterDecalText = "Empty Water Decal";
         static public readonly string k_NewDeformerAndFoamWaterDecalText = "Deformer and Foam Water Decal";
         public override void OnInspectorGUI()

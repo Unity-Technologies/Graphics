@@ -22,8 +22,8 @@ namespace UnityEditor.Rendering.Universal
                 // Using the pipeline Settings
                 public static GUIContent[] displayedCameraOptions =
                 {
-                    EditorGUIUtility.TrTextContent("Off"),
-                    EditorGUIUtility.TrTextContent("Use settings from Render Pipeline Asset"),
+                    L10n.TextContent("Off", null, null, null),
+                    L10n.TextContent("Use settings from Render Pipeline Asset", null, null, null),
                 };
                 
                 public static int[] cameraOptions = { 0, 1 };
@@ -31,18 +31,18 @@ namespace UnityEditor.Rendering.Universal
                 // Using the project settings
                 public static GUIContent[] hdrOuputOptions =
                 {
-                    EditorGUIUtility.TrTextContent("Off"),
-                    EditorGUIUtility.TrTextContent("Use Project Settings"),
+                    L10n.TextContent("Off", null, null, null),
+                    L10n.TextContent("Use Project Settings", null, null, null),
                 };
                 public static int[] hdrOuputValues = { 0, 1 };
 
-                public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
+                public static readonly GUIContent targetTextureLabel = L10n.TextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.", null, null);
 
                 public static string inspectorOverlayCameraText = L10n.Tr("Inspector Overlay Camera", null);
-                public static readonly GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Enables Multi-Sample Anti-Aliasing, a technique that smooths jagged edges.");
-                public static readonly GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR Rendering", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture)null);
-                public static readonly GUIContent allowDynamicResolution = EditorGUIUtility.TrTextContent("URP Dynamic Resolution", "Whether to support URP dynamic resolution.");
-                public static readonly GUIContent allowHDROutput = EditorGUIUtility.TrTextContent("HDR Output", "Whether to support outputting to HDR displays.");
+                public static readonly GUIContent allowMSAA = L10n.TextContent("MSAA", "Enables Multi-Sample Anti-Aliasing, a technique that smooths jagged edges.", null, null);
+                public static readonly GUIContent allowHDR = L10n.TextContentWithIcon("HDR Rendering", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture)null, null);
+                public static readonly GUIContent allowDynamicResolution = L10n.TextContent("URP Dynamic Resolution", "Whether to support URP dynamic resolution.", null, null);
+                public static readonly GUIContent allowHDROutput = L10n.TextContent("HDR Output", "Whether to support outputting to HDR displays.", null, null);
 
                 public static string cameraTargetTextureMSAA = L10n.Tr("Camera target texture requires {0}x MSAA. Universal pipeline {1}.", null);
                 public static string pipelineMSAACapsSupportSamples = L10n.Tr("is set to support {0}x", null);

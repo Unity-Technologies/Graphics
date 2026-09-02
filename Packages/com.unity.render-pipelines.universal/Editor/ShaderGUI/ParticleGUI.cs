@@ -57,87 +57,87 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The text and tooltip color mode.
             /// </summary>
-            public static GUIContent colorMode = EditorGUIUtility.TrTextContent("Color Mode",
-                "Controls how the Particle color and the Material color blend together.");
+            public static GUIContent colorMode = L10n.TextContent("Color Mode",
+                "Controls how the Particle color and the Material color blend together.", null, null);
 
             /// <summary>
             /// The text and tooltip flip-book blending.
             /// </summary>
-            public static GUIContent flipbookMode = EditorGUIUtility.TrTextContent("Flip-Book Blending",
-                "Blends the frames in a flip-book together in a smooth animation.");
+            public static GUIContent flipbookMode = L10n.TextContent("Flip-Book Blending",
+                "Blends the frames in a flip-book together in a smooth animation.", null, null);
 
             /// <summary>
             /// The text and tooltip soft particles.
             /// </summary>
-            public static GUIContent softParticlesEnabled = EditorGUIUtility.TrTextContent("Soft Particles",
-                "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.");
+            public static GUIContent softParticlesEnabled = L10n.TextContent("Soft Particles",
+                "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.", null, null);
 
             /// <summary>
             /// The text and tooltip soft particles surface fade.
             /// </summary>
-            public static GUIContent softParticlesFadeText = EditorGUIUtility.TrTextContent("Surface Fade");
+            public static GUIContent softParticlesFadeText = L10n.TextContent("Surface Fade", null, null, null);
 
             /// <summary>
             /// The text and tooltip soft particles near fade distance.
             /// </summary>
             public static GUIContent softParticlesNearFadeDistanceText =
-                EditorGUIUtility.TrTextContent("Near",
-                    "The distance from the other surface where the particle is completely transparent.");
+                L10n.TextContent("Near",
+                    "The distance from the other surface where the particle is completely transparent.", null, null);
 
             /// <summary>
             /// The text and tooltip soft particles far fade distance.
             /// </summary>
             public static GUIContent softParticlesFarFadeDistanceText =
-                EditorGUIUtility.TrTextContent("Far",
-                    "The distance from the other surface where the particle is completely opaque.");
+                L10n.TextContent("Far",
+                    "The distance from the other surface where the particle is completely opaque.", null, null);
 
             /// <summary>
             /// The text and tooltip camera fading.
             /// </summary>
-            public static GUIContent cameraFadingEnabled = EditorGUIUtility.TrTextContent("Camera Fading",
-                "Makes particles fade out when they get close to the camera.");
+            public static GUIContent cameraFadingEnabled = L10n.TextContent("Camera Fading",
+                "Makes particles fade out when they get close to the camera.", null, null);
 
             /// <summary>
             /// The text and tooltip camera fading distance.
             /// </summary>
-            public static GUIContent cameraFadingDistanceText = EditorGUIUtility.TrTextContent("Distance");
+            public static GUIContent cameraFadingDistanceText = L10n.TextContent("Distance", null, null, null);
 
             /// <summary>
             /// The text and tooltip camera fading near distance.
             /// </summary>
             public static GUIContent cameraNearFadeDistanceText =
-                EditorGUIUtility.TrTextContent("Near",
-                    "The distance from the camera where the particle is completely transparent.");
+                L10n.TextContent("Near",
+                    "The distance from the camera where the particle is completely transparent.", null, null);
 
             /// <summary>
             /// The text and tooltip camera fading far distance.
             /// </summary>
             public static GUIContent cameraFarFadeDistanceText =
-                EditorGUIUtility.TrTextContent("Far", "The distance from the camera where the particle is completely opaque.");
+                L10n.TextContent("Far", "The distance from the camera where the particle is completely opaque.", null, null);
 
             /// <summary>
             /// The text and tooltip distortion.
             /// </summary>
-            public static GUIContent distortionEnabled = EditorGUIUtility.TrTextContent("Distortion",
-                "Creates a distortion effect by making particles perform refraction with the objects drawn before them.");
+            public static GUIContent distortionEnabled = L10n.TextContent("Distortion",
+                "Creates a distortion effect by making particles perform refraction with the objects drawn before them.", null, null);
 
             /// <summary>
             /// The text and tooltip distortion strength.
             /// </summary>
-            public static GUIContent distortionStrength = EditorGUIUtility.TrTextContent("Strength",
-                "Controls how much the Particle distorts the background. ");
+            public static GUIContent distortionStrength = L10n.TextContent("Strength",
+                "Controls how much the Particle distorts the background. ", null, null);
 
             /// <summary>
             /// The text and tooltip distortion blend.
             /// </summary>
-            public static GUIContent distortionBlend = EditorGUIUtility.TrTextContent("Blend",
-                "Controls how visible the distortion effect is. At 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.");
+            public static GUIContent distortionBlend = L10n.TextContent("Blend",
+                "Controls how visible the distortion effect is. At 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.", null, null);
 
             /// <summary>
             /// The text and tooltip for vertex streams.
             /// </summary>
-            public static GUIContent VertexStreams = EditorGUIUtility.TrTextContent("Vertex Streams",
-                "List detailing the expected layout of data sent to the shader from the particle system.");
+            public static GUIContent VertexStreams = L10n.TextContent("Vertex Streams",
+                "List detailing the expected layout of data sent to the shader from the particle system.", null, null);
 
             /// <summary>
             /// The string for position vertex stream.
@@ -182,8 +182,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The text and tooltip for the vertex stream fix now GUI.
             /// </summary>
-            public static GUIContent streamApplyToAllSystemsText = EditorGUIUtility.TrTextContent("Fix Now",
-                "Apply the vertex stream layout to all Particle Systems using this material");
+            public static GUIContent streamApplyToAllSystemsText = L10n.TextContent("Fix Now",
+                "Apply the vertex stream layout to all Particle Systems using this material", null, null);
 
             /// <summary>
             /// The string for applying custom vertex streams from material.

@@ -42,35 +42,35 @@ namespace UnityEditor.Rendering.Universal
         const float k_OverrideCheckboxOffset = 9f;
         SerializedObject m_VolumeSerializedObject;
 
-        static GUIContent s_State = EditorGUIUtility.TrTextContent("State", "When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.");
-        static GUIContent s_Intensity = EditorGUIUtility.TrTextContent("Intensity", "Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.");
-        static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
-        static GUIContent s_LightTransportMultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.");
-        static GUIContent s_LightTransportBouncePatchAllocation = EditorGUIUtility.TrTextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail");
-        static GUIContent s_LightTransportSampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.");
-        static GUIContent s_PatchFilteringTemporalSmoothing = EditorGUIUtility.TrTextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.");
-        static GUIContent s_PatchFilteringSpatialFilterEnabled = EditorGUIUtility.TrTextContent("Spatial Filter", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.");
-        static GUIContent s_PatchFilteringSpatialSampleCount = EditorGUIUtility.TrTextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.");
-        static GUIContent s_PatchFilteringSpatialRadius = EditorGUIUtility.TrTextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.");
-        static GUIContent s_PatchFilteringPostTemporalEnabled = EditorGUIUtility.TrTextContent("Temporal Post Filter", "Enable temporal post-filtering for additional stability.");
-        static GUIContent s_ScreenFilteringLookupSampleCount = EditorGUIUtility.TrTextContent("Lookup Sample Count", "Number of samples for screen-space lookups.");
-        static GUIContent s_ScreenFilteringDenoisingPassCount = EditorGUIUtility.TrTextContent("Denoising Pass Count", "Number of denoising passes. More passes reduce noise at a performance cost.");
-        static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
-        static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
-        static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
-        static GUIContent s_VolumeDistanceFallback = EditorGUIUtility.TrTextContent("Distance Fallback", "When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.");
-        static GUIContent s_PatchWarping = EditorGUIUtility.TrTextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.");
-        static GUIContent s_FocusTarget = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.");
-        static GUIContent s_FocusTargetProfile = EditorGUIUtility.TrTextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.");
-        static GUIContent s_FocusTargetProfileValue = EditorGUIUtility.TrTextContent("Scene object, set per Volume");
+        static GUIContent s_State = L10n.TextContent("State", "When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.", null, null);
+        static GUIContent s_Intensity = L10n.TextContent("Intensity", "Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.", null, null);
+        static GUIContent s_Quality = L10n.TextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.", null, null);
+        static GUIContent s_LightTransportMultiBounce = L10n.TextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.", null, null);
+        static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
+        static GUIContent s_LightTransportSampleCount = L10n.TextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.", null, null);
+        static GUIContent s_PatchFilteringTemporalSmoothing = L10n.TextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.", null, null);
+        static GUIContent s_PatchFilteringSpatialFilterEnabled = L10n.TextContent("Spatial Filter", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
+        static GUIContent s_PatchFilteringSpatialSampleCount = L10n.TextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.", null, null);
+        static GUIContent s_PatchFilteringSpatialRadius = L10n.TextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.", null, null);
+        static GUIContent s_PatchFilteringPostTemporalEnabled = L10n.TextContent("Temporal Post Filter", "Enable temporal post-filtering for additional stability.", null, null);
+        static GUIContent s_ScreenFilteringLookupSampleCount = L10n.TextContent("Lookup Sample Count", "Number of samples for screen-space lookups.", null, null);
+        static GUIContent s_ScreenFilteringDenoisingPassCount = L10n.TextContent("Denoising Pass Count", "Number of denoising passes. More passes reduce noise at a performance cost.", null, null);
+        static GUIContent s_VolumeSize = L10n.TextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.", null, null);
+        static GUIContent s_VolumeResolution = L10n.TextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.", null, null);
+        static GUIContent s_VolumeCascadeCount = L10n.TextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.", null, null);
+        static GUIContent s_VolumeDistanceFallback = L10n.TextContent("Distance Fallback", "When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.", null, null);
+        static GUIContent s_PatchWarping = L10n.TextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.", null, null);
+        static GUIContent s_FocusTarget = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.", null, null);
+        static GUIContent s_FocusTargetProfile = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.", null, null);
+        static GUIContent s_FocusTargetProfileValue = L10n.TextContent("Scene object, set per Volume", null, null, null);
 
         // Section header labels with tooltips
-        static GUIContent s_LightTransportHeader = EditorGUIUtility.TrTextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.");
-        static GUIContent s_PatchFilteringHeader = EditorGUIUtility.TrTextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.");
-        static GUIContent s_ScreenFilteringHeader = EditorGUIUtility.TrTextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.");
-        static GUIContent s_VolumeHeader = EditorGUIUtility.TrTextContent("Volume", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
-        static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
-        static GUIContent s_RenderingLayerMask = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.");
+        static GUIContent s_LightTransportHeader = L10n.TextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.", null, null);
+        static GUIContent s_PatchFilteringHeader = L10n.TextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.", null, null);
+        static GUIContent s_ScreenFilteringHeader = L10n.TextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.", null, null);
+        static GUIContent s_VolumeHeader = L10n.TextContent("Volume", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.", null, null);
+        static GUIContent s_DefragCount = L10n.TextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.", null, null);
+        static GUIContent s_RenderingLayerMask = L10n.TextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.", null, null);
 
         public override void OnEnable()
         {

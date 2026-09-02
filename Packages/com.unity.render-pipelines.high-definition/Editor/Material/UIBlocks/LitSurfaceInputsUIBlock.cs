@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Surface Inputs", null, null, null);
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
 
@@ -101,16 +101,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect.");
 
             // Layer Options
-            public static readonly GUIContent layerTexWorldScaleText = EditorGUIUtility.TrTextContent("World Scale", "Sets the tiling factor of the Planar/Trilinear mapping.");
-            public static readonly GUIContent UVBlendMaskText = EditorGUIUtility.TrTextContent("BlendMask UV Mapping", "Specifies the UV Mapping mode of the layer.");
-            public static readonly GUIContent layerMapMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Specifies the Layer Mask for this Material");
-            public static readonly GUIContent vertexColorModeText = EditorGUIUtility.TrTextContent("Vertex Color Mode", "Specifies the method HDRP uses to color vertices.\nMultiply: Multiplies vertex color with the mask.\nAdditive: Remaps vertex color values between [-1, 1] and adds them to the mask (neutral value is 0.5 vertex color).");
-            public static readonly GUIContent layerCountText = EditorGUIUtility.TrTextContent("Layer Count", "Controls the number of layers for this Material.");
-            public static readonly GUIContent objectScaleAffectTileText = EditorGUIUtility.TrTextContent("Lock layers 0123 tiling with object Scale", "When enabled, tiling of each layer is affected by the Transform's Scale.");
-            public static readonly GUIContent objectScaleAffectTileText2 = EditorGUIUtility.TrTextContent("Lock layers  123 tiling with object Scale", "When enabled, tiling of each influenced layer (except the main layer) is affected by the Transform's Scale.");
-            public static readonly GUIContent useHeightBasedBlendText = EditorGUIUtility.TrTextContent("Use Height Based Blend", "When enabled, HDRP blends the layer with the underlying layer based on the height.");
-            public static readonly GUIContent useMainLayerInfluenceModeText = EditorGUIUtility.TrTextContent("Main Layer Influence", "Switches between regular layers mode and base/layers mode.");
-            public static readonly GUIContent heightTransition = EditorGUIUtility.TrTextContent("Height Transition", "Sets the size, in world units, of the smooth transition between layers.");
+            public static readonly GUIContent layerTexWorldScaleText = L10n.TextContent("World Scale", "Sets the tiling factor of the Planar/Trilinear mapping.", null, null);
+            public static readonly GUIContent UVBlendMaskText = L10n.TextContent("BlendMask UV Mapping", "Specifies the UV Mapping mode of the layer.", null, null);
+            public static readonly GUIContent layerMapMaskText = L10n.TextContent("Layer Mask", "Specifies the Layer Mask for this Material", null, null);
+            public static readonly GUIContent vertexColorModeText = L10n.TextContent("Vertex Color Mode", "Specifies the method HDRP uses to color vertices.\nMultiply: Multiplies vertex color with the mask.\nAdditive: Remaps vertex color values between [-1, 1] and adds them to the mask (neutral value is 0.5 vertex color).", null, null);
+            public static readonly GUIContent layerCountText = L10n.TextContent("Layer Count", "Controls the number of layers for this Material.", null, null);
+            public static readonly GUIContent objectScaleAffectTileText = L10n.TextContent("Lock layers 0123 tiling with object Scale", "When enabled, tiling of each layer is affected by the Transform's Scale.", null, null);
+            public static readonly GUIContent objectScaleAffectTileText2 = L10n.TextContent("Lock layers  123 tiling with object Scale", "When enabled, tiling of each influenced layer (except the main layer) is affected by the Transform's Scale.", null, null);
+            public static readonly GUIContent useHeightBasedBlendText = L10n.TextContent("Use Height Based Blend", "When enabled, HDRP blends the layer with the underlying layer based on the height.", null, null);
+            public static readonly GUIContent useMainLayerInfluenceModeText = L10n.TextContent("Main Layer Influence", "Switches between regular layers mode and base/layers mode.", null, null);
+            public static readonly GUIContent heightTransition = L10n.TextContent("Height Transition", "Sets the size, in world units, of the smooth transition between layers.", null, null);
         }
 
         MaterialProperty[] UVBase = new MaterialProperty[kMaxLayerCount];

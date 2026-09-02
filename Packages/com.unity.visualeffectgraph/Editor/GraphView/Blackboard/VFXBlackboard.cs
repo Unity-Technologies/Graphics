@@ -1214,7 +1214,7 @@ namespace UnityEditor.VFX.UI
             if (showProperties)
             {
                 var prexif = showAttributes ? "Property/" : string.Empty;
-                menu.AddItem(EditorGUIUtility.TrTextContent($"{prexif}Category"), false, OnAddCategory);
+                menu.AddItem(L10n.TextContent($"{prexif}Category", null, null, null), false, OnAddCategory);
                 menu.AddSeparator(prexif);
                 var parameters = GetSortedParameters().ToArray();
                 foreach (var parameter in parameters)

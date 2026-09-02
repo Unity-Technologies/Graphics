@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             }
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
+            PropertyField(m_Enable, L10n.TextContent("State", null, null, null));
 
             if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
             {

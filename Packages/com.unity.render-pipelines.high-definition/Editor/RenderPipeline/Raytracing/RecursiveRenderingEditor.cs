@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
         }
 
-        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays in meters.");
+        static public readonly GUIContent k_RayLengthText = L10n.TextContent("Max Ray Length", "This defines the maximal travel distance of rays in meters.", null, null);
 
         public override void OnInspectorGUI()
         {
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
+            PropertyField(m_Enable, L10n.TextContent("State", null, null, null));
 
             if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
             {

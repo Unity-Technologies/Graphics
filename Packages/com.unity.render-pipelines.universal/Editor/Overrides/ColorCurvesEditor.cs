@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.Universal
 
         void CurveOverrideToggle(SerializedProperty overrideProp)
         {
-            overrideProp.boolValue = GUILayout.Toggle(overrideProp.boolValue, EditorGUIUtility.TrTextContent("Override"), EditorStyles.toolbarButton);
+            overrideProp.boolValue = GUILayout.Toggle(overrideProp.boolValue, L10n.TextContent("Override", null, null, null), EditorStyles.toolbarButton);
         }
 
         string MakeCurveSelectionPopupLabel(int id)

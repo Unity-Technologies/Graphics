@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     });
                 }
                 if (!atLeastOne)
-                    menu.AddDisabledItem(EditorGUIUtility.TrTextContent("No Custom Post Process Available"), false);
+                    menu.AddDisabledItem(L10n.TextContent("No Custom Post Process Available", null, null, null), false);
                 menu.DropDown(new Rect(button.worldBound.position + Vector2.up * button.worldBound.size.y, Vector2.zero));
             };
             listView.itemsRemoved += (indices) => listView.allowRemove = currentPostProcessTypes.arraySize  != 1;

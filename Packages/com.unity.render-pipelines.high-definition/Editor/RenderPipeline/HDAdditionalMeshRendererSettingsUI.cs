@@ -10,16 +10,16 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static class Styles
         {
-            public static GUIContent lineRenderingHeaderContent { get; } = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
-            public static GUIContent enableLineRenderingContent { get; } = EditorGUIUtility.TrTextContent("Enable");
-            public static GUIContent lineRenderingGroup { get; } = EditorGUIUtility.TrTextContent("Group");
-            public static GUIContent lineRenderingLODMode { get; } = EditorGUIUtility.TrTextContent("LOD Mode");
-            public static GUIContent lineRenderingLODFixed { get; } = EditorGUIUtility.TrTextContent("Fixed LOD");
+            public static GUIContent lineRenderingHeaderContent { get; } = L10n.TextContent("High Quality Line Rendering", null, null, null);
+            public static GUIContent enableLineRenderingContent { get; } = L10n.TextContent("Enable", null, null, null);
+            public static GUIContent lineRenderingGroup { get; } = L10n.TextContent("Group", null, null, null);
+            public static GUIContent lineRenderingLODMode { get; } = L10n.TextContent("LOD Mode", null, null, null);
+            public static GUIContent lineRenderingLODFixed { get; } = L10n.TextContent("Fixed LOD", null, null, null);
 
-            public static GUIContent lineRenderingCameraDistanceLODCurve { get; } = EditorGUIUtility.TrTextContent("Camera Distance LOD");
+            public static GUIContent lineRenderingCameraDistanceLODCurve { get; } = L10n.TextContent("Camera Distance LOD", null, null, null);
 
-            public static GUIContent lineRenderingScreenCoverageLODCurve { get; } = EditorGUIUtility.TrTextContent("Screen Coverage LOD");
-            public static GUIContent lineRenderingShadingSampleFraction { get; } = EditorGUIUtility.TrTextContent("Shading Fraction");
+            public static GUIContent lineRenderingScreenCoverageLODCurve { get; } = L10n.TextContent("Screen Coverage LOD", null, null, null);
+            public static GUIContent lineRenderingShadingSampleFraction { get; } = L10n.TextContent("Shading Fraction", null, null, null);
         }
 
         public enum Expandable

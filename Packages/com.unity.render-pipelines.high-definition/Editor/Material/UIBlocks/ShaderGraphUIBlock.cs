@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Exposed Properties");
+            public static GUIContent header { get; } = L10n.TextContent("Exposed Properties", null, null, null);
         }
 
         Features m_Features;

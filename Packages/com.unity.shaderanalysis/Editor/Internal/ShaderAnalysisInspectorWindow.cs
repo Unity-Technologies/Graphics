@@ -373,13 +373,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
             EditorGUILayout.BeginVertical();
             {
                 m_LogCompilerArguments = EditorGUILayout.Toggle(
-                    EditorGUIUtility.TrTempContent("Log compiler arguments."), m_LogCompilerArguments);
+                    L10n.TempContent("Log compiler arguments.", null), m_LogCompilerArguments);
 
                 EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
                     EditorGUILayout.LabelField(UIUtils.Text("Reference Folder: "), GUILayout.Width(200));
                     EditorGUILayout.LabelField(UIUtils.Text(referenceFolderPath), EditorStyles.toolbarTextField, GUILayout.ExpandWidth(true));
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("scenepicking_pickable", "Pick"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                    if (GUILayout.Button(L10n.IconContent("scenepicking_pickable", "Pick", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     {
                         referenceFolderPath = EditorUtility.OpenFolderPanel("Choose the reference folder", "Reference folder", "ShaderAnalysisReference");
                         actions.Add(new GUIAction(GUIActionKind.LoadAssetReferenceMetaData));
@@ -391,7 +391,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 {
                     EditorGUILayout.LabelField(UIUtils.Text("Reference Source Folder: "), GUILayout.Width(200));
                     EditorGUILayout.LabelField(UIUtils.Text(referenceSourceFolderPath), EditorStyles.toolbarTextField, GUILayout.ExpandWidth(true));
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("scenepicking_pickable", "Pick"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                    if (GUILayout.Button(L10n.IconContent("scenepicking_pickable", "Pick", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     {
                         referenceSourceFolderPath = EditorUtility.OpenFolderPanel("Choose the reference source folder", "Reference source folder", "ShaderAnalysisReference");
                         actions.Add(new GUIAction(GUIActionKind.LoadAssetReferenceMetaData));
@@ -409,7 +409,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         void OnGUI_AdvancedSettingsButton()
         {
-            m_ShowSettings = GUILayout.Toggle(m_ShowSettings, EditorGUIUtility.TrIconContent("_Popup", "Show Settings"),
+            m_ShowSettings = GUILayout.Toggle(m_ShowSettings, L10n.IconContent("_Popup", "Show Settings", null),
                 EditorStyles.toolbarButton, GUILayout.Width(k_IconSize));
         }
 
@@ -420,13 +420,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 EditorGUI.BeginChangeCheck();
-                m_SelectedAsset = EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("To Inspect"), m_SelectedAsset,
+                m_SelectedAsset = EditorGUILayout.ObjectField(L10n.TempContent("To Inspect", null), m_SelectedAsset,
                     typeof(Object), false);
                 if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
                     actions.Add(new GUIAction(GUIActionKind.OpenSelectedAsset));
 
                 EditorGUI.BeginChangeCheck();
-                m_SelectedPlatformIndex = EditorGUILayout.Popup(EditorGUIUtility.TrTempContent("Target Platform"), m_SelectedPlatformIndex,
+                m_SelectedPlatformIndex = EditorGUILayout.Popup(L10n.TempContent("Target Platform", null), m_SelectedPlatformIndex,
                     m_SupportedPlatformNames);
                 m_CurrentPlatform = m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex < m_SupportedPlatforms.Length ? m_SupportedPlatforms[m_SelectedPlatformIndex] : BuildTarget.StandaloneWindows;
                 if (EditorGUI.EndChangeCheck())
@@ -435,7 +435,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 if (m_SelectedAsset != null && !m_SelectedAsset.Equals(null) && (m_SelectedAsset.GetType() == typeof(Shader) || m_SelectedAsset.GetType() == typeof(Material)))
                 {
                     EditorGUI.BeginChangeCheck();
-                    m_SelectedShaderStage = (ShaderProfile)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTempContent("Target Stage"), (ShaderStage)m_SelectedShaderStage);
+                    m_SelectedShaderStage = (ShaderProfile)EditorGUILayout.EnumPopup(L10n.TempContent("Target Stage", null), (ShaderStage)m_SelectedShaderStage);
                     if (EditorGUI.EndChangeCheck())
                         actions.Add(new GUIAction(GUIActionKind.OpenSelectedAsset));
                 }
@@ -457,7 +457,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 EditorGUILayout.LabelField("Reporting", EditorStyles.whiteLargeLabel, GUILayout.Width(75));
 
                 GUI.enabled = EditorShaderTools.DoesPlatformSupport(m_CurrentPlatform, capability);
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("PlayButton On", "Build Report"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                if (GUILayout.Button(L10n.IconContent("PlayButton On", "Build Report", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     actions.Add(new GUIAction(GUIActionKind.BuildReportJob, buildReportJob, asset));
                 m_BuildReportFeature = (BuildReportFeature)EditorGUILayout.EnumFlagsField(m_BuildReportFeature, GUILayout.Width(80));
 
@@ -465,13 +465,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
                 var genDir = ShaderAnalysisUtils.GetTemporaryDirectory(asset, m_CurrentPlatform);
                 GUI.enabled = genDir.Exists;
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("Project", "Open Temp Dir"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                if (GUILayout.Button(L10n.IconContent("Project", "Open Temp Dir", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     Application.OpenURL(genDir.FullName);
 
                 GUILayout.Space(k_HorizontalSpacing);
 
                 GUI.enabled = report != null && ExporterUtilities.IsValid(m_ReportExporterIndex);
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneLoadOut", "Export to"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                if (GUILayout.Button(L10n.IconContent("SceneLoadOut", "Export to", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     actions.Add(new GUIAction(GUIActionKind.ExportReport, asset));
                 GUI.enabled = true;
                 m_ReportExporterIndex =
@@ -496,13 +496,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 EditorGUILayout.LabelField("Diff", EditorStyles.whiteLargeLabel, GUILayout.Width(55));
 
                 GUI.enabled = report != null;
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneLoadIn", "Set as reference"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                if (GUILayout.Button(L10n.IconContent("SceneLoadIn", "Set as reference", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     actions.Add(new GUIAction(GUIActionKind.SetAsReference, assetGUID, report));
 
                 GUILayout.Space(k_HorizontalSpacing);
 
                 GUI.enabled = report != null && reportReference != null && ExporterUtilities.IsValid(m_ReportDiffExporterIndex);
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneLoadOut", "Export diff to"), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
+                if (GUILayout.Button(L10n.IconContent("SceneLoadOut", "Export diff to", null), EditorStyles.toolbarButton, GUILayout.Width(k_IconSize)))
                     actions.Add(new GUIAction(GUIActionKind.ExportDiffReport, report, reportReference, assetGUID));
                 GUI.enabled = true;
                 m_ReportDiffExporterIndex =
@@ -668,13 +668,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
-                EditorGUILayout.LabelField(EditorGUIUtility.TrTempContent("Filters"), EditorStyles.whiteLargeLabel,
+                EditorGUILayout.LabelField(L10n.TempContent("Filters", null), EditorStyles.whiteLargeLabel,
                     GUILayout.Width(55));
 
-                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Pass", "Comma separated include (+PASS_NAME) or exclude (-PASS_NAME) pass names. '+PASS_NAME_1,PASS_NAME_2' or '-PASS_NAME_1,-PASS_NAME_2'."), GUILayout.Width(35));
+                EditorGUILayout.LabelField(L10n.TextContent("Pass", "Comma separated include (+PASS_NAME) or exclude (-PASS_NAME) pass names. '+PASS_NAME_1,PASS_NAME_2' or '-PASS_NAME_1,-PASS_NAME_2'.", null, null), GUILayout.Width(35));
                 m_ShaderPassFilter = EditorGUILayout.TextField(m_ShaderPassFilter, EditorStyles.toolbarTextField, GUILayout.ExpandWidth(true));
 
-                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Variant", "Define keywords that must be present in a variant. 'A&C|B&C' means that all variant must have keyword 'C' and either keyword 'A' or 'B'"), GUILayout.Width(45));
+                EditorGUILayout.LabelField(L10n.TextContent("Variant", "Define keywords that must be present in a variant. 'A&C|B&C' means that all variant must have keyword 'C' and either keyword 'A' or 'B'", null, null), GUILayout.Width(45));
                 m_KeywordFilter = EditorGUILayout.TextField(m_KeywordFilter, EditorStyles.toolbarTextField, GUILayout.ExpandWidth(true));
             }
             EditorGUILayout.EndHorizontal();
@@ -761,7 +761,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
         void NOOPGUI()
         {
             EditorGUI.BeginChangeCheck();
-            m_SelectedAsset = EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("To Inspect"), m_SelectedAsset,
+            m_SelectedAsset = EditorGUILayout.ObjectField(L10n.TempContent("To Inspect", null), m_SelectedAsset,
                 typeof(Object), false);
             if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
                 OpenAsset(m_SelectedAsset);

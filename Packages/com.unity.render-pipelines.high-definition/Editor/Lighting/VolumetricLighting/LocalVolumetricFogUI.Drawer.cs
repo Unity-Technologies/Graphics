@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.editorAdvancedFade.hasMultipleDifferentValues)
             {
                 using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.LabelField(Styles.s_BlendLabel, EditorGUIUtility.TrTextContent("Multiple values for Advanced mode"));
+                    EditorGUILayout.LabelField(Styles.s_BlendLabel, L10n.TextContent("Multiple values for Advanced mode", null, null, null));
             }
             else if (serialized.editorAdvancedFade.boolValue)
             {

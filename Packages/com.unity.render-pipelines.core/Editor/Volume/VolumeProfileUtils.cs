@@ -12,16 +12,16 @@ namespace UnityEditor.Rendering
     {
         internal static class Styles
         {
-            public static readonly GUIContent newVolumeProfile = EditorGUIUtility.TrTextContent("New Volume Profile...");
-            public static readonly GUIContent clone = EditorGUIUtility.TrTextContent("Clone");
-            public static readonly GUIContent collapseAll = EditorGUIUtility.TrTextContent("Collapse All");
-            public static readonly GUIContent expandAll = EditorGUIUtility.TrTextContent("Expand All");
-            public static readonly GUIContent reset = EditorGUIUtility.TrTextContent("Reset");
-            public static readonly GUIContent resetAll = EditorGUIUtility.TrTextContent("Reset All");
-            public static readonly GUIContent openInRenderingDebugger = EditorGUIUtility.TrTextContent("Open In Rendering Debugger");
-            public static readonly GUIContent copySettings = EditorGUIUtility.TrTextContent("Copy Settings");
-            public static readonly GUIContent copyAllSettings = EditorGUIUtility.TrTextContent("Copy All Settings");
-            public static readonly GUIContent pasteSettings = EditorGUIUtility.TrTextContent("Paste Settings");
+            public static readonly GUIContent newVolumeProfile = L10n.TextContent("New Volume Profile...", null, null, null);
+            public static readonly GUIContent clone = L10n.TextContent("Clone", null, null, null);
+            public static readonly GUIContent collapseAll = L10n.TextContent("Collapse All", null, null, null);
+            public static readonly GUIContent expandAll = L10n.TextContent("Expand All", null, null, null);
+            public static readonly GUIContent reset = L10n.TextContent("Reset", null, null, null);
+            public static readonly GUIContent resetAll = L10n.TextContent("Reset All", null, null, null);
+            public static readonly GUIContent openInRenderingDebugger = L10n.TextContent("Open In Rendering Debugger", null, null, null);
+            public static readonly GUIContent copySettings = L10n.TextContent("Copy Settings", null, null, null);
+            public static readonly GUIContent copyAllSettings = L10n.TextContent("Copy All Settings", null, null, null);
+            public static readonly GUIContent pasteSettings = L10n.TextContent("Paste Settings", null, null, null);
         }
 
         internal static void CopyValuesToProfile(VolumeComponent component, VolumeProfile profile)

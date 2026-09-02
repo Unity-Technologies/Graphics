@@ -18,13 +18,13 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Texture, EditorGUIUtility.TrTextContent("Lookup Texture"));
+            PropertyField(m_Texture, L10n.TextContent("Lookup Texture", null, null, null));
 
             var lut = m_Texture.value.objectReferenceValue;
             if (lut != null && !((ColorLookup)target).ValidateLUT())
                 EditorGUILayout.HelpBox("Invalid lookup texture. It must be a non-sRGB 2D texture or render texture with the same size as set in the Universal Render Pipeline settings.", MessageType.Warning);
 
-            PropertyField(m_Contribution, EditorGUIUtility.TrTextContent("Contribution"));
+            PropertyField(m_Contribution, L10n.TextContent("Contribution", null, null, null));
 
             var asset = UniversalRenderPipeline.asset;
             if (asset != null)

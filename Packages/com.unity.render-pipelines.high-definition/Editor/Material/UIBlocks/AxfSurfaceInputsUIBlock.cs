@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Surface Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Advanced Surface Inputs", null, null, null);
 
             public static GUIContent BRDFTypeText = new GUIContent("BRDF Type");
             public static GUIContent mapsTilingOffsetText = new GUIContent("Tiling and Offset for Map", "XY scales, ZW offsets");

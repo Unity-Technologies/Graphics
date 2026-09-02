@@ -8,9 +8,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static readonly GUIContent[] s_MidGrayNames =
         {
-            EditorGUIUtility.TrTextContent("Grey 12.5%"),
-            EditorGUIUtility.TrTextContent("Grey 14.0%"),
-            EditorGUIUtility.TrTextContent("Grey 18.0%")
+            L10n.TextContent("Grey 12.5%", null, null, null),
+            L10n.TextContent("Grey 14.0%", null, null, null),
+            L10n.TextContent("Grey 18.0%", null, null, null)
         };
 
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)

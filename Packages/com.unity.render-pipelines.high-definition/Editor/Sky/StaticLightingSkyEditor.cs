@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Go to LightingWindow for edition."));
+            EditorGUILayout.LabelField(L10n.TextContent("Go to LightingWindow for edition.", null, null, null));
         }
     }
 }

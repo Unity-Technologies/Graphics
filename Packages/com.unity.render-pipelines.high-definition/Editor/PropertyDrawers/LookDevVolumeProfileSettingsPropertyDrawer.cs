@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         VisualElement m_EditorContainer;
 
         const int k_DefaultVolumeLabelWidth = 260;
-        static readonly GUIContent k_LookDevVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("LookDev Profile");
+        static readonly GUIContent k_LookDevVolumeProfileAssetLabel = L10n.TextContent("LookDev Profile", null, null, null);
 
         const int k_ImguiContainerLeftMargin = 32;
         const int k_AssetFieldBottomMargin = 6;

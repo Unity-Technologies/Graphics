@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Surface Inputs", null, null, null);
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal.");
             public static GUIContent baseColorAlphaOnlyText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal. Since Affect BaseColor is disabled only the opacity (A) is being used.");
             public static GUIContent baseOpacityText = new GUIContent("Opacity", "Specify the opacity (A) of the decal.");

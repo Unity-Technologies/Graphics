@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
 
-        static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static readonly GUIContent k_NewDecalMaterialButtonText = L10n.TextContent("New", "Creates a new Decal material.", null, null);
         static readonly string k_NewDecalText = "HDRP Decal";
         static readonly string k_NewSGDecalText = "ShaderGraph Decal";
         static readonly string k_DefaultDecalShaderGraphTemplatePath = "Packages/com.unity.shadergraph/GraphTemplates/Cross Pipeline/0_Decal Simple.shadergraph";
@@ -786,7 +786,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (showAffectTransparencyHaveMultipleDifferentValue)
                 {
                     using (new EditorGUI.DisabledScope(true))
-                        EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Multiple material type in selection"));
+                        EditorGUILayout.LabelField(L10n.TextContent("Multiple material type in selection", null, null, null));
                 }
                 else if (showAffectTransparency)
                 {

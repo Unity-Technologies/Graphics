@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering
             if (rangeIndex < 0)
             {
                 string tooltip = usesLuxBasedRange ? "Higher than Sunlight" : "Very high intensity light";
-                content = new GUIContent(EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip);
+                content = L10n.IconContent("console.warnicon", tooltip, null);
                 float minOrMaxValue = (convertedIntensity < minValue) ? minValue : maxValue;
                 range = new Vector2(-1, minOrMaxValue);
             }
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering
                         }
 
                         menu.AddItem(
-                            EditorGUIUtility.TrTextContent(preset.content.tooltip),
+                            L10n.TextContent(preset.content.tooltip, null, null, null),
                            rangeIndex == i,
                            () => SetIntensityValue(serialized, nativePresetValue)
                         );

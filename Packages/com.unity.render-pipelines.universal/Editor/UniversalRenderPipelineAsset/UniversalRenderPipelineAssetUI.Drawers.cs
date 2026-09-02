@@ -1027,14 +1027,14 @@ namespace UnityEditor.Rendering.Universal
                 if (useMetric)
                 {
                     float valueMetric = value * baseMetric;
-                    valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts."), valueMetric, 0f, baseMetric, null);
+                    valueMetric = EditorGUILayout.Slider(L10n.TextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts.", null, null), valueMetric, 0f, baseMetric, null);
 
                     shadowCascadeSplit[i] = Mathf.Clamp(valueMetric * invBaseMetric, minimum, maximum);
                 }
                 else
                 {
                     float valueProcentage = value * 100f;
-                    valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts."), valueProcentage, 0f, 100f, null);
+                    valueProcentage = EditorGUILayout.Slider(L10n.TextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts.", null, null), valueProcentage, 0f, 100f, null);
 
                     shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage * 0.01f, minimum, maximum);
                 }
@@ -1064,14 +1064,14 @@ namespace UnityEditor.Rendering.Universal
                 var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
                 var invLastCascadeSplitSize = lastCascadeSplitSize == 0 ? 0 : 1f / lastCascadeSplitSize;
                 float valueMetric = borderValue * lastCascadeSplitSize;
-                valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", "The distance of the last cascade."), valueMetric, 0f, lastCascadeSplitSize, null);
+                valueMetric = EditorGUILayout.Slider(L10n.TextContent("Last Border", "The distance of the last cascade.", null, null), valueMetric, 0f, lastCascadeSplitSize, null);
 
                 borderValue = valueMetric * invLastCascadeSplitSize;
             }
             else
             {
                 float valueProcentage = borderValue * 100f;
-                valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", "The distance of the last cascade."), valueProcentage, 0f, 100f, null);
+                valueProcentage = EditorGUILayout.Slider(L10n.TextContent("Last Border", "The distance of the last cascade.", null, null), valueProcentage, 0f, 100f, null);
 
                 borderValue = valueProcentage * 0.01f;
             }

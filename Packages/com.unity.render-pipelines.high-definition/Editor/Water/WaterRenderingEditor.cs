@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
+            PropertyField(m_Enable, L10n.TextContent("State", null, null, null));
 
             EditorGUILayout.LabelField("Level of Detail", EditorStyles.miniLabel);
             PropertyField(m_TriangleSize);

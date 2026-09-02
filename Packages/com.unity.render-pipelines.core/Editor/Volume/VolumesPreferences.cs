@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
 
         class Styles
         {
-            public static readonly GUIContent volumeGizmosVisibilityLabel = EditorGUIUtility.TrTextContent("Gizmo Visibility", "Specifies how Gizmos for Volumes are being rendered");
+            public static readonly GUIContent volumeGizmosVisibilityLabel = L10n.TextContent("Gizmo Visibility", "Specifies how Gizmos for Volumes are being rendered", null, null);
         }
 
         static VolumeGizmoVisibility s_VolumeGizmosVisibilityOption = VolumeGizmoVisibility.Solid;

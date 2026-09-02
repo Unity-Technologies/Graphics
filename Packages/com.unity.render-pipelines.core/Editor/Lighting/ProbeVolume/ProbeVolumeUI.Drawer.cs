@@ -22,11 +22,11 @@ namespace UnityEditor.Rendering
 
             GIContributors.ContributorFilter? filter = null;
 
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to All Scenes", "Fit this Adaptive Probe Volume to cover all loaded Scenes. "), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to All Scenes", "Fit this Adaptive Probe Volume to cover all loaded Scenes. ", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.All;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fit this Adaptive Probe Volume to the renderers in the same Scene."), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to Scene", "Fit this Adaptive Probe Volume to the renderers in the same Scene.", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Scene;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits this Adaptive Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections."), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to Selection", "Fits this Adaptive Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections.", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Selection;
 
             if (filter.HasValue)

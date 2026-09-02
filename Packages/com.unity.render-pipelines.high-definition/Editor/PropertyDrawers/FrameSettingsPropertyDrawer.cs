@@ -199,8 +199,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [CustomPropertyDrawer(typeof(FrameSettingsOverrideMask))]
     class FrameSettingsOverrideMaskPropertyDrawer : PropertyDrawer
     {
-        static readonly GUIContent k_Label = EditorGUIUtility.TrTextContent("Unavailable",
-            $"{nameof(FrameSettingsOverrideMask)} should not be displayed directly. Use [{nameof(UseOverrideMaskAttribute)}(pathToMask)] instead.");
+        static readonly GUIContent k_Label = L10n.TextContent("Unavailable",
+            $"{nameof(FrameSettingsOverrideMask)} should not be displayed directly. Use [{nameof(UseOverrideMaskAttribute)}(pathToMask)] instead.", null, null);
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {

@@ -23,8 +23,8 @@ namespace UnityEditor.Rendering
             public static readonly string warningSRPNotActive = "Current Render Pipeline is {0}. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
             public static readonly string settingNullRPSettings = "Invalid Global Settings asset. Rollback to the previous value";
 
-            public static readonly GUIContent newAssetButtonLabel = EditorGUIUtility.TrTextContent("New", "Create a Global Settings asset in the Assets folder.");
-            public static readonly GUIContent cloneAssetButtonLabel = EditorGUIUtility.TrTextContent("Clone", "Clone a Global Settings asset in the Assets folder.");
+            public static readonly GUIContent newAssetButtonLabel = L10n.TextContent("New", "Create a Global Settings asset in the Assets folder.", null, null);
+            public static readonly GUIContent cloneAssetButtonLabel = L10n.TextContent("Clone", "Clone a Global Settings asset in the Assets folder.", null, null);
             public static readonly GUILayoutOption[] buttonOptions = new GUILayoutOption[] { GUILayout.Width(45), GUILayout.Height(18) };
         }
 

@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering
         , IHasCustomMenu
 #endif
     {
-        internal static GUIContent s_TitleContent = EditorGUIUtility.TrTextContent("Rendering Debugger");
+        internal static GUIContent s_TitleContent = L10n.TextContent("Rendering Debugger", null, null, null);
 
         [MenuItem("Window/Analysis/Rendering Debugger", priority = 10005)]
         static void Init()

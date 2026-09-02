@@ -20,12 +20,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         static partial class Styles
         {
-            static public readonly GUIContent k_CompositionGraph = EditorGUIUtility.TrTextContent("Composition Graph", "Specifies the Shader Graph that will be used to produce the final composited output.");
-            static public readonly GUIContent k_OutputCamera = EditorGUIUtility.TrTextContent("Output Camera", "Specifies the camera that will output the final composited image.");
-            static public readonly GUIContent k_EnablePreview = EditorGUIUtility.TrTextContent("Enable Preview", "When enabled, the compositor will generate the final composed frame even in edit mode.");
-            static public readonly GUIContent k_InputFilters = EditorGUIUtility.TrTextContent("Input Filters", "A list of color filters that will be executed before composing the frame.");
-            static public readonly GUIContent k_Properties = EditorGUIUtility.TrTextContent("Properties", "The properties of a layer or sub-layer.");
-            static public readonly GUIContent k_RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
+            static public readonly GUIContent k_CompositionGraph = L10n.TextContent("Composition Graph", "Specifies the Shader Graph that will be used to produce the final composited output.", null, null);
+            static public readonly GUIContent k_OutputCamera = L10n.TextContent("Output Camera", "Specifies the camera that will output the final composited image.", null, null);
+            static public readonly GUIContent k_EnablePreview = L10n.TextContent("Enable Preview", "When enabled, the compositor will generate the final composed frame even in edit mode.", null, null);
+            static public readonly GUIContent k_InputFilters = L10n.TextContent("Input Filters", "A list of color filters that will be executed before composing the frame.", null, null);
+            static public readonly GUIContent k_Properties = L10n.TextContent("Properties", "The properties of a layer or sub-layer.", null, null);
+            static public readonly GUIContent k_RenderSchedule = L10n.TextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.", null, null);
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_ShaderWarning = "You must specify a composition graph to see an output from the compositor.";

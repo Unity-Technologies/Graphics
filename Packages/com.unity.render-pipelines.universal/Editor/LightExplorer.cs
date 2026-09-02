@@ -15,29 +15,29 @@ namespace UnityEditor
     {
         private static class Styles
         {
-            public static readonly GUIContent Enabled = EditorGUIUtility.TrTextContent("Enabled");
-            public static readonly GUIContent Name = EditorGUIUtility.TrTextContent("Name");
-            public static readonly GUIContent Mode = EditorGUIUtility.TrTextContent("Mode");
+            public static readonly GUIContent Enabled = L10n.TextContent("Enabled", null, null, null);
+            public static readonly GUIContent Name = L10n.TextContent("Name", null, null, null);
+            public static readonly GUIContent Mode = L10n.TextContent("Mode", null, null, null);
 
-            public static readonly GUIContent HDR = EditorGUIUtility.TrTextContent("HDR");
-            public static readonly GUIContent ShadowDistance = EditorGUIUtility.TrTextContent("Shadow Distance");
-            public static readonly GUIContent NearPlane = EditorGUIUtility.TrTextContent("Near Plane");
-            public static readonly GUIContent FarPlane = EditorGUIUtility.TrTextContent("Far Plane");
-            public static readonly GUIContent Resolution = EditorGUIUtility.TrTextContent("Resolution");
+            public static readonly GUIContent HDR = L10n.TextContent("HDR", null, null, null);
+            public static readonly GUIContent ShadowDistance = L10n.TextContent("Shadow Distance", null, null, null);
+            public static readonly GUIContent NearPlane = L10n.TextContent("Near Plane", null, null, null);
+            public static readonly GUIContent FarPlane = L10n.TextContent("Far Plane", null, null, null);
+            public static readonly GUIContent Resolution = L10n.TextContent("Resolution", null, null, null);
 
-            public static readonly GUIContent[] ReflectionProbeModeTitles = { EditorGUIUtility.TrTextContent("Baked"), EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Custom") };
+            public static readonly GUIContent[] ReflectionProbeModeTitles = { L10n.TextContent("Baked", null, null, null), L10n.TextContent("Realtime", null, null, null), L10n.TextContent("Custom", null, null, null) };
             public static readonly int[] ReflectionProbeModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Realtime, (int)ReflectionProbeMode.Custom };
-            public static readonly GUIContent[] ReflectionProbeSizeTitles = { EditorGUIUtility.TrTextContent("16"),
-                                                                              EditorGUIUtility.TrTextContent("32"),
-                                                                              EditorGUIUtility.TrTextContent("64"),
-                                                                              EditorGUIUtility.TrTextContent("128"),
-                                                                              EditorGUIUtility.TrTextContent("256"),
-                                                                              EditorGUIUtility.TrTextContent("512"),
-                                                                              EditorGUIUtility.TrTextContent("1024"),
-                                                                              EditorGUIUtility.TrTextContent("2048") };
+            public static readonly GUIContent[] ReflectionProbeSizeTitles = { L10n.TextContent("16", null, null, null),
+                                                                              L10n.TextContent("32", null, null, null),
+                                                                              L10n.TextContent("64", null, null, null),
+                                                                              L10n.TextContent("128", null, null, null),
+                                                                              L10n.TextContent("256", null, null, null),
+                                                                              L10n.TextContent("512", null, null, null),
+                                                                              L10n.TextContent("1024", null, null, null),
+                                                                              L10n.TextContent("2048", null, null, null) };
             public static readonly int[] ReflectionProbeSizeValues = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
 
-            public static readonly GUIContent Emission = EditorGUIUtility.TrTextContent("Emission");
+            public static readonly GUIContent Emission = L10n.TextContent("Emission", null, null, null);
             // The order of the following lists have to match. Unlike the default light explorer, URP also
             // exposes the realtime direct emission flag, which drives the _EMISSION keyword of URP shaders.
             public static readonly string[] EmissionOptions = { L10n.Tr("Realtime Direct Emission", null), L10n.Tr("Realtime Indirect Emission", null), L10n.Tr("Baked Emission", null) };
@@ -52,7 +52,7 @@ namespace UnityEditor
             var baseColumns = base.Get2DLightColumns();
 
             // Replace the Light Type column (index 2) with our custom implementation that supports providers
-            var typeHeader = EditorGUIUtility.TrTextContent("Type");
+            var typeHeader = L10n.TextContent("Type", null, null, null);
             baseColumns[2] = new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, typeHeader, "m_LightType", 100, (r, prop, dep) =>
             {
                 if (prop != null && prop.serializedObject.targetObject != null)
@@ -65,7 +65,7 @@ namespace UnityEditor
                     else
                     {
                         // Handle deprecated Parametric type
-                        var parametricStyle = EditorGUIUtility.TrTextContentWithIcon("Parametric", "Parametric Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
+                        var parametricStyle = L10n.TextContentWithIcon("Parametric", "Parametric Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning, null);
                         EditorGUI.LabelField(r, parametricStyle);
                     }
                 }

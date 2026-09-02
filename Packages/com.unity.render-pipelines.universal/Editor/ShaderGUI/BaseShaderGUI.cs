@@ -176,37 +176,37 @@ namespace UnityEditor
             /// The text and tooltip for the surface options GUI.
             /// </summary>
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how URP Renders the material on screen.");
+                L10n.TextContent("Surface Options", "Controls how URP Renders the material on screen.", null, null);
 
             /// <summary>
             /// The text and tooltip for the surface inputs GUI.
             /// </summary>
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
-                "These settings describe the look and feel of the surface itself.");
+            public static readonly GUIContent SurfaceInputs = L10n.TextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.", null, null);
 
             /// <summary>
             /// The text and tooltip for the advanced options GUI.
             /// </summary>
-            public static readonly GUIContent AdvancedLabel = EditorGUIUtility.TrTextContent("Advanced Options",
-                "These settings affect behind-the-scenes rendering and underlying calculations.");
+            public static readonly GUIContent AdvancedLabel = L10n.TextContent("Advanced Options",
+                "These settings affect behind-the-scenes rendering and underlying calculations.", null, null);
 
             /// <summary>
             /// The text and tooltip for the Surface Type GUI.
             /// </summary>
-            public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
-                "Select a surface type for your texture. Choose between Opaque or Transparent.");
+            public static readonly GUIContent surfaceType = L10n.TextContent("Surface Type",
+                "Select a surface type for your texture. Choose between Opaque or Transparent.", null, null);
 
             /// <summary>
             /// The text and tooltip for the blending mode GUI.
             /// </summary>
-            public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
-                "Controls how the color of the Transparent surface blends with the Material color in the background.");
+            public static readonly GUIContent blendingMode = L10n.TextContent("Blending Mode",
+                "Controls how the color of the Transparent surface blends with the Material color in the background.", null, null);
 
             /// <summary>
             /// The text and tooltip for the preserve specular lighting GUI.
             /// </summary>
-            public static readonly GUIContent preserveSpecularText = EditorGUIUtility.TrTextContent("Preserve Specular Lighting",
-                "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.");
+            public static readonly GUIContent preserveSpecularText = L10n.TextContent("Preserve Specular Lighting",
+                "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.", null, null);
 
 #if VOLUMETRIC_FOG
             /// <summary>
@@ -219,124 +219,124 @@ namespace UnityEditor
             /// <summary>
             /// The text and tooltip for the render face GUI.
             /// </summary>
-            public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
-                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.");
+            public static readonly GUIContent cullingText = L10n.TextContent("Render Face",
+                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.", null, null);
 
             /// <summary>
             /// The text and tooltip for the depth write GUI.
             /// </summary>
-            public static readonly GUIContent zwriteText = EditorGUIUtility.TrTextContent("Write Depth",
-                "Enable or disable depth buffer writes.");
+            public static readonly GUIContent zwriteText = L10n.TextContent("Write Depth",
+                "Enable or disable depth buffer writes.", null, null);
 
             /// <summary>
             /// The text and tooltip for the depth test GUI.
             /// </summary>
-            public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
-                "Specifies the depth test mode.  The default is LEqual.");
+            public static readonly GUIContent ztestText = L10n.TextContent("Depth Test",
+                "Specifies the depth test mode.  The default is LEqual.", null, null);
 
             /// <summary>
             /// The text and tooltip for the override depth toggle GUI.
             /// </summary>
-            public static readonly GUIContent overrideDepthText = EditorGUIUtility.TrTextContent("Override Depth",
-                "Enable per-material depth write and depth test settings. When off, the shader uses the surface type's defaults (LEqual, Auto).");
+            public static readonly GUIContent overrideDepthText = L10n.TextContent("Override Depth",
+                "Enable per-material depth write and depth test settings. When off, the shader uses the surface type's defaults (LEqual, Auto).", null, null);
 
             /// <summary>
             /// The text and tooltip for the override stencil toggle GUI.
             /// </summary>
-            public static readonly GUIContent overrideStencilText = EditorGUIUtility.TrTextContent("Override Stencil",
-                "Enable per-material stencil ref, mask, comparison, and operation settings.");
+            public static readonly GUIContent overrideStencilText = L10n.TextContent("Override Stencil",
+                "Enable per-material stencil ref, mask, comparison, and operation settings.", null, null);
 
             /// <summary>
             /// The text and tooltip for the alpha clipping GUI.
             /// </summary>
-            public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
-                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas. Avoid using when Alpha is constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask).");
+            public static readonly GUIContent alphaClipText = L10n.TextContent("Alpha Clipping",
+                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas. Avoid using when Alpha is constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask).", null, null);
 
             /// <summary>
             /// The text and tooltip for the alpha clipping threshold GUI.
             /// </summary>
-            public static readonly GUIContent alphaClipThresholdText = EditorGUIUtility.TrTextContent("Threshold",
-                "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.");
+            public static readonly GUIContent alphaClipThresholdText = L10n.TextContent("Threshold",
+                "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.", null, null);
 
             /// <summary>
             /// The text and tooltip for the cast shadows GUI.
             /// </summary>
-            public static readonly GUIContent castShadowText = EditorGUIUtility.TrTextContent("Cast Shadows",
-                "When enabled, this GameObject will cast shadows onto any geometry that can receive them.");
+            public static readonly GUIContent castShadowText = L10n.TextContent("Cast Shadows",
+                "When enabled, this GameObject will cast shadows onto any geometry that can receive them.", null, null);
 
             /// <summary>
             /// The text and tooltip for the receive shadows GUI.
             /// </summary>
-            public static readonly GUIContent receiveShadowText = EditorGUIUtility.TrTextContent("Receive Shadows",
-                "When enabled, other GameObjects can cast shadows onto this GameObject.");
+            public static readonly GUIContent receiveShadowText = L10n.TextContent("Receive Shadows",
+                "When enabled, other GameObjects can cast shadows onto this GameObject.", null, null);
 
             /// <summary>
             /// The text and tooltip for the base map GUI.
             /// </summary>
-            public static readonly GUIContent baseMap = EditorGUIUtility.TrTextContent("Base Map",
-                "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
+            public static readonly GUIContent baseMap = L10n.TextContent("Base Map",
+                "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.", null, null);
 
             /// <summary>
             /// The text and tooltip for the emission map GUI.
             /// </summary>
-            public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
-                "Determines the color and intensity of light that the surface of the material emits.");
+            public static readonly GUIContent emissionMap = L10n.TextContent("Emission Map",
+                "Determines the color and intensity of light that the surface of the material emits.", null, null);
 
             /// <summary>
             /// The text and tooltip for the normal map GUI.
             /// </summary>
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
+                L10n.TextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.", null, null);
 
             /// <summary>
             /// The text and tooltip for the bump scale not supported GUI.
             /// </summary>
             public static readonly GUIContent bumpScaleNotSupported =
-                EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
+                L10n.TextContent("Bump scale is not supported on mobile platforms", null, null, null);
 
             /// <summary>
             /// The text and tooltip for the normals fix now GUI.
             /// </summary>
-            public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
-                "Converts the assigned texture to be a normal map format.");
+            public static readonly GUIContent fixNormalNow = L10n.TextContent("Fix now",
+                "Converts the assigned texture to be a normal map format.", null, null);
 
             /// <summary>
             /// The text and tooltip for the sorting priority GUI.
             /// </summary>
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
-                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
+            public static readonly GUIContent queueSlider = L10n.TextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.", null, null);
 
             /// <summary>
             /// The text and tooltip for the queue control GUI.
             /// </summary>
-            public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
-                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
+            public static readonly GUIContent queueControl = L10n.TextContent("Queue Control",
+                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.", null, null);
 
-            public static readonly GUIContent stencilRef = EditorGUIUtility.TrTextContent("Stencil Ref",
-                "The reference value used by the stencil compare function and (if Pass is Replace) written to the stencil buffer.");
+            public static readonly GUIContent stencilRef = L10n.TextContent("Stencil Ref",
+                "The reference value used by the stencil compare function and (if Pass is Replace) written to the stencil buffer.", null, null);
 
-            public static readonly GUIContent stencilReadMask = EditorGUIUtility.TrTextContent("Read Mask",
-                "Binary 'AND' mask applied to stencil values before comparison.");
+            public static readonly GUIContent stencilReadMask = L10n.TextContent("Read Mask",
+                "Binary 'AND' mask applied to stencil values before comparison.", null, null);
 
-            public static readonly GUIContent stencilWriteMask = EditorGUIUtility.TrTextContent("Write Mask",
-                "Binary 'AND' mask applied to stencil values before stencil write operation (Pass / Fail / Z fail).");
+            public static readonly GUIContent stencilWriteMask = L10n.TextContent("Write Mask",
+                "Binary 'AND' mask applied to stencil values before stencil write operation (Pass / Fail / Z fail).", null, null);
 
-            public static readonly GUIContent stencilCompFunc = EditorGUIUtility.TrTextContent("Compare Function",
-                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.");
+            public static readonly GUIContent stencilCompFunc = L10n.TextContent("Compare Function",
+                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.", null, null);
 
-            public static readonly GUIContent stencilPassOp = EditorGUIUtility.TrTextContent("Pass",
-                "Operation performed on the stencil buffer when the stencil test passes.");
+            public static readonly GUIContent stencilPassOp = L10n.TextContent("Pass",
+                "Operation performed on the stencil buffer when the stencil test passes.", null, null);
 
-            public static readonly GUIContent stencilFailOp = EditorGUIUtility.TrTextContent("Fail",
-                "Operation performed on the stencil buffer when the stencil test fails.");
+            public static readonly GUIContent stencilFailOp = L10n.TextContent("Fail",
+                "Operation performed on the stencil buffer when the stencil test fails.", null, null);
 
-            public static readonly GUIContent stencilZFailOp = EditorGUIUtility.TrTextContent("Z Fail",
-                "Operation performed on the stencil buffer when the stencil test passes but the depth test fails.");
+            public static readonly GUIContent stencilZFailOp = L10n.TextContent("Z Fail",
+                "Operation performed on the stencil buffer when the stencil test passes but the depth test fails.", null, null);
 
             /// <summary>
             /// The text and tooltip for the help reference GUI.
             /// </summary>
-            public static readonly GUIContent documentationIcon = EditorGUIUtility.TrIconContent("_Help", $"Open Reference for URP Shaders.");
+            public static readonly GUIContent documentationIcon = L10n.IconContent("_Help", $"Open Reference for URP Shaders.", null);
         }
 
         #endregion

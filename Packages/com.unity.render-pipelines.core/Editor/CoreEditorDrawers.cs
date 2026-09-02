@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering
         public static IDrawer FoldoutGroup<TEnum>(string title, TEnum mask, ExpandedStateBase<TEnum> state, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, contentDrawers);
+            return FoldoutGroup(L10n.TextContent(title, null, null, null), mask, state, contentDrawers);
         }
 
         /// <summary> Create an IDrawer foldout header using an ExpandedStateBase </summary>
@@ -597,7 +597,7 @@ namespace UnityEditor.Rendering
         public static IDrawer FoldoutGroup<TEnum>(string title, TEnum mask, ExpandedStateBase<TEnum> state, FoldoutOption options, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, options, contentDrawers);
+            return FoldoutGroup(L10n.TextContent(title, null, null, null), mask, state, options, contentDrawers);
         }
 
         /// <summary> Create an IDrawer foldout header using an ExpandedStateBase </summary>
@@ -643,7 +643,7 @@ namespace UnityEditor.Rendering
         public static IDrawer FoldoutGroup<TEnum>(string title, TEnum mask, ExpandedStateBase<TEnum> state, FoldoutOption options, Action<GenericMenu, TData> customMenuContextAction, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, options, customMenuContextAction, contentDrawers);
+            return FoldoutGroup(L10n.TextContent(title, null, null, null), mask, state, options, customMenuContextAction, contentDrawers);
         }
 
         /// <summary> Create an IDrawer foldout header using an ExpandedStateBase </summary>
@@ -659,7 +659,7 @@ namespace UnityEditor.Rendering
         public static IDrawer FoldoutGroup<TEnum>(string title, TEnum mask, ExpandedStateBase<TEnum> state, FoldoutOption options, Action<GenericMenu, TData> customMenuContextAction, string otherDocumentation, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, options, customMenuContextAction, otherDocumentation, contentDrawers);
+            return FoldoutGroup(L10n.TextContent(title, null, null, null), mask, state, options, customMenuContextAction, otherDocumentation, contentDrawers);
         }
 
         /// <summary> Create an IDrawer foldout header using an ExpandedStateBase </summary>

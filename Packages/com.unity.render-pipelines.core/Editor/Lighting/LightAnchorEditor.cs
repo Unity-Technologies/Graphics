@@ -106,7 +106,7 @@ namespace UnityEditor
                     rollChanged = EditorGUI.EndChangeCheck();
                 }
                 EditorGUILayout.Space();
-                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, EditorGUIUtility.TrTextContent("")));
+                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, L10n.TextContent("", null, null, null)));
                 float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(angleRect, LightAnchorStyles.angleSubContent, angles);
@@ -593,15 +593,15 @@ namespace UnityEditor
         static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
         static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
         static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
-        static public GUIContent distanceProperty = EditorGUIUtility.TrTextContent("Distance", "Controls how far 'back', the light is placed from its anchor");
-        static public GUIContent upDirectionProperty = EditorGUIUtility.TrTextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
-        static public GUIContent anchorPositionOverrideProperty = EditorGUIUtility.TrTextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.");
-        static public GUIContent anchorPositionOffsetProperty = EditorGUIUtility.TrTextContent("Anchor Position Offset", "Specifies the anchor position offset relative to the anchor position override.");
+        static public GUIContent distanceProperty = L10n.TextContent("Distance", "Controls how far 'back', the light is placed from its anchor", null, null);
+        static public GUIContent upDirectionProperty = L10n.TextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.", null, null);
+        static public GUIContent anchorPositionOverrideProperty = L10n.TextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.", null, null);
+        static public GUIContent anchorPositionOffsetProperty = L10n.TextContent("Anchor Position Offset", "Specifies the anchor position offset relative to the anchor position override.", null, null);
         static public GUIContent[] angleSubContent = new[]
         {
-            EditorGUIUtility.TrTextContent("Orbit"),
-            EditorGUIUtility.TrTextContent("Elevation"),
-            EditorGUIUtility.TrTextContent("Roll")
+            L10n.TextContent("Orbit", null, null, null),
+            L10n.TextContent("Elevation", null, null, null),
+            L10n.TextContent("Roll", null, null, null)
         };
         static public Color totalTransparentColor = new Color(0, 0, 0, 0);
         static public Color hoverColor = new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f);

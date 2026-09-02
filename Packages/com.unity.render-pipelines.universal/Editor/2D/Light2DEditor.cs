@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.Universal
 
         private static class Styles
         {
-            public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
+            public static readonly GUIContent InnerOuterSpotAngle = L10n.TextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.", null, null);
 
             public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
             public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
@@ -84,46 +84,46 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
 
 
-            public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
-            public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");
-            public static GUIContent volumetricSettingsFoldout = EditorGUIUtility.TrTextContent("Volumetric", "Options used for volumetric lighting");
-            public static GUIContent normalMapsSettingsFoldout = EditorGUIUtility.TrTextContent("Normal Maps", "Options used for normal maps");
-            public static GUIContent filteringSettingsFoldout = EditorGUIUtility.TrTextContent("Filtering", "Options to filter the light");
+            public static GUIContent blendingSettingsFoldout = L10n.TextContent("Blending", "Options used for blending", null, null);
+            public static GUIContent shadowsSettingsFoldout = L10n.TextContent("Shadows", "Options used for shadows", null, null);
+            public static GUIContent volumetricSettingsFoldout = L10n.TextContent("Volumetric", "Options used for volumetric lighting", null, null);
+            public static GUIContent normalMapsSettingsFoldout = L10n.TextContent("Normal Maps", "Options used for normal maps", null, null);
+            public static GUIContent filteringSettingsFoldout = L10n.TextContent("Filtering", "Options to filter the light", null, null);
 
-            public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Select the light type. \n\nGlobal Light: For ambient light. \nSpot Light: For a spot light / point light. \nFreeform Light: For a custom shape light. \nSprite Light: For a custom light cookie using Sprites.");
+            public static GUIContent generalLightType = L10n.TextContent("Light Type", "Select the light type. \n\nGlobal Light: For ambient light. \nSpot Light: For a spot light / point light. \nFreeform Light: For a custom shape light. \nSprite Light: For a custom light cookie using Sprites.", null, null);
 
-            public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Adjusts the falloff area of this light. The higher the falloff value, the larger area the falloff spans.");
-            public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of this light’s edges. The higher the falloff strength, the softer the edges of this light.");
-            public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Adjusts this light’s color.");
-            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts this light’s color intensity by using multiply to brighten the Sprite beyond its original color.");
-            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts the intensity of this additional light volume that's additively blended on top of this light. To enable the Volumetric Shadow Strength, increase this Intensity to be greater than 0.");
-            public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Adjusts how this light blends with the Sprites on the Target Sorting Layers. Different Blend Styles can be customized in the 2D Renderer Data Asset.");
-            public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "Determines how this light blends with the other lights either through additive or alpha blending.");
-            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "Determines the relative order in which lights of the same Blend Style get rendered. Lights with lower values are rendered first.");
-            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Strength", "Adjusts the amount of light occlusion from the Shadow Caster 2D component(s) when blocking this light.The higher the value, the more opaque the shadow becomes.");
-            public static GUIContent generalShadowSoftness = EditorGUIUtility.TrTextContent("Softness", "Adjusts the amount of softness at the edge of the shadow.");
-            public static GUIContent generalShadowSoftnessFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of the shadow edges. The higher the falloff strength, the softer the edges of this shadow.");
-            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Strength", "Adjusts the amount of volume light occlusion from the Shadow Caster 2D component(s) when blocking this light.");
-            public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Determines which layers this light affects. To optimize performance, minimize the number of layers this light affects.");
-            public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
-            public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Distance", "Adjusts the z-axis distance of this light and the lit Sprite(s). Do note that this distance does not Transform the position of this light in the Scene.");
-            public static GUIContent generalNormalMapLightQuality = EditorGUIUtility.TrTextContent("Quality", "Determines the accuracy of the lighting calculations when normal map is used. To optimize for performance, select Fast.");
+            public static GUIContent generalFalloffSize = L10n.TextContent("Falloff", "Adjusts the falloff area of this light. The higher the falloff value, the larger area the falloff spans.", null, null);
+            public static GUIContent generalFalloffIntensity = L10n.TextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of this light’s edges. The higher the falloff strength, the softer the edges of this light.", null, null);
+            public static GUIContent generalLightColor = L10n.TextContent("Color", "Adjusts this light’s color.", null, null);
+            public static GUIContent generalLightIntensity = L10n.TextContent("Intensity", "Adjusts this light’s color intensity by using multiply to brighten the Sprite beyond its original color.", null, null);
+            public static GUIContent generalVolumeIntensity = L10n.TextContent("Intensity", "Adjusts the intensity of this additional light volume that's additively blended on top of this light. To enable the Volumetric Shadow Strength, increase this Intensity to be greater than 0.", null, null);
+            public static GUIContent generalBlendStyle = L10n.TextContent("Blend Style", "Adjusts how this light blends with the Sprites on the Target Sorting Layers. Different Blend Styles can be customized in the 2D Renderer Data Asset.", null, null);
+            public static GUIContent generalLightOverlapOperation = L10n.TextContent("Overlap Operation", "Determines how this light blends with the other lights either through additive or alpha blending.", null, null);
+            public static GUIContent generalLightOrder = L10n.TextContent("Light Order", "Determines the relative order in which lights of the same Blend Style get rendered. Lights with lower values are rendered first.", null, null);
+            public static GUIContent generalShadowIntensity = L10n.TextContent("Strength", "Adjusts the amount of light occlusion from the Shadow Caster 2D component(s) when blocking this light.The higher the value, the more opaque the shadow becomes.", null, null);
+            public static GUIContent generalShadowSoftness = L10n.TextContent("Softness", "Adjusts the amount of softness at the edge of the shadow.", null, null);
+            public static GUIContent generalShadowSoftnessFalloffIntensity = L10n.TextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of the shadow edges. The higher the falloff strength, the softer the edges of this shadow.", null, null);
+            public static GUIContent generalShadowVolumeIntensity = L10n.TextContent("Shadow Strength", "Adjusts the amount of volume light occlusion from the Shadow Caster 2D component(s) when blocking this light.", null, null);
+            public static GUIContent generalSortingLayerPrefixLabel = L10n.TextContent("Target Sorting Layers", "Determines which layers this light affects. To optimize performance, minimize the number of layers this light affects.", null, null);
+            public static GUIContent generalLightNoLightEnabled = L10n.TextContentWithIcon("No valid blend styles are enabled.", MessageType.Error, null);
+            public static GUIContent generalNormalMapZDistance = L10n.TextContent("Distance", "Adjusts the z-axis distance of this light and the lit Sprite(s). Do note that this distance does not Transform the position of this light in the Scene.", null, null);
+            public static GUIContent generalNormalMapLightQuality = L10n.TextContent("Quality", "Determines the accuracy of the lighting calculations when normal map is used. To optimize for performance, select Fast.", null, null);
 
-            public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "Adjusts the inner / outer radius of this light to change the size of this light.");
-            public static GUIContent pointLightInner = EditorGUIUtility.TrTextContent("Inner", "Specify the inner radius of the light");
-            public static GUIContent pointLightOuter = EditorGUIUtility.TrTextContent("Outer", "Specify the outer radius of the light");
-            public static GUIContent pointLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite (deprecated)");
+            public static GUIContent pointLightRadius = L10n.TextContent("Radius", "Adjusts the inner / outer radius of this light to change the size of this light.", null, null);
+            public static GUIContent pointLightInner = L10n.TextContent("Inner", "Specify the inner radius of the light", null, null);
+            public static GUIContent pointLightOuter = L10n.TextContent("Outer", "Specify the outer radius of the light", null, null);
+            public static GUIContent pointLightSprite = L10n.TextContent("Sprite", "Specify the sprite (deprecated)", null, null);
 
-            public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Assign a Sprite which acts as a mask to create a light cookie.");
+            public static GUIContent shapeLightSprite = L10n.TextContent("Sprite", "Assign a Sprite which acts as a mask to create a light cookie.", null, null);
 
-            public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Window > Rendering > Render Pipeline Converter > URP 2D Converters");
-            public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
-            public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
+            public static GUIContent deprecatedParametricLightWarningSingle = L10n.TextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning, null);
+            public static GUIContent deprecatedParametricLightWarningMulti = L10n.TextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning, null);
+            public static GUIContent deprecatedParametricLightInstructions = L10n.TextContent("Alternatively, you may choose to upgrade from the menu. Window > Rendering > Render Pipeline Converter > URP 2D Converters", null, null, null);
+            public static GUIContent deprecatedParametricLightButtonSingle = L10n.TextContent("Upgrade Parametric Light", null, null, null);
+            public static GUIContent deprecatedParametricLightButtonMulti = L10n.TextContent("Upgrade Parametric Lights", null, null, null);
 
-            public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
-            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
+            public static GUIContent renderPipelineUnassignedWarning = L10n.TextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning, null);
+            public static GUIContent asset2DUnassignedWarning = L10n.TextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning, null);
 
             public static string deprecatedParametricLightDialogTextSingle = "The upgrade will convert the selected parametric light into a freeform light. You can't undo this operation.";
             public static string deprecatedParametricLightDialogTextMulti = "The upgrade will convert the selected parametric lights into freeform lights. You can't undo this operation.";
@@ -131,8 +131,8 @@ namespace UnityEditor.Rendering.Universal
             public static string deprecatedParametricLightDialogProceed = "Proceed";
             public static string deprecatedParametricLightDialogCancel = "Cancel";
 
-            public static readonly GUIContent buttonText = EditorGUIUtility.TrTextContent("Install 2D Common Package");
-            public static readonly GUIContent helpBox = EditorGUIUtility.TrTextContent("2D Common Package is required to edit Light 2D Shape. Please install it by clicking button above");
+            public static readonly GUIContent buttonText = L10n.TextContent("Install 2D Common Package", null, null, null);
+            public static readonly GUIContent helpBox = L10n.TextContent("2D Common Package is required to edit Light 2D Shape. Please install it by clicking button above", null, null, null);
         }
 
         const float k_GlobalLightGizmoSize = 1.2f;

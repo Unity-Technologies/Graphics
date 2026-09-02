@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 var overrideRect = new Rect(labelRect.x - 17, labelRect.y + 3, 17f, 17f);
                 overrideState.boolValue = GUI.Toggle(overrideRect, overrideState.boolValue,
-                    EditorGUIUtility.TrTextContent("", "Override this setting for this volume."),
+                    L10n.TextContent("", "Override this setting for this volume.", null, null),
                     CoreEditorStyles.smallTickbox);
             }
         }

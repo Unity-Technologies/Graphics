@@ -51,7 +51,7 @@ class VFXContextEditor : VFXSlotContainerEditor
         throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
     }
 
-    public static readonly GUIContent spaceLabel = EditorGUIUtility.TrTextContent("Space", "Specifies simulated space of the system.");
+    public static readonly GUIContent spaceLabel = L10n.TextContent("Space", "Specifies simulated space of the system.", null, null);
 
     enum ContextSpace
     {

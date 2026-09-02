@@ -59,19 +59,19 @@ namespace UnityEditor.Rendering.Universal
         // Structs
         private struct Styles
         {
-            public static GUIContent AOMethod = EditorGUIUtility.TrTextContent("Method", "The noise method to use when calculating the Ambient Occlusion value.");
-            public static GUIContent Intensity = EditorGUIUtility.TrTextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
-            public static GUIContent Radius = EditorGUIUtility.TrTextContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.");
-            public static GUIContent Falloff = EditorGUIUtility.TrTextContent("Falloff Distance", "The distance from the camera where Ambient Occlusion should be visible.");
-            public static GUIContent DirectLightingStrength = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.");
+            public static GUIContent AOMethod = L10n.TextContent("Method", "The noise method to use when calculating the Ambient Occlusion value.", null, null);
+            public static GUIContent Intensity = L10n.TextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.", null, null);
+            public static GUIContent Radius = L10n.TextContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.", null, null);
+            public static GUIContent Falloff = L10n.TextContent("Falloff Distance", "The distance from the camera where Ambient Occlusion should be visible.", null, null);
+            public static GUIContent DirectLightingStrength = L10n.TextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.", null, null);
 
-            public static GUIContent Quality = EditorGUIUtility.TrTextContent("Quality", "");
-            public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "The source of the normal vector values.\nDepth Normals: the feature uses the values generated in the Depth Normal prepass.\nDepth: the feature reconstructs the normal values using the depth buffer.\nIn the Deferred rendering path, the feature uses the G-buffer normals texture.");
+            public static GUIContent Quality = L10n.TextContent("Quality", "", null, null);
+            public static GUIContent Source = L10n.TextContent("Source", "The source of the normal vector values.\nDepth Normals: the feature uses the values generated in the Depth Normal prepass.\nDepth: the feature reconstructs the normal values using the depth buffer.\nIn the Deferred rendering path, the feature uses the G-buffer normals texture.", null, null);
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "The number of depth texture samples that Unity takes when computing the normals. Low:1 sample, Medium: 5 samples, High: 9 samples.");
-            public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
-            public static GUIContent AfterOpaque = EditorGUIUtility.TrTextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.");
-            public static GUIContent BlurQuality = EditorGUIUtility.TrTextContent("Blur Quality", "High: Bilateral, Medium: Gaussian. Low: Kawase (Single Pass).");
-            public static GUIContent Samples = EditorGUIUtility.TrTextContent("Samples", "The number of samples that Unity takes when calculating the obscurance value. Low:4 samples, Medium: 8 samples, High: 12 samples.");
+            public static GUIContent Downsample = L10n.TextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.", null, null);
+            public static GUIContent AfterOpaque = L10n.TextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.", null, null);
+            public static GUIContent BlurQuality = L10n.TextContent("Blur Quality", "High: Bilateral, Medium: Gaussian. Low: Kawase (Single Pass).", null, null);
+            public static GUIContent Samples = L10n.TextContent("Samples", "The number of samples that Unity takes when calculating the obscurance value. Low:4 samples, Medium: 8 samples, High: 12 samples.", null, null);
         }
 
         private void Init()

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.ShadowMaps);
 
-            PropertyField(m_MaxShadowDistance, EditorGUIUtility.TrTextContent("Max Distance", "In Meter"));
+            PropertyField(m_MaxShadowDistance, L10n.TextContent("Max Distance", "In Meter", null, null));
 
             EditorGUILayout.Space();
 
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth -= labelWidthAdjustment; //not sure why the field is decalled. Seams to be a miss in vertical spacing
                 Rect shiftedRect = EditorGUILayout.GetControlRect();
                 EditorGUI.BeginChangeCheck();
-                unit = (Unit)EditorGUI.EnumPopup(shiftedRect, EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter"), m_State.value);
+                unit = (Unit)EditorGUI.EnumPopup(shiftedRect, L10n.TextContent("Working Unit", "Except Max Distance which will be still in meter", null, null), m_State.value);
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_State.value = unit;
@@ -71,10 +71,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth += labelWidthAdjustment;
             }
 
-            PropertyField(m_DirectionalTransmissionMultiplier, EditorGUIUtility.TrTextContent("Transmission  Multiplier"));
+            PropertyField(m_DirectionalTransmissionMultiplier, L10n.TextContent("Transmission  Multiplier", null, null, null));
 
             EditorGUI.BeginChangeCheck();
-            PropertyField(m_CascadeShadowSplitCount, EditorGUIUtility.TrTextContent("Cascade Count"));
+            PropertyField(m_CascadeShadowSplitCount, L10n.TextContent("Cascade Count", null, null, null));
             if (EditorGUI.EndChangeCheck())
             {
                 //fix newly activated cascade split not respecting ordering
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     for (int i = 0; i < cascadeCount; i++)
                     {
-                        PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
+                        PropertyField(m_CascadeShadowBorders[i], L10n.TextContent(string.Format("Border {0}", i + 1), null, null, null));
                     }
                 }
             }
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             bool currentCascadeValue = hdrp.showCascade;
-            bool newCascadeValue = GUI.Toggle(showCascadesButtonRect, currentCascadeValue, EditorGUIUtility.TrTextContent("Show Cascades"), EditorStyles.miniButton);
+            bool newCascadeValue = GUI.Toggle(showCascadesButtonRect, currentCascadeValue, L10n.TextContent("Show Cascades", null, null, null), EditorStyles.miniButton);
             if (currentCascadeValue ^ newCascadeValue)
                 hdrp.showCascade = newCascadeValue;
         }

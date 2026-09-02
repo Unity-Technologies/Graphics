@@ -514,7 +514,7 @@ namespace UnityEditor.Rendering.Converter
         {
             menu.AddItem
             (
-                EditorGUIUtility.TrTextContent("Reset"),
+                L10n.TextContent("Reset", null, null, null),
                 false,
                 () =>
                 {

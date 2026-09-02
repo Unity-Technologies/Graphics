@@ -27,10 +27,10 @@ namespace UnityEditor.Rendering
     {
         internal static class Styles
         {
-            internal static readonly GUIContent k_VORotateTool = EditorGUIUtility.TrIconContent("RotateTool", "The virtual offset direction for probes falling in this volume.");
-            internal static readonly GUIContent k_SORotateTool = EditorGUIUtility.TrIconContent("RotateTool", "The direction used to sample the ambient probe for probes falling in this volume.");
-            internal static readonly GUIContent k_VolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
-            internal static readonly GUIContent k_AdjustmentHeader = EditorGUIUtility.TrTextContent("Probe Volume Overrides");
+            internal static readonly GUIContent k_VORotateTool = L10n.IconContent("RotateTool", "The virtual offset direction for probes falling in this volume.", null);
+            internal static readonly GUIContent k_SORotateTool = L10n.IconContent("RotateTool", "The direction used to sample the ambient probe for probes falling in this volume.", null);
+            internal static readonly GUIContent k_VolumeHeader = L10n.TextContent("Influence Volume", null, null, null);
+            internal static readonly GUIContent k_AdjustmentHeader = L10n.TextContent("Probe Volume Overrides", null, null, null);
 
             internal static readonly GUIContent k_Mode = new GUIContent("Mode", "Choose which type of adjustment to apply to probes covered by this volume.");
             internal static readonly GUIContent k_DilationThreshold = new GUIContent("Dilation Validity Threshold", "Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");

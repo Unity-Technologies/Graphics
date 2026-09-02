@@ -133,10 +133,10 @@ namespace UnityEditor.VFX.UI
 
         internal static class Contents
         {
-            public static readonly GUIContent clickToUnlock = EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
-            public static readonly GUIContent clickToLock = EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
-            public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
-            public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
+            public static readonly GUIContent clickToUnlock = L10n.TextContent("Click to enable auto-attachment to selection", null, null, null);
+            public static readonly GUIContent clickToLock = L10n.TextContent("Click to disable auto-attachment to selection", null, null, null);
+            public static readonly GUIContent attachedToGameObject = L10n.TextContent("Attached to {0}", null, null, null);
+            public static readonly GUIContent notAttached = L10n.TextContent("Select a Game Object running this VFX to attach it", null, null, null);
         }
 
         private static readonly List<string> ToolbarElementsToDisableWhenNoAsset = new ()

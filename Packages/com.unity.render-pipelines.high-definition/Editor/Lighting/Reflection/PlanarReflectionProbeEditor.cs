@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        public override GUIContent GetPreviewTitle() => EditorGUIUtility.TrTextContent("Planar Reflection");
+        public override GUIContent GetPreviewTitle() => L10n.TextContent("Planar Reflection", null, null, null);
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, mipLevelPreview, ColorWriteMask.All, previewExposure);
                 else
-                    EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
+                    EditorGUI.LabelField(itemRect, L10n.TextContent("Not Available", null, null, null));
             }
         }
 
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serialized.localReferencePosition, EditorGUIUtility.TrTextContent("Reference Local Position"));
+            EditorGUILayout.PropertyField(serialized.localReferencePosition, L10n.TextContent("Reference Local Position", null, null, null));
             --EditorGUI.indentLevel;
         }
 
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.DrawHandles(serialized, owner);
 
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent(target.name), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(L10n.TextContent(target.name, null, null, null), OnOverlayGUI, -100, target);
 
             if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {

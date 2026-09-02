@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering
         /// <param name="ppts">Properties</param>
         /// <param name="labels">Sub-labels</param>
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] labels)
-            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, labels);
+            => DrawMultipleFields(L10n.TextContent(label, null, null, null), ppts, labels);
 
         private static float GetLongestLabelWidth(GUIContent[] labels)
         {
@@ -406,7 +406,7 @@ namespace UnityEditor.Rendering
         /// <summary>Draw a header</summary>
         /// <param name="title">Title of the header</param>
         public static void DrawHeader(string title)
-            => DrawHeader(EditorGUIUtility.TrTextContent(title));
+            => DrawHeader(L10n.TextContent(title, null, null, null));
 
         /// <summary>Draw a header</summary>
         /// <param name="title">Title of the header</param>
@@ -444,7 +444,7 @@ namespace UnityEditor.Rendering
         /// <param name="customMenuContextAction">[optional] Delegate which adds items to a generic menu when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOption = null, bool isTitleHeader = false, string documentationURL = "", Action<Vector2> contextAction = null, Action<GenericMenu> customMenuContextAction = null)
-            => DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, hasMoreOptions, toggleMoreOption, isTitleHeader, documentationURL, contextAction, customMenuContextAction);
+            => DrawHeaderFoldout(L10n.TextContent(title, null, null, null), state, isBoxed, hasMoreOptions, toggleMoreOption, isTitleHeader, documentationURL, contextAction, customMenuContextAction);
 
 
         /// <summary> Draw a foldout header </summary>
@@ -539,7 +539,7 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the sub foldout header</returns>
         [Obsolete("'More Options' versions of DrawSubHeaderFoldout are obsolete. Please use DrawSubHeaderFoldout without 'More Options'. #from(2021.2)")]
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed);
+            => DrawSubHeaderFoldout(L10n.TextContent(title, null, null, null), state, isBoxed);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -560,7 +560,7 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <returns>return the state of the sub foldout header</returns>
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false)
-            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed);
+            => DrawSubHeaderFoldout(L10n.TextContent(title, null, null, null), state, isBoxed);
 
         /// <summary>
         /// Draw a foldout sub header
@@ -622,7 +622,7 @@ namespace UnityEditor.Rendering
         /// <param name="shouldUpdate">States if the group and active field should update before usage and apply changes to them.</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null, Action<GenericMenu> customMenuContextAction = null, bool isBoxed = false, bool isTitleHeader = false, bool shouldUpdate = true)
-            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, customMenuContextAction, isBoxed, isTitleHeader, shouldUpdate);
+            => DrawHeaderToggle(L10n.TextContent(title, null, null, null), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, customMenuContextAction, isBoxed, isTitleHeader, shouldUpdate);
 
         private static void GetHeaderToggleRects(bool isBoxed, bool hasToggle, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect)
         {
@@ -1153,7 +1153,7 @@ namespace UnityEditor.Rendering
             var name = System.Enum.GetName(type, property.intValue);
             var index = System.Array.FindIndex(System.Enum.GetNames(type), n => n == name);
             var input = (System.Enum)System.Enum.GetValues(type).GetValue(index);
-            var rawResult = EditorGUILayout.EnumPopup(label ?? EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(property.name)), input);
+            var rawResult = EditorGUILayout.EnumPopup(label ?? L10n.TextContent(ObjectNames.NicifyVariableName(property.name), null, null, null), input);
             var result = ((System.IConvertible)rawResult).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = result;

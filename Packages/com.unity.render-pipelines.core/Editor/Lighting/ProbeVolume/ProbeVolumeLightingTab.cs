@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering
             iconSize = EditorStyles.iconButton.CalcSize(Styles.settingsIcon);
             var rect = GUILayoutUtility.GetRect(iconSize.x, iconSize.y);
             if (EditorGUI.DropdownButton(rect, Styles.settingsIcon, FocusType.Passive, EditorStyles.iconButton))
-                EditorUtility.DisplayCustomMenu(rect, new[] { EditorGUIUtility.TrTextContent("Open Rendering Debugger") }, -1, OpenProbeVolumeDebugPanel, null);
+                EditorUtility.DisplayCustomMenu(rect, new[] { L10n.TextContent("Open Rendering Debugger", null, null, null) }, -1, OpenProbeVolumeDebugPanel, null);
 
             //var style = new GUIStyle(EditorStyles.iconButton);
             //style.padding = new RectOffset(1, 1, 1, 1);

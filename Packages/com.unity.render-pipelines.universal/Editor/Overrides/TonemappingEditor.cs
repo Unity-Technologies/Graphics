@@ -20,8 +20,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_AgxContrast;
         SerializedDataParameter m_AgxMidGrey;
 
-        static readonly GUIContent k_AgxContrast = EditorGUIUtility.TrTextContent("Contrast", "Contrast of the AgX tone curve. Higher deepens shadows and brightens highlights.");
-        static readonly GUIContent k_AgxMidGrey = EditorGUIUtility.TrTextContent("Mid Grey", "The screen brightness that a mid-grey (18%) subject maps to. Raise to lighten the overall image.");
+        static readonly GUIContent k_AgxContrast = L10n.TextContent("Contrast", "Contrast of the AgX tone curve. Higher deepens shadows and brightens highlights.", null, null);
+        static readonly GUIContent k_AgxMidGrey = L10n.TextContent("Mid Grey", "The screen brightness that a mid-grey (18%) subject maps to. Raise to lighten the overall image.", null, null);
 
         public override bool hasAdditionalProperties => true;
 
