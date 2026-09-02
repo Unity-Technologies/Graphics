@@ -92,9 +92,10 @@ namespace UnityEditor.Rendering.Converter
         {
             m_UpgradersCache = upgraders;
 
-            if (m_UpgradersCache.Count == 0)
+            if (m_UpgradersCache == null || m_UpgradersCache.Count == 0)
             {
                 Debug.Log($"No upgraders specified for this converter ({GetType()}). Skipping Initialization.");
+                onScanFinish?.Invoke(new List<IRenderPipelineConverterItem>());
                 return;
             }
 

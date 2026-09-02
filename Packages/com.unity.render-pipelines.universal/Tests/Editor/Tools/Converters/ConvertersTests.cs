@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
 using UnityEngine.TestTools;
@@ -117,6 +118,29 @@ namespace UnityEditor.Rendering.Universal.Tools
                 message = null;
                 return Status.Success;
             }
+        }
+
+        // An asset converter which has nothing to search for, the way PPv2Converter behaves when the Post Processing
+        // package is not installed
+        class NoQueriesAssetsConverter : AssetsConverter
+        {
+            public override bool isEnabled => false;
+            public override string isDisabledMessage => "Nothing to search for";
+
+            protected override List<(string query, string description)> contextSearchQueriesAndIds => null;
+
+            protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message) => Status.Error;
+        }
+
+        class EmptyQueriesAssetsConverter : NoQueriesAssetsConverter
+        {
+            protected override List<(string query, string description)> contextSearchQueriesAndIds => new();
+        }
+
+        // An upgrader with no material upgraders to run, which has nothing to scan for
+        class NoUpgradersMaterialUpgrader : RenderPipelineConverterMaterialUpgrader
+        {
+            protected override List<MaterialUpgrader> upgraders => new();
         }
 
         class ThrowingScanConverter : IRenderPipelineConverter
@@ -248,6 +272,51 @@ namespace UnityEditor.Rendering.Universal.Tools
                 LogAssert.ignoreFailingMessages = false;
             }
         }
+
+        // A converter with nothing to scan for must not leave the scan waiting for it.
+        [TestCase(typeof(NoQueriesAssetsConverter), TestName = "{m}(Assets converter with no search queries)")]
+        [TestCase(typeof(EmptyQueriesAssetsConverter), TestName = "{m}(Assets converter with empty search queries)")]
+        [TestCase(typeof(NoUpgradersMaterialUpgrader), TestName = "{m}(Material upgrader with no upgraders)")]
+        public void ScanToFile_ConverterWithNothingToScan_FinishesScanWithoutItems(Type converterType)
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { converterType },
+                "ConverterScanNothingToScanTest.json", status => finishedStatus = status);
+
+            Assert.IsFalse(Converters.IsScanInProgress, "A converter with nothing to scan must not leave the scan hanging.");
+            Assert.AreEqual("Completed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            // Nothing to scan for is an empty result, not a failure
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual(1, scanFile.convertersCompleted);
+            Assert.AreEqual(0, scanFile.convertersFailed);
+            Assert.AreEqual(1, scanFile.converters.Count);
+            Assert.That(scanFile.converters[0].items, Is.Null.Or.Empty);
+        }
+
+#if !PPV2_EXISTS
+        // Without the Post Processing package the PPv2 converter has no types to search for.
+        [Test]
+        public void ScanToFile_PPv2ConverterWithoutPostProcessingPackage_FinishesScan()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(PPv2Converter) },
+                "ConverterScanPPv2Test.json", status => finishedStatus = status);
+
+            Assert.IsFalse(Converters.IsScanInProgress, "The PPv2 converter must not leave the scan hanging.");
+            Assert.AreEqual("Completed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual("PPv2", scanFile.converters[0].converterType);
+            Assert.That(scanFile.converters[0].items, Is.Null.Or.Empty);
+        }
+#endif
 
         [Test]
         public void ScanToFile_NoConverterCanBeCreated_ReportsFailure()

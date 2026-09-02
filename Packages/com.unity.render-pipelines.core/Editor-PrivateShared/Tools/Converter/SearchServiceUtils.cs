@@ -20,6 +20,12 @@ namespace UnityEditor.Rendering
             Action<SearchItem, string> onAssetGUIDFound,
             Action onSearchsFinished)
         {
+            if (contextSearchQueriesAndIds == null || contextSearchQueriesAndIds.Count == 0)
+            {
+                onSearchsFinished?.Invoke();
+                return;
+            }
+
             bool needsDeepSearch = (neededOptions & IndexingOptions.DeepSearch) != 0;
             bool needsPackageIndexing = (neededOptions & IndexingOptions.PackageIndexing) != 0;
 

@@ -18,6 +18,13 @@ namespace UnityEditor.Rendering.Converter
         {
             assets.Clear();
 
+            var searchQueries = contextSearchQueriesAndIds;
+            if (searchQueries == null || searchQueries.Count == 0)
+            {
+                onScanFinish?.Invoke(new List<IRenderPipelineConverterItem>());
+                return;
+            }
+
             var pooledDict = UnityEngine.Pool.DictionaryPool<string, List<RenderPipelineConverterAssetItem>>.Get(out var assetsByDescription);
             bool dictionaryReleased = false;
 
@@ -47,7 +54,7 @@ namespace UnityEditor.Rendering.Converter
                 SearchServiceUtils.RunQueuedSearch
                 (
                     SearchServiceUtils.IndexingOptions.DeepSearch,
-                    contextSearchQueriesAndIds,
+                    searchQueries,
                     (item, description) =>
                     {
                         var unityObject = item.ToObject();
