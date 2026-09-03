@@ -106,7 +106,7 @@ namespace UnityEditor
             HashSet<Material> materials = new HashSet<Material>();
             foreach (var mr in GetObjectsForLightingExplorer<MeshRenderer>())
             {
-                if (GameObjectUtility.AreStaticEditorFlagsSet(mr.gameObject, StaticEditorFlags.ContributeGI) && mr.sharedMaterials != null)
+                if (GameObjectUtility.AnyStaticEditorFlagsSet(mr.gameObject, StaticEditorFlags.ContributeGI) && mr.sharedMaterials != null)
                 {
                     foreach (var mat in mr.sharedMaterials)
                     {
