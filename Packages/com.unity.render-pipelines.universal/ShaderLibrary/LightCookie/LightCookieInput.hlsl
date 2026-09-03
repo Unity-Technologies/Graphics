@@ -39,9 +39,6 @@ CBUFFER_END
     #endif
 #endif
 
-float4x4 _MainLightWorldToLight;
-float _MainLightCookieTextureFormat;
-float _AdditionalLightsCookieAtlasTextureFormat;
 
 // Data Getters
 

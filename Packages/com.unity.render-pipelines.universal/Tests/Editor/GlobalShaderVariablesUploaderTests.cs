@@ -144,6 +144,10 @@ namespace UnityEditor.Rendering.Universal.Tests
             uploader._ScreenCoordScaleBias = new Vector4(1f, 1f, 0f, 0f);
             uploader._GlobalMipBias = new Vector2(0f, 1f);
 
+            uploader._GlossyEnvironmentColor = new Vector4(0.3f, 0.4f, 0.5f, 1f);
+            uploader._SubtractiveShadowColor = new Vector4(0.1f, 0.1f, 0.15f, 1f);
+            uploader._GlossyEnvironmentCubeMap_HDR = new Vector4(1f, 1f, 0f, 0f);
+
             uploader.EndFill();
         }
 

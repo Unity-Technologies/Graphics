@@ -15,6 +15,16 @@ namespace UnityEngine.Rendering.Universal
 
         private RTHandle m_TargetColorHandle, m_TargetDepthHandle;
 
+        // Owns the 3D group only, the base vars come from the default path (SetupRenderGraphDefaultCameraProperties).
+        // A custom renderer using ForwardLights and the shadow passes fills and pushes the 3D vars itself, otherwise
+        // the main light, its cookie and the shadow globals stay at zero. Dirty flags keep the push to what was filled.
+        GlobalShaderVariablesUploader m_GlobalShaderVarsUploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Only3D);
+
+        private class PushGlobalShaderVarsPassData
+        {
+            internal GlobalShaderVariablesUploader uploader;
+        }
+
         public CustomRenderer(CustomRenderGraphData data) : base(data)
         {
             m_ForwardLights = new ForwardLights();
@@ -45,6 +55,42 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData ,cameraData, lightData);
+        }
+
+        // Must run once both shadow passes are set up, so their per-frame state is final.
+        private void UpdateGlobalShaderVariables()
+        {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            // Nothing filled this uploader before this point, so the whole fill window lives in this method.
+            m_GlobalShaderVarsUploader.BeginFill();
+
+            m_ForwardLights.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, cameraData, lightData);
+
+            m_MainLightShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, lightData, shadowData);
+            m_AdditionalLightsShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, shadowData.supportsSoftShadows);
+
+            // Nothing fills the uploader after this point, freeze the staged state as the defaults of this camera.
+            m_GlobalShaderVarsUploader.EndFill();
+        }
+
+        // Recorded after SetupRenderGraphDefaultCameraProperties, which pushes the base variables and lets
+        // cmd.SetupCameraProperties overwrite part of the global state.
+        private void PushGlobalShaderVariables(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddUnsafePass<PushGlobalShaderVarsPassData>("Push Global Shader Variables", out var passData))
+            {
+                passData.uploader = m_GlobalShaderVarsUploader;
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (PushGlobalShaderVarsPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    data.uploader.PushDefaultToGlobal(rgContext.cmd);
+                });
+            }
         }
 
         public override void OnBeginRenderGraphFrame()
@@ -111,6 +157,8 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass.RecordRenderGraph(renderGraph, frameData);
             TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
 
+            UpdateGlobalShaderVariables();
+
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;
 
@@ -170,6 +218,7 @@ namespace UnityEngine.Rendering.Universal
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
             SetupRenderGraphDefaultCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
+            PushGlobalShaderVariables(renderGraph);
 
             m_ExposurePass.RecordRenderGraph(renderGraph, frameData);
 

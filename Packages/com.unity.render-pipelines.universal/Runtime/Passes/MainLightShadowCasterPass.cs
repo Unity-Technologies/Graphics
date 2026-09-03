@@ -24,14 +24,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         private float m_MaxShadowDistanceSq;
         private RenderTextureDescriptor m_MainLightShadowDescriptor;
         private readonly Vector4[] m_CascadeSplitDistances;
-        private readonly Matrix4x4[] m_MainLightShadowMatrices;
         [NoAutoStaticsCleanup] private static readonly ProfilingSampler s_ProfilingSetupSampler = new("Setup Main Shadowmap");
         [NoAutoStaticsCleanup] private static readonly ProfilingSampler s_SetKeywordsSampler = new("Set Main Light Shadow Keywords");
         private readonly ShadowSliceData[] m_CascadeSlices;
 
         // Constants and Statics
         private const int k_EmptyShadowMapDimensions = 1;
-        private const int k_MaxCascades = 4;
+        private const int k_MaxCascades = MainLightShadowMatrices.count - 1;
         private const string k_MainLightShadowMapTextureName = "_MainLightShadowmapTexture";
         private static readonly Vector4 k_DefaultEmptyShadowParams = new Vector4(0f, 0f, 1f, 0f);
         private static Vector4 s_EmptyShadowParams = k_DefaultEmptyShadowParams;
@@ -46,20 +45,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private static readonly Vector4 s_EmptyShadowmapSize = new(k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
 
+        // Fills the cascade slots a frame does not use, plus the trailing slot ComputeCascadeIndex returns for a pixel
+        // beyond every cascade. Only depends on the graphics API, so it is built once rather than per camera.
+        private static readonly Matrix4x4 s_NoOpShadowMatrix = CreateNoOpShadowMatrix();
+
+        static Matrix4x4 CreateNoOpShadowMatrix()
+        {
+            Matrix4x4 matrix = Matrix4x4.zero;
+            matrix.m22 = SystemInfo.usesReversedZBuffer ? 1.0f : 0.0f;
+            return matrix;
+        }
+
         // Classes
         private static class MainLightShadowConstantBuffer
         {
-            public static readonly int _WorldToShadow = Shader.PropertyToID("_MainLightWorldToShadow");
-            public static readonly int _ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
-            public static readonly int _CascadeShadowSplitSpheres0 = Shader.PropertyToID("_CascadeShadowSplitSpheres0");
-            public static readonly int _CascadeShadowSplitSpheres1 = Shader.PropertyToID("_CascadeShadowSplitSpheres1");
-            public static readonly int _CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
-            public static readonly int _CascadeShadowSplitSpheres3 = Shader.PropertyToID("_CascadeShadowSplitSpheres3");
-            public static readonly int _CascadeShadowSplitSphereRadii = Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
-            public static readonly int _ShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
-            public static readonly int _ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
-            public static readonly int _ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
             public static readonly int _MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
+            public static readonly int _ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
         }
 
         private class PassData
@@ -84,7 +85,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = new ProfilingSampler("Draw Main Light Shadowmap");
             renderPassEvent = evt;
 
-            m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];
             m_CascadeSplitDistances = new Vector4[k_MaxCascades];
         }
@@ -295,9 +295,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Clear()
         {
-            for (int i = 0; i < m_MainLightShadowMatrices.Length; ++i)
-                m_MainLightShadowMatrices[i] = Matrix4x4.identity;
-
             for (int i = 0; i < m_CascadeSplitDistances.Length; ++i)
                 m_CascadeSplitDistances[i] = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -307,7 +304,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal static void SetShadowParamsForEmptyShadowmap(IBaseCommandBuffer cmd)
         {
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize, s_EmptyShadowmapSize);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
         }
 
@@ -331,6 +327,66 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
 
             SetShadowParamsForEmptyShadowmap(cmd);
+        }
+
+        internal void UpdateGlobalShaderVariables(GlobalShaderVariablesUploader vars, UniversalLightData lightData, UniversalShadowData shadowData)
+        {
+            if (m_ShadowPassMode == ShadowPassMode.Empty)
+            {
+                vars._MainLightShadowmapSize = s_EmptyShadowmapSize;
+                return;
+            }
+
+            int shadowLightIndex = lightData.mainLightIndex;
+            if (shadowLightIndex == -1)
+                return;
+
+            VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
+            FillMainLightShadowReceiverVars(ref shadowLight, shadowData, vars);
+        }
+
+        void FillMainLightShadowReceiverVars(ref VisibleLight shadowLight, UniversalShadowData shadowData, GlobalShaderVariablesUploader vars)
+        {
+            MainLightShadowMatrices shadowMatrices = default;
+
+            int cascadeCount = m_ShadowCasterCascadesCount;
+            for (int i = 0; i < cascadeCount; ++i)
+                shadowMatrices[i] = m_CascadeSlices[i].shadowTransform;
+
+            for (int i = cascadeCount; i <= k_MaxCascades; ++i)
+                shadowMatrices[i] = s_NoOpShadowMatrix;
+
+            vars.SetMainLightWorldToShadow(in shadowMatrices);
+
+            // The spheres are only read by ComputeCascadeIndex, which single-cascade shaders never call.
+            if (m_ShadowCasterCascadesCount > 1)
+            {
+                vars._CascadeShadowSplitSpheres0 = m_CascadeSplitDistances[0];
+                vars._CascadeShadowSplitSpheres1 = m_CascadeSplitDistances[1];
+                vars._CascadeShadowSplitSpheres2 = m_CascadeSplitDistances[2];
+                vars._CascadeShadowSplitSpheres3 = m_CascadeSplitDistances[3];
+                vars._CascadeShadowSplitSphereRadii = new Vector4(
+                    m_CascadeSplitDistances[0].w * m_CascadeSplitDistances[0].w,
+                    m_CascadeSplitDistances[1].w * m_CascadeSplitDistances[1].w,
+                    m_CascadeSplitDistances[2].w * m_CascadeSplitDistances[2].w,
+                    m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w);
+            }
+
+            // The offsets and size only feed the soft shadow filters.
+            if (shadowData.supportsSoftShadows)
+            {
+                float invShadowAtlasWidth = 1.0f / m_RenderTargetWidth;
+                float invShadowAtlasHeight = 1.0f / m_RenderTargetHeight;
+                float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
+                float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
+
+                vars._MainLightShadowOffset0 = new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,
+                    invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight);
+                vars._MainLightShadowOffset1 = new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight,
+                    invHalfShadowAtlasWidth, invHalfShadowAtlasHeight);
+                vars._MainLightShadowmapSize = new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
+                    m_RenderTargetWidth, m_RenderTargetHeight);
+            }
         }
 
         // Re-broadcasts the main light shadow keywords/constants from persisted state without
@@ -379,72 +435,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
 
-            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowData);
-        }
-
-        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, UniversalShadowData shadowData)
-        {
             Light light = shadowLight.light;
-            bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
-
-            int cascadeCount = m_ShadowCasterCascadesCount;
-            for (int i = 0; i < cascadeCount; ++i)
-                m_MainLightShadowMatrices[i] = m_CascadeSlices[i].shadowTransform;
-
-            // We setup and additional a no-op WorldToShadow matrix in the last index
-            // because the ComputeCascadeIndex function in Shadows.hlsl can return an index
-            // out of bounds. (position not inside any cascade) and we want to avoid branching
-            Matrix4x4 noOpShadowMatrix = Matrix4x4.zero;
-            noOpShadowMatrix.m22 = (SystemInfo.usesReversedZBuffer) ? 1.0f : 0.0f;
-            for (int i = cascadeCount; i <= k_MaxCascades; ++i)
-                m_MainLightShadowMatrices[i] = noOpShadowMatrix;
-
-            float invShadowAtlasWidth = 1.0f / m_RenderTargetWidth;
-            float invShadowAtlasHeight = 1.0f / m_RenderTargetHeight;
-            float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
-            float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
+            bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
-
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
-
-            cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
-
-            if (m_ShadowCasterCascadesCount > 1)
-            {
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0,
-                    m_CascadeSplitDistances[0]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1,
-                    m_CascadeSplitDistances[1]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2,
-                    m_CascadeSplitDistances[2]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3,
-                    m_CascadeSplitDistances[3]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii, new Vector4(
-                    m_CascadeSplitDistances[0].w * m_CascadeSplitDistances[0].w,
-                    m_CascadeSplitDistances[1].w * m_CascadeSplitDistances[1].w,
-                    m_CascadeSplitDistances[2].w * m_CascadeSplitDistances[2].w,
-                    m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
-            }
-
-            // Inside shader soft shadows are controlled through global keyword.
-            // If any additional light has soft shadows it will force soft shadows on main light too.
-            // As it is not trivial finding out which additional light has soft shadows, we will pass main light properties if soft shadows are supported.
-            // This workaround will be removed once we will support soft shadows per light.
-            if (shadowData.supportsSoftShadows)
-            {
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset0,
-                    new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,
-                        invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight));
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset1,
-                    new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight,
-                        invHalfShadowAtlasWidth, invHalfShadowAtlasHeight));
-
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowAtlasWidth,
-                    invShadowAtlasHeight,
-                    m_RenderTargetWidth, m_RenderTargetHeight));
-            }
         }
 
         private void InitPassData(

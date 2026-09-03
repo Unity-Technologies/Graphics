@@ -2638,23 +2638,13 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerCameraShaderConstants);
 
-            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
-            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
-            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
-            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
-            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
-
             // Used as fallback cubemap for reflections
             cmd.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
-            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
 
             // Ambient
             cmd.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
             cmd.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
             cmd.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
-
-            // Used when subtractive mode is selected
-            cmd.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

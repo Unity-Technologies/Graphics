@@ -5,6 +5,14 @@ using Dirty = UnityEngine.Rendering.Universal.GlobalShaderVariablesBaseDirty;
 namespace UnityEngine.Rendering.Universal
 {
     // One bit per pushable field of GlobalShaderVariablesBase, so PushGlobal() only re-uploads what changed.
+    //
+    // GlobalShaderVariablesUploader is the only thing that raises or clears these bits:
+    // - a property setter raises the bit of the field it writes, at record time inside a BeginFill/EndFill window
+    // - EndFill snapshots the raised bits as the defaults of the camera, then clears the staging ones
+    // - PushGlobal clears the bits it just pushed, so nothing goes out twice
+    // - ResetToDefault raises them again from that snapshot, which is how PushDefaultToGlobal re-sends the whole set
+    //   recorded for the camera once something else has overwritten the global state
+    //
     // Warning! Add a bit here, an accessor in GlobalShaderVariablesUploader and a line in SetGlobals() for every new field.
     [Flags]
     internal enum GlobalShaderVariablesBaseDirty : uint
@@ -26,8 +34,13 @@ namespace UnityEngine.Rendering.Universal
         _ScreenCoordScaleBias = 1u << 13,
         _GlobalMipBias = 1u << 14,
 
+        // Environment
+        _GlossyEnvironmentColor = 1u << 15,
+        _SubtractiveShadowColor = 1u << 16,
+        _GlossyEnvironmentCubeMap_HDR = 1u << 17,
+
         // Keep this referencing the last bit declared above when adding a variable.
-        All = (_GlobalMipBias << 1) - 1u,
+        All = (_GlossyEnvironmentCubeMap_HDR << 1) - 1u,
     }
 
     // Global shader variables shared by URP 2D and 3D, see GlobalShaderVariables for the declaration guidelines.
@@ -54,6 +67,11 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _ScreenCoordScaleBias; // Unity.hlsl
         public Vector2 _GlobalMipBias; // UnityInput.hlsl
         public Vector2 _URPPadding1;
+
+        // Environment, come from RenderSettings.
+        public Vector4 _GlossyEnvironmentColor; // Unity.hlsl (half precision in shader)
+        public Vector4 _SubtractiveShadowColor; // Unity.hlsl (half precision in shader)
+        public Vector4 _GlossyEnvironmentCubeMap_HDR; // Unity.hlsl (half precision in shader)
     }
 
     internal static class GlobalShaderVariablesBaseExtensions
@@ -82,6 +100,11 @@ namespace UnityEngine.Rendering.Universal
             if ((dirty & Dirty._ScreenSizeOverride) != 0) cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, vars._ScreenSizeOverride);
             if ((dirty & Dirty._ScreenCoordScaleBias) != 0) cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, vars._ScreenCoordScaleBias);
             if ((dirty & Dirty._GlobalMipBias) != 0) cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, vars._GlobalMipBias);
+
+            // Environment
+            if ((dirty & Dirty._GlossyEnvironmentColor) != 0) cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, vars._GlossyEnvironmentColor);
+            if ((dirty & Dirty._SubtractiveShadowColor) != 0) cmd.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, vars._SubtractiveShadowColor);
+            if ((dirty & Dirty._GlossyEnvironmentCubeMap_HDR) != 0) cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, vars._GlossyEnvironmentCubeMap_HDR);
         }
     }
 }

@@ -19,11 +19,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         static class LightShaderPropertyId
         {
-            public static readonly int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static readonly int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static readonly int _MainLightOcclusionProbesChannel = Shader.PropertyToID("_MainLightOcclusionProbes");
-            public static readonly int _MainLightLayerMask = Shader.PropertyToID("_MainLightLayerMask");
-
             public static readonly int _AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
 
             // CBUFFER binding for persistent constant buffer path (default)
@@ -46,12 +41,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ZBinBuffer = Shader.PropertyToID("urp_ZBinBuffer");
             public static readonly int _TileBuffer = Shader.PropertyToID("urp_TileBuffer");
 
-            // Forward+ scalar params packed into vec4s.
-            public static readonly int _FPParams0 = Shader.PropertyToID("_FPParams0");
-            public static readonly int _FPParams1 = Shader.PropertyToID("_FPParams1");
-            public static readonly int _FPParams2 = Shader.PropertyToID("_FPParams2");
-
-            public static readonly int _EnableProbeVolumes = Shader.PropertyToID("_EnableProbeVolumes");
         }
 
         const string k_SetupLightConstants = "Setup Light Constants";
@@ -619,19 +608,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                             cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, LightShaderPropertyId._TileBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
                         }
                     }
-
-                    cmd.SetGlobalVector(LightShaderPropertyId._FPParams0, math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
-                    cmd.SetGlobalVector(LightShaderPropertyId._FPParams1, math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile));
-                    cmd.SetGlobalVector(LightShaderPropertyId._FPParams2, math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0));
                 }
 
-#if VOLUMETRIC_FOG
-                var fog = VolumeManager.instance.stack.GetComponent<FogVolumeComponent>();
-                m_VolumetricLightingActive = fog != null && fog.volumetricFogEnabled.value &&
-                    !cameraData.camera.orthographic && cameraData.renderType != CameraRenderType.Overlay;
-#endif
-
-                SetupShaderLightConstants(cmd, ref renderingData.cullResults, lightData, renderingData.reuseCullingResult);
+                SetupAdditionalLightConstants(cmd, ref renderingData.cullResults, lightData, renderingData.reuseCullingResult);
 
                 bool useExposure = GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting) && exposureSetting.UseExposure;
                 cmd.SetKeyword(ShaderGlobalKeywords.Exposure, useExposure);
@@ -673,13 +652,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
 
                 var stack = VolumeManager.instance.stack;
-                bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
+                ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
                     CommandBufferHelpers.GetNativeCommandBuffer(cmd),
                     stack.GetComponent<ProbeVolumesOptions>(),
                     cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0,
                     lightData.supportsLightLayers);
 
-                cmd.SetGlobalInt(LightShaderPropertyId._EnableProbeVolumes, enableProbeVolumes ? 1 : 0);
                 cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, lightData.supportsLightLayers && !CoreUtils.IsSceneLightingDisabled(cameraData.camera));
 
                 if (m_LightCookieManager != null)
@@ -723,7 +701,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = null;
         }
 
-        void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, bool supportsLightLayers, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask, out bool isSubtractive)
+        void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, bool supportsLightLayers, uint validRenderingLayers, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask, out bool isSubtractive)
         {
             UniversalRenderPipeline.InitializeLightConstants_Common(lights, lightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionProbeChannel);
             lightLayerMask = 0;
@@ -734,16 +712,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightIndex < 0)
                 return;
 
-            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
-            Light light = lightData.light;
-            var lightBakingOutput = light.bakingOutput;
-            isSubtractive = lightBakingOutput.isBaked && lightBakingOutput.lightmapBakeType == LightmapBakeType.Mixed && lightBakingOutput.mixedLightingMode == MixedLightingMode.Subtractive;
-
+            Light light = lights.UnsafeElementAt(lightIndex).light;
             if (light == null)
                 return;
 
+            isSubtractive = UpdateMixedLightingSetup(light);
+
+            if (supportsLightLayers)
+            {
+                var additionalLightData = light.GetUniversalAdditionalLightData();
+                lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers, validRenderingLayers);
+            }
+        }
+
+        // Folds a light into m_MixedLightingSetup, which drives the mixed lighting keywords. Returns whether that light
+        // is a subtractive mixed one.
+        bool UpdateMixedLightingSetup(Light light)
+        {
+            var lightBakingOutput = light.bakingOutput;
+            bool isSubtractive = lightBakingOutput.isBaked && lightBakingOutput.lightmapBakeType == LightmapBakeType.Mixed && lightBakingOutput.mixedLightingMode == MixedLightingMode.Subtractive;
+
             if (lightBakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
-                lightData.light.shadows != LightShadows.None &&
+                light.shadows != LightShadows.None &&
                 m_MixedLightingSetup == MixedLightingSetup.None)
             {
                 switch (lightBakingOutput.mixedLightingMode)
@@ -757,30 +747,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            if (supportsLightLayers)
-            {
-                var additionalLightData = light.GetUniversalAdditionalLightData();
-                lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
-            }
+            return isSubtractive;
         }
 
-        void SetupShaderLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
+        internal void UpdateGlobalShaderVariables(GlobalShaderVariablesUploader vars, UniversalCameraData cameraData, UniversalLightData lightData)
         {
+            // Only the first mixed light found wins, so this has to be cleared once per camera.
             m_MixedLightingSetup = MixedLightingSetup.None;
 
-            // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
-            // Universal pipeline also supports only a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, lightData);
-            SetupAdditionalLightConstants(cmd, ref cullResults, lightData, reuseCullingResult);
-        }
+#if VOLUMETRIC_FOG
+            // Resolved here rather than in SetupLights: this runs at the end of the record, so both the main light
+            // params below and the packing loop of SetupAdditionalLightConstants, which executes later, read the value
+            // of this camera.
+            var fog = VolumeManager.instance.stack.GetComponent<FogVolumeComponent>();
+            m_VolumetricLightingActive = fog != null && fog.volumetricFogEnabled.value &&
+                !cameraData.camera.orthographic && cameraData.renderType != CameraRenderType.Overlay;
+#endif
 
-        void SetupMainLightConstants(UnsafeCommandBuffer cmd, UniversalLightData lightData)
-        {
-            Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             bool supportsLightLayers = lightData.supportsLightLayers;
-            uint lightLayerMask;
-            bool isSubtractive;
-            InitializeLightConstants(lightData.visibleLights, lightData.mainLightIndex, supportsLightLayers, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel, out lightLayerMask, out isSubtractive);
+            uint validRenderingLayers = supportsLightLayers ? RenderingLayerUtils.GetValidRenderingLayersMask() : uint.MaxValue;
+
+            InitializeLightConstants(lightData.visibleLights, lightData.mainLightIndex, supportsLightLayers, validRenderingLayers,
+                out Vector4 lightPos, out Vector4 lightColor, out _, out _, out Vector4 lightOcclusionChannel,
+                out uint lightLayerMask, out bool isSubtractive);
             lightColor.w = isSubtractive ? 0f : 1f;
 
 #if VOLUMETRIC_FOG
@@ -789,17 +778,51 @@ namespace UnityEngine.Rendering.Universal.Internal
                 : Vector4.zero;
 #endif
 
-            cmd.SetGlobalVector(LightShaderPropertyId._MainLightPosition, lightPos);
-            cmd.SetGlobalVector(LightShaderPropertyId._MainLightColor, lightColor);
-            cmd.SetGlobalVector(LightShaderPropertyId._MainLightOcclusionProbesChannel, lightOcclusionChannel);
+            vars._MainLightPosition = lightPos;
+            vars._MainLightColor = lightColor;
+            vars._MainLightOcclusionProbes = lightOcclusionChannel;
 
             if (supportsLightLayers)
-                cmd.SetGlobalInt(LightShaderPropertyId._MainLightLayerMask, (int)lightLayerMask);
+                vars._MainLightLayerMask = lightLayerMask;
+
+            vars._EnableProbeVolumes = ProbeReferenceVolume.instance.DataHasBeenLoaded() ? 1u : 0u;
+
+            // Forward+ Parameters, cached by PreSetup.
+            if (m_UseForwardPlus)
+            {
+                vars._FPParams0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
+                vars._FPParams1 = math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
+                vars._FPParams2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0);
+            }
+
+            // Light Cookies
+            UpdateLightCookieGlobalShaderVariables(vars, lightData);
+        }
+
+        void UpdateLightCookieGlobalShaderVariables(GlobalShaderVariablesUploader vars, UniversalLightData lightData)
+        {
+            if (m_LightCookieManager == null)
+                return;
+
+            if (lightData.mainLightIndex >= 0)
+            {
+                var mainLight = lightData.visibleLights[lightData.mainLightIndex];
+                m_LightCookieManager.UpdateMainLightGlobalShaderVariables(vars, ref mainLight);
+            }
+            else
+            {
+                // Erase stale data in case the main light is disabled but the cookie system is on for additional lights.
+                vars._MainLightWorldToLight = Matrix4x4.identity;
+                vars._MainLightCookieTextureFormat = (float)LightCookieManager.LightCookieShaderFormat.None;
+            }
+
+            m_LightCookieManager.UpdateAdditionalLightsGlobalShaderVariables(vars);
         }
 
         void SetupAdditionalLightConstants(UnsafeCommandBuffer cmd, ref CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
             bool supportsLightLayers = lightData.supportsLightLayers;
+            uint validRenderingLayers = supportsLightLayers ? RenderingLayerUtils.GetValidRenderingLayersMask() : uint.MaxValue;
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = m_MaxVisibleAdditionalLights;
             int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData, reuseCullingResult);
@@ -822,6 +845,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 lights,
                                 i,
                                 supportsLightLayers,
+                                validRenderingLayers,
                                 out Vector4 position,
                                 out Vector4 color,
                                 out Vector4 attenuation,
@@ -871,6 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 lights,
                                 i,
                                 supportsLightLayers,
+                                validRenderingLayers,
                                 out m_AdditionalLightPositions[lightIter],
                                 out m_AdditionalLightColors[lightIter],
                                 out m_AdditionalLightAttenuations[lightIter],

@@ -1899,8 +1899,9 @@ namespace UnityEngine.Rendering.Universal
             if (lightIndex < 0)
                 return;
 
-            // Avoid memcpys. Pass by ref and locals for multiple uses.
-            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
+            // Avoid memcpys. Pass by ref and locals for multiple uses. Read only access on purpose: this also runs while the
+            // Forward+ culling jobs still hold a read on the array, and a write access would trip the job safety checks.
+            ref VisibleLight lightData = ref lights.UnsafeElementAt(lightIndex);
             var light = lightData.light;
             var lightLocalToWorld = lightData.localToWorldMatrix;
             var lightType = lightData.lightType;

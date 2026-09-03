@@ -685,11 +685,42 @@ namespace UnityEngine.Rendering.Universal
             // Once we add more shader vars from feature passes, we will fill them here
         }
 
+        void UpdateGlobalShaderVariables()
+        {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            // Write through the accessors rather than the struct: each one raises a staging dirty bit, and EndFill
+            // freezes that set of bits as the mask of what this camera uses. Everything afterwards works from that
+            // mask, so pushing or restoring the defaults only re-sends those variables instead of all of them.
+            var uploader = m_GlobalShaderVariablesUploader;
+
+            // Misc. Only written when a pass consuming the rendering layers texture is recorded, like the loose
+            // uniform path, which set it from those passes.
+            if (m_RequiresRenderingLayer)
+                uploader._RenderingLayerMaxInt = RenderingLayerUtils.GetMaxInt(m_RenderingLayersMaskSize);
+
+            // Lights and cookies
+            m_ForwardLights.UpdateGlobalShaderVariables(uploader, cameraData, lightData);
+
+            // Shadows
+            m_ShadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
+            m_ShadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
+        }
+
         private class InitPassData
         {
             internal UniversalCameraData cameraData;
             internal UniversalGlobalShaderData shaderData;
             internal ShadowPassGroup shadowPassGroup;
+        };
+
+        private class SetupPassData
+        {
+            internal UniversalCameraData cameraData;
+            // The classic interface from shaderData.Get() always pushes every group, this specific render func needs Base alone but this is an exception not the norm.
+            internal GlobalShaderVariablesUploader uploader;
             internal TextureHandle target;
         };
 
@@ -771,23 +802,24 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupRenderGraphCameraProperties(RenderGraph renderGraph, in TextureHandle target)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<InitPassData>(Profiling.setupCamera.name, out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<SetupPassData>(Profiling.setupCamera.name, out var passData,
                 Profiling.setupCamera))
             {
                 passData.cameraData = frameData.Get<UniversalCameraData>();
-                passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
+                passData.uploader = m_GlobalShaderVariablesUploader;
                 passData.target = target;
 
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc(static (InitPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (SetupPassData data, RasterGraphContext context) =>
                 {
                     bool isTargetFlipped = SystemInfo.graphicsUVStartsAtTop && RenderingUtils.IsHandleYFlipped(context, in data.target);
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    // push default vars again, some were re-written by cmd.SetupCameraProperties() call above
-                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
+                    // Push the base vars again, some were re-written by cmd.SetupCameraProperties() above. Base group
+                    // only: the native call cannot touch the 3D vars, their names are URP-specific, and we don't want to call setGlobals with all default 3D vars again for nothing.
+                    data.uploader.PushDefaultToGlobal(context.cmd, GlobalShaderVariablesGroup.Base);
                 });
             }
         }
@@ -878,6 +910,10 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalGlobalShaderData globalShaderData = frameData.Get<UniversalGlobalShaderData>();
             resourceData.EndFrame();
+
+            // Filled here rather than mid-record: this is the last point of the record, so every pass it reads has its
+            // per-frame state final, and it is the single place covering both the normal and the offscreen depth paths.
+            UpdateGlobalShaderVariables();
 
             // Recording is over: freeze what it staged as the defaults of this camera, then hand the uploader out,
             // its staging is only coherent on the execute timeline.

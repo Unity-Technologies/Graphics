@@ -258,6 +258,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Fills the environment variables from the current render settings.
+        /// </summary>
+        public void SetEnvironmentVars()
+        {
+            var ambientSH = RenderSettings.ambientProbe;
+            var linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+
+            _GlossyEnvironmentColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
+            _SubtractiveShadowColor = CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor);
+            _GlossyEnvironmentCubeMap_HDR = ReflectionProbe.defaultTextureHDRDecodeValues;
+        }
+
+        /// <summary>
         /// [t/20, t, t*2, t*3]
         /// </summary>
         public Vector4 _Time
@@ -483,18 +496,380 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // URP 3D-only shader variables (GlobalShaderVariablesOnly3D)
         /// <summary>
-        /// Placeholder keeping the URP 3D block non empty until real 3D variables move in.
+        /// Ambient color used for glossy reflections when no reflection probe applies.
         /// </summary>
-        public Vector4 _URPDummy3D
+        public Vector4 _GlossyEnvironmentColor
         {
-            get => m_StagingVars.vars3D._URPDummy3D;
+            get => m_StagingVars.varsBase._GlossyEnvironmentColor;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                m_StagingVars.vars3D._URPDummy3D = value;
-                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._URPDummy3D);
+                m_StagingVars.varsBase._GlossyEnvironmentColor = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty._GlossyEnvironmentColor);
+            }
+        }
+
+        /// <summary>
+        /// Shadow color of the subtractive mixed lighting mode.
+        /// </summary>
+        public Vector4 _SubtractiveShadowColor
+        {
+            get => m_StagingVars.varsBase._SubtractiveShadowColor;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase._SubtractiveShadowColor = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty._SubtractiveShadowColor);
+            }
+        }
+
+        /// <summary>
+        /// HDR decode instructions of the default reflection cubemap.
+        /// </summary>
+        public Vector4 _GlossyEnvironmentCubeMap_HDR
+        {
+            get => m_StagingVars.varsBase._GlossyEnvironmentCubeMap_HDR;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase._GlossyEnvironmentCubeMap_HDR = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty._GlossyEnvironmentCubeMap_HDR);
+            }
+        }
+
+        // URP 3D-only shader variables (GlobalShaderVariablesOnly3D)
+        /// <summary>
+        /// World to light matrix of the main light cookie.
+        /// </summary>
+        public Matrix4x4 _MainLightWorldToLight
+        {
+            get => m_StagingVars.vars3D._MainLightWorldToLight;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightWorldToLight = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightWorldToLight);
+            }
+        }
+
+        /// <summary>
+        /// Direction of the main light with w = 0 for a directional light, position with w = 1 otherwise.
+        /// </summary>
+        public Vector4 _MainLightPosition
+        {
+            get => m_StagingVars.vars3D._MainLightPosition;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightPosition = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPosition);
+            }
+        }
+
+        /// <summary>
+        /// Color of the main light. In Forward+, w stores whether it uses subtractive mixed mode.
+        /// </summary>
+        public Vector4 _MainLightColor
+        {
+            get => m_StagingVars.vars3D._MainLightColor;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightColor = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightColor);
+            }
+        }
+
+        /// <summary>
+        /// Occlusion probe channels of the main light.
+        /// </summary>
+        public Vector4 _MainLightOcclusionProbes
+        {
+            get => m_StagingVars.vars3D._MainLightOcclusionProbes;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightOcclusionProbes = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightOcclusionProbes);
+            }
+        }
+
+        /// <summary>
+        /// Rendering layer mask of the main light.
+        /// </summary>
+        public uint _MainLightLayerMask
+        {
+            get => m_StagingVars.vars3D._MainLightLayerMask;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightLayerMask = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightLayerMask);
+            }
+        }
+
+        /// <summary>
+        /// Forward+ cluster parameters, read through the URP_FP_* macros in Input.hlsl.
+        /// [zBinScale, zBinOffset, lightCount, directionalLightCount]
+        /// </summary>
+        public Vector4 _FPParams0
+        {
+            get => m_StagingVars.vars3D._FPParams0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._FPParams0 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._FPParams0);
+            }
+        }
+
+        /// <summary>
+        /// [tileScale.x, tileScale.y, tileCountX, wordsPerTile]
+        /// </summary>
+        public Vector4 _FPParams1
+        {
+            get => m_StagingVars.vars3D._FPParams1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._FPParams1 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._FPParams1);
+            }
+        }
+
+        /// <summary>
+        /// [zBinCount, tileCount, 0, 0]
+        /// </summary>
+        public Vector4 _FPParams2
+        {
+            get => m_StagingVars.vars3D._FPParams2;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._FPParams2 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._FPParams2);
+            }
+        }
+
+        /// <summary>
+        /// Sets the five world to shadow matrices at once: they share a single dirty flag because SetGlobals pushes
+        /// them as one matrix array.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightWorldToShadow(in MainLightShadowMatrices matrices)
+        {
+            m_StagingVars.vars3D._MainLightWorldToShadow = matrices;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightWorldToShadow);
+        }
+
+        /// <summary>
+        /// Bounding sphere of the first cascade, xyz = center and w = radius.
+        /// </summary>
+        public Vector4 _CascadeShadowSplitSpheres0
+        {
+            get => m_StagingVars.vars3D._CascadeShadowSplitSpheres0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._CascadeShadowSplitSpheres0 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._CascadeShadowSplitSpheres0);
+            }
+        }
+
+        /// <summary>
+        /// Bounding sphere of the second cascade, xyz = center and w = radius.
+        /// </summary>
+        public Vector4 _CascadeShadowSplitSpheres1
+        {
+            get => m_StagingVars.vars3D._CascadeShadowSplitSpheres1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._CascadeShadowSplitSpheres1 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._CascadeShadowSplitSpheres1);
+            }
+        }
+
+        /// <summary>
+        /// Bounding sphere of the third cascade, xyz = center and w = radius.
+        /// </summary>
+        public Vector4 _CascadeShadowSplitSpheres2
+        {
+            get => m_StagingVars.vars3D._CascadeShadowSplitSpheres2;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._CascadeShadowSplitSpheres2 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._CascadeShadowSplitSpheres2);
+            }
+        }
+
+        /// <summary>
+        /// Bounding sphere of the fourth cascade, xyz = center and w = radius.
+        /// </summary>
+        public Vector4 _CascadeShadowSplitSpheres3
+        {
+            get => m_StagingVars.vars3D._CascadeShadowSplitSpheres3;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._CascadeShadowSplitSpheres3 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._CascadeShadowSplitSpheres3);
+            }
+        }
+
+        /// <summary>
+        /// Squared radii of the four cascade bounding spheres.
+        /// </summary>
+        public Vector4 _CascadeShadowSplitSphereRadii
+        {
+            get => m_StagingVars.vars3D._CascadeShadowSplitSphereRadii;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._CascadeShadowSplitSphereRadii = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._CascadeShadowSplitSphereRadii);
+            }
+        }
+
+        /// <summary>
+        /// Soft shadow sampling offsets, xy = offset0 and zw = offset1.
+        /// </summary>
+        public Vector4 _MainLightShadowOffset0
+        {
+            get => m_StagingVars.vars3D._MainLightShadowOffset0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightShadowOffset0 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightShadowOffset0);
+            }
+        }
+
+        /// <summary>
+        /// Soft shadow sampling offsets, xy = offset2 and zw = offset3.
+        /// </summary>
+        public Vector4 _MainLightShadowOffset1
+        {
+            get => m_StagingVars.vars3D._MainLightShadowOffset1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightShadowOffset1 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightShadowOffset1);
+            }
+        }
+
+        /// <summary>
+        /// xy = 1/width and 1/height, zw = width and height of the main light shadowmap.
+        /// </summary>
+        public Vector4 _MainLightShadowmapSize
+        {
+            get => m_StagingVars.vars3D._MainLightShadowmapSize;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightShadowmapSize = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightShadowmapSize);
+            }
+        }
+
+        /// <summary>
+        /// Soft shadow sampling offsets, xy = offset0 and zw = offset1.
+        /// </summary>
+        public Vector4 _AdditionalShadowOffset0
+        {
+            get => m_StagingVars.vars3D._AdditionalShadowOffset0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._AdditionalShadowOffset0 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._AdditionalShadowOffset0);
+            }
+        }
+
+        /// <summary>
+        /// Soft shadow sampling offsets, xy = offset2 and zw = offset3.
+        /// </summary>
+        public Vector4 _AdditionalShadowOffset1
+        {
+            get => m_StagingVars.vars3D._AdditionalShadowOffset1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._AdditionalShadowOffset1 = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._AdditionalShadowOffset1);
+            }
+        }
+
+        /// <summary>
+        /// xy = 1/width and 1/height, zw = width and height of the additional lights shadowmap.
+        /// </summary>
+        public Vector4 _AdditionalShadowmapSize
+        {
+            get => m_StagingVars.vars3D._AdditionalShadowmapSize;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._AdditionalShadowmapSize = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._AdditionalShadowmapSize);
+            }
+        }
+
+        /// <summary>
+        /// LightCookieShaderFormat of the main light cookie texture, None when it has no cookie.
+        /// </summary>
+        public float _MainLightCookieTextureFormat
+        {
+            get => m_StagingVars.vars3D._MainLightCookieTextureFormat;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightCookieTextureFormat = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightCookieTextureFormat);
+            }
+        }
+
+        /// <summary>
+        /// LightCookieShaderFormat of the additional lights cookie atlas.
+        /// </summary>
+        public float _AdditionalLightsCookieAtlasTextureFormat
+        {
+            get => m_StagingVars.vars3D._AdditionalLightsCookieAtlasTextureFormat;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._AdditionalLightsCookieAtlasTextureFormat = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._AdditionalLightsCookieAtlasTextureFormat);
+            }
+        }
+
+        /// <summary>
+        /// Highest value a rendering layer mask can hold, given the configured mask size.
+        /// </summary>
+        public uint _RenderingLayerMaxInt
+        {
+            get => m_StagingVars.vars3D._RenderingLayerMaxInt;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._RenderingLayerMaxInt = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._RenderingLayerMaxInt);
+            }
+        }
+
+        /// <summary>
+        /// 1 when Adaptive Probe Volume data is loaded and usable, 0 otherwise.
+        /// </summary>
+        public uint _EnableProbeVolumes
+        {
+            get => m_StagingVars.vars3D._EnableProbeVolumes;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._EnableProbeVolumes = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._EnableProbeVolumes);
             }
         }
 

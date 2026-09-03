@@ -95,10 +95,6 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-half4 _GlossyEnvironmentColor;
-half4 _SubtractiveShadowColor;
-
-half4 _GlossyEnvironmentCubeMap_HDR;
 TEXTURECUBE(_GlossyEnvironmentCubeMap);
 #define sampler_GlossyEnvironmentCubeMap sampler_TrilinearClamp
 
@@ -106,12 +102,6 @@ TEXTURECUBE(_GlossyEnvironmentCubeMap);
 
 // 1.0 if it's possible for AlphaToMask to be enabled for this draw and 0.0 otherwise
 float _AlphaToMaskAvailable;
-
-float4 _MainLightPosition;
-// In Forward+, .a stores whether the main light is using subtractive mixed mode.
-half4 _MainLightColor;
-half4 _MainLightOcclusionProbes;
-uint _MainLightLayerMask;
 
 // x: SSAO Enabled/Disabled (Needed for situations when OFF keyword is stripped out but feature disabled in runtime)
 // yz are currently unused
@@ -126,15 +116,7 @@ half4 _ScreenSpaceReflectionParam;
 
 half4 _AdditionalLightsCount;
 
-uint _RenderingLayerMaxInt;
-
-uint _EnableProbeVolumes;
-
 #if USE_CLUSTER_LIGHT_LOOP
-float4 _FPParams0;
-float4 _FPParams1;
-float4 _FPParams2;
-
 #define URP_FP_ZBIN_SCALE (_FPParams0.x)
 #define URP_FP_ZBIN_OFFSET (_FPParams0.y)
 #define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)

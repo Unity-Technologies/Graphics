@@ -441,6 +441,7 @@ namespace UnityEngine.Rendering.Universal
         {
             SetPerCameraShaderVariables(vars, cameraData);
             SetShaderTimeValues(vars);
+            vars.SetEnvironmentVars();
         }
 
         /// <summary>

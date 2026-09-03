@@ -8,8 +8,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Shadows.deprecated.hlsl"
 
-#define MAX_SHADOW_CASCADES 4
-
 #if !defined(_RECEIVE_SHADOWS_OFF)
     #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
         #define MAIN_LIGHT_CALCULATE_SHADOWS
@@ -68,25 +66,9 @@ TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
-// Last cascade is initialized with a no-op matrix. It always transforms
-// shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
-// branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-float4x4    _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
-float4      _CascadeShadowSplitSpheres0;
-float4      _CascadeShadowSplitSpheres1;
-float4      _CascadeShadowSplitSpheres2;
-float4      _CascadeShadowSplitSpheres3;
-float4      _CascadeShadowSplitSphereRadii;
-
-float4      _MainLightShadowOffset0; // xy: offset0, zw: offset1
-float4      _MainLightShadowOffset1; // xy: offset2, zw: offset3
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
-float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
-
-float4      _AdditionalShadowOffset0; // xy: offset0, zw: offset1
-float4      _AdditionalShadowOffset1; // xy: offset2, zw: offset3
 float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 
 #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform

@@ -12,11 +12,8 @@ namespace UnityEngine.Rendering.Universal
         static class ShaderProperty
         {
             public static readonly int mainLightTexture = Shader.PropertyToID("_MainLightCookieTexture");
-            public static readonly int mainLightWorldToLight = Shader.PropertyToID("_MainLightWorldToLight");
-            public static readonly int mainLightCookieTextureFormat = Shader.PropertyToID("_MainLightCookieTextureFormat");
 
             public static readonly int additionalLightsCookieAtlasTexture = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
-            public static readonly int additionalLightsCookieAtlasTextureFormat = Shader.PropertyToID("_AdditionalLightsCookieAtlasTextureFormat");
 
             public static readonly int lightCookiesBuffer = Shader.PropertyToID("LightCookies");
 
@@ -342,6 +339,8 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsBuffer AdditionalLightsCookieConstantBuffer => m_AdditionalLightsCookieShaderData?.lightCookieBuffer;
         internal int AdditionalLightsCookieConstantBufferSizeBytes => m_AdditionalLightsCookieShaderData?.lightCookieBufferSizeBytes ?? 0;
 
+#endif
+
         internal bool GetMainLightCookieData(ref VisibleLight visibleMainLight, out Texture cookie, out Matrix4x4 worldToLight, out float cookieFormat)
         {
             var mainLight = visibleMainLight.light;
@@ -360,7 +359,6 @@ namespace UnityEngine.Rendering.Universal
             cookieFormat = (float)GetLightCookieShaderFormat(cookie.graphicsFormat);
             return true;
         }
-#endif
 
         public LightCookieManager(ref Settings settings)
         {
@@ -418,7 +416,7 @@ namespace UnityEngine.Rendering.Universal
             if (isMainLightAvailable)
             {
                 var mainLight = lightData.visibleLights[lightData.mainLightIndex];
-                isMainLightAvailable = SetupMainLight(cmd, ref mainLight);
+                isMainLightAvailable = SetupMainLightTexture(cmd, ref mainLight);
             }
 
             // Additional lights, N spot and point lights in atlas
@@ -449,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, IsKeywordLightCookieEnabled);
         }
 
-        bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)
+        bool SetupMainLightTexture(CommandBuffer cmd, ref VisibleLight visibleMainLight)
         {
             var mainLight = visibleMainLight.light;
             var cookieTexture = mainLight.cookie;
@@ -457,28 +455,31 @@ namespace UnityEngine.Rendering.Universal
 
             if (isMainLightCookieEnabled)
             {
-                Matrix4x4 cookieUVTransform = Matrix4x4.identity;
-                float cookieFormat = (float)GetLightCookieShaderFormat(cookieTexture.graphicsFormat);
-
-                if (mainLight.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                    GetLightUVScaleOffset(ref additionalLightData, ref cookieUVTransform);
-
-                Matrix4x4 cookieMatrix = s_DirLightProj * cookieUVTransform *
-                    visibleMainLight.localToWorldMatrix.inverse;
-
                 cmd.SetGlobalTexture(ShaderProperty.mainLightTexture, cookieTexture);
-                cmd.SetGlobalMatrix(ShaderProperty.mainLightWorldToLight, cookieMatrix);
-                cmd.SetGlobalFloat(ShaderProperty.mainLightCookieTextureFormat, cookieFormat);
             }
             else
             {
                 // Make sure we erase stale data in case the main light is disabled but cookie system is enabled (for additional lights).
                 cmd.SetGlobalTexture(ShaderProperty.mainLightTexture, Texture2D.whiteTexture);
-                cmd.SetGlobalMatrix(ShaderProperty.mainLightWorldToLight, Matrix4x4.identity);
-                cmd.SetGlobalFloat(ShaderProperty.mainLightCookieTextureFormat, (float)LightCookieShaderFormat.None);
             }
 
             return isMainLightCookieEnabled;
+        }
+
+        // The atlas does not exist yet when this is read: SetupAdditionalLights creates it later, so asking its format would
+        // return None. Reading the setting is not an approximation, InitAdditionalLights builds the atlas with that format.
+        internal float additionalLightsCookieAtlasFormat => (float)GetLightCookieShaderFormat(m_Settings.atlas.format);
+
+        internal void UpdateMainLightGlobalShaderVariables(GlobalShaderVariablesUploader vars, ref VisibleLight visibleMainLight)
+        {
+            GetMainLightCookieData(ref visibleMainLight, out _, out Matrix4x4 mainLightWorldToLight, out float mainLightCookieTextureFormat);
+            vars._MainLightWorldToLight = mainLightWorldToLight;
+            vars._MainLightCookieTextureFormat = mainLightCookieTextureFormat;
+        }
+
+        internal void UpdateAdditionalLightsGlobalShaderVariables(GlobalShaderVariablesUploader vars)
+        {
+            vars._AdditionalLightsCookieAtlasTextureFormat = additionalLightsCookieAtlasFormat;
         }
 
         internal LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
@@ -833,7 +834,6 @@ namespace UnityEngine.Rendering.Universal
             Assertions.Assert.IsTrue(m_AdditionalLightsCookieShaderData != null);
 
             cmd.SetGlobalTexture(ShaderProperty.additionalLightsCookieAtlasTexture, m_AdditionalLightsCookieAtlas.AtlasTexture);
-            cmd.SetGlobalFloat(ShaderProperty.additionalLightsCookieAtlasTextureFormat, (float)GetLightCookieShaderFormat(m_AdditionalLightsCookieAtlas.AtlasTexture.rt.graphicsFormat));
 
             // Resize and clear visible light to shader data mapping
             if (m_VisibleLightIndexToShaderDataIndex.Length < lightData.visibleLights.Length)

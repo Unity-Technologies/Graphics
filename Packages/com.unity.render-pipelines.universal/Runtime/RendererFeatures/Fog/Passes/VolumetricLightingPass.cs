@@ -331,9 +331,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var cookieAtlas = forwardLights.lightCookieManager?.AdditionalLightsCookieAtlasTexture;
                     passData.additionalCookieAtlas = cookieAtlas != null ? renderGraph.ImportTexture(cookieAtlas) : whiteTexture;
-                    passData.additionalCookieFormat = cookieAtlas != null
-                        ? (float)forwardLights.lightCookieManager.GetLightCookieShaderFormat(cookieAtlas.rt.graphicsFormat)
-                        : kLightCookieFormatNone;
+                    passData.additionalCookieFormat = forwardLights.lightCookieManager?.additionalLightsCookieAtlasFormat ?? kLightCookieFormatNone;
 
                     builder.UseTexture(passData.mainCookieTexture, AccessFlags.Read);
                     builder.UseTexture(passData.additionalCookieAtlas, AccessFlags.Read);
@@ -615,6 +613,7 @@ namespace UnityEngine.Rendering.Universal
                     bool sampleCookies = data.sampleCookies && cookieManager != null && cookieManager.IsKeywordLightCookieEnabled;
                     cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._MainLightCookieTexture, data.mainCookieTexture);
                     cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._AdditionalLightsCookieAtlasTexture, data.additionalCookieAtlas);
+
                     cmd.SetComputeMatrixParam(cs, ShaderIDs._MainLightWorldToLight, sampleCookies ? data.mainCookieWorldToLight : Matrix4x4.identity);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._MainLightCookieTextureFormat, sampleCookies ? data.mainCookieFormat : kLightCookieFormatNone);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._AdditionalLightsCookieAtlasTextureFormat, sampleCookies ? data.additionalCookieFormat : kLightCookieFormatNone);

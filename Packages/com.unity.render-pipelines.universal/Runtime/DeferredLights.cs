@@ -65,9 +65,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
 
-            public static readonly int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static readonly int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static readonly int _MainLightLayerMask = Shader.PropertyToID("_MainLightLayerMask"); // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static readonly int _SpotLightScale = Shader.PropertyToID("_SpotLightScale");
             public static readonly int _SpotLightBias = Shader.PropertyToID("_SpotLightBias");
             public static readonly int _SpotLightGuard = Shader.PropertyToID("_SpotLightGuard");
@@ -349,10 +346,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
-                    // Shared uniform constants for all lights.
-                    if(!m_UseDeferredPlus)
-                        SetupShaderLightConstants(cmd, lightData);
-
 #if UNITY_EDITOR
                     // This flag is used to strip mixed lighting shader variants when a player is built.
                     // All shader variants are available in the editor.
@@ -611,33 +604,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
         }
 
-        // adapted from ForwardLights.SetupShaderLightConstants
-        void SetupShaderLightConstants(CommandBuffer cmd, UniversalLightData lightData)
-        {
-            // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
-            // Universal Forward pipeline only supports a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, lightData);
-        }
-
-        // adapted from ForwardLights.SetupShaderLightConstants
-        void SetupMainLightConstants(CommandBuffer cmd, UniversalLightData lightData)
-        {
-            if (lightData.mainLightIndex < 0)
-                return;
-
-            Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
-            UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
-
-            if (lightData.supportsLightLayers)
-            {
-                Light light = lightData.visibleLights[lightData.mainLightIndex].light;
-                SetRenderingLayersMask(CommandBufferHelpers.GetRasterCommandBuffer(cmd), light, ShaderConstants._MainLightLayerMask);
-            }
-
-            cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
-            cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
-        }
-
         internal Matrix4x4[] GetScreenToWorldMatrix(UniversalCameraData cameraData, TextureUVOrigin depthTextureOrigin)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -795,23 +761,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
                 bool hasLightCookieManager = m_LightCookieManager != null;
+
+                // Invariant for the frame, resolved once here rather than in each of the three loops below.
+                uint validRenderingLayers = lightData.supportsLightLayers ? RenderingLayerUtils.GetValidRenderingLayersMask() : uint.MaxValue;
+
                 if (HasStencilLightsOfType(LightType.Directional))
-                    RenderStencilDirectionalLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager, lightData.mainLightIndex);
+                    RenderStencilDirectionalLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager, lightData.mainLightIndex, validRenderingLayers);
 
                 if (lightData.supportsAdditionalLights)
                 {
                     if (HasStencilLightsOfType(LightType.Point))
-                        RenderStencilPointLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager);
+                        RenderStencilPointLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager, validRenderingLayers);
 
                     if (HasStencilLightsOfType(LightType.Spot))
-                        RenderStencilSpotLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager);
+                        RenderStencilSpotLights(cmd, lightData, shadowData, visibleLights, hasLightCookieManager, validRenderingLayers);
                 }
             }
 
             Profiler.EndSample();
         }
 
-        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager, int mainLightIndex)
+        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager, int mainLightIndex, uint validRenderingLayers)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -848,7 +818,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 if (lightData.supportsLightLayers)
-                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask);
+                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask, validRenderingLayers);
 
                 // Setup shadow parameters:
                 // - for the main light, they have already been setup globally, so nothing to do.
@@ -889,7 +859,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._DIRECTIONAL, false);
         }
 
-        void RenderStencilPointLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager)
+        void RenderStencilPointLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager, uint validRenderingLayers)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -923,7 +893,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out _, out lightOcclusionChannel);
 
                 if (lightData.supportsLightLayers)
-                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask);
+                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask, validRenderingLayers);
 
                 int lightFlags = 0;
                 if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
@@ -959,7 +929,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords._POINT, false);
         }
 
-        void RenderStencilSpotLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager)
+        void RenderStencilSpotLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, NativeArray<VisibleLight> visibleLights, bool hasLightCookieManager, uint validRenderingLayers)
         {
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
@@ -992,7 +962,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionChannel);
 
                 if (lightData.supportsLightLayers)
-                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask);
+                    SetRenderingLayersMask(cmd, light, ShaderConstants._LightLayerMask, validRenderingLayers);
 
                 int lightFlags = 0;
                 if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
@@ -1236,10 +1206,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // Sets the correct value for _MainLightLayerMask/_LightLayerMask
-        private void SetRenderingLayersMask(RasterCommandBuffer cmd, Light light, int shaderPropertyID)
+        private void SetRenderingLayersMask(RasterCommandBuffer cmd, Light light, int shaderPropertyID, uint validRenderingLayers)
         {
             var additionalLightData = light.GetUniversalAdditionalLightData();
-            uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
+            uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers, validRenderingLayers);
             cmd.SetGlobalInt(shaderPropertyID, (int)lightLayerMask);
         }
 

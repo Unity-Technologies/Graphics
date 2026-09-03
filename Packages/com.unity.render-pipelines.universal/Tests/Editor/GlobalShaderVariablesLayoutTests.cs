@@ -54,7 +54,14 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         // Matches any "<type> <name>;" so an unregistered type fails loudly below instead of being skipped,
         // which would hide the drift this test exists to catch.
-        static readonly Regex k_HlslDeclaration = new Regex(@"^\s*([A-Za-z_]\w*)\s+(\w+)\s*;");
+        // The trailing [..] is optional so array members are captured too, like _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1].
+        static readonly Regex k_HlslDeclaration = new Regex(@"^\s*([A-Za-z_]\w*)\s+(\w+)\s*(?:\[([^\]]+)\])?\s*;");
+
+        // Integer defines of that same file, the only thing an array length is allowed to reference.
+        static readonly Regex k_HlslDefine = new Regex(@"^#define\s+(\w+)\s+(\d+)\s*$");
+
+        // The shader define selecting the persistent constant buffer, so the layout the hlsl is read for.
+        const string k_PersistentConstantBuffersDefine = "URP_PERSISTENT_CONSTANT_BUFFERS";
 
         [Test]
         public void FieldTypesAreConstantBufferSafe([ValueSource(nameof(k_LayoutTypes))] Type layoutType)
@@ -172,8 +179,8 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             // Sorted by offset rather than trusting reflection's declaration order, which is not guaranteed.
             var fields = new List<(int offset, string declaration)>();
-            ForEachLeafField(typeof(GlobalShaderVariables), 0, (field, offset) =>
-                fields.Add((offset, $"{HlslTypeFor(field.FieldType)} {field.Name}")));
+            ForEachHlslDeclaration(typeof(GlobalShaderVariables), 0, (declaration, offset) =>
+                fields.Add((offset, declaration)));
             fields.Sort((a, b) => a.offset.CompareTo(b.offset));
 
             var expected = new List<string>();
@@ -204,6 +211,13 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.That(File.Exists(path), Is.True, $"Could not find {path}.");
 
             var declarations = new List<string>();
+            var defines = new Dictionary<string, int>();
+
+            // A member can be declared once per branch of a conditional, when only its precision changes. The layout
+            // read here is the one the persistent constant buffer mode compiles, so the branch taken is the one that
+            // mode selects. Conditions are tracked as a stack because of the include guard wrapping the whole file.
+            var conditions = new List<string>();
+            bool skipping = false;
 
             foreach (var rawLine in File.ReadAllLines(path))
             {
@@ -213,7 +227,46 @@ namespace UnityEditor.Rendering.Universal.Tests
                 if (comment >= 0)
                     line = line.Substring(0, comment);
 
-                if (line.TrimStart().StartsWith("#", StringComparison.Ordinal))
+                var trimmed = line.TrimStart();
+                if (trimmed.StartsWith("#", StringComparison.Ordinal))
+                {
+                    // Kept so an array length can name one, they are declared before the members that use them.
+                    var define = k_HlslDefine.Match(trimmed.TrimEnd());
+                    if (define.Success)
+                        defines[define.Groups[1].Value] = int.Parse(define.Groups[2].Value);
+
+                    if (trimmed.StartsWith("#if", StringComparison.Ordinal))
+                    {
+                        conditions.Add(trimmed);
+                    }
+                    else if (trimmed.StartsWith("#elif", StringComparison.Ordinal))
+                    {
+                        Assert.Fail("GlobalShaderVariables.hlsl uses #elif, which this parser cannot attribute to a " +
+                            "branch. Declare the layout under a plain #if on URP_PERSISTENT_CONSTANT_BUFFERS instead.");
+                    }
+                    else if (trimmed.StartsWith("#else", StringComparison.Ordinal))
+                    {
+                        // Only the persistent constant buffer condition has a known answer here, so anything else
+                        // would leave the layout ambiguous instead of silently picking one of the two branches.
+                        Assert.That(conditions.Count, Is.GreaterThan(0), "GlobalShaderVariables.hlsl has an #else without a matching #if.");
+                        Assert.That(conditions[conditions.Count - 1], Does.Contain(k_PersistentConstantBuffersDefine),
+                            $"GlobalShaderVariables.hlsl declares members under '{conditions[conditions.Count - 1]}', whose #else branch " +
+                            $"cannot be resolved. Only a conditional on {k_PersistentConstantBuffersDefine} may hold two versions of a member.");
+
+                        skipping = true;
+                    }
+                    else if (trimmed.StartsWith("#endif", StringComparison.Ordinal))
+                    {
+                        if (conditions.Count > 0)
+                            conditions.RemoveAt(conditions.Count - 1);
+
+                        skipping = false;
+                    }
+
+                    continue;
+                }
+
+                if (skipping)
                     continue;
 
                 var match = k_HlslDeclaration.Match(line);
@@ -222,15 +275,80 @@ namespace UnityEditor.Rendering.Universal.Tests
 
                 var hlslType = match.Groups[1].Value;
                 var hlslName = match.Groups[2].Value;
+                var arrayLength = match.Groups[3];
 
                 Assert.That(k_HlslTypeNames.ContainsValue(hlslType), Is.True,
                     $"GlobalShaderVariables.hlsl declares '{hlslType} {hlslName};' but '{hlslType}' has no entry in " +
                     $"k_HlslTypeNames. Register it there and in k_AllowedFieldTypes.");
 
-                declarations.Add($"{hlslType} {hlslName}");
+                declarations.Add(arrayLength.Success
+                    ? $"{hlslType} {hlslName}[{ResolveArrayLength(arrayLength.Value, defines, hlslName)}]"
+                    : $"{hlslType} {hlslName}");
             }
 
             return declarations;
+        }
+
+        // Turns a length like "MAX_SHADOW_CASCADES + 1" into a number, so a drift between the hlsl array and the C#
+        // struct standing for it fails the comparison instead of going unnoticed.
+        static int ResolveArrayLength(string expression, Dictionary<string, int> defines, string memberName)
+        {
+            int total = 0;
+
+            foreach (var rawTerm in expression.Split('+'))
+            {
+                var term = rawTerm.Trim();
+                if (int.TryParse(term, out int literal))
+                {
+                    total += literal;
+                    continue;
+                }
+
+                Assert.That(defines.ContainsKey(term), Is.True,
+                    $"GlobalShaderVariables.hlsl sizes '{memberName}' with '{term}', which is not an integer #define " +
+                    "of that file. Array lengths there must be literals or such defines, added together.");
+
+                total += defines[term];
+            }
+
+            return total;
+        }
+
+        // Same walk as ForEachLeafField, except it stops where the hlsl stops. The group structs (varsBase, vars3D,
+        // vars2D) are pure containers whose fields sit inline in the buffer, so they are recursed into. Any other
+        // nested struct groups the elements of one hlsl array, so it maps to a single "float4x4 name[5]" declaration
+        // rather than to its leaves, and the element count is part of the comparison.
+        static void ForEachHlslDeclaration(Type layoutType, int baseOffset, Action<string, int> visit)
+        {
+            foreach (var field in layoutType.GetFields(k_FieldFlags))
+            {
+                int offset = baseOffset + Marshal.OffsetOf(layoutType, field.Name).ToInt32();
+                Type type = field.FieldType;
+
+                if (Array.IndexOf(k_LayoutTypes, type) >= 0)
+                {
+                    ForEachHlslDeclaration(type, offset, visit);
+                    continue;
+                }
+
+                if (!IsNestedLayoutStruct(type))
+                {
+                    visit($"{HlslTypeFor(type)} {field.Name}", offset);
+                    continue;
+                }
+
+                FieldInfo[] elements = type.GetFields(k_FieldFlags);
+                Assert.That(elements.Length, Is.GreaterThan(0),
+                    $"{type.Name} has no field, so it cannot map to an hlsl array.");
+
+                Type elementType = elements[0].FieldType;
+                foreach (var element in elements)
+                    Assert.That(element.FieldType, Is.EqualTo(elementType),
+                        $"{type.Name}.{element.Name} is a {element.FieldType.Name} while {type.Name}.{elements[0].Name} " +
+                        $"is a {elementType.Name}. A struct standing for an hlsl array must hold one type only.");
+
+                visit($"{HlslTypeFor(elementType)} {field.Name}[{elements.Length}]", offset);
+            }
         }
 
         // Walks the fields of layoutType, recursing into our own nested layout structs so offsets stay absolute.

@@ -1,6 +1,8 @@
 #ifndef GLOBALSHADERVARS_HLSL
 #define GLOBALSHADERVARS_HLSL
 
+#define MAX_SHADOW_CASCADES 4
+
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
 // URP_PERSISTENT_CONSTANT_BUFFERS is a shader constant define driven by the Project Settings > Graphics > URP > Rendering Capabilities > Use Persistent Constant Buffers
 // Only available in Editor Developer mode for now, still wip
@@ -51,8 +53,60 @@ CBUFFER_START(GlobalShaderVars)
     // y = 2.0 ^ [Mip Bias]
     float2 _GlobalMipBias;
     float2 _URPPadding1;
+    // Environment
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+    float4 _GlossyEnvironmentColor;
+    float4 _SubtractiveShadowColor;
+    float4 _GlossyEnvironmentCubeMap_HDR;
+#else
+    half4 _GlossyEnvironmentColor;
+    half4 _SubtractiveShadowColor;
+    half4 _GlossyEnvironmentCubeMap_HDR;
+#endif
     // === Variables only present in 3D renderer start here ===
-    float4 _URPDummy3D;
+    // Main Light
+    float4x4 _MainLightWorldToLight;
+    float4 _MainLightPosition;
+    // In Forward+, .a stores whether the main light is using subtractive mixed mode.
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+    float4 _MainLightColor;
+    float4 _MainLightOcclusionProbes;
+#else
+    half4 _MainLightColor;
+    half4 _MainLightOcclusionProbes;
+#endif
+    // Forward+ Parameters. Declared unconditionally, unlike the URP_FP_* accessors in Input.hlsl that stay behind
+    // USE_CLUSTER_LIGHT_LOOP: a constant buffer member cannot be conditional or the offsets stop matching C#.
+    float4 _FPParams0;
+    float4 _FPParams1;
+    float4 _FPParams2;
+    // Main Light Shadows. Sized MAX_SHADOW_CASCADES + 1, spelled out because that define lives in Shadows.hlsl which is
+    // included later. The last cascade is initialized with a no-op matrix, always transforming the shadow coord to
+    // half3(0, 0, NEAR_PLANE), which avoids branching since ComputeCascadeIndex can return MAX_SHADOW_CASCADES.
+    float4x4 _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
+    float4 _CascadeShadowSplitSpheres0;
+    float4 _CascadeShadowSplitSpheres1;
+    float4 _CascadeShadowSplitSpheres2;
+    float4 _CascadeShadowSplitSpheres3; // Last cascade is no-op, we don't provide an accessor to it
+    float4 _CascadeShadowSplitSphereRadii;
+    float4 _MainLightShadowOffset0; // xy: offset0, zw: offset1
+    float4 _MainLightShadowOffset1; // xy: offset2, zw: offset3
+    float4 _MainLightShadowmapSize; // xy: 1/width and 1/height, zw: width and height
+    // Additional Lights Shadows
+    float4 _AdditionalShadowOffset0; // xy: offset0, zw: offset1
+    float4 _AdditionalShadowOffset1; // xy: offset2, zw: offset3
+    float4 _AdditionalShadowmapSize; // xy: 1/width and 1/height, zw: width and height
+    // Misc. The four scalars below pack into a single 16 byte row, keep them together.
+    float _MainLightCookieTextureFormat;
+    float _AdditionalLightsCookieAtlasTextureFormat;
+    uint _RenderingLayerMaxInt;
+    uint _EnableProbeVolumes;
+    // Kept last on purpose: _MainLightLayerMask needs three uints of padding to fill its 16 byte row, so the next
+    // 3D fields we add can consume those slots instead of needing padding of their own.
+    uint _MainLightLayerMask;
+    uint _URPPadding2;
+    uint _URPPadding3;
+    uint _URPPadding4;
     // === Variables only present in 2D renderer start here ===
     float4 _URPDummy2D;
 #if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
