@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.CLI
     /// </summary>
     internal static class RenderGraphDebugCLI
     {
-        private static RenderGraphDebugSession.QueryScope s_ActiveQueryScope;
+        private static RenderGraphDebugSessionManager.QueryScope s_ActiveQueryScope;
 
         [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStaticsOnDomainReload()
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.CLI
         /// <summary>
         /// Validates we have an active scope, returns error result if not.
         /// </summary>
-        private static bool TryGetActiveScope(out RenderGraphDebugSession.QueryScope scope, out RenderGraphResult errorResult)
+        private static bool TryGetActiveScope(out RenderGraphDebugSessionManager.QueryScope scope, out RenderGraphResult errorResult)
         {
             if (s_ActiveQueryScope == null)
             {
@@ -117,9 +117,9 @@ namespace UnityEditor.Rendering.CLI
         /// Gets a GraphQuery for the specified graph name (or defaults to first graph).
         /// </summary>
         private static bool TryGetGraphQuery(
-            RenderGraphDebugSession.QueryScope scope,
+            RenderGraphDebugSessionManager.QueryScope scope,
             string graphName,
-            out RenderGraphDebugSession.GraphQuery graphQuery,
+            out RenderGraphDebugSessionManager.GraphQuery graphQuery,
             out RenderGraphResult errorResult)
         {
             try
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.CLI
         /// Finds an execution by name or ID within a GraphQuery.
         /// </summary>
         private static bool TryFindExecution(
-            RenderGraphDebugSession.GraphQuery graphQuery,
+            RenderGraphDebugSessionManager.GraphQuery graphQuery,
             string executionNameOrId,
             out ExecutionInfo execInfo,
             out RenderGraphResult errorResult)
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.CLI
         private static bool TryGetExecutionQuery(
             string execution,
             string graph,
-            out RenderGraphDebugSession.ExecutionQuery executionQuery,
+            out RenderGraphDebugSessionManager.ExecutionQuery executionQuery,
             out RenderGraphResult errorResult)
         {
             executionQuery = null;
@@ -243,7 +243,7 @@ namespace UnityEditor.Rendering.CLI
         private static RenderGraphResult ExecuteCLIQuery<T>(
             string execution,
             string graph,
-            Func<RenderGraphDebugSession.ExecutionQuery, QueryResult<T>> queryFunc) where T : class
+            Func<RenderGraphDebugSessionManager.ExecutionQuery, QueryResult<T>> queryFunc) where T : class
         {
             if (!TryGetExecutionQuery(execution, graph, out var executionQuery, out var errorResult))
                 return errorResult;
@@ -252,18 +252,18 @@ namespace UnityEditor.Rendering.CLI
         }
 
         // Query method groups (zero-allocation delegates)
-        private static QueryResult<PassListOutput> QueryGetPasses(RenderGraphDebugSession.ExecutionQuery q) => q.GetPasses();
-        private static QueryResult<PassInfoOutput> QueryGetPassByName(RenderGraphDebugSession.ExecutionQuery q, string name) => q.GetPassByName(name);
-        private static QueryResult<PassInfoOutput> QueryGetPassByIndex(RenderGraphDebugSession.ExecutionQuery q, int index) => q.GetPass(index);
-        private static QueryResult<CulledPassListOutput> QueryGetCulledPasses(RenderGraphDebugSession.ExecutionQuery q) => q.GetCulledPasses();
-        private static QueryResult<UnmergedPassListOutput> QueryGetUnmergedPasses(RenderGraphDebugSession.ExecutionQuery q) => q.GetUnmergedPasses();
-        private static QueryResult<PassListOutput> QueryGetPassesByType(RenderGraphDebugSession.ExecutionQuery q, string type) => q.GetPassesByType(type);
-        private static QueryResult<ExecutionCaptureInfoOutput> QueryGetCaptureInfo(RenderGraphDebugSession.ExecutionQuery q) => q.GetCaptureInfo();
-        private static QueryResult<GraphMetricsOutput> QueryGetGraphMetrics(RenderGraphDebugSession.ExecutionQuery q) => q.GetGraphMetrics();
-        private static QueryResult<ResourceListOutput> QueryGetResources(RenderGraphDebugSession.ExecutionQuery q, string type) => q.GetResources(type);
-        private static QueryResult<ResourceInfoOutput> QueryGetResourceByName(RenderGraphDebugSession.ExecutionQuery q, string name) => q.GetResourceByName(name);
-        private static QueryResult<PassDependencyOutput> QueryGetPassesUsingResource(RenderGraphDebugSession.ExecutionQuery q, string name) => q.GetPassesUsingResource(name);
-        private static QueryResult<PassInfoOutput> QueryGetResourceProducerPass(RenderGraphDebugSession.ExecutionQuery q, string name) => q.GetResourceProducerPass(name);
+        private static QueryResult<PassListOutput> QueryGetPasses(RenderGraphDebugSessionManager.ExecutionQuery q) => q.GetPasses();
+        private static QueryResult<PassInfoOutput> QueryGetPassByName(RenderGraphDebugSessionManager.ExecutionQuery q, string name) => q.GetPassByName(name);
+        private static QueryResult<PassInfoOutput> QueryGetPassByIndex(RenderGraphDebugSessionManager.ExecutionQuery q, int index) => q.GetPass(index);
+        private static QueryResult<CulledPassListOutput> QueryGetCulledPasses(RenderGraphDebugSessionManager.ExecutionQuery q) => q.GetCulledPasses();
+        private static QueryResult<UnmergedPassListOutput> QueryGetUnmergedPasses(RenderGraphDebugSessionManager.ExecutionQuery q) => q.GetUnmergedPasses();
+        private static QueryResult<PassListOutput> QueryGetPassesByType(RenderGraphDebugSessionManager.ExecutionQuery q, string type) => q.GetPassesByType(type);
+        private static QueryResult<ExecutionCaptureInfoOutput> QueryGetCaptureInfo(RenderGraphDebugSessionManager.ExecutionQuery q) => q.GetCaptureInfo();
+        private static QueryResult<GraphMetricsOutput> QueryGetGraphMetrics(RenderGraphDebugSessionManager.ExecutionQuery q) => q.GetGraphMetrics();
+        private static QueryResult<ResourceListOutput> QueryGetResources(RenderGraphDebugSessionManager.ExecutionQuery q, string type) => q.GetResources(type);
+        private static QueryResult<ResourceInfoOutput> QueryGetResourceByName(RenderGraphDebugSessionManager.ExecutionQuery q, string name) => q.GetResourceByName(name);
+        private static QueryResult<PassDependencyOutput> QueryGetPassesUsingResource(RenderGraphDebugSessionManager.ExecutionQuery q, string name) => q.GetPassesUsingResource(name);
+        private static QueryResult<PassInfoOutput> QueryGetResourceProducerPass(RenderGraphDebugSessionManager.ExecutionQuery q, string name) => q.GetResourceProducerPass(name);
 
         /// <summary>
         /// Wraps a QueryResult into a RenderGraphResult.
@@ -446,7 +446,7 @@ namespace UnityEditor.Rendering.CLI
                 }
 
                 // Check if there's an active debug session
-                if (!RenderGraphDebugSession.hasActiveDebugSession)
+                if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
                 {
                     return new RenderGraphResult
                     {
@@ -460,7 +460,7 @@ namespace UnityEditor.Rendering.CLI
                 s_ActiveQueryScope = null;
 
                 // Create new scope (this pauses the viewer if not already paused)
-                s_ActiveQueryScope = RenderGraphDebugSession.CreateQueryScope();
+                s_ActiveQueryScope = RenderGraphDebugSessionManager.CreateQueryScope();
 
                 // Collect and return graphs + executions
                 return CollectGraphsAndExecutions("Session captured and paused");
