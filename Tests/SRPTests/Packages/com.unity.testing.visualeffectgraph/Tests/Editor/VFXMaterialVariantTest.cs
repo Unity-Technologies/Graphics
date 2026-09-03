@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void Release()
         {
-            EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, false);
+            EditorPrefs.SetBool(VFXGlobalImportSettings.forceEditionCompilationKey, false);
             VFXViewPreference.SetDirty();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
@@ -538,13 +538,13 @@ namespace UnityEditor.VFX.Test
 
             if (testCase.usingImporter)
             {
-                EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, testCase.compilationMode == VFXCompilationMode.Edition);
+                EditorPrefs.SetBool(VFXGlobalImportSettings.forceEditionCompilationKey, testCase.compilationMode == VFXCompilationMode.Edition);
                 VFXViewPreference.SetDirty();
 
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
                 allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
 
-                EditorPrefs.SetBool(VFXViewPreference.forceEditionCompilationKey, false);
+                EditorPrefs.SetBool(VFXGlobalImportSettings.forceEditionCompilationKey, false);
                 VFXViewPreference.SetDirty();
             }
             else

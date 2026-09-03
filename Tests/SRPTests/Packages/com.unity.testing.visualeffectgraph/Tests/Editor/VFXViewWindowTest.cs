@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
         {
             m_GenerateShadersWithDebugSymbols = VFXViewPreference.generateShadersWithDebugSymbols;
 
-            EditorPrefs.SetBool(VFXViewPreference.generateShadersWithDebugSymbolsKey, false);
+            EditorPrefs.SetBool(VFXGlobalImportSettings.generateShadersWithDebugSymbolsKey, false);
             VFXViewPreference.SetDirty();
         }
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllUnecessaryWindows();
             VFXTestCommon.DeleteAllTemporaryGraph();
 
-            EditorPrefs.SetBool(VFXViewPreference.generateShadersWithDebugSymbolsKey, m_GenerateShadersWithDebugSymbols);
+            EditorPrefs.SetBool(VFXGlobalImportSettings.generateShadersWithDebugSymbolsKey, m_GenerateShadersWithDebugSymbols);
             VFXViewPreference.SetDirty();
         }
 
