@@ -14,18 +14,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         internal delegate void ValueChangedCallback(Gradient newValue);
 
         ValueChangedCallback m_ValueChangedCallback;
+        Action m_PreValueChangedCallback;
         GradientObject m_GradientObject;
         SerializedObject m_SerializedObject;
         GradientField m_Field;
+
+        GradientUndoSession m_UndoSession;
 
         internal VisualElement CreateGUI(
             ValueChangedCallback valueChangedCallback,
             Gradient fieldToDraw,
             string labelName,
             out VisualElement propertyGradientField,
-            int indentLevel = 0)
+            int indentLevel = 0,
+            Action preValueChangedCallback = null)
         {
             m_ValueChangedCallback = valueChangedCallback;
+            m_PreValueChangedCallback = preValueChangedCallback;
 
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
@@ -35,6 +40,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             m_Field = new GradientField { value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
             m_Field.RegisterValueChangedCallback(OnFieldValueChanged);
+
+            if (preValueChangedCallback != null)
+            {
+                m_Field.pickerClosed += OnPickerClosed;
+                m_UndoSession = new GradientUndoSession(
+                    () => m_GradientObject.gradient,
+                    value => m_ValueChangedCallback?.Invoke(value),
+                    () => m_PreValueChangedCallback(),
+                    () => true);
+            }
 
             propertyGradientField = m_Field;
 
@@ -60,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (evt.newValue.Equals(m_GradientObject.gradient))
                 return;
 
-            // Register undo on the temporary GradientObject rather than the graph so the open picker isn't torn down on undo.
+            m_UndoSession?.BeginChange();
             Undo.RegisterCompleteObjectUndo(m_GradientObject, "Modify Gradient Stop");
 
             m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
@@ -80,9 +95,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_Field.SetValueWithoutNotify(m_GradientObject.gradient);
         }
 
+        void OnPickerClosed()
+        {
+            m_UndoSession.RecordNetChange();
+        }
+
         void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
+            m_UndoSession?.RecordNetChange();
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            m_Field.pickerClosed -= OnPickerClosed;
         }
 
         public Action inspectorUpdateDelegate { get; set; }
