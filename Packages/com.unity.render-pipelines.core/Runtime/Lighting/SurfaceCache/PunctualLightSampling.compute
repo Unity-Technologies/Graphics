@@ -1,9 +1,21 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+
+#define THREAD_GROUP_SIZE 32
+
+#define UNIFIED_RT_GROUP_SIZE_X THREAD_GROUP_SIZE
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+
+#pragma kernel SamplePunctualLightsCompute SamplePunctualLights=SamplePunctualLightsCompute UNIFIED_RT_BACKEND_COMPUTE
+// This guard silences an unexpected compilation errors on MacOS.
+#if !defined(SHADER_API_METAL)
+#pragma kernel SamplePunctualLightsHardware SamplePunctualLights=SamplePunctualLightsHardware UNIFIED_RT_BACKEND_HARDWARE
+#endif
+#pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/CommonStructs.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
 #include "PathTracing.hlsl"
 #include "PunctualLights.hlsl"
@@ -21,7 +33,8 @@ float _AlbedoBoost;
 uint _FrameIdx;
 uint _PunctualLightCount;
 
-void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)
 {
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
@@ -33,7 +46,7 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     matPoolParams.albedoBoost = _AlbedoBoost;
 
     QrngKronecker2D rng;
-    rng.Init(dispatchInfo.globalThreadIndex.x, _FrameIdx);
+    rng.Init(dispatchThreadIdx, _FrameIdx);
 
     const uint punctualLightIndex = min(rng.GetSample(0).x * _PunctualLightCount, _PunctualLightCount - 1);
     const PunctualLight light = _PunctualLights[punctualLightIndex];
@@ -52,7 +65,7 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
     PunctualLightSample lightSample = (PunctualLightSample)0;
     lightSample.rayDirection = ray.direction;
 
-    UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
+    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIdx, groupThreadIdx, accelStruct, ray);
     if (hitResult.IsValid())
     {
         const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
@@ -81,5 +94,5 @@ void SamplePunctualLights(UnifiedRT::DispatchInfo dispatchInfo)
         lightSample.MarkNoHit();
     }
 
-    _Samples[dispatchInfo.globalThreadIndex.x] = lightSample;
+    _Samples[dispatchThreadIdx] = lightSample;
 }

@@ -114,26 +114,12 @@ namespace UnityEngine.Rendering.Tests
 
             _rtContext = new RayTracingContext(backend, CreateRayTracingResources(testResources));
 
-            Object punctualLightSamplingUnifiedObj;
-            Object estimationUnifiedObj;
-            if (backend == RayTracingBackend.Compute)
-            {
-                punctualLightSamplingUnifiedObj = testResources.punctualLightSamplingComputeShader;
-                estimationUnifiedObj = testResources.estimationComputeShader;
-            }
-            else
-            {
-                punctualLightSamplingUnifiedObj = testResources.punctualLightSamplingRayTracingShader;
-                estimationUnifiedObj = testResources.estimationRayTracingShader;
-            }
-            IRayTracingShader punctualLightSamplingShader = _rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
-            IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
-
             _coreResources = new SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
             _coreResources.Load(
+                _rtContext.BackendType,
                 testResources.globalProbe, testResources.scrolling, testResources.eviction, testResources.patchAllocation,
                 testResources.spatialFiltering, testResources.temporalFiltering, testResources.defrag,
-                punctualLightSamplingShader, estimationShader);
+                testResources.estimation, testResources.punctualLightSampling);
             foreach (var field in typeof(SurfaceCacheResourceSet).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var value = field.GetValue(_coreResources);
@@ -162,7 +148,7 @@ namespace UnityEngine.Rendering.Tests
             _cache.SetDefragCount(defragCount);
 
             _world = new SurfaceCacheWorld();
-            _world.Init(_rtContext, CreateWorldResourceSet(testResources), testResources.emissiveTriangleAdditionComputeShader, testResources.emissiveTriangleRemovalComputeShader);
+            _world.Init(_rtContext, CreateWorldResourceSet(testResources), testResources.emissiveTriangleAddition, testResources.emissiveTriangleRemoval);
             _renderGraph = new RenderGraph("TestHarness");
         }
 

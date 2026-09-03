@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/RayQuery.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/MaterialPool/MaterialPool.hlsl"
 #include "Common.hlsl"
@@ -133,8 +133,34 @@ bool IsSpotLight(float cosOuterAngle)
     return cosOuterAngle != -1.0f;
 }
 
+UnifiedRT::Hit TraceRayClosestHit(
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    UnifiedRT::Ray ray)
+{
+    const uint instanceMask = 0xFFFFFFFF;
+    UNIFIED_RT_RAY_QUERY_TYPE(UnifiedRT::kRayFlagForceOpaque) rayQuery;
+    UNIFIED_RT_INIT_RAY_QUERY(UnifiedRT::kRayFlagForceOpaque, rayQuery, dispatchThreadIndex, groupThreadIndex, accelStruct, UnifiedRT::kRayFlagNone, instanceMask, ray);
+
+    rayQuery.Proceed();
+
+    UnifiedRT::Hit hitResult = UnifiedRT::Hit::Invalid();
+    if (rayQuery.CommittedStatus() == UnifiedRT::kCommittedTriangleHit)
+    {
+        hitResult.instanceID = rayQuery.CommittedInstanceID();
+        hitResult.primitiveIndex = rayQuery.CommittedPrimitiveIndex();
+        hitResult.uvBarycentrics = rayQuery.CommittedTriangleBarycentrics();
+        hitResult.hitDistance = rayQuery.CommittedRayT();
+        hitResult.isFrontFace = rayQuery.CommittedTriangleFrontFace();
+    }
+
+    return hitResult;
+}
+
 RadianceSample SamplePunctualLightBounceRadiance(
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     MaterialPoolParamSet matPoolParams,
     StructuredBuffer<PunctualLight> lights,
@@ -159,7 +185,7 @@ RadianceSample SamplePunctualLightBounceRadiance(
             reconnectionRay.direction = normalize(punctualLightSample.hitPos - position);
             reconnectionRay.tMin = 0;
             reconnectionRay.tMax = FLT_MAX;
-            UnifiedRT::Hit reconnectionResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, reconnectionRay, UnifiedRT::kRayFlagNone);
+            UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
 
             if (!reconnectionResult.IsValid())
             {
@@ -336,7 +362,8 @@ EmissiveTriangleSample SampleEmissiveTriangles(
 static const float uniformHemisphereDensity = 1.0f / (2.0f * PI);
 
 RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     StructuredBuffer<EmissiveTriangle> emissiveTriangles,
     uint emissiveTriangleCount,
@@ -362,63 +389,63 @@ RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
     if (!emissiveSample.HasHit())
     {
         result.MarkInvalid();
-        return result;
     }
-
-    // Correct hemisphere from observer's POV?
-    const float epsilon = 0.01f;
-    if (dot(normal, emissiveSample.pos - position) <= epsilon)
+    else
     {
-        return result;
-    }
-
-    // Is the sample occluded?
-    const float3 shadowRayOrigin = OffsetRayOrigin(position, normal, additionalRayOffset);
-    const float3 toLight = emissiveSample.pos - shadowRayOrigin;
-    const float distanceToLight = length(toLight);
-    const float3 shadowRayDirection = toLight * rcp(distanceToLight);
-
-    UnifiedRT::Ray shadowRay;
-    shadowRay.origin = shadowRayOrigin;
-    shadowRay.direction = shadowRayDirection;
-    shadowRay.tMin = 0;
-    shadowRay.tMax = distanceToLight * (1.0f - epsilon); // Just a bit shorter than the real distance
-    UnifiedRT::Hit shadowHit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, shadowRay, UnifiedRT::kRayFlagNone);
-    if (shadowHit.IsValid())
-    {
-        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(shadowHit.instanceID);
-        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
-        if (!IsValidSample(shadowHit.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
+        // Correct hemisphere from observer's POV?
+        const float epsilon = 0.01f;
+        if (dot(normal, emissiveSample.pos - position) > epsilon)
         {
-            result.MarkInvalid();
+            // Is the sample occluded?
+            const float3 shadowRayOrigin = OffsetRayOrigin(position, normal, additionalRayOffset);
+            const float3 toLight = emissiveSample.pos - shadowRayOrigin;
+            const float distanceToLight = length(toLight);
+            const float3 shadowRayDirection = toLight * rcp(distanceToLight);
+
+            UnifiedRT::Ray shadowRay;
+            shadowRay.origin = shadowRayOrigin;
+            shadowRay.direction = shadowRayDirection;
+            shadowRay.tMin = 0;
+            shadowRay.tMax = distanceToLight * (1.0f - epsilon); // Just a bit shorter than the real distance
+            UnifiedRT::Hit shadowHit = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay);
+            if (shadowHit.IsValid())
+            {
+                const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(shadowHit.instanceID);
+                const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+                if (!IsValidSample(shadowHit.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
+                {
+                    result.MarkInvalid();
+                }
+            }
+            else
+            {
+                // Correct hemisphere from light POV?
+                const float lightCosTerm = dot(-shadowRayDirection, emissiveSample.normal);
+                if (lightCosTerm > epsilon)
+                {
+                    // Calculate MIS weight for light ray hitting emissive triangle.
+                    const float areaToSolidAngleJacobian = Square(distanceToLight) / lightCosTerm; // dA/dω
+                    const float uniformTriangleDensity = rcp(emissiveSample.reciprocalDensity) * areaToSolidAngleJacobian; // p_A * (dA/dω) = p_ω
+                    const float emissiveLightRayMISWeight = PowerHeuristic(uniformTriangleDensity, uniformHemisphereDensity);
+
+                    // Get contribution.
+                    result.direction = shadowRayDirection;
+                    result.radianceOverDensity =
+                        emissiveSample.emission * emissiveTriangleIntensityMultiplier *
+                        rcp(uniformTriangleDensity) * emissiveLightRayMISWeight;
+                }
+            }
         }
-        return result;
     }
 
-    // Correct hemisphere from light POV?
-    const float lightCosTerm = dot(-shadowRayDirection, emissiveSample.normal);
-    if (lightCosTerm <= epsilon)
-    {
-        return result;
-    }
-
-    // Calculate MIS weight for light ray hitting emissive triangle.
-    const float areaToSolidAngleJacobian = Square(distanceToLight) / lightCosTerm; // dA/dω
-    const float uniformTriangleDensity = rcp(emissiveSample.reciprocalDensity) * areaToSolidAngleJacobian; // p_A * (dA/dω) = p_ω
-    const float emissiveLightRayMISWeight = PowerHeuristic(uniformTriangleDensity, uniformHemisphereDensity);
-
-    // Get contribution.
-    result.direction = shadowRayDirection;
-    result.radianceOverDensity =
-        emissiveSample.emission * emissiveTriangleIntensityMultiplier *
-        rcp(uniformTriangleDensity) * emissiveLightRayMISWeight;
     return result;
 }
 
 float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     float3 position,
     float3 normal,
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     float3 dirLightDirection,
     float3 dirLightIntensity,
@@ -442,7 +469,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
             shadowRay.tMin = 0;
             shadowRay.tMax = FLT_MAX;
 
-            UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, shadowRay, UnifiedRT::kRayFlagNone);
+            UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay);
             if (!hitResult.IsValid())
             {
                 radiance += dirLightIntensity * dot(-dirLightDirection, normal);
@@ -468,7 +495,8 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
 }
 
 float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     UnifiedRT::Ray ray,
     MaterialPoolParamSet matPoolParams,
@@ -489,7 +517,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
     bool enablePatchAllocation,
     uint frameIndex)
 {
-    UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, UnifiedRT::kRayFlagNone);
+    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, ray);
     float3 radiance;
     if (hitResult.IsValid())
     {
@@ -524,7 +552,8 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
             radiance = OutgoingDirectionalBounceAndMultiBounceRadiance(
                 hitGeo.position,
                 hitNormal,
-                dispatchInfo,
+                dispatchThreadIndex,
+                groupThreadIndex,
                 accelStruct,
                 dirLightDirection,
                 dirLightIntensity,

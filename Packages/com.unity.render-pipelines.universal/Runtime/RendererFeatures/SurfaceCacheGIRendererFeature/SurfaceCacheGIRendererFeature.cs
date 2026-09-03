@@ -1373,22 +1373,8 @@ namespace UnityEngine.Rendering.Universal
 
             var coreResources = new Rendering.SurfaceCacheResourceSet((uint)SystemInfo.computeSubGroupSize);
 
-            Object punctualLightSamplingUnifiedObj;
-            Object estimationUnifiedObj;
-            if (_rtContext.BackendType == RayTracingBackend.Compute)
-            {
-                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingComputeShader;
-                estimationUnifiedObj = coreRpResources.estimationComputeShader;
-            }
-            else
-            {
-                punctualLightSamplingUnifiedObj = coreRpResources.punctualLightSamplingRayTracingShader;
-                estimationUnifiedObj = coreRpResources.estimationRayTracingShader;
-            }
-            IRayTracingShader punctualLightSamplingShader = _rtContext.CreateRayTracingShader(punctualLightSamplingUnifiedObj);
-            IRayTracingShader estimationShader = _rtContext.CreateRayTracingShader(estimationUnifiedObj);
-
             coreResources.Load(
+                _rtContext.BackendType,
                 coreRpResources.globalProbeShader,
                 coreRpResources.scrollingShader,
                 coreRpResources.evictionShader,
@@ -1396,8 +1382,8 @@ namespace UnityEngine.Rendering.Universal
                 coreRpResources.spatialFilteringShader,
                 coreRpResources.temporalFilteringShader,
                 coreRpResources.defragShader,
-                punctualLightSamplingShader,
-                estimationShader);
+                coreRpResources.estimationShader,
+                coreRpResources.punctualLightSamplingShader);
 
             _coreResources = coreResources;
 

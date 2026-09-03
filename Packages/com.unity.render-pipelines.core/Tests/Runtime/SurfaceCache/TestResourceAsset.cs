@@ -11,12 +11,10 @@ namespace UnityEngine.Rendering.Tests
         public ComputeShader temporalFiltering;
         public ComputeShader defrag;
 
-        public ComputeShader punctualLightSamplingComputeShader;
-        public RayTracingShader punctualLightSamplingRayTracingShader;
-        public ComputeShader emissiveTriangleAdditionComputeShader;
-        public ComputeShader emissiveTriangleRemovalComputeShader;
-        public ComputeShader estimationComputeShader;
-        public RayTracingShader estimationRayTracingShader;
+        public ComputeShader punctualLightSampling;
+        public ComputeShader emissiveTriangleAddition;
+        public ComputeShader emissiveTriangleRemoval;
+        public ComputeShader estimation;
 
         public ComputeShader geometryPoolKernels;
         public ComputeShader copyBuffer;

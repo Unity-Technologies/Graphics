@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
     internal static class InlineRayTracing
     {
+        public const GraphicsBuffer.Target ScratchBufferTarget = GraphicsBuffer.Target.Structured;
 
         public static void SetTraceScratchBuffer(CommandBuffer cmd, ComputeShader shader, int kernelIndex, GraphicsBuffer traceScratchBuffer)
         {
@@ -35,6 +36,27 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
             else
                 Utils.CheckArg(false, $"Unsupported {nameof(IRayTracingAccelStruct)} implementation: '{accelStruct.GetType().Name}'.");
+        }
+
+        public static void ResizeScratchBufferForTrace(RayTracingBackend backend, uint dispatchWidth, uint dispatchHeight, uint dispatchDepth, ref GraphicsBuffer scratchBuffer)
+        {
+            if (backend == RayTracingBackend.Hardware)
+                return;
+
+            uint rayCount = dispatchWidth * dispatchHeight * dispatchDepth;
+            var sizeInBytes = RadeonRays.RadeonRaysAPI.GetTraceMemoryRequirements(rayCount) * 4;
+
+            if (sizeInBytes == 0)
+                return;
+
+            if (scratchBuffer != null)
+                Utils.CheckArg(scratchBuffer.target == ScratchBufferTarget, "scratchBuffer.target must have Target.Structured set");
+
+            if (scratchBuffer == null || (ulong)(scratchBuffer.count*scratchBuffer.stride) < sizeInBytes)
+            {
+                scratchBuffer?.Dispose();
+                scratchBuffer = new GraphicsBuffer(ScratchBufferTarget, (int)(sizeInBytes / 4), 4);
+            }
         }
 
         public static void SetKeywords(CommandBuffer cmd, ComputeShader computeShader, BackendShaderKeywords shaderKeywords, RayTracingBackend backend)

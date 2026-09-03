@@ -1,8 +1,28 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+
+// We're binding a large number of structured buffers in this shader, more than certain platforms accept
+// by default. Using this pragma extends this limit on these platforms at the expense
+// of some extra indirections. On platforms that don't have this limit, this is a no-op.
+#pragma extended_structured_buffer_bindings
+
+#define THREAD_GROUP_SIZE 32
+
+#define UNIFIED_RT_GROUP_SIZE_X THREAD_GROUP_SIZE
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+
+#pragma kernel EstimateCompute Estimate=EstimateCompute UNIFIED_RT_BACKEND_COMPUTE
+// This guard silences an unexpected compilation errors on MacOS.
+#if !defined(SHADER_API_METAL)
+#pragma kernel EstimateHardware Estimate=EstimateHardware UNIFIED_RT_BACKEND_HARDWARE
+#endif
+#pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+
 #define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
 
 #include "Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
 #include "PathTracing.hlsl"
 #include "PatchAllocationRequest.hlsl"
 #include "RingBuffer.hlsl"
@@ -100,7 +120,8 @@ float GetAdditionalRayOffset(float volumeVoxelMinSize)
 void SamplePunctualLightBounceRadiance(
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     uint sampleCount,
     MaterialPoolParamSet matPoolParams,
     StructuredBuffer<PunctualLight> lights,
@@ -118,7 +139,8 @@ void SamplePunctualLightBounceRadiance(
     {
         // Using `sample` as a variable name causes compilation errors on PS5.
         RadianceSample sample_ = SamplePunctualLightBounceRadiance(
-            dispatchInfo,
+            dispatchThreadIndex,
+            groupThreadIndex,
             accelStruct,
             matPoolParams,
             lights,
@@ -149,7 +171,8 @@ void SamplePunctualLightBounceRadiance(
 void SampleEmissiveTriangleRadiance(
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     uint sampleCount,
     StructuredBuffer<EmissiveTriangle> emissiveTriangles,
     uint emissiveTriangleCount,
@@ -166,7 +189,8 @@ void SampleEmissiveTriangleRadiance(
     for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
     {
         RadianceSample sample_ = EstimateIncomingRadianceFromEmissiveTriangles(
-            dispatchInfo,
+            dispatchThreadIndex,
+            groupThreadIndex,
             accelStruct,
             emissiveTriangles,
             emissiveTriangleCount,
@@ -200,7 +224,8 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     uint frameIndex,
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
-    UnifiedRT::DispatchInfo dispatchInfo,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
     uint sampleCount,
     MaterialPoolParamSet matPoolParams,
     uint emissiveTriangleCount,
@@ -223,7 +248,8 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     {
         ray.direction = UniformHemisphereSample(rng.GetSample(0), patchGeo.normal);
         const float3 radiance = IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
-            dispatchInfo,
+            dispatchThreadIndex,
+            groupThreadIndex,
             accelStruct,
             ray,
             matPoolParams,
@@ -261,10 +287,9 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     }
 }
 
-void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_GroupIndex)
 {
-    uint patchIdx = dispatchInfo.dispatchThreadID.x;
-
     if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
@@ -308,7 +333,8 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         _FrameIdx,
         rng,
         accelStruct,
-        dispatchInfo,
+        patchIdx,
+        groupThreadIndex,
         _SampleCount,
         matPoolParams,
         emissiveTriangleCount,
@@ -325,7 +351,8 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         SamplePunctualLightBounceRadiance(
             rng,
             accelStruct,
-            dispatchInfo,
+            patchIdx,
+            groupThreadIndex,
             _SampleCount,
             matPoolParams,
             _PunctualLights,
@@ -343,7 +370,8 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         SampleEmissiveTriangleRadiance(
             rng,
             accelStruct,
-            dispatchInfo,
+            patchIdx,
+            groupThreadIndex,
             _SampleCount,
             _EmissiveTriangles,
             emissiveTriangleCount,

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
-        int m_Version = 4;
+        int m_Version = 5;
 
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
@@ -27,29 +27,23 @@ namespace UnityEngine.Rendering
         [ResourcePath("Runtime/Lighting/SurfaceCache/Defrag.compute")]
         public ComputeShader m_DefragShader;
 
+        [ResourcePath("Runtime/Lighting/SurfaceCache/Estimation.compute")]
+        public ComputeShader m_EstimationShader;
+
+        [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.compute")]
+        public ComputeShader m_PunctualLightSamplingShader;
+
         [ResourcePath("Runtime/Lighting/SurfaceCache/Eviction.compute")]
         public ComputeShader m_EvictionShader;
 
         [ResourcePath("Runtime/Lighting/SurfaceCache/PatchAllocation.compute")]
         public ComputeShader m_PatchAllocationShader;
 
-        [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.urtshader")]
-        public ComputeShader m_PunctualLightSamplingComputeShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/PunctualLightSampling.urtshader")]
-        public RayTracingShader m_PunctualLightSamplingRayTracingShader;
-
         [ResourcePath("Runtime/Lighting/SurfaceCache/EmissiveTriangleAddition.compute")]
         public ComputeShader m_EmissiveTriangleAdditionComputeShader;
 
         [ResourcePath("Runtime/Lighting/SurfaceCache/EmissiveTriangleRemoval.compute")]
         public ComputeShader m_EmissiveTriangleRemovalComputeShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/Estimation.urtshader")]
-        public ComputeShader m_EstimationComputeShader;
-
-        [ResourcePath("Runtime/Lighting/SurfaceCache/Estimation.urtshader")]
-        public RayTracingShader m_EstimationRayTracingShader;
 
         public ComputeShader spatialFilteringShader
         {
@@ -61,18 +55,6 @@ namespace UnityEngine.Rendering
         {
             get => m_TemporalFilteringShader;
             set => this.SetValueAndNotify(ref m_TemporalFilteringShader, value, nameof(m_TemporalFilteringShader));
-        }
-
-        public ComputeShader punctualLightSamplingComputeShader
-        {
-            get => m_PunctualLightSamplingComputeShader;
-            set => this.SetValueAndNotify(ref m_PunctualLightSamplingComputeShader, value, nameof(m_PunctualLightSamplingComputeShader));
-        }
-
-        public RayTracingShader punctualLightSamplingRayTracingShader
-        {
-            get => m_PunctualLightSamplingRayTracingShader;
-            set => this.SetValueAndNotify(ref m_PunctualLightSamplingRayTracingShader, value, nameof(m_PunctualLightSamplingRayTracingShader));
         }
 
         public ComputeShader emissiveTriangleAdditionComputeShader
@@ -87,16 +69,16 @@ namespace UnityEngine.Rendering
             set => this.SetValueAndNotify(ref m_EmissiveTriangleRemovalComputeShader, value, nameof(m_EmissiveTriangleRemovalComputeShader));
         }
 
-        public ComputeShader estimationComputeShader
+        public ComputeShader estimationShader
         {
-            get => m_EstimationComputeShader;
-            set => this.SetValueAndNotify(ref m_EstimationComputeShader, value, nameof(m_EstimationComputeShader));
+            get => m_EstimationShader;
+            set => this.SetValueAndNotify(ref m_EstimationShader, value, nameof(m_EstimationShader));
         }
 
-        public RayTracingShader estimationRayTracingShader
+        public ComputeShader punctualLightSamplingShader
         {
-            get => m_EstimationRayTracingShader;
-            set => this.SetValueAndNotify(ref m_EstimationRayTracingShader, value, nameof(m_EstimationRayTracingShader));
+            get => m_PunctualLightSamplingShader;
+            set => this.SetValueAndNotify(ref m_PunctualLightSamplingShader, value, nameof(m_PunctualLightSamplingShader));
         }
 
         public ComputeShader defragShader

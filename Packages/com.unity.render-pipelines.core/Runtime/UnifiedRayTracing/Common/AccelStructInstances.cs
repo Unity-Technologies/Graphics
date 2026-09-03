@@ -242,6 +242,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             shader.SetBufferParam(cmd, Shader.PropertyToID("g_MeshList"), m_GeometryPool.globalMeshChunkTableEntryBuffer);
         }
 
+        public void Bind(CommandBuffer cmd, ComputeShader shader, int kernel)
+        {
+            cmd.SetComputeBufferParam(shader, kernel, Shader.PropertyToID("g_AccelStructInstanceList"), m_InstanceBuffer.GetGpuBuffer(cmd));
+            cmd.SetComputeBufferParam(shader, kernel, Shader.PropertyToID("g_TerrainList"), m_TerrainBuffer.GetGpuBuffer(cmd));
+            cmd.SetComputeBufferParam(shader, kernel, Shader.PropertyToID("g_globalIndexBuffer"), m_GeometryPool.globalIndexBuffer);
+            cmd.SetComputeBufferParam(shader, kernel, Shader.PropertyToID("g_globalVertexBuffer"), m_GeometryPool.globalVertexBuffer);
+            cmd.SetComputeIntParam(shader, Shader.PropertyToID("g_globalVertexBufferStride"), m_GeometryPool.globalVertexBufferStrideBytes/4);
+            cmd.SetComputeBufferParam(shader, kernel ,Shader.PropertyToID("g_MeshList"), m_GeometryPool.globalMeshChunkTableEntryBuffer);
+        }
+
         public int GetInstanceCount()
         {
             return m_Instances.Count;
