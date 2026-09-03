@@ -820,29 +820,38 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            ApplyPixelPerfectCameraDataOverride(cameraData);
+            Vector2Int pixelPerfectRTSize = GetPixelPerfectOffscreenRTSize(cameraData);
 
-            InitGlobalShaderVars(cameraData);
+            ApplyPixelPerfectCameraDataOverride(cameraData, pixelPerfectRTSize);
+
+            InitGlobalShaderVars(cameraData, pixelPerfectRTSize);
         }
 
-        void ApplyPixelPerfectCameraDataOverride(UniversalCameraData cameraData)
+        // The offscreen target a Pixel Perfect Camera makes this camera render through, sized to its reference
+        // resolution. Vector2Int.zero when no enabled Pixel Perfect Camera drives this camera.
+        static Vector2Int GetPixelPerfectOffscreenRTSize(UniversalCameraData cameraData)
+        {
+            if (!cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc) || !ppc.enabled)
+                return Vector2Int.zero;
+
+            return ppc.offscreenRTSize;
+        }
+
+        void ApplyPixelPerfectCameraDataOverride(UniversalCameraData cameraData, Vector2Int pixelPerfectRTSize)
         {
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType != CameraRenderType.Base || !cameraData.resolveFinalTarget)
                 return;
 
-            if (!cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc) || !ppc.enabled)
-                return;
-
-            if (ppc.offscreenRTSize == Vector2Int.zero)
+            if (pixelPerfectRTSize == Vector2Int.zero)
                 return;
 
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
-            cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
+            cameraTargetDescriptor.width = pixelPerfectRTSize.x;
+            cameraTargetDescriptor.height = pixelPerfectRTSize.y;
         }
 
-        void InitGlobalShaderVars(UniversalCameraData cameraData)
+        void InitGlobalShaderVars(UniversalCameraData cameraData, Vector2Int pixelPerfectRTSize)
         {
             frameData.Create<Universal2DGlobalShaderData>();
 
@@ -858,8 +867,18 @@ namespace UnityEngine.Rendering.Universal
             m_GlobalShaderVariablesUploader.BeginFill();
             BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 
-            // URP CB TIER 2 WIP
-            // Once we add more shader vars from feature passes, we will fill them here
+            SetPixelPerfectScreenParams(m_GlobalShaderVariablesUploader, pixelPerfectRTSize);
+        }
+
+        // _ScreenParams has to describe the Pixel Perfect Camera offscreen target.
+        static void SetPixelPerfectScreenParams(GlobalShaderVariablesUploader vars, Vector2Int pixelPerfectRTSize)
+        {
+            if (pixelPerfectRTSize == Vector2Int.zero)
+                return;
+
+            float cameraWidth = pixelPerfectRTSize.x;
+            float cameraHeight = pixelPerfectRTSize.y;
+            vars._ScreenParams = new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight);
         }
 
         private class InitPassData

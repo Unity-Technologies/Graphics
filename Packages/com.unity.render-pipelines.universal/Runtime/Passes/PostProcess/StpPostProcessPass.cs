@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Update the camera resolution to reflect the upscaled size
             var destDesc = destinationTexture.GetDescriptor(renderGraph);
-            UpscalerPostProcessPass.UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(destDesc.width, destDesc.height));
+            UpscalerPostProcessPass.UpdateCameraResolution(renderGraph, frameData, new Vector2Int(destDesc.width, destDesc.height));
 
             resourceData.cameraColor = destinationTexture;
         }

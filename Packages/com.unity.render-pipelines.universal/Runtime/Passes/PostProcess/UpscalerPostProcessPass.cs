@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Update the camera resolution to reflect the upscaled size
             var dstDesc = io.cameraColor.GetDescriptor(renderGraph);
-            UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(dstDesc.width, dstDesc.height));
+            UpdateCameraResolution(renderGraph, frameData, new Vector2Int(dstDesc.width, dstDesc.height));
 
             // Use the output texture of upscaling
             resourceData.cameraColor = io.cameraColor;
@@ -239,12 +239,18 @@ namespace UnityEngine.Rendering.Universal
         private class UpdateCameraResolutionPassData
         {
             internal Vector2Int newCameraTargetSize;
+
+            // Exactly one of those is set, depending on the renderer this pass runs with.
+            internal UniversalGlobalShaderData shaderData;
+            internal Universal2DGlobalShaderData shaderData2D;
         }
 
         // Updates render target descriptors and shader constants to reflect a new render size
         // This should be called immediately after the resolution changes mid-frame (typically after an upscaling operation).
-        static internal void UpdateCameraResolution(RenderGraph renderGraph, UniversalCameraData cameraData, Vector2Int newCameraTargetSize)
+        static internal void UpdateCameraResolution(RenderGraph renderGraph, ContextContainer frameData, Vector2Int newCameraTargetSize)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             // Update the camera data descriptor to reflect post-upscaled sizes
             cameraData.cameraTargetDescriptor.width = newCameraTargetSize.x;
             cameraData.cameraTargetDescriptor.height = newCameraTargetSize.y;
@@ -254,21 +260,31 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.newCameraTargetSize = newCameraTargetSize;
 
+                if (frameData.Contains<UniversalGlobalShaderData>())
+                    passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
+                else
+                    passData.shaderData2D = frameData.Get<Universal2DGlobalShaderData>();
+
                 // This pass only modifies shader constants
                 builder.AllowGlobalStateModification(true);
 
                 // Wrap constant modification into a pass to force graph execution timeline.
                 builder.SetRenderFunc(static (UpdateCameraResolutionPassData data, UnsafeGraphContext ctx) =>
                 {
-                    ctx.cmd.SetGlobalVector(
-                        ShaderPropertyId.screenSize,
-                        new Vector4(
-                            data.newCameraTargetSize.x,
-                            data.newCameraTargetSize.y,
-                            1.0f / data.newCameraTargetSize.x,
-                            1.0f / data.newCameraTargetSize.y
-                        )
+                    // _ScreenSize lives in the centralized global shader variables, potentially stored in a global constant buffer.
+                    IGlobalShaderVariablesCommonUploader vars;
+                    if (data.shaderData != null)
+                        vars = data.shaderData.Get();
+                    else
+                        vars = data.shaderData2D.Get();
+
+                    vars._ScreenSize = new Vector4(
+                        data.newCameraTargetSize.x,
+                        data.newCameraTargetSize.y,
+                        1.0f / data.newCameraTargetSize.x,
+                        1.0f / data.newCameraTargetSize.y
                     );
+                    vars.PushGlobal(ctx.cmd);
                 });
             }
         }

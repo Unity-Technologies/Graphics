@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FPParams2 = Shader.PropertyToID("_FPParams2");
             public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
             public static readonly int unity_MatrixV = Shader.PropertyToID("unity_MatrixV");
-            public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
 
             // Light cookies
             public static readonly int _MainLightCookieTexture = Shader.PropertyToID("_MainLightCookieTexture");
@@ -110,10 +109,8 @@ namespace UnityEngine.Rendering.Universal
             // Camera
             public Vector4 cameraPositionWS;
             public float cameraNearPlane;
-            public Vector4 zBufferParams;
             public Matrix4x4 coordToViewDirWS;
             public Matrix4x4 viewMatrix;
-            public Vector4 orthoParams;
 
             // VBuffer geometry
             public int vbufferW, vbufferH;
@@ -473,30 +470,9 @@ namespace UnityEngine.Rendering.Universal
                     passData.prevCamPosWS = new Vector4(prevCamPos.x, prevCamPos.y, prevCamPos.z, 0f);
                 }
 
-                // Compute _ZBufferParams
-                {
-                    float nearPlane = camera.nearClipPlane;
-                    float far = camera.farClipPlane;
-                    float invNear = Mathf.Approximately(nearPlane, 0.0f) ? 0.0f : 1.0f / nearPlane;
-                    float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
-                    float zc0 = 1.0f - far * invNear;
-                    float zc1 = far * invNear;
-                    var zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
-                    if (SystemInfo.usesReversedZBuffer)
-                    {
-                        zBufferParams.y += zBufferParams.x;
-                        zBufferParams.x = -zBufferParams.x;
-                        zBufferParams.w += zBufferParams.z;
-                        zBufferParams.z = -zBufferParams.z;
-                    }
-                    passData.zBufferParams = zBufferParams;
-                }
 
                 passData.cameraPositionWS = camera.transform.position;
                 passData.viewMatrix = cameraData.GetViewMatrix(0);
-                float orthoHalfH = camera.orthographicSize;
-                float orthoHalfW = orthoHalfH * camera.aspect;
-                passData.orthoParams = new Vector4(orthoHalfW, orthoHalfH, 0f, camera.orthographic ? 1f : 0f);
 
                 // Input textures
                 passData.depthTexture = resourceData.cameraDepthTexture;
@@ -567,7 +543,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeFloatParam(cs, SharedIDs._CameraNearPlane, data.cameraNearPlane);
                     cmd.SetComputeFloatParam(cs, ShaderIDs._HalfVoxelArcLength, data.halfVoxelArcLength);
                     cmd.SetComputeVectorParam(cs, SharedIDs._CameraPositionWS, data.cameraPositionWS);
-                    cmd.SetComputeVectorParam(cs, SharedIDs._ZBufferParams, data.zBufferParams);
                     cmd.SetComputeVectorParam(cs, ShaderIDs._VBufferSampleOffset, data.sampleOffset);
 
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._CameraDepthTexture, data.depthTexture);
@@ -605,7 +580,6 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams2, data.fpParams2);
                         cmd.SetComputeVectorParam(cs, ShaderIDs._WorldSpaceCameraPos, data.cameraPositionWS);
                         cmd.SetComputeMatrixParam(cs, ShaderIDs.unity_MatrixV, data.viewMatrix);
-                        cmd.SetComputeVectorParam(cs, ShaderIDs.unity_OrthoParams, data.orthoParams);
                     }
 
                     // Light cookies

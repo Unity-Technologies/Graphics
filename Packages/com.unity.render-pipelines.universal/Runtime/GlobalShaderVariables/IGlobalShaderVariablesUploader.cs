@@ -1,11 +1,16 @@
 namespace UnityEngine.Rendering.Universal
 {
     internal interface IUniversalGlobalShaderVariablesUploader :
-    IGlobalShaderVariablesOnly3DUploader, IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesGlobalUploader
+    IGlobalShaderVariablesOnly3DUploader, IGlobalShaderVariablesCommonUploader
     {}
 
     internal interface IUniversal2DGlobalShaderVariablesUploader :
-    IGlobalShaderVariablesOnly2DUploader, IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesGlobalUploader
+    IGlobalShaderVariablesOnly2DUploader, IGlobalShaderVariablesCommonUploader
+    {}
+
+    // Passes used by both 2D/3D renderers can use this interface. 
+    internal interface IGlobalShaderVariablesCommonUploader :
+    IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesGlobalUploader
     {}
 
     internal interface IGlobalShaderVariablesGlobalUploader
