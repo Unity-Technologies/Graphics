@@ -46,6 +46,11 @@
             "define": "ENABLE_AMD_MODULE"
         },
         {
+            "name": "com.unity.modules.metalfx",
+            "expression": "1.0.0",
+            "define": "ENABLE_METALFX_MODULE"
+        },
+        {
             "name": "com.unity.modules.physics",
             "expression": "1.0.0",
             "define": "ENABLE_PHYSICS_MODULE"

@@ -1188,10 +1188,13 @@ namespace UnityEngine.Rendering.Universal
             bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            bool fsr1Enabled = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1;
-            bool hasActiveUpscaler = postProcessingData.activeUpscaler != null;
+            // A standalone (non-embedded) spatial upscaler resolves through the FinalPost pass:
+            // FSR1 and any spatial upscaler qualify.
+            IUpscaler activeUpscaler = postProcessingData.activeUpscaler;
+            bool requiresFinalPostUpscale = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1
+                            || (activeUpscaler != null && !activeUpscaler.isTemporal && !postProcessingData.activeUpscalerIsEmbedded);
 #else
-            bool fsr1Enabled = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
+            bool requiresFinalPostUpscale = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
 #endif
 
             bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData, out var ppc) && ppc.requiresUpscalePass;
@@ -1199,13 +1202,11 @@ namespace UnityEngine.Rendering.Universal
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
-            // FSR1 also requires the final pass (unlike upscalers using IUpscaler, it does not self-schedule).
+            // Standalone spatial upscalers (FSR1 and non-embedded IUpscaler spatial upscalers) also require the final
+            // pass to resolve, as they do not self-schedule.
             bool applyFinalPostProcessing = cameraData.resolveFinalTarget && !ppcUpscaleRT && anyPostProcessing &&
                                             ((cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-#if ENABLE_UPSCALER_FRAMEWORK
-                                            ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && hasActiveUpscaler) ||
-#endif
-                                            ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && fsr1Enabled));
+                                            (cameraData.imageScalingMode == ImageScalingMode.Upscaling && requiresFinalPostUpscale));
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing || (x as ScriptableRenderPass2D)?.renderPassEvent2D == RenderPassEvent2D.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = !resolveToDebugScreen;

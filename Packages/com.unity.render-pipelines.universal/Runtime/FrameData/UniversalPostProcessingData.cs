@@ -43,6 +43,11 @@ namespace UnityEngine.Rendering.Universal
         /// Returns null if there isn't an active upscaler
         /// </summary>
         internal IUpscaler activeUpscaler;
+
+        /// <summary>
+        /// True when the active upscaler is one of the built-in embedded upscalers.
+        /// </summary>
+        internal bool activeUpscalerIsEmbedded;
 #endif
 
         /// <summary>
@@ -59,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_UPSCALER_FRAMEWORK
             activeUpscaler = null;
+            activeUpscalerIsEmbedded = false;
 #endif
         }
     }

@@ -2380,6 +2380,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_UPSCALER_FRAMEWORK
             postProcessingData.activeUpscaler = upscaling.activeUpscaler;
+            postProcessingData.activeUpscalerIsEmbedded = upscaling.activeUpscalerIsEmbedded;
 #endif
 
             return postProcessingData;
