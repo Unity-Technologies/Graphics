@@ -2,11 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
     public partial class MaterialUpgrader
     {
+        // Track memory usage to trigger periodic cleanup and prevent out-of-memory crashes
+        // This prevents out-of-memory crashes on DX12/Vulkan where GPU memory cannot fall back to disk
+        private static long s_MemoryUsedSinceLastCleanup = 0;
+        private const long kMemoryThresholdBytes = 2L * 1024L * 1024L * 1024L; // 2 GB threshold
+
         /// <summary>
         /// The priority of the upgrader.
         /// </summary>
@@ -165,6 +171,17 @@ namespace UnityEditor.Rendering
             UnityEngine.Object.DestroyImmediate(newMaterial);
 
             Finalizer?.Invoke(material);
+
+            // Track memory and periodically unload assets to prevent out-of-memory crashes
+            long memoryUsed = EstimateMaterialMemoryUsage(material);
+            s_MemoryUsedSinceLastCleanup += memoryUsed;
+
+            if (s_MemoryUsedSinceLastCleanup >= kMemoryThresholdBytes)
+            {
+                //Debug.Log($"MaterialUpgrader: Memory threshold reached ({s_MemoryUsedSinceLastCleanup / (1024f * 1024f * 1024f):F2} GB). Saving assets and freeing memory...");
+                SaveAssetsAndFreeMemory();
+                s_MemoryUsedSinceLastCleanup = 0;
+            }
         }
 
         // Overridable function to implement custom material upgrading functionality
@@ -377,6 +394,86 @@ namespace UnityEditor.Rendering
         public void TransferKeyword(string keywordName)
         {
             m_KeywordMigrations.Add(new KeywordRename { oldKeyword = keywordName, newKeyword = keywordName });
+        }
+
+        private static ulong ComputeTextureSize(Texture texture)
+        {
+            if (texture == null)
+                    return 0;
+            
+            UnityEngine.Experimental.Rendering.GraphicsFormat format;
+            int depthOrArraySlices = 1;
+            int cubeFaces = 1;
+        
+            switch (texture)
+            {
+                case Texture2D tex2D:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(tex2D.format, false);
+                    break;
+        
+                case Texture3D tex3D:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(tex3D.format, false);
+                    depthOrArraySlices = tex3D.depth;
+                    break;
+        
+                case Texture2DArray tex2DArray:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(tex2DArray.format, false);
+                    depthOrArraySlices = tex2DArray.depth;
+                    break;
+        
+                case CubemapArray cubeArray:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(cubeArray.format, false);
+                    cubeFaces = 6;
+                    depthOrArraySlices = cubeArray.cubemapCount;
+                    break;
+        
+                case Cubemap cube:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(cube.format, false);
+                    cubeFaces = 6;
+                    break;
+        
+                case RenderTexture rt:
+                    format = rt.graphicsFormat != UnityEngine.Experimental.Rendering.GraphicsFormat.None
+                        ? rt.graphicsFormat
+                        : rt.depthStencilFormat;
+        
+                    depthOrArraySlices = Mathf.Max(1, rt.volumeDepth);
+                    if (rt.dimension == UnityEngine.Rendering.TextureDimension.Cube ||
+                        rt.dimension == UnityEngine.Rendering.TextureDimension.CubeArray)
+                    {
+                        cubeFaces = 6;
+                    }
+                    break;
+        
+                default:
+                    format = UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm;
+                    break;
+            }
+        
+            ulong sliceSize = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.ComputeMipmapSize(texture.width, texture.height, format);
+            return sliceSize * (ulong)depthOrArraySlices * (ulong)cubeFaces;
+        }
+
+        private static long EstimateMaterialMemoryUsage(Material material)
+        {
+            if (material == null || material.shader == null)
+                return 0;
+
+            long totalBytes = 0;
+            var shader = material.shader;
+            int propertyCount = shader.GetPropertyCount();
+
+            for (int i = 0; i < propertyCount; i++)
+            {
+                if (shader.GetPropertyType(i) == UnityEngine.Rendering.ShaderPropertyType.Texture)
+                {
+                    string propertyName = shader.GetPropertyName(i);
+                    var texture = material.GetTexture(propertyName);
+                    totalBytes += (long)ComputeTextureSize(texture);
+                }
+            }
+
+            return totalBytes;
         }
     }
 }

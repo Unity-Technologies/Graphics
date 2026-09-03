@@ -134,7 +134,6 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
             return null;
         }
 
-        //@TODO: Only do this when it exceeds memory consumption...
         static void SaveAssetsAndFreeMemory()
         {
             AssetDatabase.SaveAssets();
