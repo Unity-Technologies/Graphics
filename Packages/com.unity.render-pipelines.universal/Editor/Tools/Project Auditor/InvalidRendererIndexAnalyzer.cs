@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Check the default renderer index in each URP asset and ensure it's within the valid range of available renderers"
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
             MessageFormat = "URP: Invalid renderer index assigned in {0}.asset in {1}",
         };
 

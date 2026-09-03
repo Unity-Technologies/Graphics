@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Assign at least one renderer to each URP asset in Graphics and Quality Settings"
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
         };
 
         private bool CheckRenderers(UniversalRenderPipelineAsset urpAsset)

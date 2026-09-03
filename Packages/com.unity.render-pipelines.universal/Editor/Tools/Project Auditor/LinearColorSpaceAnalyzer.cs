@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
         )
         {
             Fixer = FixColorSpace,
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
         };
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()
