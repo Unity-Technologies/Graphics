@@ -177,6 +177,11 @@ namespace UnityEngine.Rendering.Universal
 
         Mesh m_Mesh;
 
+        // m_Mesh either points at a Mesh this component allocated through lightMesh, or at one handed over by
+        // Light2DProvider.GetMesh(). That contract only returns a mesh to render and does not transfer ownership,
+        // so provider meshes may be shared between lights and must never be destroyed from here.
+        bool m_OwnsMesh;
+
         [NonSerialized]
         private LightUtility.LightMeshVertex[] m_Vertices = new LightUtility.LightMeshVertex[1];
 
@@ -211,9 +216,27 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (null == m_Mesh)
+                {
                     m_Mesh = new Mesh();
+                    m_OwnsMesh = true;
+                }
                 return m_Mesh;
             }
+        }
+
+        // Takes the mesh a Light2DProvider handed us, releasing any mesh we allocated ourselves first so replacing
+        // it does not leak.
+        void SetProviderMesh(Mesh providerMesh)
+        {
+            // A provider is free to hand back the mesh we already hold, in which case ownership is unchanged.
+            if (m_Mesh == providerMesh)
+                return;
+
+            if (m_OwnsMesh)
+                CoreUtils.Destroy(m_Mesh);
+
+            m_Mesh = providerMesh;
+            m_OwnsMesh = false;
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
@@ -521,7 +544,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal Bounds UpdateProviderMesh()
         {
-            m_Mesh = light2DProvider.GetMesh();
+            SetProviderMesh(light2DProvider.GetMesh());
 
             if (m_Mesh != null)
                 return m_Mesh.bounds;
@@ -586,7 +609,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (m_Mesh != null)
                     {
-                        m_Mesh = light2DProvider.GetMesh();
+                        SetProviderMesh(light2DProvider.GetMesh());
                         m_LocalBounds = m_Mesh.bounds;
                     }
                 }
@@ -658,6 +681,16 @@ namespace UnityEngine.Rendering.Universal
             SortingLayer.onLayerAdded += OnSortingLayerAdded;
             SortingLayer.onLayerRemoved += OnSortingLayerRemoved;
 #endif
+        }
+
+        private void OnDestroy()
+        {
+            // Only the mesh we allocated ourselves is ours to destroy; a provider owns the one it returned.
+            if (m_OwnsMesh)
+                CoreUtils.Destroy(m_Mesh);
+
+            m_Mesh = null;
+            m_OwnsMesh = false;
         }
 
         private void OnDisable()
