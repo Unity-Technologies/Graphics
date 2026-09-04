@@ -23,7 +23,11 @@ TEXTURE2D_X(_ScreenSpaceIrradiance);
 URP_LIGHT_ACCUM3 SampleScreenSpaceGI(float2 pos, float invPreExposureMultiplier)
 {
     // The irradiance texture is stored pre-exposed so its fp32 values fit fp16. Undo that here, as lighting inputs are un-exposed.
-    return LOAD_TEXTURE2D_X(_ScreenSpaceIrradiance, pos).rgb * invPreExposureMultiplier;
+    URP_LIGHT_ACCUM3 irradiance = LOAD_TEXTURE2D_X(_ScreenSpaceIrradiance, pos).rgb * invPreExposureMultiplier;
+#ifdef UNITY_COLORSPACE_GAMMA
+    irradiance = LinearToSRGB(irradiance);
+#endif
+    return irradiance;
 }
 #endif
 

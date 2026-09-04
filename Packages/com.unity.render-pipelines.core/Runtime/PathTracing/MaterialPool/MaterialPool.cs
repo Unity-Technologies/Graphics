@@ -675,6 +675,11 @@ namespace UnityEngine.PathTracing.Core
             var emission = MaterialAspectOracle.GetEmission(material, emissionMode);
             descriptor.EmissionType = emission.Type;
             descriptor.EmissionColor = emission.Color;
+
+            // In gamma space, the emission color property holds a gamma-encoded value.
+            if (emission.Type == MaterialPropertyType.Color && QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                descriptor.EmissionColor = emission.Color * emission.Color;
+
             if (emission.Type == MaterialPropertyType.Texture)
             {
                 descriptor.Emission = EvaluateMetaPass(material, TextureType.Emission);

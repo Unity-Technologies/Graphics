@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.Universal
             private readonly ObjectDispatcherChangeSource _objectChangeSource;
             private readonly EntityChangeSource _entityChangeSource;
             private GraphicsBuffer _worldUpdateScratch;
-            private readonly uint _environmentCubemapResolution = 32;
+            private readonly uint _environmentCubemapResolution = 128;
             private readonly bool _conformToUnityGIFormat;
 
             internal SurfaceCacheWorld World => _world;
