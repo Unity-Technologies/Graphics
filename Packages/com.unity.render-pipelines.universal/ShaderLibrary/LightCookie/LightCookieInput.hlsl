@@ -11,9 +11,10 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 // Samplers
 SAMPLER(sampler_MainLightCookieTexture);
 
-// The persistent constant buffer (SetGlobalConstantBuffer) is used everywhere EXCEPT
-// GLES3 (no CBUFFER at all) and WebGL/WebGPU which use field-wise SetGlobalXArray.
-#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_WEBGPU)
+// Persistent constant buffer everywhere except GLES3, which falls back to field-wise SetGlobalXArray. WebGL2
+// reports as GLES3. Must match RenderingUtils.usePersistentConstantBuffer: if the two disagree, the field-wise
+// uploads never run and the shader reads whatever is in the bound buffer.
+#if !defined(SHADER_API_GLES3)
     #define URP_LIGHT_COOKIE_PERSISTENT_CBUFFER
 #endif
 
@@ -25,8 +26,8 @@ CBUFFER_START(LightCookies)
     float4 _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32]; // yzw are padding
 CBUFFER_END
 #else
-    // Field-wise layout: transient CBUFFER on WebGL/WebGPU, or plain loose uniforms on GLES3.
-    // GLES3 causes a performance regression in some devices when using CBUFFER.
+    // Field-wise layout, GLES3 only: a transient CBUFFER on WebGL2, plain loose uniforms elsewhere, since
+    // CBUFFER causes a performance regression on some GLES3 devices.
     #ifndef LIGHT_SHADOWS_NO_CBUFFER
     CBUFFER_START(LightCookies)
     #endif

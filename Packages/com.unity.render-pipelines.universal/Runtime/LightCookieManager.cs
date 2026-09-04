@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int lightCookiesBuffer = Shader.PropertyToID("LightCookies");
 
-            // Loose uniform fallback (GLES3, WebGL, WebGPU)
+            // Loose uniform fallback, OpenGLES3 only: loose uniforms on native GLES3, transient CBUFFER on WebGL2
             public static readonly int additionalLightsWorldToLights = Shader.PropertyToID("_AdditionalLightsWorldToLights");
             public static readonly int additionalLightsCookieAtlasUVRects = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
             public static readonly int additionalLightsLightTypes = Shader.PropertyToID("_AdditionalLightsLightTypes");
