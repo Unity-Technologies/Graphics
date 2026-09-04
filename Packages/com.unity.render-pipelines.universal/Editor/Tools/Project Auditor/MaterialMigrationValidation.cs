@@ -16,10 +16,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             Areas.Quality | Areas.GPU,
             "One or more materials in the project are still using Built-in render pipeline shaders. These materials should be converted to use URP-optimized shaders for better performance and compatibility. Use the Render Pipeline Converter (Window > Rendering > Render Pipeline Converter) to upgrade materials.",
             "Convert materials to URP using Window > Rendering > Render Pipeline Converter"
-        )
-        {
-            DefaultSeverity = Severity.Warning,
-        };
+        );
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()
         {

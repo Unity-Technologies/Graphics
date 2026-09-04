@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Open the renderer data asset and remove the missing features, or restore the missing scripts"
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
         };
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()

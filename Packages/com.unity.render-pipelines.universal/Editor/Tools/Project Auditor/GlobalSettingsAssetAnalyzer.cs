@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Ensure URP Global Settings asset"
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
             Fixer = FixGlobalSettings,
         };
 

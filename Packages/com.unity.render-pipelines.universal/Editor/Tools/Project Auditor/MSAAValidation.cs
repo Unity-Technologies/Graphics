@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 new(BuildTarget.Switch)
             },
             MessageFormat = "URP: MSAA is set to 4x or 8x in {0}.asset in {1}",
-            DefaultSeverity = Severity.Warning,
             Fixer = FixMSAA
         };
 

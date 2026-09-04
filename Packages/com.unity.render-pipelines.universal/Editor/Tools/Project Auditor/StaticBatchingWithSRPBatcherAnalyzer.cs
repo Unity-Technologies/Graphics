@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
         )
         {
             Fixer = FixStaticBatching,
-            DefaultSeverity = Severity.Warning,
             MessageFormat = "URP: Static Batching conflicts with SRP Batcher enabled in {0}.asset in {1}",
         };
 

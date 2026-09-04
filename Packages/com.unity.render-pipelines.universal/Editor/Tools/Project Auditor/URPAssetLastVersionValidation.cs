@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Open the asset in the inspector to upgrade them to latest version."
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
             MessageFormat = "URP: URP Asset is not at latest version in {0}.asset in {1}",
         };
 

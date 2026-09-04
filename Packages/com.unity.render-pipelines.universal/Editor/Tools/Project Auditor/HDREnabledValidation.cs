@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 new(BuildTarget.Switch)
             },
             MessageFormat = "URP: HDR is enabled in {0}.asset in {1}",
-            DefaultSeverity = Severity.Warning,
             Fixer = FixHDR
         };
 

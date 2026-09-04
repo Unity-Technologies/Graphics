@@ -20,8 +20,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Assign a URP asset to all quality levels in Project Settings > Quality and a Default Render Pipeline in Project Settings > Graphics."
         )
         {
-            MessageFormat = "URP: Missing URP asset assigned {0} in {1}",
-            DefaultSeverity = Severity.Warning,
+            MessageFormat = "URP: Missing URP asset assigned {0} in {1}"
         };
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()
