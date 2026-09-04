@@ -1517,7 +1517,7 @@ namespace UnityEngine.Rendering
                 default,
                 default,
                 default,
-                Allocator.TempJob);
+                allocator);
         }
 
 #if UNITY_EDITOR
@@ -2341,12 +2341,11 @@ namespace UnityEngine.Rendering
             }
             .Schedule(renderWorld.instanceCount, 64, animatedCrossFadesJob);
 
-            receiverPlanes.Dispose(cullingJob);
-            frustumPlaneCuller.Dispose(cullingJob);
-            receiverSphereCuller.Dispose(cullingJob);
-            emptyPerCameraInstanceData.Dispose(cullingJob);
-
-            return cullingJob;
+            JobHandle disposeJob = JobHandle.CombineDependencies(
+                receiverPlanes.Dispose(cullingJob),
+                frustumPlaneCuller.Dispose(cullingJob),
+                receiverSphereCuller.Dispose(cullingJob));
+            return JobHandle.CombineDependencies(disposeJob, emptyPerCameraInstanceData.Dispose(cullingJob));
         }
 
         private int ComputeWorstCaseDrawCommandCount(
@@ -2699,8 +2698,7 @@ namespace UnityEngine.Rendering
                 mode = FilteringJobMode.Filtering
             }
             .Schedule(cullingJobHandle);
-            filteredRenderers.Dispose(drawOutputJob);
-            return drawOutputJob;
+            return filteredRenderers.Dispose(drawOutputJob);
         }
 
         private JobHandle SchedulePickingCullingOutputJob_EditorOnly(in BatchCullingContext context,

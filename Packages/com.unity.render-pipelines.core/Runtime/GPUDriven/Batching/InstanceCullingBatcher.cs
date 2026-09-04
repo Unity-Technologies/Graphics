@@ -443,8 +443,7 @@ namespace UnityEngine.Rendering
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, context, cullingOutput);
 
-            includeExcludeListFilter.Dispose(jobHandle);
-            return jobHandle;
+            return includeExcludeListFilter.Dispose(jobHandle);
         }
 
         public void DestroyDrawInstances(NativeArray<InstanceHandle> instances)
