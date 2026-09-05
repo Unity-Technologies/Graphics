@@ -49,10 +49,21 @@ CBUFFER_START(GlobalShaderVars)
     float4 _ScreenSize;
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
+    // Ambient gradient, filled from RenderSettings.
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+    float4 unity_AmbientSky;
+    float4 unity_AmbientEquator;
+    float4 unity_AmbientGround;
+#else
+    half4 unity_AmbientSky;
+    half4 unity_AmbientEquator;
+    half4 unity_AmbientGround;
+#endif
     // x = Mip Bias
     // y = 2.0 ^ [Mip Bias]
     float2 _GlobalMipBias;
-    float2 _URPPadding1;
+    float _DitheringTextureInvSize;
+    float _URPPadding1;
     // Environment
 #if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
     float4 _GlossyEnvironmentColor;
@@ -80,6 +91,15 @@ CBUFFER_START(GlobalShaderVars)
     float4 _FPParams0;
     float4 _FPParams1;
     float4 _FPParams2;
+    // Motion Vectors, non jittered. Declared unconditionally so the offsets stay fixed.
+    float4x4 _NonJitteredViewProjMatrix;
+    float4x4 _PrevViewProjMatrix;
+    // Additional Lights. The arrays themselves stay loose uniforms, only the count lives here.
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS) && URP_PERSISTENT_CONSTANT_BUFFERS
+    float4 _AdditionalLightsCount; // x holds the count
+#else
+    half4 _AdditionalLightsCount; // x holds the count
+#endif
     // Main Light Shadows. Sized MAX_SHADOW_CASCADES + 1, spelled out because that define lives in Shadows.hlsl which is
     // included later. The last cascade is initialized with a no-op matrix, always transforming the shadow coord to
     // half3(0, 0, NEAR_PLANE), which avoids branching since ComputeCascadeIndex can return MAX_SHADOW_CASCADES.
@@ -101,8 +121,8 @@ CBUFFER_START(GlobalShaderVars)
     float _AdditionalLightsCookieAtlasTextureFormat;
     uint _RenderingLayerMaxInt;
     uint _EnableProbeVolumes;
-    // Kept last on purpose: _MainLightLayerMask needs three uints of padding to fill its 16 byte row, so the next
-    // 3D fields we add can consume those slots instead of needing padding of their own.
+    // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D fields we add can consume the
+    // remaining padding slots instead of needing padding of their own.
     uint _MainLightLayerMask;
     uint _URPPadding2;
     uint _URPPadding3;

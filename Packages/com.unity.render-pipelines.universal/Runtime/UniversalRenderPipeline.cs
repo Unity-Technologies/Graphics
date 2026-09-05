@@ -2604,6 +2604,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static bool usePersistentConstantBuffers { get; private set; }
 
+        /// <summary>
+        /// Inverse width of the LOD cross fade dithering texture, resolved once per frame from the pipeline asset.
+        /// The renderers read it to fill their global shader variables, see GlobalShaderVariablesBase.
+        /// </summary>
+        internal static float ditheringTextureInvSize { get; private set; }
+
         void SetupPerFrameShaderConstants()
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
@@ -2630,7 +2636,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (ditheringTexture != null)
             {
-                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / ditheringTexture.width);
+                ditheringTextureInvSize = 1.0f / ditheringTexture.width;
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, ditheringTexture);
             }
         }
@@ -2639,13 +2645,8 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerCameraShaderConstants);
 
-            // Used as fallback cubemap for reflections
+            // Used as fallback cubemap for reflections.
             cmd.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
-
-            // Ambient
-            cmd.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
-            cmd.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
-            cmd.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

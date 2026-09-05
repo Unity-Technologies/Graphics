@@ -2,8 +2,7 @@
 #define UNIVERSAL_PIPELINE_LODCROSSFADE_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
-
-float _DitheringTextureInvSize;
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalShaderVariables.hlsl"
 
 TEXTURE2D(_DitheringTexture);
 

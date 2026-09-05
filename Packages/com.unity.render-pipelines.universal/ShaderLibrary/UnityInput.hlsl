@@ -200,9 +200,6 @@ float4x4 glstate_matrix_transpose_modelview0;
 // ----------------------------------------------------------------------------
 
 real4 glstate_lightmodel_ambient;
-real4 unity_AmbientSky;
-real4 unity_AmbientEquator;
-real4 unity_AmbientGround;
 real4 unity_IndirectSpecColor;
 float4 unity_FogParams;
 real4  unity_FogColor;
@@ -267,8 +264,6 @@ float4x4 _ViewProjMatrixStereo[2];
 #define  _NonJitteredViewProjMatrix _NonJitteredViewProjMatrixStereo[unity_StereoEyeIndex]
 #define  _ViewProjMatrix      _ViewProjMatrixStereo[unity_StereoEyeIndex]
 #else
-float4x4 _PrevViewProjMatrix;         // non-jittered. Motion vectors.
-float4x4 _NonJitteredViewProjMatrix;  // non-jittered.
 float4x4 _ViewProjMatrix; // TODO: URP currently uses unity_MatrixVP, see Input.hlsl
 #endif
 float4x4 _ViewMatrix;

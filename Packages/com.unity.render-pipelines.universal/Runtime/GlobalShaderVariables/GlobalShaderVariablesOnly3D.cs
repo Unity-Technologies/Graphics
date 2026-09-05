@@ -46,8 +46,15 @@ namespace UnityEngine.Rendering.Universal
         _RenderingLayerMaxInt = 1u << 22,
         _EnableProbeVolumes = 1u << 23,
 
+        // Additional Lights
+        _AdditionalLightsCount = 1u << 24,
+
+        // Motion Vectors. The Stereo variants stay loose uniforms, see GlobalShaderVariables.hlsl.
+        _NonJitteredViewProjMatrix = 1u << 25,
+        _PrevViewProjMatrix = 1u << 26,
+
         // Keep this referencing the last bit declared above when adding a variable.
-        All = (_EnableProbeVolumes << 1) - 1u,
+        All = (_PrevViewProjMatrix << 1) - 1u,
     }
 
     /// <summary>
@@ -137,6 +144,14 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _FPParams1; // Input.hlsl + USE_CLUSTER_LIGHT_LOOP
         public Vector4 _FPParams2; // Input.hlsl + USE_CLUSTER_LIGHT_LOOP
 
+        // Motion Vectors. In XR single pass the shader macros redirect every read to the Stereo arrays, which stay
+        // loose uniforms, so these two are only consumed outside XR. See UnityInput.hlsl.
+        public Matrix4x4 _NonJitteredViewProjMatrix; // UnityInput.hlsl
+        public Matrix4x4 _PrevViewProjMatrix; // UnityInput.hlsl
+
+        // Additional Lights. The arrays themselves are in the AdditionalLights CBuffer.
+        public Vector4 _AdditionalLightsCount; // Input.hlsl (half precision in shader), x holds the count
+
         // Main Light Shadows
         public MainLightShadowMatrices _MainLightWorldToShadow; // GlobalShaderVariables.hlsl
         public Vector4 _CascadeShadowSplitSpheres0; // Shadows.hlsl
@@ -159,8 +174,8 @@ namespace UnityEngine.Rendering.Universal
         public uint _RenderingLayerMaxInt; // Unity.hlsl
         public uint _EnableProbeVolumes; // Forward Light
 
-        // Kept last on purpose: _MainLightLayerMask needs three uints of padding to fill its 16 byte row, so the next
-        // 3D fields we add can consume those slots instead of needing padding of their own.
+        // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D fields we add can consume the
+        // remaining padding slots instead of needing padding of their own.
         public uint _MainLightLayerMask; // Forward + Deferred Light
         public uint _URPPadding2;
         public uint _URPPadding3;
@@ -193,6 +208,13 @@ namespace UnityEngine.Rendering.Universal
             if ((dirty & Dirty._FPParams0) != 0) cmd.SetGlobalVector(PropertyId.fpParams0, vars._FPParams0);
             if ((dirty & Dirty._FPParams1) != 0) cmd.SetGlobalVector(PropertyId.fpParams1, vars._FPParams1);
             if ((dirty & Dirty._FPParams2) != 0) cmd.SetGlobalVector(PropertyId.fpParams2, vars._FPParams2);
+
+            // Motion Vectors
+            if ((dirty & Dirty._NonJitteredViewProjMatrix) != 0) cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, vars._NonJitteredViewProjMatrix);
+            if ((dirty & Dirty._PrevViewProjMatrix) != 0) cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, vars._PrevViewProjMatrix);
+
+            // Additional Lights
+            if ((dirty & Dirty._AdditionalLightsCount) != 0) cmd.SetGlobalVector(PropertyId.additionalLightsCount, vars._AdditionalLightsCount);
 
             // Main Light Shadows
             if ((dirty & Dirty._MainLightWorldToShadow) != 0) vars._MainLightWorldToShadow.SetGlobal(cmd, PropertyId.mainLightWorldToShadow);
@@ -244,6 +266,9 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int mainLightShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
             public static readonly int mainLightShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
             public static readonly int mainLightShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
+
+            // Additional Lights
+            public static readonly int additionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
 
             // Additional Lights Shadows
             public static readonly int additionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");

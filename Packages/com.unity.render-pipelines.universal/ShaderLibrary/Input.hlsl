@@ -114,7 +114,6 @@ half4 _AmbientOcclusionParam;
 // w: is currently unused
 half4 _ScreenSpaceReflectionParam;
 
-half4 _AdditionalLightsCount;
 
 #if USE_CLUSTER_LIGHT_LOOP
 #define URP_FP_ZBIN_SCALE (_FPParams0.x)

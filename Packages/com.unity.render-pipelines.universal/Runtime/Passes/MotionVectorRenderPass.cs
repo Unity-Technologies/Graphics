@@ -201,6 +201,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderGraphMotionVectorGlobalMatrices(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
+            // Under XR single pass the shaders resolve _NonJitteredViewProjMatrix and _PrevViewProjMatrix onto the per
+            // eye Stereo arrays (see USING_STEREO_MATRICES in UnityInput.hlsl), and this pass is what sets those
+            // arrays. On every other path the two names resolve to the global shader variables, filled at record time,
+            // so nothing is recorded here.
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (!cameraData.xr.enabled || !cameraData.xr.singlePassEnabled)
+                return;
+
             if (cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
             {
                 using (var builder = renderGraph.AddRasterRenderPass<MotionMatrixPassData>(s_SetMotionMatrixProfilingSampler.name, out var passData, s_SetMotionMatrixProfilingSampler))
@@ -215,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
                     });
                 }
             }
+#endif
         }
     }
 }

@@ -39,7 +39,11 @@ namespace UnityEngine.Rendering.Universal
         Vector4 _ScreenSize { get; set; }
         Vector4 _ScreenSizeOverride { get; set; }
         Vector4 _ScreenCoordScaleBias { get; set; }
+        Vector4 unity_AmbientSky { get; set; }
+        Vector4 unity_AmbientEquator { get; set; }
+        Vector4 unity_AmbientGround { get; set; }
         Vector2 _GlobalMipBias { get; set; }
+        float _DitheringTextureInvSize { get; set; }
 
         // Environment
         Vector4 _GlossyEnvironmentColor { get; set; }
@@ -66,6 +70,13 @@ namespace UnityEngine.Rendering.Universal
         Vector4 _FPParams0 { get; set; }
         Vector4 _FPParams1 { get; set; }
         Vector4 _FPParams2 { get; set; }
+
+        // Motion Vectors
+        Matrix4x4 _NonJitteredViewProjMatrix { get; set; }
+        Matrix4x4 _PrevViewProjMatrix { get; set; }
+
+        // Additional Lights
+        Vector4 _AdditionalLightsCount { get; set; }
 
         // Main Light Shadows
         void SetMainLightWorldToShadow(in MainLightShadowMatrices matrices);

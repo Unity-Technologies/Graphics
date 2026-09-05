@@ -32,12 +32,16 @@ namespace UnityEngine.Rendering.Universal
         _ScreenSize = 1u << 11,
         _ScreenSizeOverride = 1u << 12,
         _ScreenCoordScaleBias = 1u << 13,
-        _GlobalMipBias = 1u << 14,
+        unity_AmbientSky = 1u << 14,
+        unity_AmbientEquator = 1u << 15,
+        unity_AmbientGround = 1u << 16,
+        _GlobalMipBias = 1u << 17,
+        _DitheringTextureInvSize = 1u << 18,
 
         // Environment
-        _GlossyEnvironmentColor = 1u << 15,
-        _SubtractiveShadowColor = 1u << 16,
-        _GlossyEnvironmentCubeMap_HDR = 1u << 17,
+        _GlossyEnvironmentColor = 1u << 19,
+        _SubtractiveShadowColor = 1u << 20,
+        _GlossyEnvironmentCubeMap_HDR = 1u << 21,
 
         // Keep this referencing the last bit declared above when adding a variable.
         All = (_GlossyEnvironmentCubeMap_HDR << 1) - 1u,
@@ -65,13 +69,19 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _ScreenSize; // UnityInput.hlsl
         public Vector4 _ScreenSizeOverride; // Unity.hlsl
         public Vector4 _ScreenCoordScaleBias; // Unity.hlsl
+
+        // Ambient gradient, filled from RenderSettings.
+        public Vector4 unity_AmbientSky; // UnityInput.hlsl
+        public Vector4 unity_AmbientEquator; // UnityInput.hlsl
+        public Vector4 unity_AmbientGround; // UnityInput.hlsl
         public Vector2 _GlobalMipBias; // UnityInput.hlsl
-        public Vector2 _URPPadding1;
+        public float _DitheringTextureInvSize; // LODCrossFade.hlsl
+        public float _URPPadding1;
 
         // Environment, come from RenderSettings.
-        public Vector4 _GlossyEnvironmentColor; // Unity.hlsl (half precision in shader)
-        public Vector4 _SubtractiveShadowColor; // Unity.hlsl (half precision in shader)
-        public Vector4 _GlossyEnvironmentCubeMap_HDR; // Unity.hlsl (half precision in shader)
+        public Vector4 _GlossyEnvironmentColor; // Unity.hlsl
+        public Vector4 _SubtractiveShadowColor; // Unity.hlsl
+        public Vector4 _GlossyEnvironmentCubeMap_HDR; // Unity.hlsl
     }
 
     internal static class GlobalShaderVariablesBaseExtensions
@@ -99,7 +109,11 @@ namespace UnityEngine.Rendering.Universal
             if ((dirty & Dirty._ScreenSize) != 0) cmd.SetGlobalVector(ShaderPropertyId.screenSize, vars._ScreenSize);
             if ((dirty & Dirty._ScreenSizeOverride) != 0) cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, vars._ScreenSizeOverride);
             if ((dirty & Dirty._ScreenCoordScaleBias) != 0) cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, vars._ScreenCoordScaleBias);
+            if ((dirty & Dirty.unity_AmbientSky) != 0) cmd.SetGlobalVector(ShaderPropertyId.ambientSkyColor, vars.unity_AmbientSky);
+            if ((dirty & Dirty.unity_AmbientEquator) != 0) cmd.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, vars.unity_AmbientEquator);
+            if ((dirty & Dirty.unity_AmbientGround) != 0) cmd.SetGlobalVector(ShaderPropertyId.ambientGroundColor, vars.unity_AmbientGround);
             if ((dirty & Dirty._GlobalMipBias) != 0) cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, vars._GlobalMipBias);
+            if ((dirty & Dirty._DitheringTextureInvSize) != 0) cmd.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, vars._DitheringTextureInvSize);
 
             // Environment
             if ((dirty & Dirty._GlossyEnvironmentColor) != 0) cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, vars._GlossyEnvironmentColor);

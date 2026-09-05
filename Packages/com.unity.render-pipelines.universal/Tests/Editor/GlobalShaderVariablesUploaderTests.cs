@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -14,6 +16,29 @@ namespace UnityEditor.Rendering.Universal.Tests
         // Derived from the dirty flags themselves so adding a variable does not break these tests.
         // Only base vars are counted, these tests only ever exercise the base group.
         static int fullPushCount => CountBits((uint)GlobalShaderVariablesDirty.all.varsBase);
+
+        // A scalar goes out as SetGlobalFloat, which records half the bytes of the SetGlobalVector every other base
+        // variable uses, so a full push is not fullPushCount identical commands. Counted off the field types rather
+        // than hardcoded: GlobalShaderVariablesLayoutTests.DirtyFlagsMatchFields keeps them one to one with the flags.
+        static int fullFloatPushCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (var field in typeof(GlobalShaderVariablesBase).GetFields(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    // Padding is never pushed, so it has no command to pay for.
+                    if (field.FieldType == typeof(float) && !field.Name.StartsWith("_URPPadding", StringComparison.Ordinal))
+                        count++;
+                }
+
+                return count;
+            }
+        }
+
+        // Bytes a push of the whole base group records, vector and scalar commands each counted at their own cost.
+        static int CostOfFullPush() =>
+            CostOfPushes(fullPushCount - fullFloatPushCount) + CostOfFloatPushes(fullFloatPushCount);
 
         // System.Numerics.BitOperations is not available here.
         static int CountBits(uint mask)
@@ -65,6 +90,19 @@ namespace UnityEditor.Rendering.Universal.Tests
             int before = probe.sizeInBytes;
             for (int i = 0; i < count; i++)
                 probe.SetGlobalVector(propertyId, Vector4.one);
+
+            return probe.sizeInBytes - before;
+        }
+
+        // Same measurement for the scalars, which the uploader pushes with SetGlobalFloat.
+        static int CostOfFloatPushes(int count)
+        {
+            using var probe = new CommandBuffer();
+            int propertyId = Shader.PropertyToID("_GlobalShaderVariablesUploaderTestsProbe");
+
+            int before = probe.sizeInBytes;
+            for (int i = 0; i < count; i++)
+                probe.SetGlobalFloat(propertyId, 1f);
 
             return probe.sizeInBytes - before;
         }
@@ -142,7 +180,11 @@ namespace UnityEditor.Rendering.Universal.Tests
             uploader._ScreenSize = new Vector4(1920f, 1080f, 1f / 1920f, 1f / 1080f);
             uploader._ScreenSizeOverride = new Vector4(1920f, 1080f, 0f, 0f);
             uploader._ScreenCoordScaleBias = new Vector4(1f, 1f, 0f, 0f);
+            uploader.unity_AmbientSky = new Vector4(0.2f, 0.3f, 0.45f, 1f);
+            uploader.unity_AmbientEquator = new Vector4(0.15f, 0.16f, 0.17f, 1f);
+            uploader.unity_AmbientGround = new Vector4(0.05f, 0.05f, 0.05f, 1f);
             uploader._GlobalMipBias = new Vector2(0f, 1f);
+            uploader._DitheringTextureInvSize = 1f / 64f;
 
             uploader._GlossyEnvironmentColor = new Vector4(0.3f, 0.4f, 0.5f, 1f);
             uploader._SubtractiveShadowColor = new Vector4(0.1f, 0.1f, 0.15f, 1f);
@@ -160,7 +202,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             FillBaseDefaults(uploader);
             uploader.ResetToDefault();
 
-            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
+            Assert.That(Recorded(cmd => uploader.PushGlobal(cmd)), Is.EqualTo(CostOfFullPush()),
                 "ResetToDefault must mark everything the frame uses dirty.");
         }
 
@@ -257,7 +299,7 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             uploader._Time = new Vector4(1f, 2f, 3f, 4f);
 
-            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfPushes(fullPushCount)),
+            Assert.That(Recorded(cmd => uploader.PushDefaultToGlobal(cmd)), Is.EqualTo(CostOfFullPush()),
                 "It runs right after cmd.SetupCameraProperties, which overwrites part of these globals behind our " +
                 "back, so it must not trust staging and has to re-send all of them.");
         }

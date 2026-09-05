@@ -286,6 +286,11 @@ namespace UnityEngine.Rendering.Universal
             vars._ScreenSize = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight);
             vars._ScreenSizeOverride = cameraData.screenSizeOverride;
             vars._ScreenCoordScaleBias = cameraData.screenCoordScaleBias;
+
+            // Ambient gradient. Read here rather than once per frame so a script changing it in beginCameraRendering is still honored.
+            vars.unity_AmbientSky = CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor);
+            vars.unity_AmbientEquator = CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor);
+            vars.unity_AmbientGround = CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor);
             // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
             // TODO(@sandy-carter) set to RTHandles.rtHandleProperties.rtHandleScale once dynamic scaling is set up
             vars._RTHandleScale = Vector4.one;
@@ -312,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
                 mipBias = Math.Min(mipBias, taaMipBias);
             }
             vars._GlobalMipBias = new Vector2(mipBias, Mathf.Pow(2.0f, mipBias));
+            vars._DitheringTextureInvSize = UniversalRenderPipeline.ditheringTextureInvSize;
         }
 
         // Kept outside GlobalShaderVariablesBase: SetViewProjectionMatrices() also recomputes these engine-side (see SetBillboardShaderProps),

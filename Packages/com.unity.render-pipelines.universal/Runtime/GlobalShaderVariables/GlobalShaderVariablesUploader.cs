@@ -482,6 +482,48 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Ambient sky color of the gradient ambient mode.
+        /// </summary>
+        public Vector4 unity_AmbientSky
+        {
+            get => m_StagingVars.varsBase.unity_AmbientSky;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase.unity_AmbientSky = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty.unity_AmbientSky);
+            }
+        }
+
+        /// <summary>
+        /// Ambient equator color of the gradient ambient mode.
+        /// </summary>
+        public Vector4 unity_AmbientEquator
+        {
+            get => m_StagingVars.varsBase.unity_AmbientEquator;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase.unity_AmbientEquator = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty.unity_AmbientEquator);
+            }
+        }
+
+        /// <summary>
+        /// Ambient ground color of the gradient ambient mode.
+        /// </summary>
+        public Vector4 unity_AmbientGround
+        {
+            get => m_StagingVars.varsBase.unity_AmbientGround;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase.unity_AmbientGround = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty.unity_AmbientGround);
+            }
+        }
+
+        /// <summary>
         /// x = Mip Bias
         /// y = 2.0 ^ [Mip Bias]
         /// </summary>
@@ -493,6 +535,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_StagingVars.varsBase._GlobalMipBias = value;
                 MarkBaseDirty(GlobalShaderVariablesBaseDirty._GlobalMipBias);
+            }
+        }
+
+        /// <summary>
+        /// Inverse width of the LOD cross fade dithering texture.
+        /// </summary>
+        public float _DitheringTextureInvSize
+        {
+            get => m_StagingVars.varsBase._DitheringTextureInvSize;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.varsBase._DitheringTextureInvSize = value;
+                MarkBaseDirty(GlobalShaderVariablesBaseDirty._DitheringTextureInvSize);
             }
         }
 
@@ -649,6 +705,50 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_StagingVars.vars3D._FPParams2 = value;
                 Mark3DDirty(GlobalShaderVariablesOnly3DDirty._FPParams2);
+            }
+        }
+
+        /// <summary>
+        /// Non jittered view projection matrix of this camera, for motion vectors. Unread in XR single pass, where the
+        /// shader macros redirect to the Stereo array instead.
+        /// </summary>
+        public Matrix4x4 _NonJitteredViewProjMatrix
+        {
+            get => m_StagingVars.vars3D._NonJitteredViewProjMatrix;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._NonJitteredViewProjMatrix = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._NonJitteredViewProjMatrix);
+            }
+        }
+
+        /// <summary>
+        /// Previous frame non jittered view projection matrix of this camera, for motion vectors. Unread in XR single
+        /// pass, where the shader macros redirect to the Stereo array instead.
+        /// </summary>
+        public Matrix4x4 _PrevViewProjMatrix
+        {
+            get => m_StagingVars.vars3D._PrevViewProjMatrix;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._PrevViewProjMatrix = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._PrevViewProjMatrix);
+            }
+        }
+
+        /// <summary>
+        /// Number of additional lights the shader may read, in x. The arrays it indexes stay loose uniforms.
+        /// </summary>
+        public Vector4 _AdditionalLightsCount
+        {
+            get => m_StagingVars.vars3D._AdditionalLightsCount;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._AdditionalLightsCount = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._AdditionalLightsCount);
             }
         }
 

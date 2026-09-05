@@ -315,26 +315,25 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Set global motion vector matrix GPU constants.
+        // The non jittered matrices of the view being rendered, for the global shader variables fill.
+        internal Matrix4x4 GetViewProjectionNoJitter(XRPass xr) => viewProjectionStereo[GetXRMultiPassId(xr)];
+        internal Matrix4x4 GetPreviousViewProjectionNoJitter(XRPass xr) => previousViewProjectionStereo[GetXRMultiPassId(xr)];
+
+        // Set global motion vector matrix GPU constants. XR single pass only: outside it, the two matrices go through
+        // the global shader variables uploader instead, filled at record time from the getters above.
         public void SetGlobalMotionMatrices(RasterCommandBuffer cmd, XRPass xr)
         {
-            var passID = GetXRMultiPassId(xr);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                var viewStartIndex = xr.viewCount * passID;
+                var viewStartIndex = xr.viewCount * GetXRMultiPassId(xr);
 
                 Array.Copy(previousViewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
                 cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, m_stagingMatrixArray);
                 Array.Copy(viewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
                 cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, m_stagingMatrixArray);
             }
-            else
 #endif
-            {
-                cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, previousViewProjectionStereo[passID]);
-                cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, viewProjectionStereo[passID]);
-            }
         }
     }
 }

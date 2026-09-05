@@ -787,6 +787,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             vars._EnableProbeVolumes = ProbeReferenceVolume.instance.DataHasBeenLoaded() ? 1u : 0u;
 
+            // Additional Lights. Only the count lives here, the arrays still go out at execute time.
+            vars._AdditionalLightsCount = lightData.additionalLightsCount > 0
+                ? new Vector4(lightData.maxPerObjectAdditionalLightsCount, 0.0f, 0.0f, 0.0f)
+                : Vector4.zero;
+
             // Forward+ Parameters, cached by PreSetup.
             if (m_UseForwardPlus)
             {
@@ -825,6 +830,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             uint validRenderingLayers = supportsLightLayers ? RenderingLayerUtils.GetValidRenderingLayersMask() : uint.MaxValue;
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = m_MaxVisibleAdditionalLights;
+
             int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData, reuseCullingResult);
             if (additionalLightsCount > 0)
             {
@@ -921,12 +927,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (supportsLightLayers)
                         cmd.SetGlobalFloatArray(LightShaderPropertyId._AdditionalLightsLayerMasks, m_AdditionalLightsLayerMasks);
                 }
-
-                cmd.SetGlobalVector(LightShaderPropertyId._AdditionalLightsCount, new Vector4(lightData.maxPerObjectAdditionalLightsCount, 0.0f, 0.0f, 0.0f));
-            }
-            else
-            {
-                cmd.SetGlobalVector(LightShaderPropertyId._AdditionalLightsCount, Vector4.zero);
             }
         }
 
