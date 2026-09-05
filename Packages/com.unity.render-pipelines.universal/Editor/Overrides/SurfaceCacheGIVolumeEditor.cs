@@ -8,15 +8,18 @@ namespace UnityEditor.Rendering.Universal
     {
         protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
         private bool m_QualityDirty = true;
+
         protected SerializedDataParameter m_Enabled;
         protected SerializedDataParameter m_Intensity;
+
         protected SerializedDataParameter m_LightTransportMultiBounce;
         protected SerializedDataParameter m_LightTransportBouncePatchAllocation;
-        protected SerializedDataParameter m_VolumeDistanceFallback;
         protected SerializedDataParameter m_LightTransportSampleCount;
+        protected SerializedDataParameter m_LightTransportDefragCount;
+        protected SerializedDataParameter m_LightTransportRenderingLayerMask;
 
         protected SerializedDataParameter m_PatchFilteringTemporalSmoothing;
-        protected SerializedDataParameter m_PatchFilteringSpatialFilterEnabled;
+        protected SerializedDataParameter m_PatchFilteringSpatialEnabled;
         protected SerializedDataParameter m_PatchFilteringSpatialSampleCount;
         protected SerializedDataParameter m_PatchFilteringSpatialRadius;
         protected SerializedDataParameter m_PatchFilteringPostTemporalEnabled;
@@ -27,10 +30,8 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_VolumeSize;
         protected SerializedDataParameter m_VolumeResolution;
         protected SerializedDataParameter m_VolumeCascadeCount;
-        protected SerializedDataParameter m_AdvancedPatchWarpingEnabled;
-
-        protected SerializedDataParameter m_AdvancedDefragCount;
-        protected SerializedDataParameter m_AdvancedRenderingLayerMask;
+        protected SerializedDataParameter m_VolumeDistanceFallback;
+        protected SerializedDataParameter m_VolumePatchWarpingEnabled;
 
         // The Focus Target is serialized on the owning Volume's GameObject (Volume.m_SceneObjectReference), not in
         // the profile, so it is edited through this SerializedObject rather than a SerializedDataParameter.
@@ -49,10 +50,10 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
         static GUIContent s_LightTransportSampleCount = L10n.TextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.", null, null);
         static GUIContent s_PatchFilteringTemporalSmoothing = L10n.TextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.", null, null);
-        static GUIContent s_PatchFilteringSpatialFilterEnabled = L10n.TextContent("Spatial Filter", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
+        static GUIContent s_PatchFilteringSpatialEnabled = L10n.TextContent("Spatial Filtering", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
         static GUIContent s_PatchFilteringSpatialSampleCount = L10n.TextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.", null, null);
         static GUIContent s_PatchFilteringSpatialRadius = L10n.TextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.", null, null);
-        static GUIContent s_PatchFilteringPostTemporalEnabled = L10n.TextContent("Temporal Post Filter", "Enable temporal post-filtering for additional stability.", null, null);
+        static GUIContent s_PatchFilteringPostTemporalEnabled = L10n.TextContent("Temporal Post Filtering", "Enable temporal post-filtering for additional stability.", null, null);
         static GUIContent s_ScreenFilteringLookupSampleCount = L10n.TextContent("Lookup Sample Count", "Number of samples for screen-space lookups.", null, null);
         static GUIContent s_ScreenFilteringDenoisingPassCount = L10n.TextContent("Denoising Pass Count", "Number of denoising passes. More passes reduce noise at a performance cost.", null, null);
         static GUIContent s_VolumeSize = L10n.TextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.", null, null);
@@ -83,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeDistanceFallback = Unpack(o.Find(obj => obj.volumeDistanceFallback));
             m_LightTransportSampleCount = Unpack(o.Find(obj => obj.lightTransportSampleCount));
             m_PatchFilteringTemporalSmoothing = Unpack(o.Find(obj => obj.patchFilteringTemporalSmoothing));
-            m_PatchFilteringSpatialFilterEnabled = Unpack(o.Find(obj => obj.patchFilteringSpatialFilterEnabled));
+            m_PatchFilteringSpatialEnabled = Unpack(o.Find(obj => obj.patchFilteringSpatialEnabled));
             m_PatchFilteringSpatialSampleCount = Unpack(o.Find(obj => obj.patchFilteringSpatialSampleCount));
             m_PatchFilteringSpatialRadius = Unpack(o.Find(obj => obj.patchFilteringSpatialRadius));
             m_PatchFilteringPostTemporalEnabled = Unpack(o.Find(obj => obj.patchFilteringPostTemporalEnabled));
@@ -92,9 +93,9 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
             m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
-            m_AdvancedPatchWarpingEnabled = Unpack(o.Find(obj => obj.advancedPatchWarpingEnabled));
-            m_AdvancedDefragCount = Unpack(o.Find(obj => obj.advancedDefragCount));
-            m_AdvancedRenderingLayerMask = Unpack(o.Find(obj => obj.advancedRenderingLayerMask));
+            m_VolumePatchWarpingEnabled = Unpack(o.Find(obj => obj.volumePatchWarpingEnabled));
+            m_LightTransportDefragCount = Unpack(o.Find(obj => obj.lightTransportDefragCount));
+            m_LightTransportRenderingLayerMask = Unpack(o.Find(obj => obj.lightTransportRenderingLayerMask));
 
             // Re-detect preset when property changed
             ((SurfaceCacheGIVolumeOverride)target).propertyChanged += MarkQualityDirty;
@@ -114,7 +115,9 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             PropertyField(m_Enabled, s_State);
-            PropertyField(m_Intensity, s_Intensity);
+
+            if (showAdditionalProperties)
+                PropertyField(m_Intensity, s_Intensity);
 
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
@@ -135,18 +138,34 @@ namespace UnityEditor.Rendering.Universal
                 m_QualityDirty = false;
             }
 
+            // Volume Configuration section
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_VolumeHeader, EditorStyles.boldLabel);
+            PropertyField(m_VolumeSize, s_VolumeSize);
+            PropertyField(m_VolumeResolution, s_VolumeResolution);
+            PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
+            DrawFocusTarget();
+            PropertyField(m_VolumeDistanceFallback, s_VolumeDistanceFallback);
+            if (showAdditionalProperties)
+                PropertyField(m_VolumePatchWarpingEnabled, s_PatchWarping);
+
             // Light Transport section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_LightTransportHeader, EditorStyles.boldLabel);
             PropertyField(m_LightTransportMultiBounce, s_LightTransportMultiBounce);
-            PropertyField(m_LightTransportBouncePatchAllocation, s_LightTransportBouncePatchAllocation);
             PropertyField(m_LightTransportSampleCount, s_LightTransportSampleCount);
+            PropertyField(m_LightTransportBouncePatchAllocation, s_LightTransportBouncePatchAllocation);
+            if (showAdditionalProperties)
+            {
+                PropertyField(m_LightTransportRenderingLayerMask, s_RenderingLayerMask);
+                PropertyField(m_LightTransportDefragCount, s_DefragCount);
+            }
 
             // Patch Filtering section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_PatchFilteringHeader, EditorStyles.boldLabel);
             PropertyField(m_PatchFilteringTemporalSmoothing, s_PatchFilteringTemporalSmoothing);
-            PropertyField(m_PatchFilteringSpatialFilterEnabled, s_PatchFilteringSpatialFilterEnabled);
+            PropertyField(m_PatchFilteringSpatialEnabled, s_PatchFilteringSpatialEnabled);
             using (new IndentLevelScope())
             {
                 PropertyField(m_PatchFilteringSpatialSampleCount, s_PatchFilteringSpatialSampleCount);
@@ -159,24 +178,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.LabelField(s_ScreenFilteringHeader, EditorStyles.boldLabel);
             PropertyField(m_ScreenFilteringLookupSampleCount, s_ScreenFilteringLookupSampleCount);
             PropertyField(m_ScreenFilteringDenoisingPassCount, s_ScreenFilteringDenoisingPassCount);
-
-            // Volume Configuration section
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeHeader, EditorStyles.boldLabel);
-            PropertyField(m_VolumeSize, s_VolumeSize);
-            PropertyField(m_VolumeResolution, s_VolumeResolution);
-            PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
-            DrawFocusTarget();
-            PropertyField(m_VolumeDistanceFallback, s_VolumeDistanceFallback);
-
-            if (showAdditionalProperties)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
-                PropertyField(m_AdvancedRenderingLayerMask, s_RenderingLayerMask);
-                PropertyField(m_AdvancedDefragCount, s_DefragCount);
-                PropertyField(m_AdvancedPatchWarpingEnabled, s_PatchWarping);
-            }
         }
 
         // Focus Target is bound to the owning Volume's GameObject instead of the shared profile. When editing

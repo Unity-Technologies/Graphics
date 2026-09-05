@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
                     TemporalSmoothing = volumeOverride.patchFilteringTemporalSmoothing.value,
-                    SpatialFilterEnabled = volumeOverride.patchFilteringSpatialFilterEnabled.value,
+                    SpatialFilterEnabled = volumeOverride.patchFilteringSpatialEnabled.value,
                     SpatialFilterSampleCount = (uint)volumeOverride.patchFilteringSpatialSampleCount.value,
                     SpatialFilterRadius = volumeOverride.patchFilteringSpatialRadius.value,
                     TemporalPostFilterEnabled = volumeOverride.patchFilteringPostTemporalEnabled.value
@@ -181,9 +181,9 @@ namespace UnityEngine.Rendering.Universal
                 VolumeSize = volumeOverride.volumeSize.value,
                 VolumeResolution = (uint)volumeOverride.volumeResolution.value,
                 VolumeCascadeCount = (uint)volumeOverride.volumeCascadeCount.value,
-                DefragCount = (uint)volumeOverride.advancedDefragCount.value,
-                RenderingLayerMask = volumeOverride.advancedRenderingLayerMask.value,
-                PatchWarpingEnabled = volumeOverride.advancedPatchWarpingEnabled.value
+                DefragCount = (uint)volumeOverride.lightTransportDefragCount.value,
+                RenderingLayerMask = volumeOverride.lightTransportRenderingLayerMask.value,
+                PatchWarpingEnabled = volumeOverride.volumePatchWarpingEnabled.value
             };
         }
 
