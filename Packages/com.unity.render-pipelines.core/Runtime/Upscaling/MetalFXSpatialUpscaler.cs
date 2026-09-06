@@ -16,11 +16,11 @@ namespace UnityEngine.Rendering.MetalFX
     static class RegisterMetalFXSpatial
     {
         static RegisterMetalFXSpatial()
-            => UpscalerRegistry.Register<MetalFXSpatialUpscaler, MetalFXSpatialOptions>(MetalFXSpatialUpscaler.upscalerName);
+            => UpscalerRegistry.Register<MetalFXSpatialUpscaler, MetalFXSpatialOptions>(MetalFXSpatialUpscaler.registeredId, MetalFXSpatialUpscaler.registeredName);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void InitRuntime()
-            => UpscalerRegistry.Register<MetalFXSpatialUpscaler, MetalFXSpatialOptions>(MetalFXSpatialUpscaler.upscalerName);
+            => UpscalerRegistry.Register<MetalFXSpatialUpscaler, MetalFXSpatialOptions>(MetalFXSpatialUpscaler.registeredId, MetalFXSpatialUpscaler.registeredName);
     }
 
     /// <summary>
@@ -92,15 +92,21 @@ namespace UnityEngine.Rendering.MetalFX
         protected override bool ValidateOptions(MetalFXSpatialOptions options) => true;
     }
 
+#if UNITY_EDITOR
+    [UpscalerSupportedBuildTarget(BuildTarget.StandaloneOSX, BuildTarget.iOS, BuildTarget.tvOS, BuildTarget.VisionOS, graphicsDeviceTypes = new[] { GraphicsDeviceType.Metal })]
+#endif
     public class MetalFXSpatialUpscaler : AbstractUpscaler
     {
-        public static readonly string upscalerName = "MetalFX Spatial";
+        public static readonly string registeredId = "apple.metalfx-spatial";
+        public static readonly string registeredName = "MetalFX Spatial";
 
         static readonly ProfilingSampler k_MetalFXSpatial = ProfilingSampler.Create("MetalFXSpatial", MarkerFlags.Default);
 
-        public override string name => upscalerName;
+        public override string upscalerId => registeredId;
+        public override string name => registeredName;
         public override bool isTemporal => false;
         public override bool supportsSharpening => false;
+        public override bool isSupportedOnDevice => Supported;
 
         // MetalFX Spatial is a single-frame upscaler with no temporal reprojection, so it reports zero jitter.
         public override void CalculateJitter(int frameIndex, float upscaleRatio, out Vector2 jitter, out bool allowScaling)

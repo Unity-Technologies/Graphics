@@ -48,7 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 UnityEngine.Debug.LogError($"[HDRP Serialized Asset] Could not find 'UpscalerOptions' property in DynamicResolutionSettings for {asset.name}.");
                 return;
             }
-            if (UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, UpscalerOptionBaseProp))
+            var advancedUpscalers = asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+            if (UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, UpscalerOptionBaseProp, advancedUpscalers))
             {
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(asset);

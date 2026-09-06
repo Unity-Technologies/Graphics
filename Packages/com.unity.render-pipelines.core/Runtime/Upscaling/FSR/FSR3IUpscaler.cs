@@ -18,10 +18,10 @@ using UnityEditor;
 #endif
 static class RegisterFSR3
 {
-    static RegisterFSR3() => UpscalerRegistry.Register<FSR3IUpscaler, FSR3Options>(FSR3IUpscaler.upscalerName);
+    static RegisterFSR3() => UpscalerRegistry.Register<FSR3IUpscaler, FSR3Options>(FSR3IUpscaler.registeredId, FSR3IUpscaler.registeredName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<FSR3IUpscaler, FSR3Options>(FSR3IUpscaler.upscalerName);
+    static void InitRuntime() => UpscalerRegistry.Register<FSR3IUpscaler, FSR3Options>(FSR3IUpscaler.registeredId, FSR3IUpscaler.registeredName);
 }
 
 /// <summary>
@@ -100,9 +100,13 @@ public class FSR3UpscalerContext : PluginUpscalerContext<FSRUpscalerContext, FSR
 /// <summary>
 /// FidelityFX Super Resolution 3 upscaler implementation.
 /// </summary>
+#if UNITY_EDITOR
+[UpscalerSupportedBuildTarget(BuildTarget.StandaloneWindows, graphicsDeviceTypes = new[] { GraphicsDeviceType.Direct3D12 })]
+#endif
 public class FSR3IUpscaler : AbstractUpscaler
 {
-    public static readonly string upscalerName = "FidelityFX Super Resolution 3";
+    public static readonly string registeredId = "amd.fsr3";
+    public static readonly string registeredName = "FidelityFX Super Resolution 3";
 
 #region FSR3_UTILITIES
     private static bool CheckFeatureAvailable()
@@ -144,7 +148,9 @@ public class FSR3IUpscaler : AbstractUpscaler
             () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR3Quality.Quality));
     }
 
-    public override string name => upscalerName;
+    public override string upscalerId => registeredId;
+    public override string name => registeredName;
+    public override bool isSupportedOnDevice => m_Ready;
     public override bool isTemporal => true;
     public override bool supportsSharpening => true;
     public override bool hasQualityMode => true;

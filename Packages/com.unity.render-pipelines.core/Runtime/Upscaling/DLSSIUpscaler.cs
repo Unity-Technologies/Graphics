@@ -18,10 +18,10 @@ using UnityEditor;
 #endif
 static class RegisterDLSS
 {
-    static RegisterDLSS() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.upscalerName);
+    static RegisterDLSS() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.registeredId, DLSSIUpscaler.registeredName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.upscalerName);
+    static void InitRuntime() => UpscalerRegistry.Register<DLSSIUpscaler, DLSSOptions>(DLSSIUpscaler.registeredId, DLSSIUpscaler.registeredName);
 }
 
 /// <summary>
@@ -83,9 +83,13 @@ public class DLSSUpscalerContext : PluginUpscalerContext<DLSSContext, DLSSOption
     }
 }
 
+#if UNITY_EDITOR
+[UpscalerSupportedBuildTarget(BuildTarget.StandaloneWindows, graphicsDeviceTypes = new[] { GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan })]
+#endif
 public class DLSSIUpscaler : AbstractUpscaler
 {
-    public static readonly string upscalerName = "Deep Learning Super Sampling 4";
+    public static readonly string registeredId = "nvidia.dlss4";
+    public static readonly string registeredName = "Deep Learning Super Sampling 4";
 
 #region DLSS_UTILITIES
     static bool CheckDLSSFeatureAvailable()
@@ -144,7 +148,9 @@ public class DLSSIUpscaler : AbstractUpscaler
         m_DLSSReady = CheckDLSSFeatureAvailable();
     }
 
-    public override string name => upscalerName;
+    public override string upscalerId => registeredId;
+    public override string name => registeredName;
+    public override bool isSupportedOnDevice => m_DLSSReady;
     public override bool isTemporal => true;
     public override bool supportsSharpening => false;
     public override bool hasQualityMode => true;

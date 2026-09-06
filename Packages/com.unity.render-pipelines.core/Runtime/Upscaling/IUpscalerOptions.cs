@@ -18,12 +18,12 @@ namespace UnityEngine.Rendering
     public class UpscalerOptions : ScriptableObject
     {
         /// <summary>
-        /// The unique identifier or display name of the upscaler associated with these options.
+        /// The ID of the upscaler associated with these options.
         /// </summary>
-        public string upscalerName
+        public string upscalerId
         {
-            get => m_UpscalerName;
-            set => m_UpscalerName = value;
+            get => m_UpscalerId;
+            set => m_UpscalerId = value;
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering
         public float reactiveMaskBinaryValue => m_ReactiveMaskBinaryValue;
 
         [SerializeField, HideInInspector]
-        private string m_UpscalerName = "";
+        private string m_UpscalerId = "";
 
         [SerializeField, HideInInspector] // hide in inspector for URP, HDRP manually renders it
         private UpsamplerScheduleType m_InjectionPoint = UpsamplerScheduleType.BeforePost;
@@ -115,12 +115,14 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
         /// <summary>
         /// Validates and auto-populates the upscaler options list within a Render Pipeline Asset.
-        /// It ensures that for every registered upscaler, a corresponding Options sub-asset exists.
+        /// It ensures that the selected upscalers, and only those, have a corresponding Options sub-asset.
         /// </summary>
         /// <param name="parentRPAsset">The Render Pipeline Asset that will contain these options as sub-assets.</param>
         /// <param name="optionsListProp">The SerializedProperty representing the list/array of UpscalerOptions.</param>
+        /// <param name="upscalerIds">IDs of the upscalers the asset selects. Entries that name no registered upscaler,
+        /// or one without an options type, are ignored.</param>
         /// <returns>True if the property was modified (cleaned up or populated), false otherwise.</returns>
-        public static bool ValidateSerializedUpscalerOptionReferencesWithinRPAsset(ScriptableObject parentRPAsset, SerializedProperty optionsListProp)
+        public static bool ValidateSerializedUpscalerOptionReferencesWithinRPAsset(ScriptableObject parentRPAsset, SerializedProperty optionsListProp, IReadOnlyList<string>? upscalerIds)
         {
             if (parentRPAsset == null)
             {
@@ -138,6 +140,17 @@ namespace UnityEngine.Rendering
             // Track valid objects to identify orphans later
             HashSet<Object> validReferencedObjects = new HashSet<Object>();
             HashSet<Type> typesInList = new HashSet<Type>();
+
+            // The options the asset should hold, which is one per selected upscaler that declares an options type.
+            HashSet<Type> requiredOptionsTypes = new HashSet<Type>();
+            if (upscalerIds != null)
+            {
+                foreach (string upscalerId in upscalerIds)
+                {
+                    if (UpscalerRegistry.s_RegisteredUpscalers.TryGetValue(upscalerId, out var registered) && registered.OptionsType != null)
+                        requiredOptionsTypes.Add(registered.OptionsType);
+                }
+            }
 
             // =================================================================================
             // PASS 1: Clean up the Serialized List (Nulls & Duplicate Types)
@@ -161,10 +174,16 @@ namespace UnityEngine.Rendering
                     continue;
                 }
 
-                // 2. Check for Duplicate Types within the active list
-                // (e.g., The list somehow has two FSR2Options. We keep the first, remove the rest).
                 Type objType = objRef.GetType();
-                if (typesInList.Contains(objType))
+
+                // 2. Drop options whose upscaler is no longer selected, leaving Pass 2 to destroy the sub-asset.
+                if (!requiredOptionsTypes.Contains(objType))
+                {
+                    optionsListProp.DeleteArrayElementAtIndex(i);
+                    propertyModified = true;
+                }
+                // 3. Check for Duplicate Types within the active list
+                else if (typesInList.Contains(objType))
                 {
                     optionsListProp.DeleteArrayElementAtIndex(i);
                     propertyModified = true;
@@ -203,12 +222,8 @@ namespace UnityEngine.Rendering
 
             if (assetsToDestroy.Count > 0)
             {
-                Debug.Log($"[RP Asset] Found {assetsToDestroy.Count} orphaned/duplicate sub-assets in '{parentRPAsset.name}'. Cleaning up...");
-
                 foreach (Object orphan in assetsToDestroy)
                 {
-                    Debug.Log($"[RP Asset] Destroying orphan: {orphan.name} ({orphan.GetType().Name})");
-
                     // Crucial: Object.DestroyImmediate with 'true' allows destroying assets in the Editor.
                     // This removes the YAML block entirely.
                     Object.DestroyImmediate(orphan, true);
@@ -220,25 +235,23 @@ namespace UnityEngine.Rendering
             // =================================================================================
             // PASS 3: Populate Missing Required Options
             // =================================================================================
-            foreach (var kvp in UpscalerRegistry.s_RegisteredUpscalers)
+            if (upscalerIds != null)
             {
-                Type upscalerType = kvp.Key;
-                Type? optionsType = kvp.Value.OptionsType;
-
-                if (optionsType == null)
-                    continue;
-
-                string upscalerName = kvp.Value.ID;
-
-                // Check if we already have this type in our tracked types from Pass 1
-                bool foundExisting = typesInList.Contains(optionsType);
-
-                if (!foundExisting)
+                foreach (string upscalerId in upscalerIds)
                 {
+                    if (!UpscalerRegistry.s_RegisteredUpscalers.TryGetValue(upscalerId, out var registered))
+                        continue;
+
+                    Type? optionsType = registered.OptionsType;
+
+                    // Nothing to create for an upscaler without options, or one the list already covers.
+                    if (optionsType == null || typesInList.Contains(optionsType))
+                        continue;
+
                     UpscalerOptions newOption = (UpscalerOptions)ScriptableObject.CreateInstance(optionsType);
                     newOption.hideFlags = HideFlags.HideInHierarchy; // Standard for embedded sub-assets
                     newOption.name = optionsType.Name; // Give it a clean name in the file
-                    newOption.upscalerName = upscalerName;
+                    newOption.upscalerId = upscalerId;
 
                     // Add the physical object to the main asset file
                     AssetDatabase.AddObjectToAsset(newOption, parentRPAsset);
@@ -247,8 +260,8 @@ namespace UnityEngine.Rendering
                     optionsListProp.arraySize++;
                     optionsListProp.GetArrayElementAtIndex(optionsListProp.arraySize - 1).objectReferenceValue = newOption;
 
+                    typesInList.Add(optionsType);
                     propertyModified = true;
-                    Debug.Log($"[RP Asset] Created missing upscaler option on asset '{parentRPAsset.name}': {optionsType.Name} for ID: {upscalerName}");
                 }
             }
 

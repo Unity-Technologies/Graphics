@@ -19,10 +19,10 @@ using UnityEditor;
 #endif
 static class RegisterFSR2
 {
-    static RegisterFSR2() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.upscalerName);
+    static RegisterFSR2() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.registeredId, FSR2IUpscaler.registeredName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.upscalerName);
+    static void InitRuntime() => UpscalerRegistry.Register<FSR2IUpscaler, FSR2Options>(FSR2IUpscaler.registeredId, FSR2IUpscaler.registeredName);
 }
 
 /// <summary>
@@ -99,9 +99,13 @@ public class FSR2UpscalerContext : PluginUpscalerContext<FSR2Context, FSR2Option
     }
 }
 
+#if UNITY_EDITOR
+[UpscalerSupportedBuildTarget(BuildTarget.StandaloneWindows, graphicsDeviceTypes = new[] { GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan })]
+#endif
 public class FSR2IUpscaler : AbstractUpscaler
 {
-    public static readonly string upscalerName = "FidelityFX Super Resolution 2";
+    public static readonly string registeredId = "amd.fsr2";
+    public static readonly string registeredName = "FidelityFX Super Resolution 2";
 
 #region FSR2_UTILITIES
     static bool CheckFSR2FeatureAvailable()
@@ -150,7 +154,9 @@ public class FSR2IUpscaler : AbstractUpscaler
             () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR2Quality.Quality));
     }
 
-    public override string name => upscalerName;
+    public override string upscalerId => registeredId;
+    public override string name => registeredName;
+    public override bool isSupportedOnDevice => m_FSR2Ready;
     public override bool isTemporal => true;
     public override bool supportsSharpening => true;
     public override bool hasQualityMode => true;

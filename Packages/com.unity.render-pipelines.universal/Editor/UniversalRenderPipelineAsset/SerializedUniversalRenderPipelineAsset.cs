@@ -20,8 +20,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
 #if ENABLE_UPSCALER_FRAMEWORK
-        public SerializedProperty selectedUpscalerName { get; }
-
+        public SerializedProperty scalingMode { get; }
+        public SerializedProperty upscalerPriority { get; }
         public SerializedProperty upscalerOptions { get; }
 #endif
         public SerializedProperty fsrOverrideSharpness { get; }
@@ -121,7 +121,8 @@ namespace UnityEditor.Rendering.Universal
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
 #if ENABLE_UPSCALER_FRAMEWORK
-            selectedUpscalerName = serializedObject.FindProperty("m_SelectedUpscalerName");
+            scalingMode = serializedObject.FindProperty("m_ScalingMode");
+            upscalerPriority = serializedObject.FindProperty("m_UpscalerPriority");
             upscalerOptions = serializedObject.FindProperty("m_UpscalerOptions");
 #endif
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
@@ -199,17 +200,24 @@ namespace UnityEditor.Rendering.Universal
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 #endif
 #if ENABLE_UPSCALER_FRAMEWORK
-            bool referenceModified = UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, upscalerOptions);
-            if (referenceModified)
-            {
-                serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(asset);
-            }
+            UpdateUpscalerOptions();
 #endif
 
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
+
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal void UpdateUpscalerOptions()
+        {
+            if (!UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, upscalerOptions, asset.GetUpscalerPriorityIds()))
+                return;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(asset);
+        }
+#endif
 
         /// <summary>
         /// Refreshes the serialized object

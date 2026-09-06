@@ -696,7 +696,7 @@ namespace UnityEditor.Rendering.Universal
                 urpAssetShaderFeatures |= ShaderFeatures.AlphaOutput;
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            if (urpAsset.upscalerName == UniversalRenderPipeline.k_UpscalerName_Point)
+            if (urpAsset.IsUpscalerUsed(UniversalRenderPipeline.k_UpscalerId_Point))
 #else
             if (urpAsset.upscalingFilter == UpscalingFilterSelection.Point)
 #endif

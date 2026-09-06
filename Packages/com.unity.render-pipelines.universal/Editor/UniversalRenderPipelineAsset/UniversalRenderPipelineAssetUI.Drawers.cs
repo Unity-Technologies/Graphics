@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEditor.Inspector.GraphicsSettingsInspectors;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -310,75 +311,6 @@ namespace UnityEditor.Rendering.Universal
                 p => p.intValue != (int)MsaaQuality.Disabled && AnyTileOnlyDeferredRenderer(serialized),
                 Styles.msaaText, MessageType.Warning, Styles.msaaTileOnlyDeferredWarning);
 
-#if ENABLE_UPSCALER_FRAMEWORK
-            // A quality-mode upscaler dictates the render resolution, so Render Scale is ignored for it.
-            bool renderScaleDrivenByUpscaler = SelectedUpscalerDictatesResolution(serialized);
-#else
-            const bool renderScaleDrivenByUpscaler = false;
-#endif
-            using (new EditorGUI.DisabledScope(renderScaleDrivenByUpscaler))
-            using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
-            {
-                EditorGUI.BeginChangeCheck();
-                float newRenderScale = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderScale.floatValue = newRenderScale;
-            }
-#if ENABLE_UPSCALER_FRAMEWORK
-            if (renderScaleDrivenByUpscaler)
-            {
-                // Quality mode dictates the render resolution; Render Scale is ignored (the upscaler still runs).
-                EditorGUILayout.HelpBox(Styles.renderScaleQualityModeInfo, MessageType.Info, true);
-            }
-            else if (serialized.renderScale.floatValue > 1.0f)
-            {
-                // Above 1.0 the image is rendered larger than the display and downsampled (supersampling), so no
-                // upscaler runs — show this regardless of the selected upscaler/filter.
-                EditorGUILayout.HelpBox(Styles.renderScaleSupersamplingInfo, MessageType.Info, true);
-            }
-            else if (TryGetCustomScalingClampInfo(serialized, out float upscalerMinScale, out float upscalerMaxScale, out bool upscalerPinsResolution, out bool upscalerHardRange))
-            {
-                float renderScale = serialized.renderScale.floatValue;
-                if (upscalerPinsResolution)
-                    EditorGUILayout.HelpBox(Styles.renderScaleUpscalerNoRangeInfo, MessageType.Info, true);
-                else if (renderScale < upscalerMinScale || renderScale > upscalerMaxScale)
-                {
-                    if (upscalerHardRange) // enforced limits → warn that it will be clamped at runtime
-                        EditorGUILayout.HelpBox(string.Format(Styles.renderScaleUpscalerClampWarning, upscalerMinScale, upscalerMaxScale), MessageType.Warning, true);
-                    else // advisory floor → info that quality degrades, no clamp
-                        EditorGUILayout.HelpBox(string.Format(Styles.renderScaleUpscalerRecommendedInfo, upscalerMinScale), MessageType.Info, true);
-                }
-            }
-#endif
-            DisplayTileOnlyHelpBox(
-                serialized.renderScale,
-                p =>
-                {
-                    // Usual threshold is 0.05f, but display warning to users even when RenderScale not actually applied since users are not aware of threshold
-                    bool userAttemptingRenderScale = !Mathf.Approximately(p.floatValue, 1.0f);
-                    if (!userAttemptingRenderScale)
-                        return false;
-
-                    // This operation is actually ok on Quest
-                    return !IsAndroidXRTargetted();
-                },
-                Styles.renderScaleText);
-
-            DrawUpscalingFilterDropdownAndOptions(serialized, ownerEditor);
-
-#if ENABLE_UPSCALER_FRAMEWORK
-            bool stpUpscalingSelected = serialized.asset.upscalerName == UniversalRenderPipeline.k_UpscalerName_STP;
-            bool fsr1UpscalingSelected = serialized.asset.upscalerName == UniversalRenderPipeline.k_UpscalerName_FSR1;
-#else
-            bool stpUpscalingSelected = serialized.asset.upscalingFilter == UpscalingFilterSelection.STP;
-            bool fsr1UpscalingSelected = serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR;
-#endif
-
-            if (serialized.renderScale.floatValue < 1.0f || stpUpscalingSelected || fsr1UpscalingSelected)
-            {
-                EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass when upscaling is applied.", MessageType.Warning, true);
-            }
-
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
@@ -392,94 +324,103 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUI.EndDisabledGroup();
+
+            float minRenderScale = UniversalRenderPipeline.minRenderScale;
+            float maxRenderScale = UniversalRenderPipeline.maxRenderScale;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            EditorGUILayout.PropertyField(serialized.scalingMode, Styles.scalingModeText);
+
+            // The mode decides which side of native resolution is reachable, so Render Scale can't contradict it.
+            var scalingMode = (ScalingMode)serialized.scalingMode.enumValueIndex;
+            minRenderScale = scalingMode == ScalingMode.Upscaling ? UniversalRenderPipeline.minRenderScale : 1.0f;
+            maxRenderScale = scalingMode == ScalingMode.Supersampling ? UniversalRenderPipeline.maxRenderScale : 1.0f;
+            serialized.renderScale.floatValue = Mathf.Clamp(serialized.renderScale.floatValue, minRenderScale, maxRenderScale);
+
+            // When None, renderScale is fixed at 1.0.
+            if (scalingMode != ScalingMode.None)
+            {
+#endif
+            using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float newRenderScale = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, minRenderScale, maxRenderScale);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderScale.floatValue = newRenderScale;
+            }
+
+            DisplayTileOnlyHelpBox(
+                serialized.renderScale,
+                p =>
+                {
+                    // Usual threshold is 0.05f, but display warning to users even when RenderScale not actually applied since users are not aware of threshold
+                    bool userAttemptingRenderScale = !Mathf.Approximately(p.floatValue, 1.0f);
+                    if (!userAttemptingRenderScale)
+                        return false;
+
+                    // This operation is actually ok on Quest
+                    return !IsAndroidXRTargetted();
+                },
+                Styles.renderScaleText);
+#if ENABLE_UPSCALER_FRAMEWORK
+            }
+
+            // The priority list only has meaning while upscaling, so it stays hidden in the other modes.
+            if (scalingMode == ScalingMode.Upscaling)
+            {
+                if (serialized.upscalerPriority.arraySize == 0)
+                    EditorGUILayout.HelpBox(Styles.upscalingNoUpscalersWarning, MessageType.Warning, true);
+
+                DrawUpscalerListAndOptions(serialized, ownerEditor);
+            }
+#else
+            DrawUpscalerListAndOptions(serialized, ownerEditor);
+#endif
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool upscalingSelected = scalingMode == ScalingMode.Upscaling;
+#else
+            bool upscalingSelected = serialized.renderScale.floatValue < 1.0f
+                || serialized.asset.upscalingFilter == UpscalingFilterSelection.STP
+                || serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR;
+#endif
+
+            if (upscalingSelected)
+            {
+                EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass when upscaling is applied.", MessageType.Warning, true);
+            }
         }
 
-        static void DrawUpscalingFilterDropdownAndOptions(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        static void DrawUpscalerListAndOptions(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
 #if ENABLE_UPSCALER_FRAMEWORK
-            // --- 1. Get the available upscaler names ---
-            string[] namesArray = null;
-            if (UniversalRenderPipeline.upscaling != null)
-            {
-                // names come in sorted defined by UniversalRenderPipeline.k_UpscalerSortOrder
-                namesArray = UniversalRenderPipeline.upscaling.upscalerNames as string[];
-            }
-            else
-            {
-                namesArray = Array.Empty<string>();
-            }
+            UniversalRenderPipelineAssetEditor urpEditor = ownerEditor as UniversalRenderPipelineAssetEditor;
+            ReorderableList priorityList = urpEditor?.upscalerPriorityList;
+            if (priorityList == null)
+                return;
 
-            // --- 2. Get selected index or fall-back to a safe default ---
-            string currentName = serialized.selectedUpscalerName.stringValue;
-            int selectedIndex = Array.IndexOf(namesArray, currentName);
-            if (selectedIndex == -1)
+            SerializedProperty upscalerPriority = serialized.upscalerPriority;
+
+            // Editing upscaler priority for multiple assets at once isn't permitted.
+            if (upscalerPriority.hasMultipleDifferentValues)
             {
-                selectedIndex = 0; // Default to "Automatic" or "Bilinear"
+                EditorGUILayout.HelpBox(Styles.upscalerPriorityMultiSelectWarning, MessageType.Warning, true);
+
+                using (new EditorGUI.DisabledScope(true))
+                    priorityList.DoLayoutList();
+
+                return;
             }
 
-            // --- 3. Draw the Single Dropdown ---
-            EditorGUI.BeginChangeCheck();
-            selectedIndex = EditorGUILayout.Popup(Styles.upscalingFilterText, selectedIndex, namesArray);
-            if (EditorGUI.EndChangeCheck())
+            priorityList.DoLayoutList();
+
+            for (int i = 0; i < upscalerPriority.arraySize; ++i)
             {
-                // --- 4. Save to the serialzied asset if we change value ---
-                serialized.selectedUpscalerName.stringValue = namesArray[selectedIndex];
-            }
+                string upscalerId = upscalerPriority.GetArrayElementAtIndex(i).FindPropertyRelative("upscalerId").stringValue;
 
-            DisplayTileOnlyHelpBox(serialized.upscalingFilter, p => serialized.selectedUpscalerName.stringValue != UniversalRenderPipeline.k_UpscalerName_Auto, Styles.upscalingFilterText);
-
-            // --- 5. Draw Options per upscaler ---
-            string selectedName = namesArray[selectedIndex];
-            switch (selectedName)
-            {
-                // Special-case for FSR1.
-                // FSR1 has two passes: Upscaling + Sharpening.
-                // IUpscaler framework handles the upscaling part.
-                // The sharpening is done in a separate pass from the upscaling (final post),
-                // hence we keep the fsrOverrideSharpness & fsrSharpness properties within the
-                // URPAsset and render them here under FSR1 upscaler options.
-                // This way the user will see it as a single solution for Upscaling+Sharpening, as AMD intended.
-                // Typically, the upscaler options are captured by the UpscalerOptions object, excluding this case.
-                case UniversalRenderPipeline.k_UpscalerName_FSR1:
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-
-                    // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
-                    if (serialized.fsrOverrideSharpness.boolValue)
-                    {
-                        using (new EditorGUI.MixedValueScope(serialized.fsrSharpness.hasMultipleDifferentValues))
-                        {
-                            EditorGUI.BeginChangeCheck();
-                            float newFsrSharpness = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
-                            if (EditorGUI.EndChangeCheck())
-                                serialized.fsrSharpness.floatValue = newFsrSharpness;
-                        }
-                    }
-                    --EditorGUI.indentLevel;
-                    break;
-                }
-
-                default:
-                    // Use options editor of the particular IUpscaler.
-                    UpscalerOptions options = serialized.asset.GetUpscalerOptions(selectedName);
-                    UniversalRenderPipelineAssetEditor urpEditor = ownerEditor as UniversalRenderPipelineAssetEditor;
-                    Editor upscalerOptionsEditor = urpEditor.upscalerOptionsEditorCache.GetOrCreateEditor(options);
-                    if (upscalerOptionsEditor != null)
-                    {
-                        ++EditorGUI.indentLevel;
-                        // Delegate to the upscaler's own options editor so each draws its own fields and conditional logic.
-                        upscalerOptionsEditor.OnInspectorGUI();
-                        --EditorGUI.indentLevel;
-                    }
-
-                    // Warn users about performance expectations if they attempt to enable STP on a mobile platform
-                    if (selectedName == UniversalRenderPipeline.k_UpscalerName_STP && PlatformAutoDetect.isShaderAPIMobileDefined)
-                    {
-                        EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
-                    }
-
-                    break;
+                // An upscaler whose package isn't installed has no options to draw.
+                if (!string.IsNullOrEmpty(upscalerId) && UpscalerRegistry.s_RegisteredUpscalers.ContainsKey(upscalerId))
+                    DrawUpscalerOptions(serialized, urpEditor, upscalerId);
             }
 #else
             // Count builtin upscalers
@@ -563,109 +504,103 @@ namespace UnityEditor.Rendering.Universal
         }
 
 #if ENABLE_UPSCALER_FRAMEWORK
-        // True if the named upscaler exposes a quality mode.
-        static bool SelectedUpscalerHasQualityMode(string upscalerName)
+        // Upscalers only display a foldout if they have options to configure.
+        static bool UpscalerHasOptions(SerializedUniversalRenderPipelineAsset serialized, UniversalRenderPipelineAssetEditor urpEditor, string upscalerId)
         {
-            Upscaling upscaling = UniversalRenderPipeline.upscaling;
-            if (upscaling == null || string.IsNullOrEmpty(upscalerName))
-                return false;
-
-            IUpscaler upscaler = upscaling.GetIUpscalerByName(upscalerName);
-            return upscaler != null && upscaler.hasQualityMode;
-        }
-
-        // True when the selected upscaler's quality mode dictates the render resolution (Render Scale / DRS ignored).
-        static bool SelectedUpscalerDictatesResolution(SerializedUniversalRenderPipelineAsset serialized)
-        {
-            string selectedName = serialized.selectedUpscalerName.stringValue;
-            if (!SelectedUpscalerHasQualityMode(selectedName))
-                return false;
-
-            UpscalerOptions options = serialized.asset.GetUpscalerOptions(selectedName);
-            return options != null && options.resolutionMode != UpscalerResolutionMode.CustomScaling;
-        }
-
-        // For an upscaler in Custom Scaling, reports how it constrains Render Scale at runtime:
-        //  - returns false when this doesn't apply (no quality-mode upscaler, not Custom Scaling, or it leaves Render
-        //    Scale fully free), so the caller draws nothing;
-        //  - driven == true: the quality mode has no range (e.g. UltraPerformance), so Render Scale is ignored and the
-        //    render resolution is pinned to the recommended size;
-        //  - hardRange == true: minScale/maxScale are the hard range Render Scale is clamped into at runtime (DLSS);
-        //  - hardRange == false: minScale is an advisory floor (FSR2's recommended minimum) — not clamped, info only.
-        static bool TryGetCustomScalingClampInfo(SerializedUniversalRenderPipelineAsset serialized, out float minScale, out float maxScale, out bool driven, out bool hardRange)
-        {
-            minScale = 0f;
-            maxScale = 1f;
-            driven = false;
-            hardRange = false;
-
-            string selectedName = serialized.selectedUpscalerName.stringValue;
-            if (!SelectedUpscalerHasQualityMode(selectedName))
-                return false;
-
-            UpscalerOptions options = serialized.asset.GetUpscalerOptions(selectedName);
-            if (options == null || options.resolutionMode != UpscalerResolutionMode.CustomScaling)
-                return false;
-
-            // Evaluate the upscaler's pixel range at the actual display resolution and convert to a Render Scale ratio.
-            Vector2Int referenceResolution = GetUpscalerReferenceResolution();
-            if (referenceResolution.x <= 0
-                || !TryGetSelectedUpscalerResolutionInfo(serialized, referenceResolution, out UpscalerResolutionInfo info))
-                return false;
-
-            driven = info.constraint == UpscalerResolutionConstraint.Fixed;
-            if (driven)
-                return true; // pinned to optimal; Render Scale ignored
-
-            if (info.constraint == UpscalerResolutionConstraint.Range)
-            {
-                // Hard limits: the pipeline clamps Render Scale into this range at runtime (e.g. DLSS).
-                hardRange = true;
-                minScale = (float)info.minResolution.x / referenceResolution.x;
-                maxScale = (float)info.maxResolution.x / referenceResolution.x;
+            // Force these upscaler options to display in these cases
+            if (upscalerId == UniversalRenderPipeline.k_UpscalerId_FSR1)
                 return true;
+
+            if (upscalerId == STPIUpscaler.registeredId && PlatformAutoDetect.isShaderAPIMobileDefined)
+                return true;
+
+            if(lastTileOnlyModeInfos.enabled && upscalerId != UniversalRenderPipeline.k_UpscalerId_Auto)
+                return true;
+
+            UpscalerOptions options = serialized.asset.GetUpscalerOptions(upscalerId);
+            Editor optionsEditor = urpEditor.upscalerOptionsEditorCache.GetOrCreateEditor(options);
+
+            return HasCustomOptionsEditor(optionsEditor);
+        }
+
+        static bool HasCustomOptionsEditor(Editor optionsEditor)
+        {
+            return optionsEditor != null && optionsEditor.GetType() != typeof(UpscalerOptionsEditor);
+        }
+
+        static void DrawUpscalerOptions(SerializedUniversalRenderPipelineAsset serialized, UniversalRenderPipelineAssetEditor urpEditor, string upscalerId)
+        {
+            if (!UpscalerHasOptions(serialized, urpEditor, upscalerId))
+                return;
+
+            // Options start visible, so a newly added upscaler doesn't hide its settings behind a collapsed foldout.
+            var foldoutStates = urpEditor.m_UpscalerOptionsFoldoutStates;
+            if (!foldoutStates.TryGetValue(upscalerId, out bool expanded))
+                expanded = true;
+
+            string displayName = UpscalerRegistry.s_RegisteredUpscalers[upscalerId].DisplayName;
+            expanded = CoreEditorUtils.DrawHeaderFoldout(displayName, expanded);
+            foldoutStates[upscalerId] = expanded;
+
+            if (!expanded)
+                return;
+
+            ++EditorGUI.indentLevel;
+
+            // Tile-Only Mode skips any upscaler except automatic.
+            if (lastTileOnlyModeInfos.enabled && upscalerId != UniversalRenderPipeline.k_UpscalerId_Auto)
+                DisplayTileOnlyHelpBox(displayName);
+
+            // Special-case for FSR1.
+            // FSR1 has two passes: Upscaling + Sharpening.
+            // IUpscaler framework handles the upscaling part.
+            // The sharpening is done in a separate pass from the upscaling (final post),
+            // hence we keep the fsrOverrideSharpness & fsrSharpness properties within the
+            // URPAsset and render them here under FSR1 upscaler options.
+            // This way the user will see it as a single solution for Upscaling+Sharpening, as AMD intended.
+            // Typically, the upscaler options are captured by the UpscalerOptions object, excluding this case.
+            if (upscalerId == UniversalRenderPipeline.k_UpscalerId_FSR1)
+            {
+                EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                if (serialized.fsrOverrideSharpness.boolValue)
+                {
+                    using (new EditorGUI.MixedValueScope(serialized.fsrSharpness.hasMultipleDifferentValues))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        float newFsrSharpness = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.fsrSharpness.floatValue = newFsrSharpness;
+                    }
+                }
+            }
+            else
+            {
+                // Use options editor of the particular IUpscaler.
+                UpscalerOptions options = serialized.asset.GetUpscalerOptions(upscalerId);
+                Editor upscalerOptionsEditor = urpEditor.upscalerOptionsEditorCache.GetOrCreateEditor(options);
+                // Delegate to the upscaler's own options editor so each draws its own fields and conditional logic.
+                upscalerOptionsEditor?.OnInspectorGUI();
+
+                if (HasCustomOptionsEditor(upscalerOptionsEditor))
+                {
+                    IUpscaler upscaler = UniversalRenderPipeline.upscaling?.GetIUpscalerById(upscalerId);
+
+                    if (upscaler != null && upscaler.hasQualityMode && options.resolutionMode == UpscalerResolutionMode.QualityMode)
+                    {
+                        EditorGUILayout.HelpBox(Styles.renderScaleQualityModeInfo, MessageType.Info, true);
+                    }
+                }
+
+                // Warn users about performance expectations if they attempt to enable STP on a mobile platform
+                if (upscalerId == STPIUpscaler.registeredId && PlatformAutoDetect.isShaderAPIMobileDefined)
+                {
+                    EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
+                }
             }
 
-            if (info.recommendedMinScale > 0f)
-            {
-                // Advisory floor only: the upscaler runs below it but degrades in quality; not clamped (e.g. FSR2). It's
-                // already a render-scale ratio, so no reference-resolution conversion is needed.
-                minScale = info.recommendedMinScale;
-                maxScale = 1f; // no upper recommendation; Render Scale > 1.0 is handled by the supersampling notice
-                return true;
-            }
-
-            return false; // upscaler leaves Render Scale fully free (e.g. STP)
-        }
-
-        // The display resolution to evaluate the upscaler's [min,max] against. Uses the actual main Game View size so the
-        // resulting Render Scale ratios match what will render (handles any resolution, including above 4K); falls back
-        // to 4K if the Game View size isn't available (e.g. no Game View open).
-        static Vector2Int GetUpscalerReferenceResolution()
-        {
-            Vector2 gameViewSize = UnityEditor.Handles.GetMainGameViewSize();
-            int width = Mathf.RoundToInt(gameViewSize.x);
-            int height = Mathf.RoundToInt(gameViewSize.y);
-            if (width <= 0 || height <= 0)
-                return new Vector2Int(3840, 2160);
-            return new Vector2Int(width, height);
-        }
-
-        static bool TryGetSelectedUpscalerResolutionInfo(SerializedUniversalRenderPipelineAsset serialized, Vector2Int referenceResolution, out UpscalerResolutionInfo info)
-        {
-            info = default;
-
-            Upscaling upscaling = UniversalRenderPipeline.upscaling;
-            string selectedName = serialized.selectedUpscalerName.stringValue;
-            if (upscaling == null || string.IsNullOrEmpty(selectedName))
-                return false;
-
-            IUpscaler upscaler = upscaling.GetIUpscalerByName(selectedName);
-            if (upscaler == null || !upscaler.hasQualityMode)
-                return false;
-
-            info = upscaler.GetResolutionInfo(referenceResolution, upscaling.GetGlobalOptions(upscaler));
-            return true;
+            --EditorGUI.indentLevel;
         }
 
 #endif
@@ -1402,8 +1337,14 @@ namespace UnityEditor.Rendering.Universal
                 || !shouldDisplay(prop))
                 return;
 
-            var fmt = !string.IsNullOrEmpty(customMessage) ? customMessage : Styles.formatterTileOnlyMode;
             var labelText = label == null ? prop.displayName : label.text;
+            DisplayTileOnlyHelpBox(labelText, messageType, customMessage);
+        }
+
+        // For settings that aren't a single property, so the caller decides when the warning applies.
+        static void DisplayTileOnlyHelpBox(string labelText, MessageType messageType = MessageType.Warning, string customMessage = null)
+        {
+            var fmt = !string.IsNullOrEmpty(customMessage) ? customMessage : Styles.formatterTileOnlyMode;
             string message = string.Format(fmt, labelText, lastTileOnlyModeInfos.rendererNames);
 
             EditorGUILayout.HelpBox(message, messageType);

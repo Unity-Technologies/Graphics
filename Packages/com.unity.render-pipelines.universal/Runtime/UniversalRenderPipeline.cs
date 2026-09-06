@@ -30,22 +30,28 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
-        // builtin upscaler names
-        //  - {Point, Linear, FSR1} spatial upscalers; point & linear are embedded in uber post shaders, FSR1 standalone.
-        //  - {STP} temporal
-        internal const string k_UpscalerName_Auto = "Automatic"; // this resolves to one of the following 2-3 options
+        // Display names for the builtin spatial upscalers.
+        internal const string k_UpscalerName_Auto = "Auto (Bilinear or Nearest-Neighbor)";
         internal const string k_UpscalerName_Point = "Nearest-Neighbor";
         internal const string k_UpscalerName_Linear = "Bilinear";
         internal const string k_UpscalerName_FSR1 = "FidelityFX Super Resolution 1.0";
-        internal const string k_UpscalerName_STP = "Spatial-Temporal Post-Processing";
-        internal static readonly int k_UpscalerHash_Point = Shader.PropertyToID(k_UpscalerName_Point);
-        internal static readonly int k_UpscalerHash_Linear = Shader.PropertyToID(k_UpscalerName_Linear);
-        internal static readonly int k_UpscalerHash_FSR1 = Shader.PropertyToID(k_UpscalerName_FSR1);
-        internal static readonly int k_UpscalerHash_STP = Shader.PropertyToID(k_UpscalerName_STP);
 
 #if ENABLE_UPSCALER_FRAMEWORK
+        // Interned ids, so the per-camera resolved upscaler can be compared as an int.
+        internal static readonly int k_UpscalerHash_Point = Shader.PropertyToID(k_UpscalerId_Point);
+        internal static readonly int k_UpscalerHash_Linear = Shader.PropertyToID(k_UpscalerId_Linear);
+        internal static readonly int k_UpscalerHash_FSR1 = Shader.PropertyToID(k_UpscalerId_FSR1);
+        internal static readonly int k_UpscalerHash_STP = Shader.PropertyToID(STPIUpscaler.registeredId);
+
+        // Stable identifiers for the builtin upscalers, serialized by UniversalRenderPipelineAsset. Never change these.
+        internal static readonly string k_UpscalerId_Auto = "unity.auto";
+        internal static readonly string k_UpscalerId_Point = "unity.point";
+        internal static readonly string k_UpscalerId_Linear = "unity.bilinear";
+        internal static readonly string k_UpscalerId_FSR1 = "amd.fsr1";
+
         internal class AutoUpscaler : AbstractUpscaler
         {
+            public override string upscalerId => k_UpscalerId_Auto;
             public override string name => k_UpscalerName_Auto;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
@@ -53,19 +59,23 @@ namespace UnityEngine.Rendering.Universal
         }
         internal class BilinearUpscaler : AbstractUpscaler
         {
+            public override string upscalerId => k_UpscalerId_Linear;
             public override string name => k_UpscalerName_Linear;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
         }
         internal class PointUpscaler : AbstractUpscaler
         {
+            public override string upscalerId => k_UpscalerId_Point;
             public override string name => k_UpscalerName_Point;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
         }
         internal class FSR1Upscaler : AbstractUpscaler
         {
+            public override string upscalerId => k_UpscalerId_FSR1;
             public override string name => k_UpscalerName_FSR1;
+            public override bool isSupportedOnDevice => FSRUtils.IsSupported();
             public override bool isTemporal => false;
             public override bool supportsSharpening => true;
             // the FSR1 class is only for registration / unifying API for choosing an upscaler.
@@ -77,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
             typeof(BilinearUpscaler),
             typeof(PointUpscaler)
         };
-        private static readonly Type[] k_UpscalerSortOrder = new Type[]
+        internal static readonly Type[] k_UpscalerSortOrder = new Type[]
         {
             typeof(AutoUpscaler),
             typeof(BilinearUpscaler),
@@ -86,6 +96,27 @@ namespace UnityEngine.Rendering.Universal
             typeof(STPIUpscaler)
             // Any external upscalers (DLSS, FSR2) will implicitly follow alphabetically
         };
+
+        // Registers on load as well as on pipeline construction, so the registry lists these upscalers even before a
+        // pipeline instance exists. Registration is idempotent (happens once).
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoad]
+#endif
+        static class RegisterBuiltinUpscalers
+        {
+            static RegisterBuiltinUpscalers() => Register();
+
+            [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+            static void InitRuntime() => Register();
+
+            internal static void Register()
+            {
+                UpscalerRegistry.Register<AutoUpscaler>(k_UpscalerId_Auto, k_UpscalerName_Auto);
+                UpscalerRegistry.Register<BilinearUpscaler>(k_UpscalerId_Linear, k_UpscalerName_Linear);
+                UpscalerRegistry.Register<PointUpscaler>(k_UpscalerId_Point, k_UpscalerName_Point);
+                UpscalerRegistry.Register<FSR1Upscaler>(k_UpscalerId_FSR1, k_UpscalerName_FSR1);
+            }
+        }
 #endif
 
         // Cache camera data to avoid per-frame allocations.
@@ -311,34 +342,27 @@ namespace UnityEngine.Rendering.Universal
         internal static Upscaling upscaling;
 
         /// <summary>
-        /// Gets the list of available upscaler names registered with the upscaling framework.
+        /// Gets the list of available upscaler IDs registered with the upscaling framework.
         /// </summary>
         /// <value>
-        /// A read-only list of strings containing the names of all supported upscalers.
+        /// A read-only list of strings containing the IDs of all supported upscalers.
         /// Returns an empty list if the upscaling framework is not initialized.
         /// </value>
-        public IReadOnlyList<string> availableUpscalerNames => upscaling?.upscalerNames ?? Array.Empty<string>();
+        public IReadOnlyList<string> availableUpscalerIds => upscaling?.upscalerIds ?? Array.Empty<string>();
 
         /// <summary>
-        /// Sets the active upscaler for the pipeline by its unique name.
+        /// Sets the active upscaler for the pipeline by its ID.
         /// </summary>
-        /// <param name="upscalerName">The name of the upscaler to activate (e.g., "FidelityFX Super Resolution 1.0").</param>
+        /// <param name="upscalerId">The ID of the upscaler to activate (e.g., "unity.stp").</param>
         /// <returns>
-        /// <c>true</c> if the upscaler exists and the assignment was successful; <c>false</c> if the upscaling framework is uninitialized or the specified name is invalid.
+        /// <c>true</c> if the upscaler exists and the assignment was successful; <c>false</c> if the upscaling framework is uninitialized or the specified ID is invalid.
         /// </returns>
-        /// <remarks>
-        /// This method updates the <c>upscalerName</c> on the current <see cref="UniversalRenderPipelineAsset"/>.
-        /// </remarks>
-        public bool SetUpscaler(string upscalerName)
+        public bool SetUpscaler(string upscalerId)
         {
             if (upscaling == null)
                 return false;
 
-            if (upscaling.IndexOf(upscalerName) == -1)
-                return false;
-
-            asset.upscalerName = upscalerName;
-            return true;
+            return upscaling.SetActiveUpscaler(upscalerId);
         }
 
         /// <summary>
@@ -449,12 +473,14 @@ namespace UnityEngine.Rendering.Universal
             // For the standalone pass upcalers (fsr1, stp), we'll let them register themselves.
             // Note: FSR1 became an exception, we will keep using the Fsr1UpscalePostProcessPass.cs instead of IUpscaler
             //       until we address the unification of HDRP/URP texture binding for the blitter.
-            UpscalerRegistry.Register<AutoUpscaler>(k_UpscalerName_Auto);
-            UpscalerRegistry.Register<BilinearUpscaler>(k_UpscalerName_Linear);
-            UpscalerRegistry.Register<PointUpscaler>(k_UpscalerName_Point);
-            UpscalerRegistry.Register<FSR1Upscaler>(k_UpscalerName_FSR1);
+            RegisterBuiltinUpscalers.Register();
 
             upscaling = new Upscaling(asset.upscalerOptions, k_EmbeddedUpscalerTypes, k_UpscalerSortOrder);
+
+            // Resolved once here rather than per frame, so a runtime SetActiveUpscaler() call isn't overwritten.
+            // Editing the asset recreates the pipeline via RenderPipelineAsset.OnValidate(), which re-resolves.
+            if (asset.scalingMode == ScalingMode.Upscaling)
+                upscaling.SetActiveUpscalerToFirstSupported(asset.GetUpscalerPriorityIds());
 #endif
         }
 
@@ -670,9 +696,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // This is for texture streaming
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
-#endif
-#if ENABLE_UPSCALER_FRAMEWORK
-                upscaling.SetActiveUpscaler(asset.upscalerName);
 #endif
                 // URP uses the camera's allowDynamicResolution flag to decide if useDynamicScale should be enabled for camera render targets.
                 // However, the RTHandle system has an additional setting that controls if useDynamicScale will be set for render targets allocated via RTHandles.
@@ -1950,12 +1973,14 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = disableRenderScale? 1.0f : settings.renderScale;
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            // ImageUpscalingFilter is deprecated, we now track by upscaler name
-            string resolvedUpscalerName = ResolveUpscalingFilterSelection(cameraData.pixelWidth, cameraData.pixelHeight, cameraData.renderScale, settings.upscalerName);
-            cameraData.resolvedUpscalerHash = Shader.PropertyToID(resolvedUpscalerName);
-
-            // now that we've deprecated ImageUpscalingFilter, check with the builtin upscaler names
+            // ImageUpscalingFilter is deprecated, we now track by upscaler id.
+            // The active upscaler is the highest priority one supported on this device, so resolve from it rather than
+            // from the serialized selection.
             IUpscaler activeUpscaler = upscaling.activeUpscaler;
+            string selectedUpscalerId = activeUpscaler != null ? activeUpscaler.upscalerId : k_UpscalerId_Auto;
+            string resolvedUpscalerId = ResolveAutoUpscaler(cameraData.pixelWidth, cameraData.pixelHeight, cameraData.renderScale, selectedUpscalerId);
+            cameraData.resolvedUpscalerHash = Shader.PropertyToID(resolvedUpscalerId);
+
             bool upscalerSupportsTemporalAntiAliasing = activeUpscaler != null && activeUpscaler.isTemporal;
             bool upscalerSupportsSharpening = activeUpscaler != null && activeUpscaler.supportsSharpening;
 #else
@@ -2677,24 +2702,18 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
-        /// Returns the best supported image upscaling filter name based on the provided upscaling filter selection
+        /// Resolves the automatic upscaler to the spatial upscaler best suited to the final image size and render scale.
         /// </summary>
-        /// <param name="imageSize">Size of the final image</param>
+        /// <param name="imageSizeX">Width of the final image</param>
+        /// <param name="imageSizeY">Height of the final image</param>
         /// <param name="renderScale">Scale being applied to the final image size</param>
-        /// <param name="selection">Upscaling filter name selected by the user</param>
-        /// <returns>Either the original filter provided, or the best replacement available</returns>
-        static string ResolveUpscalingFilterSelection(float imageSizeX, float imageSizeY, float renderScale, string selection)
+        /// <param name="selectedUpscalerId">Id of the active upscaler</param>
+        /// <returns>The resolved upscaler id, or the selected id when it isn't the automatic upscaler</returns>
+        static string ResolveAutoUpscaler(float imageSizeX, float imageSizeY, float renderScale, string selectedUpscalerId)
         {
-            // Fall back to the automatic filter if the selected filter isn't supported on the current platform or rendering environment
-            if ((selection == k_UpscalerName_FSR1 && !FSRUtils.IsSupported()) ||
-                (selection == k_UpscalerName_STP && !STP.IsSupported()) )
-            {
-                selection = k_UpscalerName_Auto;
-            }
+            string resolvedUpscalerId = selectedUpscalerId;
 
-            string resolvedUpscaler = selection;
-
-            if (selection == k_UpscalerName_Auto)
+            if (selectedUpscalerId == k_UpscalerId_Auto)
             {
                 float pixelScale = (1.0f / renderScale);
                 bool isIntegerScale = Mathf.Approximately((pixelScale - Mathf.Floor(pixelScale)), 0.0f);
@@ -2707,15 +2726,15 @@ namespace UnityEngine.Rendering.Universal
                     bool isImageCompatible = (Mathf.Approximately((widthScale - Mathf.Floor(widthScale)), 0.0f) &&
                                               Mathf.Approximately((heightScale - Mathf.Floor(heightScale)), 0.0f));
 
-                    resolvedUpscaler = isImageCompatible ? k_UpscalerName_Point : k_UpscalerName_Linear;
+                    resolvedUpscalerId = isImageCompatible ? k_UpscalerId_Point : k_UpscalerId_Linear;
                 }
                 else
                 {
-                    resolvedUpscaler = k_UpscalerName_Linear;
+                    resolvedUpscalerId = k_UpscalerId_Linear;
                 }
             }
 
-            return resolvedUpscaler;
+            return resolvedUpscalerId;
         }
 #else
         /// <summary>

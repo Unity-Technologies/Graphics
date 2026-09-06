@@ -1,6 +1,5 @@
 #if ENABLE_UPSCALER_FRAMEWORK
 using System;
-using UnityEditor;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
@@ -181,9 +180,26 @@ namespace UnityEngine.Rendering
     {
         #region PROPERTIES
         /// <summary>
+        /// Gets the stable identifier of the upscaler (e.g., "unity.stp"), which render pipeline assets serialize.
+        /// </summary>
+        /// <remarks>
+        /// Prefix the ID to keep it unique, and never change it once shipped: This is never localized and never shown to users.
+        /// </remarks>
+        string upscalerId { get; }
+
+        /// <summary>
         /// Gets the display name of the upscaler (e.g., "FSR2").
         /// </summary>
         string name { get; }
+
+        /// <summary>
+        /// Returns true if the upscaler can run on the current device.
+        /// </summary>
+        /// <remarks>
+        /// Queried when selecting an upscaler, so it must be cheap. Implementations that need to probe hardware or a
+        /// plugin should do so once and return the cached result.
+        /// </remarks>
+        bool isSupportedOnDevice { get; }
 
         /// <summary>
         /// Returns true if the upscaler uses temporal information from previous frames.
@@ -281,8 +297,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     public abstract class AbstractUpscaler : IUpscaler
     {
+        /// <inheritdoc cref="IUpscaler.upscalerId"/>
+        public abstract string upscalerId { get; }
+
         /// <inheritdoc cref="IUpscaler.name"/>
         public abstract string name { get; }
+
+        /// <inheritdoc cref="IUpscaler.isSupportedOnDevice"/>
+        public virtual bool isSupportedOnDevice => true;
 
         /// <inheritdoc cref="IUpscaler.isTemporal"/>
         public abstract bool isTemporal { get; }

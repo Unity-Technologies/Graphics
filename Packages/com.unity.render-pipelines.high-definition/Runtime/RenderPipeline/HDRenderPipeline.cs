@@ -1420,8 +1420,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
 
-            var upscalerNames = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
-            if (upscalerNames == null || upscalerNames.Count == 0)
+            var advancedUpscalers = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+            if (advancedUpscalers == null || advancedUpscalers.Count == 0)
                 return;
 
             // STP cannot support dynamic resolution when hardware support is not available.
@@ -1432,10 +1432,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // External upscaler priority system: we pick the first upscaler in the pre sorted priority list to activate for the frame.
             bool found = false;
-            for (int i = 0; i < upscalerNames.Count && !found; ++i)
+            for (int i = 0; i < advancedUpscalers.Count && !found; ++i)
             {
-                var name = upscalerNames[i];
-                switch(name)
+                var advancedUpscaler = advancedUpscalers[i];
+                switch(advancedUpscaler)
                 {
                     case "DLSS":
                         hdCam.cameraCanRenderDLSS = HDDynamicResolutionPlatformCapabilities.DLSSDetected && hdCam.allowDeepLearningSuperSampling;
@@ -1469,7 +1469,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_UPSCALER_FRAMEWORK
                     default:
                     {
-                        // The upscaler name should be an IUpscaler
+                        // The upscaler ID should be an IUpscaler
                         IUpscaler optActiveIUpscaler = upscaling.activeUpscaler;
 
 
@@ -1483,15 +1483,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             || drsSettings.forceResolution;
                         if (isSupported)
                         {
-                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.name)
+                            if (optActiveIUpscaler == null || advancedUpscaler != optActiveIUpscaler.upscalerId)
                             {
                                 // The active upscaler should be an IUpscaler, but it isn't currently set active in the
                                 // upscaling manager.
-                                bool ok = upscaling.SetActiveUpscaler(name);
+                                bool ok = upscaling.SetActiveUpscaler(advancedUpscaler);
                                 if (!ok)
                                 {
                                     Debug.LogWarning(
-                                        $"Upscaler with name '{name}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
+                                        $"Upscaler with ID '{advancedUpscaler}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
 
                                     // Clear the stale previously-active upscaler so the block below skips this entry
                                     // and the priority loop falls through to the next candidate.
@@ -1595,7 +1595,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
 #endif // ENABLE_UPSCALER_FRAMEWORK
-                } // switch(upscalerNames[i])
+                } // switch(advancedUpscalers[i])
             }
         }
 

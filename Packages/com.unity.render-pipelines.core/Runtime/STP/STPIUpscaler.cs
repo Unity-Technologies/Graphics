@@ -14,10 +14,10 @@ using UnityEditor;
 #endif
 static class RegisterSTP
 {
-    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
+    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.registeredId, STPIUpscaler.registeredName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
+    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.registeredId, STPIUpscaler.registeredName);
 }
 
 /// <summary>
@@ -61,13 +61,19 @@ public class STPUpscalerContext : IUpscalerContext
     }
 }
 
+#if UNITY_EDITOR
+[UpscalerUnsupportedBuildTarget(graphicsDeviceTypes = new[] { GraphicsDeviceType.OpenGLES3 })]
+#endif
 public class STPIUpscaler : AbstractUpscaler
 {
-    public static readonly string upscalerName = "Spatial-Temporal Post-Processing";
+    public static readonly string registeredId = "unity.stp";
+    public static readonly string registeredName = "Spatial-Temporal Post-Processing";
 
     private const string k_UpscaledColorTargetName = "_UpscaledCameraColor";
 
-    public override string name => upscalerName;
+    public override string upscalerId => registeredId;
+    public override string name => registeredName;
+    public override bool isSupportedOnDevice => STP.IsSupported();
 
     public override bool isTemporal => true;
     public override bool supportsSharpening => true;

@@ -16,11 +16,11 @@ namespace UnityEngine.Rendering.MetalFX
     static class RegisterMetalFXTemporal
     {
         static RegisterMetalFXTemporal()
-            => UpscalerRegistry.Register<MetalFXTemporalUpscaler, MetalFXTemporalOptions>(MetalFXTemporalUpscaler.upscalerName);
+            => UpscalerRegistry.Register<MetalFXTemporalUpscaler, MetalFXTemporalOptions>(MetalFXTemporalUpscaler.registeredId, MetalFXTemporalUpscaler.registeredName);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void InitRuntime()
-            => UpscalerRegistry.Register<MetalFXTemporalUpscaler, MetalFXTemporalOptions>(MetalFXTemporalUpscaler.upscalerName);
+            => UpscalerRegistry.Register<MetalFXTemporalUpscaler, MetalFXTemporalOptions>(MetalFXTemporalUpscaler.registeredId, MetalFXTemporalUpscaler.registeredName);
     }
 
     /// <summary>
@@ -95,15 +95,21 @@ namespace UnityEngine.Rendering.MetalFX
         protected override bool ValidateOptions(MetalFXTemporalOptions options) => true;
     }
 
+#if UNITY_EDITOR
+    [UpscalerSupportedBuildTarget(BuildTarget.StandaloneOSX, BuildTarget.iOS, BuildTarget.tvOS, graphicsDeviceTypes = new[] { GraphicsDeviceType.Metal })]
+#endif
     public class MetalFXTemporalUpscaler : AbstractUpscaler
     {
-        public static readonly string upscalerName = "MetalFX Temporal";
+        public static readonly string registeredId = "apple.metalfx-temporal";
+        public static readonly string registeredName = "MetalFX Temporal";
 
         static readonly ProfilingSampler k_MetalFXTemporal = ProfilingSampler.Create("MetalFXTemporal", MarkerFlags.Default);
 
-        public override string name => upscalerName;
+        public override string upscalerId => registeredId;
+        public override string name => registeredName;
         public override bool isTemporal => true;
         public override bool supportsSharpening => false;
+        public override bool isSupportedOnDevice => Supported;
 
         uint m_WarnCounter;
         const int k_WarningThrottleFrames = 60 * 1; // 60 FPS * 1 sec

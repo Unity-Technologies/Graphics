@@ -249,7 +249,7 @@ namespace UnityEditor.Rendering.Universal
                     // FSR overrides TAA CAS settings. Disable this setting when FSR is enabled.
                     bool disableSharpnessControl = UniversalRenderPipeline.asset != null
 #if ENABLE_UPSCALER_FRAMEWORK
-                        ? (UniversalRenderPipeline.asset.upscalerName == UniversalRenderPipeline.k_UpscalerName_FSR1)
+                        ? UniversalRenderPipeline.asset.IsUpscalerUsed(UniversalRenderPipeline.k_UpscalerId_FSR1)
 #else
                         ? (UniversalRenderPipeline.asset.upscalingFilter == UpscalingFilterSelection.FSR)
 #endif

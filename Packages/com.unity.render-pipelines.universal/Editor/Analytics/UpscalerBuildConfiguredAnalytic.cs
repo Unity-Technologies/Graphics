@@ -27,25 +27,32 @@ namespace UnityEditor.Rendering.Universal
 
         static List<(string name, UpscalerQualityInfo qualityInfo)> GetUpscalerInfoPairs(UniversalRenderPipelineAsset urpAsset)
         {
-            string upscalerName = urpAsset.upscalerName;
-
             // Use renderScale as default
             UpscalerQualityInfo qualityInfo = UpscalerQualityInfo.FromFloat(urpAsset.renderScale);
 
 #if ENABLE_UPSCALER_FRAMEWORK
             // No upscaler selected — null is handled as an empty list.
-            if (string.IsNullOrEmpty(upscalerName))
+            if (urpAsset.upscalerPriority.Count == 0)
                 return null;
 
-            UpscalerOptions options = urpAsset.GetUpscalerOptions(upscalerName);
-            if (Rendering.Analytics.UpscalerBuildConfiguredAnalytic.TryGetQualityInfo(options, out var info))
-                qualityInfo = info;
+            // Any listed upscaler can end up being the one that runs, so the report carries all of them, in order.
+            var upscalerInfoPairs = new List<(string, UpscalerQualityInfo)>(urpAsset.upscalerPriority.Count);
+            foreach (var upscalerPriorityEntry in urpAsset.upscalerPriority)
+            {
+                UpscalerOptions options = urpAsset.GetUpscalerOptions(upscalerPriorityEntry.upscalerId);
+                if (!Rendering.Analytics.UpscalerBuildConfiguredAnalytic.TryGetQualityInfo(options, out var info))
+                    info = qualityInfo;
+
+                upscalerInfoPairs.Add((upscalerPriorityEntry.upscalerId, info));
+            }
+
+            return upscalerInfoPairs;
 #else
             // Legacy upscaler
-            upscalerName = urpAsset.upscalingFilter.ToString();
-#endif
+            string upscalerName = urpAsset.upscalingFilter.ToString();
 
             return new List<(string, UpscalerQualityInfo)> { (upscalerName, qualityInfo) };
+#endif
         }
 
         public int callbackOrder => 0;
