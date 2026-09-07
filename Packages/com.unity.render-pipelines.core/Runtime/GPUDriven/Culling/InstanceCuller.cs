@@ -2861,6 +2861,8 @@ namespace UnityEngine.Rendering
                         _BoundingSphereInstanceDataAddress = 0,
                         _DebugCounterIndex = -1,
                         _InstanceMultiplierShift = 0,
+                        _LocalBoundsInstanceDataAddress = 0,
+                        _ObjectToWorldInstanceDataAddress = 0,
                     };
                     cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
                     cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);
@@ -3004,6 +3006,8 @@ namespace UnityEngine.Rendering
                         OccluderContext.SetKeyword(cmd, cs, firstPassKeyword, isFirstPass);
                         OccluderContext.SetKeyword(cmd, cs, secondPassKeyword, isSecondPass);
                         GPUComponentHandle boundingSphereGPUComponent = instanceDataSystem.defaultGPUComponents.boundingSphere;
+                        GPUComponentHandle localBoundsGPUComponent = instanceDataSystem.defaultGPUComponents.localBoundsAABB;
+                        GPUComponentHandle objectToWorldGPUComponent = instanceDataSystem.defaultGPUComponents.objectToWorld;
 
                         m_ShaderVariables[0] = new InstanceOcclusionCullerShaderVariables
                         {
@@ -3014,6 +3018,8 @@ namespace UnityEngine.Rendering
                             _BoundingSphereInstanceDataAddress = instanceDataSystem.gpuBuffer.GetComponentGPUAddress(boundingSphereGPUComponent),
                             _DebugCounterIndex = debugCounterIndex,
                             _InstanceMultiplierShift = (settings.instanceMultiplier == 2) ? 1 : 0,
+                            _LocalBoundsInstanceDataAddress = instanceDataSystem.gpuBuffer.GetComponentGPUAddress(localBoundsGPUComponent),
+                            _ObjectToWorldInstanceDataAddress = instanceDataSystem.gpuBuffer.GetComponentGPUAddress(objectToWorldGPUComponent),
                         };
                         cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
                         cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);

@@ -1,5 +1,6 @@
 #if !UNITY_WEBGL_RENDERER_ONLY
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering
 {
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering
         public static readonly int unity_MatrixPreviousM = Shader.PropertyToID("unity_MatrixPreviousM");
         public static readonly int unity_MatrixPreviousMI = Shader.PropertyToID("unity_MatrixPreviousMI");
         public static readonly int unity_WorldBoundingSphere = Shader.PropertyToID("unity_WorldBoundingSphere");
+        public static readonly int unity_LocalBounds = Shader.PropertyToID("unity_LocalBounds");
         public static readonly int unity_RendererUserValuesPropertyEntry = Shader.PropertyToID("unity_RendererUserValuesPropertyEntry");
         public static readonly int unity_LightProbeUsagePropertyEntry = Shader.PropertyToID("unity_LightProbeUsagePropertyEntry");
 
@@ -30,6 +32,13 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal struct LocalBoundsGPUData
+    {
+        // Aligned to GLES - each w unused
+        public float4 center;
+        public float4 extents;
+    }
+
     internal struct DefaultGPUComponents
     {
         public readonly GPUComponentHandle shCoefficients;
@@ -41,6 +50,7 @@ namespace UnityEngine.Rendering
         public readonly GPUComponentHandle rendererUserValues;
         public readonly GPUComponentHandle lightProbeUsages;
         public readonly GPUComponentHandle boundingSphere;
+        public readonly GPUComponentHandle localBoundsAABB;
         public readonly NativeArray<GPUComponentHandle> speedTreeWind;
         public readonly NativeArray<GPUComponentHandle> speedTreeWindHistory;
 
@@ -67,6 +77,10 @@ namespace UnityEngine.Rendering
                 ? archetypeManager.CreateComponent<Vector4>(DefaultShaderPropertyID.unity_WorldBoundingSphere, true)
                 : default;
 
+            localBoundsAABB = enableBoundingSpheresInstanceData
+                ? archetypeManager.CreateComponent<LocalBoundsGPUData>(DefaultShaderPropertyID.unity_LocalBounds, true)
+                : default;
+
             speedTreeWind = new NativeArray<GPUComponentHandle>(InstanceDataSystem.k_STMaxWindParamsCount, Allocator.Persistent);
             speedTreeWindHistory = new NativeArray<GPUComponentHandle>(InstanceDataSystem.k_STMaxWindParamsCount, Allocator.Persistent);
 
@@ -88,7 +102,10 @@ namespace UnityEngine.Rendering
             };
 
             if (enableBoundingSpheresInstanceData)
+            {
                 requiredComponentSet.Add(boundingSphere);
+                requiredComponentSet.Add(localBoundsAABB);
+            }
 
             lightProbesComponentSet = new GPUComponentSet()
             {

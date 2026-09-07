@@ -13,7 +13,11 @@ namespace UnityEngine.Rendering
         public int _BoundingSphereInstanceDataAddress;
         public int _DebugCounterIndex;
         public int _InstanceMultiplierShift;
+        public int _LocalBoundsInstanceDataAddress;
+        public int _ObjectToWorldInstanceDataAddress;
         public int _InstanceOcclusionCullerPad0;
+        public int _InstanceOcclusionCullerPad1;
+        public int _InstanceOcclusionCullerPad2;
     }
 }
 

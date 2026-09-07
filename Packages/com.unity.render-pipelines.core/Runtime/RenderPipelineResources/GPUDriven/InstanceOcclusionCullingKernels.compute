@@ -69,6 +69,24 @@ SphereBound LoadInstanceBoundingSphere(uint instanceID)
     return b;
 }
 
+void LoadInstanceLocalBounds(uint instanceID, out float3 boundsCenter, out float3 boundsExtents)
+{
+    boundsCenter = asfloat(_InstanceDataBuffer.Load4(_LocalBoundsInstanceDataAddress + instanceID * 32)).xyz;
+    boundsExtents = asfloat(_InstanceDataBuffer.Load4(_LocalBoundsInstanceDataAddress + instanceID * 32 + 16)).xyz;
+}
+
+float4x4 LoadInstanceObjectToWorld(uint instanceID)
+{
+    float4 p1 = asfloat(_InstanceDataBuffer.Load4(_ObjectToWorldInstanceDataAddress + instanceID * 48));
+    float4 p2 = asfloat(_InstanceDataBuffer.Load4(_ObjectToWorldInstanceDataAddress + instanceID * 48 + 16));
+    float4 p3 = asfloat(_InstanceDataBuffer.Load4(_ObjectToWorldInstanceDataAddress + instanceID * 48 + 32));
+    return float4x4(
+        p1.x, p1.w, p2.z, p3.y,
+        p1.y, p2.x, p2.w, p3.z,
+        p1.z, p2.y, p3.x, p3.w,
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void ResetDrawArgs(uint drawInfoOffset : SV_DispatchThreadID)
 {
@@ -155,7 +173,21 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
 
 #ifdef OCCLUSION_ANY_PASS
         int instanceID = instanceInfo.instanceIndexAndCrossFade & 0xffffff;
-        SphereBound boundingSphere = LoadInstanceBoundingSphere(instanceID);
+        bool useSphereBounds = (_OcclusionTestDebugFlags & OCCLUSIONTESTDEBUGFLAG_USE_SPHERE_BOUNDS) != 0;
+
+        SphereBound boundingSphere = (SphereBound)0;
+        float3 boundsCenter = 0.0f;
+        float3 boundsExtents = 0.0f;
+        float4x4 localToWorld = (float4x4)0;
+        if (useSphereBounds)
+        {
+            boundingSphere = LoadInstanceBoundingSphere(instanceID);
+        }
+        else
+        {
+            LoadInstanceLocalBounds(instanceID, boundsCenter, boundsExtents);
+            localToWorld = LoadInstanceObjectToWorld(instanceID);
+        }
 
         bool isOccludedInAll = true;
         for (int testIndex = 0; testIndex < _OcclusionTestCount; ++testIndex)
@@ -169,7 +201,10 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
                 continue;
 
             // occlusion test against the corresponding subview
-            if (IsOcclusionVisible(boundingSphere, subviewIndex))
+            bool isSubviewVisible = useSphereBounds
+                ? IsOcclusionVisible(boundingSphere, subviewIndex)
+                : IsOcclusionVisibleOBB(boundsCenter, boundsExtents, localToWorld, subviewIndex);
+            if (isSubviewVisible)
                 isOccludedInAll = false;
         }
         isVisible = !isOccludedInAll;

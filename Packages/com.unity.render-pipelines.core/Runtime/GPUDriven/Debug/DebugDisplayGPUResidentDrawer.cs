@@ -49,6 +49,8 @@ namespace UnityEngine.Rendering
 
         internal bool overrideOcclusionTestToAlwaysPass { get; set; }
 
+        internal bool useBoundingSphereOcclusionTest { get; set; }
+
         /// <summary>Returns true if the occluder debug overlay is enabled.</summary>
         public bool occluderDebugViewEnable = false;
 
@@ -82,6 +84,7 @@ namespace UnityEngine.Rendering
             public static readonly NameAndTooltip occlusionTestOverlayEnable = new() { name = "Occlusion Test Overlay", tooltip = "Occlusion test visualisation." };
             public static readonly NameAndTooltip occlusionTestOverlayCountVisible = new() { name = "Occlusion Test Overlay Count Visible", tooltip = "Occlusion test visualisation should count visible instances instead of occluded instances." };
             public static readonly NameAndTooltip overrideOcclusionTestToAlwaysPass = new() { name = "Override Occlusion Test To Always Pass", tooltip = "Occlusion test always passes." };
+            public static readonly NameAndTooltip useBoundingSphereOcclusionTest = new() { name = "Use Bounding Sphere Occlusion Test", tooltip = "Use the legacy bounding sphere occlusion test instead of the oriented bounding box test. Useful for comparing culling efficiency." };
             public static readonly NameAndTooltip occluderContextStats = new() { name = "Occluder Context Stats", tooltip = "Show all the active occluder context textures." };
             public static readonly NameAndTooltip occluderDebugViewEnable = new() { name = "Occluder Debug View", tooltip = "Debug view of occluder texture." };
             public static readonly NameAndTooltip occluderDebugViewIndex = new() { name = "Occluder Debug View Index", tooltip = "Index of the view for which the occluder texture is displayed. Use the Occlusion Test Context Stats for a list of the views." };
@@ -280,6 +283,7 @@ namespace UnityEngine.Rendering
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayEnable, getter = () => data.occlusionTestOverlayEnabled, setter = value => data.occlusionTestOverlayEnabled = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayCountVisible, getter = () => data.occlusionTestOverlayCountVisible, setter = value => data.occlusionTestOverlayCountVisible = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.overrideOcclusionTestToAlwaysPass, getter = () => data.overrideOcclusionTestToAlwaysPass, setter = value => data.overrideOcclusionTestToAlwaysPass = value},
+                        new DebugUI.BoolField { nameAndTooltip = Strings.useBoundingSphereOcclusionTest, getter = () => data.useBoundingSphereOcclusionTest, setter = value => data.useBoundingSphereOcclusionTest = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occluderContextStats, getter = () => data.occluderContextStats, setter = value => data.occluderContextStats = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occluderDebugViewEnable, getter = () => data.occluderDebugViewEnable, setter = value => data.occluderDebugViewEnable = value},
                         new DebugUI.IntField { nameAndTooltip = Strings.occluderDebugViewIndex, getter = () => data.occluderDebugViewIndex, setter = value => data.occluderDebugViewIndex = value, isHiddenCallback = () => !data.occluderDebugViewEnable, min = () => 0, max = () => Math.Max(GetOcclusionContextsCounts() - 1, 0) },
