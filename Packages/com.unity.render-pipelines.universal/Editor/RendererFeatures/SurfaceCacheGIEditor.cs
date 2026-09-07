@@ -9,6 +9,32 @@ namespace UnityEditor.Rendering.Universal
     {
         private const string k_UnsupportedRayTracingBackendMessage = "Surface Cache GI will not run on this device because it does not support hardware ray tracing or compute shaders.";
 
+        private static readonly GUIContent s_StaticBatchingError = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Error, null);
+        private static readonly GUIContent s_StaticBatchingWarning = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Warning, null);
+        private static readonly GUIContent s_OpenButton = L10n.TextContent("Open", null, null, null);
+
+        private static GUIStyle s_FixMeBoxStyle;
+
+        private static void DrawFixMeBox(GUIContent message, GUIContent buttonLabel, System.Action action)
+        {
+            if (s_FixMeBoxStyle == null)
+                s_FixMeBoxStyle = new GUIStyle(EditorStyles.helpBox);
+
+            float buttonWidth = Mathf.Max(60f, GUI.skin.button.CalcSize(buttonLabel).x);
+            s_FixMeBoxStyle.padding.right = EditorStyles.helpBox.padding.right + Mathf.CeilToInt(buttonWidth) + 4;
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(GUIContent.none, s_FixMeBoxStyle);
+            Rect rect = GUILayoutUtility.GetRect(message, s_FixMeBoxStyle);
+            if (Event.current.type == EventType.Repaint)
+                s_FixMeBoxStyle.Draw(rect, message, false, false, false, false);
+            EditorGUILayout.EndHorizontal();
+
+            Rect buttonRect = new Rect(rect.xMax - buttonWidth - 4, rect.y + (rect.height - EditorGUIUtility.singleLineHeight) / 2, buttonWidth, EditorGUIUtility.singleLineHeight);
+            if (GUI.Button(buttonRect, buttonLabel))
+                action();
+        }
+
         private static bool SceneHasSurfaceCacheGIVolume()
         {
             Volume[] volumes = Object.FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
@@ -34,7 +60,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (PlayerSettings.GetStaticBatchingForPlatform(activeBuildTarget))
             {
-                CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
+                DrawFixMeBox(surfaceCacheGIRendererFeature.isActive ? s_StaticBatchingError : s_StaticBatchingWarning, s_OpenButton, () =>
                     PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
             }
             else if (!SurfaceCacheGIRendererFeature.HasSupportedRayTracingBackend())
