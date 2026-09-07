@@ -80,7 +80,7 @@ The following table lists the keyboard shortcuts you can use to add nodes in Sha
 | Remap             | Alt + R   | Option + R  |
 | Sample Texture 2D | Alt + X   | Option + X  |
 | Saturate          | Alt + Q   | Option + Q  |
-| Smoothstep        | Alt + "   | Option + "  |
+| Smoothstep        | Alt + `   | Option + `  |
 | Split             | Alt + E   | Option + E  |
 | Step              | Alt + J   | Option + J  |
 | Subtract          | Alt + S   | Option + S  |
