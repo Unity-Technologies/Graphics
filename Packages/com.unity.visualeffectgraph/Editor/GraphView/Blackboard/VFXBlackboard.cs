@@ -542,7 +542,8 @@ namespace UnityEditor.VFX.UI
             {
                 return DragVisualMode.Move;
             }
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is CustomAttributeCategory && m_Treeview.selectedItems.All(x => x is AttributeItem))
+            // Allow custom attributes to be reordered, but disallow re-categorizing built-in attributes
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is CustomAttributeCategory && m_Treeview.selectedItems.All(x => x is AttributeItem xAttr && !xAttr.isBuiltIn))
             {
                 return DragVisualMode.Move;
             }
