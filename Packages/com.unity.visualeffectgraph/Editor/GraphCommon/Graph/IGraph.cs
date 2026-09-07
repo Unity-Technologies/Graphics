@@ -40,10 +40,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphTraverser CreateTraverser();
 
         /// <summary>
-        /// Copies this graph into a new IMutableGraph.
+        /// Copies this graph into a new <see cref="IGraph"/>.
         /// </summary>
-        /// <returns>A new IMutableGraph, with the same contents of this graph.</returns>
-        IMutableGraph Copy();
+        /// <returns>A new <see cref="IGraph"/>, with the same contents of this graph.</returns>
+        IGraph Copy();
 
         /// <summary>
         /// Retrieves an enumerable collection of data nodes associated with a specified task node.
@@ -147,13 +147,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
     }
 
     /// <summary>
-    /// A buildable graph.
+    /// A graph whose elements can be added, removed and changed, in any order.
     /// </summary>
-    /// <remarks>
-    /// This interface allows to add elements to a graph but not to remove them (or all at once with Clear()).
-    /// Meaning element Ids remain valid in the graph.
-    /// </remarks>
-    /*public*/ interface IBuildableGraph
+    /*public*/ interface IGraph : IReadOnlyGraph
     {
         /// <summary>
         /// Clears the graph.
@@ -195,30 +191,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         DataViewId GetSubdata(DataViewId parentDataViewId, DataPath subdataPath);
 
         /// <summary>
-        /// Creates a binding between a task node and a data view through a specific binding key.
-        /// </summary>
-        /// <param name="taskNodeId">The ID of the task node to bind.</param>
-        /// <param name="bindingKey">The key identifying which binding point on the task to use.</param>
-        /// <param name="dataViewId">The ID of the data view to bind to the task.</param>
-        /// <param name="usage">How the data will be used by the task (read, write, or both).</param>
-        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage = BindingUsage.Unknown);
-
-        /// <summary>
-        /// Finalizes the graph building process and returns a read-only version of the graph.
-        /// </summary>
-        /// <returns>A read-only representation of the built graph.</returns>
-        public IReadOnlyGraph EndBuilding();
-    }
-
-    /// <summary>
-    /// A mutable graph.
-    /// </summary>
-    /// <remarks>
-    /// This interface allows to change elements in the graph.
-    /// </remarks>
-    /*public*/ interface IMutableGraph : IBuildableGraph, IReadOnlyGraph
-    {
-        /// <summary>
         /// Binds data to a task node with explicit parent data nodes.
         /// </summary>
         /// <param name="taskNodeId">The ID of the task node to bind to.</param>
@@ -226,9 +198,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <param name="dataViewId">The ID of the data view to bind.</param>
         /// <param name="parentNodeIds">The explicit parent data nodes to establish dependencies with.</param>
         /// <param name="usage">The usage mode for the binding.</param>
-        /// <returns> The data node associated with the newly bound data.</returns>
         void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
-            IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage);
+            IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage = BindingUsage.Unknown);
 
         /// <summary>
         /// Removes the task node with the given id together with all data nodes, data bindings,
@@ -238,6 +209,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
         void RemoveTask(TaskNodeId id);
 
         /// <summary>
+        /// Removes the data binding identified by <paramref name="bindingKey"/> from the given task node.
+        /// </summary>
+        /// <param name="taskNodeId">The id of the task node holding the binding.</param>
+        /// <param name="bindingKey">The key identifying the binding to remove.</param>
+        void UnbindData(TaskNodeId taskNodeId, IDataKey bindingKey);
+
+        /// <summary>
         /// Removes the data container with the given id together with all data views, data nodes, and data bindings that involve it.
         /// </summary>
         /// <param name="dataContainerId">The id of the container to remove.</param>
@@ -245,7 +223,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         //void Apply(GraphCommandList graph);
 
-        //TODO: TEMPORARY, we don't really support mutability as of now
+        //TODO: TEMPORARY, needs a more proper API
         /// <summary>
         /// Temporary. Overrides the data description of a data view.
         /// </summary>

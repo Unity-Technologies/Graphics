@@ -18,10 +18,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 m_Data.AddList(1);
             }
 
-            public void OnDataBindingAdded(DataBindingId id,  DataViewId dataViewId, DataNodeId dataNodeId, IDataKey bindingKey, BindingUsage usage)
+            public void OnDataBindingAdded(DataBindingId id,  DataViewId dataViewId, DataNodeId dataNodeId,
+                TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
                 => m_Data.AddItem(dataNodeId.Index, id);
 
-            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, BindingUsage usage)
+            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+                TaskNodeId taskNodeId, BindingUsage usage)
             {
                 if (m_Data.FindItem(dataNodeId.Index, id, out int itemIndex))
                     m_Data.RemoveItem(dataNodeId.Index, itemIndex);

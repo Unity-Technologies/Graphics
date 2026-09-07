@@ -156,6 +156,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <value>The task node at the specified index.</value>
         public TaskNode this[int index] => m_NodeConverter[m_Links[index]];
 
+        internal TaskNodeId GetId(int index) => m_Links[index].Data;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskNodeLinks"/> struct.
         /// </summary>
@@ -195,6 +197,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <c>foreach</c> for the version-checked path.
         /// </remarks>
         public TaskNode this[int index] => m_Provider[m_IdSource[index]];
+
+        /// <summary>
+        /// Gets the id at the specified index, without materializing a <see cref="TaskNode"/>.
+        /// Used by <see cref="GraphSnapshots"/>.
+        /// </summary>
+        internal TaskNodeId GetId(int index) => m_IdSource[index];
 
         public TaskNodeEnumerable(IIndexable<TaskNodeId, TaskNode> provider, SubEnumerable<TaskNodeId> idSource)
         {

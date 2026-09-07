@@ -17,21 +17,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             var attributeSetLayoutCompilationData = context.data.GetOrCreate<AttributeSetLayoutCompilationData>();
 
-            List<DataView> attributeSetDataViews = new List<DataView>();
-            // Gather attribute set data
+            var traverser = context.graph.CreateTraverser();
             foreach (var dataView in context.graph.DataViews)
             {
                 if (dataView.DataDescription is AttributeData attributeData)
-                {
-                    attributeSetDataViews.Add(dataView);
-                }
-            }
-            var traverser = context.graph.CreateTraverser();
-            foreach (var attributeSetDataView in attributeSetDataViews)
-            {
-                var attributeSetLayout = GenerateAttributeLayout(traverser, attributeSetDataView, context.graph);
-                var attributeData = attributeSetDataView.DataDescription as AttributeData;
-                attributeSetLayoutCompilationData[attributeData] = attributeSetLayout;
+                    attributeSetLayoutCompilationData[attributeData] = GenerateAttributeLayout(traverser, dataView, context.graph);
             }
             return true;
         }

@@ -25,8 +25,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>Data binding mutation callbacks. </summary>
     interface IDataBindingObserver : IGraphLifecycleObserver
     {
-        void OnDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, IDataKey bindingKey, BindingUsage usage) {}
-        void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, BindingUsage usage) {}
+        void OnDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage) {}
+        void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, TaskNodeId taskNodeId, BindingUsage usage) {}
     }
 
     /// <summary>Data view mutation callbacks. </summary>

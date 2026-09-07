@@ -115,7 +115,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return true;
         }
 
-        public static void WriteGraph(IMutableGraph graph, string path)
+        public static void WriteGraph(IReadOnlyGraph graph, string path)
         {
             StringBuilder sb = new StringBuilder();
             using (new GraphVisualizer.GraphScope(sb))

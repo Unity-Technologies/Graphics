@@ -1,13 +1,13 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     /// <summary>
     /// Represents a graph of tasks and data nodes with their dependencies.
     /// </summary>
-    sealed partial class TaskGraph : IMutableGraph
+    sealed partial class TaskGraph : IGraph
     {
         // Note: not readonly so the copy ctor can rebind via CopyPrimaryStateFrom.
         // Reference reassignment otherwise never happens at runtime.
@@ -25,13 +25,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         DataBindingProvider m_DataBindingProvider;
         DataContainerProvider m_DataContainerProvider;
 
-        // Observers receive a fine-grained signal for every primitive mutation. They are
-        // registered at construction time in topological order — a dependency (e.g. DataViewTrees)
-        // before any cache that reads it — and never unregistered. Each list is iterated
-        // synchronously from the matching mutating API method: Added/Changed dispatch in
-        // registration order, so a dependency updates before its readers; Removed/Cleared dispatch
-        // in reverse, so a reader is notified while the caches it reads are still intact, before
-        // they tear down.
         readonly List<IGraphLifecycleObserver>  m_LifecycleObservers    = new();
         readonly List<ITaskObserver>            m_TaskObservers          = new();
         readonly List<IDataNodeObserver>        m_DataNodeObservers      = new();
@@ -44,15 +37,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </summary>
         public uint Version { get; private set; } = 1u; // 0u reserved for null/invalid version
 
-        /// <inheritdoc cref="IGraph{T}"/>
+        /// <inheritdoc/>
         public ITaskNodeProvider TaskNodes => m_TaskNodeProvider;
-        /// <inheritdoc cref="IGraph{T}"/>
+        /// <inheritdoc/>
         public IDataNodeProvider DataNodes => m_DataNodeProvider;
-        /// <inheritdoc cref="IGraph{T}"/>
+        /// <inheritdoc/>
         public IDataViewProvider DataViews => m_DataViewProvider;
-        /// <inheritdoc cref="IGraph{T}"/>
+        /// <inheritdoc/>
         public IDataBindingProvider DataBindings => m_DataBindingProvider;
-        /// <inheritdoc cref="IGraph{T}"/>
+        /// <inheritdoc/>
         public IDataContainerProvider DataContainers => m_DataContainerProvider;
 
         TaskNodeGraphCache TaskNodeGraph { get; }
@@ -63,7 +56,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
         DataNodeToDataViewsCache DataNodeToDataViews { get; }
         DataNodeToDataBindingsCache DataNodeToDataBindings { get; }
         DataViewToDataContainerCache DataViewToDataContainer { get; }
-        DataViewsWriteCacheInfoCache DataViewsWriteCacheInfo { get; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="TaskGraph"/>.
@@ -83,7 +75,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
             DataNodeToDataBindings     = RegisterCache(new DataNodeToDataBindingsCache(this),     source?.DataNodeToDataBindings,     copyCache);
             DataViewToDataContainer    = RegisterCache(new DataViewToDataContainerCache(this),    source?.DataViewToDataContainer,    copyCache);
             DataNodeToDataViews        = RegisterCache(new DataNodeToDataViewsCache(this),        source?.DataNodeToDataViews,        copyCache);
-            DataViewsWriteCacheInfo    = RegisterCache(new DataViewsWriteCacheInfoCache(m_DataViews, this),   source?.DataViewsWriteCacheInfo,   copyCache);
         }
 
         void InitProviders()
@@ -117,7 +108,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return cache;
         }
 
-        void RegisterObserver(object observer)
+        internal void RegisterObserver(object observer)
         {
             if (observer is IGraphLifecycleObserver lifecycle) m_LifecycleObservers.Add(lifecycle);
             if (observer is ITaskObserver task)                m_TaskObservers.Add(task);
@@ -127,27 +118,31 @@ namespace Unity.GraphCommon.LowLevel.Editor
             if (observer is IDataContainerObserver container)  m_DataContainerObservers.Add(container);
         }
 
-        /// <summary>
-        /// Clears all nodes and dependencies from the graph.
-        /// </summary>
+        internal void UnregisterObserver(object observer)
+        {
+            if (observer is IGraphLifecycleObserver lifecycle) m_LifecycleObservers.Remove(lifecycle);
+            if (observer is ITaskObserver task)                m_TaskObservers.Remove(task);
+            if (observer is IDataNodeObserver dataNode)        m_DataNodeObservers.Remove(dataNode);
+            if (observer is IDataBindingObserver dataBinding)  m_DataBindingObservers.Remove(dataBinding);
+            if (observer is IDataViewObserver dataView)        m_DataViewObservers.Remove(dataView);
+            if (observer is IDataContainerObserver container)  m_DataContainerObservers.Remove(container);
+        }
+
+        /// <inheritdoc/>
         public void Clear()
         {
             m_TaskNodes.Clear();
             m_DataNodes.Clear();
             m_DataContainers.Clear();
             m_DataViews.Clear();
-
+            m_DataBindings.Clear();
             m_DataDependencies.Clear();
 
             Version = 1u;
             NotifyGraphCleared();
         }
 
-        /// <summary>
-        /// Adds a task to the graph.
-        /// </summary>
-        /// <param name="task">The task to add.</param>
-        /// <returns>The ID of the newly created task node.</returns>
+        /// <inheritdoc/>
         public TaskNodeId AddTask(ITask task, string name = null)
         {
             Version++;
@@ -156,7 +151,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return taskNodeId;
         }
 
-        /// <inheritdoc cref="IBuildableGraph"/>
+        /// <inheritdoc/>
         public DataViewId AddData(string name, IDataDescription dataDescription)
         {
             Version++;
@@ -171,7 +166,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         //TODO: TEMPORARY, we don't really support mutability as of now
-        /// <inheritdoc cref="IMutableGraph"/>
+        /// <inheritdoc/>
         public void OverrideDataDescription(DataViewId dataViewId, IDataDescription dataDescription)
         {
             DataViewInfo dataViewInfo = m_DataViews[dataViewId];
@@ -179,7 +174,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             m_DataViews[dataViewId] = new DataViewInfo(dataViewInfo.Id, dataDescription, dataViewInfo.ParentDataViewId, dataViewInfo.SubDataKey );
         }
 
-        /// <inheritdoc cref="IBuildableGraph"/>
+        /// <inheritdoc/>
         public DataViewId GetSubdata(DataViewId parentDataViewId, IDataKey subDataKey, IDataDescription dataDescription = null)
         {
             if (!DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out DataViewId dataViewId))
@@ -213,7 +208,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return dataViewId;
         }
 
-        /// <inheritdoc cref="IBuildableGraph"/>
+        /// <inheritdoc/>
         public DataViewId GetSubdata(DataViewId parentDataViewId, DataPath subdataPath)
         {
             var currentDataViewId = parentDataViewId;
@@ -226,7 +221,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return currentDataViewId;
         }
 
-        void ResolveBindingUsage(TaskNodeId taskNodeId, IDataKey bindingKey, ref BindingUsage usage,
+        internal void ResolveBindingUsage(TaskNodeId taskNodeId, IDataKey bindingKey, ref BindingUsage usage,
             out DataPathSet readPaths, out DataPathSet writePaths)
         {
             readPaths = new();
@@ -247,21 +242,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
-        /// <inheritdoc cref="IBuildableGraph"/>
-        public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage = BindingUsage.Unknown)
-        {
-            ResolveBindingUsage(taskNodeId, bindingKey, ref usage, out var readPaths, out var writePaths);
-
-            IEnumerable<DataNodeId> parentNodeIds = Array.Empty<DataNodeId>();
-            if (usage.HasFlag(BindingUsage.Read))
-            {
-                parentNodeIds = FindImplicitParentDataNodes(dataViewId);
-            }
-
-            BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
-        }
-
-        /// <inheritdoc cref="IMutableGraph"/>
+        /// <inheritdoc/>
         public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
             IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage = BindingUsage.Unknown)
         {
@@ -269,7 +250,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
         }
 
-        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
+        // Shared core, taking usage and paths already resolved. Internal so a TaskGraphBuilder can
+        // resolve usage once, infer the parents from it, and bind without resolving a second time.
+        internal void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
             IEnumerable<DataNodeId> parentNodeIds, DataPathSet readPaths, DataPathSet writePaths)
         {
             Debug.Assert(dataViewId.IsValid);
@@ -294,7 +277,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             m_DataBindings.Allocate(out var dataBindingId) =
                 new DataBindingInfo(dataBindingId, dataNodeId, dataViewId, bindingKey, usage);
-            NotifyDataBindingAdded(dataBindingId, dataViewId, dataNodeId, bindingKey, usage);
+            NotifyDataBindingAdded(dataBindingId, dataViewId, dataNodeId, taskNodeId, bindingKey, usage);
 
             foreach (var parentNodeId in parentNodeIds)
             {
@@ -346,6 +329,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             Debug.Assert(dataNodeId.IsValid);
             Debug.Assert(parentDataNodeId.IsValid);
+            Debug.Assert(!dataNodeId.Equals(parentDataNodeId), $"Data node {dataNodeId} cannot depend on itself.");
             bool added = m_DataDependencies.Add(new DataDependency(dataNodeId, parentDataNodeId));
             if (added)
             {
@@ -356,19 +340,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return added;
         }
 
-        /// <inheritdoc cref="IReadOnlyGraph"/>
-        public IMutableGraph Copy()
+        /// <inheritdoc/>
+        public IGraph Copy()
         {
             return new TaskGraph(this);
         }
 
-        /// <inheritdoc cref="IBuildableGraph"/>
-        public IReadOnlyGraph EndBuilding()
-        {
-            return this;
-        }
-
-        /// <inheritdoc cref="IReadOnlyGraph"/>
+        /// <inheritdoc/>
         DataNodeEnumerable IReadOnlyGraph.GetDataNodes(TaskNodeId taskNodeId)
         {
             var container = TaskNodeToDataNodes.Data;
@@ -376,7 +354,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return new(DataNodes, subEnumerable);
         }
 
-        /// <inheritdoc cref="IReadOnlyGraph"/>
+        /// <inheritdoc/>
         DataBindingEnumerable IReadOnlyGraph.GetDataBindings(TaskNodeId taskNodeId)
         {
             var container = TaskNodeToDataBindings.Data;
@@ -384,7 +362,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return new(DataBindings, subEnumerable);
         }
 
-        /// <inheritdoc cref="IReadOnlyGraph"/>
+        /// <inheritdoc/>
         DataBindingEnumerable IReadOnlyGraph.GetDataBindings(DataNodeId dataNodeId)
         {
             var container = DataNodeToDataBindings.Data;
@@ -393,82 +371,276 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
 
-        /// <inheritdoc cref="IReadOnlyGraph.GetUsedDataViews"/>
+        /// <inheritdoc/>
         DataView IReadOnlyGraph.GetUsedDataViews(DataNodeId dataNodeId)
         {
             var treeNode = DataNodeToDataViews.Data.RootNodes[dataNodeId.Index];
             return treeNode.Data.IsValid ? new(m_DataViewProvider, treeNode, this, m_DataViews[treeNode.Data]) : new();
         }
 
-        /// <inheritdoc cref="IReadOnlyGraph.IsRead"/>
+        /// <inheritdoc/>
         bool IReadOnlyGraph.IsRead(DataNodeId dataNodeId, DataViewId dataViewId) => DataNodeToDataViews.IsRead(dataNodeId, dataViewId);
 
-        /// <inheritdoc cref="IReadOnlyGraph.IsWritten"/>
+        /// <inheritdoc/>
         bool IReadOnlyGraph.IsWritten(DataNodeId dataNodeId, DataViewId dataViewId) => DataNodeToDataViews.IsWritten(dataNodeId, dataViewId);
 
-        /// <inheritdoc cref="IReadOnlyGraph.GetDataContainer"/>
+        /// <inheritdoc/>
         DataContainer IReadOnlyGraph.GetDataContainer(DataViewId dataViewId)
         {
             var dataContainerId = DataViewToDataContainer.Data[dataViewId.Index];
             return DataContainers[dataContainerId];
         }
 
-        /// <inheritdoc cref="IReadOnlyGraph.TryGetSubView"/>
+        /// <inheritdoc/>
         bool IReadOnlyGraph.TryGetSubView(DataViewId parentDataViewId, IDataKey subDataKey, out DataViewId dataViewId)
             => DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out dataViewId);
 
-        ReadOnlyList<DataNodeId> FindImplicitParentDataNodes(DataViewId dataViewId)
+        // Reads the declaration back from ITask.GetBindingUsage rather than from DataNodeToDataViews: the
+        // cached Read/Written bits propagate upward, so every node touching a container overlaps at its root.
+        // Either output may be null to collect only the other side.
+        void CollectDeclaredViews(DataNode dataNode, List<DataViewId> readViews, List<DataViewId> writeViews)
         {
-            var result = new List<DataNodeId>();
+            readViews?.Clear();
+            writeViews?.Clear();
 
-            // Find the most recent data nodes in parents
-            DataNodeId parentDataNodeId = DataNodeId.Invalid;
-            DataViewId parentDataViewId = dataViewId;
-            while (parentDataViewId.IsValid)
-            {
-                DataNodeId dataNodeId = DataViewsWriteCacheInfo.Data[parentDataViewId].LastWrite;
-                if (dataNodeId.IsValid && (!parentDataNodeId.IsValid || parentDataNodeId.Index < dataNodeId.Index))
-                {
-                    parentDataNodeId = dataNodeId;
-                }
-                parentDataViewId = m_DataViews[parentDataViewId].ParentDataViewId;
-            }
+            var readUsage = readViews != null ? new DataPathSet() : null;
+            var writeUsage = writeViews != null ? new DataPathSet() : null;
 
-            if (parentDataNodeId.IsValid)
+            var task = dataNode.TaskNode.Task;
+            foreach (var binding in dataNode.DataBindings)
             {
-                result.Add(parentDataNodeId);
-                AppendSubdataParentDataNodes(dataViewId, parentDataNodeId, result);
-            }
-            // TODO: Look to siblings if there is data overlap
-            return result;
-        }
+                readUsage?.Clear();
+                writeUsage?.Clear();
+                if (task.GetBindingUsage(binding.BindingDataKey, readUsage, writeUsage) == BindingUsage.Unknown)
+                    continue;
 
-        void AppendSubdataParentDataNodes(DataViewId dataViewId, DataNodeId parentDataNodeId, List<DataNodeId> result)
-        {
-            foreach (var subdataViewId in DataViewsWriteCacheInfo.Data[dataViewId].SubWrites)
-            {
-                DataNodeId dataNodeId = DataViewsWriteCacheInfo.Data[subdataViewId].LastWrite;
-                if (parentDataNodeId.Index < dataNodeId.Index)
-                {
-                    result.Add(dataNodeId);
-                    AppendSubdataParentDataNodes(subdataViewId, dataNodeId, result);
-                }
+                if (readViews != null)
+                    AddResolvedPaths(binding.DataView, readUsage, readViews);
+                if (writeViews != null)
+                    AddResolvedPaths(binding.DataView, writeUsage, writeViews);
             }
         }
 
-        GraphTraverser IReadOnlyGraph.CreateTraverser() => new GraphTraverser(this);
+        void AddResolvedPaths(DataView bindingDataView, DataPathSet paths, List<DataViewId> result)
+        {
+            foreach (var path in paths)
+            {
+                if (bindingDataView.FindSubData(path, out var subDataView))
+                    AddTopmost(result, subDataView);
+            }
+        }
 
-        /// <inheritdoc cref="IMutableGraph"/>
+        // Whether one of views contains dataViewId, itself included.
+        bool IsCovered(List<DataViewId> views, DataViewId dataViewId)
+        {
+            foreach (var viewId in views)
+            {
+                if (DataViews[viewId].ContainsSubData(dataViewId))
+                    return true;
+            }
+            return false;
+        }
+
+        void AddTopmost(List<DataViewId> views, DataView candidate)
+        {
+            if (IsCovered(views, candidate.Id))
+                return;
+
+            if (candidate.Children.Count > 0)
+            {
+                for (int i = views.Count - 1; i >= 0; i--)
+                {
+                    if (candidate.ContainsSubData(views[i]))
+                        views.RemoveAt(i);
+                }
+            }
+
+            views.Add(candidate.Id);
+        }
+
+        void SpliceOutDataNode(DataNode dataNode, GraphTraverser traverser)
+        {
+            using var parentIds = dataNode.Parents.Snapshot();
+            using var childIds = dataNode.Children.Snapshot();
+
+            foreach (var childId in childIds)
+            {
+                if (m_DataDependencies.Remove(new DataDependency(childId, dataNode.Id)))
+                    NotifyDataDependencyRemoved(childId, dataNode.Id);
+            }
+
+            foreach (var childId in childIds)
+                ReconnectOrphanedChild(dataNode, childId, traverser);
+
+            foreach (var parentId in parentIds)
+            {
+                if (m_DataDependencies.Remove(new DataDependency(dataNode.Id, parentId)))
+                    NotifyDataDependencyRemoved(dataNode.Id, parentId);
+            }
+        }
+
+        void ReconnectOrphanedChild(DataNode removedNode, DataNodeId childId, GraphTraverser traverser)
+        {
+            using (ListPool<DataViewId>.Get(out var childReads))
+            using (ListPool<DataViewId>.Get(out var ancestorWrites))
+            using (ListPool<DataViewId>.Get(out var claimedWrites))
+            using (ListPool<DataNodeId>.Get(out var candidates))
+            {
+                CollectDeclaredViews(DataNodes[childId], childReads, null);
+                if (childReads.Count == 0)
+                    return;
+
+                foreach (var ancestor in traverser.TraverseDataUpwardsBreadthFirst(removedNode))
+                {
+                    if (childReads.Count == 0)
+                        break;
+                    if (ancestor.Id.Equals(removedNode.Id))
+                        continue;
+
+                    CollectDeclaredViews(ancestor, null, ancestorWrites);
+                    if (ClaimWrittenViews(childReads, ancestorWrites, claimedWrites))
+                        candidates.Add(ancestor.Id);
+                }
+
+                foreach (var candidateNodeId in candidates)
+                    AddDataDependency(childId, candidateNodeId);
+            }
+        }
+
+        // Matches one ancestor's writes against the reads still looking for a writer; true if any landed.
+        // A read survives a partial cover, so a whole-container reader still reaches every sub-view writer.
+        bool ClaimWrittenViews(List<DataViewId> reads, List<DataViewId> writes, List<DataViewId> claimedWrites)
+        {
+            bool claimedAny = false;
+            foreach (var writeId in writes)
+            {
+                // A nearer node already took responsibility for this region.
+                if (IsCovered(claimedWrites, writeId))
+                    continue;
+
+                var write = DataViews[writeId];
+                bool overlaps = false;
+                for (int r = reads.Count - 1; r >= 0; r--)
+                {
+                    var readId = reads[r];
+                    if (write.ContainsSubData(readId))
+                    {
+                        // Covered whole: nothing of this read is left for a further ancestor to write.
+                        reads.RemoveAt(r);
+                        overlaps = true;
+                    }
+                    else if (DataViews[readId].ContainsSubData(writeId))
+                    {
+                        // Covered in part: the remainder of the read still needs its own writer.
+                        overlaps = true;
+                    }
+                }
+
+                if (overlaps)
+                {
+                    AddTopmost(claimedWrites, write);
+                    claimedAny = true;
+                }
+            }
+            return claimedAny;
+        }
+
+        void RemoveDataNodeAndBindings(DataNodeId dataNodeId)
+        {
+            var dataNodeInfo = m_DataNodes[dataNodeId];
+            using var bindingIds = DataNodes[dataNodeId].DataBindings.Snapshot();
+
+            m_DataNodes.Remove(dataNodeId);
+            NotifyDataNodeRemoved(dataNodeId, dataNodeInfo.TaskNodeId, dataNodeInfo.DataContainerId);
+
+            foreach (var bindingId in bindingIds)
+            {
+                var bindingInfo = m_DataBindings[bindingId];
+                m_DataBindings.Remove(bindingId);
+                NotifyDataBindingRemoved(bindingId, bindingInfo.DataViewId, dataNodeId, dataNodeInfo.TaskNodeId,
+                    bindingInfo.Usage);
+            }
+        }
+
+        /// <inheritdoc/>
         public void RemoveTask(TaskNodeId taskNodeId)
         {
-            throw new NotImplementedException("RemoveTask is not yet implemented");
+            var taskNode = TaskNodes[taskNodeId];
+
+            using var dataNodeIds = taskNode.DataNodes.Snapshot();
+
+            var traverser = ((IReadOnlyGraph)this).CreateTraverser();
+            foreach (var dataNodeId in dataNodeIds)
+                SpliceOutDataNode(DataNodes[dataNodeId], traverser);
+
+            foreach (var dataNodeId in dataNodeIds)
+                RemoveDataNodeAndBindings(dataNodeId);
+
+            m_TaskNodes.Remove(taskNodeId);
+            NotifyTaskNodeRemoved(taskNodeId);
+            Version++;
         }
 
-        /// <inheritdoc cref="IMutableGraph"/>
+        /// <inheritdoc/>
+        public void UnbindData(TaskNodeId taskNodeId, IDataKey bindingKey)
+        {
+            var dataBinding = TaskNodes[taskNodeId].DataBindings[bindingKey];
+            if (!dataBinding.HasValue)
+                return;
+
+            var dataNode = dataBinding.Value.DataNode;
+
+            // A data node exists to carry its bindings, so it goes away with the last one.
+            if (dataNode.DataBindings.Count == 1)
+            {
+                SpliceOutDataNode(dataNode, ((IReadOnlyGraph)this).CreateTraverser());
+                RemoveDataNodeAndBindings(dataNode.Id);
+            }
+            else
+            {
+                var bindingInfo = m_DataBindings[dataBinding.Value.Id];
+                m_DataBindings.Remove(bindingInfo.Id);
+                NotifyDataBindingRemoved(bindingInfo.Id, bindingInfo.DataViewId, dataNode.Id, taskNodeId,
+                    bindingInfo.Usage);
+            }
+            Version++;
+        }
+
+        /// <inheritdoc/>
         public void RemoveDataContainer(DataContainerId dataContainerId)
         {
-            throw new NotImplementedException("RemoveDataContainer is not yet implemented");
+            var dataContainer = DataContainers[dataContainerId];
+            var rootDataViewId = dataContainer.RootDataView.Id;
+            using var dataViewIds = dataContainer.RootDataView.Flat.Snapshot();
+
+            using (ListPool<DataNodeId>.Get(out var dataNodeIds))
+            {
+                foreach (var dataNode in DataNodes)
+                {
+                    if (dataNode.DataContainer.Id.Equals(dataContainerId))
+                        dataNodeIds.Add(dataNode.Id);
+                }
+
+                var traverser = ((IReadOnlyGraph)this).CreateTraverser();
+                foreach (var dataNodeId in dataNodeIds)
+                    SpliceOutDataNode(DataNodes[dataNodeId], traverser);
+
+                foreach (var dataNodeId in dataNodeIds)
+                    RemoveDataNodeAndBindings(dataNodeId);
+            }
+
+            for (int i = dataViewIds.Count - 1; i >= 0; i--)
+            {
+                var dataViewId = dataViewIds[i];
+                NotifyDataViewRemoved(dataViewId, m_DataViews[dataViewId].ParentDataViewId, dataContainerId);
+                m_DataViews.Remove(dataViewId);
+            }
+
+            m_DataContainers.Remove(dataContainerId);
+            NotifyDataContainerRemoved(dataContainerId, rootDataViewId);
+            Version++;
         }
+        GraphTraverser IReadOnlyGraph.CreateTraverser() => new GraphTraverser(this);
 
         void NotifyTaskNodeAdded(TaskNodeId id, ITask task, string name)
         {
@@ -524,16 +696,18 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 m_DataNodeObservers[i].OnDataNodeRemoved(id, taskNodeId, dataContainerId);
         }
 
-        void NotifyDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, IDataKey bindingKey, BindingUsage usage)
+        void NotifyDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
         {
             for (int i = 0; i < m_DataBindingObservers.Count; i++)
-                m_DataBindingObservers[i].OnDataBindingAdded(id, dataViewId, dataNodeId, bindingKey, usage);
+                m_DataBindingObservers[i].OnDataBindingAdded(id, dataViewId, dataNodeId, taskNodeId, bindingKey, usage);
         }
 
-        void NotifyDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, BindingUsage usage)
+        void NotifyDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+            TaskNodeId taskNodeId, BindingUsage usage)
         {
             for (int i = m_DataBindingObservers.Count - 1; i >= 0; i--)
-                m_DataBindingObservers[i].OnDataBindingRemoved(id, dataViewId, dataNodeId, usage);
+                m_DataBindingObservers[i].OnDataBindingRemoved(id, dataViewId, dataNodeId, taskNodeId, usage);
         }
 
         void NotifyDataDependencyAdded(DataNodeId child, DataNodeId parent)

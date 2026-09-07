@@ -132,6 +132,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </remarks>
         public DataContainer this[int index] => m_Provider[m_IdSource[index]];
 
+        /// <summary>
+        /// Gets the id at the specified index, without materializing a <see cref="DataContainer"/>.
+        /// Used by <see cref="GraphSnapshots"/>.
+        /// </summary>
+        internal DataContainerId GetId(int index) => m_IdSource[index];
+
         public DataContainerEnumerable(IIndexable<DataContainerId, DataContainer> provider, SubEnumerable<DataContainerId> idSource)
         {
             m_Provider = provider;

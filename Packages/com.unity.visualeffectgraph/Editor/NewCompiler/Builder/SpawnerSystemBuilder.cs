@@ -37,8 +37,8 @@ namespace UnityEditor.VFX
         void BuildSpawnerSystem(VFXBasicSpawner spawner)
         {
             var eventDataDescription = new EventData(SystemNames.GetUniqueSystemName(spawner.GetData()));
-            var eventData = IntermediateGraph.AddData(eventDataDescription.Name, eventDataDescription);
-            var eventAttributeData = IntermediateGraph.GetSubdata(eventData, EventData.AttributeDataKey);
+            var eventData = TaskGraphBuilder.AddData(eventDataDescription.Name, eventDataDescription);
+            var eventAttributeData = TaskGraphBuilder.GetSubdata(eventData, EventData.AttributeDataKey);
 
             var cpuMapper = ExpressionGraph.BuildCPUMapper(spawner);
 
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
                     if (spawnerBlock is Block.VFXSpawnerSetAttribute spawnerSetAttribute)
                     {
                         var attribute = VFXAttributesManager.ConvertToNewCompiler(spawnerSetAttribute.currentAttribute); ;
-                        IntermediateGraph.GetSubdata(eventAttributeData, new AttributeKey(attribute));
+                        TaskGraphBuilder.GetSubdata(eventAttributeData, new AttributeKey(attribute));
                         subTask = new SpawnerTask(spawnerBlock.spawnerType, EventListDataBindingKey, attribute);
                     }
                     else
@@ -59,8 +59,8 @@ namespace UnityEditor.VFX
                         subTask = new SpawnerTask(spawnerBlock.spawnerType, EventListDataBindingKey);
                     }
 
-                    var spawnerTaskNodeId = IntermediateGraph.AddTask(subTask, block.name);
-                    IntermediateGraph.BindData(spawnerTaskNodeId, EventListDataBindingKey, eventData);
+                    var spawnerTaskNodeId = TaskGraphBuilder.AddTask(subTask, block.name);
+                    TaskGraphBuilder.BindData(spawnerTaskNodeId, EventListDataBindingKey, eventData);
                     BindSpawnerExpressions(cpuMapper, spawnerTaskNodeId, taskIndex);
 
                     taskIndex++;
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             {
                 TryGetDataView(namedExpression.exp, out var expressionDataViewId);
                 string bindingName = namedExpression.name;
-                IntermediateGraph.BindData(spawnerTaskNodeId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(spawnerTaskNodeId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
             }
         }
     }

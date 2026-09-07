@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
                 uint capacity = (uint)toData.GetSettingValue("capacity");
 
                 var eventListDataDescription = new EventListData($"{toSystemName}_GPUEvents", isCpu: false, capacity);
-                var eventListDataViewId = IntermediateGraph.AddData(eventListDataDescription.Name, eventListDataDescription);
+                var eventListDataViewId = TaskGraphBuilder.AddData(eventListDataDescription.Name, eventListDataDescription);
 
                 // Register event data so other builders can retrieve it
                 RegisterDataView(gpuEvent, eventListDataViewId);

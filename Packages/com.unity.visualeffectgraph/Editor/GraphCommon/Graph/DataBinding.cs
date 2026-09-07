@@ -147,6 +147,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </remarks>
         public DataBinding this[int index] => m_Provider[m_IdSource[index]];
 
+        /// <summary>
+        /// Gets the id at the specified index, without materializing a <see cref="DataBinding"/>.
+        /// Used by <see cref="GraphSnapshots"/>.
+        /// </summary>
+        internal DataBindingId GetId(int index) => m_IdSource[index];
+
         public DataBinding? this[IDataKey bindingDataKey]
         {
             get

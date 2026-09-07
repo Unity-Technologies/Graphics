@@ -113,22 +113,22 @@ namespace UnityEditor.VFX
 
             var particleSystemName = SystemNames.GetUniqueSystemName(buildInfo.Data);
 
-            var systemTaskId = IntermediateGraph.AddTask(BuildSystemTask(), $"{particleSystemName} Task");
+            var systemTaskId = TaskGraphBuilder.AddTask(BuildSystemTask(), $"{particleSystemName} Task");
 
             var particleDataDescription = BuildParticleDataDescription(buildInfo.Data, particleSystemName);
-            var particleDataViewId = IntermediateGraph.AddData(particleSystemName, particleDataDescription);
-            IntermediateGraph.BindData(systemTaskId, ParticleSystemTask.ParticleDataBindingKey, particleDataViewId, BindingUsage.Write);
+            var particleDataViewId = TaskGraphBuilder.AddData(particleSystemName, particleDataDescription);
+            TaskGraphBuilder.BindData(systemTaskId, ParticleSystemTask.ParticleDataBindingKey, particleDataViewId, BindingUsage.Write);
 
             var graphValuesBufferViewId = BuildGraphValuesBuffer(out var contextDataViewId);
-            IntermediateGraph.BindData(systemTaskId, ParticleSystemTask.GraphValuesBindingKey, graphValuesBufferViewId, BindingUsage.Write);
+            TaskGraphBuilder.BindData(systemTaskId, ParticleSystemTask.GraphValuesBindingKey, graphValuesBufferViewId, BindingUsage.Write);
 
             if (buildInfo.InitContext != null)
             {
                 var contextTaskId = AddContextTask(buildInfo.InitContext, "Init", systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
                 if (GetInputEventList(buildInfo, particleSystemName, systemTaskId, out var eventListDataViewId, out var sourceAttributesViewId))
                 {
-                    IntermediateGraph.BindData(contextTaskId, EventListDataBindingKey, eventListDataViewId);
-                    IntermediateGraph.BindData(contextTaskId, SourceAttributesBindingKey, sourceAttributesViewId);
+                    TaskGraphBuilder.BindData(contextTaskId, EventListDataBindingKey, eventListDataViewId);
+                    TaskGraphBuilder.BindData(contextTaskId, SourceAttributesBindingKey, sourceAttributesViewId);
                 }
             }
 
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
                     {
                         var bindingKey = GetOutputGpuEventBindingKey(i);
                         TryGetDataView(outputGpuEvents[i], out var gpuEventListDataViewId);
-                        IntermediateGraph.BindData(contextTaskId, bindingKey, gpuEventListDataViewId);
+                        TaskGraphBuilder.BindData(contextTaskId, bindingKey, gpuEventListDataViewId);
                     }
                 }
             }
@@ -227,17 +227,17 @@ namespace UnityEditor.VFX
             if (buildInfo.InputCpuEvents.Count > 0)
             {
                 var eventListDataDescription = new EventListData($"{particleSystemName}_CPUEvents", isCpu: true, (uint)buildInfo.InputCpuEvents.Count);
-                eventListDataViewId = IntermediateGraph.AddData(eventListDataDescription.Name, eventListDataDescription);
-                sourceAttributesViewId = IntermediateGraph.GetSubdata(eventListDataViewId, EventData.AttributeDataKey);
+                eventListDataViewId = TaskGraphBuilder.AddData(eventListDataDescription.Name, eventListDataDescription);
+                sourceAttributesViewId = TaskGraphBuilder.GetSubdata(eventListDataViewId, EventData.AttributeDataKey);
 
                 foreach (var spawner in buildInfo.InputCpuEvents)
                 {
                     if (TryGetDataView(spawner, out var eventData) && eventData.IsValid)
                     {
-                        IntermediateGraph.BindData(systemTaskId, new SpawnerDataKey(spawner), eventData, BindingUsage.Read);
+                        TaskGraphBuilder.BindData(systemTaskId, new SpawnerDataKey(spawner), eventData, BindingUsage.Read);
                     }
                 }
-                IntermediateGraph.BindData(systemTaskId, ParticleSystemTask.CpuEventListBindingKey, eventListDataViewId, BindingUsage.Write);
+                TaskGraphBuilder.BindData(systemTaskId, ParticleSystemTask.CpuEventListBindingKey, eventListDataViewId, BindingUsage.Write);
                 return true;
             }
             return false;
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX
                 // Only one input GPU event supported
                 TryGetDataView(buildInfo.InputGpuEvents[0], out eventListDataViewId);
                 TryGetDataView(buildInfo.Parent, out var parentParticleData);
-                sourceAttributesViewId = IntermediateGraph.GetSubdata(parentParticleData, ParticleData.AttributeDataKey);
+                sourceAttributesViewId = TaskGraphBuilder.GetSubdata(parentParticleData, ParticleData.AttributeDataKey);
                 return true;
             }
             return false;
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX
             DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
         {
             var contextTask = BuildContextTask(context, templateName);
-            var contextTaskId = IntermediateGraph.AddTask(contextTask, $"{particleSystemName} {templateName}");
+            var contextTaskId = TaskGraphBuilder.AddTask(contextTask, $"{particleSystemName} {templateName}");
             BindSharedData(context, contextTaskId, systemTaskId, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
             return contextTaskId;
         }
@@ -271,7 +271,7 @@ namespace UnityEditor.VFX
         DataViewId BuildGraphValuesBuffer(out DataViewId contextDataViewId)
         {
             var graphValuesBuffer = new StructuredData();
-            var graphValuesBufferViewId = IntermediateGraph.AddData("GraphValuesBuffer", graphValuesBuffer);
+            var graphValuesBufferViewId = TaskGraphBuilder.AddData("GraphValuesBuffer", graphValuesBuffer);
 
             StructuredData contextData = new StructuredData();
             contextData.AddSubdata(MaxParticleCountKey, ValueData.Create(typeof(uint)));
@@ -281,7 +281,7 @@ namespace UnityEditor.VFX
 
             graphValuesBuffer.AddSubdata(ContextDataKey, contextData); // Adds a default subdata for ContextData, which is expected from the C++ runtime.
 
-            contextDataViewId = IntermediateGraph.GetSubdata(graphValuesBufferViewId, ContextDataKey);
+            contextDataViewId = TaskGraphBuilder.GetSubdata(graphValuesBufferViewId, ContextDataKey);
 
             UnorderedData graphValuesUnordered = new UnorderedData();
             graphValuesBuffer.AddSubdata(GraphValuesKey, graphValuesUnordered);
@@ -294,8 +294,8 @@ namespace UnityEditor.VFX
         void BindSharedData(VFXContext context, TaskNodeId contextTaskId, TaskNodeId systemTaskId,
             DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
         {
-            IntermediateGraph.BindData(contextTaskId, ParticleDataBindingKey, particleDataViewId);
-            IntermediateGraph.BindData(contextTaskId, ContextDataKey, contextDataViewId);
+            TaskGraphBuilder.BindData(contextTaskId, ParticleDataBindingKey, particleDataViewId);
+            TaskGraphBuilder.BindData(contextTaskId, ContextDataKey, contextDataViewId);
             BindCpuExpressions(context, contextTaskId, systemTaskId);
             BindGpuExpressions(context, contextTaskId, systemTaskId, graphValuesBufferViewId);
         }
@@ -308,15 +308,15 @@ namespace UnityEditor.VFX
             {
                 TryGetDataView(expression, out var expressionDataViewId);
                 string bindingName = cpuMapper.GetData(expression)[0].fullName;
-                IntermediateGraph.BindData(systemTaskId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(systemTaskId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
             }
         }
 
         void BindGpuExpressions(VFXContext context, TaskNodeId contextTaskId, TaskNodeId systemTask, DataViewId graphValuesBufferViewId)
         {
-            var graphValuesViewId = IntermediateGraph.GetSubdata(graphValuesBufferViewId, GraphValuesKey);
+            var graphValuesViewId = TaskGraphBuilder.GetSubdata(graphValuesBufferViewId, GraphValuesKey);
 
-            var graphValuesUnordered = IntermediateGraph.DataViews[graphValuesViewId].DataDescription as UnorderedData;
+            var graphValuesUnordered = TaskGraphBuilder.Graph.DataViews[graphValuesViewId].DataDescription as UnorderedData;
             Debug.Assert(graphValuesUnordered != null);
             Debug.Assert(m_GraphValueNameCounts.ContainsKey(graphValuesUnordered));
 
@@ -328,14 +328,14 @@ namespace UnityEditor.VFX
                 TryGetDataView(expression, out var expressionDataViewId);
                 string bindingName = uniformMapper.GetName(expression);
                 IDataKey bindingKey = new NameDataKey(bindingName);
-                IntermediateGraph.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
             }
             foreach (var expression in uniformMapper.buffers)
             {
                 TryGetDataView(expression, out var expressionDataViewId);
                 string bindingName = uniformMapper.GetName(expression);
                 IDataKey bindingKey = new NameDataKey(bindingName);
-                IntermediateGraph.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
             }
 
             foreach (var expression in uniformMapper.uniforms)
@@ -350,7 +350,7 @@ namespace UnityEditor.VFX
                 string bindingName = uniformMapper.GetName(expression);
                 IDataKey contextBindingKey = new NameDataKey(bindingName);
 
-                var expressionValue = IntermediateGraph.DataViews[expressionDataViewId].DataDescription;
+                var expressionValue = TaskGraphBuilder.Graph.DataViews[expressionDataViewId].DataDescription;
 
                 bool addToGraphValues = graphValuesUnordered.GetSubDataKey(expressionValue) == null;
                 if (addToGraphValues)
@@ -369,11 +369,11 @@ namespace UnityEditor.VFX
                     IDataKey systemBindingKey = new NameDataKey(systemUniqueBindingName);
                     Debug.Assert(graphValuesUnordered.GetSubdata(systemBindingKey) == null, $"Graph value with name {systemUniqueBindingName} already exists.");
                     graphValuesUnordered.AddSubdata(systemBindingKey, expressionValue);
-                    IntermediateGraph.BindData(systemTask, systemBindingKey, expressionDataViewId, BindingUsage.Read);
+                    TaskGraphBuilder.BindData(systemTask, systemBindingKey, expressionDataViewId, BindingUsage.Read);
                 }
 
-                var subdataViewId = IntermediateGraph.GetSubdata(graphValuesViewId, graphValuesUnordered.GetSubDataKey(expressionValue));
-                IntermediateGraph.BindData(contextTaskId, contextBindingKey, subdataViewId, BindingUsage.Read);
+                var subdataViewId = TaskGraphBuilder.GetSubdata(graphValuesViewId, graphValuesUnordered.GetSubDataKey(expressionValue));
+                TaskGraphBuilder.BindData(contextTaskId, contextBindingKey, subdataViewId, BindingUsage.Read);
             }
         }
 

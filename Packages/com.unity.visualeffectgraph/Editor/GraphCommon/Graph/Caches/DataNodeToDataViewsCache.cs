@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -23,8 +24,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             readonly Dictionary<DataNodeId, int> m_DataNodeIdToSlotIndex = new();
             readonly Dictionary<(DataNodeId, DataViewId), int> m_PairToSlot = new();
 
-            DataPathSet m_ReadUsage = new();
-            DataPathSet m_WriteUsage = new();
+            readonly DataPathSet m_ReadUsage = new();
+            readonly DataPathSet m_WriteUsage = new();
 
             public LinearMultiTree<DataViewId> Data => m_Tree;
 
@@ -38,12 +39,17 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
 
             public void OnDataNodeRemoved(DataNodeId id, TaskNodeId taskNodeId, DataContainerId dataContainerId)
-                => m_Tree.SetRootData(id.Index, DataViewId.Invalid);
+            {
+                if (!m_DataNodeIdToSlotIndex.TryGetValue(id, out int rootSlot))
+                    return;
+
+                ResetDataNode(id, rootSlot);
+                m_DataNodeIdToSlotIndex.Remove(id);
+            }
 
             public void OnDataBindingAdded(DataBindingId id,  DataViewId dataViewId,
-                DataNodeId dataNodeId, IDataKey bindingKey, BindingUsage usage)
+                DataNodeId dataNodeId, TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
             {
-                var taskNodeId = m_Owner.m_DataNodes[dataNodeId].TaskNodeId;
                 var dataBinding = m_Owner.m_DataBindings[id];
                 var task = m_Owner.m_TaskNodes[taskNodeId].Task;
                 m_ReadUsage.Clear();
@@ -67,15 +73,71 @@ namespace Unity.GraphCommon.LowLevel.Editor
                         InsertPath(dataNodeId, bindingDataView, path, UsageFlags.Written);
             }
 
+            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+                TaskNodeId taskNodeId, BindingUsage usage)
+            {
+                // Flags are ORed from every binding of the node, so one binding's contribution cannot be
+                // subtracted: drop the node's subtree and restamp it from the bindings that remain.
+                if (!m_DataNodeIdToSlotIndex.TryGetValue(dataNodeId, out int rootSlot))
+                    return;
+
+                ResetDataNode(dataNodeId, rootSlot);
+
+                var bindings = m_Owner.DataNodeToDataBindings.Data;
+                int count = bindings.CountInList(dataNodeId.Index);
+                for (int i = 0; i < count; i++)
+                {
+                    var bindingId = bindings[dataNodeId.Index, i];
+                    if (bindingId.Equals(id))
+                        continue;
+                    var bindingInfo = m_Owner.m_DataBindings[bindingId];
+                    OnDataBindingAdded(bindingId, bindingInfo.DataViewId, dataNodeId, taskNodeId,
+                        bindingInfo.BindingDataKey, bindingInfo.Usage);
+                }
+            }
+
+            void ResetDataNode(DataNodeId dataNodeId, int rootSlot)
+            {
+                RemoveCacheSubtree(dataNodeId, rootSlot, removeSlot: false);
+                m_PairToSlot.Remove((dataNodeId, m_Tree[rootSlot].Data));
+                m_Flags[rootSlot] = UsageFlags.None;
+                m_Tree.SetRootData(dataNodeId.Index, DataViewId.Invalid);
+            }
+
             public void OnDataViewRemoved(DataViewId id, DataViewId parentId, DataContainerId dataContainerId)
             {
-                foreach (var pair in m_PairToSlot)
+                // m_PairToSlot is mutated below, so iterate the data node keys instead.
+                foreach (var dataNodeId in m_DataNodeIdToSlotIndex.Keys)
                 {
-                    if(pair.Key.Item2.Equals(id))
+                    if (!m_PairToSlot.TryGetValue((dataNodeId, id), out int slot))
+                        continue;
+
+                    // A node's root slot is owned by OnDataNodeAdded/Removed: clear it, don't remove it.
+                    if (slot == m_DataNodeIdToSlotIndex[dataNodeId])
+                        ResetDataNode(dataNodeId, slot);
+                    else
+                        RemoveCacheSubtree(dataNodeId, slot, removeSlot: true);
+                }
+            }
+
+            void RemoveCacheSubtree(DataNodeId dataNodeId, int slot, bool removeSlot)
+            {
+                using (ListPool<int>.Get(out var subtree))
+                {
+                    subtree.Add(slot);
+                    for (int i = 0; i < subtree.Count; i++)
                     {
-                        m_Flags[pair.Value] = (byte)UsageFlags.None;
-                        m_PairToSlot.Remove(pair.Key);
-                        m_Tree.RemoveNode(pair.Value);
+                        var children = m_Tree[subtree[i]].Children;
+                        for (int c = 0; c < children.Count; c++)
+                            subtree.Add(children[c].Index);
+                    }
+
+                    for (int i = subtree.Count - 1; i >= (removeSlot ? 0 : 1); i--)
+                    {
+                        int subtreeSlot = subtree[i];
+                        m_PairToSlot.Remove((dataNodeId, m_Tree[subtreeSlot].Data));
+                        m_Flags[subtreeSlot] = UsageFlags.None;
+                        m_Tree.RemoveNode(subtreeSlot);
                     }
                 }
             }
@@ -112,8 +174,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     if (!m_Owner.m_DataBindings.IsAliveAtSlot(slot)) continue;
                     ref var binding = ref m_Owner.m_DataBindings.AtSlot(slot);
                     var dataNodeId = binding.DataNodeId;
-                    if (!dataNodeId.IsValid) continue;
-                    OnDataBindingAdded(binding.Id, binding.DataViewId, dataNodeId, binding.BindingDataKey, binding.Usage);
+                    if (!m_Owner.m_DataNodes.IsAlive(dataNodeId)) continue;
+                    OnDataBindingAdded(binding.Id, binding.DataViewId, dataNodeId,
+                        m_Owner.m_DataNodes[dataNodeId].TaskNodeId, binding.BindingDataKey, binding.Usage);
                 }
             }
 
@@ -130,7 +193,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     m_PairToSlot.Add(kv.Key, kv.Value);
             }
 
-            // O(1) per-(dataNode, dataView) flag query.
             public bool IsRead(DataNodeId dataNode, DataViewId dataView)
                 => (GetFlag(dataNode, dataView) & UsageFlags.Read) != 0;
 

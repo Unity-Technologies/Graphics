@@ -32,9 +32,9 @@ namespace UnityEditor.VFX
         {
             using var _ = k_BuildGraphMarker.Auto();
 
-            var intermediateGraph = new TaskGraph();
+            var taskGraphBuilder = new TaskGraphBuilder();
 
-            m_BuildContext.Begin(graph, compilationMode, intermediateGraph);
+            m_BuildContext.Begin(graph, compilationMode, taskGraphBuilder);
 
             m_GraphBuilder.BeginBuilding(m_BuildContext);
 
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
 
             Clear();
 
-            return intermediateGraph;
+            return taskGraphBuilder.EndBuilding();
         }
 
         void PrepareImplicitBlocks()

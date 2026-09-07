@@ -171,6 +171,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <value>The data node at the specified index.</value>
         public DataNode this[int index] => m_NodeConverter[m_Links[index]];
 
+        internal DataNodeId GetId(int index) => m_Links[index].Data;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DataNodeLinks"/> struct.
         /// </summary>
@@ -212,6 +214,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// the version-checked path.
         /// </remarks>
         public DataNode this[int index] => m_Provider[m_IdSource[index]];
+
+        /// <summary>
+        /// Gets the id at the specified index, without materializing a <see cref="DataNode"/>.
+        /// Used by <see cref="GraphSnapshots"/> and the graph traverser hot loops.
+        /// </summary>
+        internal DataNodeId GetId(int index) => m_IdSource[index];
 
         public DataNodeEnumerable(IIndexable<DataNodeId, DataNode> provider, SubEnumerable<DataNodeId> idSource)
         {

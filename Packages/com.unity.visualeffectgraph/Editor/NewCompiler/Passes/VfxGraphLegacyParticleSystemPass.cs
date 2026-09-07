@@ -9,25 +9,19 @@ namespace UnityEditor.VFX
     {
         public bool Execute(ref CompilationContext context)
         {
-            List<TaskNodeId> systemTaskNodeIds = new(); //TODO: Temp, due to graph being fully invalidated when changing data
-
-            foreach (var taskNode in context.graph.TaskNodes)
-            {
-                if (taskNode.Task is ParticleSystemTask systemTask)
-                {
-                    systemTaskNodeIds.Add(taskNode.Id);
-                }
-            }
             var particleSystemContainer = context.data.GetOrCreate<VfxGraphLegacyParticleSystemContainer>();
             var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
             var traverser = context.graph.CreateTraverser();
 
-            foreach (var systemTaskNodeId in systemTaskNodeIds)
+            using var taskNodeIds = context.graph.TaskNodes.Snapshot();
+            foreach (var taskNodeId in taskNodeIds)
             {
-                var systemTaskNode = context.graph.TaskNodes[systemTaskNodeId];
+                var systemTaskNode = context.graph.TaskNodes[taskNodeId];
+                if (systemTaskNode.Task is not ParticleSystemTask)
+                    continue;
 
                 var particleDataView = systemTaskNode.DataBindings[0].DataView;
-                if (particleDataView.DataDescription is ParticleData particleData)
+                if (particleDataView.DataDescription is ParticleData)
                 {
                     CollectParticleSystem(systemTaskNode, particleDataView, traverser, particleSystemContainer);
                     GenerateDeadList(systemTaskNode, particleDataView, layoutCompilationData, context.graph);
@@ -95,7 +89,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        void GenerateDeadList(TaskNode systemTaskNode, in DataView particleDataView, AttributeSetLayoutCompilationData layoutCompilationData, IMutableGraph graph)
+        void GenerateDeadList(TaskNode systemTaskNode, in DataView particleDataView, AttributeSetLayoutCompilationData layoutCompilationData, IGraph graph)
         {
             if (particleDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView))
             {

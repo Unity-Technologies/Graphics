@@ -45,7 +45,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// The mutable graph to be transformed.
         /// </summary>
-        public IMutableGraph graph;
+        public IGraph graph;
         /// <summary>
         /// The compilation data carried aside the graph.
         /// </summary>

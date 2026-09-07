@@ -9,17 +9,17 @@ namespace UnityEditor.VFX
     {
         public VFXGraph Graph { get; private set; }
         public VFXCompilationMode CompilationMode { get; private set; }
-        public TaskGraph IntermediateGraph { get; private set; }
+        public TaskGraphBuilder TaskGraphBuilder { get; private set; }
         public VFXSystemNames SystemNames { get; } = new();
         public VFXExpressionGraph ExpressionGraph { get; } = new();
 
         readonly Dictionary<object, DataViewId> m_DataViews = new();
 
-        public void Begin(VFXGraph graph, VFXCompilationMode compilationMode, TaskGraph intermediateGraph)
+        public void Begin(VFXGraph graph, VFXCompilationMode compilationMode, TaskGraphBuilder taskGraphBuilder)
         {
             Graph = graph;
             CompilationMode = compilationMode;
-            IntermediateGraph = intermediateGraph;
+            TaskGraphBuilder = taskGraphBuilder;
         }
 
         public void RegisterDataView(object key, DataViewId dataViewId)
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
         {
             Graph = null;
             CompilationMode = default;
-            IntermediateGraph = null;
+            TaskGraphBuilder = null;
             m_DataViews.Clear();
             ExpressionGraph.Clear();
             SystemNames.Clear();

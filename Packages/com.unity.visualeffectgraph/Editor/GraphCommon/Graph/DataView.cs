@@ -276,6 +276,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </remarks>
         public DataView this[int index] => m_Provider[m_IdSource[index]];
 
+        /// <summary>
+        /// Gets the id at the specified index, without materializing a <see cref="DataView"/>.
+        /// Used by <see cref="GraphSnapshots"/>.
+        /// </summary>
+        internal DataViewId GetId(int index) => m_IdSource[index];
+
         public DataViewEnumerable(IIndexable<DataViewId, DataView> provider, SubEnumerable<DataViewId> idSource)
         {
             m_Provider = provider;

@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 
         protected VFXGraph Graph => m_Context.Graph;
         protected VFXCompilationMode CompilationMode => m_Context.CompilationMode;
-        protected TaskGraph IntermediateGraph => m_Context.IntermediateGraph;
+        protected TaskGraphBuilder TaskGraphBuilder => m_Context.TaskGraphBuilder;
         protected VFXSystemNames SystemNames => m_Context.SystemNames;
         protected VFXExpressionGraph ExpressionGraph => m_Context.ExpressionGraph;
 
@@ -37,19 +37,19 @@ namespace UnityEditor.VFX
                 return true;
 
             var task = new LegacyExpressionTask(expression);
-            var taskId = IntermediateGraph.AddTask(task);
+            var taskId = TaskGraphBuilder.AddTask(task);
 
             var parents = expression.parents;
             for (int i = 0; i < parents.Length; ++i)
             {
                 TryGetDataView(parents[i], out var parentDataViewId);
-                IntermediateGraph.BindData(taskId, new IndexDataKey(i), parentDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(taskId, new IndexDataKey(i), parentDataViewId, BindingUsage.Read);
             }
 
             var dataDescription = ValueData.Create(VFXExpression.TypeToType(expression.valueType));
-            var expressionContainerName = $"{expression.GetType().Name}_{IntermediateGraph.DataContainers.Count}";
-            dataViewId = IntermediateGraph.AddData(expressionContainerName, dataDescription);
-            IntermediateGraph.BindData(taskId, LegacyExpressionTask.Value, dataViewId, BindingUsage.Write);
+            var expressionContainerName = $"{expression.GetType().Name}_{TaskGraphBuilder.Graph.DataContainers.Count}";
+            dataViewId = TaskGraphBuilder.AddData(expressionContainerName, dataDescription);
+            TaskGraphBuilder.BindData(taskId, LegacyExpressionTask.Value, dataViewId, BindingUsage.Write);
 
             RegisterDataView(expression, dataViewId);
             return true;

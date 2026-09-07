@@ -19,15 +19,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
 
             public void OnDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
-                IDataKey bindingKey, BindingUsage usage)
+                TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
             {
-                var taskNodeId = m_Owner.m_DataNodes[dataNodeId].TaskNodeId;
                 m_Data.AddItem(taskNodeId.Index, id);
             }
 
-            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId, BindingUsage usage)
+            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+                TaskNodeId taskNodeId, BindingUsage usage)
             {
-                var taskNodeId = m_Owner.m_DataNodes[dataNodeId].TaskNodeId;
                 if (m_Data.FindItem(taskNodeId.Index, id, out int itemIndex))
                     m_Data.RemoveItem(taskNodeId.Index, itemIndex);
             }

@@ -64,38 +64,15 @@ namespace UnityEditor.VFX
     {
         VfxGraphLegacyCompilationOutput m_currentOutput;
 
-        static readonly Dictionary<System.Type, UnityEngine.VFX.VFXValueType> s_ValueTypeConversion = new()
-        {
-            { typeof(float), UnityEngine.VFX.VFXValueType.Float },
-            { typeof(Vector2), UnityEngine.VFX.VFXValueType.Float2 },
-            { typeof(Vector3), UnityEngine.VFX.VFXValueType.Float3 },
-            { typeof(Vector4), UnityEngine.VFX.VFXValueType.Float4 },
-            { typeof(Color), UnityEngine.VFX.VFXValueType.Float4 },
-            { typeof(int), UnityEngine.VFX.VFXValueType.Int32 },
-            { typeof(uint), UnityEngine.VFX.VFXValueType.Uint32 },
-            { typeof(EntityId), UnityEngine.VFX.VFXValueType.EntityId },
-            { typeof(Texture2D), UnityEngine.VFX.VFXValueType.Texture2D },
-            { typeof(Texture2DArray), UnityEngine.VFX.VFXValueType.Texture2DArray },
-            { typeof(Texture3D), UnityEngine.VFX.VFXValueType.Texture3D },
-            { typeof(Cubemap), UnityEngine.VFX.VFXValueType.TextureCube },
-            { typeof(CubemapArray), UnityEngine.VFX.VFXValueType.TextureCubeArray },
-            { typeof(Matrix4x4), UnityEngine.VFX.VFXValueType.Matrix4x4 },
-            { typeof(AnimationCurve), UnityEngine.VFX.VFXValueType.Curve },
-            { typeof(Gradient), UnityEngine.VFX.VFXValueType.ColorGradient },
-            { typeof(Mesh), UnityEngine.VFX.VFXValueType.Mesh },
-            { typeof(SkinnedMeshRenderer), UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer },
-            { typeof(bool), UnityEngine.VFX.VFXValueType.Boolean },
-            { typeof(GraphicsBuffer), UnityEngine.VFX.VFXValueType.Buffer },
-        };
-
         readonly Dictionary<IDataDescription, uint> m_GpuBufferDescIndices = new();
         readonly Dictionary<IDataDescription, uint> m_CpuBufferDescIndices = new();
         readonly Dictionary<DataNodeId, uint> m_ValuesExpressionIndices = new();
+        // Expressions are interned by VFXExpression's own cache and compare by value, so the same
+        // sub-expression is reached from many roots. Memoize its sheet index instead of re-emitting it.
+        readonly Dictionary<VFXExpression, uint> m_ExpressionIndexCache = new();
         readonly Dictionary<VfxGraphLegacyParticleSystemContainer.ParticleSystem, int> m_ParticleSystemIndices = new();
         readonly List<uint> m_StartSystems = new();
         readonly List<uint> m_StopSystems = new();
-
-        static UnityEngine.VFX.VFXValueType GetVFXValueTypeFromType(System.Type type) => s_ValueTypeConversion.TryGetValue(type, out var valueType) ? valueType : UnityEngine.VFX.VFXValueType.None;
 
         public VfxGraphLegacyCompilationOutput Execute(ref CompilationContext context)
         {
@@ -204,7 +181,7 @@ namespace UnityEditor.VFX
                     layoutElementDescs.Add(new VFXLayoutElementDesc()
                     {
                         name = attribute.Name,
-                        type = GetVFXValueTypeFromType(attribute.Type),
+                        type = VFXExpression.GetVFXValueTypeFromType(attribute.Type),
                         offset = new VFXLayoutOffset()
                         {
                             bucket = bucketOffset,
@@ -797,6 +774,7 @@ namespace UnityEditor.VFX
             m_GpuBufferDescIndices.Clear();
             m_CpuBufferDescIndices.Clear();
             m_ValuesExpressionIndices.Clear();
+            m_ExpressionIndexCache.Clear();
             m_ParticleSystemIndices.Clear();
             m_StartSystems.Clear();
             m_StopSystems.Clear();
