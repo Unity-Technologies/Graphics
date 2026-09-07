@@ -44,6 +44,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 throw new ArgumentOutOfRangeException(argName, message);
             }
         }
+
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void CheckSupport(bool value, string message)
+        {
+            if (!value)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
     }
 }
 

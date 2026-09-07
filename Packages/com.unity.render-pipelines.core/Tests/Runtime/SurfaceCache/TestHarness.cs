@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
             // No UnifiedRayTracing compute backend on this platform; matches UnifiedRayTracing_RuntimeTests.
             if (backend == RayTracingBackend.Compute && Application.platform == RuntimePlatform.PS5)
                 Assert.Ignore("SurfaceCache Core tests do not support the Compute ray-tracing backend on this platform.");
-            if (!RayTracingContext.IsBackendSupported(backend))
+            if (!RayTracingContext.GetCapabilities(backend).HasFlag(CapabilityMask.RayTracingShaders))
                 Assert.Ignore($"SurfaceCache Core tests require ray-tracing backend '{backend}' to be supported.");
             if (SystemInfo.computeSubGroupSize <= 0)
                 Assert.Ignore("SurfaceCache Core tests require real wave-size / sub-group support.");

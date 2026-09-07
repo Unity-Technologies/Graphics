@@ -1550,7 +1550,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
         static Environment CreateEnvironmentOrIgnore()
         {
-            if (!RayTracingContext.IsBackendSupported(RayTracingBackend.Compute))
+            if (!RayTracingContext.GetCapabilities(RayTracingBackend.Compute).HasFlag(CapabilityMask.RayTracingShaders))
                 Assert.Ignore("Requires the Compute ray-tracing backend.");
             if (Application.platform == RuntimePlatform.PS5)
                 Assert.Ignore("SurfaceCache adapter tests do not support the Compute ray-tracing backend on this platform.");

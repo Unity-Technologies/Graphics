@@ -278,14 +278,14 @@ namespace UnityEngine.PathTracing.Integration
                 {
                     _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.LightIndexInCell, lightIndexInCell);
                     cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                    _stochasticLightShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                    _stochasticLightShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                     cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
                 }
 
                 // directional and environment pass
                 _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
-                _directionalAndEnvironmentShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _directionalAndEnvironmentShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
             }
         }
 
@@ -430,7 +430,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
 
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -566,7 +566,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -700,7 +700,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -820,7 +820,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -943,7 +943,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -1018,7 +1018,7 @@ namespace UnityEngine.PathTracing.Integration
             // Its time to repopulate the indirect dispatch buffers. Use the compacted size for this.
             ExpansionHelpers.PopulateAccumulationIndirectDispatch(cmd, _expansionHelpers, _populateAccumulationDispatchKernel, expandedSampleWidth, compactedGbufferLength, _accumulationDispatchBuffer);
             cmd.BeginSample(LightmapIntegratorShaderIDs.k_GBufferDebug);
-            _accumulationShader.Dispatch(cmd, null, _accumulationDispatchBuffer);
+            _accumulationShader.DispatchIndirect(cmd, null, _accumulationDispatchBuffer);
             cmd.EndSample(LightmapIntegratorShaderIDs.k_GBufferDebug);
         }
     }

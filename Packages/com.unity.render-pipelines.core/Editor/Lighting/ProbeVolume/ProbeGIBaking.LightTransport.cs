@@ -408,8 +408,8 @@ namespace UnityEngine.Rendering
                     {
                         m_RayTracingResources = new RayTracingResources();
                         m_RayTracingResources.Load();
-
-                        m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
+                        var supportsRTShaders = RayTracingContext.GetCapabilities(RayTracingBackend.Hardware).HasFlag(CapabilityMask.RayTracingShaders);
+                        m_Backend = supportsRTShaders ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
 
                         m_Context = new RayTracingContext(m_Backend, m_RayTracingResources);
                     }

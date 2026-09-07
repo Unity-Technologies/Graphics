@@ -9,6 +9,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         public IRayTracingShader CreateRayTracingShader(Object shader, string kernelName, GraphicsBuffer dispatchBuffer)
         {
+            Utils.CheckSupport(SystemInfo.supportsRayTracingShaders,
+                "This GPU supports hardware ray tracing but cannot dispatch ray tracing shaders. " +
+                "Check RayTracingContext.GetCapabilities(RayTracingBackend.Hardware) for CapabilityMask.RayTracingShaders before creating the shader.");
+
             Debug.Assert(shader is RayTracingShader);
             return new HardwareRayTracingShader((RayTracingShader)shader, kernelName, dispatchBuffer);
         }

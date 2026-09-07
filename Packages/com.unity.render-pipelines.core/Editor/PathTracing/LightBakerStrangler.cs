@@ -333,7 +333,8 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
                 // Setup ray tracing context
                 RayTracingBackend backend = integrationSettings.Backend;
-                Debug.Assert(RayTracingContext.IsBackendSupported(backend), $"Backend {backend} is not supported!");
+                const CapabilityMask requiredCaps = CapabilityMask.RayTracingShaders | CapabilityMask.RayTracingDispatchIndirect;
+                Debug.Assert(RayTracingContext.GetCapabilities(backend).HasFlag(requiredCaps), $"Backend {backend} is not supported!");
                 RayTracingResources rayTracingResources = new RayTracingResources();
                 rayTracingResources.Load();
                 using var rayTracingContext = new RayTracingContext(backend, rayTracingResources);
@@ -469,9 +470,11 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
         private static IntegrationSettings GetIntegrationSettings(in BakeInput bakeInput)
         {
+            const CapabilityMask requiredCaps = CapabilityMask.RayTracingShaders | CapabilityMask.RayTracingDispatchIndirect;
             var retVal = IntegrationSettings.Default;
             retVal.Backend =
-                bakeInput.lightingSettings.useHardwareRayTracing && RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ?
+                bakeInput.lightingSettings.useHardwareRayTracing &&
+                RayTracingContext.GetCapabilities(RayTracingBackend.Hardware).HasFlag(requiredCaps) ?
                     RayTracingBackend.Hardware : RayTracingBackend.Compute;
 
             return retVal;
@@ -1117,7 +1120,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                                 normalShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, 0);
                                 normalShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, 1);
                                 cmd.BeginSample("Normal Generation");
-                                normalShader.Dispatch(cmd, lightmappingContext.TraceScratchBuffer, indirectRayTracingDispatchBuffer);
+                                normalShader.DispatchIndirect(cmd, lightmappingContext.TraceScratchBuffer, indirectRayTracingDispatchBuffer);
                                 cmd.EndSample("Normal Generation");
 
                                 // copy back to the output

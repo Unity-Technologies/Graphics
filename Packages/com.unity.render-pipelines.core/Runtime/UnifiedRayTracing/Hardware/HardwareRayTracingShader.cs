@@ -106,8 +106,18 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmd.DispatchRays(m_Shader, m_ShaderDispatchFuncName, width, height, depth, null);
         }
 
+        [System.Obsolete("Use DispatchIndirect instead. #from(6000.7)")]
         public void Dispatch(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer)
         {
+            DispatchIndirect(cmd, scratchBuffer, argsBuffer);
+        }
+
+        public void DispatchIndirect(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer)
+        {
+            Utils.CheckSupport(SystemInfo.supportsIndirectDispatchRays,
+                "This GPU does not support indirect dispatch of ray tracing shaders. " +
+                "Check RayTracingContext.GetCapabilities(RayTracingBackend.Hardware) for CapabilityMask.RayTracingIndirectDispatch before calling this method.");
+
             Utils.CheckArgIsNotNull(cmd, nameof(cmd));
             Utils.CheckArgIsNotNull(argsBuffer, nameof(argsBuffer));
             GraphicsBuffer.Target requiredFlags = GraphicsBuffer.Target.IndirectArguments | GraphicsBuffer.Target.Structured;
