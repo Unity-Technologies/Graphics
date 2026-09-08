@@ -674,7 +674,7 @@ namespace UnityEngine.Rendering.Universal
             // - [recording] pass B reads varA == 2 and takes some decisions based on that
             // - [executing] pass A modifies var = 3, pass B acts assuming that varA == 2 -> unexpected behavior / bug
             m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base | GlobalShaderVariablesGroup.Only3D);
-            m_GlobalShaderVariablesUploader.useConstantBuffers = UniversalRenderPipeline.usePersistentConstantBuffers;
+            m_GlobalShaderVariablesUploader.useConstantBuffer = UniversalRenderPipeline.useGlobalConstantBuffer;
             m_GlobalShaderVariablesUploader.BeginFill();
 
             var cameraData = frameData.Get<UniversalCameraData>();

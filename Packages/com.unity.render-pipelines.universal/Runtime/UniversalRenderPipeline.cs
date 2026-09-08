@@ -686,7 +686,7 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerFrameShaderConstants();
 
                 var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-                usePersistentConstantBuffers = cbSettings != null && cbSettings.usePersistentConstantBuffers;
+                useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer;
 
                 XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
@@ -2625,9 +2625,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Whether URP uploads its global shader variables as a persistent constant buffer.
-        /// Read once per frame, and the setting cannot change between the cameras of a frame.
+        /// Read once per frame, this setting cannot change between the cameras of a frame.
         /// </summary>
-        internal static bool usePersistentConstantBuffers { get; private set; }
+        internal static bool useGlobalConstantBuffer { get; private set; }
 
         /// <summary>
         /// Inverse width of the LOD cross fade dithering texture, resolved once per frame from the pipeline asset.

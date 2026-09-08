@@ -25,7 +25,8 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             typeof(GlobalShaderVariables),
             typeof(GlobalShaderVariablesBase),
-            typeof(GlobalShaderVariablesOnly2D),
+            // URP 2D-only globals, empty so disabled.
+            // typeof(GlobalShaderVariablesOnly2D),
             typeof(GlobalShaderVariablesOnly3D),
         };
 
@@ -61,7 +62,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         static readonly Regex k_HlslDefine = new Regex(@"^#define\s+(\w+)\s+(\d+)\s*$");
 
         // The shader define selecting the persistent constant buffer, so the layout the hlsl is read for.
-        const string k_PersistentConstantBuffersDefine = "URP_PERSISTENT_CONSTANT_BUFFERS";
+        const string k_PersistentConstantBuffersDefine = "URP_GLOBAL_CONSTANT_BUFFER";
 
         [Test]
         public void FieldTypesAreConstantBufferSafe([ValueSource(nameof(k_LayoutTypes))] Type layoutType)
@@ -103,7 +104,8 @@ namespace UnityEditor.Rendering.Universal.Tests
         // A field with no bit would never be pushed after the first ResetToDefault, and a bit with no field is dead.
         // Neither shows up as a compile error, so the correspondence is checked here instead.
         [TestCase(typeof(GlobalShaderVariablesBase), typeof(GlobalShaderVariablesBaseDirty))]
-        [TestCase(typeof(GlobalShaderVariablesOnly2D), typeof(GlobalShaderVariablesOnly2DDirty))]
+        // URP 2D-only globals, empty so disabled.
+        // [TestCase(typeof(GlobalShaderVariablesOnly2D), typeof(GlobalShaderVariablesOnly2DDirty))]
         [TestCase(typeof(GlobalShaderVariablesOnly3D), typeof(GlobalShaderVariablesOnly3DDirty))]
         public void DirtyFlagsMatchFields(Type layoutType, Type dirtyType)
         {
@@ -130,7 +132,8 @@ namespace UnityEditor.Rendering.Universal.Tests
         // All is written as an exact mask derived from the last declared bit, so adding a variable without moving it
         // would leave that variable out of every ResetToDefault push. Nothing else catches that.
         [TestCase(typeof(GlobalShaderVariablesBaseDirty))]
-        [TestCase(typeof(GlobalShaderVariablesOnly2DDirty))]
+        // URP 2D-only globals, empty so disabled.
+        // [TestCase(typeof(GlobalShaderVariablesOnly2DDirty))]
         [TestCase(typeof(GlobalShaderVariablesOnly3DDirty))]
         public void AllCoversEveryFlag(Type dirtyType)
         {
@@ -150,7 +153,8 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         // Two fields sharing a bit would push each other spuriously; checked separately from the name matching above.
         [TestCase(typeof(GlobalShaderVariablesBaseDirty))]
-        [TestCase(typeof(GlobalShaderVariablesOnly2DDirty))]
+        // URP 2D-only globals, empty so disabled.
+        // [TestCase(typeof(GlobalShaderVariablesOnly2DDirty))]
         [TestCase(typeof(GlobalShaderVariablesOnly3DDirty))]
         public void DirtyFlagsAreDistinctPowersOfTwo(Type dirtyType)
         {
@@ -242,7 +246,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                     else if (trimmed.StartsWith("#elif", StringComparison.Ordinal))
                     {
                         Assert.Fail("GlobalShaderVariables.hlsl uses #elif, which this parser cannot attribute to a " +
-                            "branch. Declare the layout under a plain #if on URP_PERSISTENT_CONSTANT_BUFFERS instead.");
+                            "branch. Declare the layout under a plain #if on URP_GLOBAL_CONSTANT_BUFFER instead.");
                     }
                     else if (trimmed.StartsWith("#else", StringComparison.Ordinal))
                     {
@@ -314,8 +318,8 @@ namespace UnityEditor.Rendering.Universal.Tests
             return total;
         }
 
-        // Same walk as ForEachLeafField, except it stops where the hlsl stops. The group structs (varsBase, vars3D,
-        // vars2D) are pure containers whose fields sit inline in the buffer, so they are recursed into. Any other
+        // Same walk as ForEachLeafField, except it stops where the hlsl stops. The group structs (varsBase, vars3D)
+        // are pure containers whose fields sit inline in the buffer, so they are recursed into. Any other
         // nested struct groups the elements of one hlsl array, so it maps to a single "float4x4 name[5]" declaration
         // rather than to its leaves, and the element count is part of the comparison.
         static void ForEachHlslDeclaration(Type layoutType, int baseOffset, Action<string, int> visit)

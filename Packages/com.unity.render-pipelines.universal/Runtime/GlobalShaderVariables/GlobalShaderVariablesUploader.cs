@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Binding slot of the persistent constant buffer, its name matches the CBUFFER_START() one in GlobalShaderVariables.hlsl.
         // Deliberately kept private: we must use the uploader to update this buffer.
-        private static readonly int k_GlobalShaderVariablesID = Shader.PropertyToID("GlobalShaderVars");
+        private static readonly int k_GlobalShaderVariablesID = Shader.PropertyToID("GlobalShaderVariables");
 
         // The two GPU copies of the CB, only allocated once the uploader actually runs in persistent CB mode. 
         // If staging == default, we use the default constant buffer.
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         /// Switching mode is safe mid-flight because every frame starts with a PushDefaultToGlobal, which re-establishes
         /// all the variables in the mode currently selected.
         /// </remark>
-        internal bool useConstantBuffers { get; set; }
+        internal bool useConstantBuffer { get; set; }
 
         internal GlobalShaderVariablesUploader(GlobalShaderVariablesGroup ownedGroups)
         {
@@ -119,7 +119,8 @@ namespace UnityEngine.Rendering.Universal
             // Only the owned groups: the others are never filled nor pushed, copying them would move bytes for nothing.
             if ((m_OwnedGroups & GlobalShaderVariablesGroup.Base) != 0) m_DefaultVars.varsBase = m_StagingVars.varsBase;
             if ((m_OwnedGroups & GlobalShaderVariablesGroup.Only3D) != 0) m_DefaultVars.vars3D = m_StagingVars.vars3D;
-            if ((m_OwnedGroups & GlobalShaderVariablesGroup.Only2D) != 0) m_DefaultVars.vars2D = m_StagingVars.vars2D;
+            // URP 2D-only globals, empty so disabled.
+            // if ((m_OwnedGroups & GlobalShaderVariablesGroup.Only2D) != 0) m_DefaultVars.vars2D = m_StagingVars.vars2D;
 
             m_DefaultDirty = m_StagingDirty;
 
@@ -146,12 +147,13 @@ namespace UnityEngine.Rendering.Universal
             GlobalShaderVariablesDirty toPush = m_StagingDirty;
             if ((groups & GlobalShaderVariablesGroup.Base) == 0) toPush.varsBase = GlobalShaderVariablesBaseDirty.None;
             if ((groups & GlobalShaderVariablesGroup.Only3D) == 0) toPush.vars3D = GlobalShaderVariablesOnly3DDirty.None;
-            if ((groups & GlobalShaderVariablesGroup.Only2D) == 0) toPush.vars2D = GlobalShaderVariablesOnly2DDirty.None;
+            // URP 2D-only globals, empty so disabled.
+            // if ((groups & GlobalShaderVariablesGroup.Only2D) == 0) toPush.vars2D = GlobalShaderVariablesOnly2DDirty.None;
 
             if (!toPush.isDirty)
                 return;
             
-            if (useConstantBuffers)
+            if (useConstantBuffer)
             {
                 PushConstantBuffer((BaseCommandBuffer)cmd);
             }
@@ -162,7 +164,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_StagingDirty.varsBase &= ~toPush.varsBase;
             m_StagingDirty.vars3D &= ~toPush.vars3D;
-            m_StagingDirty.vars2D &= ~toPush.vars2D;
+            // URP 2D-only globals, empty so disabled.
+            // m_StagingDirty.vars2D &= ~toPush.vars2D;
         }
 
         /// <summary>
@@ -228,12 +231,13 @@ namespace UnityEngine.Rendering.Universal
                 m_DivergedGroups &= ~GlobalShaderVariablesGroup.Only3D;
             }
 
-            if ((groups & GlobalShaderVariablesGroup.Only2D) != 0 && m_DefaultDirty.vars2D != GlobalShaderVariablesOnly2DDirty.None)
-            {
-                m_StagingVars.vars2D = m_DefaultVars.vars2D;
-                m_StagingDirty.vars2D |= m_DefaultDirty.vars2D;
-                m_DivergedGroups &= ~GlobalShaderVariablesGroup.Only2D;
-            }
+            // URP 2D-only globals, empty so disabled.
+            // if ((groups & GlobalShaderVariablesGroup.Only2D) != 0 && m_DefaultDirty.vars2D != GlobalShaderVariablesOnly2DDirty.None)
+            // {
+            //     m_StagingVars.vars2D = m_DefaultVars.vars2D;
+            //     m_StagingDirty.vars2D |= m_DefaultDirty.vars2D;
+            //     m_DivergedGroups &= ~GlobalShaderVariablesGroup.Only2D;
+            // }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -250,12 +254,13 @@ namespace UnityEngine.Rendering.Universal
             m_DivergedGroups |= GlobalShaderVariablesGroup.Only3D;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Mark2DDirty(GlobalShaderVariablesOnly2DDirty flag)
-        {
-            m_StagingDirty.vars2D |= flag;
-            m_DivergedGroups |= GlobalShaderVariablesGroup.Only2D;
-        }
+        // URP 2D-only globals, empty so disabled.
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // private void Mark2DDirty(GlobalShaderVariablesOnly2DDirty flag)
+        // {
+        //     m_StagingDirty.vars2D |= flag;
+        //     m_DivergedGroups |= GlobalShaderVariablesGroup.Only2D;
+        // }
 
         /// <summary>
         /// Fills the environment variables from the current render settings.
@@ -973,19 +978,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // URP 2D-only shader variables (GlobalShaderVariablesOnly2D)
-        /// <summary>
-        /// Placeholder keeping the URP 2D block non empty until real 2D variables move in.
-        /// </summary>
-        public Vector4 _URPDummy2D
-        {
-            get => m_StagingVars.vars2D._URPDummy2D;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                m_StagingVars.vars2D._URPDummy2D = value;
-                Mark2DDirty(GlobalShaderVariablesOnly2DDirty._URPDummy2D);
-            }
-        }
+        // URP 2D-only shader variables (GlobalShaderVariablesOnly2D), empty so disabled.
+        // public Vector4 _URPDummy2D
+        // {
+        //     get => m_StagingVars.vars2D._URPDummy2D;
+        //     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //     set
+        //     {
+        //         m_StagingVars.vars2D._URPDummy2D = value;
+        //         Mark2DDirty(GlobalShaderVariablesOnly2DDirty._URPDummy2D);
+        //     }
+        // }
     }
 }

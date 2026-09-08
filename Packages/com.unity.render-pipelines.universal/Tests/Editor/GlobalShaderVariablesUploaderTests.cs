@@ -309,7 +309,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         // defaults costs a rebind, no matter what the overrides wrote since.
         GlobalShaderVariablesUploader CreateConstantBufferUploader()
         {
-            var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All) { useConstantBuffers = true };
+            var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All) { useConstantBuffer = true };
             m_ConstantBufferUploaders.Add(uploader);
 
             FillBaseDefaults(uploader);

@@ -102,8 +102,10 @@ namespace UnityEngine.Rendering.Universal
     }
 
     // Uploader surface for the variables contained in GlobalShaderVariablesOnly2D (URP 2D only).
+    // Empty while that struct is disabled, kept so the 2D renderer keeps its own uploader surface.
     internal interface IGlobalShaderVariablesOnly2DUploader
     {
-        Vector4 _URPDummy2D { get; set; }
+        // URP 2D-only globals, empty so disabled.
+        // Vector4 _URPDummy2D { get; set; }
     }
 }

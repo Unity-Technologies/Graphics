@@ -33,24 +33,23 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs. Only the shader side changes for now, so this costs memory without saving CPU.")]
-        bool m_UsePersistentConstantBuffers = false;
+        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs. Warning, this currently costs more memory and triggers a full shaders re-compilation.")]
+        bool m_UseGlobalConstantBuffer = false;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
         /// When enabled, URP declares its global shader variables as a constant buffer instead of loose uniforms,
-        /// by adding the URP_PERSISTENT_CONSTANT_BUFFERS shader define. The define is global and applies to every
-        /// graphics API. Work in progress: this currently affects only the shader-side declaration, the runtime
-        /// still uploads loose uniforms.
+        /// by adding the URP_GLOBAL_CONSTANT_BUFFER shader define. The define is global and applies to every
+        /// graphics API. Work in progress.
         /// </summary>
         // KNOWN LIMITATION: the value is serialized in the project but read through a per-machine preference, so
         // leaving Developer Mode strips a committed define and reimports every shader, and re-entering adds it back.
-        // Tolerable while nothing reads useConstantBuffers, but the gate has to go before the upload path lands:
+        // Tolerable while nothing reads useGlobalConstantBuffer, but the gate has to go before the upload path lands:
         // it is #if UNITY_EDITOR, so a player reads the field directly and a non-dev-mode build would ship
         // loose-uniform shaders against a cbuffer-pushing runtime.
-        public bool usePersistentConstantBuffers
+        public bool useGlobalConstantBuffer
         {
             get
             {
@@ -63,9 +62,9 @@ namespace UnityEngine.Rendering.Universal
                 if (!UnityEditor.Unsupported.IsDeveloperMode())
                     return false;
 #endif
-                return m_UsePersistentConstantBuffers;
+                return m_UseGlobalConstantBuffer;
             }
-            set => this.SetValueAndNotify(ref m_UsePersistentConstantBuffers, value);
+            set => this.SetValueAndNotify(ref m_UseGlobalConstantBuffer, value);
         }
 
         #endregion

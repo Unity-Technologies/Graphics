@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
     /// !!WARNING - PARAMETERS DECLARATION GUIDELINES!!
     /// 1. Add a field to GlobalShaderVariablesBase when both URP 2D and 3D consume it, otherwise to GlobalShaderVariablesOnly2D or GlobalShaderVariablesOnly3D.
     ///    - Each of these three structs must independently follow the rules below, they are laid out back to back here.
+    ///    - GlobalShaderVariablesOnly2D is currently disabled until the first 2D var is added, see the sites tagged "URP 2D-only globals".
     ///
     /// 2. No bool, char or enum. These types have a size of 1 byte in C# but 4 bytes in an HLSL constant buffer. Use int/uint instead.
     ///
@@ -45,7 +46,8 @@ namespace UnityEngine.Rendering.Universal
     {
         internal GlobalShaderVariablesBase varsBase;
         internal GlobalShaderVariablesOnly3D vars3D;
-        internal GlobalShaderVariablesOnly2D vars2D;
+        // URP 2D-only globals, empty so disabled.
+        // internal GlobalShaderVariablesOnly2D vars2D;
     }
 
     [Flags]
@@ -63,31 +65,32 @@ namespace UnityEngine.Rendering.Universal
     {
         public GlobalShaderVariablesBaseDirty varsBase;
         public GlobalShaderVariablesOnly3DDirty vars3D;
-        public GlobalShaderVariablesOnly2DDirty vars2D;
+        // URP 2D-only globals, empty so disabled.
+        // public GlobalShaderVariablesOnly2DDirty vars2D;
 
         public static readonly GlobalShaderVariablesDirty all = new()
         {
             varsBase = GlobalShaderVariablesBaseDirty.All,
             vars3D = GlobalShaderVariablesOnly3DDirty.All,
-            vars2D = GlobalShaderVariablesOnly2DDirty.All,
+            // vars2D = GlobalShaderVariablesOnly2DDirty.All,
         };
 
         public bool isDirty => varsBase != GlobalShaderVariablesBaseDirty.None
-            || vars3D != GlobalShaderVariablesOnly3DDirty.None
-            || vars2D != GlobalShaderVariablesOnly2DDirty.None;
+            || vars3D != GlobalShaderVariablesOnly3DDirty.None;
+            // || vars2D != GlobalShaderVariablesOnly2DDirty.None;
 
         public void Add(in GlobalShaderVariablesDirty other)
         {
             varsBase |= other.varsBase;
             vars3D |= other.vars3D;
-            vars2D |= other.vars2D;
+            // vars2D |= other.vars2D;
         }
 
         public void Clear()
         {
             varsBase = GlobalShaderVariablesBaseDirty.None;
             vars3D = GlobalShaderVariablesOnly3DDirty.None;
-            vars2D = GlobalShaderVariablesOnly2DDirty.None;
+            // vars2D = GlobalShaderVariablesOnly2DDirty.None;
         }
     }
 
@@ -106,8 +109,9 @@ namespace UnityEngine.Rendering.Universal
             if ((groups & GlobalShaderVariablesGroup.Only3D) != 0)
                 vars.vars3D.SetGlobals(cmd, dirty.vars3D);
 
-            if ((groups & GlobalShaderVariablesGroup.Only2D) != 0)
-                vars.vars2D.SetGlobals(cmd, dirty.vars2D);
+            // URP 2D-only globals, empty so disabled.
+            // if ((groups & GlobalShaderVariablesGroup.Only2D) != 0)
+            //     vars.vars2D.SetGlobals(cmd, dirty.vars2D);
         }
     }
 }
