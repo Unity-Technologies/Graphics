@@ -27,7 +27,6 @@
 #include "PatchAllocationRequest.hlsl"
 #include "RingBuffer.hlsl"
 #include "PatchUtil.hlsl"
-#include "TemporalFiltering.hlsl"
 #include "PunctualLights.hlsl"
 #include "EmissiveTriangles.hlsl"
 
@@ -59,6 +58,7 @@ uint _VolumeCascadeCount;
 float _VolumeVoxelMinSize;
 uint _MultiBounce;
 uint _SampleCount;
+uint _WarmUpSampleMultiplier;
 float _ShortHysteresis;
 uint _RingConfigOffset;
 float3 _VolumeTargetPos;
@@ -72,31 +72,72 @@ float3 _DirectionalLightDirection;
 float3 _DirectionalLightIntensity;
 uint _BouncePatchAllocation;
 
-void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1> patchIrradiances, RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics, uint patchIdx, SphericalHarmonics::RGBL1 radianceSample, float shortHysteresis)
+SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(
+    float shortHysteresis,
+    uint newSampleCount,
+    uint oldSampleCount,
+    float3 shortVariance,
+    float3 shortMean,
+    SphericalHarmonics::RGBL1 newEstimate,
+    SphericalHarmonics::RGBL1 oldEstimate)
 {
-    SphericalHarmonics::CosineConvolve(radianceSample);
+    const float3 stdDevEstimate = sqrt(shortVariance);
+    const float3 drift = abs(shortMean - oldEstimate.l0) / stdDevEstimate;
+    const float driftScaling = 1.0f / 4.0f; // Empirically chosen. A trade-off between temporal stability and reaction time.
+    const float3 driftWeight = smoothstep(0, 1, drift * driftScaling);
+    const float longHys = 0.995f;
 
-    PatchUtil::PatchStatisticsSet oldStats = patchStatistics[patchIdx];
-    const uint newUpdateCount = min(oldStats.updateCount + 1, PatchUtil::updateMax);
-    const SphericalHarmonics::RGBL1 oldIrradiance = patchIrradiances[patchIdx];
+    float3 updateWeight = lerp((float3)longHys, (float3)shortHysteresis, driftWeight);
+    if (oldSampleCount != PatchUtil::updateMax)
+        updateWeight = float(oldSampleCount) * rcp(oldSampleCount + newSampleCount);
+
+    const SphericalHarmonics::RGBL1 output = SphericalHarmonics::Lerp(newEstimate, oldEstimate, updateWeight);
+    return output;
+}
+
+void ProcessAndStoreRadianceSample(
+    RWStructuredBuffer<SphericalHarmonics::RGBL1> irradiances,
+    RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statSets,
+    PatchUtil::PatchStatisticsSet currentStatSet,
+    uint patchIdx,
+    SphericalHarmonics::RGBL1 newEstimate,
+    uint newEstimateUpdateCount,
+    float shortHysteresis)
+{
+    SphericalHarmonics::CosineConvolve(newEstimate);
+
+    const uint oldUpdateCount = PatchUtil::GetUpdateCount(currentStatSet.irradianceState);
+    const uint newUpdateCount = min(oldUpdateCount + newEstimateUpdateCount, PatchUtil::updateMax);
+    const SphericalHarmonics::RGBL1 oldIrradiance = irradiances[patchIdx];
 
     float shortIrradianceUpdateWeight;
-    if (oldStats.updateCount == 0)
+    if (oldUpdateCount == 0)
         shortIrradianceUpdateWeight = 0;
     else
-        shortIrradianceUpdateWeight = min(1.0f - rcp(oldStats.updateCount), shortHysteresis);
+        shortIrradianceUpdateWeight = min(
+            float(oldUpdateCount) * rcp(oldUpdateCount + newEstimateUpdateCount),
+            shortHysteresis);
 
-    const float3 newL0ShortIrradiance = lerp(radianceSample.l0, oldStats.mean, shortIrradianceUpdateWeight);
-    const float3 varianceSample = (radianceSample.l0 - newL0ShortIrradiance) * (radianceSample.l0 - oldStats.mean);
-    const float3 newVariance = lerp(varianceSample, oldStats.variance, shortHysteresis);
+    const float3 newL0ShortIrradiance = lerp(newEstimate.l0, currentStatSet.mean, shortIrradianceUpdateWeight);
+    const float3 varianceSample = (newEstimate.l0 - newL0ShortIrradiance) * (newEstimate.l0 - currentStatSet.mean);
+    const float3 newVariance = lerp(varianceSample, currentStatSet.variance, shortHysteresis);
 
-    SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(shortHysteresis, newUpdateCount, newVariance, newL0ShortIrradiance, radianceSample, oldIrradiance);
+    const SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(
+        shortHysteresis,
+        newEstimateUpdateCount,
+        oldUpdateCount,
+        newVariance,
+        newL0ShortIrradiance,
+        newEstimate,
+        oldIrradiance);
 
-    patchIrradiances[patchIdx] = output;
+    irradiances[patchIdx] = output;
 
-    patchStatistics[patchIdx].mean = newL0ShortIrradiance;
-    patchStatistics[patchIdx].variance = newVariance;
-    patchStatistics[patchIdx].updateCount = newUpdateCount;
+    statSets[patchIdx].mean = newL0ShortIrradiance;
+    statSets[patchIdx].variance = newVariance;
+    PatchUtil::IrradianceState irState = currentStatSet.irradianceState;
+    PatchUtil::SetUpdateCount(irState, newUpdateCount);
+    statSets[patchIdx].irradianceState = irState;
 }
 
 void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sampleRadiance, float3 sampleDirection)
@@ -320,11 +361,26 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
     volumeParams.cascadeCount = _VolumeCascadeCount;
     volumeParams.patchWarping = _PatchWarping != 0;
 
-    SphericalHarmonics::RGBL1 radianceSampleMean = (SphericalHarmonics::RGBL1)0;
+    SphericalHarmonics::RGBL1 radianceEstimate = (SphericalHarmonics::RGBL1)0;
     bool gotValidSamples = false;
 
+    const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
+
     const uint patchIdxHash = LowBiasHash32(patchIdx);
-    const uint sampleOffset = _FrameIdx * _SampleCount;
+    const uint warmUpSampleMultiplier = _WarmUpSampleMultiplier;
+    const bool shouldWarmUp = (PatchUtil::GetUpdateCount(stats.irradianceState) == 0 && PatchUtil::GetRank(stats.requestState) == 0);
+    uint sampleCount;
+    uint sampleOffset;
+    if (shouldWarmUp)
+    {
+        sampleCount = _SampleCount * warmUpSampleMultiplier;
+        sampleOffset = (_FrameIdx + 1) * _SampleCount;
+    }
+    else
+    {
+        sampleCount = _SampleCount;
+        sampleOffset = _SampleCount * (_FrameIdx + warmUpSampleMultiplier);
+    }
     const uint emissiveTriangleCount = _EmissiveTriangleCount[0];
 
     rng.Init(patchIdxHash, sampleOffset);
@@ -335,14 +391,14 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
         accelStruct,
         patchIdx,
         groupThreadIndex,
-        _SampleCount,
+        sampleCount,
         matPoolParams,
         emissiveTriangleCount,
         patchGeo,
         _PatchStatistics,
         _CellPatchIndices,
         volumeParams,
-        radianceSampleMean,
+        radianceEstimate,
         gotValidSamples);
 
     if (_PunctualLightCount != 0)
@@ -353,14 +409,14 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
             accelStruct,
             patchIdx,
             groupThreadIndex,
-            _SampleCount,
+            sampleCount,
             matPoolParams,
             _PunctualLights,
             _PunctualLightSamples,
             _PunctualLightSampleCount,
             _VolumeVoxelMinSize,
             patchGeo,
-            radianceSampleMean,
+            radianceEstimate,
             gotValidSamples);
     }
 
@@ -372,17 +428,27 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
             accelStruct,
             patchIdx,
             groupThreadIndex,
-            _SampleCount,
+            sampleCount,
             _EmissiveTriangles,
             emissiveTriangleCount,
             matPoolParams,
             _EmissiveTriangleIntensityMultiplier,
             _VolumeVoxelMinSize,
             patchGeo,
-            radianceSampleMean,
+            radianceEstimate,
             gotValidSamples);
     }
 
     if (gotValidSamples)
-        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, patchIdx, radianceSampleMean, _ShortHysteresis);
+    {
+        const uint estimateUpdateCount = sampleCount / _SampleCount;
+        ProcessAndStoreRadianceSample(
+            _PatchIrradiances,
+            _PatchStatistics,
+            stats,
+            patchIdx,
+            radianceEstimate,
+            estimateUpdateCount,
+            _ShortHysteresis);
+    }
 }

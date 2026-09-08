@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
         /// When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail.
         /// </summary>
         [Tooltip("When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail.")]
-        public BoolParameter lightTransportBouncePatchAllocation = new BoolParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportBouncePatchAllocation);
+        public BoolParameter lightTransportBouncePatchAllocation = new BoolParameter(false);
 
         /// <summary>
         /// Number of samples used for GI estimation. Higher values improve quality at performance cost.
@@ -66,6 +66,11 @@ namespace UnityEngine.Rendering.Universal
         [AdditionalProperty]
         [FormerlySerializedAs("advancedDefragCount")] // Added in Unity 6.7b1.
         public ClampedIntParameter lightTransportDefragCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportDefragCount, 1, 32);
+
+        /// <summary>
+        /// Boosts the initial sample count on newly revealed surfaces if needed. This stabilizes the image faster when geometry or camera is moving.
+        /// </summary>
+        public ClampedIntParameter lightTransportWarmupSampleMultiplier = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportWarmUpSampleMultiplier, 1, 16); // TODO(rasmusn): Add to presets?
 
         // ============================
         // Patch Filtering Parameters
@@ -95,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Enable temporal post-filtering for additional image stability.
         /// </summary>
-        public BoolParameter patchFilteringPostTemporalEnabled = new BoolParameter(k_Presets[(int)k_defaultPresetQuality].patchFilteringPostTemporalEnabled);
+        public BoolParameter patchFilteringPostTemporalEnabled = new BoolParameter(true);
 
         // ============================
         // Screen Filtering Parameters
@@ -185,19 +190,18 @@ namespace UnityEngine.Rendering.Universal
 
         struct Preset
         {
-            public bool lightTransportMultiBounce;
-            public bool lightTransportBouncePatchAllocation;
-            public int lightTransportSampleCount;
+            public int volumeResolution;
             public bool volumeDistanceFallback;
+            public bool lightTransportMultiBounce;
+            public int lightTransportSampleCount;
+            public int lightTransportWarmUpSampleMultiplier;
+            public int lightTransportDefragCount;
             public float patchFilteringTemporalSmoothing;
             public bool patchFilteringSpatialEnabled;
             public int patchFilteringSpatialSampleCount;
             public float patchFilteringSpatialRadius;
-            public bool patchFilteringPostTemporalEnabled;
-            public int volumeResolution;
             public int screenFilteringLookupSampleCount;
             public int screenFilteringDenoisingPassCount;
-            public int lightTransportDefragCount;
         }
 
 
@@ -207,34 +211,38 @@ namespace UnityEngine.Rendering.Universal
             // Low
             new Preset
             {
-                lightTransportMultiBounce = false, lightTransportBouncePatchAllocation = false, lightTransportSampleCount = 1, volumeDistanceFallback = false,
-                patchFilteringTemporalSmoothing = 0.9f, patchFilteringSpatialEnabled = false, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = false,
-                volumeResolution = 16, screenFilteringLookupSampleCount = 2, screenFilteringDenoisingPassCount = 1,
-                lightTransportDefragCount = 2
+                lightTransportMultiBounce = false, lightTransportSampleCount = 1,
+                lightTransportWarmUpSampleMultiplier = 1, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.9f,
+                patchFilteringSpatialEnabled = false, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f,
+                volumeResolution = 16, screenFilteringLookupSampleCount = 2,
+                screenFilteringDenoisingPassCount = 1, lightTransportDefragCount = 2
             },
             // Medium
             new Preset
             {
-                lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = false, lightTransportSampleCount = 2, volumeDistanceFallback = false,
-                patchFilteringTemporalSmoothing = 0.8f, patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 32, screenFilteringLookupSampleCount = 4, screenFilteringDenoisingPassCount = 2,
-                lightTransportDefragCount = 4
+                lightTransportMultiBounce = true, lightTransportSampleCount = 2,
+                lightTransportWarmUpSampleMultiplier = 2, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.8f,
+                patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f,
+                volumeResolution = 32, screenFilteringLookupSampleCount = 4,
+                screenFilteringDenoisingPassCount = 2, lightTransportDefragCount = 4
             },
             // High
             new Preset
             {
-                lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = true, lightTransportSampleCount = 4, volumeDistanceFallback = true,
-                patchFilteringTemporalSmoothing = 0.7f, patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 6, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 48, screenFilteringLookupSampleCount = 8, screenFilteringDenoisingPassCount = 3,
-                lightTransportDefragCount = 8
+                lightTransportMultiBounce = true, lightTransportSampleCount = 4,
+                lightTransportWarmUpSampleMultiplier = 4, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.7f,
+                patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 6, patchFilteringSpatialRadius = 1.0f,
+                volumeResolution = 48, screenFilteringLookupSampleCount = 8,
+                screenFilteringDenoisingPassCount = 3, lightTransportDefragCount = 8
             },
             // Ultra
             new Preset
             {
-                lightTransportMultiBounce = true, lightTransportBouncePatchAllocation = true, lightTransportSampleCount = 8, volumeDistanceFallback = true,
-                patchFilteringTemporalSmoothing = 0.6f, patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 8, patchFilteringSpatialRadius = 1.0f, patchFilteringPostTemporalEnabled = true,
-                volumeResolution = 64, screenFilteringLookupSampleCount = 16, screenFilteringDenoisingPassCount = 4,
-                lightTransportDefragCount = 16
+                lightTransportMultiBounce = true, lightTransportSampleCount = 8,
+                lightTransportWarmUpSampleMultiplier = 8, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.6f,
+                patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 8, patchFilteringSpatialRadius = 1.0f,
+                volumeResolution = 64, screenFilteringLookupSampleCount = 16,
+                screenFilteringDenoisingPassCount = 4, lightTransportDefragCount = 16
             },
         };
 
@@ -251,10 +259,10 @@ namespace UnityEngine.Rendering.Universal
 
             lightTransportMultiBounce.value = settings.lightTransportMultiBounce;
             lightTransportMultiBounce.overrideState = true;
-            lightTransportBouncePatchAllocation.value = settings.lightTransportBouncePatchAllocation;
-            lightTransportBouncePatchAllocation.overrideState = true;
             lightTransportSampleCount.value = settings.lightTransportSampleCount;
             lightTransportSampleCount.overrideState = true;
+            lightTransportWarmupSampleMultiplier.value = settings.lightTransportWarmUpSampleMultiplier;
+            lightTransportWarmupSampleMultiplier.overrideState = true;
             volumeDistanceFallback.value = settings.volumeDistanceFallback;
             volumeDistanceFallback.overrideState = true;
             patchFilteringTemporalSmoothing.value = settings.patchFilteringTemporalSmoothing;
@@ -265,8 +273,6 @@ namespace UnityEngine.Rendering.Universal
             patchFilteringSpatialSampleCount.overrideState = true;
             patchFilteringSpatialRadius.value = settings.patchFilteringSpatialRadius;
             patchFilteringSpatialRadius.overrideState = true;
-            patchFilteringPostTemporalEnabled.value = settings.patchFilteringPostTemporalEnabled;
-            patchFilteringPostTemporalEnabled.overrideState = true;
             volumeResolution.value = settings.volumeResolution;
             volumeResolution.overrideState = true;
             screenFilteringLookupSampleCount.value = settings.screenFilteringLookupSampleCount;
@@ -301,15 +307,14 @@ namespace UnityEngine.Rendering.Universal
         public bool HasPresetOverridesEnabled()
         {
             return lightTransportMultiBounce.overrideState
-                && lightTransportBouncePatchAllocation.overrideState
                 && lightTransportSampleCount.overrideState
+                && lightTransportWarmupSampleMultiplier.overrideState
                 && lightTransportDefragCount.overrideState
                 && volumeDistanceFallback.overrideState
                 && patchFilteringTemporalSmoothing.overrideState
                 && patchFilteringSpatialEnabled.overrideState
                 && patchFilteringSpatialSampleCount.overrideState
                 && patchFilteringSpatialRadius.overrideState
-                && patchFilteringPostTemporalEnabled.overrideState
                 && volumeResolution.overrideState
                 && screenFilteringLookupSampleCount.overrideState
                 && screenFilteringDenoisingPassCount.overrideState;
@@ -326,8 +331,8 @@ namespace UnityEngine.Rendering.Universal
             ref readonly var preset = ref k_Presets[(int)quality];
 
             return lightTransportMultiBounce.value == preset.lightTransportMultiBounce
-                && lightTransportBouncePatchAllocation.value == preset.lightTransportBouncePatchAllocation
                 && lightTransportSampleCount.value == preset.lightTransportSampleCount
+                && lightTransportWarmupSampleMultiplier.value == preset.lightTransportWarmUpSampleMultiplier
                 && lightTransportDefragCount.value == preset.lightTransportDefragCount
                 && volumeDistanceFallback.value == preset.volumeDistanceFallback
                 && volumeResolution.value == preset.volumeResolution
@@ -335,7 +340,6 @@ namespace UnityEngine.Rendering.Universal
                 && patchFilteringSpatialEnabled.value == preset.patchFilteringSpatialEnabled
                 && patchFilteringSpatialSampleCount.value == preset.patchFilteringSpatialSampleCount
                 && patchFilteringSpatialRadius.value == preset.patchFilteringSpatialRadius
-                && patchFilteringPostTemporalEnabled.value == preset.patchFilteringPostTemporalEnabled
                 && screenFilteringLookupSampleCount.value == preset.screenFilteringLookupSampleCount
                 && screenFilteringDenoisingPassCount.value == preset.screenFilteringDenoisingPassCount;
         }

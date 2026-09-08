@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering
         public bool MultiBounce;
         public bool BouncePatchAllocation;
         public uint SampleCount;
+        public uint WarmUpSampleMultiplier;
         public bool DistanceFallback;
     }
 
@@ -413,6 +414,7 @@ namespace UnityEngine.Rendering
             internal float ShortHysteresis;
             internal uint RingConfigOffset;
             internal uint SampleCount;
+            internal uint WarmUpSampleMultiplier;
             internal uint VolumeSpatialResolution;
             internal float VolumeVoxelMinSize;
             internal bool PatchWarpingEnabled;
@@ -480,7 +482,7 @@ namespace UnityEngine.Rendering
             internal GraphicsBuffer RingConfigBuffer;
             internal uint PatchCapacity;
             internal uint RingConfigOffset;
-            internal float ShortHysteresis;
+            internal float TemporalSmoothing;
         }
 
         internal static class ShaderIDs
@@ -506,11 +508,13 @@ namespace UnityEngine.Rendering
             public static readonly int _VolumeSpatialResolution = Shader.PropertyToID("_VolumeSpatialResolution");
             public static readonly int _VolumeCascadeCount = Shader.PropertyToID("_VolumeCascadeCount");
             public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
+            public static readonly int _WarmUpSampleMultiplier = Shader.PropertyToID("_WarmUpSampleMultiplier");
             public static readonly int _MultiBounce = Shader.PropertyToID("_MultiBounce");
             public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
             public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
             public static readonly int _PunctualLightSampleCount = Shader.PropertyToID("_PunctualLightSampleCount");
             public static readonly int _ShortHysteresis = Shader.PropertyToID("_ShortHysteresis");
+            public static readonly int _TemporalSmoothing = Shader.PropertyToID("_TemporalSmoothing");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
             public static readonly int _RingConfigBuffer = Shader.PropertyToID("_RingConfigBuffer");
             public static readonly int _Requests = Shader.PropertyToID("_Requests");
@@ -613,10 +617,14 @@ namespace UnityEngine.Rendering
         {
             RecordEstimation(renderGraph, frameIdx, world);
 
+            uint outputIrradianceBufferIdx = RecordFiltering(renderGraph, frameIdx);
+
+            // We perform patch allocation _after_ filtering to avoid needlessly filtering newly
+            // allocated black patches.
             if (_estimationParams.BouncePatchAllocation)
                 RecordPatchAllocation(renderGraph, frameIdx);
 
-            return RecordFiltering(renderGraph, frameIdx);
+            return outputIrradianceBufferIdx;
         }
 
         private void RecordDefragmentation(RenderGraph renderGraph, uint frameIdx)
@@ -718,7 +726,7 @@ namespace UnityEngine.Rendering
                     passData.RingConfigBuffer = RingConfig.Buffer;
                     passData.PatchCapacity = Patches.Capacity;
                     passData.RingConfigOffset = RingConfig.OffsetA;
-                    passData.ShortHysteresis = _shortHysteresis;
+                    passData.TemporalSmoothing = _patchFilteringParams.TemporalSmoothing;
 
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
                     builder.SetRenderFunc((TemporalFilterPassData data, ComputeGraphContext cgContext) => FilterTemporally(data, cgContext));
@@ -774,6 +782,7 @@ namespace UnityEngine.Rendering
                 passData.ShortHysteresis = _shortHysteresis;
                 passData.RingConfigOffset = RingConfig.OffsetA;
                 passData.SampleCount = _estimationParams.SampleCount;
+                passData.WarmUpSampleMultiplier = _estimationParams.WarmUpSampleMultiplier;
                 passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
                 passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                 passData.Zero = _zero;
@@ -946,6 +955,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.CascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._WarmUpSampleMultiplier, (int)data.WarmUpSampleMultiplier);
                 cmd.SetComputeIntParam(shader, ShaderIDs._MultiBounce, data.MultiBounce ? 1 : 0);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
@@ -1053,7 +1063,7 @@ namespace UnityEngine.Rendering
             cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._InputPatchIrradiances, data.InputPatchIrradiances);
             cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._InputOutputPatchIrradiances, data.InputOutputPatchIrradiances);
             cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
-            cmd.SetComputeFloatParam(shader, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
+            cmd.SetComputeFloatParam(shader, ShaderIDs._TemporalSmoothing, data.TemporalSmoothing);
 
             uint3 groupCount = DivUp(new uint3(data.PatchCapacity, 1, 1), data.ThreadGroupSize);
             cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);

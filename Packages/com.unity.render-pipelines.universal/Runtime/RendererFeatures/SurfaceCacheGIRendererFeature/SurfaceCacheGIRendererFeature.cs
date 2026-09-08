@@ -162,6 +162,7 @@ namespace UnityEngine.Rendering.Universal
                     MultiBounce = volumeOverride.lightTransportMultiBounce.value,
                     BouncePatchAllocation = volumeOverride.lightTransportBouncePatchAllocation.value,
                     SampleCount = (uint)volumeOverride.lightTransportSampleCount.value,
+                    WarmUpSampleMultiplier = (uint)volumeOverride.lightTransportWarmupSampleMultiplier.value,
                     DistanceFallback = volumeOverride.volumeDistanceFallback.value
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet

@@ -134,7 +134,9 @@ namespace UnityEngine.Rendering.Tests
             {
                 SampleCount = sampleCount,
                 MultiBounce = multiBounce,
-                BouncePatchAllocation = bouncePatchAllocation
+                BouncePatchAllocation = bouncePatchAllocation,
+                WarmUpSampleMultiplier = 1,
+                DistanceFallback = false
             };
             _cache.SetEstimationParams(_estimationParams);
             _cache.SetPatchFilteringParams(new SurfaceCachePatchFilteringParameterSet

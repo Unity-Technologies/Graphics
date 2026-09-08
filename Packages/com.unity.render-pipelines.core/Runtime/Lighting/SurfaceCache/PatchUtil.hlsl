@@ -60,11 +60,19 @@ namespace PatchUtil
         uint data;
     };
 
+    struct IrradianceState
+    {
+        // Layout
+        // 0x0000FFFF: UpdateCount: How many updates did primary irradiance buffer see?
+        // 0xFFFF0000: IsTemporalInitialized: Is post temporal irradiance buffer initialized?
+        uint data;
+    };
+
     struct PatchStatisticsSet
     {
         float3 mean;
         float3 variance;
-        uint updateCount;
+        IrradianceState irradianceState;
         PatchRequestState requestState;
     };
 
@@ -95,7 +103,32 @@ namespace PatchUtil
             modulo);
     }
 
-    void Reset(out PatchRequestState state)
+    uint GetUpdateCount(IrradianceState state)
+    {
+        return state.data & 0xFFFF;
+    }
+
+    bool GetIsTemporalInitialized(IrradianceState state)
+    {
+        return bool(state.data >> 16);
+    }
+
+    void SetUpdateCount(inout IrradianceState state, uint updateCount)
+    {
+        state.data = updateCount | (state.data & 0xFFFF0000);
+    }
+
+    void SetIsTemporalInitialized(inout IrradianceState state, bool isInitialized)
+    {
+        state.data = (uint(isInitialized) << 16) | (state.data & 0xFFFF);
+    }
+
+    void ResetRequestState(out PatchRequestState state)
+    {
+        state.data = 0;
+    }
+
+    void ResetIrradianceState(out IrradianceState state)
     {
         state.data = 0;
     }
@@ -436,8 +469,8 @@ namespace PatchUtil
         PatchStatisticsSet stats;
         stats.mean = irradianceSeed;
         stats.variance = 0;
-        stats.updateCount = 0;
-        Reset(stats.requestState);
+        ResetRequestState(stats.requestState);
+        ResetIrradianceState(stats.irradianceState);
         SetHeartbeat(stats.requestState, frameIndex);
         SetRank(stats.requestState, rank);
         return stats;

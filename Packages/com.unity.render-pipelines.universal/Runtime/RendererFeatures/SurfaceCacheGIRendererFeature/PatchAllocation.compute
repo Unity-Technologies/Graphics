@@ -197,7 +197,7 @@ void Allocate(uint2 lowResPixelPos)
             _PatchIrradiances0[resolutionResult.patchIdx] = irradianceSeed;
             _PatchIrradiances1[resolutionResult.patchIdx] = irradianceSeed;
             PatchUtil::PatchStatisticsSet stats = PatchUtil::InitPatchStatistics(irradianceSeed.l0, _FrameIdx, 0);
-            stats.updateCount = patchUpdateCount;
+            PatchUtil::SetUpdateCount(stats.irradianceState, patchUpdateCount);
             _PatchStatistics[resolutionResult.patchIdx] = stats;
         }
     }

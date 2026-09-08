@@ -190,7 +190,7 @@ void Visualize(uint2 threadIdx)
             {
                 if (hasPatch)
                 {
-                    const uint updateCount = _PatchStatistics[patchIdx].updateCount;
+                    const uint updateCount = PatchUtil::GetUpdateCount(_PatchStatistics[patchIdx].irradianceState);
                     const float s = float(updateCount) / PatchUtil::updateMax;
                     const float3 redGreenMix = lerp(red, green, s);
                     const float3 checker = UintToFloat01(LowBiasHash32(cellIdx, 0)); // To make cells visible.
