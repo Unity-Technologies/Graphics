@@ -8,6 +8,8 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
+
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     half3 SH = 0.0h;
