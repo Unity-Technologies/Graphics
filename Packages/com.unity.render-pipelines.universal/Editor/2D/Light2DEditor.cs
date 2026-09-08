@@ -92,10 +92,17 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent generalLightType = L10n.TextContent("Light Type", "Select the light type. \n\nGlobal Light: For ambient light. \nSpot Light: For a spot light / point light. \nFreeform Light: For a custom shape light. \nSprite Light: For a custom light cookie using Sprites.", null, null);
 
+            // Format argument: {0} the name of the provider type that is no longer in the project.
+            public static readonly GUIContent providerScriptRemoved = L10n.TextContent(
+                "{0} has been removed. Pick another Light Type, or restore the script.", null, null, null);
+            public static readonly GUIContent providerScriptRemovedUnnamed = L10n.TextContent(
+                "This light's provider script has been removed. Pick another Light Type, or restore the script.", null, null, null);
+
             public static GUIContent generalFalloffSize = L10n.TextContent("Falloff", "Adjusts the falloff area of this light. The higher the falloff value, the larger area the falloff spans.", null, null);
             public static GUIContent generalFalloffIntensity = L10n.TextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of this light’s edges. The higher the falloff strength, the softer the edges of this light.", null, null);
             public static GUIContent generalLightColor = L10n.TextContent("Color", "Adjusts this light’s color.", null, null);
-            public static GUIContent generalLightIntensity = L10n.TextContent("Intensity", "Adjusts this light’s color intensity by using multiply to brighten the Sprite beyond its original color.", null, null);
+            public static GUIContent generalLightIntensity = L10n.TextContent("Intensity", "Brightens the Sprite beyond its original color.", null, null);
+            public static GUIContent generalMaterial = L10n.TextContent("Material", "Specifies a custom Light2D compatible Shader Graph Material which is used to render this light's lighting. When empty, URP's built-in lighting materials are used.", null, null);
             public static GUIContent generalVolumeIntensity = L10n.TextContent("Intensity", "Adjusts the intensity of this additional light volume that's additively blended on top of this light. To enable the Volumetric Shadow Strength, increase this Intensity to be greater than 0.", null, null);
             public static GUIContent generalBlendStyle = L10n.TextContent("Blend Style", "Adjusts how this light blends with the Sprites on the Target Sorting Layers. Different Blend Styles can be customized in the 2D Renderer Data Asset.", null, null);
             public static GUIContent generalLightOverlapOperation = L10n.TextContent("Overlap Operation", "Determines how this light blends with the other lights either through additive or alpha blending.", null, null);
@@ -103,10 +110,28 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent generalShadowIntensity = L10n.TextContent("Strength", "Adjusts the amount of light occlusion from the Shadow Caster 2D component(s) when blocking this light.The higher the value, the more opaque the shadow becomes.", null, null);
             public static GUIContent generalShadowSoftness = L10n.TextContent("Softness", "Adjusts the amount of softness at the edge of the shadow.", null, null);
             public static GUIContent generalShadowSoftnessFalloffIntensity = L10n.TextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of the shadow edges. The higher the falloff strength, the softer the edges of this shadow.", null, null);
+            public static GUIContent shadowMaterial = L10n.TextContent("Material", "Specifies a custom Shadow2D compatible Shader Graph Material which is used to render this light's shadows. When empty, URP's built-in shadow materials are used.", null, null);
+
+            // Format arguments: {0} material name, {1} shader name, {2} missing pass names.
+            public static readonly GUIContent shadowMaterialMissingPasses = L10n.TextContent(
+                "Material '{0}' (shader '{1}') is missing the shadow pass(es): {2}. Add them to the shader, or clear the Material to use URP's built-in shadow shader.", null, null, null);
+            public static readonly GUIContent shadowMaterialNoShader = L10n.TextContent("The assigned Material has no shader, so no shadow passes can be resolved and this light's shadows will not render. Assign a shader to the Material, or clear it to use URP's built-in shadow shader.", null, null, null);
+
+            // Format arguments: {0} material name, {1} shader name, {2} missing pass names.
+            public static readonly GUIContent lightMaterialMissingPasses = L10n.TextContent(
+                "Material '{0}' (shader '{1}') is missing the light pass(es): {2}. Add them to the shader, or clear the Material to use URP's built-in light shader.", null, null, null);
+            public static readonly GUIContent lightMaterialNoShader = L10n.TextContent("The assigned Material has no shader, so no light passes can be resolved and this light will not render. Assign a shader to the Material, or clear it to use URP's built-in light shader.", null, null, null);
+            // The rebuild-and-may-look-different caveat is deliberately not repeated here: it is on the
+            // Geometry Version setting's own tooltip, which is where the change is actually made.
+            public static readonly GUIContent shadowMaterialNeedsEnhancedGeometry = L10n.TextContent(
+                "This project uses Legacy 2D shadow geometry, so this Material is ignored. Set 2D Shadow Geometry to Enhanced in Project Settings > Graphics to use it.", null, null, null);
+            // The short form, for the disabled and empty field. The long one above says what happens
+            // to a Material that is already assigned, which is not the question when there is none.
+            public static readonly GUIContent shadowMaterialLegacyHint = L10n.TextContent("Material requires Enhanced 2D shadow geometry generation. Set 2D Shadow Geometry to Enhanced in Project Settings > Graphics to use.", null, null, null);
             public static GUIContent generalShadowVolumeIntensity = L10n.TextContent("Shadow Strength", "Adjusts the amount of volume light occlusion from the Shadow Caster 2D component(s) when blocking this light.", null, null);
             public static GUIContent generalSortingLayerPrefixLabel = L10n.TextContent("Target Sorting Layers", "Determines which layers this light affects. To optimize performance, minimize the number of layers this light affects.", null, null);
             public static GUIContent generalLightNoLightEnabled = L10n.TextContentWithIcon("No valid blend styles are enabled.", MessageType.Error, null);
-            public static GUIContent generalNormalMapZDistance = L10n.TextContent("Distance", "Adjusts the z-axis distance of this light and the lit Sprite(s). Do note that this distance does not Transform the position of this light in the Scene.", null, null);
+            public static GUIContent generalNormalMapZDistance = L10n.TextContent("Distance", "Adjusts the z-axis distance between this light and the lit Sprites. This distance does not move the light in the Scene.", null, null);
             public static GUIContent generalNormalMapLightQuality = L10n.TextContent("Quality", "Determines the accuracy of the lighting calculations when normal map is used. To optimize for performance, select Fast.", null, null);
 
             public static GUIContent pointLightRadius = L10n.TextContent("Radius", "Adjusts the inner / outer radius of this light to change the size of this light.", null, null);
@@ -145,12 +170,14 @@ namespace UnityEditor.Rendering.Universal
         
         SerializedProperty m_LightColor;
         SerializedProperty m_LightIntensity;
+        SerializedProperty m_Material;
         SerializedProperty m_ShadowsEnabled;
         SerializedProperty m_ShadowIntensity;
         SerializedProperty m_ShadowSoftness;
         SerializedProperty m_ShadowSoftnessFalloffIntensity;
         SerializedProperty m_ShadowVolumeIntensity;
         SerializedProperty m_ShadowVolumeIntensityEnabled;
+        SerializedProperty m_ShadowMaterial;
         SerializedProperty m_VolumetricIntensity;
         SerializedProperty m_VolumetricEnabled;
         SerializedProperty m_BlendStyleIndex;
@@ -222,12 +249,14 @@ namespace UnityEditor.Rendering.Universal
 
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
+            m_Material = serializedObject.FindProperty("m_Material");
             m_ShadowsEnabled = serializedObject.FindProperty("m_ShadowsEnabled");
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
             m_ShadowSoftness = serializedObject.FindProperty("m_ShadowSoftness");
             m_ShadowSoftnessFalloffIntensity = serializedObject.FindProperty("m_ShadowSoftnessFalloffIntensity");
             m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
             m_ShadowVolumeIntensityEnabled = serializedObject.FindProperty("m_ShadowVolumeIntensityEnabled");
+            m_ShadowMaterial = serializedObject.FindProperty("m_ShadowMaterial");
             m_VolumetricIntensity = serializedObject.FindProperty("m_LightVolumeIntensity");
             m_VolumetricEnabled = serializedObject.FindProperty("m_LightVolumeEnabled");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
@@ -370,9 +399,119 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
                 EditorGUILayout.PropertyField(m_ShadowSoftness, Styles.generalShadowSoftness);
                 EditorGUILayout.PropertyField(m_ShadowSoftnessFalloffIntensity, Styles.generalShadowSoftnessFalloffIntensity);
+
+                // Disabled rather than hidden on the Legacy geometry generation. The field is inert
+                // there -- ShadowRendering ignores it, see Light2D.effectiveShadowMaterial -- but a
+                // control that vanishes reads as "this light cannot have one", which sends the user
+                // looking through the component rather than at the project setting that actually
+                // governs it. Greyed out with the reason underneath, the field says what it needs.
+                // Any value already assigned is left alone rather than cleared, so moving to Enhanced
+                // gives it back.
+                using (new EditorGUI.DisabledScope(!Shadow2DGeometry.enhancedGeometryEnabled))
+                    Light2DEditorUtility.DrawFilteredMaterialField(m_ShadowMaterial, Styles.shadowMaterial, ShadowRendering.IsCompatibleShadowMaterial);
+
+                // Only when the field is empty: with a Material assigned, DrawShadowMaterialErrors
+                // says the same thing and more, and two boxes saying it is worse than one.
+                if (!Shadow2DGeometry.enhancedGeometryEnabled && !AnyTargetHasShadowMaterial())
+                    EditorGUILayout.HelpBox(Styles.shadowMaterialLegacyHint.text, MessageType.Info);
+
                 EditorGUI.EndDisabledGroup();
+
+                DrawShadowMaterialErrors();
+
                 EditorGUI.indentLevel--;
             }
+        }
+
+        bool AnyTargetHasShadowMaterial()
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                var light = targets[i] as Light2D;
+                if (light != null && light.shadowMaterial != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        // A custom Material replaces URP's shadow shaders outright rather than filling in around
+        // them, so a shader that omits any of the five shadow passes silently drops that phase of
+        // every shadow this light casts. Nothing in the Scene view distinguishes that from a
+        // correctly-authored shadow, so the omission is reported here.
+        //
+        // Outside the disabled group above: an error about a Material is not something to grey out
+        // because shadows happen to be switched off.
+        // The picker only offers Materials whose shader declares the light passes, but drag-and-drop
+        // onto the field bypasses it, so an incompatible Material is reported here. A material that
+        // declares neither pass renders nothing at all, which is worth naming rather than leaving the
+        // user to wonder why the light went dark.
+        void DrawLightMaterialErrors()
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                var light = targets[i] as Light2D;
+                if (light == null || light.material == null)
+                    continue;
+
+                if (light.material.shader == null)
+                {
+                    DrawLightError(light, Styles.lightMaterialNoShader.text, MessageType.Error);
+                    continue;
+                }
+
+                var missing = RendererLighting.GetMissingLightPasses(light.material);
+                if (missing.Length > 0)
+                {
+                    DrawLightError(light, string.Format(Styles.lightMaterialMissingPasses.text,
+                        light.material.name,
+                        light.material.shader.name,
+                        missing), MessageType.Error);
+                }
+            }
+        }
+
+        void DrawShadowMaterialErrors()
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                var light = targets[i] as Light2D;
+                if (light == null || light.shadowMaterial == null)
+                    continue;
+
+                // Reported rather than hidden along with the field: a Material assigned before the
+                // project moved back to Legacy is silently doing nothing, which is exactly the state
+                // worth naming.
+                if (!Shadow2DGeometry.enhancedGeometryEnabled)
+                {
+                    DrawLightError(light, Styles.shadowMaterialNeedsEnhancedGeometry.text, MessageType.Warning);
+                    continue;
+                }
+
+                if (light.shadowMaterial.shader == null)
+                {
+                    DrawLightError(light, Styles.shadowMaterialNoShader.text, MessageType.Error);
+                    continue;
+                }
+
+                var missing = ShadowRendering.GetMissingShadowPasses(light.shadowMaterial);
+                if (missing != ShadowRendering.ShadowPassRoles.None)
+                {
+                    DrawLightError(light, string.Format(Styles.shadowMaterialMissingPasses.text,
+                        light.shadowMaterial.name,
+                        light.shadowMaterial.shader.name,
+                        ShadowRendering.GetShadowPassRoleNames(missing)), MessageType.Error);
+                }
+            }
+        }
+
+        // With several lights selected the message alone is ambiguous, so name the object.
+        void DrawLightError(Light2D light, string message, MessageType type)
+        {
+            if (targets.Length > 1)
+                message = $"{light.name}: {message}";
+
+            EditorGUILayout.HelpBox(message, type);
         }
 
         void DrawVolumetricGroup()
@@ -542,17 +681,28 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawProviderLight(SerializedObject serializedObject)
         {
+            serializedObject.Update();
+
+            // We have to get this because it may have changed in this editor redraw already
+            SerializedProperty provider = serializedObject.FindProperty("m_Light2DProvider");
+            Light2DProvider lightProvider = provider.boxedValue as Light2DProvider;
+
+            // The light is set to Provider but the provider is gone, which is what deleting the script
+            // that defined it leaves behind. Say so here rather than showing an empty section.
+            if (lightProvider == null)
+            {
+                string removedName = Light2DEditorUtility.GetMissingProviderTypeName(serializedObject.targetObject);
+                EditorGUILayout.HelpBox(removedName != null
+                    ? string.Format(Styles.providerScriptRemoved.text, removedName)
+                    : Styles.providerScriptRemovedUnnamed.text, MessageType.Warning);
+            }
+
             bool foldoutState = CoreEditorUtils.DrawHeaderFoldout("Provider", m_ProviderFoldout.value);
             if (foldoutState != m_ProviderFoldout.value)
                 m_ProviderFoldout.value = foldoutState;
 
-            serializedObject.Update();
-
             if (m_ProviderFoldout.value)
             {
-                // We have to get this because it may have changed in this editor redraw already
-                SerializedProperty provider = serializedObject.FindProperty("m_Light2DProvider");
-                Light2DProvider lightProvider = provider.boxedValue as Light2DProvider;
                 if (lightProvider != null)
                 {
                     Light2DProviderSources.DrawSelectedSourceUI(m_SelectionSources);
@@ -619,6 +769,11 @@ namespace UnityEditor.Rendering.Universal
             // Color and intensity
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
+            if (m_LightType.intValue != (int)Light2D.LightType.Global)
+            {
+                Light2DEditorUtility.DrawFilteredMaterialField(m_Material, Styles.generalMaterial, RendererLighting.IsCompatibleLightMaterial);
+                DrawLightMaterialErrors();
+            }
 
             DrawFilteringContent();
 

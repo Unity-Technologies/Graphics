@@ -36,8 +36,15 @@ namespace UnityEngine.Rendering.Universal
         {
             [SerializeField] internal Vector3 position;
             [SerializeField] internal Vector4 tangent;
+            // neighborNext is the second outline neighbor of `position`, used by the
+            // vertex-shader pole test to decide whether a soft-fin corner is a real
+            // silhouette pole for the current light and can therefore be collapsed
+            // when it isn't. For soft-fin vertices the pair is (packed0.zw = prevPt,
+            // neighborNext = v1 of the current edge). Hard / interior vertices leave
+            // this at zero — the shader only reads it on the soft-fin path.
+            [SerializeField] internal Vector2 neighborNext;
 
-            internal ShadowMeshVertex(ProjectionType inProjectionType, float2 inEdgePosition0, float2 inEdgePosition1)
+            internal ShadowMeshVertex(ProjectionType inProjectionType, float2 inEdgePosition0, float2 inEdgePosition1, float2 inNeighborNext)
             {
                 position.x = inEdgePosition0.x;
                 position.y = inEdgePosition0.y;
@@ -46,6 +53,8 @@ namespace UnityEngine.Rendering.Universal
                 tangent.y = 0;
                 tangent.z = inEdgePosition1.x;
                 tangent.w = inEdgePosition1.y;
+                neighborNext.x = inNeighborNext.x;
+                neighborNext.y = inNeighborNext.y;
             }
         }
 
@@ -65,24 +74,6 @@ namespace UnityEngine.Rendering.Universal
                 v1Offset = 0;
             }
         }
-
-        static VertexAttributeDescriptor[] m_VertexLayout = new VertexAttributeDescriptor[]
-        {
-            new VertexAttributeDescriptor(VertexAttribute.Position,   VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Tangent,    VertexAttributeFormat.Float32, 4),
-        };
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod]
-        static void ResetStaticsOnLoad()
-        {
-            m_VertexLayout = new VertexAttributeDescriptor[]
-            {
-                new VertexAttributeDescriptor(VertexAttribute.Position,   VertexAttributeFormat.Float32, 3),
-                new VertexAttributeDescriptor(VertexAttribute.Tangent,    VertexAttributeFormat.Float32, 4),
-            };
-        }
-#endif
 
         [BurstCompile]
         unsafe static int GetNextShapeStart(int currentShape, int* inShapeStartingEdgePtr, int inShapeStartingEdgeLength, int maxValue)
@@ -119,19 +110,16 @@ namespace UnityEngine.Rendering.Universal
                         shapeSize = nextShapeStart - shapeStart;
                     }
 
-                    int nextEdgeIndex = (i - shapeStart + 1) % shapeSize + shapeStart;
                     int prevEdgeIndex = (i - shapeStart + shapeSize - 1) % shapeSize + shapeStart;
 
                     int v0 = inEdgesPtr[i].v0;
                     int v1 = inEdgesPtr[i].v1;
 
                     int prev1 = inEdgesPtr[prevEdgeIndex].v0;
-                    int next0 = inEdgesPtr[nextEdgeIndex].v1;
 
                     float2 startPt = inVerticesPtr[v0].xy;
                     float2 endPt = inVerticesPtr[v1].xy;
                     float2 prevPt = inVerticesPtr[prev1].xy;
-                    float2 nextPt = inVerticesPtr[next0].xy;
 
                     // Original Vertex
                     outProjectionInfoPtr[v0] = endPt;
@@ -141,9 +129,12 @@ namespace UnityEngine.Rendering.Universal
                     outProjectionInfoPtr[additionalVerticesStart] = endPt;
                     outProjectionInfoPtr[additionalVerticesStart + 1] = startPt;
 
-                    // Soft Triangles
+                    // Soft Triangles: both soft fin vertices carry prevPt in "other"
+                    // so the vertex shader can read (prevPt, v1) uniformly across
+                    // Left/Right for the pole test. v1 is supplied as neighborNext
+                    // in CalculateVertices.
                     outProjectionInfoPtr[additionalVerticesStart + 2] = prevPt;
-                    outProjectionInfoPtr[additionalVerticesStart + 3] = nextPt;
+                    outProjectionInfoPtr[additionalVerticesStart + 3] = prevPt;
                 }
             }
         }
@@ -177,19 +168,16 @@ namespace UnityEngine.Rendering.Universal
                         shapeSize = nextShapeStart - shapeStart;
                     }
 
-                    int nextEdgeIndex = (i - shapeStart + 1) % shapeSize + shapeStart;
                     int prevEdgeIndex = (i - shapeStart + shapeSize - 1) % shapeSize + shapeStart;
 
                     int v0 = inEdgesPtr[i].v0;
                     int v1 = inEdgesPtr[i].v1;
 
                     int prev1 = inEdgesPtr[prevEdgeIndex].v0;
-                    int next0 = inEdgesPtr[nextEdgeIndex].v1;
 
                     float2 startPt = inVerticesPtr[v0].xy;
                     float2 endPt = inVerticesPtr[v1].xy;
                     float2 prevPt = inVerticesPtr[prev1].xy;
-                    float2 nextPt = inVerticesPtr[next0].xy;
 
                     // Original Vertex
                     outProjectionInfoPtr[v0] = endPt;
@@ -199,9 +187,9 @@ namespace UnityEngine.Rendering.Universal
                     outProjectionInfoPtr[additionalVerticesStart] = endPt;
                     outProjectionInfoPtr[additionalVerticesStart + 1] = startPt;
 
-                    // Soft Triangles
+                    // Soft Triangles — see note in *_FromTriangles above.
                     outProjectionInfoPtr[additionalVerticesStart + 2] = prevPt;
-                    outProjectionInfoPtr[additionalVerticesStart + 3] = nextPt;
+                    outProjectionInfoPtr[additionalVerticesStart + 3] = prevPt;
                 }
             }
         }
@@ -222,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < inVerticesLength; i++)
                 {
                     float2 pt = inVerticesPtr[i].xy;
-                    outMeshVerticesPtr[i] = new ShadowMeshVertex(ProjectionType.ProjectionNone, pt, inEdgeOtherPointsPtr[i]);
+                    outMeshVerticesPtr[i] = new ShadowMeshVertex(ProjectionType.ProjectionNone, pt, inEdgeOtherPointsPtr[i], float2.zero);
                 }
 
                 for (int i = 0; i < inEdgesLength; i++)
@@ -234,10 +222,15 @@ namespace UnityEngine.Rendering.Universal
                     float2 pt1 = inVerticesPtr[v1].xy;
 
                     int additionalVerticesStart = k_AdditionalVerticesPerEdge * i + inVerticesLength;
-                    outMeshVerticesPtr[additionalVerticesStart] = new ShadowMeshVertex(ProjectionType.ProjectionHard, pt0, inEdgeOtherPointsPtr[additionalVerticesStart]);
-                    outMeshVerticesPtr[additionalVerticesStart + 1] = new ShadowMeshVertex(ProjectionType.ProjectionHard, pt1, inEdgeOtherPointsPtr[additionalVerticesStart + 1]);
-                    outMeshVerticesPtr[additionalVerticesStart + 2] = new ShadowMeshVertex(ProjectionType.ProjectionSoftLeft, pt0, inEdgeOtherPointsPtr[additionalVerticesStart + 2]);
-                    outMeshVerticesPtr[additionalVerticesStart + 3] = new ShadowMeshVertex(ProjectionType.ProjectionSoftRight, pt0, inEdgeOtherPointsPtr[additionalVerticesStart + 3]);
+                    // Hard vertices: neighborNext is unused by the shader on this
+                    // path (shadowType==0 skips the pole test); pass zero.
+                    outMeshVerticesPtr[additionalVerticesStart]     = new ShadowMeshVertex(ProjectionType.ProjectionHard,      pt0, inEdgeOtherPointsPtr[additionalVerticesStart],     float2.zero);
+                    outMeshVerticesPtr[additionalVerticesStart + 1] = new ShadowMeshVertex(ProjectionType.ProjectionHard,      pt1, inEdgeOtherPointsPtr[additionalVerticesStart + 1], float2.zero);
+                    // Soft-fin vertices at v0: (packed0.zw = prevPt) already set by
+                    // CalculateProjectionInfo. neighborNext = v1 (pt1) completes the
+                    // (prev, next) pair the pole test needs.
+                    outMeshVerticesPtr[additionalVerticesStart + 2] = new ShadowMeshVertex(ProjectionType.ProjectionSoftLeft,  pt0, inEdgeOtherPointsPtr[additionalVerticesStart + 2], pt1);
+                    outMeshVerticesPtr[additionalVerticesStart + 3] = new ShadowMeshVertex(ProjectionType.ProjectionSoftRight, pt0, inEdgeOtherPointsPtr[additionalVerticesStart + 3], pt1);
                 }
             }
         }
@@ -434,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < tessOutVertexCount; i++)
             {
                 float2 tessVertex = tessOutVertices[i];
-                ShadowMeshVertex vertex = new ShadowMeshVertex(ProjectionType.ProjectionNone, tessVertex, float2.zero);
+                ShadowMeshVertex vertex = new ShadowMeshVertex(ProjectionType.ProjectionNone, tessVertex, float2.zero, float2.zero);
                 outVertices[i + vertexOffset] = vertex;
             }
 
@@ -464,7 +457,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // NON-BURST WRAPPER - Mesh operations are not Burst compatible
-        static public void GenerateShadowMesh(ref Mesh mesh, NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices)
+        // vertexLayout comes from the calling ShadowGeometryGenerator rather than a static here,
+        // so a generator cannot declare one vertex format and upload another.
+        static public void GenerateShadowMesh(ref Mesh mesh, NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, VertexAttributeDescriptor[] vertexLayout, Bounds localBounds)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -472,12 +467,17 @@ namespace UnityEngine.Rendering.Universal
             if (inVertices.IsCreated && inIndices.IsCreated)
             {
                 // Set the mesh data
-                mesh.SetVertexBufferParams(inVertices.Length, m_VertexLayout);
+                mesh.SetVertexBufferParams(inVertices.Length, vertexLayout);
                 mesh.SetVertexBufferData<ShadowMeshVertex>(inVertices, 0, 0, inVertices.Length);
                 mesh.SetIndexBufferParams(inIndices.Length, IndexFormat.UInt32);
                 mesh.SetIndexBufferData<int>(inIndices, 0, 0, inIndices.Length);
-                mesh.SetSubMesh(0, new SubMeshDescriptor(0, inIndices.Length));
+                // Bounds are assigned rather than recalculated: the caller already has them, and
+                // RecalculateBounds would walk the whole vertex buffer on every upload.
+                SubMeshDescriptor subMesh = new SubMeshDescriptor(0, inIndices.Length);
+                subMesh.bounds = localBounds;
+                mesh.SetSubMesh(0, subMesh, MeshUpdateFlags.DontRecalculateBounds);
                 mesh.subMeshCount = 1;
+                mesh.bounds = localBounds;
             }
             else
             {

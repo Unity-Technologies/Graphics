@@ -42,7 +42,9 @@ namespace Unity.Rendering.Universal
             SG_SpriteLit,           // UniversalSpriteLitSubTarget
             SG_TerrainLit,          // UniversalTerrainLitSubTarget
             SG_SpriteCustomLit,      // UniversalSpriteCustomLitSubTarget
-            SG_SixWaySmokeLit       // UniversalSixWaySubTarget
+            SG_SixWaySmokeLit,      // UniversalSixWaySubTarget
+            SG_ShadowCaster2D,      // UniversalShadowCaster2DSubTarget
+            SG_Light2D              // UniversalLight2DSubTarget
         }
 
         internal static bool IsShaderGraph(this ShaderID id)

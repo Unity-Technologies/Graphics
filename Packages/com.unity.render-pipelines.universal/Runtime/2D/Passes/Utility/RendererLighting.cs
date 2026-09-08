@@ -5,6 +5,73 @@ namespace UnityEngine.Rendering.Universal
 {
     internal static class RendererLighting
     {
+        // The passes a custom Light2D material is expected to declare, matching the names the
+        // ShaderGraph Light2D SubTarget emits. DrawLight2DPass draws pass 0 for the light and pass 1
+        // for its volumetric contribution, so a material for this field carries both.
+        internal const string k_LightPassName = "Light2D";
+        internal const string k_LightVolumetricPassName = "Light2DVolumetric";
+
+        static readonly string[] k_LightPassNames = { k_LightPassName, k_LightVolumetricPassName };
+
+        // Which of the expected light passes `material` does not declare, as a display string, or an
+        // empty string when it declares them all. The counterpart of
+        // ShadowRendering.GetMissingShadowPasses for the light material.
+        internal static string GetMissingLightPasses(Material material)
+        {
+            if (material == null)
+                return string.Empty;
+
+            // A material with no shader can declare nothing, so every pass is missing.
+            if (material.shader == null)
+                return string.Join(", ", k_LightPassNames);
+
+            var builder = new System.Text.StringBuilder();
+            for (int i = 0; i < k_LightPassNames.Length; i++)
+            {
+                if (material.FindPass(k_LightPassNames[i]) >= 0)
+                    continue;
+
+                if (builder.Length > 0)
+                    builder.Append(", ");
+                builder.Append(k_LightPassNames[i]);
+            }
+
+            return builder.ToString();
+        }
+
+        // Whether `material` can be assigned to Light2D.material without a pass the renderer draws
+        // being absent. The same predicate the inspector error uses, as a bool for callers that only
+        // need a yes/no -- notably the material picker's filter.
+        internal static bool IsCompatibleLightMaterial(Material material)
+        {
+            return material != null && GetMissingLightPasses(material).Length == 0;
+        }
+
+        // Shader-level counterpart, for callers sweeping the whole project where many materials share
+        // one shader. Compatibility depends only on the pass names the shader declares, so the verdict
+        // is a property of the Shader, not the Material.
+        //
+        // Allocates a throwaway Material because pass names are only reachable through Material.
+        // Callers testing many shaders should memoize per Shader -- see Light2DMaterialSearchProvider.
+        internal static bool IsCompatibleLightShader(Shader shader)
+        {
+            if (shader == null)
+                return false;
+
+            var probe = new Material(shader);
+            try
+            {
+                return GetMissingLightPasses(probe).Length == 0;
+            }
+            finally
+            {
+                // DestroyImmediate rather than CoreUtils.Destroy, for the reason given on
+                // ShadowRendering.IsCompatibleShadowShader: callers sweep every shader in the project
+                // in one synchronous pass, and deferring would hold one live Material per shader.
+                Object.DestroyImmediate(probe);
+            }
+        }
+
         public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
@@ -55,6 +122,8 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly int k_SrcBlendID = Shader.PropertyToID("_SrcBlend");
         private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
+        private static readonly int k_VolSrcBlendID = Shader.PropertyToID("_VolSrcBlend");
+        private static readonly int k_VolDstBlendID = Shader.PropertyToID("_VolDstBlend");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_PointLightCookieTexID = Shader.PropertyToID("_PointLightCookieTex");
 
@@ -336,8 +405,75 @@ namespace UnityEngine.Rendering.Universal
             return material;
         }
 
+        // Applies blend modes for a provider (ShaderGraph) material clone that bypasses the per-config
+        // material cache. Sets BOTH the non-volumetric properties (_SrcBlend/_DstBlend, pass 0) and
+        // the volumetric properties (_VolSrcBlend/_VolDstBlend, pass 1). Both depend only on
+        // light.overlapOperation and light.lightType, which are baked into the customLightMaterials
+        // cache key, so calling this once per cache-fill is sufficient — no per-frame mutation.
+        // Using separate properties per-pass avoids intra-material conflict where pass 0 and pass 1
+        // would otherwise share `_SrcBlend/_DstBlend` and the later-set value would win.
+        private static void ApplyBlendModesForLight(Material material, Light2D light)
+        {
+            // Pass 0 (Light2D): non-volumetric blend
+            if (light.overlapOperation == Light2D.OverlapOperation.Additive)
+                SetBlendModes(material, BlendMode.One, BlendMode.One);
+            else
+                SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+
+            // Pass 1 (Light2DVolumetric): volumetric blend via dedicated properties
+            if (light.lightType == Light2D.LightType.Point)
+            {
+                material.SetFloat(k_VolSrcBlendID, (float)BlendMode.One);
+                material.SetFloat(k_VolDstBlendID, (float)BlendMode.One);
+            }
+            else
+            {
+                material.SetFloat(k_VolSrcBlendID, (float)BlendMode.SrcAlpha);
+                material.SetFloat(k_VolDstBlendID, (float)BlendMode.One);
+            }
+        }
+
+        // Packs (source-material EntityId, overlapOperation, lightType) into a value-tuple key for
+        // the customLightMaterials cache. Two Light2Ds sharing the same source material but
+        // differing in overlapOperation or lightType hash to different keys and therefore get
+        // independent Material clones — which is what lets each clone hold its own blend state
+        // without the cross-light stomp described on the customLightMaterials field.
+        //
+        // Uses EntityId.ToULong instead of the obsolete GetInstanceID. OverlapOperation is a
+        // 2-value enum (1 bit) and LightType is a small enum (< 16 values, 4 bits); packing them
+        // into the low bits of a single int is enough to distinguish every valid combination.
+        private static (ulong id, int state) CustomLightMaterialKey(Material src, Light2D light)
+        {
+            int state = ((int)light.overlapOperation << 4) | ((int)light.lightType & 0xF);
+            return (EntityId.ToULong(src.GetEntityId()), state);
+        }
+
         internal static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume, bool useShadows)
         {
+            // Light2D.material override: a non-null custom material bypasses URP's variant-bit cache.
+            // Keywords are driven by cmd-recorded SetVolumetricKeyword / SetAdditiveBlendingKeyword /
+            // SetPointLightCookiesKeyword. Blend state is baked into a per-(source, overlapOperation,
+            // lightType) clone so multiple Light2Ds sharing the same source material don't stomp
+            // each other's _SrcBlend/_DstBlend at frame recording. Clones live on Renderer2DData and
+            // are destroyed alongside `lightMaterials` in Dispose / ClearLightMaterialCache.
+            //
+            // Trade-off: property changes on the source material at runtime (e.g. user-tweaked
+            // color) don't propagate to the clones. Users needing dynamic property updates should
+            // re-assign `light.material` (invalidates the cache) or drive the property via a shader
+            // global. This mirrors the existing built-in `lightMaterials` cache contract.
+            var custom = light.material;
+            if (custom != null)
+            {
+                var key = CustomLightMaterialKey(custom, light);
+                if (!rendererData.customLightMaterials.TryGetValue(key, out var instance) || instance == null)
+                {
+                    instance = new Material(custom);
+                    ApplyBlendModesForLight(instance, light);
+                    rendererData.customLightMaterials[key] = instance;
+                }
+                return instance;
+            }
+
             var materialIndex = GetLightMaterialIndex(light, isVolume, useShadows);
 
             if (!rendererData.lightMaterials.TryGetValue(materialIndex, out var material))
@@ -347,6 +483,76 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return material;
+        }
+
+        // Records USE_VOLUMETRIC keyword state into the command buffer so it executes in draw-call order.
+        // Must be called via cmd (not material.EnableKeyword) because material keyword mutations are
+        // immediate — they don't respect command buffer ordering, which breaks custom-material paths
+        // where the same material instance is used for both the non-volumetric and volumetric passes.
+        internal static void SetVolumetricKeyword(RasterCommandBuffer cmd, Material material, bool isVolumetric)
+        {
+            var keyword = new LocalKeyword(material.shader, k_UseVolumetric);
+            if (isVolumetric)
+                cmd.EnableKeyword(material, keyword);
+            else
+                cmd.DisableKeyword(material, keyword);
+        }
+
+        // Records USE_ADDITIVE_BLENDING keyword state into the command buffer for the same reason
+        // as SetVolumetricKeyword. Built-in Light2D materials get this keyword set once at cache
+        // creation via CreateLightMaterial's material.EnableKeyword call, but custom (ShaderGraph)
+        // materials assigned via Light2D.material bypass that cache — without a cmd-level setter,
+        // the keyword stays off, the shader's #if USE_ADDITIVE_BLENDING branch never fires, and an
+        // additive light's fragment writes falloff into lightColor.a which the runtime One,One
+        // blend ignores. The result is a solid-color light with no visible falloff on the main pass
+        // (volumetric works because that path is gated on USE_VOLUMETRIC, which IS being set).
+        internal static void SetAdditiveBlendingKeyword(RasterCommandBuffer cmd, Material material, bool isAdditive)
+        {
+            var keyword = new LocalKeyword(material.shader, k_UseAdditiveBlendingKeyword);
+            if (isAdditive)
+                cmd.EnableKeyword(material, keyword);
+            else
+                cmd.DisableKeyword(material, keyword);
+        }
+
+        // Records USE_POINT_LIGHT_COOKIES keyword state into the command buffer so custom
+        // (ShaderGraph) Light2D materials pick up the cookie branch in the Point path.
+        // Built-in cached materials bake this keyword in at cache-creation time (see
+        // CreateLightMaterial), but custom materials bypass that cache — without a
+        // cmd-level setter, a Point light with a cookie sprite renders as if no cookie
+        // were assigned even though _PointLightCookieTex is bound on the property block.
+        internal static void SetPointLightCookiesKeyword(RasterCommandBuffer cmd, Material material, bool useCookie)
+        {
+            var keyword = new LocalKeyword(material.shader, k_UsePointLightCookiesKeyword);
+            if (useCookie)
+                cmd.EnableKeyword(material, keyword);
+            else
+                cmd.DisableKeyword(material, keyword);
+        }
+
+        // Records USE_NORMAL_MAP keyword state into the command buffer so custom
+        // (ShaderGraph) Light2D materials pick up the normal-map branch in Light2DPass.hlsl.
+        // Built-in cached materials bake this keyword in at cache-creation time (see
+        // CreateLightMaterial's `material.EnableKeyword(k_UseNormalMap)` call), but custom
+        // materials bypass that cache — without a cmd-level setter, USE_NORMAL_MAP stays
+        // off on the ShaderGraph variant, the `#if USE_NORMAL_MAP && !USE_VOLUMETRIC`
+        // block never fires, and _NormalMap/sampler_NormalMap aren't even declared
+        // (NORMALS_LIGHTING_VARIABLES in LightingUtility.hlsl expands to empty without
+        // the keyword). The per-light normal texture set on the property block at
+        // DrawLight2DPass line 127-128 is therefore invisible to the shader — a
+        // Light2D with normalMapQuality != Disabled renders as if normal mapping were off.
+        //
+        // Same cmd-vs-material rationale as SetVolumetricKeyword: a single custom material
+        // instance is reused across lights that may differ in normalMapQuality, so the
+        // keyword must be recorded per-draw in command order rather than mutated on the
+        // material immediately.
+        internal static void SetNormalMapKeyword(RasterCommandBuffer cmd, Material material, bool useNormalMap)
+        {
+            var keyword = new LocalKeyword(material.shader, k_UseNormalMap);
+            if (useNormalMap)
+                cmd.EnableKeyword(material, keyword);
+            else
+                cmd.DisableKeyword(material, keyword);
         }
 
         internal static short GetCameraSortingLayerBoundsIndex(this Renderer2DData rendererData)

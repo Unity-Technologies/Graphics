@@ -125,9 +125,22 @@ namespace UnityEngine.Rendering.Universal
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
+        // Per-(customMaterial, overlapOperation, lightType) clones of Light2D.material for
+        // custom-material draws. Cloning is required because blend-state properties
+        // (_SrcBlend/_DstBlend/_VolSrcBlend/_VolDstBlend) are mutated on the material
+        // instance at frame recording, but the actual draw is deferred — two Light2Ds
+        // sharing the same source material with different overlapOperation or lightType
+        // would stomp each other's blend state before either draw executes. Each unique
+        // tuple gets its own instance with the correct blend state baked in. Instances
+        // are destroyed alongside `lightMaterials` in Dispose / ClearLightMaterialCache.
+        // Key: (source material's EntityId as ulong, packed overlapOperation | lightType).
+        internal Dictionary<(ulong id, int state), Material> customLightMaterials { get; } = new Dictionary<(ulong id, int state), Material>();
         internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> spriteShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
+        // Serves both geometry casters and projected shadows: since Shadow2D.shader declares all
+        // five pass roles, the keyword-free material both paths want is the same object, and the
+        // pass index is what selects between them. The former projectedShadowMaterials cache held a
+        // duplicate of this and was removed with the shader merge.
         internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> geometryShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
-        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> projectedShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
 
         /// <summary>
         /// Clears the cached light materials, forcing them to be recreated.
@@ -141,6 +154,13 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.Destroy(mat);
             }
             lightMaterials.Clear();
+
+            foreach (var mat in customLightMaterials.Values)
+            {
+                if (mat != null)
+                    CoreUtils.Destroy(mat);
+            }
+            customLightMaterials.Clear();
         }
 
         /// <summary>
@@ -161,13 +181,6 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.Destroy(entry.material);
             }
             geometryShadowMaterials.Clear();
-
-            foreach (var entry in projectedShadowMaterials.Values)
-            {
-                if (entry.material != null)
-                    CoreUtils.Destroy(entry.material);
-            }
-            projectedShadowMaterials.Clear();
         }
 
         internal RTHandle normalsRenderTarget;

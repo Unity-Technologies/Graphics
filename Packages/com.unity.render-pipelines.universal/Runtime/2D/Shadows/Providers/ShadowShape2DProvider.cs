@@ -41,7 +41,20 @@ namespace UnityEngine.Rendering.Universal
         public virtual void OnInitialized(Component sourceComponent, ShadowShape2D persistantShadowShape) { }
 
 
-        [Obsolete("Use latest OnBeforeRender")]
+        /// <summary>
+        /// Called before 2D lighting is rendered each frame. Superseded by the overload that also
+        /// receives the <see cref="Camera"/>; prefer that one in new providers.
+        /// </summary>
+        /// <remarks>
+        /// Not marked <c>[Obsolete]</c>. Both overloads are called, this one first (see
+        /// <c>ShapeProviderUtility.CallOnBeforeRender</c>), so a provider that overrides only this
+        /// signature keeps working and has no reason to be warned about it. Marking it obsolete while
+        /// still calling it would put a warning in front of every such provider for a change they do
+        /// not have to make.
+        /// </remarks>
+        /// <param name="sourceComponent">The component associated with the provider</param>
+        /// <param name="worldCullingBounds">The bounds enclosing the region of the view frustum and all visible lights</param>
+        /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
         public virtual void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
 
         /// <summary>

@@ -32,9 +32,11 @@ namespace UnityEngine.Rendering.Universal
             Version_4 = 4,
             Version_5 = 5,
             Version_6 = 6,
+            Version_7 = 7,
+            Version_8 = 8,
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_6;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_8;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         internal enum ShadowCastingSources
@@ -71,14 +73,11 @@ namespace UnityEngine.Rendering.Universal
             NoShadow
         }
 
-        internal enum EdgeProcessing
-        {
-            None = ShadowMesh2D.EdgeProcessing.None,
-            Clipping = ShadowMesh2D.EdgeProcessing.Clipping,
-        }
-
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
+        // m_CastsShadows and m_SelfShadows are migration-only: nothing writes them after
+        // Version_2, which folded both into m_CastingOption. Read them only from
+        // OnAfterDeserialize; use the castsShadows / selfShadows properties everywhere else.
         [SerializeField] bool m_CastsShadows = true;
         [SerializeField] bool m_SelfShadows = false;
         [Range(0, 1)]
@@ -87,7 +86,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] Vector3[] m_ShapePath = null;
         [SerializeField] int m_ShapePathHash = 0;
 
-        [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShape2DComponent;
         [SerializeReference] ShadowShape2DProvider m_ShadowShape2DProvider;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
@@ -96,7 +94,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowCastingOptions m_CastingOption = ShadowCastingOptions.CastShadow;
 
         [SerializeField] internal float m_PreviousTrimEdge = 0;
-        [SerializeField] internal int m_PreviousEdgeProcessing;
+        [SerializeField] internal string m_PreviousGeneratorId;
+        // Serialized for the same reason m_PreviousGeneratorId is: a change made while the scene was
+        // closed is then stale on load and caught by the next Update().
+        [SerializeField] internal int m_PreviousFanSegments;
         [SerializeField] internal int m_PreviousShadowCastingSource;
         [SerializeField] internal Component m_PreviousShadowShape2DSource = null;
         [SerializeField] internal int m_PreviousShadowShape2DProviderHash;
@@ -121,10 +122,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool m_ForceShadowMeshRebuild;
 
-        internal EdgeProcessing edgeProcessing
+        // The generator this caster actually builds with: the project's shadow geometry format, or a
+        // global override when one is active.
+        internal string generatorId
         {
-            get { return (EdgeProcessing)m_ShadowMesh.edgeProcessing; }
-            set { m_ShadowMesh.edgeProcessing = (ShadowMesh2D.EdgeProcessing)value; }
+            get { return m_ShadowMesh != null ? m_ShadowMesh.activeGeneratorId : ShadowGeometryGeneratorRegistry.k_DefaultGeneratorId; }
         }
 
         /// <summary>
@@ -169,7 +171,6 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowShape2DProvider shadowShape2DProvider { get { return m_ShadowShape2DProvider; } set { m_ShadowShape2DProvider = value; } }
 
         int m_PreviousShadowGroup = 0;
-        bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
 
         int m_SpriteMaterialCount;
@@ -239,7 +240,6 @@ namespace UnityEngine.Rendering.Universal
                     else if(castingOption == ShadowCastingOptions.SelfShadow)
                         castingOption = ShadowCastingOptions.NoShadow;
                 }
-
             }
             get { return castingOption == ShadowCastingOptions.CastAndSelfShadow || castingOption == ShadowCastingOptions.SelfShadow; }
         }
@@ -450,6 +450,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This function is called when the MonoBehaviour is destroyed.
+        /// </summary>
+        protected void OnDestroy()
+        {
+            // The shadow mesh is built at runtime and never serialized, so this caster is its only
+            // owner -- see ShadowMesh2D.DestroyMesh for why nothing else frees it.
+            m_ShadowMesh?.DestroyMesh();
+        }
+
+        /// <summary>
         /// Update is called every frame, if the MonoBehaviour is enabled.
         /// </summary>
         public void Update()
@@ -458,8 +468,29 @@ namespace UnityEngine.Rendering.Universal
             m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
             bool rebuildMesh = LightUtility.CheckForChange((int)m_ShadowCastingSource, ref m_PreviousShadowCastingSource);
-            rebuildMesh |= LightUtility.CheckForChange((int)edgeProcessing, ref m_PreviousEdgeProcessing);
-            rebuildMesh |= edgeProcessing != EdgeProcessing.None && LightUtility.CheckForChange(trimEdge, ref m_PreviousTrimEdge);
+            rebuildMesh |= LightUtility.CheckForChange(trimEdge, ref m_PreviousTrimEdge);
+            // Catches a change to Shadow2DGeometrySettings.geometryVersion and a flip of
+            // Shadow2DGeometry.globalGeneratorOverride alike, because it compares the effective id
+            // rather than the serialized one. Serialized so a change made while the scene was closed
+            // is still caught on load.
+            string effectiveGeneratorId = generatorId;
+            if (!string.Equals(m_PreviousGeneratorId, effectiveGeneratorId, StringComparison.Ordinal))
+            {
+                m_PreviousGeneratorId = effectiveGeneratorId;
+                rebuildMesh = true;
+            }
+
+            // Geometry produced by an older version of the same generator is stale, and a generator
+            // that declines to persist geometry has nothing on disk to load at all. Both are decided
+            // here, on the main thread, rather than at deserialization time: resolving a generator
+            // reads GraphicsSettings, which Unity forbids from a serialization callback.
+            if (m_ShadowMesh != null && m_ShadowMesh.ConsumeGeneratorRebuildRequest())
+                rebuildMesh = true;
+
+            // The fan segment count changes the vertex and index counts, so a change to it is a full
+            // rebuild — the same treatment a generator swap gets.
+            if (m_ShadowMesh != null)
+                rebuildMesh |= LightUtility.CheckForChange(m_ShadowMesh.fanSegments, ref m_PreviousFanSegments);
             int providerHash = m_ShadowShape2DProvider != null ? m_ShadowShape2DProvider.TypeIdentifierHash : 0;
             rebuildMesh |= LightUtility.CheckForChange(providerHash, ref m_PreviousShadowShape2DProviderHash);
             rebuildMesh |= m_ForceShadowMeshRebuild;
@@ -498,53 +529,17 @@ namespace UnityEngine.Rendering.Universal
                 ShadowCasterGroup2DManager.AddGroup(this);
             }
 
-            if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
-            {
-                ShadowCasterGroup2DManager.AddGroup(this);
-            }
-
             if(m_ShadowMesh != null)
                 m_ShadowMesh.UpdateBoundingSphere(transform);
         }
 
 
 #if UNITY_EDITOR
+        // The outline encoding is part of the vertex format, so decoding it belongs to whichever
+        // generator produced the mesh rather than here.
         internal void DrawPreviewOutline(Matrix4x4 previewMat, float trimionDistance)
         {
-            Vector3[] vertices = mesh.vertices;
-            int[] triangles = mesh.triangles;
-            Vector4[] tangents = mesh.tangents;
-
-            Handles.color = Color.white;
-            for (int i = 0; i < triangles.Length; i += 3)
-            {
-                int v0 = triangles[i];
-                int v1 = triangles[i + 1];
-                int v2 = triangles[i + 2];
-
-                Vector3 pt0 = vertices[v0];
-                Vector3 pt1 = vertices[v1];
-                Vector3 pt2 = vertices[v2];
-
-                Vector4 tan0 = tangents[v0];
-                Vector4 tan1 = tangents[v1];
-                Vector4 tan2 = tangents[v2];
-
-                Vector3 trimPt0 = new Vector3(pt0.x + trimionDistance * tan0.x, pt0.y + trimionDistance * tan0.y, 0);
-                Vector3 trimPt1 = new Vector3(pt1.x + trimionDistance * tan1.x, pt1.y + trimionDistance * tan1.y, 0);
-                Vector3 trimPt2 = new Vector3(pt2.x + trimionDistance * tan2.x, pt2.y + trimionDistance * tan2.y, 0);
-
-                trimPt0 = previewMat.MultiplyPoint(trimPt0);
-                trimPt1 = previewMat.MultiplyPoint(trimPt1);
-                trimPt2 = previewMat.MultiplyPoint(trimPt2);
-
-                if (pt0.z == 0 && pt1.z == 0)
-                    Handles.DrawAAPolyLine(4, new Vector3[] { trimPt0, trimPt1 });
-                if (pt1.z == 0 && pt2.z == 0)
-                    Handles.DrawAAPolyLine(4, new Vector3[] { trimPt1, trimPt2 });
-                if (pt2.z == 0 && pt0.z == 0)
-                    Handles.DrawAAPolyLine(4, new Vector3[] { trimPt2, trimPt0 });
-            }
+            m_ShadowMesh.DrawPreviewOutline(previewMat, trimionDistance);
         }
 
         internal void DrawPreviewOutline()
@@ -561,10 +556,9 @@ namespace UnityEngine.Rendering.Universal
                     outlineMat = Matrix4x4.TRS(transform.position, transform.rotation, scale);
                 }
                 
-                if (edgeProcessing == EdgeProcessing.None)
-                    DrawPreviewOutline(outlineMat, trimEdge);
-                else
-                    DrawPreviewOutline(outlineMat, 0);
+                // Trim is always applied on the CPU by ClipEdges, so the outline needs no
+                // additional shader-side contraction.
+                DrawPreviewOutline(outlineMat, 0);
             }
         }
 
@@ -578,7 +572,10 @@ namespace UnityEngine.Rendering.Universal
             m_PreviousShadowShape2DSource = null;
             m_PreviousShadowShape2DProviderHash = 0;
             m_PreviousTrimEdge = 0;
-            m_PreviousEdgeProcessing = -1;
+            m_PreviousGeneratorId = null;
+            // 0 is below the legal minimum, so the first Update() after this always sees a change
+            // and rebuilds -- which is what a reset wants.
+            m_PreviousFanSegments = 0;
             m_ForceShadowMeshRebuild = true;
 
             m_HasRenderer = false;

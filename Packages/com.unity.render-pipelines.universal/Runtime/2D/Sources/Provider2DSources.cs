@@ -12,7 +12,10 @@ namespace UnityEngine.Rendering.Universal
         //Editor 
         [SerializeField] int                    m_SelectedHashCode;
         [SerializeReference] SelectionSource    m_SelectedSource;
-        [SerializeReference] IProvider2DCache   m_Provider2DCache;
+        // Rebuilt by RefreshSources whenever it is null, so it does not need to survive a domain
+        // reload -- and must not be serialized, because it holds an instance of every provider type
+        // in the project (see Provider2DCache.m_Cache).
+        IProvider2DCache                        m_Provider2DCache;
         List<SelectionSource>                   m_Sources = new List<SelectionSource>();
         List<SelectionSource>                   m_AdditionalSources = new List<SelectionSource>();
 

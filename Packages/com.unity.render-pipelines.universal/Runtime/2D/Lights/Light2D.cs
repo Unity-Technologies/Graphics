@@ -137,6 +137,14 @@ namespace UnityEngine.Rendering.Universal
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
 
+        // Offers only Materials whose shader declares the Light2D passes the renderer draws. As with
+        // the shadow material, the filter is a discovery aid only -- drag-and-drop bypasses the
+        // picker -- so Light2DEditor still reports incompatible assignments.
+        [UnityEngine.Search.SearchContext("", k_LightMaterialSearchProviderId, UnityEngine.Search.SearchViewFlags.ObjectPickerAdvancedUI | UnityEngine.Search.SearchViewFlags.ListView | UnityEngine.Search.SearchViewFlags.IgnoreSavedSearches | UnityEngine.Search.SearchViewFlags.DisableSavedSearchQuery)]
+        [SerializeField] Material m_Material;
+
+        internal const string k_LightMaterialSearchProviderId = "light2dmaterial";
+
         [Obsolete("Use m_LightCookieSprite instead")]
         [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
 
@@ -172,6 +180,29 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
+
+        // The picker is filtered to Materials whose shader declares all five shadow passes, so it
+        // cannot offer one that would silently drop a phase. The provider is named by string id
+        // rather than by Type because it lives in the editor assembly, which this one cannot see;
+        // the id must stay in step with Shadow2DMaterialSearchProvider.k_ProviderId.
+        //
+        // The filter is a discovery aid only -- drag-and-drop bypasses the picker -- so Light2DEditor
+        // still reports incompatible assignments.
+        [UnityEngine.Search.SearchContext("", k_ShadowMaterialSearchProviderId, UnityEngine.Search.SearchViewFlags.ObjectPickerAdvancedUI | UnityEngine.Search.SearchViewFlags.ListView | UnityEngine.Search.SearchViewFlags.IgnoreSavedSearches | UnityEngine.Search.SearchViewFlags.DisableSavedSearchQuery)]
+        [SerializeField] Material m_ShadowMaterial = null;
+
+        internal const string k_ShadowMaterialSearchProviderId = "shadow2dmaterial";
+
+        // Resolved shader-pass indices for m_ShadowMaterial, one per ShadowRendering.ShadowPassRole,
+        // with -1 where the shader does not declare that role. Never serialized: pass indices are
+        // name -> index lookups into one specific Shader object and do not survive a shader change.
+        //
+        // Cached here rather than resolved at draw time because Material.FindPass is a
+        // case-insensitive string search that allocates an uppercase temporary per call, and the draw
+        // path would otherwise call it once per phase, per light, per frame.
+        [NonSerialized] int[] m_ShadowMaterialPassIndices;
+        [NonSerialized] Material m_ResolvedShadowMaterial;
+        [NonSerialized] Shader m_ResolvedShadowMaterialShader;
 
         [SerializeField] RenderingLayerMask m_RenderingLayersMask = RenderingLayerMask.defaultRenderingLayerMask;
 
@@ -302,6 +333,100 @@ namespace UnityEngine.Rendering.Universal
         public bool volumetricShadowsEnabled { get => m_ShadowVolumeIntensityEnabled; set => m_ShadowVolumeIntensityEnabled = value; }
 
         /// <summary>
+        /// Optional custom <c>Material</c> to use when rendering this light's shadows. When <c>null</c>, URP's built-in shadow materials are used.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A custom material replaces the built-in materials completely for every shadow this light casts: URP never
+        /// combines a custom pass with a built-in one, because the two shaders are free to use different vertex layouts.
+        /// </para>
+        /// <para>
+        /// 2D shadows are drawn as a four-phase stencil handshake and URP selects a shader pass per phase by name,
+        /// so the shader must declare all five: <c>Self</c>, <c>UnshadowMark</c>, <c>UnshadowUnmark</c>,
+        /// <c>ProjectedSelf</c> and <c>ProjectedUnshadow</c>. A phase whose pass the material does not declare is
+        /// skipped, so that part of the shadow does not render, and the Light2D inspector reports it.
+        /// </para>
+        /// <para>
+        /// The material's shader must also be able to read the shadow geometry this project builds, which is a project
+        /// setting rather than a per-caster one — so a compatible material is compatible with every caster the light
+        /// touches. Enhanced shadow geometry is required for ShaderGraph-authored shadow shaders; in a project on
+        /// the Legacy generation this property is ignored entirely and URP's built-in shader is used.
+        /// </para>
+        /// <para>
+        /// Each pass must also reproduce the blend, <c>ColorMask</c> and <c>Stencil</c> state of the built-in pass it
+        /// replaces (see <c>Shadow2D.shader</c>); URP does not set that state from script. The material is used as-is
+        /// and is never cloned, so it is shared by every light it is assigned to.
+        /// </para>
+        /// </remarks>
+        public Material shadowMaterial
+        {
+            get => m_ShadowMaterial;
+            set => m_ShadowMaterial = value;
+        }
+
+        /// <summary>
+        /// The material URP actually draws this light's shadows with, or <c>null</c> to use the
+        /// built-in shadow materials.
+        /// </summary>
+        /// <remarks>
+        /// Differs from <see cref="shadowMaterial"/> only in a project on the Legacy shadow geometry
+        /// generation, where a custom material is ignored rather than cleared. Ignored and not
+        /// cleared deliberately: a project that later moves to Enhanced gets its assignment back, and
+        /// a value the inspector hides is not one the user can be expected to have removed.
+        /// </remarks>
+        internal Material effectiveShadowMaterial => Shadow2DGeometry.enhancedGeometryEnabled ? m_ShadowMaterial : null;
+
+        /// <summary>
+        /// The shader pass index on <see cref="effectiveShadowMaterial"/> for <paramref name="role"/>, or -1 when no
+        /// material applies, it has no shader, or its shader does not declare that pass.
+        /// </summary>
+        /// <remarks>
+        /// Safe to call per draw: the indices are resolved only when the material or its shader
+        /// changes, so the steady-state cost is two reference comparisons. The shader is tracked
+        /// separately from the material because it can be reassigned on the same Material asset in
+        /// the editor, which invalidates the resolved indices.
+        /// </remarks>
+        internal int GetShadowMaterialPassIndex(ShadowRendering.ShadowPassRole role)
+        {
+            var mat = effectiveShadowMaterial;
+            if (mat == null)
+                return -1;
+
+            var shader = mat.shader;
+            if (shader == null)
+                return -1;
+
+            if (m_ShadowMaterialPassIndices == null || m_ResolvedShadowMaterial != mat || m_ResolvedShadowMaterialShader != shader)
+                ResolveShadowMaterialPassIndices(mat, shader);
+
+            return m_ShadowMaterialPassIndices[(int)role];
+        }
+
+        // Resolution happens only on a material or shader change, so the "declares nothing" warning
+        // below is naturally one-shot and needs no separate bookkeeping. `expected: None` suppresses
+        // BuildPassIndices' own per-role warnings: which roles are actually drawn depends on the
+        // casters this light reaches, and the inspector reports the material's own gaps precisely
+        // (ShadowRendering.GetMissingShadowPasses).
+        void ResolveShadowMaterialPassIndices(Material mat, Shader shader)
+        {
+            m_ShadowMaterialPassIndices = ShadowRendering.BuildPassIndices(mat, ShadowRendering.ShadowPassRoles.None);
+            m_ResolvedShadowMaterial = mat;
+            m_ResolvedShadowMaterialShader = shader;
+
+            for (int i = 0; i < m_ShadowMaterialPassIndices.Length; i++)
+            {
+                if (m_ShadowMaterialPassIndices[i] >= 0)
+                    return;
+            }
+
+            // Covers materials assigned from script and player builds, where no inspector runs.
+            Debug.LogWarning($"[Shadow2D] Material '{mat.name}' (shader '{shader.name}') is assigned to Light2D on '{name}' but declares none of the shadow passes " +
+                $"'{ShadowRendering.k_SelfPassName}', '{ShadowRendering.k_UnshadowMarkPassName}', '{ShadowRendering.k_UnshadowUnmarkPassName}', '{ShadowRendering.k_ProjectedSelfPassName}' or '{ShadowRendering.k_ProjectedUnshadowPassName}'. " +
+                "A custom material replaces URP's shadow shaders rather than supplementing them, so this light will cast no shadows. " +
+                "Add a `Pass { Name \"...\" ... }` for each phase, or clear the material to use URP's built-in shadow shaders.", this);
+        }
+
+        /// <summary>
         /// The lights current color
         /// </summary>
         public Color color { get => m_Color; set => m_Color = value; }
@@ -340,6 +465,15 @@ namespace UnityEngine.Rendering.Universal
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
         public Sprite lightCookieSprite { get { return m_LightCookieSprite; } set => m_LightCookieSprite = value; }
+
+        /// <summary>
+        /// Optional custom <c>Material</c> to use when rendering this <c>Light2D</c>. When <c>null</c>, URP's built-in light material is used.
+        /// </summary>
+        /// <remarks>
+        /// Assigning a non-null <c>Material</c> bypasses URP's variant-bit material cache and the automatic keyword application (volumetric, additive blending, normal map, shadow map, point-light cookie, etc.).
+        /// The custom material is used as-is, so the caller owns keyword state. The material must be single-pass: the batched draw path issues all passes per batch.
+        /// </remarks>
+        public Material material { get => m_Material; set => m_Material = value; }
 
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
@@ -615,7 +749,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    m_Mesh.Clear();
+                    // A provider light can legitimately have no provider -- the script backing it was
+                    // deleted, for instance -- and then no mesh was ever allocated, so m_Mesh is null.
+                    if (m_Mesh != null)
+                        m_Mesh.Clear();
+
                     m_LocalBounds = kEmptyBounds;
                 }
             }

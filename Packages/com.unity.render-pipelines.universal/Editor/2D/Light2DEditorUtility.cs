@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -14,6 +15,12 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
             public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
             public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+
+            public static GUIContent lightTypeMissing = new GUIContent("Missing", "The Light Type this light is set to is not available on this GameObject.");
+            public static GUIContent lightTypeParametricDeprecated = new GUIContent("Parametric (Deprecated)", "Parametric lights are deprecated. Upgrade this light to a Freeform light.");
+
+            // Format argument: {0} the name of the provider type that is no longer in the project.
+            public static readonly GUIContent lightTypeMissingProvider = new GUIContent("Missing ({0})", "The script that defined this light's provider has been removed from the project.");
         }
 
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
@@ -57,29 +64,7 @@ namespace UnityEditor.Rendering.Universal
             if (sources == null)
                 return;
 
-            // Set up the built-in light types
-            List<SelectionSource> additionalSources = new List<SelectionSource>
-            {
-                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
-            };
-
-            // Refresh sources to scan for custom providers on the GameObject
-            int selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
-
-            // Add built-in types
-            var additionalSourcesList = sources.GetAdditionalSources();
-            if (additionalSourcesList != null)
-            {
-                additionalSourcesList.Clear();
-                foreach (var source in additionalSources)
-                    additionalSourcesList.Add(source);
-            }
-
-            // Refresh again to include the built-in types
-            selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+            int selectedIndex = RefreshLightSources(light2D, sources);
 
             // Sync m_SelectionSources with the actual m_LightType value
             // This is needed because Light Explorer may have changed m_LightType directly
@@ -89,8 +74,19 @@ namespace UnityEditor.Rendering.Universal
                 selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
             }
 
-            // Get all source names for the dropdown
-            GUIContent[] sourceNames = sources.GetSourceNames();
+            // Get all source names for the dropdown, narrowed to what every selected light can offer.
+            // Offering a source only some of them have would apply the pick to those and silently skip
+            // the rest, since ApplyLightTypeSelection matches each light against its own list.
+            GUIContent[] sourceNames = CollectCommonSourceNames(serializedObject.targetObjects, sources.GetSourceNames());
+            if (selectedIndex >= 0)
+                selectedIndex = IndexOfSourceName(sourceNames, sources.GetSourceNames()[selectedIndex].text);
+
+            // The stored selection may name nothing that is listed: the light is still on the
+            // deprecated Parametric type, or the script behind its provider is gone. Popup() draws a
+            // blank row for index -1, which leaves the user with no idea what the light is set to, so
+            // give that state an entry of its own.
+            int firstSourceOption;
+            sourceNames = BuildLightTypeOptions(light2D, lightType.intValue, sourceNames, ref selectedIndex, out firstSourceOption);
 
             // Track change
             EditorGUI.BeginChangeCheck();
@@ -106,13 +102,256 @@ namespace UnityEditor.Rendering.Universal
                 newSelectedIndex = EditorGUI.Popup(position, selectedIndex, sourceNames);
             }
 
-            // Only apply changes if the user actually changed the value
-            if (EditorGUI.EndChangeCheck())
+            // Only apply changes if the user actually changed the value. Re-picking the entry that
+            // stands for the unresolved selection changes nothing, so it is not an edit.
+            if (EditorGUI.EndChangeCheck() && newSelectedIndex >= firstSourceOption)
             {
-                Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(sources, newSelectedIndex);
-                selectionSources.boxedValue = sources;
-                Light2DProviderSources.SetSourceType(selectionSources);
+                ApplyLightTypeSelection(serializedObject, sourceNames[newSelectedIndex]);
             }
+        }
+
+        /// <summary>
+        /// Scans <paramref name="light2D"/> for custom providers, adds the built-in light types, and returns
+        /// the index of the currently selected source, or -1 when the stored selection matches none of them.
+        /// </summary>
+        static int RefreshLightSources(Light2D light2D, Light2DProviderSources sources)
+        {
+            // Refresh sources to scan for custom providers on the GameObject
+            Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+
+            // Add built-in types
+            var additionalSourcesList = sources.GetAdditionalSources();
+            if (additionalSourcesList != null)
+            {
+                additionalSourcesList.Clear();
+                additionalSourcesList.Add(new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0));
+                additionalSourcesList.Add(new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0));
+                additionalSourcesList.Add(new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0));
+                additionalSourcesList.Add(new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0));
+            }
+
+            // Refresh again to include the built-in types
+            return Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+        }
+
+        /// <summary>
+        /// Returns the entries of <paramref name="sourceNames"/>, built from the first selected light, that
+        /// every other selected light can offer too. With one light selected the list is returned unchanged.
+        /// </summary>
+        static internal GUIContent[] CollectCommonSourceNames(UnityEngine.Object[] targets, GUIContent[] sourceNames)
+        {
+            if (targets.Length < 2)
+                return sourceNames;
+
+            List<GUIContent> common = new List<GUIContent>(sourceNames);
+            for (int i = 1; i < targets.Length && common.Count > 0; i++)
+            {
+                Light2D light = targets[i] as Light2D;
+                if (light == null)
+                    continue;
+
+                Light2DProviderSources targetSources =
+                    new SerializedObject(light).FindProperty("m_SelectionSources")?.boxedValue as Light2DProviderSources;
+                if (targetSources == null)
+                {
+                    common.Clear();
+                    break;
+                }
+
+                RefreshLightSources(light, targetSources);
+                GUIContent[] targetNames = targetSources.GetSourceNames();
+
+                for (int j = common.Count - 1; j >= 0; j--)
+                {
+                    if (IndexOfSourceName(targetNames, common[j].text) < 0)
+                        common.RemoveAt(j);
+                }
+            }
+
+            return common.ToArray();
+        }
+
+        static int IndexOfSourceName(GUIContent[] names, string wanted)
+        {
+            for (int i = 0; i < names.Length; i++)
+            {
+                if (names[i].text == wanted)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Applies the entry the user picked to every selected light.
+        /// </summary>
+        /// <remarks>
+        /// The dropdown is built from the first selected light, but each light has its own sources -- its own
+        /// components, and its own provider instances -- so each one is matched by name against its own list.
+        /// Writing through the shared SerializedObject instead would only reach the first light for
+        /// [SerializeReference] fields such as m_Light2DProvider, which leaves every other selected light on
+        /// Light Type Provider with no provider at all.
+        /// </remarks>
+        static internal void ApplyLightTypeSelection(SerializedObject serializedObject, GUIContent chosen)
+        {
+            UnityEngine.Object[] targets = serializedObject.targetObjects;
+            for (int i = 0; i < targets.Length; i++)
+            {
+                Light2D light = targets[i] as Light2D;
+                if (light == null)
+                    continue;
+
+                SerializedObject targetObject = new SerializedObject(light);
+                SerializedProperty targetSelectionSources = targetObject.FindProperty("m_SelectionSources");
+                Light2DProviderSources targetSources = targetSelectionSources?.boxedValue as Light2DProviderSources;
+                if (targetSources == null)
+                    continue;
+
+                RefreshLightSources(light, targetSources);
+
+                GUIContent[] targetNames = targetSources.GetSourceNames();
+                for (int j = 0; j < targetNames.Length; j++)
+                {
+                    if (targetNames[j].text != chosen.text)
+                        continue;
+
+                    Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(targetSources, j);
+                    targetSelectionSources.boxedValue = targetSources;
+                    Light2DProviderSources.SetSourceType(targetSelectionSources);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the entries to show in the Light Type dropdown. When <paramref name="selectedIndex"/> is
+        /// negative -- the stored selection matches none of the sources on this GameObject -- an entry
+        /// describing that state is prepended and selected, so the dropdown never renders blank.
+        /// </summary>
+        /// <param name="target">The Light2D the dropdown is being drawn for.</param>
+        /// <param name="lightType">The light's current <see cref="Light2D.LightType"/> value.</param>
+        /// <param name="sourceNames">The names of the sources available on this GameObject.</param>
+        /// <param name="selectedIndex">The index into <paramref name="sourceNames"/> to preselect, updated to index into the returned array.</param>
+        /// <param name="firstSourceOption">The index in the returned array at which <paramref name="sourceNames"/> starts.</param>
+        static internal GUIContent[] BuildLightTypeOptions(UnityEngine.Object target, int lightType, GUIContent[] sourceNames, ref int selectedIndex, out int firstSourceOption)
+        {
+            if (selectedIndex >= 0)
+            {
+                firstSourceOption = 0;
+                return sourceNames;
+            }
+
+            List<GUIContent> options = new List<GUIContent>(sourceNames.Length + 1);
+            options.Add(DescribeUnresolvedLightType(target, lightType));
+            options.AddRange(sourceNames);
+
+            firstSourceOption = 1;
+            selectedIndex = 0;
+            return options.ToArray();
+        }
+
+        static GUIContent DescribeUnresolvedLightType(UnityEngine.Object target, int lightType)
+        {
+            if (lightType == (int)Light2D.DeprecatedLightType.Parametric)
+                return Styles.lightTypeParametricDeprecated;
+
+            string removedName = GetMissingProviderTypeName(target);
+            if (removedName == null)
+                return Styles.lightTypeMissing;
+
+            return new GUIContent(string.Format(Styles.lightTypeMissingProvider.text, removedName), Styles.lightTypeMissingProvider.tooltip);
+        }
+
+        /// <summary>
+        /// Returns the class name the light's provider field used to point at, or null when the editor can
+        /// still resolve it. This is how a provider whose script was deleted can be named in the inspector:
+        /// the reference itself deserializes to null, but the engine keeps a record of the type it held.
+        /// </summary>
+        /// <remarks>
+        /// Taking the first unresolved reference is enough to name the provider. The field itself cannot
+        /// be asked -- once its type fails to resolve, its managedReferenceId no longer matches the record
+        /// -- and the only managed references a Light2D holds that a user can author are providers: the
+        /// rest are URP's own types, which always resolve. References an older version of URP left in the
+        /// asset are not a hazard either; once no live field points at one, it is not reported as missing.
+        /// </remarks>
+        static internal string GetMissingProviderTypeName(UnityEngine.Object target)
+        {
+            if (target == null)
+                return null;
+
+            var missingTypes = UnityEditor.SerializationUtility.GetManagedReferencesWithMissingTypes(target);
+            for (int i = 0; i < missingTypes.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(missingTypes[i].className))
+                    return missingTypes[i].className;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Draws a Material field that refuses a dragged Material <paramref name="isCompatible"/> rejects,
+        /// leaving whatever the field already holds in place.
+        /// </summary>
+        /// <remarks>
+        /// The object picker is filtered by a Search provider, but dragging an asset onto the field goes
+        /// nowhere near the picker, which is the hole this closes. The field is drawn into a rect we
+        /// reserve ourselves so the drag can be judged before the object field ever sees the event.
+        /// </remarks>
+        /// <param name="property">The Material property to draw.</param>
+        /// <param name="label">The label to draw beside it.</param>
+        /// <param name="isCompatible">Whether a Material may be assigned to this field.</param>
+        static internal void DrawFilteredMaterialField(SerializedProperty property, GUIContent label, Func<Material, bool> isCompatible)
+        {
+            Rect position = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(property, label, true));
+            RejectIncompatibleMaterialDrag(position, isCompatible);
+            EditorGUI.PropertyField(position, property, label, true);
+        }
+
+        // Consumes a drag over `position` whose payload holds a Material this field cannot take.
+        // ObjectField only assigns on the DragUpdated / DragPerform events, so using the event here is
+        // what stops the assignment; the Rejected visual mode is what turns the drag cursor while the
+        // pointer is over the field.
+        static void RejectIncompatibleMaterialDrag(Rect position, Func<Material, bool> isCompatible)
+        {
+            Event evt = Event.current;
+            if (evt == null || (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform))
+                return;
+
+            if (!GUI.enabled || !position.Contains(evt.mousePosition))
+                return;
+
+            if (IsMaterialDragAcceptable(DragAndDrop.objectReferences, isCompatible))
+                return;
+
+            DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+            evt.Use();
+        }
+
+        /// <summary>
+        /// Whether a drag carrying <paramref name="draggedObjects"/> may be dropped on a Material field
+        /// that accepts only the Materials <paramref name="isCompatible"/> approves.
+        /// </summary>
+        /// <remarks>
+        /// A payload holding no Material at all is acceptable here: the object field rejects it on type,
+        /// as it always has, and there is nothing for this filter to add. A payload holding several
+        /// Materials is refused unless every one of them is compatible -- which of them a drop would
+        /// land on is not something the user can see, so taking the drag only when the answer does not
+        /// matter is the predictable rule.
+        /// </remarks>
+        static internal bool IsMaterialDragAcceptable(UnityEngine.Object[] draggedObjects, Func<Material, bool> isCompatible)
+        {
+            if (draggedObjects == null)
+                return true;
+
+            for (int i = 0; i < draggedObjects.Length; i++)
+            {
+                Material material = draggedObjects[i] as Material;
+                if (material != null && !isCompatible(material))
+                    return false;
+            }
+
+            return true;
         }
 
         static internal bool ContainsVisibleInspectorProperites(Provider2D provider)

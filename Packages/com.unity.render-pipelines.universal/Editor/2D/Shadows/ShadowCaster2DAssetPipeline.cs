@@ -101,8 +101,14 @@ namespace UnityEngine.Rendering.Universal
             // culling bounds so all shapes are included.
             if (caster.m_ShadowMesh != null)
             {
-                // Asset baking runs outside any camera context, so pass null Camera.
-                try { provider.OnBeforeRender(null, source, s_InfiniteBounds, caster.m_ShadowMesh); }
+                // Asset baking runs outside any camera context, so pass null Camera. Both overloads
+                // are called, the older three-argument one first, for the reason ShapeProviderUtility
+                // gives: a provider that overrides only that signature would otherwise bake nothing.
+                try
+                {
+                    provider.OnBeforeRender(source, s_InfiniteBounds, caster.m_ShadowMesh);
+                    provider.OnBeforeRender(null, source, s_InfiniteBounds, caster.m_ShadowMesh);
+                }
                 catch { /* defensive — never let one broken caster abort the whole bake */ }
             }
 

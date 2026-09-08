@@ -610,9 +610,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
+            //
+            // ShadowCaster2D opts out for a stronger reason than the others: nothing on the 2D shadow
+            // path reads a normal, a tangent or a colour, and on its projected passes TANGENT is the
+            // geometry generator's payload (role, fanParam, prev.xy) rather than a tangent at all -- so
+            // a Normal or Tangent port there is not merely unused, it invites a silently wrong shadow.
+            // It registers the blocks it does want in its own GetActiveBlocks.
             bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
                 | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>);
+                | m_ActiveSubTarget.value is UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>
+                | m_ActiveSubTarget.value is UniversalShadowCaster2DSubTarget);
 
             // Core blocks
             if (useCoreBlocks)

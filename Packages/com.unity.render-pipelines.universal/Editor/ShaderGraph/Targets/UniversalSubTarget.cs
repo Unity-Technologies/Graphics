@@ -60,7 +60,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             urpMetadata.shaderID = shaderID;
             urpMetadata.alphaMode = target.alphaMode;
 
-            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit)
+            // ShadowCaster2D and Light2D join the sprite IDs here for the same reason: none of these
+            // settings has a meaning for them. ShadowCaster2D's blend, ColorMask and stencil are the
+            // four-phase shadow handshake and are fixed per pass, and it neither casts nor receives
+            // 3D shadows.
+            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit &&
+                shaderID != ShaderID.SG_ShadowCaster2D && shaderID != ShaderID.SG_Light2D)
             {
                 urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
                 urpMetadata.surfaceType = target.surfaceType;
