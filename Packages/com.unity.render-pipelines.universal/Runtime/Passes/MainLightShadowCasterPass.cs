@@ -180,18 +180,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderingData"/>
         public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer)
         {
+            return Setup(renderingData, cameraData, lightData, shadowData, stencilBuffer, true);
+        }
+
+        // Internal variant of Setup that allows setting shadowsEnabledByCamera == false, which forces the keyword-only
+        // empty path (shadows disabled at camera-level, e.g. cullingMask == 0).
+        internal bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer, bool shadowsEnabledByCamera)
+        {
             using var profScope = new ProfilingScope(s_ProfilingSetupSampler);
 
             m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
 
             bool isOffscreenDepthTexture = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
-            bool willRenderShadowGeometry = !isOffscreenDepthTexture && ShouldRenderShadowGeometry(renderingData, cameraData, lightData, shadowData);
+            bool willRenderShadowGeometry = shadowsEnabledByCamera && !isOffscreenDepthTexture && ShouldRenderShadowGeometry(renderingData, cameraData, lightData, shadowData);
 
             if (willRenderShadowGeometry)
             {
                 SetupForShadowmapRendering(cameraData, lightData, shadowData);
             }
-            else if (shadowData.useCachedShadowMap && !isOffscreenDepthTexture)
+            else if (shadowsEnabledByCamera && shadowData.useCachedShadowMap && !isOffscreenDepthTexture)
             {
                 // The pass that rendered the atlas left behind all needed member state (matrices, cascades,
                 // descriptor), so we only update the mode (note that using empty mode doesn't count as reuse).

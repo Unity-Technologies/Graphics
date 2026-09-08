@@ -708,6 +708,28 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        // Together, RenderStages and RenderPassInputSummary form the configuration of the render pipeline for a frame.
+        // They bake down raw settings and per-pass requirements into high-level decisions that drive recording.
+        // This is a step toward a more functional architecture: methods that consume these structs can eventually
+        // become static, reducing side effects and making the pipeline easier to reason about and test in isolation.
+        // Over time, more settings should be folded into these structs so that the recording methods are fully
+        // decoupled from scattered state.
+
+        // Aggregates decisions regarding which rendering stages will actually execute this frame. Derived from
+        // camera settings, culling masks, shadow distance, and technique requirements (e.g. depth priming).
+        struct RenderStages
+        {
+            internal bool drawShadowPasses;
+            internal bool drawPrepass;
+            internal bool drawOpaquePass;
+            internal bool drawTransparentPass;
+            internal bool drawDeferredLightingPass;
+        }
+
+        // Aggregates texture and resource requirements declared by ScriptableRenderPasses and internal features.
+        // It exists to resolve the dependencies of injected passes before recording; the internal passes declare
+        // their resource use to RenderGraph directly. As such it is essentially an optimization: RenderGraph could
+        // derive the same information on its own, but only after recording and culling the passes.
         struct RenderPassInputSummary
         {
             internal bool requiresDepthTexture;

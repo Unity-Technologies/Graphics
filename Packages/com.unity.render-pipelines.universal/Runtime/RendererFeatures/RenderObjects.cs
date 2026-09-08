@@ -245,6 +245,10 @@ namespace UnityEngine.Rendering.Universal
                 || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
                 return;
 
+            // An empty layer mask filters out all renderers, so the pass would never draw anything.
+            if (settings.filterSettings.LayerMask == 0)
+                return;
+
             bool enableDepthInputAttachment = settings.depthInputAttachment;
             renderObjectsPass.SetDepthInputAttachment(enableDepthInputAttachment);
 

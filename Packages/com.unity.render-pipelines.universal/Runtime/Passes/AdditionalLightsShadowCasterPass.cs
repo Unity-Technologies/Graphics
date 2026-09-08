@@ -425,9 +425,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <returns>True if the pass will render real shadow geometry, otherwise false.</returns>
         public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer)
         {
+            return Setup(renderingData, cameraData, lightData, shadowData, stencilBuffer, true);
+        }
+
+        // Internal variant of Setup that allows setting shadowsEnabledByCamera == false, which forces the keyword-only
+        // empty path (shadows disabled at camera-level, e.g. cullingMask == 0).
+        internal bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer, bool shadowsEnabledByCamera)
+        {
             using var profScope = new ProfilingScope(s_ProfilingSetupSampler);
 
-            bool willRenderShadowGeometry = SetupShadowPassMode(renderingData, cameraData, lightData, shadowData, stencilBuffer);
+            bool willRenderShadowGeometry = SetupShadowPassMode(renderingData, cameraData, lightData, shadowData, stencilBuffer, shadowsEnabledByCamera);
 
             // Published for the systems that resolve additional light shadow indices without access to this pass.
             shadowData.visibleLightIndexToAdditionalLightIndex = m_VisibleLightIndexToAdditionalLightIndex;
@@ -437,7 +444,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // Decides the ShadowPassMode for the frame and prepares the state RecordRenderGraph() needs for it.
-        bool SetupShadowPassMode(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer)
+        bool SetupShadowPassMode(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer, bool shadowsEnabledByCamera)
         {
             // Lazy init: ensure buffers exist (may have been destroyed by domain reload or graphics device reset)
             EnsureBuffersCreated();
@@ -450,7 +457,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool shadowsEnabled = shadowData.additionalLightShadowsEnabled;
             bool stripShadowsOffVariants = cameraData.renderer.stripShadowsOffVariants;
 
-            if (!shadowsEnabled)
+            if (!shadowsEnabled || !shadowsEnabledByCamera)
             {
                 SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, lightData, shadowData);
                 return false;

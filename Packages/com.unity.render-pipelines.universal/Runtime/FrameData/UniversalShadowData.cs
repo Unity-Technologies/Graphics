@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMainLightShadows;
 
         /// <summary>
-        /// True if additional lights shadows are enabled in the URP Asset
+        /// True if main lights shadows are enabled in the URP Asset
         /// </summary>
         internal bool mainLightShadowsEnabled;
 
