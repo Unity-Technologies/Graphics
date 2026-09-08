@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering
                         {
                             background = m_TransparentTexture,
                             scaledBackgrounds = null,
-                            textColor = EditorGUIUtility.isProSkin ? Color.grey : Color.darkGray
+                            textColor = EditorGUIUtility.isProSkin ? Color.grey : new Color(0.25f, 0.25f, 0.25f, 1f)
                         }
                     };
                     var activeState = new GUIStyleState
