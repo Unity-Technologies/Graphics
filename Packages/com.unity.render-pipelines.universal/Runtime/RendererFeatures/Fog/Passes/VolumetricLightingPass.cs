@@ -148,6 +148,10 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle additionalCookieAtlas;
             public float additionalCookieFormat;
 
+            // Linear (Built-in compatible) light falloff
+            public LocalKeyword lightFalloffLinearKeyword;
+            public bool useLinearFalloff;
+
             // Zero-filled stand-in
             public GraphicsBuffer zeroLightCB;
             public int zeroLightCBSizeBytes;
@@ -332,6 +336,12 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.UseTexture(passData.mainCookieTexture, AccessFlags.Read);
                     builder.UseTexture(passData.additionalCookieAtlas, AccessFlags.Read);
+                }
+
+                // Linear (Built-in compatible) light falloff
+                {
+                    passData.lightFalloffLinearKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.LightFalloffLinear);
+                    passData.useLinearFalloff = applyLocalLights && UniversalRenderPipeline.IsLinearFalloffEnabled();
                 }
 
                 passData.fogAnisotropy = fogData.fogAnisotropy;
@@ -601,6 +611,9 @@ namespace UnityEngine.Rendering.Universal
                         }
                         cmd.SetComputeConstantBufferParam(cs, ShaderIDs.LightCookies, lightCookieCB, 0, lightCookieCBSizeBytes);
                     }
+
+                    // Linear (Built-in compatible) light falloff
+                    cmd.SetKeyword(cs, data.lightFalloffLinearKeyword, data.useLinearFalloff);
 
                     if (data.enableReprojection)
                     {

@@ -407,6 +407,21 @@ namespace ShaderStrippingAndPrefiltering
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
         }
 
+        // ShaderFeatures.LightFalloffLinear - _LIGHT_FALLOFF_LINEAR
+        [Test]
+        public void TestGetSupportedShaderFeaturesFromAsset_LightFalloff()
+        {
+            m_TestHelper.urpAsset.lightFalloffMode = LightFalloffMode.InverseSquared;
+            ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+            ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+            m_TestHelper.urpAsset.lightFalloffMode = LightFalloffMode.Linear;
+            actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+            expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.LightFalloffLinear;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+        }
+
         [Test]
         public void TestGetRendererRequirements()
         {

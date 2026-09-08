@@ -402,6 +402,19 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The distance attenuation formula used by URP lights.
+    /// </summary>
+    public enum LightFalloffMode
+    {
+        /// <summary>Physically-based inverse squared falloff. URP default.</summary>
+        [InspectorName("Inverse Squared")]
+        InverseSquared = 0,
+        /// <summary>Falloff matching the Built-in Render Pipeline. Use for Built-in to URP migration.</summary>
+        [InspectorName("Linear")]
+        Linear = 1,
+    }
+
+    /// <summary>
     /// The type of Spherical Harmonics lighting evaluation in a shader.
     /// </summary>
     public enum ShEvalMode
@@ -513,6 +526,12 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(ShEvalMode.PerVertex, keywordNames: new [] { ShaderKeywordStrings.EVALUATE_SH_VERTEX })]
 #endif
         [SerializeField] ShEvalMode m_ShEvalMode = ShEvalMode.Auto;
+
+#if UNITY_EDITOR // multi_compile _ _LIGHT_FALLOFF_LINEAR
+        [ShaderKeywordFilter.RemoveIf(LightFalloffMode.InverseSquared, keywordNames: ShaderKeywordStrings.LightFalloffLinear)]
+        [ShaderKeywordFilter.SelectIf(LightFalloffMode.Linear,         keywordNames: ShaderKeywordStrings.LightFalloffLinear)]
+#endif
+        [SerializeField] LightFalloffMode m_LightFalloffMode = LightFalloffMode.InverseSquared;
 
         // Probe volume settings
 #if UNITY_EDITOR
@@ -1294,6 +1313,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ShEvalMode;
             internal set => m_ShEvalMode = value;
+        }
+
+        /// <summary>
+        /// Defines the light attenuation formula used by URP lights.
+        /// </summary>
+        public LightFalloffMode lightFalloffMode
+        {
+            get => m_LightFalloffMode;
+            internal set => m_LightFalloffMode = value;
         }
 
         /// <summary>

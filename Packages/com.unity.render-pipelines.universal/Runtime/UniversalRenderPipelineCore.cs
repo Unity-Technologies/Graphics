@@ -1006,6 +1006,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
+        public static readonly GlobalKeyword LightFalloffLinear = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffLinear);
+
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
         //public static readonly GlobalKeyword TonemapACES;
@@ -1423,6 +1425,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for depth as input attachment MSAA. </summary>
         public const string DEPTH_AS_INPUT_ATTACHMENT_MSAA = "_DEPTH_AS_INPUT_ATTACHMENT_MSAA";
+
+        /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
+        public const string LightFalloffLinear = "_LIGHT_FALLOFF_LINEAR";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1653,6 +1658,8 @@ namespace UnityEngine.Rendering.Universal
             // This ensures that the baked punctual light intensity matches realtime intensity. (See GFXLIGHT-1755)
             const float piCorrection = Mathf.PI;
 
+            FalloffType punctualFalloff = IsLinearFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
+
 #if UNITY_EDITOR
             // Always extract lights in the Editor.
             for (int i = 0; i < requests.Length; i++)
@@ -1720,7 +1727,7 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                lightData.falloff = FalloffType.InverseSquared;
+                lightData.falloff = punctualFalloff;
                 lightsOutput[i] = lightData;
             }
 #else
@@ -1776,7 +1783,7 @@ namespace UnityEngine.Rendering.Universal
                             lightData.InitNoBake(light.GetEntityId());
                             break;
                     }
-                    lightData.falloff = FalloffType.InverseSquared;
+                    lightData.falloff = punctualFalloff;
                     lightsOutput[i] = lightData;
                 }
             }
@@ -1874,6 +1881,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
             lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+        }
+
+        internal static bool IsLinearFalloffEnabled()
+        {
+            return asset != null && asset.lightFalloffMode == LightFalloffMode.Linear;
         }
 
         /// <summary>

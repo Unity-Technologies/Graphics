@@ -2948,6 +2948,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         };
 
+        public static readonly KeywordDescriptor LightFalloffLinear = new KeywordDescriptor()
+        {
+            displayName = "Light Falloff Linear",
+            referenceName = "_LIGHT_FALLOFF_LINEAR",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
             displayName = "Cluster Light Loop",

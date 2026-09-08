@@ -61,6 +61,13 @@ float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation, float di
 float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 #endif
 {
+#if defined(_LIGHT_FALLOFF_LINEAR)
+    half rangeRelDistSqr = half(distanceSqr * distanceAttenuation.x);
+    half atten = half(1.0) / (half(1.0) + half(25.0) * rangeRelDistSqr);
+    half fadeFactor = saturate((half(1.0) - rangeRelDistSqr) * distanceAttenuation.y);
+    return atten * fadeFactor;
+#endif
+
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
 #if (UNITY_PLATFORM_META_QUEST) // This is platform specific change targeting performance only

@@ -773,6 +773,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useRenderingLayers, Styles.useRenderingLayers);
             EditorGUILayout.PropertyField(serialized.supportsLightCookies, Styles.supportsLightCookies);
             EditorGUILayout.PropertyField(serialized.shEvalModeProp, Styles.shEvalModeText);
+            EditorGUILayout.PropertyField(serialized.lightFalloffModeProp, Styles.lightFalloffModeText);
 
             if (serialized.useRenderingLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);

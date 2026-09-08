@@ -135,6 +135,9 @@ namespace UnityEditor.Rendering.Universal
             urpAsset.additionalLightsShadowmapResolution =
                 GetEquivalentAdditionalLightAtlasShadowResolution((int)shadowResolution);
 
+            // Light Falloff
+            urpAsset.lightFalloffMode = LightFalloffMode.Linear;
+
             // Reflection Probes
             urpAsset.reflectionProbeBlending = reflectionProbeBlending;
             urpAsset.reflectionProbeBoxProjection = reflectionProbeBoxProjection;
