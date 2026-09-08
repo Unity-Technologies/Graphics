@@ -1,4 +1,3 @@
-#if MODERN_SSAO
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -8,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Uses double buffering so the previous frame can be sampled while the current frame is written.
     /// The history stores packed depth (RG), AO (B), and a normalized accumulated frame count (A) in an RGBA8 texture.
     /// </summary>
-    public sealed class SSAOHistory : CameraHistoryItem
+    internal sealed class SSAOHistory : CameraHistoryItem
     {
         private int[] m_AccumulationTextureIds = new int[2];
         private int[] m_AccumulationVersions = new int[2];
@@ -186,4 +185,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

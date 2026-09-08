@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 13;
+        internal const int k_LastVersion = 14;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -175,6 +175,12 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_AssetVersion = 13;
             }
 
+            if (asset.m_AssetVersion < 14)
+            {
+                MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(asset);
+                asset.m_AssetVersion = 14;
+            }
+
             // If the asset version has changed, means that a migration step has been executed
             if (assetVersionBeforeUpgrade != asset.m_AssetVersion)
                 EditorUtility.SetDirty(asset);
@@ -312,6 +318,99 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.LogWarning($"URP: Failed to migrate terrain detail shader settings: {ex.Message}. Terrain detail shaders will use default values.");
             }
+        }
+
+        static void MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(UniversalRenderPipelineGlobalSettings data)
+        {
+            // SSAO is now driven by the volume stack, so the renderer feature settings are no longer read.
+            // Copy them into the default volume profile to preserve pre-existing behavior.
+            var defaultVolumeProfileSettings = GetOrCreateGraphicsSettings<URPDefaultVolumeProfileSettings>(data);
+            var profile = defaultVolumeProfileSettings.volumeProfile;
+            if (profile == null)
+                return;
+
+            // Already migrated, or authored by the user
+            if (profile.Has<ScreenSpaceAmbientOcclusionVolumeOverride>())
+                return;
+
+            ScreenSpaceAmbientOcclusion ssaoFeature = null;
+            if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urpAsset &&
+                urpAsset.TryGetRendererData(urpAsset.m_DefaultRendererIndex, out var rendererData) &&
+                rendererData != null)
+            {
+                rendererData.TryGetRendererFeature<ScreenSpaceAmbientOcclusion>(out ssaoFeature);
+            }
+
+            bool active = ssaoFeature != null && ssaoFeature.isActive;
+            var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: active);
+
+            if (active)
+                CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
+
+            // A profile that only lives in memory cannot hold the override as a sub-asset
+            if (!EditorUtility.IsPersistent(profile))
+                return;
+
+            AssetDatabase.AddObjectToAsset(ssaoOverride, profile);
+
+            // Ensure only saves the global settings asset, so the version bump would outlive the override
+            EditorUtility.SetDirty(ssaoOverride);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssetIfDirty(profile);
+        }
+
+        static void CopyRendererFeatureSettingsToVolumeOverride(ScreenSpaceAmbientOcclusion feature, ScreenSpaceAmbientOcclusionVolumeOverride ssaoOverride)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var settings = feature.settings;
+#pragma warning restore CS0618
+
+            // Custom quality keeps the copied values instead of applying a preset
+            ssaoOverride.mode = ScreenSpaceAmbientOcclusionMode.SSAO;
+            ssaoOverride.quality = ScreenSpaceAmbientOcclusionQuality.Custom;
+
+            ssaoOverride.intensity = settings.Intensity;
+            ssaoOverride.radius = settings.Radius;
+            ssaoOverride.falloffDistance = settings.Falloff;
+            ssaoOverride.directLightingStrength = settings.DirectLightingStrength;
+            ssaoOverride.downsample = settings.Downsample;
+            ssaoOverride.afterOpaque = settings.AfterOpaque;
+
+            // Note: sample count and blur quality run high to low on the feature, low to high on the volume
+            ssaoOverride.method = settings.AOMethod switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise => ScreenSpaceAmbientOcclusionNoiseMethod.BlueNoise,
+                _ => ScreenSpaceAmbientOcclusionNoiseMethod.InterleavedGradient
+            };
+
+            ssaoOverride.depthSource = settings.Source switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth => ScreenSpaceAmbientOcclusionDepthSource.Depth,
+                _ => ScreenSpaceAmbientOcclusionDepthSource.DepthNormals
+            };
+
+            ssaoOverride.normalQuality = settings.NormalSamples switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.NormalQuality.High => ScreenSpaceAmbientOcclusionNormalQuality.High,
+                ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium => ScreenSpaceAmbientOcclusionNormalQuality.Medium,
+                _ => ScreenSpaceAmbientOcclusionNormalQuality.Low
+            };
+
+            ssaoOverride.blurQuality = settings.BlurQuality switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High => ScreenSpaceAmbientOcclusionBlurQuality.High,
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium => ScreenSpaceAmbientOcclusionBlurQuality.Medium,
+                _ => ScreenSpaceAmbientOcclusionBlurQuality.Low
+            };
+
+            ssaoOverride.sampleCount = settings.Samples switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High => ScreenSpaceAmbientOcclusionSampleCount.High,
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium => ScreenSpaceAmbientOcclusionSampleCount.Medium,
+                _ => ScreenSpaceAmbientOcclusionSampleCount.Low
+            };
+
+            // GTAO and temporal filtering have no feature equivalent and keep the override defaults
         }
 
 #endif // #if UNITY_EDITOR

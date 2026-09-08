@@ -1,4 +1,3 @@
-#if MODERN_SSAO
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -198,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("The ambient occlusion algorithm to use. SSAO uses the Alchemy method. GTAO (Ground Truth Ambient Occlusion) provides higher quality.")]
         [SerializeField]
-        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.SSAO);
+        private ScreenSpaceAmbientOcclusionModeParameter m_Mode = new ScreenSpaceAmbientOcclusionModeParameter(ScreenSpaceAmbientOcclusionMode.GTAO);
 
         /// <summary>
         /// Quality preset for ambient occlusion. Selecting a preset automatically configures all quality-related parameters.
@@ -227,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas. A value of '0' disables the effect.")]
         [SerializeField]
-        private ClampedFloatParameter m_Intensity = new ClampedFloatParameter(1f, 0f, 5f);
+        private MinFloatParameter m_Intensity = new MinFloatParameter(0.4f, 0f);
 
         /// <summary>
         /// Radius around each point for ambient occlusion calculation.
@@ -251,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
         }
         [Tooltip("Controls how visible the ambient occlusion effect is on surfaces lit by direct light sources. Higher values apply occlusion more uniformly across all lighting, not just in shadowed areas.")]
         [SerializeField]
-        private ClampedFloatParameter m_DirectLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
+        private ClampedFloatParameter m_DirectLightingStrength = new ClampedFloatParameter(0.25f, 0f, 1f);
 
         /// <summary>
         /// Distance from the camera beyond which ambient occlusion fades out.
@@ -683,4 +682,3 @@ namespace UnityEngine.Rendering.Universal
     }
 
 }
-#endif

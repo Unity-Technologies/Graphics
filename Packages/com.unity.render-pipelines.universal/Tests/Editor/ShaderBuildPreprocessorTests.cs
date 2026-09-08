@@ -26,7 +26,6 @@ namespace ShaderStrippingAndPrefiltering
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
             internal bool containsSurfaceCache;
-            internal bool everyRendererHasSSAO;
             internal bool everyRendererHasSSR;
 
             internal ShaderFeatures defaultURPAssetFeatures
@@ -109,7 +108,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromAsset()
             {
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSAO, out everyRendererHasSSR);
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSR);
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRenderer(RendererRequirements rendererRequirements, ShaderFeatures urpAssetShaderFeatures)
@@ -1013,15 +1012,9 @@ namespace ShaderStrippingAndPrefiltering
             ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.decalLayers = true;
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque | ShaderFeatures.DecalScreenSpace |
                        ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
                        ShaderFeatures.OpaqueWriteRenderingLayers;
-#else
-            expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.DecalScreenSpace |
-                       ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
-                       ShaderFeatures.OpaqueWriteRenderingLayers;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             m_TestHelper.rendererFeatures.Remove(ssaoFeature);
@@ -1073,21 +1066,13 @@ namespace ShaderStrippingAndPrefiltering
 
             RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
             ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             ShaderFeatures expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#else
-            ShaderFeatures expected = ShaderFeatures.ScreenSpaceOcclusion;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             ((ScreenSpaceAmbientOcclusion)m_TestHelper.rendererFeatures[0]).settings.AfterOpaque = true;
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#else
-            expected = ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             // Disabled feature

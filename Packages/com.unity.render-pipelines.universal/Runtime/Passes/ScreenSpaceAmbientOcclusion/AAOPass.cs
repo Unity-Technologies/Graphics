@@ -25,21 +25,6 @@ namespace UnityEngine.Rendering.Universal
             m_BlueNoiseTextures = blueNoiseTextures;
         }
 
-#if !MODERN_SSAO
-        // Sets up AAO pass using renderer feature settings. Returns false if the pass should be skipped.
-        internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScreenSpaceAmbientOcclusionSettings.DepthSource depthSource)
-        {
-            m_CurrentSettings = featureSettings;
-            m_CurrentSettings.Source = depthSource;
-            m_BlurType = SSAOUtils.GetBlurType(m_CurrentSettings.BlurQuality);
-
-            return m_CurrentSettings.Intensity > 0.0f
-                   && m_CurrentSettings.Radius > 0.0f
-                   && m_CurrentSettings.Falloff > 0.0f;
-        }
-#endif
-
-#if MODERN_SSAO
         // Sets up AAO pass using active volume for SSAO mode. Returns false if the pass should be skipped.
         internal bool Setup(ScreenSpaceAmbientOcclusionVolumeOverride ssaoVolume, bool usesDeferredLighting)
         {
@@ -83,7 +68,6 @@ namespace UnityEngine.Rendering.Universal
             if (usesDeferredLighting)
                 settings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
         }
-#endif
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {

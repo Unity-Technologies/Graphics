@@ -1,5 +1,4 @@
-﻿#if MODERN_SSAO
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -260,4 +259,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-#endif

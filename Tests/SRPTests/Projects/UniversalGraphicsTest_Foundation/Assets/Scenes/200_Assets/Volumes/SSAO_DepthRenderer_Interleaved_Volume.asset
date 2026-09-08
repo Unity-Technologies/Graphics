@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &4471618294628372895
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5182da28fcdc1ac41a47126f0d404cf8, type: 3}
+  m_Name: ScreenSpaceAmbientOcclusionVolumeOverride
+  m_EditorClassIdentifier: 
+  active: 1
+  m_Mode:
+    m_OverrideState: 1
+    m_Value: 0
+  m_Quality:
+    m_OverrideState: 1
+    m_Value: 3
+  m_Intensity:
+    m_OverrideState: 1
+    m_Value: 10
+  m_Radius:
+    m_OverrideState: 1
+    m_Value: 0.4
+  m_DirectLightingStrength:
+    m_OverrideState: 1
+    m_Value: 1
+  m_FalloffDistance:
+    m_OverrideState: 1
+    m_Value: 1000
+  m_SampleCount:
+    m_OverrideState: 1
+    m_Value: 2
+  m_Downsample:
+    m_OverrideState: 1
+    m_Value: 0
+  m_AfterOpaque:
+    m_OverrideState: 1
+    m_Value: 0
+  m_BlurQuality:
+    m_OverrideState: 1
+    m_Value: 0
+  m_Method:
+    m_OverrideState: 1
+    m_Value: 1
+  m_DepthSource:
+    m_OverrideState: 1
+    m_Value: 0
+  m_NormalQuality:
+    m_OverrideState: 1
+    m_Value: 2
+  m_MinimumRadiusInPixels:
+    m_OverrideState: 0
+    m_Value: 40
+  m_UseComputeShader:
+    m_OverrideState: 0
+    m_Value: 0
+  m_SpatialFilter:
+    m_OverrideState: 0
+    m_Value: 0
+  m_TemporalFilter:
+    m_OverrideState: 0
+    m_Value: 0
+  m_GhostingMitigation:
+    m_OverrideState: 0
+    m_Value: 0.5
+  m_HistoryLength:
+    m_OverrideState: 0
+    m_Value: 0.9
+  m_DirectionCount:
+    m_OverrideState: 0
+    m_Value: 2
+  m_StepCount:
+    m_OverrideState: 0
+    m_Value: 4
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: SSAO_DepthRenderer_Interleaved_Volume
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 4471618294628372895}

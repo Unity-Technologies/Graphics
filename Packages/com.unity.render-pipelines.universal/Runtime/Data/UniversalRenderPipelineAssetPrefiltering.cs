@@ -145,25 +145,16 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT)]
         [SerializeField] private bool m_PrefilterAlphaOutput = false;
 
-        // Screen Space Ambient Occlusion (SSAO) specific keywords
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword)]
-        [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthHigh = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOInterleaved = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOBlueNoise = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
+        // Screen Space Ambient Occlusion (SSAO) specific keywords.
+        // The volume can change the depth source, noise method and sample count at runtime, so they are kept or stripped together.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
+            ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword, ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SampleCountLowKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SampleCountMediumKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SampleCountHighKeyword
+        })]
+        [SerializeField] private bool m_PrefilterSSAOKeywords = false;
 
         // Decals
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
@@ -277,15 +268,7 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSoftShadowsQualityMedium;
             public bool stripSoftShadowsQualityHigh;
 
-            public bool stripSSAOBlueNoise;
-            public bool stripSSAOInterleaved;
-            public bool stripSSAODepthNormals;
-            public bool stripSSAOSourceDepthLow;
-            public bool stripSSAOSourceDepthMedium;
-            public bool stripSSAOSourceDepthHigh;
-            public bool stripSSAOSampleCountLow;
-            public bool stripSSAOSampleCountMedium;
-            public bool stripSSAOSampleCountHigh;
+            public bool stripSSAOKeywords;
 
             public bool stripBicubicLightmapSampling;
             public bool stripReflectionProbeRotation;
@@ -354,15 +337,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
             m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
 
-            m_PrefilterSSAOBlueNoise                 = prefilteringData.stripSSAOBlueNoise;
-            m_PrefilterSSAOInterleaved               = prefilteringData.stripSSAOInterleaved;
-            m_PrefilterSSAODepthNormals              = prefilteringData.stripSSAODepthNormals;
-            m_PrefilterSSAOSourceDepthLow            = prefilteringData.stripSSAOSourceDepthLow;
-            m_PrefilterSSAOSourceDepthMedium         = prefilteringData.stripSSAOSourceDepthMedium;
-            m_PrefilterSSAOSourceDepthHigh           = prefilteringData.stripSSAOSourceDepthHigh;
-            m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
-            m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
-            m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
+            m_PrefilterSSAOKeywords                  = prefilteringData.stripSSAOKeywords;
 
             m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
             m_PrefilterReflectionProbeRotation       = prefilteringData.stripReflectionProbeRotation;

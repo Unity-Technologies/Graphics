@@ -1,4 +1,3 @@
-#if MODERN_SSAO
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -799,4 +798,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

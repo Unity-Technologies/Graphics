@@ -102,7 +102,6 @@ namespace UnityEditor.Rendering.Universal
             if (!m_IsInitialized)
                 Init();
 
-#if MODERN_SSAO
             EditorGUILayout.HelpBox(
                 "Screen Space Ambient Occlusion is controlled exclusively by the Screen Space Ambient Occlusion Volume Override. The fields below are inactive and shown only to aid in migrating to the volume system. You may copy these values into your Volume Override manually.",
                 MessageType.Info);
@@ -115,9 +114,6 @@ namespace UnityEditor.Rendering.Universal
                 DrawSsaoSettingsGUI(true);
                 EditorGUI.indentLevel--;
             }
-#else
-            DrawSsaoSettingsGUI(false);
-#endif
         }
 
         void DrawSsaoSettingsGUI(bool readOnly)
