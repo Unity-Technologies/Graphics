@@ -21,6 +21,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
         }
 
+#if UNITY_EDITOR
+        public static void EnsureMeshHasRawBufferTarget(Mesh mesh)
+        {
+            if (UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget != UnityEditor.Rendering.DefaultMeshBufferTarget.Raw)
+            {
+                mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
+                mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+            }
+        }
+#endif
+
         [Conditional("UNITY_ASSERTIONS")]
         public static void CheckArgIsNotNull(System.Object obj, string argName)
         {

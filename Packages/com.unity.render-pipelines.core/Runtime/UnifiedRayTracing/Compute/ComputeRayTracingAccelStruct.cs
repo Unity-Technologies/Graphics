@@ -292,8 +292,6 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             var bvhNodeSizeInDwords = RadeonRaysAPI.BvhInternalNodeSizeInDwords();
 
-            mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-            mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
             SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(submeshIndex);
             using var vertexBuffer = LoadPositionBuffer(mesh, out int stride, out int offset);
 
@@ -365,21 +363,26 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         GraphicsBuffer LoadIndexBuffer(Mesh mesh)
         {
-            Debug.Assert((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) != 0 || (mesh.GetIndices(0) != null && mesh.GetIndices(0).Length != 0),
-               "Cant use a mesh buffer that is not raw and has no CPU index information.");
-
-            return mesh.GetIndexBuffer();
+            var buffer = mesh.GetIndexBuffer();
+            Debug.Assert((buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh index buffer target must include Raw.");
+            return buffer;
         }
 
         GraphicsBuffer LoadPositionBuffer(Mesh mesh, out int stride, out int offset)
         {
+#if UNITY_EDITOR
+            Utils.EnsureMeshHasRawBufferTarget(mesh);
+#endif
+
             VertexAttribute attribute = VertexAttribute.Position;
             Debug.Assert(mesh.HasVertexAttribute(attribute), "Cant use a mesh buffer that has no positions.");
 
             int stream = mesh.GetVertexAttributeStream(attribute);
             stride = mesh.GetVertexBufferStride(stream) / 4;
             offset = mesh.GetVertexAttributeOffset(attribute) / 4;
-            return mesh.GetVertexBuffer(stream);
+            var buffer = mesh.GetVertexBuffer(stream);
+            Debug.Assert((buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh vertex buffer target must include Raw.");
+            return buffer;
         }
 
         void DeleteMeshBlas((int mesh, int subMeshIndex) geomKey, MeshBlas blas)

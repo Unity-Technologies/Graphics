@@ -730,12 +730,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         private GraphicsBuffer LoadIndexBuffer(Mesh mesh)
         {
-            Debug.Assert((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) != 0 || (mesh.GetIndices(0) != null && mesh.GetIndices(0).Length != 0),
-                "Cant use a mesh buffer that is not raw and has no CPU index information.");
-
-            mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-            mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+#if UNITY_EDITOR
+            Utils.EnsureMeshHasRawBufferTarget(mesh);
+#endif
             var idxBuffer = mesh.GetIndexBuffer();
+            Debug.Assert((idxBuffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh index buffer target must include Raw.");
             m_InputBufferReferences.Add(idxBuffer);
             return idxBuffer;
         }
@@ -758,7 +757,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             output.buffer = mesh.GetVertexBuffer(stream);
             m_InputBufferReferences.Add(output.buffer);
 
-            Assertions.Assert.IsTrue((output.buffer.target & GraphicsBuffer.Target.Raw) != 0);
+            Assertions.Assert.IsTrue((output.buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh vertex buffer target must include Raw.");
         }
 
         private CommandBuffer AllocateCommandBuffer()

@@ -100,6 +100,7 @@ namespace UnityEngine.Rendering.Universal
     public class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
     {
         internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
+        internal static readonly string k_MeshBufferTargetErrorMessage = "Surface Cache GI requires access to raw mesh buffers. Set Default Mesh Buffer Target to Raw in the Graphics Settings.";
 
         private const int k_UpscaleFactor = 4;
 
@@ -1345,7 +1346,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            if (CheckStaticBatchingStatus())
+            if (HasInvalidEditorConfiguration())
                 return;
 #endif
 
@@ -1415,7 +1416,7 @@ namespace UnityEngine.Rendering.Universal
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
 #if UNITY_EDITOR
-            if (CheckStaticBatchingStatus())
+            if (HasInvalidEditorConfiguration())
                 return;
 #endif
 
@@ -1509,6 +1510,13 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
         bool _staticBatchingEnabled;
+        bool _invalidMeshBufferTarget;
+
+        bool HasInvalidEditorConfiguration()
+        {
+            return CheckStaticBatchingStatus() || CheckMeshBufferTargetStatus();
+        }
+
         bool CheckStaticBatchingStatus()
         {
             bool previousStatus = _staticBatchingEnabled;
@@ -1518,6 +1526,17 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError(k_StaticBatchingErrorMesssage);
 
             return _staticBatchingEnabled;
+        }
+
+        bool CheckMeshBufferTargetStatus()
+        {
+            bool previousStatus = _invalidMeshBufferTarget;
+            _invalidMeshBufferTarget = UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget != UnityEditor.Rendering.DefaultMeshBufferTarget.Raw;
+
+            if (_invalidMeshBufferTarget && _invalidMeshBufferTarget != previousStatus)
+                Debug.LogError(k_MeshBufferTargetErrorMessage);
+
+            return _invalidMeshBufferTarget;
         }
 #endif
     }

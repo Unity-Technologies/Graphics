@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -62,6 +64,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 DrawFixMeBox(surfaceCacheGIRendererFeature.isActive ? s_StaticBatchingError : s_StaticBatchingWarning, s_OpenButton, () =>
                     PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
+            }
+            else if (EditorGraphicsSettings.defaultMeshBufferTarget != DefaultMeshBufferTarget.Raw)
+            {
+                CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_MeshBufferTargetErrorMessage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
+                    GraphicsSettingsInspectorUtility.OpenAndScrollToElement(nameof(DefaultMeshBufferTarget)));
             }
             else if (!SurfaceCacheGIRendererFeature.HasSupportedRayTracingBackend())
             {
