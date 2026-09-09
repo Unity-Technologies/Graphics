@@ -14,14 +14,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ScreenPositionSlotControlView"));
             m_Slot = slot;
-            var enumField = new EnumField(slot.screenSpaceType);
+            var enumField = new EnumField(ScreenPositionNodeModeExtensions.AsMode(slot.screenSpaceType));
             enumField.RegisterValueChangedCallback(OnValueChanged);
             Add(enumField);
         }
 
         void OnValueChanged(ChangeEvent<Enum> evt)
         {
-            var screenSpaceType = (ScreenSpaceType)evt.newValue;
+            var mode = (ScreenPositionNode.Mode)evt.newValue;
+            var screenSpaceType = mode.AsScreenSpaceType();
             if (screenSpaceType != m_Slot.screenSpaceType)
             {
                 m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Screen Space Type");

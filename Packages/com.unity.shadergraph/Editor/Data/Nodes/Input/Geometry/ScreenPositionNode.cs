@@ -16,19 +16,33 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private ScreenSpaceType m_ScreenSpaceType = ScreenSpaceType.Default;
 
-        [EnumControl("Mode")]
-        public ScreenSpaceType screenSpaceType
+        // Note that this enum is truly public, in a sense, as it is used to drive the dropdown control
+        // on the node.
+        public enum Mode
         {
-            get { return m_ScreenSpaceType; }
+            Default = (int)ScreenSpaceType.Default,
+            Raw = (int)ScreenSpaceType.Raw,
+            Center = (int)ScreenSpaceType.Center,
+            Tiled = (int)ScreenSpaceType.Tiled,
+            Pixel = (int)ScreenSpaceType.Pixel,
+        }
+
+        [EnumControl("Mode")]
+        public Mode mode
+        {
+            get { return ScreenPositionNodeModeExtensions.AsMode(m_ScreenSpaceType); }
             set
             {
-                if (m_ScreenSpaceType == value)
+                var screenSpaceValue = value.AsScreenSpaceType();
+                if (m_ScreenSpaceType == screenSpaceValue)
                     return;
 
-                m_ScreenSpaceType = value;
+                m_ScreenSpaceType = screenSpaceValue;
                 Dirty(ModificationScope.Graph);
             }
         }
+
+        public ScreenSpaceType screenSpaceType => m_ScreenSpaceType;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -48,17 +62,33 @@ namespace UnityEditor.ShaderGraph
 
         bool IMayRequireScreenPosition.RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            return screenSpaceType.RequiresScreenPosition();
+            return m_ScreenSpaceType.RequiresScreenPosition();
         }
 
         bool IMayRequireNDCPosition.RequiresNDCPosition(ShaderStageCapability stageCapability)
         {
-            return screenSpaceType.RequiresNDCPosition();
+            return m_ScreenSpaceType.RequiresNDCPosition();
         }
 
         bool IMayRequirePixelPosition.RequiresPixelPosition(ShaderStageCapability stageCapability)
         {
-            return screenSpaceType.RequiresPixelPosition();
+            return m_ScreenSpaceType.RequiresPixelPosition();
+        }
+    }
+
+    static class ScreenPositionNodeModeExtensions
+    {
+        public static ScreenSpaceType AsScreenSpaceType(this ScreenPositionNode.Mode mode)
+        {
+            return (ScreenSpaceType)mode;
+        }
+
+        public static ScreenPositionNode.Mode AsMode(ScreenSpaceType type)
+        {
+            if (System.Enum.IsDefined(typeof(ScreenPositionNode.Mode), (int)type))
+                return (ScreenPositionNode.Mode)type;
+            else
+                return ScreenPositionNode.Mode.Default;
         }
     }
 }
