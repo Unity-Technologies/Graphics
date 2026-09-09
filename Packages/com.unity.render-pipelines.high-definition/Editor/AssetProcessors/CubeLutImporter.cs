@@ -9,7 +9,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [ScriptedImporter(0, "cube")]
+    [ScriptedImporter(0, "cube", AllowCaching = true)]
     class CubeLutImporter : ScriptedImporter
     {
         // In case PPv2 is still in the project for some reason, exclude these files
