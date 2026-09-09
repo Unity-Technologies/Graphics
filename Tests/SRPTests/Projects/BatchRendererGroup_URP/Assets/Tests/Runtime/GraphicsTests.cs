@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.SceneManagement;
 
 public class GraphicsTests
@@ -19,6 +20,20 @@ public class GraphicsTests
     [UnityTest, Category("GraphicsTest")]
     [SceneGraphicsTest("Assets/SampleScenes")]
     [IgnoreGraphicsTest("ErrorMaterial", "Ignoring this specially designed test that fails to build the build", true, RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
+    [IgnoreGraphicsTest(
+        "BRGCullingFlags",
+        "Native access violation crash under DX12 UGK. https://jira.unity3d.com/browse/UGK-2955",
+        GraphicsDeviceType.Direct3D12,
+        RuntimePlatform.WindowsPlayer,
+        UnityGraphicsKernelMode.UgkOn
+    )]
+    [IgnoreGraphicsTest(
+        "DifferentDrawCommandTypes",
+        "Procedural and indirect draw commands render nothing under DX12 UGK (CreateRenderState result 3). https://jira.unity3d.com/browse/UGK-2956",
+        GraphicsDeviceType.Direct3D12,
+        RuntimePlatform.WindowsPlayer,
+        UnityGraphicsKernelMode.UgkOn
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (testCase.ScenePath.Contains("ErrorMaterial"))
