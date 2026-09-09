@@ -1,4 +1,4 @@
-# Sine Wave
+# Sine Wave Operator
 
 Menu Path : **Operator > Math > Wave > Sine Wave**
 

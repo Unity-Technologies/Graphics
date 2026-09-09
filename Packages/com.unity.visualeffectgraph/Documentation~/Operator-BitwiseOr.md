@@ -1,6 +1,6 @@
-# Or (Bitwise)
+# Or (Bitwise) Operator
 
-Menu Path : **Operator > Bitwise > Or**
+Menu Path : **Operator** > **Bitwise** > **Or**
 
 The **Or** Operator takes two inputs and outputs the result of a bitwise *or* operation between them. For each bit in **A** and **B**, if either is **1**, the output is **1**. Otherwise, the output is **0**.
 

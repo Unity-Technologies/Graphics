@@ -1,4 +1,4 @@
-# Get Skinned Mesh World Root Transform
+# Get Skinned Mesh World Root Transform Operator
 
 Menu Path: **Operator > Sampling > Get Skinned Mesh World Root Transform**
 

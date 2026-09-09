@@ -9,7 +9,7 @@ Returns the arccosine of each component of the input **In** as a vector of the s
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | The arccosine in radians |
+| Out | Output      |    Dynamic Vector | The arccosine of the input value, in radians |
 
 ## Generated Code Example
 

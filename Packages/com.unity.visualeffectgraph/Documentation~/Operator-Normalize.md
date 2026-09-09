@@ -1,4 +1,4 @@
-# Normalize
+# Normalize Operator
 
 Menu Path : **Operator > Math > Vector**
 

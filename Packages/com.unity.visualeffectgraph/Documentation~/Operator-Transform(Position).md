@@ -1,6 +1,6 @@
-# Transform (Position)
+# Transform (Position) Operator
 
-Menu Path : **Operator > Math > Geometry > Transform (Position)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transform (Position)**
 
 The **Transform (Position)** Operator applies a transformation to a position to offset, rotate, or scale it.
 

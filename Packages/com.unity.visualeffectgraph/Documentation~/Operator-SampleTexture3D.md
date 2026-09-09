@@ -1,4 +1,4 @@
-# Sample Texture3D
+# Sample Texture3D Operator
 
 Menu Path : **Operator > Sampling > Sample Texture3D**
 

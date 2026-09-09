@@ -1,4 +1,4 @@
-# Output ShaderGraph Quad
+# Output ShaderGraph Quad Context
 
 Menu Path : **Context > Output Particle ShaderGraph Quad**
 

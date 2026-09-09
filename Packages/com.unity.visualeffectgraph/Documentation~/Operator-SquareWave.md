@@ -1,4 +1,4 @@
-# Square Wave
+# Square Wave Operator
 
 Menu Path : **Operator > Math > Wave > Square Wave**
 

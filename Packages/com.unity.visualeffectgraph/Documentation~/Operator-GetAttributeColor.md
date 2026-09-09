@@ -1,4 +1,4 @@
-# Get Attribute: color
+# Get Attribute: color Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: color**
 

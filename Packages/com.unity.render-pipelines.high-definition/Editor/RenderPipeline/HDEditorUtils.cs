@@ -311,7 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (panelName != null)
             {
-                DebugManager.instance.RequestEditorWindowPanel(panelName);
+                DebugManager.instance.RequestPanelSelection(panelName);
             }
         }
 

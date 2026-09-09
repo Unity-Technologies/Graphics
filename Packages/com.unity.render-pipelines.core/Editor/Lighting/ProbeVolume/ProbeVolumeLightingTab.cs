@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering
             var debugWindow = EditorWindow.GetWindow<DebugWindow>();
             debugWindow.titleContent = DebugWindow.s_TitleContent;
             debugWindow.Show();
-            DebugManager.instance.RequestEditorWindowPanel(ProbeReferenceVolume.k_DebugPanelName);
+            DebugManager.instance.RequestPanelSelection(ProbeReferenceVolume.k_DebugPanelName);
 #endif
         }
 
@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake, Styles.buttonStyle))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
                 return;
             }
 
@@ -640,9 +640,8 @@ namespace UnityEngine.Rendering
                 onRemoveCallback = (list) =>
                 {
                     var guid = (string)list.list[list.index];
-                    activeSet.RemoveScene(guid);
                     Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Deleted scene in baking set");
-                    EditorUtility.SetDirty(activeSet);
+                    activeSet.RemoveScene(guid);
                 },
 
                 drawHeaderCallback = (rect) =>
@@ -888,7 +887,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
             }
             else
             {

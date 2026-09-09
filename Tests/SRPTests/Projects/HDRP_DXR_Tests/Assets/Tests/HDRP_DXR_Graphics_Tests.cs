@@ -114,6 +114,26 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-143001",
             RuntimePlatform.GameCoreXboxSeries, RuntimePlatform.WindowsEditor
         )]
+        [IgnoreGraphicsTest(
+            "902_Materials_SG_Variants_Lit|2006_Debug_ScreenSpaceShadows|902_Materials_SG_Variants_StackLit|1000_RaytracingQualityKeyword_RR_Default|902_Materials_SG_Variants_Unlit",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145751",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
+        [IgnoreGraphicsTest(
+            "905_Materials_SG_TransparentRTR",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145751",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
+		[IgnoreGraphicsTest(
+            "3002_AreaShadowsDeferred_Denoiser",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145751",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
+		[IgnoreGraphicsTest(
+            "2006_Debug_ScreenSpaceShadows",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145751",
+            RuntimePlatform.GameCoreXboxSeries
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

@@ -1,6 +1,6 @@
-# Set SpawnEvent \<Attribute>
+# Set SpawnEvent <Attribute> Block
 
-Menu Path: **Spawn > Set SpawnEvent \<Attribute>**
+Menu Path: **Spawn** > **Set SpawnEvent \<Attribute>**
 
 The **Set SpawnEvent** Block modifies the content of attributes stored in the Context [event attribute](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerState-vfxEventAttribute.html).
 
@@ -8,7 +8,7 @@ The **Set SpawnEvent** Block modifies the content of attributes stored in the Co
 
 This Block is compatible with the following Contexts:
 
-- [Spawn](Context-Spawn.md)
+- [Spawn Context](Context-Spawn.md)
 
 ## Block settings
 

@@ -1,4 +1,4 @@
-# Get Skinned Mesh Local Root Transform
+# Get Skinned Mesh Local Root Transform Operator
 
 Menu Path: **Operator > Sampling > Get Skinned Mesh Local Root Transform**
 

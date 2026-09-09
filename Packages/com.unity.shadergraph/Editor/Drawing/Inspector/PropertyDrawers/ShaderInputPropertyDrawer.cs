@@ -1928,12 +1928,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     EditorGUI.BeginChangeCheck();
                     var name = EditorGUI.DelayedTextField(displayRect, entry.name, EditorStyles.label);
-                    var value = EditorGUI.IntField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
+                    var value = EditorGUI.DelayedIntField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         this._preChangeValueCallback("Edit Enum Entry");
-                        name = GraphUtil.SanitizeName(vector1Property.enumNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
+                        var otherNames = new List<string>(vector1Property.enumNames.Count - 1);
+                        for (int i = 0; i < vector1Property.enumNames.Count; i++)
+                            if (i != index) otherNames.Add(vector1Property.enumNames[i]);
+                        name = GraphUtil.SanitizeName(otherNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
                         if (string.IsNullOrWhiteSpace(name))
                             Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
                         else if (int.TryParse(name, out int intVal) || float.TryParse(name, out float floatVal))

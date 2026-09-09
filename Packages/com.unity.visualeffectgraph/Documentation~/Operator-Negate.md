@@ -1,6 +1,6 @@
-# Negate (-x)
+# Negate (-x) Operator
 
-Menu Path : **Operator > Math > Arithmetic > Negate (-x)**
+Menu Path : **Operator** > **Math** > **Arithmetic** > **Negate (-x)**
 
 The **Negate** Operator multiplies the input value by -1. For example, an input of - (3, 4, -5) outputs (-3, -4, 5).
 

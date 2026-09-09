@@ -1,4 +1,4 @@
-# Exp
+# Exp Operator
 
 Menu Path : **Operator > Math > Exp**
 

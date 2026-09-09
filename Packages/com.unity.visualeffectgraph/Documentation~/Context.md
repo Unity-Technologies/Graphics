@@ -2,27 +2,18 @@
 
 Explore the different [Contexts](Contexts.md) you can add to a graph.
 
-| **Page** | **Description** |
+| **Topic** | **Description** |
 | --- | --- |
-| [Event](Context-Event.md) | Define names for events that trigger actions in a graph. |
-| [GPU Event](Context-GPUEvent.md) | Spawn new particles from specific Blocks in Update or Initialize Contexts. |
-| [Initialize Particle](Context-Initialize.md) | Process an event and initialize new particle elements. |
-| [Output Decal](Context-OutputForwardDecal.md) | Render a particle system using a projected decal texture. |
-| [Output Distortion](Context-OutputDistortion.md) | In the High Definition Render Pipeline (HDRP), use distortion to simulate effects like heat haze from fire. |
-| [Output Line](Context-OutputLine.md) | Render particles as lines. |
-| [Output Mesh](Context-OutputMesh.md) | Render a static mesh. |
-| [Output Particle HDRP Lit Decal](Context-OutputParticleHDRPLitDecal.md) | Use a decal to render a particle system in HDRP. |
-| [Output Particle HDRP Volumetric Fog](Context-OutputParticleHDRPVolumetricFog.md) | Convert particles into a volumetric fog effect in HDRP, to create dynamic fog effects. |
-| [Output Particle Mesh](Context-OutputParticleMesh.md) | Render particles as meshes. |
-| [Output Particle URP Lit Decal](Context-OutputParticleURPLitDecal.md) | Use a decal to render a particle system in the Universal Render Pipeline (URP). |
-| [Output Point](Context-OutputPoint.md) | Render particles as points. |
-| [Output Primitive](Context-OutputPrimitive.md) | Render particles as lit quads, triangles, or octagons. |
-| [Output ShaderGraph Mesh](Context-OutputShaderGraphMesh.md) | Render particles as a custom Shader Graph mesh. |
-| [Output ShaderGraph Quad](Context-OutputShaderGraphPlanarPrimitive.md) | Render particles as a custom Shader Graph quad. |
-| [Output ShaderGraph Strip](Context-OutputShaderGraphStrip.md) | Render particles as a custom Shader Graph strip. |
-| [Shared output settings](SharedOutputSettings.md) | Explore the settings that appear in all Contexts. |
-| [Spawn](Context-Spawn.md) | Control the spawn rate of particles, or create a custom spawning behavior. |
-| [Update Particle](Context-Update.md) | Manage the behavior of particles or particle strips from an Initialize Context. |
+| [Common Contexts](Context-Common-LandingPage.md) | Spawn particles, set their starting values, and update them each frame. |
+| [Event Contexts](Context-Event-LandingPage.md) | Trigger and manage the events that start and stop a visual effect. |
+| [Output Basic Contexts](Context-OutputBasic-LandingPage.md) | Render particles as meshes, quads, triangles, or octagons. |
+| [Output Strip Contexts](Context-OutputStrip-LandingPage.md) | Render connected particle strips such as trails and ribbons. |
+| [Output Advanced Contexts](Context-OutputAdvanced-LandingPage.md) | Render particles as decals or volumetric fog for specialized effects. |
+| [Output Mesh Context](Context-OutputMesh.md) | Render a static mesh. |
+| [Output Particle Forward Decal Context](Context-OutputForwardDecal.md) | Render a particle system using a projected decal texture. |
+| [Output Particle Line Context](Context-OutputLine.md) | Render particles as lines. |
+| [Output Particle Point Context](Context-OutputPoint.md) | Render particles as points. |
+| [Shared output settings Context](SharedOutputSettings.md) | Explore the settings that appear in all Contexts. |
 
 ## Additional resources
 

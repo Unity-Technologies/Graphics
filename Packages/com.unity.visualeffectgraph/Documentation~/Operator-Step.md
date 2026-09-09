@@ -1,4 +1,4 @@
-# Step
+# Step Operator
 
 Menu Path : **Operator > Math > Arithmetic > Step**
 

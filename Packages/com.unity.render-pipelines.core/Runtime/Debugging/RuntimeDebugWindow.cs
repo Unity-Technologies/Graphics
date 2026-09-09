@@ -18,14 +18,15 @@ namespace UnityEngine.Rendering
 
         DebugUI.Panel m_SelectedPanel;
         bool m_PortraitOrientation;
-        bool m_IsDirty;
+        bool m_NeedsRebuild;
 
         int m_UIVersion = 0;
+        Dictionary<string, Vector2> m_ScrollPositions = new Dictionary<string, Vector2>();
 
         void Awake()
         {
-            DebugManager.instance.onSetDirty -= RequestRecreateGUI;
-            DebugManager.instance.onSetDirty += RequestRecreateGUI;
+            DebugManager.instance.onSetDirty += RequestRebuild;
+            DebugManager.instance.onRecreateDebugUI += RequestRebuild;
 
             if (m_PanelRenderer == null)
             {
@@ -68,6 +69,20 @@ namespace UnityEngine.Rendering
                 return;
 
             UpdateOrientation(forceUpdate: true);
+
+            // Save scroll positions before clearing
+            if (m_TabViewElement != null)
+            {
+                m_ScrollPositions.Clear();
+                foreach (var tab in m_TabViewElement.Query<Tab>().ToList())
+                {
+                    var scrollView = tab.Q<ScrollView>();
+                    if (scrollView != null)
+                    {
+                        m_ScrollPositions[tab.label] = scrollView.scrollOffset;
+                    }
+                }
+            }
 
             m_TabViewElement = m_RootVisualElement.Q<TabView>(name: "debug-window-tabview");
             m_TabViewElement.Clear();
@@ -115,6 +130,12 @@ namespace UnityEngine.Rendering
                 scrollView.verticalScroller.slider.focusable = false;
                 scrollView.Add(panel);
 
+                // Restore scroll position if saved
+                if (m_ScrollPositions.TryGetValue(tabLabel.text, out var savedScrollOffset))
+                {
+                    scrollView.schedule.Execute(() => scrollView.scrollOffset = savedScrollOffset).StartingIn(0);
+                }
+
                 Tab tab = new Tab(tabLabel.text);
                 tab.name = tabLabel.name;
                 tab.selected += t => SetSelectedPanel(t.label);
@@ -137,10 +158,15 @@ namespace UnityEngine.Rendering
             // Defer until after layout so all AttachToPanelEvent callbacks from ScheduleTracked
             // have fired and registered their schedulers before SetHierarchyEnabled is called.
             m_TabViewElement.schedule.Execute(_ => SetSelectedPanel(selectedPanelName)).StartingIn(100);
+
+            m_NeedsRebuild = false;
         }
 
         void OnDestroy()
         {
+            DebugManager.instance.onSetDirty -= RequestRebuild;
+            DebugManager.instance.onRecreateDebugUI -= RequestRebuild;
+
             if (m_PanelRenderer != null)
             {
                 // Unregister the UI reload callback
@@ -152,7 +178,6 @@ namespace UnityEngine.Rendering
             }
 
             DebugManager.instance.displayRuntimeUI = false;
-            DebugManager.instance.onSetDirty -= RequestRecreateGUI;
         }
 
         void ConvertNavigationMoveEvents(NavigationMoveEvent evt)
@@ -181,20 +206,17 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void RequestRecreateGUI()
+        internal void RequestRebuild()
         {
-            m_IsDirty = true;
+            m_NeedsRebuild = true;
         }
 
         void Update()
         {
             UpdateOrientation();
 
-            if (m_IsDirty)
-            {
-                m_IsDirty = false;
+            if (m_NeedsRebuild)
                 BuildDebugUI();
-            }
         }
 
         void UpdateOrientation(bool forceUpdate = false)

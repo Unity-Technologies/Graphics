@@ -70,10 +70,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             if (EditorWindow.HasOpenInstances<LightBatchingDebugger>())
-            {
-                var debugger = EditorWindow.GetWindow<LightBatchingDebugger>();
-                debugger?.QueueRefresh();
-            }
+                LightBatchingDebugger.QueueRefresh();
         }
 
         void OnNoSortingLayerSelected(object selectionData)

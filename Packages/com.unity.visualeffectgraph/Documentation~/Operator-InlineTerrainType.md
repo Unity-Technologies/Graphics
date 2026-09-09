@@ -1,4 +1,4 @@
-# TerrainType
+# TerrainType Operator
 
 Menu Path : **Operator > Inline > TerrainType**
 

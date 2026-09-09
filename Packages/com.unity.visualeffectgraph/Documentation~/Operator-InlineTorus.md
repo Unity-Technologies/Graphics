@@ -1,4 +1,4 @@
-# Torus
+# Torus Operator
 
 Menu Path : **Operator > Inline > Torus**
 

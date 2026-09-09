@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         //This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
         [SerializeField] internal bool m_ShouldUseConservativeEnclosingSphere;
+        //Setting this to 64 as this is the default value. This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed. Value is clamped to [0, 256] in OnValidate.
+        [SerializeField] internal int m_NumIterationsEnclosingSphere = 64;
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
 
@@ -95,6 +97,8 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void OnValidate()
         {
             isInOnValidateCall = true;
+
+            m_NumIterationsEnclosingSphere = Mathf.Clamp(m_NumIterationsEnclosingSphere, 0, 256);
 
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.

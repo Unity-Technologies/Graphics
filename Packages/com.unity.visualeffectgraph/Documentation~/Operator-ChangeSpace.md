@@ -1,4 +1,4 @@
-# Change Space
+# Change Space Operator
 
 Menu Path : **Operator > Math > Geometry > Change Space**
 

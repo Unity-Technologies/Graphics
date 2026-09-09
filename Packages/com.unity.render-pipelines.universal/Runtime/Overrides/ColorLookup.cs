@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Color Lookup")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("integration-with-post-processing")]
+    [URPHelpURL("urp/integration-with-post-processing")]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

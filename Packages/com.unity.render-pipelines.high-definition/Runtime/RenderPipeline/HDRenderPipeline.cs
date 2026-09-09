@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
-            DebugManager.instance.RefreshEditor();
+            DebugManager.instance.RecreateDebugUI();
             m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
 
             m_ValidAPI = true;
@@ -2244,8 +2244,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
 #if UNITY_EDITOR
-                // Disable water updates while in the FrameDebugger until it can be improved.
-                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger.
+                // TODO: Disable water updates while in the FrameDebugger until it can be improved.
+                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger which uses redraws for data gathering.
                 // NOTE: This means those events cannot be debugged with the FrameDebugger for now.
                 if (FrameDebugger.enabled)
                 {
@@ -3096,7 +3096,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 frozenCullingParamAvailable = false;
             }
 
+
             cullingParams.conservativeEnclosingSphere = currentAsset.m_ShouldUseConservativeEnclosingSphere;
+            cullingParams.numIterationsEnclosingSphere = currentAsset.m_NumIterationsEnclosingSphere;
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
             // If we don't use environment light (like when rendering reflection probes)

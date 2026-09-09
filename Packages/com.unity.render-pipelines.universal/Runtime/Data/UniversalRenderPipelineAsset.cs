@@ -412,9 +412,10 @@ namespace UnityEngine.Rendering.Universal
     /// <see cref="RenderPipelineAsset"/>
     /// <see cref="UniversalRenderPipeline"/>
     [ExcludeFromPreset]
-    [URPHelpURL("universalrp-asset")]
+    [URPHelpURL("urp/universalrp-asset")]
     [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
 #if UNITY_EDITOR
+    [DocumentationInfo.Source(DocumentationInfo.Location.Manual)]
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline, ISTPEnabledRenderPipeline

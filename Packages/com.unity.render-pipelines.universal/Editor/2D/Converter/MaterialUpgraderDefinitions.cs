@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.Universal
                 Shader newShader = null;
                 Renderer2DData data = Light2DEditorUtility.GetRenderer2DData();
                 if (data != null)
-                    newShader = data.GetDefaultMaterial(DefaultMaterialType.Sprite).shader;
+                    newShader = data.GetDefaultMaterial(UnityEngine.Rendering.Universal.DefaultMaterialType.Sprite).shader;
                 else
                     newShader = Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
 

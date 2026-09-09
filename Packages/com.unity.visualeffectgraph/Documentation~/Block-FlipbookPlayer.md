@@ -1,4 +1,4 @@
-# Flipbook Player
+# Flipbook Player Block
 
 Menu Path : **FlipBook > Flipbook Player**
 
