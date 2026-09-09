@@ -283,20 +283,6 @@ namespace UnityEngine.Rendering.Universal
             return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex);
         }
 
-        /// <summary>
-        /// Returns the slope-scale depth bias to set while rendering the shadow slices of a visible light, respecting the depth bias mode configured in the URP graphics settings.
-        /// In the slope-scale depth bias mode the value is scaled by the light's soft shadow PCF kernel radius, since wider kernels sample farther from the receiver.
-        /// Pair this with the RenderShadowSlice overloads taking a slopeScaleDepthBias when writing a custom shadow pass.
-        /// </summary>
-        /// <param name="shadowLight">The visible light casting the shadows.</param>
-        /// <param name="shadowData">Data containing shadow settings.</param>
-        /// <param name="visibleLightIndex">The index of the visible light.</param>
-        /// <returns>The slope-scale depth bias to apply while rendering the light's shadow slices.</returns>
-        public static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, ref ShadowData shadowData, int visibleLightIndex)
-        {
-            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex);
-        }
-
         static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex)
         {
             float normalizedSlopeScale = 0.0f;
@@ -483,9 +469,9 @@ namespace UnityEngine.Rendering.Universal
 
         static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            if (shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
+            if (bias == null || shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
-                Debug.LogWarning(string.Format("{0} is not a valid light index.", shadowLightIndex));
+                Debug.Assert(false, "GetShadowBias expects a shadow light index with an entry in the shadow bias data.");
                 return Vector4.zero;
             }
 
@@ -566,7 +552,16 @@ namespace UnityEngine.Rendering.Universal
             if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
                 softShadowQuality = additionalLightData.softShadowQuality;
 
-            return GetSoftShadowKernelRadius(softShadowQuality);
+            return GetSoftShadowKernelRadius(ResolveSoftShadowQuality(softShadowQuality));
+        }
+
+        internal static SoftShadowQuality ResolveSoftShadowQuality(SoftShadowQuality softShadowQuality)
+        {
+            if (softShadowQuality == SoftShadowQuality.UsePipelineSettings)
+                softShadowQuality = UniversalRenderPipeline.asset?.softShadowQuality ?? SoftShadowQuality.Medium;
+
+            // Packing a quality of 0 would read as soft shadows off in the shader
+            return softShadowQuality < SoftShadowQuality.Low ? SoftShadowQuality.Low : softShadowQuality;
         }
 
         internal static float GetSoftShadowKernelRadius(SoftShadowQuality softShadowQuality)
@@ -790,12 +785,7 @@ namespace UnityEngine.Rendering.Universal
             softShadows = softShadowsEnabled ? 1.0f : 0.0f;
             shadowStrength = light.shadowStrength;
             if (additionalLightData != null)
-            {
-                var softShadowQuality = (additionalLightData.softShadowQuality == SoftShadowQuality.UsePipelineSettings)
-                    ? UniversalRenderPipeline.asset?.softShadowQuality
-                    : additionalLightData.softShadowQuality;
-                softShadows *= Math.Max((int)softShadowQuality, (int)SoftShadowQuality.Low);
-            }
+                softShadows *= (int)ResolveSoftShadowQuality(additionalLightData.softShadowQuality);
         }
 
         internal static void GetMainLightShadowParams(Light light, bool softShadowsEnabled, out float softShadows, out float shadowStrength)
