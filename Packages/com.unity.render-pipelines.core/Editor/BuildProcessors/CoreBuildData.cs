@@ -42,7 +42,14 @@ namespace UnityEditor.Rendering
         /// Use this to gate inclusion of diagnostic shaders, resources, and other build-time decisions
         /// that mirror C# code paths compiled under <c>#if UNITY_ENABLE_CHECKS</c>.
         /// </remarks>
-        public bool useDiagnosticChecks { get; private set; } = false;
+        public bool useDiagnosticChecks
+        {
+            get
+            {
+                var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+                return PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(buildTarget)) <= ManagedCodeVariant.Checked;
+            } 
+        }
 
         /// <summary>
         /// Obsolete. Always returns <c>false</c>.
@@ -58,8 +65,6 @@ namespace UnityEditor.Rendering
         private CoreBuildData(BuildTarget buildTarget)
         {
             m_Instance = this;
-
-            useDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(buildTarget)) <= ManagedCodeVariant.Checked;
 
             if (!buildTarget.TryGetRenderPipelineAssets(renderPipelineAssets))
                 return;
