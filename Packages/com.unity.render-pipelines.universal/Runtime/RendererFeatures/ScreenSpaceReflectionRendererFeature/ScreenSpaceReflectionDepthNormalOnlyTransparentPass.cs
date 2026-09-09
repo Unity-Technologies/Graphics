@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var depthDescriptor = resourceData.cameraDepth.GetDescriptor(renderGraph);
                 depthDescriptor.msaaSamples = MSAASamples.None; // Depth-Only pass don't use MSAA
+                depthDescriptor.bindTextureMS = false;
                 depthDescriptor.format = GraphicsFormat.None;
                 depthDescriptor.depthBufferBits = DepthBits.Depth32;
                 ssrData.depthTransparentTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "SSRDepthTransparentTexture", false, Color.clear);
@@ -59,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var normalDescriptor = resourceData.cameraNormalsTexture.GetDescriptor(renderGraph);
                 normalDescriptor.msaaSamples = MSAASamples.None; // Never use MSAA for the normal texture!
+                normalDescriptor.bindTextureMS = false;
                 normalDescriptor.format = GetGraphicsFormat();
                 normalDescriptor.depthBufferBits = DepthBits.None;
                 ssrData.normalTransparentTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, normalDescriptor, "SSRNormalTransparentTexture", true, Color.clear);
