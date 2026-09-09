@@ -1,4 +1,4 @@
-# Random Number
+# Random Number Operator
 
 Menu Path : **Operator > Random > Random Number**
 

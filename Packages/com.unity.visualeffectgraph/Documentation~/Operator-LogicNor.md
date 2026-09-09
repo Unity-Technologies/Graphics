@@ -1,4 +1,4 @@
-# Nor (Logic)
+# Nor (Logic) Operator
 
 Menu Path : **Operator > Logic > Nor**
 

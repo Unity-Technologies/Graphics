@@ -7,7 +7,10 @@ If you use the Universal Render Pipeline (URP), the node samples the opaque text
 To make sure the Scene Color node outputs the correct values, follow these steps:
 
 1. Connect the node to the fragment [shader stage](Shader-Stage.md). The Scene Color node doesn't support the vertex shader stage.
-2. In the **Graph Settings** tab of the [**Graph Inspector**](Internal-inspector.md) window, set **Surface Type** to **Transparent**. Otherwise, the node samples the color buffer before Unity renders all the opaque contents in the scene.
+2. Make sure Unity captures the color buffer after rendering all the opaque contents in the scene. Use either of the following approaches:
+
+    - In the **Graph Settings** tab of the [**Graph Inspector**](Internal-inspector.md) window, set **Surface Type** to **Transparent**.
+    - In the **Inspector** window of the material, set the render queue to 2999 (Transparent−1) or 3000 (Transparent). For more information, refer to [Render queues and sorting behaviors](xref:um-built-in-rendering-order).
 
 ## Render pipeline support 
 

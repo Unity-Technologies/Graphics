@@ -1,4 +1,4 @@
-# Look At
+# Look At Operator
 
 Menu Path : **Operator > Math > Vector**
 

@@ -1579,6 +1579,10 @@ namespace UnityEngine.Rendering.Tests
             int pass1ResourceID = default;
             int pass2ResourceID = default;
 
+            // The compute passes below need UAV access to an RGBA8 texture (see TODO), which e.g. macOS OpenGLCore lacks.
+            if (!SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormatUsage.LoadStore))
+                Assert.Ignore("Random-write access to R8G8B8A8_UNorm is not supported on this device.");
+
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
                 // Enable intra-frame memory aliasing
@@ -1645,6 +1649,10 @@ namespace UnityEngine.Rendering.Tests
 
             int pass1ResourceID = default;
             int pass2ResourceID = default;
+
+            // The compute passes below need UAV access to an RGBA8 texture (see TODO in the WhenEnabled test), which e.g. macOS OpenGLCore lacks.
+            if (!SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormatUsage.LoadStore))
+                Assert.Ignore("Random-write access to R8G8B8A8_UNorm is not supported on this device.");
 
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {

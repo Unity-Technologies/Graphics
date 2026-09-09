@@ -1,4 +1,4 @@
-# Squared Length
+# Squared Length Operator
 
 Menu Path : **Operator > Math > Vector**
 

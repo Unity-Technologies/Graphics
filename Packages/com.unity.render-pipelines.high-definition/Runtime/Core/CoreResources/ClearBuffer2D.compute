@@ -12,6 +12,8 @@ RW_TEXTURE2D_X(float4, _Buffer2D);
 [numthreads(8, 8, 1)]
 void ClearBuffer2DMain(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+    
     if (any(dispatchThreadID.xy >= (uint2)_BufferSize.xy))
         return;
 

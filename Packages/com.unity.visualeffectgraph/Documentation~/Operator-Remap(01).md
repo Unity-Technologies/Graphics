@@ -1,6 +1,6 @@
-# Remap [-1..1] => [0..1]
+# Remap [-1..1] => [0..1] Operator
 
-Menu Path : **Operator > Math > Remap > Remap**
+Menu Path : **Operator** > **Math** > **Remap** > **Remap**
 
 The **Remap [-1..1] => [0..1]** Operator linearly remaps input values from the range -1 to 1 to the range 0 to 1. This is equivalent to the operation (x * 0.5) + 0.5. For example, an input of -1 calculates (-1 * 0.5) + 0.5, and outputs 0.
 

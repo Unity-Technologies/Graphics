@@ -1,4 +1,4 @@
-# Get Attribute: angularVelocity
+# Get Attribute: angularVelocity Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: angularVelocity**
 

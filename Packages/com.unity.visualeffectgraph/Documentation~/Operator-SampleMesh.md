@@ -1,4 +1,4 @@
-# Sample Mesh
+# Sample Mesh Operator
 
 Menu Path: **Operator > Sampling > Sample Mesh**
 

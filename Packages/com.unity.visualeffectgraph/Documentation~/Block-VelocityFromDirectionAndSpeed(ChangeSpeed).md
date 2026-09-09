@@ -1,4 +1,4 @@
-# Velocity from Direction & Speed (Change Speed)
+# Velocity from Direction & Speed (Change Speed) Block
 
 > [!IMPORTANT]
 > This feature is experimental. To use this feature, open the **Preferences** window, go to the **Visual Effects** tab, and enable **Experimental Operators/Blocks**.
@@ -14,8 +14,8 @@ To do this, it scales the direction vector by a speed, and composes it with the 
 
 This Block is compatible with the following Contexts:
 
-- [Initialize](Context-Initialize.md)
-- [Update](Context-Update.md)
+- [Initialize Context](Context-Initialize.md)
+- [Update Context](Context-Update.md)
 
 ## Block settings
 

@@ -1,4 +1,4 @@
-# Matrix4x4
+# Matrix4x4 Operator
 
 Menu Path : **Operator > Inline > Matrix4x4**
 

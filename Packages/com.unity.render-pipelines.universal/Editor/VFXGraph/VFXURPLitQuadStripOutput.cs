@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.URP
 {
-    [VFXHelpURL("Context-OutputPrimitive")]
+    [VFXHelpURL("Context-OutputStripQuad")]
     [VFXInfo(name = "Output ParticleStrip|URP Lit|Quad", category = "#3Output Strip", experimental = true)]
     class VFXURPLitQuadStripOutput : VFXAbstractParticleURPLitOutput
     {

@@ -1,4 +1,4 @@
-# ArcCircle
+# ArcCircle Operator
 
 Menu Path : **Operator > Inline > ArcCircle**
 

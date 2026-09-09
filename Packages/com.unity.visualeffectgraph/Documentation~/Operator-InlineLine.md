@@ -1,4 +1,4 @@
-# Line
+# Line Operator
 
 Menu Path : **Operator > Inline > Line**
 

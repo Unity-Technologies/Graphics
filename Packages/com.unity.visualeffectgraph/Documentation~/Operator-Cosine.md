@@ -1,4 +1,4 @@
-# Cosine
+# Cosine Operator
 
 Menu Path : **Operator > Math > Trigonometry > Cosine**
 

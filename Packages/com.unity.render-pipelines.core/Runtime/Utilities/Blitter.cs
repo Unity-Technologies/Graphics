@@ -292,6 +292,15 @@ namespace UnityEngine.Rendering
                 return false;
             }
 
+            // The MSAA pass fetches samples via SV_SampleIndex (gl_SampleID), which needs per-sample
+            // shading. On GLES that comes with the ES3.2/AEP tier; plain-ES3.1 drivers (e.g. RPi5/V3D,
+            // no GL_OES_sample_variables) ship the pass but reject it at load, and passCount only
+            // reflects build-target support. Scope to GLES so backends that support the non-array
+            // Texture2DMS + SV_SampleIndex path (e.g. WebGPU) keep the sample-preserving copy.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3
+                && !SystemInfo.supportsMultisampled2DArrayTextures)
+                return false;
+
             // This test works since the second pass has the following pragmas and will not be compiled if they are not supported
             // #pragma target 4.5
             // #pragma require msaatex

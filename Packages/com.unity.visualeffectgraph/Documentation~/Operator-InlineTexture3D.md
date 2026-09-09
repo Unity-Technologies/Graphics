@@ -1,4 +1,4 @@
-# Texture3D
+# Texture3D Operator
 
 Menu Path : **Operator > Inline > Texture3D**
 

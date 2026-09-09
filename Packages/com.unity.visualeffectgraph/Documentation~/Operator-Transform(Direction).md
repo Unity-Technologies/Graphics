@@ -1,6 +1,6 @@
-# Transform (Direction)
+# Transform (Direction) Operator
 
-Menu Path : **Operator > Math > Geometry > Transform (Direction)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transform (Direction)**
 
 The **Transform (Direction)** Operator applies a transformation to a Direction to position, rotate, or scale it.
 

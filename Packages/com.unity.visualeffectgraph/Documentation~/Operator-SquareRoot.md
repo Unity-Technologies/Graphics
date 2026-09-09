@@ -1,4 +1,4 @@
-# Square Root
+# Square Root Operator
 
 Menu Path : **Operator > Math > Arithmetic > Square Root**
 

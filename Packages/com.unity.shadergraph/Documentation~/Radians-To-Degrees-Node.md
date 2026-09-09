@@ -8,8 +8,8 @@ Returns the value of input **In** converted from radians to degrees. One radian 
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| In      | Input | Dynamic Vector | Input value in radians |
+| Out | Output      |    Dynamic Vector | Output value in degrees |
 
 ## Generated Code Example
 

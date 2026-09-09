@@ -230,10 +230,18 @@ namespace UnityEngine.Rendering.Universal
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
             bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
 
-            // Let engine know we have MSAA on for cases where we support MSAA backbuffer
+            // Let engine know we have MSAA on for cases where we support MSAA backbuffer.
+            // QualitySettings.antiAliasing setter does NOT call ScreenManager::OnAntiAliasingChanged(),
+            // so changing it alone never triggers Metal/GLES backbuffer reallocation. Screen.SetMSAASamples()
+            // sets m_RequestedMSAASamples AND fires OnAntiAliasingChanged -> ReapplyRequestedResolution,
+            // so the backbuffer is reallocated before the next frame's rendering begins.
+            // Both calls are required: do NOT gate Screen.SetMSAASamples on Screen.msaaSamples != target,
+            // because Screen.msaaSamples falls back to QualitySettings.antiAliasing when m_RequestedMSAASamples
+            // is 0, and reads back the just-written QS value, masking the real surface state.
             if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
+                Screen.SetMSAASamples(asset.msaaSampleCount);
             }
 
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();

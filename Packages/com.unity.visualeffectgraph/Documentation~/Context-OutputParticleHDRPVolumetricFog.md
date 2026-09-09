@@ -1,4 +1,4 @@
-# Output Particle HDRP Volumetric Fog
+# Output Particle HDRP Volumetric Fog Context
 
 The **Output Particle HDRP Volumetric Fog** Context allows for the injection of fog directly into HDRP's volumetric lighting system, resulting in dynamic fog effects created with the VFX graph simulation.
 
@@ -10,7 +10,7 @@ The particle color controls the color of the fog, and the particle alpha control
 
 Menu Path : **Context > Output Particle HDRP Volumetric Fog**
 
-# Context Settings
+## Context Settings
 
 | **Input**                    | **Type** | **Description**                                                                                                                                                                                                                                                                               |
 |------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -20,7 +20,7 @@ Menu Path : **Context > Output Particle HDRP Volumetric Fog**
 | **Use Distance Fading**    | Bool     | Exposes two ports to control the particle fading. Distance fade consists of a Start and End distance, where the particle alpha is interpolated to 0 (that is, when the particle center distance from the camera equals **Distance Fade Start** the alpha is multiplied by 1, and when the distance reaches **Distance Fade End** it is multiplied by 0). Distance Fading can help prevent small fog particles from flickering. |
 
 
-# Context Properties
+## Context Properties
 
 | **Input**             | **Type** | **Description**   |
 |-----------------------|----------|-------------------|
@@ -33,7 +33,7 @@ Menu Path : **Context > Output Particle HDRP Volumetric Fog**
 | **Distance Fade End** | Float    | Determines the distance from the camera to the particle center where the particle ends fading. |
 
 
-# Limitations
+## Limitations
 
 - This Output does not support [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest).
 - For this Context to work, enable Volumetric Fog in the HDRP Asset and in the HDRP Global Settings.

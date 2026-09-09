@@ -1,6 +1,6 @@
-# Distance (Plane)
+# Distance (Plane) Operator
 
-Menu Path : **Operator > Math > Geometry > Distance (Plane)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Distance (Plane)**
 
 The **Distance (Plane)** Operator Operator takes a plane and a position and calculates:
 

@@ -1,4 +1,4 @@
-# Get Mesh Index Count
+# Get Mesh Index Count Operator
 
 Menu Path: **Operator > Sampling > Get Mesh Index Count**
 
