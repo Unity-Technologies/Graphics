@@ -9,21 +9,20 @@ namespace UnityEditor.Rendering.Tests
     [TestFixture]
     internal class RenderGraphDebugQueryPauseTests
     {
-        const string k_FixturePath = "Assets/Tests/Editor/RenderGraphViewer/RenderGraph/RenderGraphDebugSessionFixture.json";
-        const string k_ExpectedGraphName = "URPRenderGraph";
+        const string k_ExpectedGraphName = RenderGraphDebugSessionMockFactory.k_GraphName;
 
         MockPausableDebugSession m_MockSession;
 
         class MockPausableDebugSession : IRenderGraphDebugSession
         {
-            readonly SerializedRenderGraphDebugSession m_InnerSession;
+            readonly IRenderGraphDebugSession m_InnerSession;
             bool m_IsPaused;
 
             public event Action onRegisteredGraphsChanged { add { } remove { } }
             public event Action<string, EntityId> onDebugDataUpdated { add { } remove { } }
             public event Action<bool> onPausedStateChanged { add { } remove { } }
 
-            public MockPausableDebugSession(SerializedRenderGraphDebugSession innerSession)
+            public MockPausableDebugSession(IRenderGraphDebugSession innerSession)
             {
                 m_InnerSession = innerSession;
             }
@@ -51,12 +50,11 @@ namespace UnityEditor.Rendering.Tests
         [SetUp]
         public void SetUp()
         {
-            Assert.IsTrue(System.IO.File.Exists(k_FixturePath), $"Test fixture not found at: {k_FixturePath}");
-            var serializedSession = SerializedRenderGraphDebugSession.LoadFromFile(k_FixturePath);
-            m_MockSession = new MockPausableDebugSession(serializedSession);
+            var mockedSession = RenderGraphDebugSessionMockFactory.CreateMockedSession();
+            m_MockSession = new MockPausableDebugSession(mockedSession);
             RenderGraphDebugSessionManager.BeginSession(m_MockSession);
 
-            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after loading fixture");
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after creating mocked session");
         }
 
         [TearDown]
@@ -127,7 +125,7 @@ namespace UnityEditor.Rendering.Tests
         RenderGraph.DebugExecutionItem GetExecutionItem(string graphName)
         {
             // Return hardcoded execution item for predictable tests
-            return new RenderGraph.DebugExecutionItem(EntityId.FromULong(1099511677449), "Main Camera");
+            return new RenderGraph.DebugExecutionItem(EntityId.FromULong(RenderGraphDebugSessionMockFactory.k_ExecutionIdValue), RenderGraphDebugSessionMockFactory.k_ExecutionName);
         }
     }
 }

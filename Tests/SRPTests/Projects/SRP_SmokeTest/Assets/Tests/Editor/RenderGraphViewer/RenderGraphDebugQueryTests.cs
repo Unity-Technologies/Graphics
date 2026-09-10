@@ -7,21 +7,20 @@ using UnityEngine.Rendering.RenderGraphModule;
 namespace UnityEditor.Rendering.Tests
 {
     /// <summary>
-    /// Tests for RenderGraphDebugQuery using a serialized debug session fixture.
-    /// Tests that the query API correctly retrieves data from RenderGraphDebugSessionManager.
-    /// Validates against known data from the fixture file.
+    /// Tests for RenderGraphDebugQuery using a mocked debug session.
+    /// Tests that the query API correctly retrieves data from RenderGraphDebugSession.
+    /// Uses hardcoded test data instead of loading from JSON fixtures, making it easier
+    /// for developers to understand the test data and modify tests.
     /// </summary>
     [TestFixture]
     internal class RenderGraphDebugQueryTests
     {
-        const string k_FixturePath = "Assets/Tests/Editor/RenderGraphViewer/RenderGraph/RenderGraphDebugSessionFixture.json";
-
-        // Expected values from the fixture
-        const string k_ExpectedGraphName = "URPRenderGraph";
-        const string k_ExpectedExecutionName = "Main Camera";
+        // Expected values from the mocked session
+        const string k_ExpectedGraphName = RenderGraphDebugSessionMockFactory.k_GraphName;
+        const string k_ExpectedExecutionName = RenderGraphDebugSessionMockFactory.k_ExecutionName;
         const int k_ExpectedPassCount = 17;
         const int k_ExpectedCulledPassCount = 0;
-        const int k_ExpectedUnmergedPassCount = 13;
+        const int k_ExpectedUnmergedPassCount = 6;
         const int k_ExpectedResourceCount = 18; // 16 textures + 1 buffer + 1 acceleration structure
         const int k_ExpectedTextureCount = 16;
         const int k_ExpectedBufferCount = 1;
@@ -75,13 +74,11 @@ namespace UnityEditor.Rendering.Tests
         [OneTimeSetUp]
         public void SetUp()
         {
-            // Load the serialized session fixture
-            Assert.IsTrue(System.IO.File.Exists(k_FixturePath), $"Test fixture not found at: {k_FixturePath}");
+            // Create a mocked session with hardcoded test data
+            var mockedSession = RenderGraphDebugSessionMockFactory.CreateMockedSession();
+            RenderGraphDebugSessionManager.BeginSession(mockedSession);
 
-            var serializedSession = SerializedRenderGraphDebugSession.LoadFromFile(k_FixturePath);
-            RenderGraphDebugSessionManager.BeginSession(serializedSession);
-
-            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after loading fixture");
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after creating mocked session");
         }
 
         [OneTimeTearDown]
@@ -109,7 +106,7 @@ namespace UnityEditor.Rendering.Tests
         private RenderGraph.DebugExecutionItem GetExecutionItem()
         {
             // Return hardcoded execution item for predictable tests
-            return new RenderGraph.DebugExecutionItem(EntityId.FromULong(1099511677449), "Main Camera");
+            return new RenderGraph.DebugExecutionItem(EntityId.FromULong(RenderGraphDebugSessionMockFactory.k_ExecutionIdValue), RenderGraphDebugSessionMockFactory.k_ExecutionName);
         }
 
         [Test]
@@ -516,14 +513,13 @@ namespace UnityEditor.Rendering.Tests
                 // [3] Native pass merging insight
                 Assert.AreEqual(InsightCategory.Merging, insights.insights[3].category);
                 Assert.AreEqual(InsightSeverity.Info, insights.insights[3].severity);
-                Assert.AreEqual("Native pass merging: 13 merge breaks out of 17 active passes (23.5% efficiency)", insights.insights[3].message);
+                Assert.AreEqual("Native pass merging: 6 merge breaks out of 17 active passes (64.7% efficiency)", insights.insights[3].message);
 
                 // [4] Most common merge break reason
                 Assert.AreEqual(InsightCategory.Merging, insights.insights[4].category);
                 Assert.AreEqual(InsightSeverity.Info, insights.insights[4].severity);
                 StringAssert.Contains("Most common merge break reason:", insights.insights[4].message);
-                StringAssert.Contains("Failed to merge BlitFinalToBackBuffer", insights.insights[4].message);
-                StringAssert.Contains("4 occurrences", insights.insights[4].message);
+                StringAssert.Contains("1 occurrences", insights.insights[4].message);
 
                 // [5] Resources summary
                 Assert.AreEqual(InsightCategory.Resources, insights.insights[5].category);

@@ -10,10 +10,8 @@ namespace UnityEditor.Rendering.Tests
 {
     public class RenderGraphViewerUITests
     {
-        const string k_FixturePath = "Assets/Tests/Editor/RenderGraphViewer/RenderGraph/RenderGraphDebugSessionFixture.json";
-
         RenderGraphViewer m_Viewer;
-        SerializedRenderGraphDebugSession m_FixtureSession;
+        IRenderGraphDebugSession m_MockSession;
         IRenderGraphDebugSession m_PreviousSession;
 
         [SetUp]
@@ -27,16 +25,16 @@ namespace UnityEditor.Rendering.Tests
             if (existingViewer != null)
                 existingViewer.Close();
 
-            // Load the fixture session from the package
-            m_FixtureSession = new SerializedRenderGraphDebugSession(File.ReadAllText(k_FixturePath));
-            Assume.That(m_FixtureSession, Is.Not.Null, "Failed to load fixture session");
+            // Create a mocked session with hardcoded test data
+            m_MockSession = RenderGraphDebugSessionMockFactory.CreateMockedSession();
+            Assume.That(m_MockSession, Is.Not.Null, "Failed to create mocked session");
 
             // Open the viewer first
             m_Viewer = RenderGraphViewerTestHelpers.OpenRenderGraphViewer();
             Assume.That(m_Viewer, Is.Not.Null, "Failed to open RenderGraphViewer");
 
-            // Now connect the viewer to the fixture session using the proper method
-            m_Viewer.ConnectDebugSession(m_FixtureSession);
+            // Now connect the viewer to the mocked session using the proper method
+            m_Viewer.ConnectDebugSession(m_MockSession);
         }
 
         [TearDown]
@@ -54,26 +52,26 @@ namespace UnityEditor.Rendering.Tests
         }
 
         [Test]
-        public void RenderGraphViewer_FixtureSessionIsActive()
+        public void RenderGraphViewer_MockedSessionIsActive()
         {
             Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession);
-            Assert.AreSame(m_FixtureSession, RenderGraphDebugSessionManager.currentDebugSession);
+            Assert.AreSame(m_MockSession, RenderGraphDebugSessionManager.currentDebugSession);
         }
 
         [Test]
-        public void RenderGraphViewer_FixtureHasValidData()
+        public void RenderGraphViewer_MockedSessionHasValidData()
         {
-            var graphs = m_FixtureSession.GetRegisteredGraphs();
+            var graphs = m_MockSession.GetRegisteredGraphs();
             Assert.IsNotNull(graphs);
-            Assert.Greater(graphs.Count, 0, "Fixture should contain at least one graph");
+            Assert.Greater(graphs.Count, 0, "Mocked session should contain at least one graph");
 
             // Get the first graph's executions
-            var executions = m_FixtureSession.GetExecutions(graphs[0]);
+            var executions = m_MockSession.GetExecutions(graphs[0]);
             Assert.IsNotNull(executions);
-            Assert.Greater(executions.Count, 0, "Fixture should contain at least one execution");
+            Assert.Greater(executions.Count, 0, "Mocked session should contain at least one execution");
 
             // Get debug data for the first execution
-            var debugData = m_FixtureSession.GetDebugData(graphs[0], executions[0].id);
+            var debugData = m_MockSession.GetDebugData(graphs[0], executions[0].id);
             Assert.IsNotNull(debugData);
             Assert.IsTrue(debugData.valid, "Debug data should be valid");
         }
@@ -103,13 +101,13 @@ namespace UnityEditor.Rendering.Tests
             Assert.Greater(dependencyBlockCount, 0, "Should have dependency blocks displayed");
 
             // Verify the counts match the debug data
-            var graphs = m_FixtureSession.GetRegisteredGraphs();
+            var graphs = m_MockSession.GetRegisteredGraphs();
             if (graphs.Count > 0)
             {
-                var executions = m_FixtureSession.GetExecutions(graphs[0]);
+                var executions = m_MockSession.GetExecutions(graphs[0]);
                 if (executions.Count > 0)
                 {
-                    var debugData = m_FixtureSession.GetDebugData(graphs[0], executions[0].id);
+                    var debugData = m_MockSession.GetDebugData(graphs[0], executions[0].id);
                     Assert.AreEqual(debugData.passList.Count, passCount, "Pass count should match debug data");
                 }
             }
