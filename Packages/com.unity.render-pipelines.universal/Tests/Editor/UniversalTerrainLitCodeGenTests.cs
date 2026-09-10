@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             return shaders;
         }
 
-        // Varyings.hlsl calls TerrainVaryingGeneration outside of any FEATURES_GRAPH_VERTEX guard, so the
+        // Varyings.hlsl calls ApplyTerrainInstancing outside of any FEATURES_GRAPH_VERTEX guard, so the
         // terrain passes have to emit it even when the graph's Vertex context is empty. That state is one
         // Delete away: TerrainLit's only active vertex block is Position, it is unconnected by default, and
         // removing it does not trigger the auto re-add. Gating the definition on graphVertex breaks every pass.
@@ -84,9 +84,9 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TestCase(VertexContext.Empty, GenerationMode.ForReals)]
         [TestCase(VertexContext.WithPositionBlock, GenerationMode.Preview)]
         [TestCase(VertexContext.Empty, GenerationMode.Preview)]
-        public void TerrainShadersDefineTerrainVaryingGeneration(VertexContext vertexContext, GenerationMode mode)
+        public void TerrainShadersDefineApplyTerrainInstancing(VertexContext vertexContext, GenerationMode mode)
         {
-            AssertDefinedInEveryTerrainPass("TerrainVaryingGeneration", vertexContext, mode);
+            AssertDefinedInEveryTerrainPass("ApplyTerrainInstancing", vertexContext, mode);
         }
 
         // Same for ConstructTerrainTangent, which the forward and gbuffer passes call under
@@ -98,6 +98,63 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void TerrainShadersDefineConstructTerrainTangent(VertexContext vertexContext, GenerationMode mode)
         {
             AssertDefinedInEveryTerrainPass("ConstructTerrainTangent", vertexContext, mode);
+        }
+
+        // The splat UV plumbing this subtarget used to emit was guarded on UNIVERSAL_TERRAIN_SPLAT02, a
+        // keyword no descriptor ever declared, so the guarded block compiled out in silence and shipped
+        // that way for five release streams. A misspelled #if is invisible to the shader compiler and to
+        // image comparison alike, which is why it survived that long. Assert the invariant instead: a
+        // terrain pass may only test UNIVERSAL_TERRAIN_ keywords that the same pass defines or declares.
+        //
+        // The scope is one HLSLPROGRAM, not the whole shader, because preprocessor state does not cross
+        // that boundary. The pre-fix tree had exactly that shape: every pixel pass tested
+        // UNIVERSAL_TERRAIN_SPLAT01, but ShadowCaster, DepthOnly and the two picking passes never
+        // defined it, and a shader-wide set difference is satisfied by the forward pass. A #pragma
+        // multi_compile or shader_feature counts as a declaration, since those keywords never appear as
+        // a #define and are legitimately tested.
+        //
+        // UNIVERSAL_TERRAIN_ENABLED is the only keyword left under this prefix, so this guards the next
+        // one added rather than a live bug. The prefix stays narrow on purpose: terrain templates also
+        // test keywords that core URP declares (_NORMALMAP), and a wider net would need a whitelist of
+        // foreign declarations that would rot.
+        [TestCase(VertexContext.WithPositionBlock, GenerationMode.ForReals)]
+        [TestCase(VertexContext.Empty, GenerationMode.ForReals)]
+        [TestCase(VertexContext.WithPositionBlock, GenerationMode.Preview)]
+        [TestCase(VertexContext.Empty, GenerationMode.Preview)]
+        public void TerrainPassesDeclareEveryUniversalTerrainKeywordTheyTest(VertexContext vertexContext, GenerationMode mode)
+        {
+            // Collect across shaders and passes before asserting, so one failure names every offender.
+            var undeclared = new List<string>();
+            foreach (var (name, code) in GenerateTerrainShaders(vertexContext, mode))
+            {
+                var programs = Regex.Matches(code, @"HLSLPROGRAM.*?ENDHLSL", RegexOptions.Singleline);
+                Assert.IsNotEmpty(programs, $"no HLSLPROGRAM block in {name}");
+
+                foreach (Match program in programs)
+                {
+                    var declared = new HashSet<string>(Regex.Matches(program.Value, @"#define\s+(UNIVERSAL_TERRAIN_\w+)")
+                        .Cast<Match>().Select(match => match.Groups[1].Value));
+                    foreach (Match pragma in Regex.Matches(program.Value, @"#pragma\s+(?:multi_compile|shader_feature|dynamic_branch)[^\n]*"))
+                        declared.UnionWith(Regex.Matches(pragma.Value, @"UNIVERSAL_TERRAIN_\w+").Cast<Match>().Select(match => match.Value));
+
+                    var referenced = new HashSet<string>(Regex.Matches(program.Value, @"UNIVERSAL_TERRAIN_\w+")
+                        .Cast<Match>().Select(match => match.Value));
+                    referenced.ExceptWith(declared);
+
+                    if (referenced.Count > 0)
+                        undeclared.Add($"{name} {PassName(code, program.Index)}: {string.Join(" ", referenced.OrderBy(keyword => keyword))}");
+                }
+            }
+
+            CollectionAssert.IsEmpty(undeclared, "terrain keyword tested but never declared in the same pass");
+        }
+
+        // Regular passes carry Name "Universal Forward" from the PassName splice; the BaseMapGen passes
+        // carry "Name" = "_MainTex" as a tag instead. Either way it is the last one before the program.
+        static string PassName(string code, int programIndex)
+        {
+            var names = Regex.Matches(code.Substring(0, programIndex), @"""?Name""?\s*=?\s*""([^""]+)""");
+            return names.Count > 0 ? names[names.Count - 1].Groups[1].Value : $"program at offset {programIndex}";
         }
     }
 }
