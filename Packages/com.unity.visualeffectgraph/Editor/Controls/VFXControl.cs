@@ -15,7 +15,8 @@ namespace UnityEditor.VFX.UI
     interface IVFXControl
     {
         bool indeterminate { get; set; }
-        event Action onValueDragFinished;
+        // The boolean argument denotes whether the value underwent a net change during drag
+        event Action<bool> onValueDragFinished;
         event Action onValueDragStarted;
         void ForceUpdate();
         void SetEnabled(bool isEnabled);
@@ -30,7 +31,9 @@ namespace UnityEditor.VFX.UI
             set => SetValueAndNotify(value);
         }
 
-        public event Action onValueDragFinished;
+        T m_ValueAtDragStart;
+
+        public event Action<bool> onValueDragFinished;
         public event Action onValueDragStarted;
 
         public void SetValueAndNotify(T newValue)
@@ -75,8 +78,15 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback(callback);
         }
 
-        protected void ValueDragFinished(PointerCaptureOutEvent evt) => onValueDragFinished?.Invoke();
+        protected void ValueDragFinished(PointerCaptureOutEvent evt)
+        {
+            onValueDragFinished?.Invoke(!EqualityComparer<T>.Default.Equals(m_ValueAtDragStart, value));
+        }
 
-        protected void ValueDragStarted(PointerCaptureEvent evt) => onValueDragStarted?.Invoke();
+        protected void ValueDragStarted(PointerCaptureEvent evt)
+        {
+            m_ValueAtDragStart = value;
+            onValueDragStarted?.Invoke();
+        }
     }
 }

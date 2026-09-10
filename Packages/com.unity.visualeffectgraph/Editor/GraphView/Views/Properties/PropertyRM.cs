@@ -180,11 +180,12 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void UpdateIndeterminate();
 
-        protected void ValueDragFinished()
+        protected void ValueDragFinished(bool valueChanged)
         {
             m_Provider.EndLiveModification();
             hasChangeDelayed = false;
-            NotifyValueChanged();
+            if (valueChanged)
+                NotifyValueChanged();
         }
 
         protected void ValueDragStarted()
