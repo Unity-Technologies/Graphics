@@ -15,6 +15,9 @@ namespace UnityEngine.Rendering.Universal
         private LocalKeyword m_SubsampleDepthKeyword;
         private static readonly ShaderTagId k_MotionOnlyShaderTagId = new ShaderTagId(k_MotionOnlyShaderTagIdName);
         private static readonly int k_SpaceWarpNDCModifier = Shader.PropertyToID("_SpaceWarpNDCModifier");
+        // Stencil bit the object-motion passes use as the "has object motion" marker. Kept in sync with
+        // ObjectMotionVectorFallback and the material XRMotionVectors passes (WriteMask 1, Ref 1).
+        private const uint k_ObjectMotionMarkerMask = 0x1;
         private static readonly int k_XRDepthTextureUVScale = Shader.PropertyToID("_XRDepthTextureUVScale");
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;
@@ -94,13 +97,35 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, objectMotionDrawingSettings, filteringSettings, renderStateBlock, ref passData.objMotionRendererList);
         }
-        private void InitTransparentObjectMotionRendererLists(ref PassData passData, ref CullingResults cullResults, RenderGraph renderGraph, Camera camera)
+
+        private void InitTransparentObjectMotionRendererLists(ref PassData passData, ref CullingResults cullResults, RenderGraph renderGraph, UniversalCameraData cameraData)
         {
+            var camera = cameraData.camera;
             var objectMotionDrawingSettings = GetObjectMotionDrawingSettings(camera, true);
 
             var filteringSettings = new FilteringSettings(RenderQueueRange.transparent, m_transparentlayerMask);
             filteringSettings.forceAllMotionVectorObjects = true; // this is required because generally, transparent objects/ui don't usually write depth
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+            // Stamp the runtime-supplied exclude pattern on transparent draws so the compositor skips
+            // temporal reuse on them, which is what prevents transparency and particle ghosting.
+            if (cameraData.xr.hasMotionVectorStencil && cameraData.xr.motionVectorStencilMask != 0)
+            {
+                uint excludeMask = cameraData.xr.motionVectorStencilMask;
+                uint excludeValue = cameraData.xr.motionVectorStencilValue;
+                renderStateBlock = new RenderStateBlock(RenderStateMask.Stencil)
+                {
+                    stencilReference = (int)excludeValue,
+                    stencilState = new StencilState(
+                        enabled: true,
+                        readMask: 0xFF,
+                        writeMask: (byte)excludeMask,
+                        compareFunction: CompareFunction.Always,
+                        passOperation: StencilOp.Replace,
+                        failOperation: StencilOp.Keep,
+                        zFailOperation: StencilOp.Keep)
+                };
+            }
 
             RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, objectMotionDrawingSettings, filteringSettings, renderStateBlock, ref passData.objTransparentMotionRendererList);
         }
@@ -179,11 +204,13 @@ namespace UnityEngine.Rendering.Universal
             importMotionColorParams.clearOnFirstUse = true;
             importMotionColorParams.clearColor = Color.black;
             importMotionColorParams.discardOnLastUse = false;
+            importMotionColorParams.textureUVOrigin = TextureUVOrigin.TopLeft;
 
             ImportResourceParams importMotionDepthParams = new ImportResourceParams();
             importMotionDepthParams.clearOnFirstUse = true;
             importMotionDepthParams.clearColor = Color.black;
             importMotionDepthParams.discardOnLastUse = false;
+            importMotionDepthParams.textureUVOrigin = TextureUVOrigin.TopLeft;
 
             xrMotionVectorColor = renderGraph.ImportTexture(m_XRMotionVectorColor, importInfo, importMotionColorParams);
             xrMotionVectorDepth = renderGraph.ImportTexture(m_XRMotionVectorDepth, importInfoDepth, importMotionDepthParams);
@@ -212,6 +239,18 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            // The runtime owns the exclude mask but cannot know which bits URP's shaders reserve, so the
+            // overlap check has to happen on this side.
+            if (cameraData.xr.hasMotionVectorStencil)
+            {
+                Debug.Assert((cameraData.xr.motionVectorStencilMask & k_ObjectMotionMarkerMask) == 0,
+                    $"TPS exclude mask 0x{cameraData.xr.motionVectorStencilMask:X} overlaps URP's object-motion " +
+                    "marker bit (bit 0); moving opaque geometry would be wrongly excluded from temporal reuse.");
+
+                Debug.Assert(cameraData.xr.motionVectorStencilMask <= 0xFF,
+                    $"TPS exclude mask 0x{cameraData.xr.motionVectorStencilMask:X} does not fit in an 8-bit stencil buffer.");
+            }
+
             // First, import XR motion color and depth targets into the RenderGraph
             ImportXRMotionColorAndDepth(renderGraph, cameraData);
 
@@ -233,8 +272,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(xrMotionVectorColor, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(xrMotionVectorDepth, AccessFlags.ReadWrite);
 
-                // Logic to detect if we already has valid XR depth data in the eye texture depth attachment
-                bool hasValidXRDepth = cameraData.xr.copyDepth;
+                // TEMP WORKAROUND - forced false under TPS to avoid the UseTexture(backBufferDepth, Read)
+                // below, which forces textureUVOrigin = BottomLeft under Tile-Only Mode and flips the frame.
+                // Costs a full object draw instead of moving objects only, so TPS profiling numbers taken
+                // here are not representative. Drop the condition once UV-origin ownership is resolved.
+                bool hasValidXRDepth = cameraData.xr.copyDepth && !cameraData.xr.isTemporalPixelSynthesisActive;
 
                 // In case we don't have valid depth, setup the renderer list to draw both static objects and moving objects to populate color+depth at the same time.
                 bool forceAllMotionVectorObjects = !hasValidXRDepth;
@@ -242,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
                 // Setup RendererList
                 InitObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData.camera, forceAllMotionVectorObjects);
                 builder.UseRendererList(passData.objMotionRendererList);
-                InitTransparentObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData.camera);
+                InitTransparentObjectMotionRendererLists(ref passData, ref renderingData.cullResults, renderGraph, cameraData);
                 builder.UseRendererList(passData.objTransparentMotionRendererList);
 
                 // Allow setting up global matrix array

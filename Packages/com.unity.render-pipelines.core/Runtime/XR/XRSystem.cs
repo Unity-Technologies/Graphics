@@ -129,6 +129,29 @@ namespace UnityEngine.Experimental.Rendering
         [AutoStaticsCleanup]
         static Action<XRLayout, Camera> s_LayoutOverride = null;
 
+        /// <summary>Per-frame Temporal Pixel Synthesis configuration override.</summary>
+        public struct TemporalPixelSynthesisConfig
+        {
+            /// <summary>TPS active this frame (gates URP TAA/STP/upscaler).</summary>
+            public bool active;
+            /// <summary>Runtime requests a stencil aspect on the motion-vector target.</summary>
+            public bool requestStencil;
+            /// <summary>Stencil reference value: (stencil &amp; mask) == value ⇒ excluded from TPS.</summary>
+            public uint stencilValue;
+            /// <summary>Stencil bitmask tested by TPS (non-zero; must not overlap pipeline-private bits).</summary>
+            public uint stencilMask;
+            /// <summary>Compositor performs upscaling (eye target may be rendered below display res).</summary>
+            public bool upscalingEnabled;
+        }
+
+        /// <summary>
+        /// Overrides the Temporal Pixel Synthesis contract reported by <see cref="XRPass"/>, for exercising
+        /// the feature without an XR provider that implements <c>XR_META_temporal_pixel_synthesis</c>.
+        /// Takes precedence over provider-supplied values while <see cref="TemporalPixelSynthesisConfig.active"/> is true.
+        /// </summary>
+        [AutoStaticsCleanup]
+        public static TemporalPixelSynthesisConfig temporalPixelSynthesisConfig { get; set; }
+
         /// <summary>
         /// Returns true if a XR device is connected and running.
         /// </summary>
@@ -770,8 +793,48 @@ namespace UnityEngine.Experimental.Rendering
             return rtDesc;
         }
 
+        // Frame-keyed rather than a bool reset on "TPS inactive": in multi-pass the provider may describe
+        // pass 0 but not pass 1, and a per-pass reset would put the message back to once per frame.
+        [AutoStaticsCleanup]
+        static int s_LastTemporalPixelSynthesisStencilFormatErrorFrame = -1;
+
         static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout, XRLayoutType layoutType, Vector4 uvScales, Vector4 uvOffsets)
         {
+            bool temporalPixelSynthesisActive;
+            uint temporalPixelSynthesisStencilValue;
+            uint temporalPixelSynthesisStencilMask;
+            bool temporalPixelSynthesisStencilRequested;
+
+            if (temporalPixelSynthesisConfig.active)
+            {
+                temporalPixelSynthesisActive = true;
+                temporalPixelSynthesisStencilValue = temporalPixelSynthesisConfig.stencilValue;
+                temporalPixelSynthesisStencilMask = temporalPixelSynthesisConfig.stencilMask;
+                temporalPixelSynthesisStencilRequested = temporalPixelSynthesisConfig.requestStencil;
+            }
+            else
+            {
+                temporalPixelSynthesisActive = xrRenderPass.isTemporalPixelSynthesisActive;
+                temporalPixelSynthesisStencilValue = (uint)xrRenderPass.motionVectorStencilValue;
+                temporalPixelSynthesisStencilMask = (uint)xrRenderPass.motionVectorStencilMask;
+                temporalPixelSynthesisStencilRequested = temporalPixelSynthesisActive;
+            }
+
+            // The 0xFF bound matters because the mask reaches StencilState.writeMask as a byte downstream,
+            // so e.g. 0x100 would truncate to 0 and silently write no stencil at all.
+            bool hasMotionVectorStencil = temporalPixelSynthesisActive
+                && temporalPixelSynthesisStencilRequested
+                && xrRenderPass.hasMotionVectorPass
+                && temporalPixelSynthesisStencilMask != 0
+                && temporalPixelSynthesisStencilMask <= 0xFF;
+
+            // Don't publish a contract that isn't in force.
+            if (!hasMotionVectorStencil)
+            {
+                temporalPixelSynthesisStencilValue = 0;
+                temporalPixelSynthesisStencilMask = 0;
+            }
+
             XRPassCreateInfo passInfo = new XRPassCreateInfo
             {
                 renderTarget            = xrRenderPass.renderTarget,
@@ -789,6 +852,10 @@ namespace UnityEngine.Experimental.Rendering
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
                 spaceWarpRightHandedNDC = xrRenderPass.spaceWarpRightHandedNDC,
+                hasMotionVectorStencil   = hasMotionVectorStencil,
+                motionVectorStencilValue = temporalPixelSynthesisStencilValue,
+                motionVectorStencilMask  = temporalPixelSynthesisStencilMask,
+                isTemporalPixelSynthesisActive   = temporalPixelSynthesisActive,
                 skipFDMForFinalPasses   = xrRenderPass.skipFDMForFinalPasses,
                 xrSdkRenderPass         = xrRenderPass,
                 xrLayoutType            = layoutType,
@@ -796,7 +863,72 @@ namespace UnityEngine.Experimental.Rendering
                 uvOffsets                = uvOffsets
             };
 
+            // The pipeline-private bit-reservation check lives in URP (XRDepthMotionPass) instead, since
+            // which stencil bits the producer reserves is a URP shader convention.
+            if (passInfo.hasMotionVectorStencil)
+            {
+                Debug.Assert((passInfo.motionVectorStencilValue & passInfo.motionVectorStencilMask) == passInfo.motionVectorStencilValue,
+                    "TPS: motionVectorStencilValue must be a subset of motionVectorStencilMask.");
+
+                if (!GraphicsFormatUtility.IsStencilFormat(passInfo.motionVectorRenderTargetDesc.depthStencilFormat)
+                    && s_LastTemporalPixelSynthesisStencilFormatErrorFrame != Time.frameCount)
+                {
+                    s_LastTemporalPixelSynthesisStencilFormatErrorFrame = Time.frameCount;
+                    Debug.LogError($"Temporal Pixel Synthesis requested a motion-vector stencil aspect, but the motion-vector depth target format ({passInfo.motionVectorRenderTargetDesc.depthStencilFormat}) has no stencil bits. A stencil-capable format such as D24_UNorm_S8_UInt or D32_SFloat_S8_UInt is required; TPS pixel exclusion will not work.");
+                }
+            }
+
+            DebugTraceTemporalPixelSynthesis(in passInfo, xrRenderPass);
+
             return passInfo;
+        }
+
+        // Traces what the provider delivers at the boundary where TPS data crosses into SRP.
+        const bool k_DebugTemporalPixelSynthesis = false;
+
+        // Indexed by multipassId, so the steady-state cost is a struct compare rather than a string per
+        // pass per frame.
+        [NoAutoStaticsCleanup]
+        static readonly (bool active, bool stencil, uint value, uint mask, bool hasMVPass, GraphicsFormat mvDepthFmt)[] s_LastTemporalPixelSynthesisTrace
+            = new (bool, bool, uint, uint, bool, GraphicsFormat)[kMaxTracedPasses];
+        [NoAutoStaticsCleanup]
+        static readonly bool[] s_TemporalPixelSynthesisTraceLogged = new bool[kMaxTracedPasses];
+        const int kMaxTracedPasses = 8;
+
+        static void DebugTraceTemporalPixelSynthesis(in XRPassCreateInfo passInfo, XRDisplaySubsystem.XRRenderPass xrRenderPass)
+        {
+#pragma warning disable 162 // unreachable code when the flag is false
+            if (!k_DebugTemporalPixelSynthesis)
+                return;
+
+            int passIndex = passInfo.multipassId;
+            if (passIndex < 0 || passIndex >= kMaxTracedPasses)
+                return;
+
+            var state = (passInfo.isTemporalPixelSynthesisActive,
+                         passInfo.hasMotionVectorStencil,
+                         passInfo.motionVectorStencilValue,
+                         passInfo.motionVectorStencilMask,
+                         passInfo.hasMotionVectorPass,
+                         passInfo.motionVectorRenderTargetDesc.depthStencilFormat);
+
+            if (s_TemporalPixelSynthesisTraceLogged[passIndex] && s_LastTemporalPixelSynthesisTrace[passIndex].Equals(state))
+                return;
+
+            s_TemporalPixelSynthesisTraceLogged[passIndex] = true;
+            s_LastTemporalPixelSynthesisTrace[passIndex] = state;
+
+            // raw(...) is pre-override, pre-validation: populated raw with an empty resolved value means
+            // the contract was dropped here rather than never delivered.
+            Debug.Log($"[TPS] pass={passIndex} active={passInfo.isTemporalPixelSynthesisActive} " +
+                      $"stencilRequested={passInfo.hasMotionVectorStencil} " +
+                      $"value=0x{passInfo.motionVectorStencilValue:X} mask=0x{passInfo.motionVectorStencilMask:X} " +
+                      $"| hasMVPass={passInfo.hasMotionVectorPass} " +
+                      $"mvDepthFmt={passInfo.motionVectorRenderTargetDesc.depthStencilFormat} " +
+                      $"stencilCapable={GraphicsFormatUtility.IsStencilFormat(passInfo.motionVectorRenderTargetDesc.depthStencilFormat)} " +
+                      $"| raw(active={xrRenderPass.isTemporalPixelSynthesisActive} value={xrRenderPass.motionVectorStencilValue} mask={xrRenderPass.motionVectorStencilMask}) " +
+                      $"configOverride={temporalPixelSynthesisConfig.active}");
+#pragma warning restore 162
         }
 
 #endif

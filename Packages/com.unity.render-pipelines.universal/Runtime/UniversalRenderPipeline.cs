@@ -1559,6 +1559,60 @@ namespace UnityEngine.Rendering.Universal
             // If upscaling is active, set the scaled width and height
             baseCameraData.scaledWidth = Mathf.Max(1, (int)(baseCameraData.pixelWidth * baseCameraData.renderScale));
             baseCameraData.scaledHeight = Mathf.Max(1, (int)(baseCameraData.pixelHeight * baseCameraData.renderScale));
+
+            ApplyTemporalPixelSynthesisOverrides(baseCameraData);
+        }
+
+        // Frame-keyed rather than bools: this runs once per XR pass and once per stacked overlay camera, and
+        // any one of those can see TPS inactive, so a bool reset on "inactive" would spam every frame.
+        [AutoStaticsCleanup] static int s_LastTemporalPixelSynthesisSuppressedTAAFrame = -1;
+        [AutoStaticsCleanup] static int s_LastTemporalPixelSynthesisSuppressedUpscalerFrame = -1;
+
+        /// <summary>
+        /// Reports what Temporal Pixel Synthesis suppressed, and neutralises the legacy upscaling filter.
+        /// TAA and STP are suppressed in <see cref="UniversalCameraData.IsTemporalAAEnabled"/>, and the
+        /// upscaler framework in <c>CreatePostProcessingData</c>.
+        /// </summary>
+        static void ApplyTemporalPixelSynthesisOverrides(UniversalCameraData cameraData)
+        {
+            if (!cameraData.IsTemporalPixelSynthesisActive())
+                return;
+
+            if (cameraData.IsTemporalAARequested()
+                && !cameraData.IsSTPRequested()
+                && s_LastTemporalPixelSynthesisSuppressedTAAFrame != Time.frameCount)
+            {
+                s_LastTemporalPixelSynthesisSuppressedTAAFrame = Time.frameCount;
+                Debug.LogWarning("URP Temporal Anti-aliasing is disabled: Meta Temporal Pixel Synthesis is the active resolver on this XR device. " +
+                    "The compositor performs the temporal resolve, and URP must not apply its own jitter. Set Anti-aliasing to None on the camera to silence this message.");
+            }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool spatialUpscalerActive = cameraData.resolvedUpscalerHash != k_UpscalerHash_Linear
+                && cameraData.resolvedUpscalerHash != k_UpscalerHash_Point
+                && cameraData.imageScalingMode == ImageScalingMode.Upscaling;
+
+            if (spatialUpscalerActive && s_LastTemporalPixelSynthesisSuppressedUpscalerFrame != Time.frameCount)
+            {
+                s_LastTemporalPixelSynthesisSuppressedUpscalerFrame = Time.frameCount;
+                Debug.LogWarning($"URP upscaler '{upscaling?.activeUpscaler?.name ?? string.Empty}' is disabled: Meta Temporal Pixel Synthesis is the active resolver on this XR device and the compositor performs anti-aliasing and upscaling. " +
+                    "URP has fallen back to a bilinear resolve for the render scale. Set the URP Asset's upscaling filter to Automatic to silence this message.");
+            }
+#else
+            // upscalingFilter is the single per-camera source of truth here, so it is safe to neutralise.
+            if (cameraData.upscalingFilter == ImageUpscalingFilter.FSR || cameraData.upscalingFilter == ImageUpscalingFilter.STP)
+            {
+                var suppressed = cameraData.upscalingFilter;
+                cameraData.upscalingFilter = ImageUpscalingFilter.Linear;
+
+                if (s_LastTemporalPixelSynthesisSuppressedUpscalerFrame != Time.frameCount)
+                {
+                    s_LastTemporalPixelSynthesisSuppressedUpscalerFrame = Time.frameCount;
+                    Debug.LogWarning($"URP upscaling filter '{suppressed}' is disabled: Meta Temporal Pixel Synthesis is the active resolver on this XR device and the compositor performs anti-aliasing and upscaling. " +
+                        "URP has fallen back to bilinear filtering for the render-scale resolve. Set the URP Asset's upscaling filter to Automatic to silence this message.");
+                }
+            }
+#endif
         }
 
         static void UpdateOffscreenUIRendering(UniversalCameraData cameraData, bool finalOutputHDR)
@@ -2020,6 +2074,7 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.xr = XRSystem.emptyPass;
             var renderScaleXR = cameraData.renderScale;
+
             XRSystem.SetRenderScale(renderScaleXR);
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
@@ -2404,7 +2459,8 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
 
 #if ENABLE_UPSCALER_FRAMEWORK
-            postProcessingData.activeUpscaler = upscaling.activeUpscaler;
+            // Disable upscaler when TPS is active
+            postProcessingData.activeUpscaler = cameraData.IsTemporalPixelSynthesisActive() ? null : upscaling.activeUpscaler;
             postProcessingData.activeUpscalerIsEmbedded = upscaling.activeUpscalerIsEmbedded;
 #endif
 
