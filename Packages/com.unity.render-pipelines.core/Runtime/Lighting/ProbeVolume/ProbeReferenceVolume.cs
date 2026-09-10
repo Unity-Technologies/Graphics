@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         public static string GetGuid(this Scene scene)
         {
             Debug.Assert(k_SceneGuid != null, "Reflection for scene GUID failed");
-            return (string)k_SceneGuid.GetValue(scene);
+            return k_SceneGuid.GetValue(scene).ToString();
         }
     }
 
