@@ -66,6 +66,14 @@ void frag(PackedVaryings packedInput,
     #endif
 #endif
 
+
+
+    float2 splatUV = (unpacked.texCoord0.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+    half splatWeight = dot(SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV), 1.0h);
+    #ifdef TERRAIN_SPLAT_ADDPASS
+    clip(splatWeight <= 0.005h ? -1.0h : 1.0h);
+    #endif
+
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
     #ifdef _TERRAIN_SG_ALPHA_CLIP
         AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
