@@ -39,13 +39,6 @@ class AnalyticDirectLightingTests
         if (!SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat))
             Assert.Ignore("This device does not support ARGBFloat render targets.");
 
-        var threadingMode = SystemInfo.renderingThreadingMode;
-        var nativeGraphicsJobs = threadingMode == RenderingThreadingMode.NativeGraphicsJobs
-            || threadingMode == RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread
-            || threadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading;
-        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && nativeGraphicsJobs)
-            Assert.Ignore("The first render after a material change is lost on D3D12 with native or split graphics jobs. Tracking: UUM-147205");
-
 #if UNITY_EDITOR
         m_SavedAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
         UnityEditor.ShaderUtil.allowAsyncCompilation = false;
