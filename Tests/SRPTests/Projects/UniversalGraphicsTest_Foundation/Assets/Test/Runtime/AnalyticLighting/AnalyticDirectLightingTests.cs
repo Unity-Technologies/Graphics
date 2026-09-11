@@ -217,6 +217,11 @@ class AnalyticDirectLightingTests
     }
 
     [UnityTest]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.IPhonePlayer, // Disabled for Instability https://jira.unity3d.com/browse/UUM-152475
+        RuntimePlatform.OSXEditor, // Disabled for Instability https://jira.unity3d.com/browse/UUM-152475
+        RuntimePlatform.PS4 // Disabled for Instability https://jira.unity3d.com/browse/UUM-152475
+    })]
     public IEnumerator SpecularHighlightsAddToDiffuse()
     {
         UseLitQuad(smoothness: 0.5f, specularHighlights: false);
