@@ -9,7 +9,8 @@ using Object = UnityEngine.Object;
 
 // Direct lighting rendered through the real pipeline and compared against values derived
 // from the material model.
-[UnityPlatform(exclude = new[] { RuntimePlatform.WebGLPlayer })]
+// [UnityPlatform(exclude = new[] { RuntimePlatform.WebGLPlayer })]
+[Ignore("Very unstable - see https://jira.unity3d.com/browse/UUM-152475 - uncomment the WebGL exclusion line above when this is fixed")]
 class AnalyticDirectLightingTests
 {
     const int k_Size = 64;
