@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering
             GlobalProbeShader = globalProbeShader;
             GlobalProbeKernel = globalProbeShader.FindKernel("Update");
 
-            Debug.Assert(ComputeSubGroupSize == 8 || ComputeSubGroupSize == 16 || ComputeSubGroupSize == 32 || ComputeSubGroupSize == 48 || ComputeSubGroupSize == 64, $"Unexpected, ComputeSubGroupSize={ComputeSubGroupSize}");
+            Debug.Assert(ComputeSubGroupSize == 4 || ComputeSubGroupSize == 8 || ComputeSubGroupSize == 16 || ComputeSubGroupSize == 32 || ComputeSubGroupSize == 48 || ComputeSubGroupSize == 64, $"Unexpected, ComputeSubGroupSize={ComputeSubGroupSize}");
             DefragShader = defragShader;
             var defragKeyword = "SUB_GROUP_SIZE_" + ComputeSubGroupSize;
             DefragShader.EnableKeyword(defragKeyword);
