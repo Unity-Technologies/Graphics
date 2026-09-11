@@ -248,7 +248,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         // Pick (fill, border) colors for a task cluster based on a coarse category.
         public static (string fill, string border) TaskCategoryColors(TaskNode taskNode)
         {
-            if ( taskNode.Task is VfxTemplatedTask or GpuKernelTask or RenderingTask)
+            if (taskNode.Task is VfxTemplatedTask or VfxTask)
                 return ("#dce7f2", "#5b7a99"); // lifecycle — cool blue
             if (taskNode.Task is ParticleSystemTask)
                 return ("#dceadc", "#6a8a6a"); // system — soft green

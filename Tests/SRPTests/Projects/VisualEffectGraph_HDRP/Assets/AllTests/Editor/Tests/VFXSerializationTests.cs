@@ -1,4 +1,3 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1483,6 +1482,7 @@ namespace UnityEditor.VFX.Test
             var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
 
             LogAssert.Expect(LogType.Error, new Regex(@".*You must use an unlit vfx master node with an unlit output.*"));
+            LogAssert.Expect(LogType.Error, new Regex(@".*Output task missing processor \(Material\).*"));
             LogAssert.Expect(LogType.Error, new Regex(@".*Invalid VFX Particle System.*"));
 
             System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
@@ -1581,4 +1581,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
-#endif
+

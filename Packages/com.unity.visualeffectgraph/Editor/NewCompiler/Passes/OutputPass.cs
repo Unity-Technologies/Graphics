@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VfxGraphLegacyCompilationOutput
+    class CompilationOutput
     {
         public List<UnityEditor.VFX.VFXExpression> SheetExpressions { get; } = new();
         public Dictionary<UnityEditor.VFX.VFXExpression, uint> SheetExpressionIndices { get; } = new();
@@ -60,23 +60,23 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VfxGraphLegacyOutputPass : DataGenerationPass<VfxGraphLegacyCompilationOutput>
+    class OutputPass : DataGenerationPass<CompilationOutput>
     {
-        VfxGraphLegacyCompilationOutput m_currentOutput;
+        CompilationOutput m_currentOutput;
 
-        readonly Dictionary<IDataDescription, uint> m_GpuBufferDescIndices = new();
-        readonly Dictionary<IDataDescription, uint> m_CpuBufferDescIndices = new();
+        readonly Dictionary<DataContainerId, uint> m_GpuBufferDescIndices = new();
+        readonly Dictionary<DataContainerId, uint> m_CpuBufferDescIndices = new();
         readonly Dictionary<DataNodeId, uint> m_ValuesExpressionIndices = new();
         // Expressions are interned by VFXExpression's own cache and compare by value, so the same
         // sub-expression is reached from many roots. Memoize its sheet index instead of re-emitting it.
         readonly Dictionary<VFXExpression, uint> m_ExpressionIndexCache = new();
-        readonly Dictionary<VfxGraphLegacyParticleSystemContainer.ParticleSystem, int> m_ParticleSystemIndices = new();
+        readonly Dictionary<ParticleSystemContainer.ParticleSystem, int> m_ParticleSystemIndices = new();
         readonly List<uint> m_StartSystems = new();
         readonly List<uint> m_StopSystems = new();
 
-        public VfxGraphLegacyCompilationOutput Execute(ref CompilationContext context)
+        public CompilationOutput Execute(ref CompilationContext context)
         {
-            VfxGraphLegacyCompilationOutput output = new();
+            CompilationOutput output = new();
             Cleanup();
             m_currentOutput = output;
             m_currentOutput.Version = 7;
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var childDataNode in dataNode.Children)
                     {
-                        if (childDataNode.TaskNode.Task is VfxTemplatedTask or GpuKernelTask or ParticleSystemTask or RenderingTask or SpawnerTask)
+                        if (childDataNode.TaskNode.Task is VfxTask or ParticleSystemTask or SpawnerTask)
                         {
                             uint vfxExpressionIndex = AddExpressionRecursively(expressionTask.Expression);
                             m_ValuesExpressionIndices.Add(childDataNode.Id, vfxExpressionIndex);
@@ -157,118 +157,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        // The buffers are whatever BufferConversionPass lowered the logical data to, so this
+        // only has to walk the containers and hand their descs over.
         void GenerateBufferDescriptions(ref CompilationContext context)
         {
-            GenerateAttributeBufferDescriptions(ref context);
-            GenerateGraphValuesBufferDescriptions(ref context);
-            GenerateDeadListBuffersDescription(ref context);
-            GenerateSpawnerBuffersDescriptions(ref context);
-        }
-
-        void GenerateAttributeBufferDescriptions(ref CompilationContext context)
-        {
-            AttributeSetLayoutCompilationData attributeSetLayouts = context.data.Get<AttributeSetLayoutCompilationData>();
-            foreach (var kvp in attributeSetLayouts)
-            {
-                AttributeData attributeData = kvp.Key;
-                var attributeSetLayout = kvp.Value;
-                uint capacity = attributeSetLayout.Capacity;
-
-                var layoutElementDescs = new List<VFXLayoutElementDesc>();
-                foreach (var attribute in attributeSetLayout.Attributes)
-                {
-                    (uint bucketOffset, uint bucketSize, uint elementOffset) = attributeSetLayout.GetBucketLocation(attribute);
-                    layoutElementDescs.Add(new VFXLayoutElementDesc()
-                    {
-                        name = attribute.Name,
-                        type = VFXExpression.GetVFXValueTypeFromType(attribute.Type),
-                        offset = new VFXLayoutOffset()
-                        {
-                            bucket = bucketOffset,
-                            element = elementOffset,
-                            structure = bucketSize
-                        },
-                    });
-                }
-
-                VFXGPUBufferDesc bufferDesc = new VFXGPUBufferDesc()
-                {
-                    target = GraphicsBuffer.Target.Raw,
-                    size = attributeSetLayout.GetBufferSize(),
-                    stride = 4u,
-                    capacity = capacity,
-                    mode = ComputeBufferMode.Immutable,
-                    layout = layoutElementDescs.ToArray(),
-                };
-                uint bufferIndex = AddGPUBufferData(bufferDesc);
-                m_GpuBufferDescIndices[attributeData] = bufferIndex;
-            }
-        }
-
-        void GenerateGraphValuesBufferDescriptions(ref CompilationContext context)
-        {
-            var dataLayoutContainer = context.data.Get<DataLayoutContainer>();
-
             foreach (var dataContainer in context.graph.DataContainers)
             {
-                if (dataLayoutContainer.TryGetLayout(dataContainer.Id, out var valueBufferLayout))
+                switch (dataContainer.RootDataView.DataDescription)
                 {
-                    uint bufferIndex = AddGPUBufferData(new VFXGPUBufferDesc()
-                    {
-                        target = GraphicsBuffer.Target.Raw,
-                        size = valueBufferLayout.GetBufferSize(),
-                        stride = 4u,
-                        mode = ComputeBufferMode.Dynamic,
-                    });
-
-                    m_GpuBufferDescIndices[dataContainer.RootDataView.DataDescription] = bufferIndex;
-                }
-            }
-        }
-
-        void GenerateDeadListBuffersDescription(ref CompilationContext context)
-        {
-            foreach (var dataView in context.graph.DataViews)
-            {
-                if (dataView.DataDescription is DeadListData deadListData)
-                {
-                    Debug.Assert(dataView.Parent.HasValue);
-                    if (dataView.Parent.Value.DataDescription is ParticleData particleData)
-                    {
-                        uint bufferIndex = AddGPUBufferData(new VFXGPUBufferDesc()
-                        {
-                            target = GraphicsBuffer.Target.Structured,
-                            size = particleData.Capacity + 2,
-                            stride = 4u,
-                            mode = ComputeBufferMode.Immutable,
-                        });
-
-                        m_GpuBufferDescIndices[deadListData] = bufferIndex;
-                    }
-                }
-            }
-        }
-
-        void GenerateSpawnerBuffersDescriptions(ref CompilationContext context)
-        {
-            foreach (var dataView in context.graph.DataViews)
-            {
-                if (dataView.DataDescription is EventListData eventListData)
-                {
-                    var bufferDesc = new VFXGPUBufferDesc()
-                    {
-                        target = GraphicsBuffer.Target.Structured,
-                        size = eventListData.BufferSize,
-                        stride = 4u
-                    };
-
-                    if (eventListData.IsCpu)
-                    {
-                        bufferDesc.mode = ComputeBufferMode.Dynamic;
-                    }
-
-                    uint bufferIndex = AddGPUBufferData(bufferDesc);
-                    m_GpuBufferDescIndices[eventListData] = bufferIndex;
+                    case VfxGpuBufferData gpuBuffer:
+                        m_GpuBufferDescIndices[dataContainer.Id] = AddGPUBufferData(gpuBuffer.Desc);
+                        break;
+                    case VfxCpuBufferData cpuBuffer:
+                        m_CpuBufferDescIndices[dataContainer.Id] = AddCPUBufferData(cpuBuffer.Desc);
+                        break;
                 }
             }
         }
@@ -277,7 +179,7 @@ namespace UnityEditor.VFX
         {
             GenerateSpawnerSystemDescs(ref context);
 
-            var particleSystemContainer = context.data.Get<VfxGraphLegacyParticleSystemContainer>();
+            var particleSystemContainer = context.data.Get<ParticleSystemContainer>();
             foreach (var particleSystem in particleSystemContainer)
             {
                 if (GenerateParticleSystemDesc(ref context, particleSystem, out var systemDesc))
@@ -286,155 +188,67 @@ namespace UnityEditor.VFX
                     m_currentOutput.SystemDescs.Add(systemDesc);
                 }
             }
+
+            m_currentOutput.SystemDescs.Sort((a, b) =>
+            {
+                bool aIsUnordered = a.layer == ~0u;
+                bool bIsUnordered = b.layer == ~0u;
+                if (aIsUnordered && bIsUnordered)
+                    return 0;
+                if (aIsUnordered)
+                    return -1;
+                if (bIsUnordered)
+                    return 1;
+                return a.layer.CompareTo(b.layer);
+            });
         }
 
         void GenerateSpawnerSystemDescs(ref CompilationContext context)
         {
-            Dictionary<DataViewId, List<VFXEditorTaskDesc>> spawnerTasks = new();
-
-            // Collect tasks for each spawner system
-            foreach (var taskNode in context.graph.TaskNodes)
+            var spawnerSystemContainer = context.data.Get<SpawnerSystemContainer>();
+            foreach (var spawnerSystem in spawnerSystemContainer)
             {
-                if (taskNode.Task is SpawnerTask spawnerTask)
+                if (spawnerSystem.Tasks.Count == 0)
+                    continue;
+
+                List<VFXEditorTaskDesc> taskDescs = new();
+                foreach (var task in spawnerSystem.Tasks)
                 {
-                    var eventDataBinding = taskNode.DataBindings[spawnerTask.SpawnDataKey];
-                    var eventDataView = eventDataBinding.Value.DataView;
-                    if (!spawnerTasks.TryGetValue(eventDataView.Id, out var taskDescs))
-                    {
-                        taskDescs = new();
-                        spawnerTasks.Add(eventDataView.Id, taskDescs);
-                    }
-                    GenerateSpawnerTask(ref context, spawnerTask, taskNode, out var taskDesc);
+                    GenerateSpawnerTask(ref context, task.TaskType, context.graph.TaskNodes[task.Id], out var taskDesc);
                     taskDescs.Add(taskDesc);
                 }
-            }
-            // Create the system desc
-            foreach (var (eventDataViewId, taskDescs) in spawnerTasks)
-            {
-                if (taskDescs.Count > 0)
+
+                // The event data was lowered to the spawner's CPU output buffer, which the system is
+                // identified by; skipping systems without one keeps a missing buffer from mapping to index 0.
+                var containerId = context.graph.DataViews[spawnerSystem.EventDataViewId].DataContainer.Id;
+                if (!m_CpuBufferDescIndices.TryGetValue(containerId, out var spawnerOutputIndex))
                 {
-                    AttributeSetLayoutCompilationData attributeSetLayouts = context.data.Get<AttributeSetLayoutCompilationData>();
-
-                    var eventDataView = context.graph.DataViews[eventDataViewId];
-                    eventDataView.FindSubData(EventData.AttributeDataKey, out var attributeDataView);
-                    var attributeSetLayout = attributeSetLayouts[attributeDataView.DataDescription as AttributeData];
-
-                    var eventData = eventDataView.DataDescription as EventData;
-                    GenerateSpawnerSystemDesc(ref context, eventData, attributeSetLayout, out var systemDesc);
-                    systemDesc.tasks = taskDescs.ToArray();
-                    uint systemDescIndex = (uint)m_currentOutput.SystemDescs.Count;
-                    m_StartSystems.Add(systemDescIndex);
-                    m_StopSystems.Add(systemDescIndex);
-                    m_currentOutput.SystemDescs.Add(systemDesc);
+                    Debug.LogWarning($"Spawner system has no lowered output buffer, skipping it.");
+                    continue;
                 }
+
+                var systemDesc = new VFXEditorSystemDesc
+                {
+                    name = "Spawn System",
+                    type = UnityEngine.VFX.VFXSystemType.Spawner,
+                    buffers = new[] { new UnityEditor.VFX.VFXMapping("spawner_output", (int)spawnerOutputIndex) },
+                    tasks = taskDescs.ToArray(),
+                    layer = ~0u
+                };
+
+                uint systemDescIndex = (uint)m_currentOutput.SystemDescs.Count;
+                m_StartSystems.Add(systemDescIndex);
+                m_StopSystems.Add(systemDescIndex);
+                m_currentOutput.SystemDescs.Add(systemDesc);
             }
         }
 
-        bool GenerateSpawnerSystemDesc(ref CompilationContext context, EventData spawnerData, AttributeSetLayout attributeSetLayout, out VFXEditorSystemDesc systemDesc)
-        {
-            var spawnCountAttribute = VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.SpawnCount);
-
-            List<Unity.GraphCommon.LowLevel.Editor.Attribute> attributes = new((int)attributeSetLayout.Count + 1);
-            attributes.Add(spawnCountAttribute);
-            foreach (var attribute in attributeSetLayout.Attributes)
-            {
-                if (attribute != spawnCountAttribute)
-                {
-                    attributes.Add(attribute);
-                }
-            }
-
-            var cpuBufferDesc = GenerateAttributeCPUBufferDesc(attributes);
-            var spawnerOutputIndex = AddCPUBufferData(cpuBufferDesc);
-            m_CpuBufferDescIndices[spawnerData] = spawnerOutputIndex;
-
-            systemDesc = new VFXEditorSystemDesc
-            {
-                name = "Spawn System",
-                type = UnityEngine.VFX.VFXSystemType.Spawner,
-                buffers = new[] { new UnityEditor.VFX.VFXMapping("spawner_output", (int)spawnerOutputIndex) },
-                tasks = Array.Empty<VFXEditorTaskDesc>(),
-                layer = ~0u
-            };
-            return true;
-        }
-
-        private static VFXCPUBufferDesc GenerateAttributeCPUBufferDesc(List<Unity.GraphCommon.LowLevel.Editor.Attribute> attributes)
-        {
-            var data = new VFXCPUBufferData();
-            var layout = new VFXLayoutElementDesc[attributes.Count];
-
-            uint elementOffset = 0;
-            for (int i = 0; i < attributes.Count; ++i)
-            {
-                var attribute = attributes[i];
-
-                ref var layoutElement = ref layout[i];
-                layoutElement.name = attribute.Name;
-                layoutElement.type = VFXExpression.GetVFXValueTypeFromType(attribute.Type);
-                layoutElement.offset.bucket = 0u;
-                layoutElement.offset.element = elementOffset;
-
-                elementOffset += (uint)VFXExpressionHelper.GetSizeOfType(layoutElement.type);
-
-                switch (layoutElement.type)
-                {
-                    case VFXValueType.Boolean:
-                        data.PushBool((bool)attribute.DefaultValue);
-                        break;
-                    case VFXValueType.Float:
-                        data.PushFloat((float)attribute.DefaultValue);
-                        break;
-                    case VFXValueType.Float2:
-                        var v2 = (Vector2)attribute.DefaultValue;
-                        data.PushFloat(v2.x);
-                        data.PushFloat(v2.y);
-                        break;
-                    case VFXValueType.Float3:
-                        var v3 = (Vector3)attribute.DefaultValue;
-                        data.PushFloat(v3.x);
-                        data.PushFloat(v3.y);
-                        data.PushFloat(v3.z);
-                        break;
-                    case VFXValueType.Float4:
-                        var v4 = (Vector4)attribute.DefaultValue;
-                        data.PushFloat(v4.x);
-                        data.PushFloat(v4.y);
-                        data.PushFloat(v4.z);
-                        data.PushFloat(v4.w);
-                        break;
-                    case VFXValueType.Int32:
-                        data.PushInt((int)attribute.DefaultValue);
-                        break;
-                    case VFXValueType.Uint32:
-                        data.PushUInt((uint)attribute.DefaultValue);
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-
-            var stride = elementOffset;
-            for (int i = 0; i < attributes.Count; ++i)
-            {
-                layout[i].offset.structure = stride;
-            }
-
-            return new VFXCPUBufferDesc
-            {
-                capacity = 1u,
-                stride = stride,
-                initialData = data,
-                layout = layout
-            };
-        }
-
-        bool GenerateSpawnerTask(ref CompilationContext context, SpawnerTask spawnerTask, TaskNode spawnerTaskNode, out UnityEditor.VFX.VFXEditorTaskDesc taskDesc)
+        bool GenerateSpawnerTask(ref CompilationContext context, UnityEngine.VFX.VFXTaskType taskType, TaskNode spawnerTaskNode, out UnityEditor.VFX.VFXEditorTaskDesc taskDesc)
         {
             taskDesc = new();
 
             taskDesc.shaderSourceIndex = -1;
-            taskDesc.type = (UnityEngine.VFX.VFXTaskType)spawnerTask.SpawnerType;
+            taskDesc.type = taskType;
 
             List<VFXMapping> valueMappings = new();
             var taskNode = spawnerTaskNode;
@@ -451,7 +265,7 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        bool GenerateParticleSystemDesc(ref CompilationContext context, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem, out UnityEditor.VFX.VFXEditorSystemDesc systemDesc)
+        bool GenerateParticleSystemDesc(ref CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem, out UnityEditor.VFX.VFXEditorSystemDesc systemDesc)
         {
             systemDesc = new();
             systemDesc.name = particleSystem.Name;
@@ -475,28 +289,8 @@ namespace UnityEditor.VFX
                 });
 
 
-                if (task.TaskType == UnityEngine.VFX.VFXTaskType.Initialize)
-                {
-                    var initTaskNode = context.graph.TaskNodes[task.Id];
-                    foreach (var dataNode in initTaskNode.DataNodes)
-                    {
-                        foreach (var dataView in dataNode.UsedDataViews)
-                        {
-                            if (dataView.DataDescription is DeadListData)
-                            {
-                                systemDesc.flags |= VFXSystemFlag.SystemHasKill;
-                            }
-                            if (dataView.DataDescription is EventListData eventListData)
-                            {
-                                if (!eventListData.IsCpu)
-                                {
-                                    systemDesc.flags |= VFXSystemFlag.SystemReceivedEventGPU;
-                                }
-                            }
-                        }
-                    }
-                }
             }
+            systemDesc.flags = particleSystem.SystemFlags;
             systemDesc.values = GenerateParticleSystemValuesMappings(context, particleSystem, out var layer);
             systemDesc.tasks = taskDescs.ToArray();
             systemDesc.instanceSplitDescs = instanceSplitDescs.ToArray();
@@ -504,7 +298,7 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        VFXMapping[] GenerateParticleSystemValuesMappings(CompilationContext context, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem, out uint layer)
+        VFXMapping[] GenerateParticleSystemValuesMappings(CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem, out uint layer)
         {
             var valueMappings = new List<VFXMapping>();
             var graphValueMappings = new List<(int, VFXMapping)>();
@@ -513,16 +307,12 @@ namespace UnityEditor.VFX
             var dataLayoutContainer = context.data.Get<DataLayoutContainer>();
             layer = 0;
 
-            DataContainerId graphValuesContainerId = DataContainerId.Invalid;
-            // Find graph values buffer in bindings
-            foreach (var dataBinding in taskNode.DataBindings)
-            {
-                if (dataBinding.BindingDataKey == ParticleSystemTask.GraphValuesBindingKey)
-                {
-                    graphValuesContainerId = dataBinding.DataView.DataContainer.Id;
-                    break;
-                }
-            }
+            // Bound under BufferKeys once the data is lowered; the conversion pass carried the old layout
+            // over to the concrete container.
+            var graphValuesContainerId = DataContainerId.Invalid;
+            var graphValuesBinding = taskNode.DataBindings[ParticleSystemTask.BufferKeys.GraphValuesBufferKey];
+            if (graphValuesBinding.HasValue)
+                graphValuesContainerId = graphValuesBinding.Value.DataView.DataContainer.Id;
             dataLayoutContainer.TryGetLayout(graphValuesContainerId, out var graphValuesBufferLayout);
 
             foreach (var dataBinding in taskNode.DataBindings)
@@ -538,6 +328,8 @@ namespace UnityEditor.VFX
                     }
 
                     // Graph values
+                    if (graphValuesBufferLayout == null)
+                        continue;
                     int graphValueOffset = graphValuesBufferLayout.GetValueOffset(dataBinding.DataView.DataDescription as ValueData);
                     graphValueMappings.Add((graphValueOffset, new VFXMapping(name, (int)index)));
                 }
@@ -561,70 +353,28 @@ namespace UnityEditor.VFX
             return valueMappings.ToArray();
 
         }
-        VFXMapping[] GenerateParticleSystemBuffersMappings(CompilationContext context, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem)
+        // Every buffer the system needs is bound onto its system task by
+        // SystemTaskBindingsPass, under the mapping name the runtime looks it up by.
+        VFXMapping[] GenerateParticleSystemBuffersMappings(CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem)
         {
             HashSet<VFXMapping> bufferMappings = new();
-            foreach (var task in particleSystem.Tasks)
+            foreach (var binding in context.graph.TaskNodes[particleSystem.SystemTask.Id].DataBindings)
             {
-                var taskNode = context.graph.TaskNodes[task.Id];
-                foreach (var dataBinding in taskNode.DataBindings)
-                {
-                    foreach (var dataView in dataBinding.DataNode.UsedDataViews)
-                    {
-                        if (m_GpuBufferDescIndices.TryGetValue(dataView.DataDescription, out var gpuIndex))
-                        {
-                            //TODO: Get the mapping name from the data view or data binding or something
-                            if(dataView.DataDescription is AttributeData)
-                            {
-                                if(dataBinding.BindingDataKey.ToString().Equals("EventListDataBinding"))
-                                    bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", (int)gpuIndex));
-                                else if (dataBinding.BindingDataKey.ToString().Equals("ParticleDataBinding"))
-                                    bufferMappings.Add(new VFXMapping("attributeBuffer", (int)gpuIndex));
-                            }
-                            else if(dataView.DataDescription is StructuredData)
-                            {
-                                bufferMappings.Add(new VFXMapping("graphValuesBuffer", (int)gpuIndex));
-                            }
-                            else if (dataView.DataDescription is DeadListData)
-                            {
-                                bufferMappings.Add(new VFXMapping("deadList", (int)gpuIndex));
-                            }
-                            else if (dataView.DataDescription is EventListData eventListData)
-                            {
-                                if (eventListData.IsCpu)
-                                {
-                                    bufferMappings.Add(new VFXMapping("spawnBuffer", (int)gpuIndex));
-                                }
-                                else
-                                {
-                                    if (dataBinding.Usage == BindingUsage.Read)
-                                    {
-                                        bufferMappings.Add(new VFXMapping("eventList", (int)gpuIndex));
-                                    }
-                                    else
-                                    {
-                                        // When writing to a gpu event buffer, the runtime looks for it on every system.
-                                        // We should probably change that and do it here
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            var systemTaskNode = context.graph.TaskNodes[particleSystem.SystemTask.Id];
-            foreach (var dataBinding in systemTaskNode.DataBindings)
-            {
-                if (m_CpuBufferDescIndices.TryGetValue(dataBinding.DataView.DataDescription, out var cpuIndex))
-                {
-                    bufferMappings.Add(new VFXMapping("spawner_input", (int)cpuIndex));
-                }
+                if (binding.DataView.DataDescription is not IVfxBufferData)
+                    continue;
+
+                var name = binding.BindingDataKey.ToString();
+                var containerId = binding.DataView.DataContainer.Id;
+                if (m_GpuBufferDescIndices.TryGetValue(containerId, out var gpuIndex))
+                    bufferMappings.Add(new VFXMapping(name, (int)gpuIndex));
+                else if (m_CpuBufferDescIndices.TryGetValue(containerId, out var cpuIndex))
+                    bufferMappings.Add(new VFXMapping(name, (int)cpuIndex));
             }
 
             return HashSetToArray(bufferMappings);
         }
 
-        bool GenerateParticleSystemTask(ref CompilationContext context, VfxGraphLegacyParticleSystemContainer.Task task, out UnityEditor.VFX.VFXEditorTaskDesc taskDesc)
+        bool GenerateParticleSystemTask(ref CompilationContext context, ParticleSystemContainer.Task task, out UnityEditor.VFX.VFXEditorTaskDesc taskDesc)
         {
             taskDesc = new();
 
@@ -639,33 +389,20 @@ namespace UnityEditor.VFX
             var taskNode = context.graph.TaskNodes[task.Id];
             foreach (var dataBinding in taskNode.DataBindings)
             {
-                foreach (var dataView in dataBinding.DataNode.UsedDataViews)
+                // A lowered task binds its buffers under the very names the generated shader declares them
+                // by, so the binding key is the mapping name.
+                if (dataBinding.DataView.DataDescription is IVfxBufferData
+                    && m_GpuBufferDescIndices.TryGetValue(dataBinding.DataView.DataContainer.Id, out var gpuIndex))
                 {
-                    // TODO: VFXMapping name should be linked to what is done in the description writers
-                    if (m_GpuBufferDescIndices.TryGetValue(dataView.DataDescription, out var gpuIndex))
-                    {
-                        if(dataView.DataDescription is AttributeData)
-                        {
-                            bufferMappings.Add(new VFXMapping($"_{dataView.DataContainer.IdentifierName}_attributeBuffer", (int)gpuIndex));
-                        }
-                        else if (dataView.DataDescription is DeadListData)
-                        {
-                            bufferMappings.Add(new VFXMapping($"_{dataView.DataContainer.IdentifierName}_deadListBuffer", (int)gpuIndex));
-                        }
-                        else if(dataView.Root.DataDescription is StructuredData)
-                        {
-                            bufferMappings.Add(new VFXMapping($"_{dataView.DataContainer.IdentifierName}_buffer", (int)gpuIndex));
-                        }
-                        else if (dataView.DataDescription is EventListData eventListData)
-                        {
-                            bufferMappings.Add(new VFXMapping($"_{dataView.DataContainer.IdentifierName}_eventIndexList", (int)gpuIndex));
+                    var name = dataBinding.BindingDataKey.ToString();
+                    bufferMappings.Add(new VFXMapping(name, (int)gpuIndex));
 
-                            // For now, artificially add an eventListOut mapping to be read by the runtime
-                            if (dataBinding.Usage == BindingUsage.Write)
-                            {
-                                bufferMappings.Add(new VFXMapping($"eventListOut_{dataView.DataContainer.IdentifierName}", (int)gpuIndex));
-                            }
-                        }
+                    // A written GPU event list additionally needs the eventListOut mapping the runtime scans
+                    // every system for. That lookup should move here so this extra mapping can go away.
+                    if (dataBinding.Usage.HasFlag(BindingUsage.Write)
+                        && name.EndsWith(EventListDataDescriptionWriter.EventIndexListSuffix))
+                    {
+                        bufferMappings.Add(new VFXMapping($"eventListOut_{dataBinding.DataView.DataContainer.IdentifierName}", (int)gpuIndex));
                     }
                 }
                 if (m_ValuesExpressionIndices.TryGetValue(dataBinding.DataNode.Id, out var expressionIndex))

@@ -58,7 +58,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             => BuildableGraph.AddDataDependency(dataNodeId, parentDataNodeId);
 
         /// <summary>Binds data, inferring the parents of a read from what has been built so far.</summary>
-        public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
+        public DataNodeId BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
             BindingUsage usage = BindingUsage.Unknown)
         {
             var graph = BuildableGraph;
@@ -70,11 +70,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 parentNodeIds = FindImplicitParentDataNodes(dataViewId);
             }
 
-            graph.BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
+            return graph.BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
         }
 
         /// <summary>Binds data with explicit parents, overriding inference for this one binding.</summary>
-        public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
+        public DataNodeId BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
             IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage = BindingUsage.Unknown)
             => BuildableGraph.BindData(taskNodeId, bindingKey, dataViewId, parentNodeIds, usage);
 

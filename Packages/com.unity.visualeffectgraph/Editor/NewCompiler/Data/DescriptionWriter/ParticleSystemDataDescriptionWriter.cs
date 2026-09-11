@@ -218,6 +218,17 @@ namespace UnityEditor.VFX
                 yield return (deadlistBufferType, deadlistBufferName);
             }
         }
+
+        // Must stay in step with the names GetUsedResources declares.
+        public string GetBindingName(DataView dataView)
+        {
+            string containerName = dataView.DataContainer.IdentifierName;
+            if (dataView.SubDataKey == ParticleData.AttributeDataKey)
+                return $"_{containerName}_attributeBuffer";
+            if (dataView.SubDataKey == ParticleData.DeadlistKey)
+                return $"_{containerName}_deadListBuffer";
+            return null;
+        }
     }
 }
 

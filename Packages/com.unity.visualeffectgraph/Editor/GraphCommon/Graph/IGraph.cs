@@ -198,7 +198,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <param name="dataViewId">The ID of the data view to bind.</param>
         /// <param name="parentNodeIds">The explicit parent data nodes to establish dependencies with.</param>
         /// <param name="usage">The usage mode for the binding.</param>
-        void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
+        DataNodeId BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
             IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage = BindingUsage.Unknown);
 
         /// <summary>

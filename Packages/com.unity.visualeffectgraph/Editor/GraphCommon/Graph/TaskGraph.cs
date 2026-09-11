@@ -243,16 +243,16 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         /// <inheritdoc/>
-        public void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
+        public DataNodeId BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId,
             IEnumerable<DataNodeId> parentNodeIds, BindingUsage usage = BindingUsage.Unknown)
         {
             ResolveBindingUsage(taskNodeId, bindingKey, ref usage, out var readPaths, out var writePaths);
-            BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
+            return BindData(taskNodeId, bindingKey, dataViewId, usage, parentNodeIds, readPaths, writePaths);
         }
 
         // Shared core, taking usage and paths already resolved. Internal so a TaskGraphBuilder can
         // resolve usage once, infer the parents from it, and bind without resolving a second time.
-        internal void BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
+        internal DataNodeId BindData(TaskNodeId taskNodeId, IDataKey bindingKey, DataViewId dataViewId, BindingUsage usage,
             IEnumerable<DataNodeId> parentNodeIds, DataPathSet readPaths, DataPathSet writePaths)
         {
             Debug.Assert(dataViewId.IsValid);
@@ -260,7 +260,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             if (usage == BindingUsage.Unknown)
             {
                 Debug.LogWarning("Binding usage cannot be determined. Skipping binding data.");
-                return;
+                return DataNodeId.Invalid;
             }
             Version++;
 
@@ -283,6 +283,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             {
                 AddDataDependency(dataNodeId, parentNodeId);
             }
+
+            return dataNodeId;
         }
 
         void CreateDataViewsFromUsage(DataViewId dataViewId, BindingUsage usage, DataPathSet readPaths,

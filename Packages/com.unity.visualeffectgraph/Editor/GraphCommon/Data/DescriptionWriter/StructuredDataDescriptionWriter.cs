@@ -125,7 +125,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
         public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
         {
-            yield return (StructuredBufferTypeDefine, $"_{name}_buffer");
+            yield return (StructuredBufferTypeDefine, GetBindingName(usedDataView));
         }
+
+        public string GetBindingName(DataView dataView) => $"_{dataView.DataContainer.IdentifierName}_buffer";
     }
 }

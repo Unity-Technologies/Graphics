@@ -19,6 +19,13 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode) { }
 
         IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView) => System.Array.Empty<(string, string)>();
+
+        /// <summary>
+        /// The shader binding name this data view is declared under, so a lowered task can bind the
+        /// concrete buffer under the same name the generated code reads it by. Null when the writer has no
+        /// binding for the view, in which case the caller skips it.
+        /// </summary>
+        string GetBindingName(DataView dataView) => null;
     }
 
     interface IDataDescriptionWriter<T> : IDataDescriptionWriter where T : class, IDataDescription

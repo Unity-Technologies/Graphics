@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VfxGraphLegacyParticleSystemPass : CompilationPass
+    class ParticleSystemPass : CompilationPass
     {
         public bool Execute(ref CompilationContext context)
         {
-            var particleSystemContainer = context.data.GetOrCreate<VfxGraphLegacyParticleSystemContainer>();
+            var particleSystemContainer = context.data.GetOrCreate<ParticleSystemContainer>();
             var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
             var traverser = context.graph.CreateTraverser();
 
@@ -23,25 +23,27 @@ namespace UnityEditor.VFX
                 var particleDataView = systemTaskNode.DataBindings[0].DataView;
                 if (particleDataView.DataDescription is ParticleData)
                 {
-                    CollectParticleSystem(systemTaskNode, particleDataView, traverser, particleSystemContainer);
-                    GenerateDeadList(systemTaskNode, particleDataView, layoutCompilationData, context.graph);
+                    var particleSystem = CollectParticleSystem(systemTaskNode, particleDataView, traverser, particleSystemContainer);
+                    if (GenerateDeadList(systemTaskNode, particleDataView, layoutCompilationData, context.graph))
+                        particleSystem.SystemFlags |= UnityEngine.VFX.VFXSystemFlag.SystemHasKill;
                 }
             }
 
             return true;
         }
 
-        void CollectParticleSystem(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, VfxGraphLegacyParticleSystemContainer particleSystemContainer)
+        ParticleSystemContainer.ParticleSystem CollectParticleSystem(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, ParticleSystemContainer particleSystemContainer)
         {
-            var particleSystem = new VfxGraphLegacyParticleSystemContainer.ParticleSystem($"ParticleSystem{particleSystemContainer.Count + 1}");
+            var particleSystem = new ParticleSystemContainer.ParticleSystem($"ParticleSystem{particleSystemContainer.Count + 1}");
             var particleData = particleDataView.DataDescription as ParticleData;
 
             particleSystem.Capacity = particleData.Capacity;
             CollectTasks(systemTaskNode, particleDataView, traverser, particleSystemContainer, particleSystem);
             particleSystemContainer.Add(particleDataView.Id, particleSystem);
+            return particleSystem;
         }
 
-        void CollectTasks(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, VfxGraphLegacyParticleSystemContainer particleSystemContainer, VfxGraphLegacyParticleSystemContainer.ParticleSystem particleSystem)
+        void CollectTasks(TaskNode systemTaskNode, in DataView particleDataView, GraphTraverser traverser, ParticleSystemContainer particleSystemContainer, ParticleSystemContainer.ParticleSystem particleSystem)
         {
             foreach (var taskNode in traverser.TraverseTaskDownwards(systemTaskNode))
             {
@@ -64,6 +66,7 @@ namespace UnityEditor.VFX
                                 if (rootDataView.DataDescription is ParticleData && !rootDataView.Id.Equals(particleDataView.Id))
                                 {
                                     particleSystem.Parent = particleSystemContainer.Find(rootDataView.Id);
+                                    particleSystem.SystemFlags |= UnityEngine.VFX.VFXSystemFlag.SystemReceivedEventGPU;
                                 }
                             }
 
@@ -77,19 +80,19 @@ namespace UnityEditor.VFX
                         default:
                             continue;
                     }
-                    var task = new VfxGraphLegacyParticleSystemContainer.Task(taskNode.Name ?? templatedTask.TemplateName, taskNode.Id, taskType, templatedTask.SourceModelId);
+                    var task = new ParticleSystemContainer.Task(taskNode.Name ?? templatedTask.TemplateName, taskNode.Id, taskType, templatedTask.SourceModelId);
                     particleSystem.Tasks.Add(task);
                 }
 
                 if (taskNode.Task is ParticleSystemTask)
                 {
-                    var task = new VfxGraphLegacyParticleSystemContainer.Task("System", taskNode.Id, UnityEngine.VFX.VFXTaskType.None);
+                    var task = new ParticleSystemContainer.Task("System", taskNode.Id, UnityEngine.VFX.VFXTaskType.None);
                     particleSystem.SetSystemTask(task);
                 }
             }
         }
 
-        void GenerateDeadList(TaskNode systemTaskNode, in DataView particleDataView, AttributeSetLayoutCompilationData layoutCompilationData, IGraph graph)
+        bool GenerateDeadList(TaskNode systemTaskNode, in DataView particleDataView, AttributeSetLayoutCompilationData layoutCompilationData, IGraph graph)
         {
             if (particleDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView))
             {
@@ -100,13 +103,16 @@ namespace UnityEditor.VFX
                     if (particleDataView.FindSubData(ParticleData.DeadlistKey, out var deadListData))
                     {
                         graph.OverrideDataDescription(deadListData.Id, new DeadListData());
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
     }
 
-    class VfxGraphLegacyParticleSystemContainer : IEnumerable, IEnumerable<VfxGraphLegacyParticleSystemContainer.ParticleSystem>
+    class ParticleSystemContainer : IEnumerable, IEnumerable<ParticleSystemContainer.ParticleSystem>
     {
         readonly Dictionary<DataViewId, ParticleSystem> m_ParticleSystems = new();
 
@@ -133,6 +139,7 @@ namespace UnityEditor.VFX
             public Task SystemTask { get; private set; }
 
             public ParticleSystem Parent { get; set; }
+            public UnityEngine.VFX.VFXSystemFlag SystemFlags { get; set; }
 
             public void SetSystemTask(Task systemTask)
             {

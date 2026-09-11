@@ -194,6 +194,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             if (!Graph.IsValid(dataViewId))
                 return false;
+            if(dataViewId.Equals(Id))
+                return true;
+            if(Children.Count == 0)
+                return false;
 
             for (DataView? current = Graph.DataViews[dataViewId]; current.HasValue; current = current.Value.Parent)
             {

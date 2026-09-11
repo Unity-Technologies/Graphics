@@ -525,6 +525,10 @@ namespace UnityEditor.VFX
             particleSystemBinding.Add(AttributeDataPath, VFXAttribute.ScaleZ, AttributeUsage.Read);
             bindings.Add(particleSystemBinding);
 
+            var contextDataBinding = new TemplatedTaskBinding<ValueData>(ContextDataKey);
+            contextDataBinding.ReadPathSet.Add(MaxParticleCountPath);
+            bindings.Add(contextDataBinding);
+
             var mainTextureBinding = new TemplatedTaskBinding<ValueData<Texture2D>>(MainTextureKey);
             mainTextureBinding.ReadPathSet.Add(DataPath.Root);
             bindings.Add(mainTextureBinding);

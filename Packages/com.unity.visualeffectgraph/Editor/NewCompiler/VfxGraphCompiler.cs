@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
 {
     class VfxGraphCompiler : IVFXCompiler
     {
-        private Compiler<VfxGraphLegacyCompilationOutput> m_GraphCompiler;
+        private Compiler<CompilationOutput> m_GraphCompiler;
         private IntermediateGraphBuilder m_GraphBuilder = new();
 
         private DataDescriptionWriterRegistry m_DataWriter;
@@ -23,11 +23,19 @@ namespace UnityEditor.VFX
             m_DataWriter.Register(new StructuredDataDescriptionWriter());
             m_DataWriter.Register(new EventListDataDescriptionWriter(attributeDataWriter));
 
-            m_GraphCompiler = new(new VfxGraphLegacyOutputPass(),
+            // The order matters: the layouts have to exist before the data can be lowered to buffers, the
+            // systems have to be collected while the tasks are still in their logical form, and the shader
+            // code has to be generated before the templated tasks it describes are replaced.
+            m_GraphCompiler = new(new OutputPass(),
                 new AttributeLayoutPass(),
-                new VfxGraphLegacyParticleSystemPass(),
                 new DataLayoutPass(),
-                new VfxTemplateCodeGenerationPass(m_DataWriter));
+                new ParticleSystemPass(),
+                new SpawnerSystemPass(),
+                new BufferConversionPass(),
+                new SpawnerToVfxTaskPass(),
+                new SystemTaskBindingsPass(),
+                new VfxTemplateCodeGenerationPass(m_DataWriter),
+                new TemplateToVfxTaskPass(m_DataWriter));
         }
 
         // For now the new compiler performs a full recompilation

@@ -117,6 +117,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        /// <summary>
+        /// Suffix of the event index list binding name, so the output pass can recognise a lowered GPU event
+        /// buffer without repeating the name shape.
+        /// </summary>
+        public const string EventIndexListSuffix = "_eventIndexList";
+
+        // Must stay in step with the names GetUsedResources declares.
+        public string GetBindingName(DataView dataView)
+        {
+            string containerName = dataView.DataContainer.IdentifierName;
+            if (dataView.IsRoot)
+                return $"_{containerName}{EventIndexListSuffix}";
+            if (dataView.SubDataKey == EventData.AttributeDataKey)
+                return $"_{containerName}_attributeBuffer";
+            return null;
+        }
+
         public string GetSubdataName(DataView dataView, IDataKey subDataKey)
         {
             if (subDataKey == EventData.AttributeDataKey)
