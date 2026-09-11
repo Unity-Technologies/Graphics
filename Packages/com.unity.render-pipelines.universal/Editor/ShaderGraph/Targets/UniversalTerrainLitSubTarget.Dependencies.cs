@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor Forward(UniversalTarget target, bool blendModePreserveSpecular, PragmaCollection pragmas = null)
             {
                 var result = TerrainLitPasses.Forward(target, blendModePreserveSpecular, pragmas);
-                result.renderStates = AdditionalLayersRenderState();
+                result.renderStates = AdditionalLayersRenderStateForward();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
 
                 return result;
@@ -107,20 +107,38 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBuffer(UniversalTarget target, bool blendModePreserveSpecular)
             {
                 var result = TerrainLitPasses.GBuffer(target, blendModePreserveSpecular);
-                result.renderStates = AdditionalLayersRenderState();
+                result.renderStates = AdditionalLayersRenderStateGBuffer();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
 
                 return result;
             }
 
             // used by lit/unlit subtargets
-            public static RenderStateCollection AdditionalLayersRenderState()
+            public static RenderStateCollection AdditionalLayersRenderStateForward()
             {
                 var result = new RenderStateCollection();
 
                 result.Add(RenderState.Blend(Blend.One, Blend.One));
 
                 return result;
+            }
+            public static RenderStateCollection AdditionalLayersRenderStateGBuffer()
+            {
+                return new RenderStateCollection
+                {
+                    RenderState.ZWrite(ZWrite.Off),
+                    RenderState.Blend("Blend 0 One One"),
+                    RenderState.Blend("Blend 1 One One"),
+                    RenderState.Blend("Blend 2 One One"),
+                    RenderState.Blend("Blend 3 One One"),
+                    RenderState.Blend("Blend 4 Off"),
+                    RenderState.Blend("Blend 5 Off"),
+                    RenderState.Blend("Blend 6 Off"),
+                    RenderState.ColorMask("ColorMask RGB 0"),   // .a carries the packed material flags
+                    RenderState.ColorMask("ColorMask 0 4"),
+                    RenderState.ColorMask("ColorMask 0 5"),
+                    RenderState.ColorMask("ColorMask 0 6"),
+                };
             }
         }
 
