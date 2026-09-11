@@ -41,9 +41,9 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent enableLODCrossFadeText = L10n.TextContent("LOD Cross Fade", "Controls whether LOD Cross Fade enabled or disabled.", null, null);
             public static GUIContent lodCrossFadeDitheringTypeText = L10n.TextContent("LOD Cross Fade Dithering Type", "Controls the LOD Cross Fade Dithering Type that will be used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.", null, null);
             public static GUIContent shEvalModeText = L10n.TextContent("SH Evaluation Mode", "Defines the Spherical Harmonic (SH) lighting evaluation type (per vertex, per pixel, or mixed).", null, null);
+            public static GUIContent lightFalloffModeText = L10n.TextContent("Light Falloff Mode", "How light intensity falls off with distance. Use Quadratic to match the Built-in Render Pipeline.", null, null);
             public static readonly string xrUpscalingInfo = L10n.Tr("When targeting an XR device, the XR runtime or compositor may provide anti-aliasing and upscaling. In that case this URP upscaler can be redundant or ignored - review your XR provider settings to configure anti-aliasing and upscaling.", null);
             public static readonly string xrUpscalingInfoButton = L10n.Tr("Open Project Validation", null);
-            public static GUIContent lightFalloffModeText = L10n.TextContent("Light Falloff Mode", "How light intensity falls off with distance. Use Linear to match the Built-in Render Pipeline.", null, null);
             public static readonly string stpMobilePlatformWarning = L10n.Tr("STP is selected for use on a mobile platform. STP is only supported on modern compute-capable hardware and its performance overhead may make it impractical on lower-end devices.", null);
 #if ENABLE_UPSCALER_FRAMEWORK
             public static GUIContent scalingModeText = L10n.TextContent("Scaling Mode", "Whether the camera renders below, at, or above the display resolution. This sets the available Render Scale range.", null, null);

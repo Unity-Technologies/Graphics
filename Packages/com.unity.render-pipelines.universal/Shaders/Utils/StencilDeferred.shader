@@ -126,7 +126,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _POINT _SPOT
-            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_LINEAR
+            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -192,7 +192,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _POINT _SPOT
-            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_LINEAR
+            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING

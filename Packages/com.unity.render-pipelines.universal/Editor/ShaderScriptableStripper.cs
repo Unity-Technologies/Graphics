@@ -240,7 +240,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_FogVolumetric;
         LocalKeyword m_TransparentReceiveFog;
         LocalKeyword m_SurfaceTypeTransparent;
-        LocalKeyword m_LightFalloffLinear;
+        LocalKeyword m_LightFalloffQuadratic;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
         LocalKeyword m_BloomLQ;
@@ -324,7 +324,7 @@ namespace UnityEditor.Rendering.Universal
             m_FogVolumetric = TryGetLocalKeyword(shader, ShaderKeywordStrings.FogVolumetric);
             m_TransparentReceiveFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.TransparentReceiveFog);
             m_SurfaceTypeTransparent = TryGetLocalKeyword(shader, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
-            m_LightFalloffLinear = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightFalloffLinear);
+            m_LightFalloffQuadratic = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightFalloffQuadratic);
             m_DepthAsInputAttachment = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
             m_DepthAsInputAttachmentMSAA = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
@@ -896,9 +896,9 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripUnusedFeatures_LightFalloffLinear(ref ShaderStripTool<ShaderFeatures> stripTool)
+        internal bool StripUnusedFeatures_LightFalloffQuadratic(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            return stripTool.StripMultiCompileKeepOffVariant(m_LightFalloffLinear, ShaderFeatures.LightFalloffLinear);
+            return stripTool.StripMultiCompileKeepOffVariant(m_LightFalloffQuadratic, ShaderFeatures.LightFalloffQuadratic);
         }
 
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -1111,7 +1111,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_VolumetricFog(ref strippingData, ref stripTool))
                 return true;
 
-            if (StripUnusedFeatures_LightFalloffLinear(ref stripTool))
+            if (StripUnusedFeatures_LightFalloffQuadratic(ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))
