@@ -36,7 +36,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public readonly bool isImported; // Imported graph resource
         public bool memoryLess; // Never create the texture on GPU if it is allocated/freed within a renderpass
+        public int lastGraphicsUsePassID; // Last non culled pass using this resource on the graphics queue, -1 if none
+        public int lastAsyncComputeUsePassID; // Last non culled pass using this resource on the async compute queue, -1 if none
         public int tag;
+
+        // True when at least one non-culled async compute pass touches this resource, whether or not graphics passes
+        // use it as well. These are pooled separately from resources only ever used on the graphics queue.
+        // See RenderGraphResource.CreatePooledGraphicsResource().
+        public readonly bool usedByAsyncComputePass => lastAsyncComputeUsePassID >= 0;
 
         public readonly int width;
         public readonly int height;
@@ -61,6 +68,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
 
             // Check if imported texture is memoryless
             memoryLess = desc.memoryless != RenderTextureMemoryless.None;
@@ -95,6 +104,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
 
             width = -1;
             height = -1;
@@ -126,6 +137,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
 
             width = -1;
             height = -1;
@@ -152,6 +165,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
             textureUVOrigin = TextureUVOriginSelection.Unknown;
         }
     }
