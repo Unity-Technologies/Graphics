@@ -26,7 +26,7 @@ Use parameter hints (`paramhints`) to customize the behavior and appearance of a
 | :--- | :--- | :--- |
 | `sg:Color` | N/A | Renders the input as a color picker. |
 | `sg:CustomBinding` | String | Specifies a custom UI binding label for the port. |
-| `sg:Default` | String | Specifies a default value for the parameter. The string depends on the parameter type, commonly a list of comma-separated floats, referable default tokens such as `UV1`, or 0-based dropdown indices. |
+| `sg:Default` | String | Specifies a default value for the parameter. The string depends on the parameter type, commonly a list of comma-separated numbers or a single token. See [Default values](#default-values) for details. |
 | `sg:DisplayName` | String | Specifies a custom display name for the port. If you don't use this hint, Unity uses a formatted version of the HLSL parameter name. |
 | `sg:Dropdown` | Comma separated list of strings | Manages the input as a dropdown with at least one option and specifies the option labels. The parameter type must be int, uint, float, or half. The dropdown value is the index of the entry in the list. |
 | `sg:DynamicVector` | N/A | Enables the use of dynamic dimension (for example, scalar, vector2, vector3, vector4) for a scalar or vector parameter. |
@@ -37,6 +37,18 @@ Use parameter hints (`paramhints`) to customize the behavior and appearance of a
 | `sg:Range` | float, float | Renders the input as a slider and sets a range with minimum and maximum values. The range is not enforced in the shader code. You should expect to clamp the input. |
 | `sg:Referable` | String | Binds the input to a built-in referable. Specify one of the following:<ul><li>`UV` (expects `float2` or `half2`).</li><li>`ScreenPosition` or `VertexColor` (expect `float4` or `half4`).</li><li>`Bitangent`, `Normal`, `Position`, `Tangent`, or `ViewDirection` (expect `float3` or `half3`).</li></ul>**Note**: All these values are also available as standalone hints that don't require any `sg:Referable` mention. For example, you can use `<UV />` instead of `<sg:Referable>UV</sg:Referable>`. |
 | `sg:Static` | N/A | Forces the parameter to be static and hides the port in the graph UI. Valid on scalar `float`/`half`/`int`/`uint`/`bool`, or on `float3`/`float4`/`half3`/`half4` only if `sg:Color` is also present. |
+
+### Default values
+
+Typically, `sg:Default` expects a comma-separated list of numbers that Unity interprets as a vector to initialize the parameter. However, when you use `sg:Default` in conjunction with `sg:Referable`, it might expect a string, as described in the following table:
+
+| Referable | Possible `sg:Default` values | Behavior |
+| :--- | :--- | :--- |
+| `UV` | `UV0`, `UV1`, `UV2`, `UV3`, `UV4`, `UV5`, `UV6`, or `UV7` | Similar to [the UV node's **Channel** dropdown](UV-Node.md#controls). |
+| `Position` | `Object`, `View`, `World`, `Tangent`, or `AbsoluteWorld` | Similar to [the Position node's **Space** dropdown](Position-Node.md#space). |
+| `Tangent`, `Bitangent`, `Normal`, or `ViewDirection` | `Object`, `View`, `World`, or `Tangent` | Similar to [the Normal Vector node's **Space** dropdown](Normal-Vector-Node.md#space). |
+| `ScreenPosition` | `Default`, `Raw`, `Center`, `Tiled`, `Pixel` | Similar to [the Screen Position node's **Mode** dropdown](Screen-Position-Node.md#controls). |
+| `VertexColor` | None | `sg:Default` has no effect when used with this referable. |
 
 ## Additional resources
 
