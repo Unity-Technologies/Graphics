@@ -568,9 +568,20 @@ namespace UnityEngine.Rendering.Universal
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
-            DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
+            DebugRendererLists debug = m_FreeDebugRendererLists.Count > 0
+                ? m_FreeDebugRendererLists.Pop()
+                : new DebugRendererLists(this);
+
             debug.CreateRendererListsWithDebugRenderState(renderGraph, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
+        }
+
+        // A caller holds one from recording until its pass draws, so these are pooled rather than shared.
+        readonly Stack<DebugRendererLists> m_FreeDebugRendererLists = new Stack<DebugRendererLists>(4);
+
+        internal void ReturnDebugRendererLists(DebugRendererLists lists)
+        {
+            m_FreeDebugRendererLists.Push(lists);
         }
         #endregion
     }
@@ -578,33 +589,39 @@ namespace UnityEngine.Rendering.Universal
     internal class DebugRendererLists
     {
         private readonly DebugHandler m_DebugHandler;
-        readonly FilteringSettings m_FilteringSettings;
         List<DebugRenderSetup> m_DebugRenderSetups = new List<DebugRenderSetup>(2);
+        int m_ActiveDebugRenderSetupCount;
         List<RendererList> m_ActiveDebugRendererList = new List<RendererList>(2);
         List<RendererListHandle> m_ActiveDebugRendererListHdl = new List<RendererListHandle>(2);
 
-        public DebugRendererLists(DebugHandler debugHandler,
-            FilteringSettings filteringSettings)
+        public DebugRendererLists(DebugHandler debugHandler)
         {
             m_DebugHandler = debugHandler;
-            m_FilteringSettings = filteringSettings;
         }
 
         private void CreateDebugRenderSetups(FilteringSettings filteringSettings)
         {
             var sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
             var numIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) || (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe)) ? 2 : 1;
-            for (var i = 0; i < numIterations; i++)
+
+            for (var i = m_DebugRenderSetups.Count; i < numIterations; i++)
                 m_DebugRenderSetups.Add(new DebugRenderSetup(m_DebugHandler, i, filteringSettings));
+
+            for (var i = 0; i < numIterations; i++)
+                m_DebugRenderSetups[i].Reuse(i, filteringSettings);
+
+            m_ActiveDebugRenderSetupCount = numIterations;
         }
 
         void DisposeDebugRenderLists()
         {
-            foreach (var debugRenderSetup in m_DebugRenderSetups)
+            for (var i = 0; i < m_ActiveDebugRenderSetupCount; i++)
             {
-                debugRenderSetup.Dispose();
+                m_DebugRenderSetups[i].Dispose();
             }
-            m_DebugRenderSetups.Clear();
+
+            // The setups outlive the frame; only the per-frame lists are cleared.
+            m_ActiveDebugRenderSetupCount = 0;
             m_ActiveDebugRendererList.Clear();
             m_ActiveDebugRendererListHdl.Clear();
         }
@@ -617,8 +634,9 @@ namespace UnityEngine.Rendering.Universal
             ref RenderStateBlock renderStateBlock)
         {
             CreateDebugRenderSetups(filteringSettings);
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
+            for (var setupIndex = 0; setupIndex < m_ActiveDebugRenderSetupCount; setupIndex++)
             {
+                DebugRenderSetup debugRenderSetup = m_DebugRenderSetups[setupIndex];
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererListHandle rendererListHdl = new RendererListHandle();
@@ -637,8 +655,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void DrawWithRendererList(RasterCommandBuffer cmd)
         {
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
+            for (var setupIndex = 0; setupIndex < m_ActiveDebugRenderSetupCount; setupIndex++)
             {
+                DebugRenderSetup debugRenderSetup = m_DebugRenderSetups[setupIndex];
                 debugRenderSetup.Begin(cmd);
                 RendererList rendererList = new RendererList();
                 if (m_ActiveDebugRendererList.Count > 0)
@@ -655,6 +674,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             DisposeDebugRenderLists();
+            m_DebugHandler.ReturnDebugRendererLists(this);
         }
     }
 }

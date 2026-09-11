@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering.Universal
     class DebugRenderSetup : IDisposable
     {
         private readonly DebugHandler m_DebugHandler;
-        private readonly FilteringSettings m_FilteringSettings;
-        private readonly int m_Index;
+        private FilteringSettings m_FilteringSettings;
+        private int m_Index;
         private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.materialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.renderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.lightingSettings;
@@ -68,6 +68,13 @@ namespace UnityEngine.Rendering.Universal
             FilteringSettings filteringSettings)
         {
             m_DebugHandler = debugHandler;
+            m_FilteringSettings = filteringSettings;
+            m_Index = index;
+        }
+
+        // Only the index and filtering settings vary; the rest is read from the handler while recording.
+        internal void Reuse(int index, FilteringSettings filteringSettings)
+        {
             m_FilteringSettings = filteringSettings;
             m_Index = index;
         }
