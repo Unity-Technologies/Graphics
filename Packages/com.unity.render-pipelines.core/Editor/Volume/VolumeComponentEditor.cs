@@ -441,14 +441,14 @@ namespace UnityEditor.Rendering
             var volumeComponentType = volumeComponent.GetType();
             var displayInfo = volumeComponentType.GetCustomAttribute<DisplayInfoAttribute>();
             if (displayInfo != null && !string.IsNullOrWhiteSpace(displayInfo.name))
-                return m_DisplayTitle = EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
+                return m_DisplayTitle = L10n.TextContent(displayInfo.name, string.Empty, null, null);
 
             #pragma warning disable CS0618
             if (!string.IsNullOrWhiteSpace(volumeComponent.displayName))
-                return m_DisplayTitle = EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
+                return m_DisplayTitle = L10n.TextContent(volumeComponent.displayName, string.Empty, null, null);
             #pragma warning restore CS0618
 
-            return m_DisplayTitle = EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name), string.Empty);
+            return m_DisplayTitle = L10n.TextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name), string.Empty, null, null);
         }
 
         void AddToggleState(GUIContent content, bool state)
@@ -539,8 +539,8 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip); // avoid property from getting the tooltip of another one with the same name
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null); // avoid property from getting the tooltip of another one with the same name
             return PropertyField(property, title);
         }
 
@@ -707,8 +707,8 @@ namespace UnityEditor.Rendering
         /// <param name="property">The color property</param>
         protected void ColorFieldLinear(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null);
 
             using (var scope = new OverridablePropertyScope(property, title, this))
             {

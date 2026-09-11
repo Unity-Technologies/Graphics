@@ -101,8 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ModelTypeField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null);
 
             using (var scope = new OverridablePropertyScope(property, title, this))
             {

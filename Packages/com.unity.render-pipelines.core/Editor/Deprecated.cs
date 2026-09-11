@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering
         {
             value = DoGUI(
                 PrepareControlRect(),
-                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                L10n.TextContent(widget.displayName, widget.tooltip, null, null),
                 Cast<TField>(widget),
                 Cast<TState>(state)
             );
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering
         {
             DoGUI(
                 PrepareControlRect(),
-                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                L10n.TextContent(widget.displayName, widget.tooltip, null, null),
                 Cast<TWidget>(widget)
             );
 

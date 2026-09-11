@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         static UnityEngine.GUIContent Label(SerializedDataParameter property, string text)
-            => EditorGUIUtility.TrTextContent(text, property.GetAttribute<UnityEngine.TooltipAttribute>()?.tooltip);
+            => L10n.TextContent(text, property.GetAttribute<UnityEngine.TooltipAttribute>()?.tooltip, null, null);
 
         public override void OnInspectorGUI()
         {

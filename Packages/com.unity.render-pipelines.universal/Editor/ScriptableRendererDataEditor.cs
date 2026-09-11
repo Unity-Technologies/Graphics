@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.Universal
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(rendererFeatureObjRef, pos, index), null, null, helpURL);
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(L10n.TextContent(title, tooltip, null, null), renderFeatureProperty, activeProperty, pos => OnContextClick(rendererFeatureObjRef, pos, index), null, null, helpURL);
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor

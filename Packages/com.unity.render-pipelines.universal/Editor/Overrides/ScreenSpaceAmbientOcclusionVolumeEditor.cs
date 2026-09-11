@@ -8,15 +8,15 @@ namespace UnityEditor.Rendering.Universal
     {
         static class Styles
         {
-            public static readonly GUIContent qualitySettings = EditorGUIUtility.TrTextContent("Quality Settings");
-            public static readonly GUIContent samplingMethod = EditorGUIUtility.TrTextContent("Sampling Method", "The noise pattern to use for ambient occlusion sampling. 'Interleaved Gradient Noise' is more performant and uses the same pattern every frame. 'Blue Noise' varies the pattern each frame at a slightly higher cost, producing a more subtle effect when the camera is in motion.");
-            public static readonly GUIContent temporalAccumulation = EditorGUIUtility.TrTextContent("Temporal Accumulation");
-            public static readonly GUIContent enable = EditorGUIUtility.TrTextContent("Enable", "Enable temporal filtering to reduce noise and improve stability over time.");
-            public static readonly GUIContent minimumRadiusInPixels = EditorGUIUtility.TrTextContent("Minimum Radius (Pixels)", "Minimum radius in pixels guaranteed by GTAO. Acts as a screen-space floor on the world-space Radius so the effect remains visible at a distance.");
-            public static readonly GUIContent ghostingMitigation = EditorGUIUtility.TrTextContent("Ghosting Mitigation", "Controls how aggressively temporal accumulation reduces ghosting. Higher values reject more history but can increase noise.");
-            public static readonly GUIContent historyLength = EditorGUIUtility.TrTextContent("History Length", "Controls the length of the temporal history. Higher values produce smoother, more stable results but can increase ghosting.");
-            public static readonly GUIContent useComputeShader = EditorGUIUtility.TrTextContent("Use Compute Shader", "When enabled, uses compute shaders for GTAO calculation. Provides temporal filtering support and configurable direction/step counts.");
-            public static readonly GUIContent spatialFilter = EditorGUIUtility.TrTextContent("Spatial Filter", "Spatial filter used by the GTAO compute path.");
+            public static readonly GUIContent qualitySettings = L10n.TextContent("Quality Settings", null, null, null);
+            public static readonly GUIContent samplingMethod = L10n.TextContent("Sampling Method", "The noise pattern to use for ambient occlusion sampling. 'Interleaved Gradient Noise' is more performant and uses the same pattern every frame. 'Blue Noise' varies the pattern each frame at a slightly higher cost, producing a more subtle effect when the camera is in motion.", null, null);
+            public static readonly GUIContent temporalAccumulation = L10n.TextContent("Temporal Accumulation", null, null, null);
+            public static readonly GUIContent enable = L10n.TextContent("Enable", "Enable temporal filtering to reduce noise and improve stability over time.", null, null);
+            public static readonly GUIContent minimumRadiusInPixels = L10n.TextContent("Minimum Radius (Pixels)", "Minimum radius in pixels guaranteed by GTAO. Acts as a screen-space floor on the world-space Radius so the effect remains visible at a distance.", null, null);
+            public static readonly GUIContent ghostingMitigation = L10n.TextContent("Ghosting Mitigation", "Controls how aggressively temporal accumulation reduces ghosting. Higher values reject more history but can increase noise.", null, null);
+            public static readonly GUIContent historyLength = L10n.TextContent("History Length", "Controls the length of the temporal history. Higher values produce smoother, more stable results but can increase ghosting.", null, null);
+            public static readonly GUIContent useComputeShader = L10n.TextContent("Use Compute Shader", "When enabled, uses compute shaders for GTAO calculation. Provides temporal filtering support and configurable direction/step counts.", null, null);
+            public static readonly GUIContent spatialFilter = L10n.TextContent("Spatial Filter", "Spatial filter used by the GTAO compute path.", null, null);
         }
 
         SerializedDataParameter m_Mode;

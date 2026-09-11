@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering
                 /// <summary>
                 /// Target display content
                 /// </summary>
-                public static readonly GUIContent targetDisplay = EditorGUIUtility.TrTextContent("Target Display");
+                public static readonly GUIContent targetDisplay = L10n.TextContent("Target Display", null, null, null);
 #endif
 
                 /// <summary>

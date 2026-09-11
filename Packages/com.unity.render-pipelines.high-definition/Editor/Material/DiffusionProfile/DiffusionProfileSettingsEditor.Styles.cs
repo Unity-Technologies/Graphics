@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent transmissionLabel = L10n.TextContent("Transmission only", null, null, null);
             public static readonly GUIContent profileTransmissionMode = L10n.TextContent("Transmission Mode", "Specifies how HDRP calculates light transmission.", null, null);
             public static readonly GUIContent profileMinMaxThickness = L10n.TextContent("Thickness Remap Values (Min-Max)", "Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map.", null, null);
-            public static readonly GUIContent profileThicknessRemap = EditorGUIUtility.TrTextContent("Thickness Remap (Min-Max)", profileMinMaxThickness.tooltip);
+            public static readonly GUIContent profileThicknessRemap = L10n.TextContent("Thickness Remap (Min-Max)", profileMinMaxThickness.tooltip, null, null);
 
 
             public static readonly GUIContent profilePreview0 = L10n.TextContent("Diffusion Profile Preview", null, null, null);

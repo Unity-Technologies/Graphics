@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = L10n.TextContent("Realtime Raytracing", null, null, null);
             public static readonly GUIContent supportedRayTracingMode = L10n.TextContent("Supported Ray Tracing Mode", null, null, null);
             public static readonly GUIContent supportVFXRayTracing = L10n.TextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.", null, null);
-            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing requires DX12 on Windows. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings. You can use the HDRP Wizard to configure these settings.", null, CoreEditorStyles.iconWarn);
+            public static readonly GUIContent rayTracingRestrictionOnlyWarning = L10n.TextContentWithIcon("Ray tracing requires DX12 on Windows. Disable Auto Graphics API and set Direct3D 12 as the first Graphics API in Player Settings. You can use the HDRP Wizard to configure these settings.", null, CoreEditorStyles.iconWarn, null);
             public static string rayTracingNotSupportedBuildTarget = L10n.Tr("The {0} does not support Ray tracing. Consider disabling it or switch to a platform that supports it.", null);
             public static readonly GUIContent rayTracingMSAAUnsupported = L10n.TextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.", null, null, null);
             public static readonly GUIContent waterMSAAUnsupported = L10n.TextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.", null, null, null);
@@ -277,7 +277,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent TAAUInjectionPoint = L10n.TextContent("TAA Upscale Injection Point", "The injection point at which to apply the upscaling.", null, null);
             public static readonly GUIContent STPInjectionPoint = L10n.TextContent("STP Injection Point", "The injection point at which to apply the upscaling.", null, null);
 #if ENABLE_UPSCALER_FRAMEWORK
-            public static readonly GUIContent IUpscalerInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
+            public static readonly GUIContent IUpscalerInjectionPoint = L10n.TextContent("Injection Point", "The injection point at which to apply the upscaling.", null, null);
 #endif
             public static readonly GUIContent DLSSUseOptimalSettingsContent = L10n.TextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.", null, null);
             public static readonly GUIContent DLSSRenderPresetsContent = L10n.TextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.", null, null);
@@ -427,10 +427,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent useDepthPrepassForOccluders = L10n.TextContent("Occluders From Depth Prepass", "Always builds occluders from the depth pre-pass. If this flag is on, or the Full Depth Prepass within Deferred frame setting is enabled, or Lit Shader Mode is Forward Only, occluders are built during the depth pre-pass.  Otherwise occluders are built during the gbuffer pass.", null, null);
 
             public static readonly string shadowSmallMeshPctToolTip = "Default minimum shadow screen percentage (0-50%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.";
-            public static readonly GUIContent shadowSmallMeshPct1 = EditorGUIUtility.TrTextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct2 = EditorGUIUtility.TrTextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct3 = EditorGUIUtility.TrTextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct4 = EditorGUIUtility.TrTextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct1 = L10n.TextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct2 = L10n.TextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct3 = L10n.TextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct4 = L10n.TextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
 
             public static GUIContent brgShaderStrippingErrorMessage =
                 L10n.TextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".", null, null, null);

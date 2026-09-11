@@ -315,8 +315,8 @@ namespace UnityEditor.Rendering
 
         public void AddItemsToMenu(GenericMenu menu)
         {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetExpanded(true));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetExpanded(false));
+            menu.AddItem(L10n.TextContent("Expand All", null, null, null), false, () => SetExpanded(true));
+            menu.AddItem(L10n.TextContent("Collapse All", null, null, null), false, () => SetExpanded(false));
         }
 
         void SetExpanded(bool expanded)

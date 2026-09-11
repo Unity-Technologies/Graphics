@@ -36,12 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent injectionPoint = L10n.TextContent("Injection Point", "The stage in the render pipeline to execute this pass.", null, null);
             public static readonly GUIContent priority = L10n.TextContent("Priority", "A value which determines the execution order when there are several Custom Pass Volumes with the same injection point overlaps. Custom Pass Volume with a higher value is rendered first.", null, null);
             public static readonly GUIContent targetCamera = L10n.TextContent("Target Camera", "Determines on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.", null, null);
-            public static readonly GUIContent addColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent addColliderFixMessage = L10n.TextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn, null);
             public static readonly GUIContent addBoxCollider = L10n.TextContent("Add a Box Collider", null, null, null);
             public static readonly GUIContent sphereBoxCollider = L10n.TextContent("Add a Sphere Collider", null, null, null);
             public static readonly GUIContent capsuleBoxCollider = L10n.TextContent("Add a Capsule Collider", null, null, null);
             public static readonly GUIContent meshBoxCollider = L10n.TextContent("Add a Mesh Collider", null, null, null);
-            public static readonly GUIContent enableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent enableColliderFixMessage = L10n.TextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn, null);
             public static readonly GUIContent[] modes = { L10n.TextContent("Global", null, null, null), L10n.TextContent("Local", null, null, null), L10n.TextContent("Camera", null, null, null) };
         }
 

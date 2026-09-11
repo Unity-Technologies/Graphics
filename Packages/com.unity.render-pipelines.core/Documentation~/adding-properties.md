@@ -9,11 +9,11 @@ For example:
     {
         class Styles
         {
-            public static readonly GUIContent myBoolLabel = EditorGUIUtility.TrTextContent("My check box", "The description of the property.");
+            public static readonly GUIContent myBoolLabel = L10n.TextContent("My check box", "The description of the property.", null, null);
         }
 
         public List<string> keywords => new List<string>() {Styles.myBoolLabel.text};
-        public GUIContent header => EditorGUIUtility.TrTextContent("My property section", "The description of my property section.");
+        public GUIContent header => L10n.TextContent("My property section", "The description of my property section.", null, null);
 
         public static bool s_MyBoolPreference;
         public void PreferenceGUI()

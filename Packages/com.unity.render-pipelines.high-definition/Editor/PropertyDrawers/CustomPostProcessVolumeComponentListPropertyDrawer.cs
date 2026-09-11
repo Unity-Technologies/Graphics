@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var type in listTypes)
                 {
                     atLeastOne = true;
-                    menu.AddItem(EditorGUIUtility.TrTextContent(type.Name, type.AssemblyQualifiedName), on: false, () =>
+                    menu.AddItem(L10n.TextContent(type.Name, type.AssemblyQualifiedName, null, null), on: false, () =>
                     {
                         int lastPos = currentPostProcessTypes.arraySize;
                         currentPostProcessTypes.InsertArrayElementAtIndex(lastPos);

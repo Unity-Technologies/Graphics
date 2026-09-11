@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string message, MessageType messageType, Action action)
         {
-            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), "Fix", action);
+            DrawFixMeBox(L10n.TextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType), null), "Fix", action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string message, MessageType messageType, string buttonLabel, Action action)
         {
-            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), buttonLabel, action);
+            DrawFixMeBox(L10n.TextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType), null), buttonLabel, action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>

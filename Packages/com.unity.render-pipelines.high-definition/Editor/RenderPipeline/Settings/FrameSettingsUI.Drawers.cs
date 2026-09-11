@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData, serializedMask))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, true);
@@ -212,7 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData, serializedMask))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, true);
@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, false);
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, false);

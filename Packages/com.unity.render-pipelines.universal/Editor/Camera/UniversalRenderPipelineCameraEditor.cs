@@ -136,10 +136,10 @@ namespace UnityEditor.Rendering.Universal
                         m_IncompatibleCameras.Add(cam);
                     }
 
-                    errorContent = EditorGUIUtility.TrTextContent("",
+                    errorContent = L10n.TextContentWithIcon("",
                         $"Only cameras with compatible renderer types can be stacked. " +
                         $"The camera: {cam.name} are using the renderer {renderer.GetType().Name}, " +
-                        $"but the base camera: {camera.name} are using {baseAdditionalData.scriptableRenderer.GetType().Name}. Will skip rendering", CoreEditorStyles.iconFail);
+                        $"but the base camera: {camera.name} are using {baseAdditionalData.scriptableRenderer.GetType().Name}. Will skip rendering", CoreEditorStyles.iconFail, null);
                 }
                 else if (m_IncompatibleCameras.Contains(cam))
                 {
@@ -157,8 +157,8 @@ namespace UnityEditor.Rendering.Universal
                         m_NotSupportedOverlayCameras.Add(cam);
                     }
 
-                    errorContent = EditorGUIUtility.TrTextContent("",
-                        $"The camera: {cam.name} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.", CoreEditorStyles.iconFail);
+                    errorContent = L10n.TextContentWithIcon("",
+                        $"The camera: {cam.name} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.", CoreEditorStyles.iconFail, null);
                 }
                 else if (m_NotSupportedOverlayCameras.Contains(cam))
                 {
@@ -171,9 +171,9 @@ namespace UnityEditor.Rendering.Universal
                     {
                         m_TypeErrorCameras.Add(cam);
                     }
-                    errorContent = EditorGUIUtility.TrTextContent(type.GetName(), $"Stack can only contain Overlay cameras. The camera: {cam.name} " +
+                    errorContent = L10n.TextContentWithIcon(type.GetName(), $"Stack can only contain Overlay cameras. The camera: {cam.name} " +
                                                                                     $"has a type {type} that is not supported. Will skip rendering.",
-                        CoreEditorStyles.iconFail);
+                        CoreEditorStyles.iconFail, null);
                 }
                 else if (m_TypeErrorCameras.Contains(cam))
                 {
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
 
                 GUIContent nameContent =
                     outputWarning ?
-                    EditorGUIUtility.TrTextContent(cam.name, "Output properties do not match base camera", CoreEditorStyles.iconWarn) :
+                    L10n.TextContentWithIcon(cam.name, "Output properties do not match base camera", CoreEditorStyles.iconWarn, null) :
                     L10n.TextContent(cam.name, null, null, null);
 
                 EditorGUI.BeginProperty(rect, GUIContent.none, m_SerializedCamera.cameras.GetArrayElementAtIndex(index));

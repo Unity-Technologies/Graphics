@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent lightBounceIntensity = L10n.TextContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.", null, null);
             public readonly GUIContent areaLightCookie = L10n.TextContent("Cookie", "Cookie mask currently assigned to the area light.", null, null);
             public readonly GUIContent iesTexture = L10n.TextContent("IES Profile", "IES Profile (Support: Point, Spot, Rectangular-Area Lights).", null, null);
-            public readonly GUIContent cookieTextureTypeError = EditorGUIUtility.TrTextContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
+            public readonly GUIContent cookieTextureTypeError = L10n.TextContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image, null);
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
             public readonly GUIContent includeLightForRayTracing = L10n.TextContent("Include For Ray Tracing", "When enabled, the light affects the scene for cameras with the Ray-Tracing frame setting enabled.", null, null);

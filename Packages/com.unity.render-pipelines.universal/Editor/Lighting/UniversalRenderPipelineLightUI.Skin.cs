@@ -64,17 +64,17 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent ShadowLayer = L10n.TextContent("Layer", "Specifies the light layer to use for shadows.", null, null);
 
 #if VOLUMETRIC_FOG
-            public static readonly GUIContent VolumetricsHeader = EditorGUIUtility.TrTextContent("Volumetrics", "Settings that control how this light interacts with volumetric fog.");
-            public static readonly GUIContent VolumetricEnable = EditorGUIUtility.TrTextContent("Enable", "When enabled, this light interacts with volumetric fog.");
-            public static readonly GUIContent VolumetricMultiplier = EditorGUIUtility.TrTextContent("Multiplier", "Controls the intensity of the scattered volumetric lighting.");
-            public static readonly GUIContent VolumetricShadowDimmer = EditorGUIUtility.TrTextContent("Shadow Dimmer", "Dims the volumetric shadows this light casts. Set to 0 to skip shadow sampling in volumetric fog.");
+            public static readonly GUIContent VolumetricsHeader = L10n.TextContent("Volumetrics", "Settings that control how this light interacts with volumetric fog.", null, null);
+            public static readonly GUIContent VolumetricEnable = L10n.TextContent("Enable", "When enabled, this light interacts with volumetric fog.", null, null);
+            public static readonly GUIContent VolumetricMultiplier = L10n.TextContent("Multiplier", "Controls the intensity of the scattered volumetric lighting.", null, null);
+            public static readonly GUIContent VolumetricShadowDimmer = L10n.TextContent("Shadow Dimmer", "Dims the volumetric shadows this light casts. Set to 0 to skip shadow sampling in volumetric fog.", null, null);
 #endif
 
             public static readonly GUIContent LightCookieSize = L10n.TextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.", null, null);
             public static readonly GUIContent LightCookieOffset = L10n.TextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.", null, null);
             /// <summary>Title with "Rendering Layer"</summary>
             public static readonly GUIContent RenderingLayers = L10n.TextContent("Rendering Layers", "Select the Rendering Layers that the Light affects. This Light affects objects where at least one Rendering Layer value matches.", null, null);
-            public static readonly GUIContent RenderingLayersHelpBox = EditorGUIUtility.TrTextContentWithIcon($"Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info));
+            public static readonly GUIContent RenderingLayersHelpBox = L10n.TextContentWithIcon($"Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), null);
         }
     }
 }

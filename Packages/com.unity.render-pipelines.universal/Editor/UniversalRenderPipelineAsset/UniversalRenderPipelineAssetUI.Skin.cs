@@ -143,10 +143,10 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent smallMeshScreenPercentage = L10n.TextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.", null, null);
             public static GUIContent gpuResidentDrawerEnableOcclusionCullingInCameras = L10n.TextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.", null, null);
             public static string shadowSmallMeshPctToolTip = "Default per-cascade minimum screen percentage (0-50%) gpu-driven Renderers can cover before getting shadows culled. If a Renderer is part of a LODGroup, this will be ignored.";
-            public static readonly GUIContent shadowSmallMeshPct1 = EditorGUIUtility.TrTextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct2 = EditorGUIUtility.TrTextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct3 = EditorGUIUtility.TrTextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
-            public static readonly GUIContent shadowSmallMeshPct4 = EditorGUIUtility.TrTextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip);
+            public static readonly GUIContent shadowSmallMeshPct1 = L10n.TextContent("Cascade 1 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct2 = L10n.TextContent("Cascade 2 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct3 = L10n.TextContent("Cascade 3 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
+            public static readonly GUIContent shadowSmallMeshPct4 = L10n.TextContent("Cascade 4 Small-Mesh Screen-Percentage", shadowSmallMeshPctToolTip, null, null);
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = L10n.TextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime", null, null);

@@ -212,8 +212,8 @@ namespace UnityEditor
             /// <summary>
             /// The text and tooltip for the receive fog GUI.
             /// </summary>
-            public static readonly GUIContent receiveFogText = EditorGUIUtility.TrTextContent("Receive Fog",
-                "When enabled, the surface receives fog from the Fog volume override.");
+            public static readonly GUIContent receiveFogText = L10n.TextContent("Receive Fog",
+                "When enabled, the surface receives fog from the Fog volume override.", null, null);
 #endif
 
             /// <summary>

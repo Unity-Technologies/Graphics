@@ -357,7 +357,7 @@ namespace UnityEditor.Rendering
                         EditorGUI.RenderingLayerMaskField(fieldPosition, "", mask.intValue);
                     }
                     else
-                        EditorGUI.RenderingLayerMaskField(rect, EditorGUIUtility.TrTextContent(name.stringValue, Styles.maskTooltip), mask);
+                        EditorGUI.RenderingLayerMaskField(rect, L10n.TextContent(name.stringValue, Styles.maskTooltip, null, null), mask);
                 }
             };
         }

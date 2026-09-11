@@ -11,13 +11,13 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 public static GUIContent[] xrTargetEyeOptions =
                 {
-                    EditorGUIUtility.TrTextContent("None"),
-                    EditorGUIUtility.TrTextContent("Both"),
+                    L10n.TextContent("None", null, null, null),
+                    L10n.TextContent("Both", null, null, null),
                 };
 
                 public static int[] xrTargetEyeValues = { 0, 1 };
-                public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye",
-                    "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
+                public static readonly GUIContent xrTargetEye = L10n.TextContent("Target Eye",
+                    "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.", null, null);
 #endif
                 // Using the pipeline Settings
                 public static GUIContent[] displayedCameraOptions =
