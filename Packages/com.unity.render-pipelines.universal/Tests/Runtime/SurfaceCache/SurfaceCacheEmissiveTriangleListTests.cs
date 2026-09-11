@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             var env = new Environment();
             env.Context = new RayTracingContext(RayTracingBackend.Compute, rtResources);
             env.World = new SurfaceCacheWorld();
-            env.World.Init(env.Context, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader);
+            env.World.Init(env.Context, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader, GeometryPoolDesc.NewMinimal());
             return env;
         }
 
