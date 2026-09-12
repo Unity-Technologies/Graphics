@@ -1110,6 +1110,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         static bool TotalAttachmentsSizeExceedPixelStorageLimit(CompilerContextData contextData, ref NativePassData nativePass, ref FixedAttachmentArray<PassFragmentData> attachmentsToTryAdding)
         {
+            // A merge that adds no attachment cannot grow the tile footprint, so it can never exceed the limit
+            if (attachmentsToTryAdding.size == 0)
+                return false;
+
             // TODO: We are currently only checking for iOS GPU Family 1 to 3 since the storage size is much more restricted (16 bytes for Family 1 and 32 for Family 2 & 3).
             // This is temporary. Later on, we should check all iOS GPU Families but also Android (Vulkan) to avoid the same potential restrictions.
             if (Application.platform == RuntimePlatform.IPhonePlayer && SystemInfo.maxTiledPixelStorageSize <= 32)
