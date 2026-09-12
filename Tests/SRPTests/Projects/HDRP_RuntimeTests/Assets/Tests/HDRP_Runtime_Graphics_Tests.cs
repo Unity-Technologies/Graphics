@@ -63,6 +63,15 @@ public class HDRP_Runtime_Graphics_Tests
         RuntimePlatform.PS5, RuntimePlatform.WindowsPlayer
     )]
     [IgnoreGraphicsTest(
+        "002-HDMaterials$",
+        "",
+        GraphicsDeviceType.Metal
+    )]
+    [IgnoreGraphicsTest(
+        "002-HDMaterials$",
+        "CoreCLR renders transparent/refraction content differently from Mono. https://jira.unity3d.com/browse/UUM-151806"
+    )]
+    [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
         "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
         GraphicsDeviceType.Metal,
