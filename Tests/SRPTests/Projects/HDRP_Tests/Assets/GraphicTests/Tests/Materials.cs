@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -82,6 +83,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Architecture.X64
         )]
         [IgnoreGraphicsTest("1806_BatchCount$", "Fails everywhere (seems to be missing CPU markers).")]
+        [IgnoreGraphicsTest(
+            "1219_Lit_Light_on_Tesselation",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152664",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
         [TestNotSupportedOn(
             "1227|1805",
             "Not XR compatible",
