@@ -815,7 +815,8 @@ namespace UnityEngine.Rendering.Universal
                 Profiling.drawGizmos))
             {
                 builder.UseTexture(color, AccessFlags.Write);
-                builder.UseTexture(depth, AccessFlags.ReadWrite);
+                if (depth.IsValid())
+                    builder.UseTexture(depth, AccessFlags.ReadWrite);
 
                 passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
                 passData.color = color;
@@ -833,7 +834,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     using (new ProfilingScope(rgContext.cmd, Profiling.drawGizmos))
                     {
-                        rgContext.cmd.SetRenderTarget(data.color, data.depth);
+                        if (data.depth.IsValid())
+                            rgContext.cmd.SetRenderTarget(data.color, data.depth);
+                        else
+                            rgContext.cmd.SetRenderTarget(data.color);
+
                         // SetRenderTarget resets the viewport to the full target; re-clamp to the camera rect
                         // when rendering to the backbuffer.
                         if (data.clampViewport)
