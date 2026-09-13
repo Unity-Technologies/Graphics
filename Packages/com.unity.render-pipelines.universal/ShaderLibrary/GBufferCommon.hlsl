@@ -5,7 +5,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 // Material flags:
 
@@ -24,11 +23,7 @@
     #define GBUFFER_FEATURE_DEPTH 1
 #endif
 
-#if defined(SHADOWS_SHADOWMASK)
-    #define GBUFFER_FEATURE_SHADOWMASK 1
-#elif !defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-    #define GBUFFER_FEATURE_SHADOWMASK 1
-#elif defined(_DEFERRED_MIXED_LIGHTING)
+#if defined(SHADOWS_SHADOWMASK) || defined(LIGHTMAP_SHADOW_MIXING) || defined(_DEFERRED_MIXED_LIGHTING)
     #define GBUFFER_FEATURE_SHADOWMASK 1
 #endif
 

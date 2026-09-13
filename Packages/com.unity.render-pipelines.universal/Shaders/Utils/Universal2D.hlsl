@@ -1,5 +1,6 @@
 #ifndef UNIVERSAL_FALLBACK_2D_INCLUDED
 #define UNIVERSAL_FALLBACK_2D_INCLUDED
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/AlphaBlend.hlsl"
 
 struct Attributes
 {
@@ -33,14 +34,13 @@ half4 frag(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     half2 uv = input.uv;
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+    half4 texColor = SampleBaseMap(uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
+    if (UseAlphaPremultiply())
+        color = ApplyAlphaPremultiply(color, alpha);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-    color *= alpha;
-#endif
     return half4(color, alpha);
 }
 

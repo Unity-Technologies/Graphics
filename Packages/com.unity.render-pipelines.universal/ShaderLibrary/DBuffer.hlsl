@@ -4,11 +4,14 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.deprecated.hlsl"
 
 
-#if (defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)) && !defined(_SURFACE_TYPE_TRANSPARENT)
-#define _DBUFFER
+#if (defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3))
+#define _DBUFFER 1
 #endif
 
 #define DBufferType0 half4
@@ -117,17 +120,11 @@ void DecodeFromDBuffer(
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
-void ApplyDecal(float4 positionCS,
-    inout half3 baseColor,
-    inout half3 specularColor,
-    inout half3 normalWS,
-    inout half metallic,
-    inout half occlusion,
-    inout half smoothness)
+// Blends the decal base color and normal into the surface; shared by the workflow-specific entry points below.
+void ApplyDecalToBaseColorAndNormal(float4 positionCS, inout half3 baseColor, inout half3 normalWS, out DecalSurfaceData decalSurfaceData)
 {
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(positionCS.xy));
 
-    DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
@@ -142,17 +139,45 @@ void ApplyDecal(float4 positionCS,
         normalWS.xyz = SafeNormalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 #endif
+}
+
+// Applies the decal to a specular-workflow surface (_SPECULAR_SETUP).
+void ApplyDecalSpecular(float4 positionCS,
+    inout half3 baseColor,
+    inout half3 specularColor,
+    inout half3 normalWS,
+    inout half occlusion,
+    inout half smoothness)
+{
+    DecalSurfaceData decalSurfaceData;
+    ApplyDecalToBaseColorAndNormal(positionCS, baseColor, normalWS, decalSurfaceData);
 
 #if defined(_DBUFFER_MRT3)
-#ifdef _SPECULAR_SETUP
     if (decalSurfaceData.MAOSAlpha.x < 1.0)
     {
         half3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : half3(1.0, 1.0, 1.0), decalSurfaceData.metallic, DEFAULT_SPECULAR_VALUE);
         specularColor = specularColor * decalSurfaceData.MAOSAlpha + decalSpecularColor * (1.0f - decalSurfaceData.MAOSAlpha);
     }
-#else
-    metallic = metallic * decalSurfaceData.MAOSAlpha + decalSurfaceData.metallic;
+
+    occlusion = occlusion * decalSurfaceData.MAOSAlpha + decalSurfaceData.occlusion;
+
+    smoothness = smoothness * decalSurfaceData.MAOSAlpha + decalSurfaceData.smoothness;
 #endif
+}
+
+// Applies the decal to a metallic-workflow surface.
+void ApplyDecalMetallic(float4 positionCS,
+    inout half3 baseColor,
+    inout half3 normalWS,
+    inout half metallic,
+    inout half occlusion,
+    inout half smoothness)
+{
+    DecalSurfaceData decalSurfaceData;
+    ApplyDecalToBaseColorAndNormal(positionCS, baseColor, normalWS, decalSurfaceData);
+
+#if defined(_DBUFFER_MRT3)
+    metallic = metallic * decalSurfaceData.MAOSAlpha + decalSurfaceData.metallic;
 
     occlusion = occlusion * decalSurfaceData.MAOSAlpha + decalSurfaceData.occlusion;
 
@@ -175,39 +200,30 @@ void ApplyDecalToBaseColor(float4 positionCS, inout half3 baseColor)
 
 void ApplyDecalToBaseColorAndNormal(float4 positionCS, inout half3 baseColor, inout half3 normalWS)
 {
-    half3 specular = 0;
-    half metallic = 0;
-    half occlusion = 0;
-    half smoothness = 0;
-    ApplyDecal(positionCS,
-        baseColor,
-        specular,
-        normalWS,
-        metallic,
-        occlusion,
-        smoothness);
+    DecalSurfaceData decalSurfaceData;
+    ApplyDecalToBaseColorAndNormal(positionCS, baseColor, normalWS, decalSurfaceData);
 }
 
-void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, inout InputData inputData)
+void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, inout InputData inputData, bool isSpecularSetup)
 {
-#ifdef _SPECULAR_SETUP
-    half metallic = 0;
-    ApplyDecal(positionCS,
-        surfaceData.albedo,
-        surfaceData.specular,
-        inputData.normalWS,
-        metallic,
-        surfaceData.occlusion,
-        surfaceData.smoothness);
-#else
-    half3 specular = 0;
-    ApplyDecal(positionCS,
-        surfaceData.albedo,
-        specular,
-        inputData.normalWS,
-        surfaceData.metallic,
-        surfaceData.occlusion,
-        surfaceData.smoothness);
-#endif
+    if (isSpecularSetup)
+    {
+        ApplyDecalSpecular(positionCS,
+            surfaceData.albedo,
+            surfaceData.specular,
+            inputData.normalWS,
+            surfaceData.occlusion,
+            surfaceData.smoothness);
+    }
+    else
+    {
+        ApplyDecalMetallic(positionCS,
+            surfaceData.albedo,
+            inputData.normalWS,
+            surfaceData.metallic,
+            surfaceData.occlusion,
+            surfaceData.smoothness);
+    }
 }
+
 #endif // UNIVERSAL_DBUFFER_INCLUDED

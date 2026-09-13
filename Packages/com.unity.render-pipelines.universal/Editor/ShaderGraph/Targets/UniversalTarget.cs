@@ -1369,9 +1369,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             if (target.supportsLodCrossFade)
             {
-                pass.includes.Add(CoreIncludes.LODCrossFade);
                 pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
-                pass.defines.Add(CoreKeywordDescriptors.UseUnityCrossFade, 1);
             }
         }
 
@@ -2340,6 +2338,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kFoveatedRenderingKeywords = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
         const string kFoveatedRendering = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl";
         const string kMipmapDebugMacros = "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl";
+        const string kPackNormalsTexture = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl";
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
@@ -2358,7 +2357,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kMipmapDebugMacros, IncludeLocation.Pregraph}
+            { kMipmapDebugMacros, IncludeLocation.Pregraph },
+            { kLODCrossFade, IncludeLocation.Pregraph }
         };
 
         public static readonly IncludeCollection DOTSPregraph = new IncludeCollection
@@ -2411,6 +2411,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { WriteRenderLayersPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
+            { kPackNormalsTexture, IncludeLocation.Pregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -2481,11 +2482,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kSelectionPickingPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection LODCrossFade = new IncludeCollection
-        {
-            { kLODCrossFade, IncludeLocation.Pregraph }
         };
 
         public static readonly IncludeCollection GBufferOutputFormat = new IncludeCollection
@@ -2971,6 +2967,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment
         };
 
         public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
@@ -2997,16 +2994,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //       when crossfade is active, so all stages are affected by the
             //       LOD_FADE_CROSSFADE keyword.
             scope = KeywordScope.Global
-        };
-
-        public static readonly KeywordDescriptor UseUnityCrossFade = new KeywordDescriptor()
-        {
-            displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
-            referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
@@ -3054,7 +3041,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global
+            scope = KeywordScope.Global,
         };
 
         public static readonly KeywordDescriptor XRMotionVectors = new KeywordDescriptor()

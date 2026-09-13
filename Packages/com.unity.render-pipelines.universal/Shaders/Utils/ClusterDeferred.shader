@@ -52,8 +52,8 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Defines
-            #define _CLUSTER_LIGHT_LOOP
-            #define _LIT
+            #define _CLUSTER_LIGHT_LOOP 1
+            #define _LIT 1
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -118,8 +118,8 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Defines
-            #define _CLUSTER_LIGHT_LOOP
-            #define _SIMPLELIT
+            #define _CLUSTER_LIGHT_LOOP 1
+            #define _SIMPLELIT 1
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -135,7 +135,7 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
-            #pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 

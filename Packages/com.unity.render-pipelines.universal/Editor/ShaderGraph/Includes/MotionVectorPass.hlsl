@@ -1,6 +1,8 @@
 #ifndef SG_MOTION_VECTORS_PASS_INCLUDED
 #define SG_MOTION_VECTORS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MotionVectorsCommon.hlsl"
 
 #if defined(ATTRIBUTES_NEED_TEXCOORD4)
@@ -192,9 +194,7 @@ float4 frag(
     clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
 #endif
 
-#if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
 
 
 #if defined(APPLICATION_SPACE_WARP_MOTION)

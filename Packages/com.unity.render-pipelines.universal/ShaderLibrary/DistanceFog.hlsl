@@ -36,6 +36,11 @@
     #endif
 #endif
 
+bool DistanceFogAvailable()
+{
+    return FOG_LINEAR || FOG_EXP || FOG_EXP2;
+}
+
 // Calculate a normalized fog blend factor in [0,1] range.
 // Returns 1 when 'nearToFarZ' = 0, decreasing towards 0 as 'nearToFarZ' 
 // approaches the distance between the near and far-plane (far-near).
@@ -96,7 +101,7 @@ float DistanceFogNearToFarZ(float4 positionCS)
 // Blending parameters are derived from fragment coordinates (SV_Position).
 half3 BlendDistanceFogColor(half3 color, float4 positionCS, half3 fogColor)
 {
-    if ((FOG_LINEAR || FOG_EXP || FOG_EXP2) && IsFogEnabled())
+    if (DistanceFogAvailable() && IsFogEnabled())
     {
         half t = DistanceFogOcclusionFactor(DistanceFogNearToFarZ(positionCS));
         // UUM-61728: manual lerp avoids Vulkan artifacts on some GPUs
@@ -108,7 +113,7 @@ half3 BlendDistanceFogColor(half3 color, float4 positionCS, half3 fogColor)
 
 float3 BlendDistanceFogColor(float3 color, float4 positionCS, float3 fogColor)
 {
-    if ((FOG_LINEAR || FOG_EXP || FOG_EXP2) && IsFogEnabled())
+    if (DistanceFogAvailable() && IsFogEnabled())
     {
         float t = DistanceFogOcclusionFactor(DistanceFogNearToFarZ(positionCS));
         color = lerp(fogColor, color, t);
@@ -121,7 +126,7 @@ float3 BlendDistanceFogColor(float3 color, float4 positionCS, float3 fogColor)
 // Blending parameters are derived from explicit eye depth ('linearEyeDepth' is view-space z).
 half3 BlendDistanceFogColorFromEyeDepth(half3 color, float linearEyeDepth, half3 fogColor)
 {
-    if ((FOG_LINEAR || FOG_EXP || FOG_EXP2) && IsFogEnabled())
+    if (DistanceFogAvailable() && IsFogEnabled())
     {
         half t = DistanceFogOcclusionFactor(linearEyeDepth - _ProjectionParams.y);
         // UUM-61728: manual lerp avoids Vulkan artifacts on some GPUs
@@ -133,7 +138,7 @@ half3 BlendDistanceFogColorFromEyeDepth(half3 color, float linearEyeDepth, half3
 
 float3 BlendDistanceFogColorFromEyeDepth(float3 color, float linearEyeDepth, float3 fogColor)
 {
-    if ((FOG_LINEAR || FOG_EXP || FOG_EXP2) && IsFogEnabled())
+    if (DistanceFogAvailable() && IsFogEnabled())
     {
         float t = DistanceFogOcclusionFactor(linearEyeDepth - _ProjectionParams.y);
         color = lerp(fogColor, color, t);

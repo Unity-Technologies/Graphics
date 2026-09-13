@@ -5,28 +5,20 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lightmaps.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookie.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Clustering.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Light.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.deprecated.hlsl"
 
-
-// Abstraction over Light shading data.
-struct Light
-{
-    half3   direction;
-    half3   color;
-    float   distanceAttenuation; // full-float precision required on some platforms
-    half    shadowAttenuation;
-    uint    layerMask;
-};
-
-#if USE_CLUSTER_LIGHT_LOOP && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-#define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
+#if USE_CLUSTER_LIGHT_LOOP
+    #define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK if (LightmapAvailable() && LightmapShadowMixingAvailable() && _AdditionalLightsColor[lightIndex].a > 0.0h) continue;
 #else
-#define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
+    #define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 #endif
-
 
 #if defined(UNITY_PLATFORM_META_QUEST) && META_QUEST_LIGHTUNROLL
 	#define UNROLL_ONELIGHT [unroll(1)]
@@ -112,11 +104,7 @@ Light GetMainLight()
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
 #if USE_CLUSTER_LIGHT_LOOP
-#if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-    light.distanceAttenuation = _MainLightColor.a;
-#else
-    light.distanceAttenuation = 1.0;
-#endif
+    light.distanceAttenuation = (LightmapAvailable() && LightmapShadowMixingAvailable()) ? _MainLightColor.a : 1.0;
 #else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
 #endif
@@ -128,22 +116,20 @@ Light GetMainLight()
     return light;
 }
 
-Light GetMainLight(float4 shadowCoord)
+Light GetMainLight(float4 shadowCoord, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
     Light light = GetMainLight();
-    light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+    light.shadowAttenuation = receiveShadows ? SampleMainLightRealtimeShadow(shadowCoord, isSurfaceTypeTransparent) : half(1.0);
     return light;
 }
 
-Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
+Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
     Light light = GetMainLight();
-    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes, receiveShadows, isSurfaceTypeTransparent);
 
-    #if defined(_LIGHT_COOKIES)
-        real3 cookieColor = SampleMainLightCookie(positionWS);
-        light.color *= cookieColor;
-    #endif
+    real3 cookieColor = SampleMainLightCookie(positionWS);
+    light.color *= cookieColor;
 
     // Dim the main light by how much height-fog its rays pass through to reach this fragment.
     // Returns 1 (no change) when no Fog volume override is active.
@@ -152,16 +138,14 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
     return light;
 }
 
-Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor)
+Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
-    Light light = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
+    Light light = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask, receiveShadows, isSurfaceTypeTransparent);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
+    if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         light.color *= aoFactor.directAmbientOcclusion;
     }
-    #endif
 
     return light;
 }
@@ -242,7 +226,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
     return GetAdditionalPerObjectLight(lightIndex, positionWS);
 }
 
-Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows)
 {
 #if USE_CLUSTER_LIGHT_LOOP
     int lightIndex = i;
@@ -252,25 +236,22 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
-    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
-#if defined(_LIGHT_COOKIES)
+    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels, receiveShadows);
+
     real3 cookieColor = SampleAdditionalLightCookie(lightIndex, positionWS);
     light.color *= cookieColor;
-#endif
 
     return light;
 }
 
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor)
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
-    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask);
+    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
+    if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         light.color *= aoFactor.directAmbientOcclusion;
     }
-    #endif
 
     return light;
 }
@@ -291,17 +272,24 @@ int GetAdditionalLightsCount()
 half4 CalculateShadowMask(InputData inputData)
 {
     // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    half4 shadowMask = inputData.shadowMask; // Shadowmask was sampled from lightmap
-    #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    half4 shadowMask = inputData.shadowMask; // Shadowmask (probe occlusion) was sampled from APV
-    #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = unity_ProbesOcclusion; // Sample shadowmask (probe occlusion) from legacy probes
+    if (LightmapAvailable())
+    {
+        if (ShadowMaskAvailable())
+            return inputData.shadowMask; // Shadowmask was sampled from lightmap
+        else
+            return half4(1, 1, 1, 1); // Fallback shadowmask, fully unoccluded
+    }
+    #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    else
+    {
+        return inputData.shadowMask; // Shadowmask (probe occlusion) was sampled from APV
+    }
     #else
-    half4 shadowMask = half4(1, 1, 1, 1); // Fallback shadowmask, fully unoccluded
+    else
+    {
+        return unity_ProbesOcclusion; // Sample shadowmask (probe occlusion) from legacy probes
+    }
     #endif
-
-    return shadowMask;
 }
 
 #endif

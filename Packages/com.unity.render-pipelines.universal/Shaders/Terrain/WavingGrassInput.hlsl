@@ -2,7 +2,8 @@
 #define UNIVERSAL_WAVING_GRASS_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
@@ -28,6 +29,8 @@ TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 float4 _MainTex_TexelSize;
 UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
+
+half4 SampleBaseMap(float2 uv) { return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv); }
 
 // ---- Grass helpers
 

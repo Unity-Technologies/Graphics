@@ -556,7 +556,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 CorePasses.AddStencilStateControlToPass(ref result, target,
                     useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
@@ -600,10 +600,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
-
                 if (target.activeSubTarget is UniversalUnlitSubTarget unlitSubTarget)
                 {
                     UnlitPasses.AddDefaultDecalBlendingControlToPass(ref result, unlitSubTarget);

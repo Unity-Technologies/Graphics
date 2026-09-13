@@ -77,18 +77,16 @@ float3 shadergraph_LWSampleSceneNormals(float2 uv)
 
 float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, uint2 positionSS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
-#ifdef LIGHTMAP_ON
-    if (applyScaling)
+    if (LightmapAvailable() || DynamicLightmapAvailable())
     {
-        uvStaticLightmap = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-        uvDynamicLightmap = uvDynamicLightmap * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        if (applyScaling)
+        {
+            uvStaticLightmap = TransformLightmapUV(uvStaticLightmap, unity_LightmapST);
+            uvDynamicLightmap = TransformLightmapUV(uvDynamicLightmap, unity_DynamicLightmapST);
+        }
+        return SampleLightmap(uvStaticLightmap, uvDynamicLightmap, normalWS);
     }
-#if defined(DYNAMICLIGHTMAP_ON)
-    return SampleLightmap(uvStaticLightmap, uvDynamicLightmap, normalWS);
-#else
-    return SampleLightmap(uvStaticLightmap, normalWS);
-#endif
-#else
+
     #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     if (_EnableProbeVolumes && IsLightProbeSamplingEnabled())
     {
@@ -96,12 +94,9 @@ float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, uint2 positionS
         EvaluateAdaptiveProbeVolume(positionWS, normalWS, GetWorldSpaceNormalizeViewDir(positionWS), positionSS, bakeDiffuseLighting);
         return bakeDiffuseLighting;
     }
-    else
-        return SampleSH(normalWS);
-    #else
-    return SampleSH(normalWS);
     #endif
-#endif
+
+    return SampleSH(normalWS);
 }
 
 float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
@@ -118,7 +113,7 @@ void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
     density = 0.0f;
-    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+    if (DistanceFogAvailable())
     {
         float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
         float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);

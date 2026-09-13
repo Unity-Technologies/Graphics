@@ -27,6 +27,7 @@ Pass
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 
     // Defines
     $Attributes.normalOS:               #define ATTRIBUTES_NEED_NORMAL
@@ -142,9 +143,7 @@ Pass
             $Varyings.normalWS:  input.normalWS.xyz = normalWS;
             $Varyings.tangentWS: input.tangentWS.xyzw = half4(tangentWS, sign);
         #else
-            #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-                LODFadeCrossFade(positionCS);
-            #endif
+            LODFadeCrossFade(positionCS);
 
             half fadeFactor = half(1.0);
         #endif

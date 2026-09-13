@@ -74,7 +74,8 @@ namespace UnityEngine.Rendering.Universal
         // Additional Lights
         // clustered renderer can override PerVertex/PerPixel to be disabled
         // NOTE: off variants are atm always kept when additional lights are enabled due to XR perf reasons
-        // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+        // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX
+        // multi_compile_fragment _ _ADDITIONAL_LIGHTS
         [ShaderKeywordFilter.RemoveIf(PrefilteringModeAdditionalLights.Remove,            keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertex,      keywordNames: ShaderKeywordStrings.AdditionalLightsVertex)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertexAndOff,keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]

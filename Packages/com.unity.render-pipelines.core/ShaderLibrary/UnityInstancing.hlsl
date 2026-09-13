@@ -346,8 +346,12 @@
         #if !defined(DYNAMICLIGHTMAP_ON)
             #define UNITY_USE_SHCOEFFS_ARRAYS
         #endif
-        #if defined(SHADOWS_SHADOWMASK)
+        #if (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
             #define UNITY_USE_PROBESOCCLUSION_ARRAY
+        #elif !defined(SHADOWS_SHADOWMASK_KEYWORD_DECLARED) || (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_SPECIALIZED_VARIANTS)
+            #if defined(SHADOWS_SHADOWMASK)
+                #define UNITY_USE_PROBESOCCLUSION_ARRAY
+            #endif
         #endif
     #endif
 
