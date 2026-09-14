@@ -277,7 +277,50 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
-        static bool IsAndroidXRTargetted() //Include Quest platform
+        internal const string k_XRProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
+
+        // Built lazily: EditorStyles is not available during static initialization.
+        static GUIStyle s_XRInfoLabelStyle;
+
+        // Hand-laid-out because CoreEditorUtils.DrawFixMeBox places the button inline and overlaps the text
+        // once it wraps.
+        internal static void DrawXRProjectValidationInfoBox(string message, string buttonLabel)
+        {
+            s_XRInfoLabelStyle ??= new GUIStyle(EditorStyles.label) { wordWrap = true };
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                // Reserved outside the box so it aligns with other help boxes, then zeroed so the contents
+                // position relative to the box rather than the inspector.
+                float indent = EditorGUI.indentLevel * 15f - EditorStyles.helpBox.margin.left;
+                if (indent > 0f)
+                    GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(false));
+
+                int oldIndent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(EditorGUIUtility.IconContent("console.infoicon"),
+                            GUILayout.Width(32f), GUILayout.Height(32f));
+                        GUILayout.Label(message, s_XRInfoLabelStyle);
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(buttonLabel, EditorStyles.miniButton))
+                            SettingsService.OpenProjectSettings(k_XRProjectValidationSettingsPath);
+                    }
+                }
+
+                EditorGUI.indentLevel = oldIndent;
+            }
+        }
+
+        internal static bool IsAndroidXRTargetted() //Include Quest platform
         {
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
@@ -389,6 +432,25 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass when upscaling is applied.", MessageType.Warning, true);
             }
+
+            if (IsAndroidXRTargetted() && upscalingSelected)
+            {
+                DrawXRProjectValidationInfoBox(Styles.xrUpscalingInfo, Styles.xrUpscalingInfoButton);
+            }
+
+            EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
+            EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
+            EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
+            if (serialized.asset.enableLODCrossFade && serialized.asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil)
+            {
+                var rendererData = serialized.asset.m_RendererDataList[serialized.asset.m_DefaultRendererIndex];
+                if (rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).defaultStencilState.overrideStencilState)
+                {
+                    EditorGUILayout.HelpBox(Styles.stencilLodCrossFadeWarningMessage.text, MessageType.Warning, true);
+                }
+            }
+
+            EditorGUI.EndDisabledGroup();
         }
 
         static void DrawUpscalerListAndOptions(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

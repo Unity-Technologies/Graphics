@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 public static GUIContent rendererType = L10n.TextContent("Renderer", "The series of operations that translates code into visuals. These have different capabilities and performance characteristics.", null, null);
 
+                public static readonly string xrAntialiasingInfo = L10n.Tr("When targeting an XR device, the XR runtime or compositor may provide anti-aliasing. In that case this camera's anti-aliasing can be redundant or ignored - review your XR provider settings to configure anti-aliasing.", null);
+                public static readonly string xrAntialiasingInfoButton = L10n.Tr("Open Project Validation", null);
                 public static GUIContent renderPostProcessing = L10n.TextContent("Post Processing", "Enable this to make this camera render post-processing effects.", null, null);
                 public static GUIContent antialiasing = L10n.TextContent("Anti-aliasing", "The method the camera uses to smooth jagged edges.", null, null);
                 public static GUIContent antialiasingQuality = L10n.TextContent("Quality", "The quality level to use for the selected anti-aliasing method.", null, null);

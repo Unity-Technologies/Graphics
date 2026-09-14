@@ -418,7 +418,10 @@ namespace UnityEngine.Rendering.Universal
             bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget || handleID == BuiltinRenderTextureType.Depth;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
+            {
                 isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
+                isBackbuffer |= handleID == new RenderTargetIdentifier(xr.motionVectorRenderTarget, 0, CubemapFace.Unknown, 0);
+            }
 #endif
             return !isBackbuffer;
         }
@@ -451,6 +454,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns true when Meta Temporal Pixel Synthesis is the active resolver for this camera.
+        /// When true, the compositor performs the temporal resolve and any upscaling, so URP must suppress
+        /// its own TAA/STP resolve, its jitter, and its spatial upscalers.
+        /// </summary>
+        /// <returns>True if Temporal Pixel Synthesis is active</returns>
+        internal bool IsTemporalPixelSynthesisActive()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return xr.enabled && xr.isTemporalPixelSynthesisActive;
+#else
+            return false;
+#endif
+        }
+
+        /// <summary>
         /// Returns true if the pipeline and the given camera are configured to render with temporal anti-aliasing post processing enabled
         ///
         /// Once selected, TAA necessitates some pre-requisites from the pipeline to run, mostly from the camera itself.
@@ -467,7 +485,8 @@ namespace UnityEngine.Rendering.Universal
                    && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
                    && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
                    && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
-                   && renderer.SupportsMotionVectors();                                                                               // Motion Vectors implemented
+                   && renderer.SupportsMotionVectors()                                                                                // Motion Vectors implemented
+                   && !IsTemporalPixelSynthesisActive();                                                                                      // XR compositor is the resolver (also disables jitter via CalculateJitterMatrix)
         }
 
         /// <summary>
