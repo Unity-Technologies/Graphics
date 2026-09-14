@@ -109,13 +109,13 @@ namespace UnityEngine.Rendering.Universal
 
         static bool TryGetSupportedRayTracingBackend(out RayTracingBackend backend)
         {
-            if (RayTracingContext.GetCapabilities(RayTracingBackend.Hardware).HasFlag(CapabilityMask.RayTracingShaders))
+            if (RayTracingContext.GetCapabilities(RayTracingBackend.Hardware).HasFlag(CapabilityMask.InlineRayTracing))
             {
                 backend = RayTracingBackend.Hardware;
                 return true;
             }
 
-            if (RayTracingContext.GetCapabilities(RayTracingBackend.Compute).HasFlag(CapabilityMask.RayTracingShaders))
+            if (RayTracingContext.GetCapabilities(RayTracingBackend.Compute).HasFlag(CapabilityMask.InlineRayTracing))
             {
                 backend = RayTracingBackend.Compute;
                 return true;
