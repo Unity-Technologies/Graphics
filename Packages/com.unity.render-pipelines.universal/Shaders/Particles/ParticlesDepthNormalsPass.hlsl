@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
 
 VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle input)
 {
@@ -16,7 +17,7 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-    #if defined(_NORMALMAP)
+    #if FEATURES_NORMALMAP
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
         output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
         output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -31,7 +32,7 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
         output.color = GetParticleColor(input.color);
     #endif
 
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP
         #if defined(_FLIPBOOKBLENDING_ON)
             #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
                 GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
@@ -52,7 +53,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     // Inputs...
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP) || defined(_WRITE_SMOOTHNESS)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP || defined(_WRITE_SMOOTHNESS)
         float2 uv = input.texcoord;
 
         #if defined(_FLIPBOOKBLENDING_ON)
@@ -78,24 +79,28 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     #endif
 
     // Normals...
-    #ifdef _NORMALMAP
-        half3 normalTS = SampleNormalTS(uv, blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
-        float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
-    #else
-        float3 normalWS = input.normalWS;
+    half3 normalWS = input.normalWS.xyz;
+
+    #if FEATURES_NORMALMAP
+    if (UseNormalMap())
+    {
+        half3 normalTS = half3(0.0, 0.0, 1.0);
+    if (UseNormalMap())
+        normalTS = SampleParticleNormalTS(uv, blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
+        normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    }
     #endif
 
     half outputAlpha = 0;
+    
     #if defined(_WRITE_SMOOTHNESS)
-        #if defined(_METALLICSPECGLOSSMAP)
-            outputAlpha = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), uv, blendUv).a * _Smoothness;
-        #else
-            outputAlpha = _Smoothness;
-        #endif
+        half glossMapAlpha = UseMetallicSpecGlossMap()
+            ? BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), uv, blendUv).a
+            : half(1.0);
+        outputAlpha = glossMapAlpha * _Smoothness;
     #endif
-
-    // Output...
-    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), outputAlpha);
+    
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), outputAlpha);
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_DEPTH_NORMALS_PASS_INCLUDED

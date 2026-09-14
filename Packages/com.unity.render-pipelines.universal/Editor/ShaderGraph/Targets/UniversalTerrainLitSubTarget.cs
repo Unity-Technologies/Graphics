@@ -1552,7 +1552,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
-                { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
                 { CoreKeywordDescriptors.DebugDisplay },

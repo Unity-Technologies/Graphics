@@ -2,6 +2,7 @@
 #define UNIVERSAL_VOLUMETRIC_FOG_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
 // The height-fog band used to attenuate the main directional light on surfaces and in the
 // v-buffer lighting. Set from C# before opaque rendering; the fog type driving these values
@@ -92,30 +93,13 @@ void ApplyAnalyticFog(float cosZenith, float cameraHeight, float startDist, floa
     }
 }
 
-// Resolves the MixVolumetricFog blend mode for shaders that carry it as compile-time
-// defines (ShaderGraph targets) rather than as the _Blend material float. Graphs whose
-// blending is material-overridable expose only Multiply as a keyword, so their Premultiply
-// and Additive materials fall back to the Alpha formula.
-half VolumetricFogBlendModeFromDefines()
-{
-#if defined(_BLENDMODE_ADDITIVE)
-    return 2.0;
-#elif defined(_ALPHAMODULATE_ON)
-    return 3.0;
-#elif defined(_BLENDMODE_PREMULTIPLY)
-    return 1.0;
-#else
-    return 0.0;
-#endif
-}
-
 // Applies the volume-driven fog to a transparent surface's shaded color, before hardware
 // blending. Sampling a transparent fragment's own depth is safe with respect to the zeroed
 // slices past the MaxZ early-out because the fragment is always nearer than the opaque depth
 // that built the mask, and VolumetricFogSliceCoord biases the lookup toward the camera.
 // 'blendMode' follows BaseShaderGUI.BlendMode: 0 = Alpha, 1 = Premultiply, 2 = Additive,
 // 3 = Multiply. 'positionCS' is the fragment's SV_Position.
-half3 MixVolumetricFog(half3 color, half alpha, half blendMode, float4 positionCS)
+half3 MixVolumetricFog(half3 color, half alpha, half blendMode, bool useAlphaPremultiply, float4 positionCS)
 {
 #if defined(_FOG_ANALYTIC) || defined(_FOG_VOLUMETRIC)
     float2 uv = GetNormalizedScreenSpaceUV(positionCS);
@@ -143,10 +127,7 @@ half3 MixVolumetricFog(half3 color, half alpha, half blendMode, float4 positionC
     // pre-exposed shaded color, so the in-scattering must be exposed here to match.
     fogRadiance *= GetPreExposureMultiplier();
 
-    bool premultipliedBlend = blendMode == 1.0;
-#if defined(_ALPHAPREMULTIPLY_ON)
-    premultipliedBlend = true;
-#endif
+    bool premultipliedBlend = blendMode == 1.0 || useAlphaPremultiply;
 
     if (blendMode == 2.0)
     {

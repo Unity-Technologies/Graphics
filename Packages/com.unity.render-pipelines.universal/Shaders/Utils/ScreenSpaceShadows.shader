@@ -27,10 +27,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             //Fetch shadow coordinates for cascade.
             float3 wpos = ComputeWorldSpacePosition(input.texcoord.xy, deviceDepth, unity_MatrixInvVP);
-            float4 coords = TransformWorldToShadowCoord(wpos);
+            float4 coords = TransformWorldToShadowCoord(wpos, false);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
-            half realtimeShadow = MainLightRealtimeShadow(coords);
+            half realtimeShadow = SampleMainLightRealtimeShadow(coords, false);
 
             return realtimeShadow;
         }

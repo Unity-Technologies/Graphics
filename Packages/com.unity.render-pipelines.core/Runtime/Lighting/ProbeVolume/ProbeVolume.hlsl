@@ -89,8 +89,12 @@ struct APVResourcesRW
 
 #ifndef USE_APV_PROBE_OCCLUSION
 // If we are rendering a probe lit renderer, and we have APV enabled, and we are using subtractive or shadowmask mode, we sample occlusion from APV.
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) && (defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK))
-#define USE_APV_PROBE_OCCLUSION 1
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    #if (LIGHTMAP_SHADOW_MIXING_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING) || (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
+        #define USE_APV_PROBE_OCCLUSION 1
+    #elif defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
+        #define USE_APV_PROBE_OCCLUSION 1
+    #endif
 #endif
 #endif
 

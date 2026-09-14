@@ -14,7 +14,7 @@ float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surf
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
     URP_LIGHT_ACCUM4 color = UniversalFragmentSixWay(inputData, surfaceData);
 #else
-    #if defined(_DBUFFER)
+    #if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
         ApplyDecalToSurfaceData(i.VFX_VARYING_POSCS, surfaceData, inputData);
     #endif
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
@@ -24,11 +24,11 @@ float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surf
     color = VFXApplyVolumetricFog(color, i.VFX_VARYING_POSCS);
 
 #if IS_OPAQUE_PARTICLE
-    bool isTransparent = false;
+    bool isSurfaceTypeTransparent = false;
 #else
-    bool isTransparent = true;
+    bool isSurfaceTypeTransparent = true;
 #endif
-    color.a = OutputAlpha(color.a, isTransparent);
+    color.a = OutputAlpha(color.a, isSurfaceTypeTransparent);
     return color;
 }
 
@@ -78,7 +78,7 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
                                              inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-#if defined(_DBUFFER)
+#if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
     ApplyDecalToBaseColor(i.VFX_VARYING_POSCS, surfaceData.albedo);
 #endif
 
@@ -102,7 +102,7 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
                                                  inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                                  inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-#if defined(_DBUFFER)
+#if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
     ApplyDecalToBaseColor(i.VFX_VARYING_POSCS, surfaceData.albedo);
 #endif
 

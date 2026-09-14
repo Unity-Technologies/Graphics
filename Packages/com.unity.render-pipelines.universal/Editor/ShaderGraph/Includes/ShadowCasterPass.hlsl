@@ -1,6 +1,8 @@
 #ifndef SG_SHADOW_PASS_INCLUDED
 #define SG_SHADOW_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -20,9 +22,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
     return 0;
 }

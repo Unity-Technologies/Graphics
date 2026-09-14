@@ -37,13 +37,12 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 #endif
 
 //When there is only one cascaded, this shadowCoord can be computed at vertex stage
-//#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+//#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
 //    inputData.shadowCoord = inputData.shadowCoord;
-#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    if (MainLightShadowsAvailable())
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    else
+        inputData.shadowCoord = float4(0, 0, 0, 0);
 
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 

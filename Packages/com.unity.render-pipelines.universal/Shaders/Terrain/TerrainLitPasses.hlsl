@@ -1,4 +1,3 @@
-
 #ifndef UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 #define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
@@ -6,6 +5,11 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitFeatures.hlsl"
+
+#if FEATURES_NORMALMAP && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
+#endif
 
 struct Attributes
 {
@@ -23,7 +27,7 @@ struct Varyings
         float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
     #endif
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
         half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
         half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
@@ -40,16 +44,16 @@ struct Varyings
 
     float3 positionWS               : TEXCOORD7;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
         float4 shadowCoord              : TEXCOORD8;
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    float2 dynamicLightmapUV        : TEXCOORD9;
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    float2 dynamicLightmapUV        : DYNLIGHTMAPUV;
 #endif
 
 #ifdef USE_APV_PROBE_OCCLUSION
-    float4 probeOcclusion           : TEXCOORD10;
+    float4 probeOcclusion           : PROBEOCCLUSION;
 #endif
 
     float4 clipPos                  : SV_POSITION;
@@ -64,33 +68,41 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.positionWS = IN.positionWS;
     inputData.positionCS = IN.clipPos;
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        inputData.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-        half3 SH = 0;
-    #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
-        float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
-        half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
-        half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-        half3 SH = IN.vertexSH;
+    inputData.normalWS = IN.normal.xyz;
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
+    half3 SH = 0;
+
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+        {
+            viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
+            half3x3 tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+            inputData.tangentToWorld = tangentToWorld;
+            inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+        }
+        else
+        {
+            // vertexSH interpolator doesn't exist in this path; evaluate the vertex SH portion
+            // per pixel so consumers composing with SampleSHPixel get the full result.
+            SH = SampleSHVertex(IN.normal.xyz);
+        }
     #else
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
-        inputData.normalWS = IN.normal;
-        half3 SH = IN.vertexSH;
+        SH = IN.vertexSH;
+        #if defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+            float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
+            half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+            half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
+            inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
+        #endif
     #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
     inputData.viewDirectionWS = viewDirWS;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = IN.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? IN.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -100,14 +112,11 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
     #endif
-    #if defined(LIGHTMAP_ON)
     inputData.staticLightmapUV = IN.uvMainAndLM.zw;
-    #else
     inputData.vertexSH = SH;
-    #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = IN.probeOcclusion;
     #endif
@@ -116,36 +125,37 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 
 void InitializeBakedGIData(Varyings IN, inout InputData inputData)
 {
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 SH = 0;
+    GIParams giParams = (GIParams)0;
+
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    // vertexSH interpolator doesn't exist in this path; evaluate the vertex SH portion per pixel
+    // instead so the later SampleSHPixel composes to the full result in all SH evaluation modes.
+    giParams.vertexSH = UseNormalMap() ? half3(0, 0, 0) : SampleSHVertex(inputData.normalWS);
     #else
-    half3 SH = IN.vertexSH;
+    giParams.vertexSH = IN.vertexSH;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = IN.dynamicLightmapUV;
+    #endif
+    #ifdef USE_APV_PROBE_OCCLUSION
+    giParams.vertexProbeOcclusion = IN.probeOcclusion;
     #endif
 
-#if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
-#elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
-#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(SH,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        inputData.positionCS.xy,
-        IN.probeOcclusion,
-        inputData.shadowMask);
-#else
-    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
-#endif
+    giParams.staticLightmapUV = IN.uvMainAndLM.zw;
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = inputData.positionCS.xy;
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
 void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, inout half3 mixedNormal)
 {
-    #if defined(_NORMALMAP)
+    if (UseNormalMap())
+    {
         half3 nrm = half(0.0);
         nrm += splatControl.r * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy), _NormalScale0);
         nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
@@ -160,7 +170,7 @@ void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, 
         #endif
 
         mixedNormal = normalize(nrm.xyz);
-    #endif
+    }
 }
 
 void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, out half4 defaultSmoothness, inout half3 mixedNormal)
@@ -180,15 +190,15 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     defaultSmoothness.r = (smoothnessSources.r < 0.5) ? diffuseAlpha.r * smoothnessConstants.r : // kConstantMultipliedByDiffuseAlpha
                           (smoothnessSources.r < 1.5) ? diffuseAlpha.r :                         // kDiffuseAlphaChannel
                           smoothnessConstants.r;                                                 // kConstant
-    
+
     defaultSmoothness.g = (smoothnessSources.g < 0.5) ? diffuseAlpha.g * smoothnessConstants.g :
                           (smoothnessSources.g < 1.5) ? diffuseAlpha.g :
                           smoothnessConstants.g;
-    
+
     defaultSmoothness.b = (smoothnessSources.b < 0.5) ? diffuseAlpha.b * smoothnessConstants.b :
                           (smoothnessSources.b < 1.5) ? diffuseAlpha.b :
                           smoothnessConstants.b;
-    
+
     defaultSmoothness.a = (smoothnessSources.a < 0.5) ? diffuseAlpha.a * smoothnessConstants.a :
                           (smoothnessSources.a < 1.5) ? diffuseAlpha.a :
                           smoothnessConstants.a;
@@ -331,11 +341,11 @@ Varyings SplatmapVert(Attributes v)
         o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     o.dynamicLightmapUV = v.texcoord * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(Attributes.positionWS);
         float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
         VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
@@ -360,8 +370,8 @@ Varyings SplatmapVert(Attributes v)
     o.positionWS = Attributes.positionWS;
     o.clipPos = Attributes.positionCS;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        o.shadowCoord = GetShadowCoord(Attributes);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        o.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(Attributes, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     return o;
@@ -460,10 +470,8 @@ void SplatmapFragment(
     SetupTerrainDebugTextureData(inputData, IN.uvMainAndLM.xy);
 
 #if defined(_DBUFFER)
-    half3 specular = half3(0.0h, 0.0h, 0.0h);
-    ApplyDecal(IN.clipPos,
+    ApplyDecalMetallic(IN.clipPos,
         albedo,
-        specular,
         inputData.normalWS,
         metallic,
         occlusion,
@@ -474,15 +482,15 @@ void SplatmapFragment(
 
 #ifdef TERRAIN_GBUFFER
 
-    BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
+    BRDFData brdfData = InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, IsSpecularSetup(), UseAlphaPremultiply());
 
     // Baked lighting.
     URP_LIGHT_ACCUM4 color;
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask, ReceiveShadows(), IsSurfaceTypeTransparent());
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     color.rgb = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
-                                   inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+                                   inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV,
+                                   UseClearCoat() || UseClearCoatMap(), UseEnvironmentReflections());
     color.a = alpha;
     SplatmapFinalColor(color, IN.clipPos);
 
@@ -496,7 +504,7 @@ void SplatmapFragment(
     inputData.normalWS = inputData.normalWS * alpha;
     smoothness *= alpha;
 
-    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), occlusion, ReceiveShadows(), IsSpecularSetup(), UseSpecularHighlights());
 #else
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);

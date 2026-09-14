@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassFeatures.hlsl"
 
 struct GrassVertexInput
 {
@@ -20,7 +21,13 @@ struct GrassVertexInput
 struct GrassVertexOutput
 {
     float2 uv                       : TEXCOORD0;
-    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    float2 lightmapUV               : LIGHTMAPUV;
+#endif
+#if USE_VERTEX_SH_INTERPOLATOR
+    half3 vertexSH                  : VERTEXSH;
+#endif
 
     float4 posWSShininess           : TEXCOORD2;    // xyz: posWS, w: Shininess * 128
 
@@ -29,7 +36,7 @@ struct GrassVertexOutput
 
     URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
     float4 shadowCoord              : TEXCOORD6;
 #endif
     half4 color                     : TEXCOORD7;
@@ -55,45 +62,42 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     half3 viewDirWS = input.viewDir;
     viewDirWS = SafeNormalize(viewDirWS);
 
-    inputData.normalWS = NormalizeNormalPerPixel(input.normal);
+    inputData.normalWS = NormalizeNormalPerPixel(input.normal, UseNormalMap());
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
 #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
-#if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
-#elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, NOT_USED, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        input.clipPos.xy,
-        input.probeOcclusion,
-        inputData.shadowMask);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-#endif
+    {
+        GIParams giParams = (GIParams)0;
+        #if USE_LIGHTMAP_UV_INTERPOLATOR
+        giParams.staticLightmapUV = input.lightmapUV;
+        #endif
+        #if USE_VERTEX_SH_INTERPOLATOR
+        giParams.vertexSH = input.vertexSH;
+        #endif
+        #ifdef USE_APV_PROBE_OCCLUSION
+        giParams.vertexProbeOcclusion = input.probeOcclusion;
+        #endif
+        giParams.positionWS = inputData.positionWS;
+        giParams.normalWS = inputData.normalWS;
+        giParams.viewDirWS = inputData.viewDirectionWS;
+        giParams.positionSS = input.clipPos.xy;
+        InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
+    }
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
     inputData.staticLightmapUV = input.lightmapUV;
-    #elif defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = input.lightmapUV;
-    #else
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
     inputData.vertexSH = input.vertexSH;
     #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
@@ -117,19 +121,30 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
 
     vertData.normal = TransformObjectToWorldNormal(input.normal);
 
-    // We either sample GI from lightmap or SH.
-    // Lightmap UV and vertex SH coefficients use the same interpolator ("float2 lightmapUV" for lightmap or "half3 vertexSH" for SH)
-    // see DECLARE_LIGHTMAP_OR_SH macro.
-    // The following funcions initialize the correct variable with correct data
-    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, vertData.lightmapUV);
-    OUTPUT_SH4(vertexInput.positionWS, vertData.normal.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), vertData.vertexSH, vertData.probeOcclusion);
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    vertData.lightmapUV = LightmapAvailable() ? TransformLightmapUV(input.lightmapUV, unity_LightmapST) : float2(0, 0);
+#endif
+#if USE_VERTEX_SH_INTERPOLATOR
+    if (!LightmapAvailable())
+    {
+        #ifdef USE_APV_PROBE_OCCLUSION
+        vertData.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, vertData.normal.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), vertData.probeOcclusion);
+        #else
+        vertData.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, vertData.normal.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS));
+        #endif
+    }
+    else
+    {
+        vertData.vertexSH = half3(0, 0, 0);
+    }
+#endif
 
     URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
     half fogFactor = 0;
     vertData.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    vertData.shadowCoord = GetShadowCoord(vertexInput);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    vertData.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 }
 
@@ -180,7 +195,7 @@ GrassVertexOutput WavingGrassBillboardVert(GrassVertexInput v)
 
 inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceData outSurfaceData)
 {
-    half4 diffuseAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    half4 diffuseAlpha = SampleBaseMap(input.uv);
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
     half alpha = diffuseAlpha.a * input.color.a;
@@ -216,9 +231,11 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 
 #ifdef TERRAIN_GBUFFER
     URP_LIGHT_ACCUM4 color = URP_LIGHT_ACCUM4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
-    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
+    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb), ReceiveShadows());
 #else
-    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData,
+        UseSpecGlossMap() || UseSpecularColor(), UseAlphaPremultiply(),
+        ReceiveShadows(), IsSurfaceTypeTransparent());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif
@@ -287,7 +304,8 @@ GrassVertexDepthOnlyOutput DepthOnlyBillboardVertex(GrassVertexDepthOnlyInput v)
 
 half4 DepthOnlyFragment(GrassVertexDepthOnlyOutput input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
+    half albedoAlpha = SampleBaseMap(input.uv).a;
+    AlphaDiscard((UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha()) ? input.color.a : albedoAlpha * input.color.a, _Cutoff);
     return input.clipPos.z;
 }
 #endif

@@ -21,7 +21,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_vertex _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _LIGHT_FALLOFF_LINEAR
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
@@ -30,7 +30,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_IRRADIANCE
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
-            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_vertex _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
@@ -88,6 +88,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ReceiveShadows.hlsl"
 
             TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
@@ -104,14 +106,22 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             struct Varyings
             {
-                float2              UV01            : TEXCOORD0; // UV0
-                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
-                half4               Color           : TEXCOORD2; // Vertex Color
-                URP_LIGHT_ACCUM3    VertexLighting  : TEXCOORD3; // Vertex Lighting
-                float4              ShadowCoords    : TEXCOORD4; // Shadow UVs
-                half3               NormalWS        : TEXCOORD5; // World Space Normal
-                float3              PositionWS      : TEXCOORD6;
-                float4              PositionCS      : SV_POSITION; // Clip Position
+                float2  UV01            : TEXCOORD0; // UV0
+            #if USE_LIGHTMAP_UV_INTERPOLATOR
+                float2  staticLightmapUV : LIGHTMAPUV;
+            #endif
+            #if USE_VERTEX_SH_INTERPOLATOR
+                half3   vertexSH        : VERTEXSH;
+            #endif
+                half4   Color           : TEXCOORD2; // Vertex Color
+                URP_LIGHT_ACCUM3 VertexLighting : TEXCOORD3; // Vertex Lighting
+                float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
+                half3   NormalWS        : TEXCOORD5; // World Space Normal
+                float3  PositionWS      : TEXCOORD6;
+            #ifdef USE_APV_PROBE_OCCLUSION
+                float4  probeOcclusion  : PROBEOCCLUSION;
+            #endif
+                float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -127,18 +137,33 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-                OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
+            #if USE_LIGHTMAP_UV_INTERPOLATOR
+                output.staticLightmapUV = LightmapAvailable() ? TransformLightmapUV(input.UV1.xy, unity_LightmapST) : float2(0, 0);
+            #endif
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
 
                 // Shadow Coords
-                output.ShadowCoords = GetShadowCoord(vertexInput);
+                output.ShadowCoords = GetShadowCoord(vertexInput, IsSurfaceTypeTransparent());
 
                 // Vertex Lighting
                 output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
 
-                OUTPUT_SH4(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, NOT_USED);
+            #if USE_VERTEX_SH_INTERPOLATOR
+                if (!LightmapAvailable())
+                {
+                    #ifdef USE_APV_PROBE_OCCLUSION
+                    output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.probeOcclusion);
+                    #else
+                    output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS));
+                    #endif
+                }
+                else
+                {
+                    output.vertexSH = half3(0, 0, 0);
+                }
+            #endif
 
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
@@ -165,19 +190,26 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 float preExposureMultiplier = GetPreExposureMultiplier();
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-                half3 bakedGI = SAMPLE_GI(input.vertexSH,
-                    GetAbsolutePositionWS(input.PositionWS),
-                    input.NormalWS.xyz,
-                    GetWorldSpaceNormalizeViewDir(input.PositionWS),
-                    input.PositionCS.xy,
-                    NOT_USED,
-                    NOT_USED);
-#else
-                half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS);
-#endif
+                GIParams giParams = (GIParams)0;
+                #if USE_LIGHTMAP_UV_INTERPOLATOR
+                giParams.staticLightmapUV = input.staticLightmapUV;
+                #endif
+                #if USE_VERTEX_SH_INTERPOLATOR
+                giParams.vertexSH = input.vertexSH;
+                #endif
+                #ifdef USE_APV_PROBE_OCCLUSION
+                giParams.vertexProbeOcclusion = input.probeOcclusion;
+                #endif
+                giParams.positionWS = input.PositionWS;
+                giParams.normalWS = input.NormalWS.xyz;
+                giParams.viewDirWS = GetWorldSpaceNormalizeViewDir(input.PositionWS);
+                giParams.positionSS = input.PositionCS.xy;
+                URP_LIGHT_ACCUM3 bakedGI;
+                half4 shadowMask;
+                InitializeBakedGI(giParams, bakedGI, shadowMask);
 
-                URP_LIGHT_ACCUM3 lighting = input.VertexLighting * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                half realtimeShadow = ReceiveShadows() ? SampleMainLightRealtimeShadow(input.ShadowCoords, IsSurfaceTypeTransparent()) : half(1.0);
+                URP_LIGHT_ACCUM3 lighting = input.VertexLighting * realtimeShadow + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 URP_LIGHT_ACCUM4 color = 1.0;
@@ -191,8 +223,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 inputData.preExposureMultiplier = preExposureMultiplier;
                 inputData.normalWS = input.NormalWS;
                 inputData.positionCS = input.PositionCS;
+                inputData.shadowMask = shadowMask;
 
-                return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
+                return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb), ReceiveShadows());
             }
             ENDHLSL
         }

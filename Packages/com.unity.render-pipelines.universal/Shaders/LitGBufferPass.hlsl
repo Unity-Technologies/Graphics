@@ -1,22 +1,27 @@
 #ifndef UNIVERSAL_LIT_GBUFFER_PASS_INCLUDED
 #define UNIVERSAL_LIT_GBUFFER_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/DetailMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ParallaxMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/LitFeatures.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
+// Realtime shadows are never sampled when Receive Shadows is off at compile time;
+// drop the vertex shadow-coord interpolator.
+#if _RECEIVE_SHADOWS_OFF_STATICALLY_ENABLED
+    #undef USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
 #endif
 
-// TODO: Currently we support viewDirTS caclulated in vertex shader and in fragments shader.
-// As both solutions have their advantages and disadvantages (etc. shader target 2.0 has only 8 interpolators).
-// We need to find out if we can stick to one solution, which we needs testing.
-// So keeping this until I get manaul QA pass.
-#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
-#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#if FEATURES_PARALLAXMAP
+#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR 1
 #endif
 
-#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR))) || defined(_DETAIL)
-#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
+#if (FEATURES_NORMALMAP || FEATURES_DETAILMAP)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
 // keep this file in sync with LitForwardPass.hlsl
@@ -48,7 +53,7 @@ struct Varyings
     URP_LIGHT_ACCUM3 vertexLighting            : TEXCOORD4;    // xyz: vertex lighting
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
     float4 shadowCoord              : TEXCOORD5;
 #endif
 
@@ -56,13 +61,18 @@ struct Varyings
     half3 viewDirTS                 : TEXCOORD6;
 #endif
 
-    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
-#ifdef DYNAMICLIGHTMAP_ON
-    float2  dynamicLightmapUV       : TEXCOORD8; // Dynamic lightmap UVs
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    float2 staticLightmapUV         : LIGHTMAPUV;
+#endif
+#if USE_VERTEX_SH_INTERPOLATOR
+    half3 vertexSH                  : VERTEXSH;
+#endif
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    float2 dynamicLightmapUV        : DYNLIGHTMAPUV;
 #endif
 
 #ifdef USE_APV_PROBE_OCCLUSION
-    float4 probeOcclusion           : TEXCOORD9;
+    float4 probeOcclusion           : PROBEOCCLUSION;
 #endif
 
     float4 positionCS               : SV_POSITION;
@@ -79,24 +89,24 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     inputData.positionCS = input.positionCS;
-    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-    #if defined(_NORMALMAP) || defined(_DETAIL)
-        float sgn = input.tangentWS.w;      // should be either +1 or -1
-        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
-    #else
-        inputData.normalWS = input.normalWS;
+    inputData.normalWS = input.normalWS;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap() || UseDetailMap())
+        {
+            float sgn = input.tangentWS.w;      // should be either +1 or -1
+            float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+            inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+        }
     #endif
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     inputData.viewDirectionWS = viewDirWS;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = input.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     inputData.fogCoord = 0.0; // we don't apply fog in the guffer pass
@@ -114,23 +124,28 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
-#if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS, GetInvPreExposureMultiplier());
-#elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        inputData.positionCS.xy,
-        input.probeOcclusion,
-        inputData.shadowMask);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#endif
+    GIParams giParams = (GIParams)0;
+
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
+    giParams.staticLightmapUV = input.staticLightmapUV;
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
+    giParams.vertexSH = input.vertexSH;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = input.dynamicLightmapUV;
+    #endif
+    #ifdef USE_APV_PROBE_OCCLUSION
+    giParams.vertexProbeOcclusion = input.probeOcclusion;
+    #endif
+
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = inputData.positionCS.xy;
+    giParams.isSurfaceTypeTransparent = IsSurfaceTypeTransparent();
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,11 +188,19 @@ Varyings LitGBufferPassVertex(Attributes input)
         output.viewDirTS = viewDirTS;
     #endif
 
-    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-#ifdef DYNAMICLIGHTMAP_ON
-    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    output.staticLightmapUV = TransformLightmapUV(input.staticLightmapUV.xy, unity_LightmapST);
 #endif
-    OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
+#if USE_VERTEX_SH_INTERPOLATOR
+    #ifdef USE_APV_PROBE_OCCLUSION
+    output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.probeOcclusion);
+    #else
+    output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS));
+    #endif
+#endif
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    output.dynamicLightmapUV = TransformLightmapUV(input.dynamicLightmapUV.xy, unity_DynamicLightmapST);
+#endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
         URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
@@ -188,8 +211,8 @@ Varyings LitGBufferPassVertex(Attributes input)
         output.positionWS = vertexInput.positionWS;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        output.shadowCoord = GetShadowCoord(vertexInput);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     output.positionCS = vertexInput.positionCS;
@@ -203,29 +226,22 @@ GBufferFragOutput LitGBufferPassFragment(Varyings input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if defined(_PARALLAXMAP)
-    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-        half3 viewDirTS = input.viewDirTS;
-    #else
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-        half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
-    #endif
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS = input.viewDirTS;
     ApplyPerPixelDisplacement(viewDirTS, input.uv);
 #endif
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-#ifdef LOD_FADE_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
 #if defined(_DBUFFER)
-    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData, IsSpecularSetup());
 #endif
 
     InitializeBakedGIData(input, inputData);
@@ -234,18 +250,18 @@ GBufferFragOutput LitGBufferPassFragment(Varyings input)
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
-    BRDFData brdfData;
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    BRDFData brdfData = InitializeBRDFData(surfaceData, IsSpecularSetup(), UseAlphaPremultiply());
 
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask, ReceiveShadows(), IsSurfaceTypeTransparent());
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                               inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
-                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV,
+                                              UseClearCoat() || UseClearCoatMap(), UseEnvironmentReflections());
 
     half3 gbufferLighting = ClampExposed(inputData.preExposureMultiplier * (surfaceData.emission + color));
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, gbufferLighting, surfaceData.occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, gbufferLighting, surfaceData.occlusion, ReceiveShadows(), IsSpecularSetup(), UseSpecularHighlights());
 }
 
 #endif
