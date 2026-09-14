@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.Universal
             public override string name => k_UpscalerName_Auto;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
+            public override bool supportsAlphaUpscaling => true;
             // RecordRenderGraph is an empty implementation from AbstractUpscaler
         }
         internal class BilinearUpscaler : AbstractUpscaler
@@ -63,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
             public override string name => k_UpscalerName_Linear;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
+            public override bool supportsAlphaUpscaling => true;
         }
         internal class PointUpscaler : AbstractUpscaler
         {
@@ -70,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             public override string name => k_UpscalerName_Point;
             public override bool isTemporal => false;
             public override bool supportsSharpening => false;
+            public override bool supportsAlphaUpscaling => true;
         }
         internal class FSR1Upscaler : AbstractUpscaler
         {
@@ -78,6 +81,7 @@ namespace UnityEngine.Rendering.Universal
             public override bool isSupportedOnDevice => FSRUtils.IsSupported();
             public override bool isTemporal => false;
             public override bool supportsSharpening => true;
+            public override bool supportsAlphaUpscaling => true;
             // the FSR1 class is only for registration / unifying API for choosing an upscaler.
             // The pass execution logic is still carried out by the internal Fsr1UpscalePostProcessPass.cs
         }
@@ -2534,6 +2538,19 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.stpHistory = additionalCameraData.historyManager.GetHistoryForWrite<StpHistory>();
             }
 
+            bool needsAlphaUpscaleHistory = cameraData.isAlphaOutputEnabled;
+#if ENABLE_UPSCALER_FRAMEWORK
+            IUpscaler activeUpscaler = upscaling.activeUpscaler;
+            needsAlphaUpscaleHistory &= activeUpscaler != null && activeUpscaler.isTemporal && !activeUpscaler.supportsAlphaUpscaling;
+#else
+            needsAlphaUpscaleHistory &= cameraData.IsSTPEnabled();
+#endif
+            if (needsAlphaUpscaleHistory)
+            {
+                additionalCameraData.historyManager.RequestAccess<AlphaUpscaleHistory>();
+                cameraData.alphaUpscaleHistory = additionalCameraData.historyManager.GetHistoryForWrite<AlphaUpscaleHistory>();
+            }
+
             // Update TAA settings
             ref var taaSettings = ref additionalCameraData.taaSettings;
             cameraData.taaSettings = taaSettings;
@@ -2577,6 +2594,17 @@ namespace UnityEngine.Rendering.Universal
                 // In the case where STP is requested, but TAA gets disabled for various reasons so STP is disabled, we should release the STP history resources
                 if (cameraData.IsSTPRequested())
                     cameraData.stpHistory?.Reset();
+            }
+
+            // The alpha history is common to all color-only temporal upscalers,
+            // so it is updated outside the per-upscaler branches above.
+            if (cameraData.alphaUpscaleHistory != null)
+            {
+                bool alphaXrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                alphaXrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+#endif
+                cameraData.alphaUpscaleHistory.Update(cameraData, alphaXrMultipassEnabled);
             }
         }
 

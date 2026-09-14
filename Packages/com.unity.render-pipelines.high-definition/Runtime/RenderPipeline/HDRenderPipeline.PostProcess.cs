@@ -621,10 +621,49 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        TextureHandle DoAlphaUpscaling(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle preUpscaleColor, TextureHandle upscaledColor,
+            in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, bool isTemporalUpscaler)
+        {
+            AlphaUpscaler.Config config = default;
+            config.preUpscaleAlpha = preUpscaleColor;
+            config.upscaledColor = upscaledColor;
+            config.preUpscaleSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+            // HDRP color textures are allocated at the maximum RTHandle size and rendered into a
+            // viewport-sized sub-rect; with hardware DRS the allocation itself is scaled as well.
+            var preUpscalePhysicalSize = new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight);
+            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                preUpscalePhysicalSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(preUpscalePhysicalSize);
+            config.preUpscalePhysicalSize = preUpscalePhysicalSize;
+            config.postUpscaleSize = new Vector2Int(Mathf.RoundToInt(hdCamera.finalViewport.width), Mathf.RoundToInt(hdCamera.finalViewport.height));
+            config.jitter = new Vector2(hdCamera.taaJitter.x, hdCamera.taaJitter.y);
+            config.enableTexArray = TextureXR.useTexArray;
+            config.viewCount = hdCamera.viewCount;
+
+            // Spatial upscalers render without jitter, so there is no per-frame phase
+            // variance to accumulate away; the default config (no motion vectors, depth,
+            // stencil or history) runs the spatial-only reconstruction.
+            if (isTemporalUpscaler)
+            {
+                bool validHistory = GrabPostProcessHistoryTextures(hdCamera, HDCameraFrameHistoryType.AlphaUpscale, "Alpha Upscale History", GraphicsFormat.R16_SFloat, out var prevAlphaHistory, out var nextAlphaHistory);
+
+                config.motionVectors = motionVectors;
+                config.cameraDepth = depthBuffer;
+                config.reactiveMask = stencilBuffer;
+                config.stencilExcludeBit = (int)StencilUsage.ExcludeFromTUAndAA;
+                config.prevAlphaHistory = renderGraph.ImportTexture(prevAlphaHistory);
+                config.nextAlphaHistory = renderGraph.ImportTexture(nextAlphaHistory);
+                config.historyBlendFactor = (validHistory && !hdCamera.resetPostProcessingHistory) ? AlphaUpscaler.defaultHistoryBlendFactor : 0.0f;
+            }
+
+            return AlphaUpscaler.Execute(renderGraph, ref config);
+        }
+
         TextureHandle DoUpscalingAndAntiAliasing(RenderGraph renderGraph, HDCamera hdCamera, CurrentUpsamplerData upsamplerDataData,
             TextureHandle source, in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, in TextureHandle depthBufferMipChain)
         {
             bool taaUsesCAS = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing && hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening;
+
+            TextureHandle preUpscaleColor = source;
 
             source = upsamplerDataData switch
             {
@@ -646,6 +685,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     => EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source),
                 _ => source
             };
+
+            // Advanced upscalers (including IUpscalers without alpha upscaling support) only upscale the RGB channels
+            // and leave the output alpha undefined, so rebuild it here from the pre-upscale alpha.
+            if (upsamplerDataData.isAdvancedUpsampler && source != preUpscaleColor && PostProcessEnableAlpha(hdCamera))
+            {
+                bool supportsAlphaUpscaling = false;
+                bool isTemporalUpscaler = true;
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (upsamplerDataData.advancedUpsampler == AdvancedUpscalers.IUpscaler)
+                {
+                    supportsAlphaUpscaling = upscaling.activeUpscaler.supportsAlphaUpscaling;
+                    isTemporalUpscaler = upscaling.activeUpscaler.isTemporal;
+                }
+#endif
+                if (!supportsAlphaUpscaling)
+                    source = DoAlphaUpscaling(renderGraph, hdCamera, preUpscaleColor, source, depthBuffer, motionVectors, stencilBuffer, isTemporalUpscaler);
+            }
 
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
 

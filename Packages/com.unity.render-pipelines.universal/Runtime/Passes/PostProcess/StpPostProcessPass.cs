@@ -82,6 +82,17 @@ namespace UnityEngine.Rendering.Universal
             UpscalerPostProcessPass.UpdateCameraResolution(renderGraph, frameData, new Vector2Int(destDesc.width, destDesc.height));
 
             resourceData.cameraColor = destinationTexture;
+
+#if !ENABLE_UPSCALER_FRAMEWORK
+            // STP only upscales the color channels; rebuild the output alpha from the pre-upscale image.
+            // cameraData.jitter is in NDC space; converting it back to pixels at the rendering resolution
+            // recovers the applied sub-pixel jitter. Negated because the alpha upscale kernel follows
+            // HDRP's jitter sign convention, which is the opposite of URP's (see the IUpscaler sign note
+            // in HDCamera.GetJitteredProjectionMatrix).
+            Vector2 alphaJitter = -0.5f * new Vector2(cameraData.jitter.x * srcDesc.width, cameraData.jitter.y * srcDesc.height);
+            AlphaUpscaleUtils.Execute(renderGraph, cameraData, resourceData, sourceTexture, isTemporalUpscaler: true,
+                new Vector2Int(srcDesc.width, srcDesc.height), new Vector2Int(destDesc.width, destDesc.height), alphaJitter);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

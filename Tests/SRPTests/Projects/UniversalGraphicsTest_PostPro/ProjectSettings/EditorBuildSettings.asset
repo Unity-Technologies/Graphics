@@ -192,6 +192,9 @@ EditorBuildSettings:
     path: Assets/Scenes/282_AlphaOutput_RGBA8_Stack_RenderScale_Up_FSR.unity
     guid: 33738bb1cfc644b2882c51fa88268a4f
   - enabled: 1
+    path: Assets/Scenes/283_AlphaOutput_RGBA8_RenderScale_Up_STP.unity
+    guid: febbdb38e483470cb3c6b69d4d9704dc
+  - enabled: 1
     path: Assets/Scenes/284_CameraColorSwap_HalfRes_RT.unity
     guid: a3f52c81d94e4b7f8a1c6d2e0b9f4712
   - enabled: 1
