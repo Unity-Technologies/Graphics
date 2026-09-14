@@ -13,8 +13,10 @@ Shader "Hidden/2D/RenderingLayerMask"
 
     SubShader
     {
-        ZTest Off
+        ZWrite [_ZWrite]
+        ZTest Off 
         Blend Off
+        Cull Off
 
         Pass
         {
