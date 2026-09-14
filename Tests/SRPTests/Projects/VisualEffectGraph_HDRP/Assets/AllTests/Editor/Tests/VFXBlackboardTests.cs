@@ -139,6 +139,8 @@ namespace UnityEditor.VFX.Test
             var cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName).First();
 
             // Act
+            // The name is trimmed before being validated, so it ends up empty and is rejected
+            LogAssert.Expect(LogType.Error, "Can't change name, '' is not a valid category name.");
             blackboard.SetCategoryName(cat, " ");
 
             // Assert
@@ -480,6 +482,88 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Rename_Parameter_With_Different_Case_Only([Values("", " ")] string padding)
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
+            AddParameter(blackboard, descriptorParameter);
+            yield return null;
+
+            VFXBlackboardField blackboardField = null;
+            var maxFrames = 16;
+            while (blackboardField == null && maxFrames-- > 0)
+            {
+                yield return null;
+                blackboardField = blackboard.Q<VFXBlackboardField>();
+            }
+            Assert.NotNull(blackboardField);
+            var initialName = blackboardField.controller.exposedName;
+
+            // Act
+            var newName = initialName.ToUpperInvariant();
+            Assert.AreNotEqual(initialName, newName);
+            // Surrounding spaces are trimmed, so the name still only differs by its case
+            blackboardField.controller.exposedName = $"{padding}{newName}{padding}";
+            yield return null;
+
+            // Assert
+            Assert.AreEqual(newName, blackboardField.controller.exposedName);
+        }
+
+        [UnityTest]
+        public IEnumerator Rename_Parameter_With_Existing_Name_Gets_Unique_Name()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(int)));
+            yield return null;
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(float)));
+            yield return null;
+
+            var parameterFields = new List<VFXBlackboardField>();
+            var maxFrames = 16;
+            while (parameterFields.Count != 2 && maxFrames-- > 0)
+            {
+                yield return null;
+                parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
+            }
+            Assert.AreEqual(2, parameterFields.Count);
+
+            // Act
+            var existingName = parameterFields[0].controller.exposedName;
+            parameterFields[1].controller.exposedName = existingName;
+            yield return null;
+
+            // Assert
+            Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+
+            // Renaming again to the same existing name must give the same suffix, not alternate between 1 and 2
+            for (var i = 0; i < 3; i++)
+            {
+                parameterFields[1].controller.exposedName = existingName;
+                yield return null;
+                Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator DoubleClick_To_Rename_Category()
         {
             // Arrange
@@ -624,6 +708,37 @@ namespace UnityEditor.VFX.Test
 
             // Assert
             Assert.AreEqual(newCustomAttributeName, setAttributeBlock.attribute);
+        }
+
+        [UnityTest]
+        public IEnumerator Rename_Custom_Attribute_With_Different_Case_Only()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+            AddCustomAttribute(blackboard, VFXValueType.Boolean);
+            yield return null;
+
+            var customAttributeDescriptor = graph.customAttributes.Single();
+            var initialName = customAttributeDescriptor.attributeName;
+            var newName = initialName.ToUpperInvariant();
+            Assert.AreNotEqual(initialName, newName);
+
+            // Act (this is what the inspector's name field does)
+            var hasChanged = customAttributeDescriptor.Changed(initialName, newName, customAttributeDescriptor.type, customAttributeDescriptor.description);
+            yield return null;
+
+            // Assert
+            Assert.IsTrue(hasChanged);
+            Assert.AreEqual(newName, customAttributeDescriptor.attributeName);
+            Assert.IsTrue(graph.attributesManager.TryFind(newName, out var attribute));
+            Assert.AreEqual(newName, attribute.name);
         }
 
         [UnityTest, Ignore("Click event do not reach the treeview, I keep it to fix it later")]

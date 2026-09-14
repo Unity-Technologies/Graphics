@@ -452,13 +452,6 @@ namespace UnityEditor.VFX.UI
             { var infos = t.Value.infos; return infos != null && infos.linkedSlots != null && infos.linkedSlots.Any(u => u.inputSlot == slot); }).Value;
         }
 
-        public static string MakeNameUnique(VFXViewController viewController, string candidateName, int maxLength = 0)
-        {
-            var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName), StringComparer.OrdinalIgnoreCase);
-
-            return MakeNameUnique(candidateName, allNames, true, maxLength, null);
-        }
-
         public IPropertyRMProvider GetMemberController(string memberPath)
         {
             if (string.IsNullOrEmpty(memberPath))
@@ -562,6 +555,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public static string MakeNameUnique(VFXViewController viewController, string candidateName, int maxLength = 0)
+        {
+            var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName), StringComparer.OrdinalIgnoreCase);
+
+            return MakeNameUnique(candidateName, allNames, true, maxLength, null);
+        }
+
         public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true, int maxLength = 0, List<string> rejectedCandidateNames = null)
         {
             if (string.IsNullOrEmpty(name))
@@ -637,7 +637,11 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                string candidateName = MakeNameUnique(viewController, value, kMaxExposedNameLength);
+                var otherNames = viewController.parameterControllers
+                    .Where(x => x != this)
+                    .Select(x => x.exposedName)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                string candidateName = MakeNameUnique(value, otherNames, true, kMaxExposedNameLength);
                 if (candidateName != null && candidateName != model.exposedName)
                 {
                     model.SetSettingValue("m_ExposedName", candidateName);
