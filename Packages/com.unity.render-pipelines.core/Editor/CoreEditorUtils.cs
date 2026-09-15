@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Unity.Scripting.LifecycleManagement;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -179,6 +180,9 @@ namespace UnityEditor.Rendering
             EditorApplication.update += HighlightTimeout;
         }
 
+        [NoAutoStaticsCleanup] // lazy GUIStyle; padding is recomputed before every draw
+        static GUIStyle s_FixMeBoxStyle;
+
         /// <summary>Draw a help box with the Fix button.</summary>
         /// <param name="message">The message text.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
@@ -193,7 +197,7 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string message, MessageType messageType, Action action)
         {
-            DrawFixMeBox(L10n.TextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType), null), "Fix", action);
+            DrawFixMeBox(L10n.TextContentWithIcon(message, messageType, null), "Fix", action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
@@ -203,7 +207,7 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string message, MessageType messageType, string buttonLabel, Action action)
         {
-            DrawFixMeBox(L10n.TextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType), null), buttonLabel, action);
+            DrawFixMeBox(L10n.TextContentWithIcon(message, messageType, null), buttonLabel, action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
@@ -220,33 +224,25 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(GUIContent message, string buttonLabel, Action action)
         {
+            if (s_FixMeBoxStyle == null)
+                s_FixMeBoxStyle = new GUIStyle(EditorStyles.helpBox);
+
+            GUIContent buttonContent = L10n.TextContent(buttonLabel, null, null, null);
+
+            float buttonWidth = Mathf.Max(60f, GUI.skin.button.CalcSize(buttonContent).x);
+            s_FixMeBoxStyle.padding.right = EditorStyles.helpBox.padding.right + Mathf.CeilToInt(buttonWidth) + 4;
+
+            // The same layout path EditorGUILayout.HelpBox takes, so the box and its content line up
+            // with the plain help boxes around it; the right padding keeps the text off the button.
             EditorGUILayout.BeginHorizontal();
-
-            float indent = EditorGUI.indentLevel * k_IndentMargin - EditorStyles.helpBox.margin.left;
-            GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
-
-            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60), GUILayout.ExpandWidth(false));
-            Rect rect = GUILayoutUtility.GetRect(message, EditorStyles.helpBox);
-            Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
-
-            int oldIndent = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
-
+            EditorGUILayout.PrefixLabel(GUIContent.none, s_FixMeBoxStyle);
+            Rect rect = GUILayoutUtility.GetRect(message, s_FixMeBoxStyle);
             if (Event.current.type == EventType.Repaint)
-                EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
-
-            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y, rect.width - 8, rect.height);
-            EditorGUI.LabelField(labelRect, message, CoreEditorStyles.helpBox);
-
-            var buttonRect = leftRect;
-            buttonRect.x += rect.width - 2;
-            buttonRect.y = rect.yMin + (rect.height - EditorGUIUtility.singleLineHeight) / 2;
-            bool clicked = GUI.Button(buttonRect, buttonLabel);
-
-            EditorGUI.indentLevel = oldIndent;
+                s_FixMeBoxStyle.Draw(rect, message, false, false, false, false);
             EditorGUILayout.EndHorizontal();
 
-            if (clicked)
+            Rect buttonRect = new Rect(rect.xMax - buttonWidth - 4, rect.y + (rect.height - EditorGUIUtility.singleLineHeight) / 2, buttonWidth, EditorGUIUtility.singleLineHeight);
+            if (GUI.Button(buttonRect, buttonContent))
                 action();
         }
 

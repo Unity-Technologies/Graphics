@@ -81,20 +81,6 @@ namespace UnityEditor.Rendering
         public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
 
 
-        static System.Lazy<GUIStyle> m_HelpBox = new(() =>
-        {
-            var style = new GUIStyle()
-            {
-                imagePosition = ImagePosition.ImageLeft,
-                fontSize = 10,
-                wordWrap = true,
-                alignment = TextAnchor.MiddleLeft
-            };
-            style.normal.textColor = EditorStyles.helpBox.normal.textColor;
-            return style;
-        });
-        internal static GUIStyle helpBox => m_HelpBox.Value;
-
         #endregion
 
         #region Textures 2D

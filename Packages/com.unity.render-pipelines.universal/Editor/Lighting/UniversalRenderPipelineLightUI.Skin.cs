@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent LightCookieOffset = L10n.TextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.", null, null);
             /// <summary>Title with "Rendering Layer"</summary>
             public static readonly GUIContent RenderingLayers = L10n.TextContent("Rendering Layers", "Select the Rendering Layers that the Light affects. This Light affects objects where at least one Rendering Layer value matches.", null, null);
-            public static readonly GUIContent RenderingLayersHelpBox = L10n.TextContentWithIcon($"Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), null);
+            public static readonly GUIContent RenderingLayersHelpBox = L10n.TextContentWithIcon("Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", MessageType.Info, null);
         }
     }
 }
