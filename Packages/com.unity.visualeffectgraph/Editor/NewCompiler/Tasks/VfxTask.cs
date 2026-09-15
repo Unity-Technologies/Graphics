@@ -10,6 +10,9 @@ namespace UnityEditor.VFX
     /// </summary>
     class VfxTask : ITask
     {
+        public static NameDataKey InstancingBufferKey = new("instancingIndirectAndActiveIndirect");
+        public static NameDataKey InstancingPrefixSumBufferKey = new("instancingPrefixSum");
+
         readonly HashSet<IDataKey> m_ReadBindings = new();
         readonly HashSet<IDataKey> m_WriteBindings = new();
 
@@ -31,6 +34,12 @@ namespace UnityEditor.VFX
             {
                 writeUsage?.Add(DataPath.Root);
                 usage |= BindingUsage.Write;
+            }
+
+            if(dataKey.Equals(InstancingBufferKey) || dataKey.Equals(InstancingPrefixSumBufferKey))
+            {
+                readUsage?.Add(DataPath.Root);
+                usage |= BindingUsage.Read;
             }
 
             return usage;

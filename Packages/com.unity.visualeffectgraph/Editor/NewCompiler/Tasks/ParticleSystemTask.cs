@@ -21,11 +21,14 @@ namespace UnityEditor.VFX
             public static NameDataKey GraphValuesBufferKey { get; } = new("graphValuesBuffer");
             public static NameDataKey EventListBufferKey { get; } = new("eventList");
             public static NameDataKey SpawnerInputBufferKey { get; } = new("spawner_input");
+            public static NameDataKey InstancingBufferKey = new("instancingIndirectAndActiveIndirect");
+            public static NameDataKey InstancingPrefixSumBufferKey = new("instancingPrefixSum");
 
             public static bool IsGpuBuffer(IDataKey dataKey) =>
                 dataKey is NameDataKey key &&
                 (key == AttributeBufferKey || key == SourceAttributeBufferKey || key == DeadListBufferKey ||
-                 key == SpawnBufferKey || key == GraphValuesBufferKey || key == EventListBufferKey);
+                 key == SpawnBufferKey || key == GraphValuesBufferKey || key == EventListBufferKey ||
+                 key == InstancingBufferKey || key == InstancingPrefixSumBufferKey);
 
             public static bool IsCpuBuffer(IDataKey dataKey) =>
                 dataKey is NameDataKey key && key == SpawnerInputBufferKey;

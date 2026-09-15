@@ -7,10 +7,11 @@
 
 void main(ThreadData threadData)
 {
-	uint eventIndex = threadData.index;
+	uint spawnIndex = threadData.index;
     uint eventCount = EventListDataBinding.eventListData.eventCount;
+    uint spawnCount = EventListDataBinding.eventListData.spawnCount;
 
-    if(eventIndex >= eventCount)
+    if(spawnIndex >= spawnCount)
     {
         return;
     }
@@ -20,14 +21,14 @@ void main(ThreadData threadData)
 
     Attributes particleAttributes;
     particleAttributes.Init();
-    particleAttributes.particleId = EventListDataBinding.eventListData.baseEventCount + eventIndex;
+    particleAttributes.particleId = EventListDataBinding.baseEventCount + spawnIndex;
     particleAttributes.seed = WangHash(particleAttributes.particleId ^ systemSeed);
-    particleAttributes.spawnIndex = eventIndex;
+    particleAttributes.spawnIndex = spawnIndex;
 
     SourceAttributes sourceAttributes;
 	sourceAttributes.Init();
-    sourceAttributes.spawnCount = eventCount;
-	uint sourceIndex = EventListDataBinding.eventListData.GetAttributesIndex(eventIndex);
+
+	uint sourceIndex = EventListDataBinding.eventListData.GetAttributesIndex(spawnIndex);
 	SourceAttributeDataBinding.LoadData(sourceAttributes, sourceIndex);
 
     VFXProcessBlocks(particleAttributes, sourceAttributes);
@@ -35,7 +36,7 @@ void main(ThreadData threadData)
     if (particleAttributes.alive)
     {
         uint particleIndex;
-        if (ParticleDataBinding.NewParticle(eventIndex, particleIndex))
+        if (ParticleDataBinding.NewParticle(spawnIndex, particleIndex))
         {
             ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
         }

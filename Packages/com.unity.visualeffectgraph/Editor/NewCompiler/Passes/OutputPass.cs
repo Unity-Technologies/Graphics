@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                 motionVectorGenerationMode = MotionVectorGenerationMode.Camera,
                 shadowCastingMode = ShadowCastingMode.Off
             };
-            vfxAssetDesc.instancingDisabledReason = VFXInstancingDisabledReason.Unknown;
+            vfxAssetDesc.instancingDisabledReason = VFXInstancingDisabledReason.None;
 
             return vfxAssetDesc;
         }
@@ -67,9 +67,6 @@ namespace UnityEditor.VFX
         readonly Dictionary<DataContainerId, uint> m_GpuBufferDescIndices = new();
         readonly Dictionary<DataContainerId, uint> m_CpuBufferDescIndices = new();
         readonly Dictionary<DataNodeId, uint> m_ValuesExpressionIndices = new();
-        // Expressions are interned by VFXExpression's own cache and compare by value, so the same
-        // sub-expression is reached from many roots. Memoize its sheet index instead of re-emitting it.
-        readonly Dictionary<VFXExpression, uint> m_ExpressionIndexCache = new();
         readonly Dictionary<ParticleSystemContainer.ParticleSystem, int> m_ParticleSystemIndices = new();
         readonly List<uint> m_StartSystems = new();
         readonly List<uint> m_StopSystems = new();
@@ -276,26 +273,40 @@ namespace UnityEditor.VFX
             systemDesc.buffers = bufferMappings;
 
             List<UnityEditor.VFX.VFXEditorTaskDesc> taskDescs = new();
-            List<UnityEditor.VFX.VFXInstanceSplitDesc> instanceSplitDescs = new();
             foreach (var task in particleSystem.Tasks)
             {
                 if (GenerateParticleSystemTask(ref context, task, out var taskDesc))
                 {
                     taskDescs.Add(taskDesc);
                 }
-                instanceSplitDescs.Add(new UnityEditor.VFX.VFXInstanceSplitDesc()
-                {
-                    values = Array.Empty<uint>(),
-                });
-
-
+                systemDesc.flags = particleSystem.SystemFlags | VFXSystemFlag.SystemUsesInstancedRendering;
             }
-            systemDesc.flags = particleSystem.SystemFlags;
             systemDesc.values = GenerateParticleSystemValuesMappings(context, particleSystem, out var layer);
             systemDesc.tasks = taskDescs.ToArray();
-            systemDesc.instanceSplitDescs = instanceSplitDescs.ToArray();
+            systemDesc.instanceSplitDescs = GenerateInstanceSplitDescs(ref context, particleSystem);
             systemDesc.layer = layer;
             return true;
+        }
+
+        VFXInstanceSplitDesc[] GenerateInstanceSplitDescs(ref CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem)
+        {
+            var instancingSplitDescContainer = context.data.Get<InstancingSplitDescContainer>();
+            var splitValueSets = instancingSplitDescContainer.Find(particleSystem);
+            if (splitValueSets == null)
+                return new[] { new VFXInstanceSplitDesc { values = Array.Empty<uint>() } };
+
+            var instanceSplitDescs = new VFXInstanceSplitDesc[splitValueSets.Count];
+            for (int i = 0; i < splitValueSets.Count; i++)
+            {
+                var values = new List<uint>();
+                foreach (var dataNodeId in splitValueSets[i])
+                {
+                    if (m_ValuesExpressionIndices.TryGetValue(dataNodeId, out var expressionIndex))
+                        values.Add(expressionIndex);
+                }
+                instanceSplitDescs[i] = new VFXInstanceSplitDesc { values = values.ToArray() };
+            }
+            return instanceSplitDescs;
         }
 
         VFXMapping[] GenerateParticleSystemValuesMappings(CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem, out uint layer)
@@ -416,6 +427,7 @@ namespace UnityEditor.VFX
             taskDesc.values = valueMappings.ToArray();
             taskDesc.buffers = HashSetToArray(bufferMappings);
             taskDesc.modelId = task.ModelId;
+            taskDesc.instanceSplitIndex = task.InstanceSplitIndex;
 
             return true;
         }
@@ -479,17 +491,17 @@ namespace UnityEditor.VFX
             return vfxExpressionIndex;
         }
 
-        uint AddCPUBufferData(UnityEditor.VFX.VFXCPUBufferDesc data)
+        uint AddCPUBufferData(UnityEditor.VFX.VFXCPUBufferDesc bufferDesc)
         {
             uint bufferDataIndex = (uint)m_currentOutput.CpuBufferDescs.Count;
-            m_currentOutput.CpuBufferDescs.Add(data);
+            m_currentOutput.CpuBufferDescs.Add(bufferDesc);
             return bufferDataIndex;
         }
 
-        uint AddGPUBufferData(UnityEditor.VFX.VFXGPUBufferDesc data)
+        uint AddGPUBufferData(UnityEditor.VFX.VFXGPUBufferDesc bufferDesc)
         {
             uint bufferDataIndex = (uint)m_currentOutput.GpuBufferDescs.Count;
-            m_currentOutput.GpuBufferDescs.Add(data);
+            m_currentOutput.GpuBufferDescs.Add(bufferDesc);
             return bufferDataIndex;
         }
 
@@ -511,7 +523,6 @@ namespace UnityEditor.VFX
             m_GpuBufferDescIndices.Clear();
             m_CpuBufferDescIndices.Clear();
             m_ValuesExpressionIndices.Clear();
-            m_ExpressionIndexCache.Clear();
             m_ParticleSystemIndices.Clear();
             m_StartSystems.Clear();
             m_StopSystems.Clear();

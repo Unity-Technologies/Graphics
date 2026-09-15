@@ -11,15 +11,17 @@ struct Varyings
     float4 color : COLOR;
 };
 
-Varyings vert(uint id : SV_VertexID, VertexInput vs_input)
+SAMPLER(default_sampler_Linear_Repeat);
+
+Varyings vert(ThreadData threadData, uint vertexId, VertexInput vs_input)
 {
     Varyings o = (Varyings)0;
 
-    uint index = (id >> 2) + vs_input.instanceID * 2048;
+    uint particleIndex = threadData.index;
 
     Attributes particleAttributes;
     particleAttributes.Init();
-    ParticleDataBinding.particleAttributeBuffer.LoadData(particleAttributes, index);
+    ParticleDataBinding.particleAttributeBuffer.LoadData(particleAttributes, particleIndex);
 
     if (particleAttributes.alive)
     {
@@ -35,8 +37,8 @@ Varyings vert(uint id : SV_VertexID, VertexInput vs_input)
             particleAttributes.position);
 
         float2 varyingUV;
-        varyingUV.x = float(id & 1);
-        varyingUV.y = (id & 2) * 0.5f;
+        varyingUV.x = float(vertexId & 1);
+        varyingUV.y = (vertexId & 2) * 0.5f;
 
         const float2 offsets = varyingUV.xy - 0.5f;
         float3 posVFX = mul(elementToVFXMatrix, float4(offsets, 0.0f, 1.0f)).xyz;

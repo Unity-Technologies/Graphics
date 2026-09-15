@@ -66,9 +66,9 @@ namespace UnityEditor.VFX
             var newTask = new VfxTask();
             var oldTaskId = oldTaskNode.Id;
 
-            using var bindingViews = ListPool<(DataViewId view, IDataKey key, DataNodeId originalDataNode, DataViewId originalDataView)>
+            using var _ = ListPool<(DataViewId view, IDataKey key, DataNodeId originalDataNode, DataViewId originalDataView)>
                 .Get(out var concreteBindings);
-            using var seenRental = HashSetPool<DataViewId>.Get(out var boundViews);
+            using var __ = HashSetPool<DataViewId>.Get(out var boundViews);
 
             foreach (var binding in oldTaskNode.DataBindings)
             {

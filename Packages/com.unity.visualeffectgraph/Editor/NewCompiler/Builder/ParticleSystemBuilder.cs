@@ -449,7 +449,7 @@ namespace UnityEditor.VFX
             bindings.Add(eventListBinding);
 
             var sourceAttributeBinding = new TemplatedTaskBinding<AttributeData>(SourceAttributesBindingKey);
-            sourceAttributeBinding.Add(DataPath.Root, VFXAttribute.SpawnCount, AttributeUsage.Write);
+            sourceAttributeBinding.ReadPathSet.Add(DataPath.Root);
             bindings.Add(sourceAttributeBinding);
 
             args.AttributeKeyMappings.Add(IntermediateGraphBuilder.SourceAttributeKey, new(SourceAttributesBindingKey, DataPath.Root));

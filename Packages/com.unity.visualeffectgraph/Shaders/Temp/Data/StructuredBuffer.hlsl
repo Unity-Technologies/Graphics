@@ -44,12 +44,11 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         this.rangeCheck = false;
     }
 	
-	__VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) GetRange(uint from, uint count)
+	void GetRange(inout __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) rangeBuffer, uint from, uint count)
 	{
 		from = min(from, size - 1);
 		count = min(count, size - from);
-		
-		__VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) rangeBuffer;
+
         rangeBuffer.buffer = buffer;
         rangeBuffer.bufferRW = bufferRW;
         rangeBuffer.offset = offset + from;
@@ -57,8 +56,6 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         rangeBuffer.readAccess = readAccess;
         rangeBuffer.writeAccess = writeAccess;
         rangeBuffer.rangeCheck = rangeCheck;
-		
-		return rangeBuffer;
 	}
 
     bool LoadData(out __VFX_STRUCTURED_BUFFER_TYPE data, uint index)
@@ -95,7 +92,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedAdd(bufferRW[index], value, original);
+            InterlockedAdd(bufferRW[offset + index], value, original);
         }
     }
 
@@ -104,7 +101,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedAnd(bufferRW[index], value, original);
+            InterlockedAnd(bufferRW[offset + index], value, original);
         }
     }
 
@@ -113,7 +110,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedOr(bufferRW[index], value, original);
+            InterlockedOr(bufferRW[offset + index], value, original);
         }
     }
 
@@ -122,7 +119,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedXor(bufferRW[index], value, original);
+            InterlockedXor(bufferRW[offset + index], value, original);
         }
     }
 
@@ -131,7 +128,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedMin(bufferRW[index], value, original);
+            InterlockedMin(bufferRW[offset + index], value, original);
         }
     }
 
@@ -140,7 +137,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedMax(bufferRW[index], value, original);
+            InterlockedMax(bufferRW[offset + index], value, original);
         }
     }
 
@@ -148,7 +145,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
     {
         if (writeAccess)
         {
-            InterlockedCompareStore(bufferRW[index], compare, value);
+            InterlockedCompareStore(bufferRW[offset + index], compare, value);
         }
     }
 
@@ -157,7 +154,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedCompareExchange(bufferRW[index], compare, value, original);
+            InterlockedCompareExchange(bufferRW[offset + index], compare, value, original);
         }
     }
 #endif
@@ -168,7 +165,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         original = 0;
         if (writeAccess)
         {
-            InterlockedExchange(bufferRW[index], compare, value);
+            InterlockedExchange(bufferRW[offset + index], compare, value);
         }
     }
 #endif

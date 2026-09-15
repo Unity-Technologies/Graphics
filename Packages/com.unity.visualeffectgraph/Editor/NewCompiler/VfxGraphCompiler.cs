@@ -35,7 +35,8 @@ namespace UnityEditor.VFX
                 new SpawnerToVfxTaskPass(),
                 new SystemTaskBindingsPass(),
                 new VfxTemplateCodeGenerationPass(m_DataWriter),
-                new TemplateToVfxTaskPass(m_DataWriter));
+                new TemplateToVfxTaskPass(m_DataWriter),
+                new InstancingBuffersPass());
         }
 
         // For now the new compiler performs a full recompilation

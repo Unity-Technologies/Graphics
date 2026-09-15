@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
                 shaderWriter.WriteLine("VFXDeadListData deadList;");
             }
             shaderWriter.NewLine();
-            shaderWriter.WriteLine("void Init()");
+            shaderWriter.WriteLine("void Init(ThreadData threadData)");
             shaderWriter.OpenBlock();
             shaderWriter.WriteLine($"uint capacity = {particleSystemData.Capacity}u;");
             shaderWriter.WriteLine("particleSystem.Init(capacity);");
@@ -52,7 +52,8 @@ namespace UnityEditor.VFX
                 shaderWriter.NewLine();
                 shaderWriter.WriteLine("VFXByteAddressBuffer particleBuffer;");
                 var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
-                shaderWriter.WriteLine($"particleBuffer.Init(_{name}_attributeBuffer, {0}u, {layoutCompilationData[attributeData].GetBufferSize()}u);");
+                uint attributeBufferSize = layoutCompilationData[attributeData].GetBufferSize();
+                shaderWriter.WriteLine($"particleBuffer.Init(_{name}_attributeBuffer, threadData.instancingData.instanceIndex * {attributeBufferSize}u, {attributeBufferSize}u );");
                 shaderWriter.WriteLine("particleAttributeBuffer.Init(particleBuffer);");
             }
             if (deadlist != null)
@@ -61,10 +62,10 @@ namespace UnityEditor.VFX
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListCounter;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListCounterCopy;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListBuffer;");
-                shaderWriter.WriteLine($"deadListCounter.Init(_{name}_deadListBuffer, {0}u, {1}u);");
-                shaderWriter.WriteLine($"deadListCounterCopy.Init(_{name}_deadListBuffer, {1}u, {1}u);");
-                shaderWriter.WriteLine($"deadListBuffer.Init(_{name}_deadListBuffer, {2}u, {particleSystemData.Capacity}u);");
-                shaderWriter.WriteLine("deadList.Init(deadListCounter, deadListCounterCopy, deadListBuffer);");
+                shaderWriter.WriteLine($"deadListCounter.Init(_{name}_deadListBuffer, threadData.instancingData.instanceIndex, {1}u);");
+                shaderWriter.WriteLine($"deadListCounterCopy.Init(_{name}_deadListBuffer, threadData.instancingData.batchSize + threadData.instancingData.instanceIndex , {1}u );");
+                shaderWriter.WriteLine($"deadListBuffer.Init(_{name}_deadListBuffer, 2u * threadData.instancingData.batchSize + {particleSystemData.Capacity}u * threadData.instancingData.instanceIndex , {particleSystemData.Capacity}u );");
+                shaderWriter.WriteLine($"deadList.Init(deadListCounter, deadListCounterCopy, deadListBuffer);");
             }
             shaderWriter.CloseBlock();
 

@@ -95,7 +95,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Gets the name of this container as a C# identifier.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the data container has been removed from the graph.</exception>
-        public string IdentifierName => Info.Name?.Replace(' ', '_');
+        public string IdentifierName => HlslCodeHelper.MakeHlslIdentifier(Name);
 
         void CheckValid() { if (!IsValid) throw new InvalidOperationException($"DataContainer {m_Info.Id} no longer exists in the graph."); }
 

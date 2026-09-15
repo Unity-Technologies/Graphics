@@ -1,10 +1,33 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     static class HlslCodeHelper
     {
+        public static string MakeHlslIdentifier(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Name cannot be null or empty", nameof(name));
+
+            var result = new StringBuilder(name.Length);
+            foreach (char c in name)
+            {
+                if (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c == '_' || c >= '0' && c <= '9')
+                    result.Append(c);
+                else
+                    result.Append('_');
+            }
+
+            // HLSL identifiers cannot start with a digit
+            if (result[0] >= '0' && result[0] <= '9')
+                throw new ArgumentException($"Name '{name}' results in an HLSL identifier starting with a digit", nameof(name));
+
+            return result.ToString();
+        }
+
         static Dictionary<System.Type, string> s_TypeNames;
         static HlslCodeHelper()
         {

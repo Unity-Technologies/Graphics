@@ -13,14 +13,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine($"struct {name}");
             shaderWriter.OpenBlock();
             shaderWriter.WriteLine("VFXByteAddressBuffer buffer;");
+            shaderWriter.WriteLine("uint instanceStride;");
             shaderWriter.NewLine();
 
             var layoutCompilationData = context.data.Get<DataLayoutContainer>();
             layoutCompilationData.TryGetLayout(dataView.DataContainer.Id, out var layout);
 
-            shaderWriter.WriteLine("void Init()");
+            shaderWriter.WriteLine("void Init(ThreadData threadData)");
             shaderWriter.OpenBlock();
-            shaderWriter.WriteLine($"buffer.Init(_{name}_buffer, 0u, {layout.GetBufferSize()});");
+            shaderWriter.WriteLine($"buffer.Init(_{name}_buffer, {layout.GetBufferSize()} * threadData.instancingData.activeIndex, {layout.GetBufferSize()});");
             shaderWriter.CloseBlock();
             shaderWriter.NewLine();
 

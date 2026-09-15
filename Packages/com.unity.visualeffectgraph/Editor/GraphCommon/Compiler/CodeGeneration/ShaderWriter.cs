@@ -105,6 +105,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             WriteLine($"#include \"{filePath}\"");
         }
 
+        public void IncludeFileWithPragmas(string filePath)
+        {
+            //Debug.Assert(IndentLevel == 0); TODO: Move the assert to compute only ?
+            WriteLine($"#include_with_pragmas \"{filePath}\"");
+        }
+
         public void Pragma(string pragma)
         {
             //Debug.Assert(IndentLevel == 0);  TODO: Move the assert to compute only ?

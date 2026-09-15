@@ -158,6 +158,7 @@ namespace UnityEditor.VFX
             public TaskNodeId Id { get; }
             public UnityEngine.VFX.VFXTaskType TaskType { get; }
             public EntityId ModelId { get; }
+            public uint InstanceSplitIndex { get; set; }
 
             public Task(string name, TaskNodeId id, UnityEngine.VFX.VFXTaskType taskType, EntityId modelId = default)
             {
@@ -165,6 +166,7 @@ namespace UnityEditor.VFX
                 Id = id;
                 TaskType = taskType;
                 ModelId = modelId;
+                InstanceSplitIndex = 0;
             }
         }
     }

@@ -1,9 +1,7 @@
-using System;
-using System.Reflection;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using Unity.GraphCommon.LowLevel.Editor;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -74,6 +72,20 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine($"{(isStatic ? "static " : "")}{type} {name};");
         }
 
+        VFXSpace ResolveSpace(TaskNode taskNode)
+        {
+            foreach (var dataNode in taskNode.DataNodes)
+            {
+                var rootDataView = dataNode.DataContainer.RootDataView;
+                if (rootDataView.DataDescription is ParticleData particleData)
+                {
+                    return particleData.Space;
+                }
+            }
+
+            return VFXSpace.None;
+        }
+
         string GenerateTemplatedTaskSourceCode_Compute(TaskNode taskNode, CompilationContext context)
         {
             VfxTemplatedTask templatedTask = taskNode.Task as VfxTemplatedTask;
@@ -82,9 +94,9 @@ namespace UnityEditor.VFX
 
             m_ComputeShaderWriter.Begin(shaderName);
 
-            m_ComputeShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
+            IncludeCommonLibrary(m_ComputeShaderWriter, ResolveSpace(taskNode));
 
-            IncludeCommonLibrary(m_ComputeShaderWriter);
+            m_ComputeShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
 
             IncludeData(m_ComputeShaderWriter, taskNode, context);
 
@@ -115,7 +127,12 @@ namespace UnityEditor.VFX
             {
                 using (m_RenderingShaderWriter.CreateHlslIncludeScope())
                 {
-                    IncludeCommonLibrary(m_RenderingShaderWriter);
+                    m_RenderingShaderWriter.WriteLine("#pragma multi_compile_instancing");
+
+                    IncludeCommonLibrary(m_RenderingShaderWriter, ResolveSpace(taskNode));
+
+                    m_RenderingShaderWriter.WriteLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl\"");
+                    m_RenderingShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
 
                     IncludeData(m_RenderingShaderWriter, taskNode, context);
 
@@ -298,10 +315,11 @@ namespace UnityEditor.VFX
             shaderWriter.Write(")");
         }
 
-        void IncludeCommonLibrary(ShaderWriter shaderWriter)
+        void IncludeCommonLibrary(ShaderWriter shaderWriter, VFXSpace space)
         {
             shaderWriter.NewLine();
-            shaderWriter.Define("VFX_LOCAL_SPACE", "1");
+            shaderWriter.Define(space == VFXSpace.Local ? "VFX_LOCAL_SPACE" : "VFX_WORLD_SPACE", "1");
+            shaderWriter.IncludeFileWithPragmas($"{VFXLibrary.currentSRPBinder.runtimePath}/VFXDefines.hlsl");
             shaderWriter.IncludeFile($"{VFXLibrary.currentSRPBinder.runtimePath}/VFXCommon.hlsl");
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl");
         }
@@ -326,13 +344,11 @@ namespace UnityEditor.VFX
             computeShaderWriter.NewLine();
             computeShaderWriter.WriteLine("static ThreadData threadData;");
             computeShaderWriter.NewLine();
-            uint threadCount = 64u;
-            computeShaderWriter.WriteMainFunction(threadCount, 1, 1);
+            computeShaderWriter.WriteMainFunction(VfxDispatch.ThreadsPerGroup, 1, 1);
             computeShaderWriter.OpenBlock();
-            InitMainData(computeShaderWriter, taskNode);
+            InitMainData(computeShaderWriter, taskNode, context);
             computeShaderWriter.NewLine();
             computeShaderWriter.WriteLine("// Template entry point");
-            computeShaderWriter.WriteLine($"threadData.Init(groupId.x * {threadCount} + groupThreadId.x);");
             computeShaderWriter.WriteLine("main(threadData);");
             computeShaderWriter.CloseBlock();
         }
@@ -340,24 +356,27 @@ namespace UnityEditor.VFX
         void GenerateEntryPoints_Rendering(RenderingShaderWriter renderingShaderWriter, TaskNode taskNode, CompilationContext context)
         {
             renderingShaderWriter.NewLine();
+            renderingShaderWriter.WriteLine("static ThreadData threadData;");
+            renderingShaderWriter.NewLine();
             renderingShaderWriter.WriteVertexFunction();
             renderingShaderWriter.OpenBlock();
-            InitMainData(renderingShaderWriter, taskNode);
+            InitMainData(renderingShaderWriter, taskNode, context);
             renderingShaderWriter.NewLine();
-            renderingShaderWriter.WriteLine("return vert(id, input);");
+            renderingShaderWriter.WriteLine("return vert(threadData, id, input);");
             renderingShaderWriter.CloseBlock();
 
             renderingShaderWriter.NewLine();
             renderingShaderWriter.WriteFragmentFunction();
             renderingShaderWriter.OpenBlock();
-            InitMainData(renderingShaderWriter, taskNode);
+            InitFragmentBindings(renderingShaderWriter, taskNode);
             renderingShaderWriter.NewLine();
             renderingShaderWriter.WriteLine("return frag(input);");
             renderingShaderWriter.CloseBlock();
         }
 
-        void InitMainData(ShaderWriter shaderWriter, TaskNode taskNode)
+        void InitMainData(ShaderWriter shaderWriter, TaskNode taskNode, CompilationContext context)
         {
+            InitInstancing(shaderWriter, taskNode, context);
             InitContainers(shaderWriter, taskNode);
             InitBindings(shaderWriter, taskNode);
         }
@@ -380,9 +399,76 @@ namespace UnityEditor.VFX
                     var typeName = dataContainer.IdentifierName;
                     var variableName = char.ToLowerInvariant(typeName[0]) + typeName.Substring(1);
                     shaderWriter.WriteLine($"{typeName} {variableName};");
-                    shaderWriter.WriteLine($"{variableName}.Init();");
+                    shaderWriter.WriteLine($"{variableName}.Init(threadData);");
                 }
             }
+        }
+
+        void InitInstancing(ShaderWriter shaderWriter, TaskNode taskNode, CompilationContext context)
+        {
+            VfxTemplatedTask templatedTask = taskNode.Task as VfxTemplatedTask;
+
+            shaderWriter.WriteLine("// Init instancing");
+
+            bool isOutput = templatedTask.TemplateName == "Output";
+            if(isOutput)
+                shaderWriter.WriteLine("uint linearThreadIndex = (id >> 2) + input.instanceID * 2048;");
+            else
+                shaderWriter.WriteLine($"uint linearThreadIndex = groupId.x * {VfxDispatch.ThreadsPerGroup}u + groupThreadId.x + groupId.y * dispatchWidth * {VfxDispatch.ThreadsPerGroup}u;");
+
+            if (!IsFixedSizeDispatch(templatedTask, isOutput, taskNode, context))
+            {
+                shaderWriter.WriteLine("threadData.InitVariable(linearThreadIndex);");
+                return;
+            }
+
+            uint capacity = 0;
+            foreach (var dataNode in taskNode.DataNodes)
+            {
+                if (dataNode.DataContainer.RootDataView.DataDescription is ParticleData particleData)
+                {
+                    capacity = particleData.Capacity;
+                    break;
+                }
+            }
+
+            // A dispatch pads each instance's slice to a whole group (InstanceSplitData::AddInstance).
+            uint instancingStride = isOutput ? capacity : VfxDispatch.AlignToThreadGroups(capacity);
+            shaderWriter.WriteLine($"threadData.InitFixed(linearThreadIndex, {instancingStride}u);");
+        }
+
+        // Outputs draw a capacity worth of vertices per instance and inits are sized from the spawn
+        // counts; for updates this has to agree with VFXParticleSystemAssetData::IsFixedSizeUpdate().
+        static bool IsFixedSizeDispatch(VfxTemplatedTask templatedTask, bool isOutput, TaskNode taskNode, CompilationContext context)
+        {
+            if (isOutput)
+                return true;
+
+            if (templatedTask.TemplateName == "Init")
+                return false;
+
+            var particleSystem = FindOwningParticleSystem(context.data.Get<ParticleSystemContainer>(), taskNode.Id);
+            if (particleSystem == null)
+                return true;
+
+            // TODO: strips also force a fixed size update once they are supported.
+            const UnityEngine.VFX.VFXSystemFlag fixedSizeUpdateFlags =
+                UnityEngine.VFX.VFXSystemFlag.SystemHasKill | UnityEngine.VFX.VFXSystemFlag.SystemReceivedEventGPU;
+            return (particleSystem.SystemFlags & fixedSizeUpdateFlags) != 0;
+        }
+
+        static ParticleSystemContainer.ParticleSystem FindOwningParticleSystem(ParticleSystemContainer particleSystemContainer, TaskNodeId taskNodeId)
+        {
+            foreach (var particleSystem in particleSystemContainer)
+            {
+                foreach (var task in particleSystem.Tasks)
+                {
+                    if (task.Id.Equals(taskNodeId))
+                        return particleSystem;
+                }
+            }
+
+            return null;
         }
 
         void InitBindings(ShaderWriter shaderWriter, TaskNode taskNode)
@@ -411,13 +497,44 @@ namespace UnityEditor.VFX
             }
         }
 
+        void InitFragmentBindings(ShaderWriter shaderWriter, TaskNode taskNode)
+        {
+            bool initBindings = false;
+            foreach (var dataBinding in taskNode.DataBindings)
+            {
+                if (!initBindings)
+                {
+                    shaderWriter.WriteLine("// Init bindings");
+                    initBindings = true;
+                }
+
+                var dataDescription = dataBinding.DataView.DataDescription;
+                if(dataDescription is not ValueData<Texture>)
+                    continue;
+                bool hasView = m_DataBindingsWithView.Contains(dataBinding.Id);
+                if (hasView)
+                {
+                    WriteBindingInit(shaderWriter, dataBinding);
+                    shaderWriter.NewLine();
+                }
+                else if (BindingNeedsRemapping(dataBinding))
+                {
+                    WriteBindingRemap(shaderWriter, dataBinding);
+                    shaderWriter.NewLine();
+                }
+            }
+        }
+
         void WriteBindingInit(ShaderWriter shaderWriter, DataBinding dataBinding)
         {
             shaderWriter.Indent();
             shaderWriter.Write(dataBinding.BindingDataKey.ToString());
             shaderWriter.Write(".Init(");
             WriteSubdataPath(shaderWriter, dataBinding.DataNode.DataContainer, dataBinding.DataView);
-            shaderWriter.WriteLine(");", ShaderWriter.WriteLineOptions.NoIndent);
+            if (dataBinding.DataView.DataDescription is EventListData eventListData)
+                shaderWriter.Write(", ContextData);");
+            else
+                shaderWriter.WriteLine(");", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
         void WriteBindingRemap(ShaderWriter shaderWriter, DataBinding dataBinding)
