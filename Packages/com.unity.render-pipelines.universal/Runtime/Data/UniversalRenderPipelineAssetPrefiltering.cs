@@ -230,6 +230,12 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.Exposure)]
         [SerializeField] private bool m_PrefilterExposure = false;
 
+        // Volumetric fog (_VOLUMETRIC_FOG, _FOG_VOLUMETRIC)
+        // The fog mode pair has no off variant, so _FOG_ANALYTIC is selected as the survivor instead.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.VolumetricFog)]
+        [ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.FogAnalytic)]
+        [SerializeField] private bool m_PrefilterVolumetricFog = false;
+
         // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
         // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
         // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
@@ -280,6 +286,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripPointSamplingUpsampling;
 
             public bool stripExposure;
+
+            public bool stripVolumetricFog;
 
             public bool stripScreenSpaceIrradiance;
 
@@ -349,6 +357,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterPointSamplingUpsampling       = prefilteringData.stripPointSamplingUpsampling;
 
             m_PrefilterExposure                      = prefilteringData.stripExposure;
+
+            m_PrefilterVolumetricFog                 = prefilteringData.stripVolumetricFog;
 
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 

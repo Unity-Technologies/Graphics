@@ -1145,6 +1145,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
             spd.stripScreenSpaceIrradiance = stripScreenSpaceIrradiance;
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
+            spd.stripVolumetricFog = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.VolumetricFog);
 
             // Rendering Modes
             // Check if only Deferred is being used
