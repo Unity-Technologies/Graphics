@@ -433,10 +433,9 @@ namespace UnityEngine.Rendering
                 crossFades = new NativeArray<byte>(length, allocator);
             }
 
-            public void Dispose(JobHandle jobHandle)
+            public JobHandle Dispose(JobHandle jobHandle)
             {
-                meshLods.Dispose(jobHandle);
-                crossFades.Dispose(jobHandle);
+                return JobHandle.CombineDependencies(meshLods.Dispose(jobHandle), crossFades.Dispose(jobHandle));
             }
         }
 
