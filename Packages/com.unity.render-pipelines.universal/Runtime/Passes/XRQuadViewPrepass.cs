@@ -6,8 +6,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Draws a near-plane depth occluder during the periphery (outer) QuadView pass over the inset rect
-    /// to early-Z reject GBuffer geometry in the inset region that will not be seen after compositing the inner QuadView pass.
-    /// Must keep same attachments as the GBufferPass to ensure native subpass merging. 
+    /// to early-Z reject opaque geometry in the inset region that will not be seen after compositing the inner QuadView pass.
+    /// Must declare the same render attachments as the following pass (GBufferPass or DrawObjectsPass) to ensure native subpass merging.
     /// </summary>
     internal class XRQuadViewPrepass : ScriptableRenderPass
     {
@@ -52,7 +52,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetViewport(new Rect(0f, 0f, fullView.x, fullView.y));
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData)
+        // Deferred doesn't have an explicit target handle, the GBuffer attachments are derived from resourceData
+        internal void RenderDeferred(RenderGraph renderGraph, ContextContainer frameData)
+            => Render(renderGraph, frameData, default, default);
+
+        // In Forward, renderingLayersTarget is only supplied when DrawObjectsWithRenderingLayersPass runs
+        internal void RenderForward(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorTarget, in TextureHandle renderingLayersTarget = default)
+            => Render(renderGraph, frameData, colorTarget, renderingLayersTarget);
+
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData,
+            in TextureHandle colorTarget, in TextureHandle renderingLayersTarget = default)
         {
             var xrLayout = XRSystem.currentLayout;
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -64,17 +73,29 @@ namespace UnityEngine.Rendering.Universal.Internal
             using var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler);
             builder.AllowGlobalStateModification(true); // Needed for SetViewport calls
 
-            // Declare the same GBuffer MRTs as GBufferPass so both land in the same Vulkan subpass.
-            // Without this, IsSameNativeSubPass returns false, vkCmdNextSubpass is issued between them,
-            // and Adreno LRZ state is lost which defeats the early-Z optimization.
-            for (int i = 0; i < resourceData.gBuffer.Length; i++)
+            // Declare the same attachments as the following pass so both land into the same Vulkan subpass.
+            // Without this, vkCmdNextSubpass is issued inbetween and Adreno LRZ state is lost which loses the early-Z optimization.
+            if (colorTarget.IsValid())
             {
-                if (resourceData.gBuffer[i].IsValid())
-                    builder.SetRenderAttachment(resourceData.gBuffer[i], i, AccessFlags.Write);
+                // Forward: match DrawObjectsPass's SubPassDescriptor (slot 0, optional slot 1 for rendering layers)
+                builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                if (renderingLayersTarget.IsValid())
+                    builder.SetRenderAttachment(renderingLayersTarget, 1, AccessFlags.Write);
+            }
+            else
+            {
+                // Deferred: match GBufferPass's SubPassDescriptor
+                // ColorMask 0 in the shader means no actual color writes, the declaration is for subpass matching only
+                var gbuffer = resourceData.gBuffer;
+                for (int i = 0; i < gbuffer.Length; i++)
+                {
+                    if (gbuffer[i].IsValid())
+                        builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);
+                }
             }
             builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.ReadWrite);
 
-            // Match GBufferPass foveated rasterization state to avoid FRStateMismatch breaking the native pass merge
+            // Match GBufferPass/DrawObjectsPass foveated rasterization state to avoid FRStateMismatch breaking the native pass merge
             bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
             builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 

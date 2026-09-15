@@ -252,8 +252,7 @@ namespace UnityEngine.Rendering.Universal
                 if (xrResources.xrQuadViewInsetOccluderPS != null)
                     m_QuadViewInsetOccluderMaterial = CoreUtils.CreateEngineMaterial(xrResources.xrQuadViewInsetOccluderPS);
 
-                if (data.renderingMode == RenderingMode.Deferred || data.renderingMode == RenderingMode.DeferredPlus)
-                    m_XRQuadViewPrepass = new XRQuadViewPrepass(m_QuadViewInsetOccluderMaterial);
+                m_XRQuadViewPrepass = new XRQuadViewPrepass(m_QuadViewInsetOccluderMaterial);
             }
 #endif
             if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(

@@ -1418,7 +1418,7 @@ namespace UnityEngine.Rendering.Universal
                     // The near-plane depth values it writes persist into subsequent sub-passes because depth is never cleared or invalidated between them
                     // (thus cannot use with SpaceWarp which reuses the outer pass motion vectors for the inset region too).
                     if (!cameraData.xr.hasMotionVectorPass && passIndex == 0)
-                        m_XRQuadViewPrepass?.Render(renderGraph, frameData);
+                        m_XRQuadViewPrepass?.RenderDeferred(renderGraph, frameData);
 #endif
                     if (renderStages.drawOpaquePass)
                         m_GBufferPass.Render(renderGraph, frameData, setGlobalTextures, batchLayerMask);
@@ -1473,6 +1473,12 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (m_RenderingLayerProvidesRenderObjectPass)
                         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            // Adreno LRZ only applies to the opaque pass when using ZTest LEqual, there's no benefit from the occluder when using ZTest Equal with a depth prepass first
+                            // Also Spacewarp requires entire viewport motion vectors from periphery pass so it's incompatible with XRQuadViewPrepass occluder optimization
+                            if (!cameraData.xr.hasMotionVectorPass && passIndex == 0 && !useDepthPriming)
+                                m_XRQuadViewPrepass?.RenderForward(renderGraph, frameData, resourceData.activeColorTexture, resourceData.renderingLayersTexture);
+#endif
                             m_RenderOpaqueForwardWithRenderingLayersPass.Render(
                                 renderGraph,
                                 frameData,
@@ -1486,6 +1492,12 @@ namespace UnityEngine.Rendering.Universal
                         }
                         else
                         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            // Adreno LRZ only applies to the opaque pass when using ZTest LEqual, there's no benefit from the occluder when using ZTest Equal with a depth prepass first
+                            // Also Spacewarp requires entire viewport motion vectors from periphery pass so it's incompatible with XRQuadViewPrepass occluder optimization
+                            if (!cameraData.xr.hasMotionVectorPass && passIndex == 0 && !useDepthPriming)
+                                m_XRQuadViewPrepass?.RenderForward(renderGraph, frameData, resourceData.activeColorTexture);
+#endif
                             m_RenderOpaqueForwardPass.Render(
                                 renderGraph,
                                 frameData,
