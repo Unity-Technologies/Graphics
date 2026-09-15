@@ -213,11 +213,15 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
+            // Renderer2DData.useDepthStencilBuffer
             bool allowDepth = rendererData.useDepthStencilBuffer;
 
             // 3D Render Textures with depth/stencil buffer are not supported
             if (cameraData.targetTexture != null)
                 allowDepth &= cameraData.targetTexture.dimension != TextureDimension.Tex3D;
+
+            // The back buffer has none when PlayerSettings.disableDepthAndStencilBuffers is enabled on a graphics API that acts on it
+            allowDepth &= Graphics.backBufferHasDepthStencil;
 
             return allowDepth;
         }
@@ -515,6 +519,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
                 m_CreateDepthTexture |= m_CreateColorTexture;
+                m_CreateDepthTexture &= IsDepthUsageAllowed(frameData, m_Renderer2DData);
 
                 // Camera Target Color
                 if (m_CreateColorTexture)
@@ -570,9 +575,12 @@ namespace UnityEngine.Rendering.Universal
             if (m_CreateColorTexture)
             {
             	importSummary.cameraColorParams.discardOnLastUse = lastCameraInTheStack;
-                importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
-
                 commonResourceData.cameraColor = renderGraph.ImportTexture(currentRenderGraphCameraColorHandle, importSummary.cameraColorParams);
+            }
+
+            if (m_CreateDepthTexture)
+            {
+                importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
                 commonResourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importSummary.cameraDepthParams);
             }
 
@@ -596,17 +604,21 @@ namespace UnityEngine.Rendering.Universal
                 RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferColorHandle, targetColorId);
             }
 
-            if (m_RenderGraphBackbufferDepthHandle == null)
-            {
-                m_RenderGraphBackbufferDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer depth");
-            }
-            else if (m_RenderGraphBackbufferDepthHandle.nameID != targetDepthId)
-            {
-                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferDepthHandle, targetDepthId);
-            }
-
             commonResourceData.backBufferColor = renderGraph.ImportTexture(m_RenderGraphBackbufferColorHandle, importSummary.importInfo, importSummary.backBufferColorParams);
-            commonResourceData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle, importSummary.importInfoDepth, importSummary.backBufferDepthParams);
+
+            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            {
+                if (m_RenderGraphBackbufferDepthHandle == null)
+                {
+                    m_RenderGraphBackbufferDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer depth");
+                }
+                else if (m_RenderGraphBackbufferDepthHandle.nameID != targetDepthId)
+                {
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferDepthHandle, targetDepthId);
+                }
+
+                commonResourceData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle, importSummary.importInfoDepth, importSummary.backBufferDepthParams);
+            }
 
             if (RequiresDepthCopyPass())
                 CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
@@ -624,9 +636,11 @@ namespace UnityEngine.Rendering.Universal
             desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
             desc.autoGenerateMips = false;
             desc.msaaSamples = descriptor.msaaSamples;
+            bool useNormals = false;
 
             for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
             {
+                useNormals |= layerBatches[i].useNormals;
                 if (layerBatches[i].useNormals)
                 {
                     resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
@@ -637,7 +651,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            if (useNormals && IsDepthUsageAllowed(frameData, m_Renderer2DData))
             {
                 // Normals pass can reuse active depth if same dimensions, if not create a new depth texture
 #if !(ENABLE_VR && ENABLE_XR_MODULE)
