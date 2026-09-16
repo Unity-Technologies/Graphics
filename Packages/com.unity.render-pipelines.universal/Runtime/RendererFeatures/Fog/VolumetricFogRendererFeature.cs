@@ -61,7 +61,8 @@ namespace UnityEngine.Rendering.Universal
             var fog = VolumeManager.instance.stack.GetComponent<FogVolumeComponent>();
 
             if (fog == null || !fog.IsActive() || renderingData.cameraData.camera.orthographic ||
-                renderingData.cameraData.renderType == CameraRenderType.Overlay)
+                renderingData.cameraData.renderType == CameraRenderType.Overlay ||
+                !CoreUtils.IsSceneViewFogEnabled(renderingData.cameraData.camera))
                 return;
 
             renderer.EnqueuePass(m_GlobalsPass);

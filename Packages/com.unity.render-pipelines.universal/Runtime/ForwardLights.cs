@@ -763,7 +763,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // of this camera.
             var fog = VolumeManager.instance.stack.GetComponent<FogVolumeComponent>();
             m_VolumetricLightingActive = fog != null && fog.volumetricFogEnabled.value &&
-                !cameraData.camera.orthographic && cameraData.renderType != CameraRenderType.Overlay;
+                !cameraData.camera.orthographic && cameraData.renderType != CameraRenderType.Overlay &&
+                CoreUtils.IsSceneViewFogEnabled(cameraData.camera);
 #endif
 
             bool supportsLightLayers = lightData.supportsLightLayers;
