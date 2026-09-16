@@ -193,7 +193,7 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
             arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
 
     [Test]
-    [UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor })] // Crashes - see https://jira.unity3d.com/browse/UUM-151453
+    [Ignore("Crashes - see https://jira.unity3d.com/browse/UUM-151453")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
 #if UNITY_ANDROID
