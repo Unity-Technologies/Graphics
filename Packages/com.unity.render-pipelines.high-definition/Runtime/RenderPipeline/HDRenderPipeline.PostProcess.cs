@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
 
+        // Upscaler reactive mask
+        Material m_ReactiveMaskMaterial;
+
         // Bloom data
         const int k_MaxBloomMipCount = 16;
         Vector4 m_BloomBicubicParams; // Needed for uber pass
@@ -197,6 +200,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensFlareScreenSpaceShader = CoreUtils.CreateEngineMaterial(runtimeShaders.lensFlareScreenSpacePS);
             m_LensFlareScreenSpaceShader.SetOverrideTag("RenderType", "Transparent");
 
+            var reactiveMaskResources = GraphicsSettings.GetRenderPipelineSettings<UpscalerReactiveMaskResources>();
+            m_ReactiveMaskMaterial = CoreUtils.CreateEngineMaterial(reactiveMaskResources?.reactiveMaskPS);
+
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
             m_UseSafePath = SystemInfo.graphicsDeviceVendor.Contains("intel", StringComparison.InvariantCultureIgnoreCase);
@@ -304,6 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.Destroy(m_ReactiveMaskMaterial);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
@@ -314,6 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
             m_TemporalAAMaterial = null;
+            m_ReactiveMaskMaterial = null;
             m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
@@ -658,6 +666,95 @@ namespace UnityEngine.Rendering.HighDefinition
             return AlphaUpscaler.Execute(renderGraph, ref config);
         }
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        static bool RequiresReactiveMaskPass(HDCamera camera, IUpscaler upscaler, UpscalerOptions upscalerOptions)
+        {
+            return camera.IsIUpscalerEnabled() && upscaler != null && upscaler.reactiveMaskSource != ReactiveMaskSource.None && upscalerOptions != null && upscalerOptions.enableReactiveMaskPass;
+        }
+
+        static TextureHandle UpscalerReactiveMaskPass(RenderGraph renderGraph, IUpscaler upscaler, UpscalerOptions upscalerOptions, Material material, TextureHandle cameraColorPreAlpha, TextureHandle cameraColorPostAlpha, Vector2Int preUpscaleResolution, bool enableTexArray, bool hdrInput)
+        {
+            if (upscalerOptions == null || upscaler.reactiveMaskSource == ReactiveMaskSource.None)
+                return TextureHandle.nullHandle;
+
+            TextureHandle output = TextureHandle.nullHandle;
+
+            using (var builder = renderGraph.AddUnsafePass<UpscalerReactiveMask.PassData>("Upscaler Reactive Mask", out var passData, ProfilingSampler.Get(HDProfileId.IUpscalerReactiveMask)))
+            {
+                int passId = 0;
+                if (upscaler.reactiveMaskSource == ReactiveMaskSource.Color)
+                {
+                    output = renderGraph.CreateTexture(
+                        new TextureDesc(preUpscaleResolution.x, preUpscaleResolution.y, xrReady: enableTexArray)
+                        {
+                            format = GraphicsFormat.R8_UNorm,
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Upscaler Reactive Mask"
+                        });
+                    builder.SetRenderAttachment(output, 0);
+
+                    passId = 0;
+                }
+                else if (upscaler.reactiveMaskSource == ReactiveMaskSource.Stencil)
+                {
+                    output = renderGraph.CreateTexture(
+                        new TextureDesc(preUpscaleResolution.x, preUpscaleResolution.y, xrReady: enableTexArray)
+                        {
+                            format = GraphicsFormatUtility.GetDepthStencilFormat(0, 8),
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Upscaler Reactive Mask"
+                        });
+                    builder.SetRenderAttachmentDepth(output, AccessFlags.Write);
+
+                    passId = 1;
+                }
+
+                CoreUtils.SetKeyword(material, UpscalerReactiveMask.ShaderKeywords.k_InputTextureArrayKeyword, enableTexArray);
+
+                uint reactiveFlags = 0;
+                if (hdrInput)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyTonemap;
+                if (upscalerOptions.reactiveMaskUseComponentMax)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._UseComponentMax;
+                if (upscalerOptions.applyReactiveMaskThreshold)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyThreshold;
+
+                passData.reactiveMaskMaterial = material;
+                passData.reactiveMaskPassId = passId;
+                passData.destWidth = preUpscaleResolution.x;
+                passData.destHeight = preUpscaleResolution.y;
+                passData.reactiveScale = upscalerOptions.reactiveMaskScale;
+                passData.reactiveThreshold = upscalerOptions.reactiveMaskThreshold;
+                passData.reactiveBinaryValue = upscalerOptions.reactiveMaskBinaryValue;
+                passData.reactiveFlags = reactiveFlags;
+                passData.cameraColorPreAlpha = cameraColorPreAlpha;
+                passData.cameraColorPostAlpha = cameraColorPostAlpha;
+
+                builder.UseTexture(passData.cameraColorPreAlpha, AccessFlags.Read);
+                builder.UseTexture(passData.cameraColorPostAlpha, AccessFlags.Read);
+
+                builder.SetRenderFunc((UpscalerReactiveMask.PassData data, UnsafeGraphContext ctx) =>
+                {
+                    var material = data.reactiveMaskMaterial;
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveScale, data.reactiveScale);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveThreshold, data.reactiveThreshold);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveBinaryValue, data.reactiveBinaryValue);
+                    material.SetInteger(UpscalerReactiveMask.ShaderConstants._ReactiveFlags, (int)data.reactiveFlags);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPreAlpha, data.cameraColorPreAlpha);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPostAlpha, data.cameraColorPostAlpha);
+
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                    cmd.SetViewport(new Rect(0, 0, data.destWidth, data.destHeight));
+                    Blitter.BlitTexture(cmd, new Vector4(1, 1, 0, 0), material, data.reactiveMaskPassId);
+                });
+            }
+
+            return output;
+        }
+#endif
+
         TextureHandle DoUpscalingAndAntiAliasing(RenderGraph renderGraph, HDCamera hdCamera, CurrentUpsamplerData upsamplerDataData,
             TextureHandle source, in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, in TextureHandle depthBufferMipChain)
         {
@@ -718,6 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle uiBuffer,
             TextureHandle afterPostProcessBuffer,
             TextureHandle opticalFogTransmittance,
+            TextureHandle beforeTransparencyBuffer,
             CullingResults cullResults,
             HDCamera hdCamera,
             CubemapFace cubemapFace,
@@ -758,6 +856,24 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
                 source = StopNaNsPass(renderGraph, hdCamera, source);
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                {
+                    var io = hdCamera.contextContainer.Get<UpscalingIO>();
+                    var upscaler = upscaling.activeUpscaler;
+                    var upscalerOptions = upscaling.GetGlobalOptions(upscaling.activeUpscaler);
+
+                    // Should be same as DoIUpscalerPasses()
+                    var preUpscaleResolution = hdCamera.historyRTHandleProperties.currentViewportSize;
+                    var enableTexArray = TextureXR.useTexArray;
+                    var hdrInput = GraphicsFormatUtility.IsHDRFormat(inputColor.GetDescriptor(renderGraph).format);
+
+                    if (RequiresReactiveMaskPass(hdCamera, upscaler, upscalerOptions) && beforeTransparencyBuffer != TextureHandle.nullHandle)
+                        io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, upscaler, upscalerOptions, m_ReactiveMaskMaterial, beforeTransparencyBuffer, inputColor, preUpscaleResolution, enableTexArray, hdrInput);
+                    else
+                        io.reactiveMask = TextureHandle.nullHandle;
+                }
+#endif
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 

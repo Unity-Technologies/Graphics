@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.Universal
             Assertions.Assert.IsNotNull(postProcessResourceAssetData, "PostProcessData and resources cannot be null.");
             m_Resources = postProcessResourceAssetData;
 
+            GraphicsSettings.TryGetRenderPipelineSettings<UpscalerReactiveMaskResources>(out var reactiveMaskResources);
+            var reactiveMaskPS = reactiveMaskResources?.reactiveMaskPS;
+
             GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineFilmGrainResources>(out var filmGrainResources);
             m_FilmGrainTextures = filmGrainResources?.textures;
 
@@ -56,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
             m_SmaaPostProcessPass      = new SmaaPostProcessPass(m_Resources.shaders.subpixelMorphologicalAntialiasingPS, m_Resources.textures.smaaAreaTex, m_Resources.textures.smaaSearchTex);
             m_DepthOfFieldGaussianPass = new DepthOfFieldGaussianPostProcessPass(m_Resources.shaders.gaussianDepthOfFieldPS);
             m_DepthOfFieldBokehPass    = new DepthOfFieldBokehPostProcessPass(m_Resources.shaders.bokehDepthOfFieldPS);
-            m_UpscalerPostProcessPass  = new UpscalerPostProcessPass(m_Resources.shaders.reactiveMaskPS, m_Resources.textures.blueNoise16LTex);
+            m_UpscalerPostProcessPass  = new UpscalerPostProcessPass(reactiveMaskPS, m_Resources.textures.blueNoise16LTex);
 #if !ENABLE_UPSCALER_FRAMEWORK
             m_StpPostProcessPass       = new StpPostProcessPass(m_Resources.textures.blueNoise16LTex);
 #endif

@@ -1,6 +1,6 @@
 // Based on AMD FSR3 auto reactive mask generation.
 // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v2.3.0/Kits/FidelityFX/upscalers/fsr3/internal/shaders/ffx_fsr3upscaler_autogen_reactive_pass.hlsl
-Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
+Shader "Hidden/Core/UpscalerReactiveMask"
 {
     Properties
     {
@@ -10,10 +10,11 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
     }
 
     HLSLINCLUDE
-    #pragma target 4.5
+    #pragma target 3.0
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 
     #define AUTOREACTIVEFLAGS_APPLY_TONEMAP           1
     #define AUTOREACTIVEFLAGS_APPLY_INVERSETONEMAP    2
@@ -27,9 +28,13 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
         uint  _ReactiveFlags;
     CBUFFER_END
 
+#if _INPUT_TEXTURE_ARRAY
+    TEXTURE2D_X(_ColorPreAlpha);
+    TEXTURE2D_X(_ColorPostAlpha);
+#else
     TEXTURE2D(_ColorPreAlpha);
     TEXTURE2D(_ColorPostAlpha);
-    SAMPLER(s_point_clamp_sampler);
+#endif
 
     struct Attributes
     {
@@ -56,8 +61,13 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
 
     float ComputeReactivity(float2 uv)
     {
-        float3 colorPreAlpha = SAMPLE_TEXTURE2D_LOD(_ColorPreAlpha, s_point_clamp_sampler, uv, 0).rgb;
-        float3 colorPostAlpha = SAMPLE_TEXTURE2D_LOD(_ColorPostAlpha, s_point_clamp_sampler, uv, 0).rgb;
+#if _INPUT_TEXTURE_ARRAY
+        float3 colorPreAlpha = SAMPLE_TEXTURE2D_X_LOD(_ColorPreAlpha, sampler_PointClamp, uv, 0).rgb;
+        float3 colorPostAlpha = SAMPLE_TEXTURE2D_X_LOD(_ColorPostAlpha, sampler_PointClamp, uv, 0).rgb;
+#else
+        float3 colorPreAlpha = SAMPLE_TEXTURE2D_LOD(_ColorPreAlpha, sampler_PointClamp, uv, 0).rgb;
+        float3 colorPostAlpha = SAMPLE_TEXTURE2D_LOD(_ColorPostAlpha, sampler_PointClamp, uv, 0).rgb;
+#endif
 
         if (_ReactiveFlags & AUTOREACTIVEFLAGS_APPLY_TONEMAP)
         {
@@ -98,8 +108,6 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "UniversalPipeline" }
-
         Pass
         {
             Name "ColorReactiveMask"
@@ -107,6 +115,8 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+            #pragma multi_compile_fragment _ _INPUT_TEXTURE_ARRAY
+
             #pragma vertex Vert
             #pragma fragment ColorReactiveMaskPS
 
@@ -136,6 +146,8 @@ Shader "Hidden/Universal Render Pipeline/UpscalerReactiveMask"
             ZWrite Off ZTest Always Blend Off Cull Off
             
             HLSLPROGRAM
+            #pragma multi_compile_fragment _ _INPUT_TEXTURE_ARRAY
+
             #pragma vertex Vert
             #pragma fragment StencilReactiveMaskPS
             
