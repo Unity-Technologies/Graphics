@@ -410,8 +410,8 @@ namespace UnityEngine.Rendering.Universal
         [InspectorName("Inverse Squared")]
         InverseSquared = 0,
         /// <summary>Falloff matching the Built-in Render Pipeline. Use for Built-in to URP migration.</summary>
-        [InspectorName("Linear")]
-        Linear = 1,
+        [InspectorName("Quadratic")]
+        Quadratic = 1,
     }
 
     /// <summary>
@@ -527,9 +527,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] ShEvalMode m_ShEvalMode = ShEvalMode.Auto;
 
-#if UNITY_EDITOR // multi_compile _ _LIGHT_FALLOFF_LINEAR
-        [ShaderKeywordFilter.RemoveIf(LightFalloffMode.InverseSquared, keywordNames: ShaderKeywordStrings.LightFalloffLinear)]
-        [ShaderKeywordFilter.SelectIf(LightFalloffMode.Linear,         keywordNames: ShaderKeywordStrings.LightFalloffLinear)]
+#if UNITY_EDITOR // multi_compile _ _LIGHT_FALLOFF_QUADRATIC
+        [ShaderKeywordFilter.RemoveIf(LightFalloffMode.InverseSquared, keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
+        [ShaderKeywordFilter.SelectIf(LightFalloffMode.Quadratic,      keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
 #endif
         [SerializeField] LightFalloffMode m_LightFalloffMode = LightFalloffMode.InverseSquared;
 

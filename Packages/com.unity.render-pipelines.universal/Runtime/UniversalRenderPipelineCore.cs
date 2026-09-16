@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
-        public static readonly GlobalKeyword LightFalloffLinear = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffLinear);
+        public static readonly GlobalKeyword LightFalloffQuadratic = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffQuadratic);
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1427,7 +1427,7 @@ namespace UnityEngine.Rendering.Universal
         public const string DEPTH_AS_INPUT_ATTACHMENT_MSAA = "_DEPTH_AS_INPUT_ATTACHMENT_MSAA";
 
         /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
-        public const string LightFalloffLinear = "_LIGHT_FALLOFF_LINEAR";
+        public const string LightFalloffQuadratic = "_LIGHT_FALLOFF_QUADRATIC";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1658,7 +1658,7 @@ namespace UnityEngine.Rendering.Universal
             // This ensures that the baked punctual light intensity matches realtime intensity. (See GFXLIGHT-1755)
             const float piCorrection = Mathf.PI;
 
-            FalloffType punctualFalloff = IsLinearFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
+            FalloffType punctualFalloff = IsQuadraticFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
 
 #if UNITY_EDITOR
             // Always extract lights in the Editor.
@@ -1883,9 +1883,9 @@ namespace UnityEngine.Rendering.Universal
             lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
         }
 
-        internal static bool IsLinearFalloffEnabled()
+        internal static bool IsQuadraticFalloffEnabled()
         {
-            return asset != null && asset.lightFalloffMode == LightFalloffMode.Linear;
+            return asset != null && asset.lightFalloffMode == LightFalloffMode.Quadratic;
         }
 
         /// <summary>

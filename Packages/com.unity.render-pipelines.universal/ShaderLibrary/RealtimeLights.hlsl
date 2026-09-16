@@ -53,7 +53,7 @@ float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation, float di
 float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 #endif
 {
-#if defined(_LIGHT_FALLOFF_LINEAR)
+#if defined(_LIGHT_FALLOFF_QUADRATIC)
     half rangeRelDistSqr = half(distanceSqr * distanceAttenuation.x);
     half atten = half(1.0) / (half(1.0) + half(25.0) * rangeRelDistSqr);
     half fadeFactor = saturate((half(1.0) - rangeRelDistSqr) * distanceAttenuation.y);

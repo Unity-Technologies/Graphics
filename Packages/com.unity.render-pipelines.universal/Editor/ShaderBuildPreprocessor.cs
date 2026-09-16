@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceReflection = (1L << 55),
         RenderObjectDepthInputAttachment = (1L << 56),
         VolumetricFog = (1L << 57),
-        LightFalloffLinear = (1L << 58),
+        LightFalloffQuadratic = (1L << 58),
         All = ~0
     }
 
@@ -674,8 +674,8 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 
-            if (urpAsset.lightFalloffMode == LightFalloffMode.Linear)
-                urpAssetShaderFeatures |= ShaderFeatures.LightFalloffLinear;
+            if (urpAsset.lightFalloffMode == LightFalloffMode.Quadratic)
+                urpAssetShaderFeatures |= ShaderFeatures.LightFalloffQuadratic;
 
             if (urpAsset.supportScreenSpaceLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.ScreenSpaceLensFlare;

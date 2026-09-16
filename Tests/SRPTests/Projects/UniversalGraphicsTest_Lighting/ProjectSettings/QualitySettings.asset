@@ -908,7 +908,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 17-056_Falloff_Linear
+    name: 17-056_Falloff_Quadratic
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2

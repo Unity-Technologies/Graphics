@@ -2951,10 +2951,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         };
 
-        public static readonly KeywordDescriptor LightFalloffLinear = new KeywordDescriptor()
+        public static readonly KeywordDescriptor LightFalloffQuadratic = new KeywordDescriptor()
         {
-            displayName = "Light Falloff Linear",
-            referenceName = "_LIGHT_FALLOFF_LINEAR",
+            displayName = "Light Falloff Quadratic",
+            referenceName = "_LIGHT_FALLOFF_QUADRATIC",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
