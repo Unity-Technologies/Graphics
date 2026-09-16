@@ -602,6 +602,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
             cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, m_LightCookieManager != null && m_LightCookieManager.IsKeywordLightCookieEnabled);
+
+            // Everything rendered after the deferred lighting uses forward shaders, which expect a different numbering of
+            // _AdditionalShadowParams than the one the deferred lighting just used.
+            AdditionalLightsShadowCasterPass.BindAdditionalShadowParamsForForwardRendering(cmd, shadowData);
         }
 
         internal Matrix4x4[] GetScreenToWorldMatrix(UniversalCameraData cameraData, TextureUVOrigin depthTextureOrigin)
