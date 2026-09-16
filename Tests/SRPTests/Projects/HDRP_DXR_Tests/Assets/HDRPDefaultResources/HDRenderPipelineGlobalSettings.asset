@@ -823,7 +823,7 @@ MonoBehaviour:
       type: {class: IncludeAdditionalRPAssets, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
         m_version: 0
-        m_IncludeReferencedInScenes: 1
+        m_IncludeReferencedInScenes: 0
         m_IncludeAssetsByLabel: 1
         m_LabelToInclude: HDRP:IncludeInBuild
     - rid: 6535566473959047197

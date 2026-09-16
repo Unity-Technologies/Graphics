@@ -349,7 +349,7 @@ MonoBehaviour:
       maxDirectionalShadowMapResolution: 2048
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 0
+      supportScreenSpaceShadows: 1
       supportContactShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
@@ -361,7 +361,7 @@ MonoBehaviour:
         m_Values: 000100000002000000040000i
         m_SchemaId:
           m_Id: With3Levels
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48

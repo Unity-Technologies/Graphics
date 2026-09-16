@@ -1,5 +1,7 @@
 fileFormatVersion: 2
 guid: 6ff2c9155c31a4f4a94df31a7cc171b4
+labels:
+- HDRP:IncludeInBuild
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 11400000
