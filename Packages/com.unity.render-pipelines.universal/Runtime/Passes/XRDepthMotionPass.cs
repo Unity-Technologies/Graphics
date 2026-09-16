@@ -19,12 +19,21 @@ namespace UnityEngine.Rendering.Universal
         // ObjectMotionVectorFallback and the material XRMotionVectors passes (WriteMask 1, Ref 1).
         private const uint k_ObjectMotionMarkerMask = 0x1;
         private static readonly int k_XRDepthTextureUVScale = Shader.PropertyToID("_XRDepthTextureUVScale");
+        private static readonly int k_QuadViewMVTex = Shader.PropertyToID("_QuadViewMVTex");
+        private static readonly int k_QuadViewUVScales = Shader.PropertyToID("_QuadViewUVScales");
+        private static readonly int k_QuadViewUVOffsets = Shader.PropertyToID("_QuadViewUVOffsets");
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;
         private RTHandle m_XRMotionVectorDepth;
         private TextureHandle xrMotionVectorDepth;
         private bool m_XRSpaceWarpRightHandedNDC;
         private LayerMask m_transparentlayerMask;
+
+        // Store a stable RTHandle (separate from m_XRMotionVectorColor) that is never mutated by the inner pass's ImportXRMotionColorAndDepth call,
+        // so the render graph can resolve it to the correct native texture at execution time.
+        private RTHandle m_QuadViewOuterMV;
+        // Store outer dimensions; symmetric projection can give the outer swapchain a FoV-adjusted width that differs from the inner
+        private RenderTargetInfo m_QuadViewOuterMVImportInfo;
 
         /// <summary>
         /// Creates a new <c>XRDepthMotionPass</c> instance.
@@ -59,6 +68,12 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresSubsampleDepth;
             internal LocalKeyword subsampleDepthKeyword;
             internal Vector2 uvScale;
+        }
+
+        private class ReprojectionPassData
+        {
+            internal TextureHandle outerMVSrc;
+            internal TextureHandle outerDepthSrc;
         }
 
         ///  View projection data
@@ -254,6 +269,56 @@ namespace UnityEngine.Rendering.Universal
             // First, import XR motion color and depth targets into the RenderGraph
             ImportXRMotionColorAndDepth(renderGraph, cameraData);
 
+            // Skipped under Temporal Pixel Synthesis because reprojection does not write the stencil
+            // bits the TPS compositor uses to exclude transparents from temporal reuse.
+            if (!cameraData.xr.isTemporalPixelSynthesisActive)
+            {
+                // For Quad View inner pass: reproject the outer MV texture rather than re-rendering all objects
+                if (cameraData.xr.isQuadViewInnerPass)
+                {
+                    if (m_QuadViewOuterMV != null)
+                    {
+                        RecordReprojectionPass(renderGraph, cameraData);
+                        return;
+                    }
+                }
+                else if (cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews)
+                {
+                    // Outer pass: capture the MV target for the inner reprojection to read
+                    var outerTargetId = cameraData.xr.motionVectorRenderTarget;
+                    if (m_QuadViewOuterMV == null)
+                        m_QuadViewOuterMV = RTHandles.Alloc(outerTargetId);
+                    else if (m_QuadViewOuterMV.nameID != outerTargetId)
+                        RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_QuadViewOuterMV, outerTargetId);
+
+                    // Save dimensions; symmetric projection can give the outer a different width than the inner
+                    var desc = cameraData.xr.motionVectorRenderTargetDesc;
+                    m_QuadViewOuterMVImportInfo = new RenderTargetInfo
+                    {
+                        width       = desc.width,
+                        height      = desc.height,
+                        volumeDepth = desc.volumeDepth,
+                        msaaSamples = desc.msaaSamples,
+                        format      = desc.graphicsFormat
+                    };
+
+                    // m_XRMotionVectorColor/Depth would be mutated in-place when the inner pass calls ImportXRMotionColorAndDepth, corrupting the handles.
+                    // Instead, re-import via separate m_QuadViewOuterMV so the outer pass's attachments resolve to the correct native texture at execution time.
+                    var outerAttachmentParams = new ImportResourceParams
+                    {
+                        // Stencil must be cleared to 0 each frame for Pass 0's stencil test
+                        clearOnFirstUse  = true,
+                        clearColor       = Color.black,
+                        discardOnLastUse = false
+                    };
+                    xrMotionVectorColor = renderGraph.ImportTexture(m_QuadViewOuterMV, m_QuadViewOuterMVImportInfo, outerAttachmentParams);
+                    var outerDepthInfo = m_QuadViewOuterMVImportInfo;
+                    outerDepthInfo.format = desc.depthStencilFormat;
+                    xrMotionVectorDepth = renderGraph.ImportTexture(m_QuadViewOuterMV, outerDepthInfo, outerAttachmentParams);
+
+                }
+            }
+
             // These flags are still required in SRP or the engine won't compute previous model matrices...
             // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
             cameraData.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
@@ -365,6 +430,43 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
         }
+
+        private void RecordReprojectionPass(RenderGraph renderGraph, UniversalCameraData cameraData)
+        {
+            // The outer and inner cameras run in separate RecordAndExecuteRenderGraph executions so TextureHandles cannot be shared across them.
+            // Import fresh read-only handles for the outer MV within the inner pass execution.
+            var importParams = new ImportResourceParams { clearOnFirstUse = false, discardOnLastUse = false };
+            var outerMVHandle = renderGraph.ImportTexture(m_QuadViewOuterMV, m_QuadViewOuterMVImportInfo, importParams);
+            var outerDepthImportInfo = m_QuadViewOuterMVImportInfo;
+            outerDepthImportInfo.format = cameraData.xr.motionVectorRenderTargetDesc.depthStencilFormat;
+            var outerDepthHandle = renderGraph.ImportTexture(m_QuadViewOuterMV, outerDepthImportInfo, importParams);
+
+            var uvScales  = cameraData.xr.uvScales;
+            var uvOffsets = cameraData.xr.uvOffsets;
+
+            using (var builder = renderGraph.AddRasterRenderPass<ReprojectionPassData>(
+                "XR MotionVector QuadView Reprojection", out var passData, base.profilingSampler))
+            {
+                builder.SetRenderAttachment(xrMotionVectorColor, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(xrMotionVectorDepth, AccessFlags.Write);
+                builder.UseTexture(outerMVHandle, AccessFlags.Read);
+                builder.UseTexture(outerDepthHandle, AccessFlags.Read);
+                builder.AllowGlobalStateModification(true);
+
+                passData.outerMVSrc    = outerMVHandle;
+                passData.outerDepthSrc = outerDepthHandle;
+
+                builder.SetRenderFunc((ReprojectionPassData data, RasterGraphContext context) =>
+                {
+                    context.cmd.SetGlobalTexture(k_QuadViewMVTex, data.outerMVSrc);
+                    context.cmd.SetGlobalTexture(k_XRDepthTextureNameID, data.outerDepthSrc, RenderTextureSubElement.Depth);
+                    context.cmd.SetGlobalVector(k_QuadViewUVScales, uvScales);
+                    context.cmd.SetGlobalVector(k_QuadViewUVOffsets, uvOffsets);
+                    context.cmd.DrawProcedural(Matrix4x4.identity, m_XRMotionVectorMaterial, shaderPass: 2,
+                        MeshTopology.Triangles, 3, 1);
+                });
+            }
+        }
 #endregion
 
         private void ResetMotionData()
@@ -413,6 +515,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_XRMotionVectorColor?.Release();
             m_XRMotionVectorDepth?.Release();
+            m_QuadViewOuterMV?.Release();
             CoreUtils.Destroy(m_XRMotionVectorMaterial);
         }
     }

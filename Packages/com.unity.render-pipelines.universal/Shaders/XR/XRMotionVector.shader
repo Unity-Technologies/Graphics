@@ -213,6 +213,90 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
             }
             ENDHLSL
         }
+
+        // Pass 2: Scale outer MVs into inner (foveal) view space for Quad View.
+        // Inner and outer views share the same eye; only FoV differs, so the transform is a constant per-axis scale with UV crop.
+        // Replaces the full inner XRDepthMotionPass.
+        Pass
+        {
+            Name "XR MotionVector QuadView Reprojection"
+
+            Cull Off
+            ZWrite On
+            ZTest Always
+            ColorMask RGBA
+
+            HLSLPROGRAM
+            #pragma target 3.5
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            // -------------------------------------
+            // Constants
+            float4   _QuadViewUVScales;   // inner-to-outer UV scale,  xy = left eye, zw = right eye
+            float4   _QuadViewUVOffsets;  // inner-to-outer UV offset, xy = left eye, zw = right eye
+
+            TEXTURE2D_X(_QuadViewMVTex);
+            SAMPLER(sampler_QuadViewMVTex);
+            TEXTURE2D_X(_XRDepthTexture);
+            SAMPLER(sampler_XRDepthTexture);
+
+            // -------------------------------------
+            // Structs
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 position : SV_POSITION;
+                float2 uv       : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            // -------------------------------------
+            // Vertex
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                output.position = GetFullScreenTriangleVertexPosition(input.vertexID, 1 - UNITY_NEAR_CLIP_VALUE);
+                output.uv       = GetFullScreenTriangleTexCoord(input.vertexID);
+                return output;
+            }
+
+            // -------------------------------------
+            // Fragment
+            float4 Frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                float2 uvScale  = unity_StereoEyeIndex == 0 ? _QuadViewUVScales.xy  : _QuadViewUVScales.zw;
+                float2 uvOffset = unity_StereoEyeIndex == 0 ? _QuadViewUVOffsets.xy : _QuadViewUVOffsets.zw;
+
+                // Remap inner UV to the outer MV texture.
+                // uvOffset.y uses (1 - uvScale.y - uvOffset.y) because the OpenXR Vulkan projection inverts the sign fed to ExtractFrustumBoundsFromProjection
+                // causing uvOffset.y to encode the top-edge distance instead of the bottom-edge distance required for BottomLeft UV sampling.
+                float2 outerUV = float2(
+                    input.uv.x * uvScale.x + uvOffset.x,
+                    input.uv.y * uvScale.y + (1.0 - uvScale.y - uvOffset.y)
+                );
+
+                outDepth = SAMPLE_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, outerUV).x;
+
+                float4 outerMV = SAMPLE_TEXTURE2D_X(_QuadViewMVTex, sampler_QuadViewMVTex, outerUV);
+                return float4(outerMV.x / uvScale.x, outerMV.y / uvScale.y, outerMV.z, 0);
+            }
+            ENDHLSL
+        }
     }
     Fallback Off
 }
