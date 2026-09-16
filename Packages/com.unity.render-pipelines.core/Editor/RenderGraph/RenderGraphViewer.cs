@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering
             public const string kGridlineContainer = "grid-line-container";
             public const string kHoverOverlay = "hover-overlay";
             public const string kEmptyStateMessage = "empty-state-message";
+            public const string kEmptyStateMessageLearnMore = "empty-state-message-learn-more";
             public const string kPassListCornerOccluder = "pass-list-corner-occluder";
             public const string kStatusLabel = "status-label";
         }
@@ -185,7 +186,8 @@ namespace UnityEditor.Rendering
             WaitingForCameraRender,
             EmptyPassFilterResult,
             EmptyResourceFilterResult,
-            IncompatibleDataReceived
+            IncompatibleDataReceived,
+            NoDataFromPlayer
         };
 
         static readonly string[] kEmptyStateMessages =
@@ -196,6 +198,7 @@ namespace UnityEditor.Rendering
             L10n.Tr("No passes to display. Select a different Pass Filter to display contents.", null),
             L10n.Tr("No resources to display. Select a different Resource Filter to display contents.", null),
             L10n.Tr("Editor received incompatible data. Rebuild the player with this version of the editor, or switch to an older version of the editor.", null),
+            L10n.Tr("No Render Graph data received from the connected player.\n\nThe Render Graph Viewer requires a player built with Managed Code Variant set to Debug or Checked.\n", null),
         };
 
         private static readonly string[] kLoadActionNames =
@@ -885,14 +888,29 @@ namespace UnityEditor.Rendering
             rootVisualElement.Q<VisualElement>(Names.kEmptyStateMessage).style.display = DisplayStyle.None;
         }
 
-        void SetEmptyStateMessage(EmptyStateReason reason)
+        void SetEmptyStateMessage(EmptyStateReason reason, bool showLearnMore = false)
         {
             rootVisualElement.Q<VisualElement>(Names.kContentContainer).style.display = DisplayStyle.None;
 
             var emptyStateElement = rootVisualElement.Q<VisualElement>(Names.kEmptyStateMessage);
             emptyStateElement.style.display = DisplayStyle.Flex;
             if (emptyStateElement[0] is TextElement emptyStateText)
-                emptyStateText.text = $"{kEmptyStateMessages[(int) reason]}";
+                emptyStateText.text = $"{kEmptyStateMessages[(int)reason]}";
+
+            var learnMore = rootVisualElement.Q<Label>(Names.kEmptyStateMessageLearnMore);
+            if (learnMore != null)
+            {
+                string helpURLForObject = Help.GetHelpURLForObject(this);
+                if (showLearnMore && !string.IsNullOrEmpty(helpURLForObject))
+                {
+                    learnMore.style.display = DisplayStyle.Flex;
+                    learnMore.text = $"<a href={helpURLForObject}>{L10n.Tr("Learn More", null)}</a>";
+                }
+                else
+                {
+                    learnMore.style.display = DisplayStyle.None;
+                }
+            }
         }
 
         internal void OnAutoPlayStatusChanged(ChangeEvent<bool> evt)
@@ -1848,7 +1866,15 @@ namespace UnityEditor.Rendering
 
             if (RenderGraphDebugSessionManager.GetRegisteredGraphs().Count == 0)
             {
-                SetEmptyStateMessage(EmptyStateReason.NoGraphRegistered);
+                // If connected to remote player and Editor settings suggest no checks, show more helpful message
+                if (RenderGraphDebugSessionManager.currentDebugSession is RenderGraphEditorRemoteDebugSession)
+                {
+                    SetEmptyStateMessage(EmptyStateReason.NoDataFromPlayer, true);
+                }
+                else
+                {
+                    SetEmptyStateMessage(EmptyStateReason.NoGraphRegistered);
+                }
                 return;
             }
 
