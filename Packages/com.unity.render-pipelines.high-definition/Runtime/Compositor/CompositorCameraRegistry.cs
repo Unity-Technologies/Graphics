@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -8,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Required to properly manage cameras that are deleted or "ressurected" by undo/redo operations.
     class CompositorCameraRegistry
     {
+        [NoAutoStaticsCleanup] // Owned by the surviving CompositionManager; cleaned up via its own teardown, not on every Play Mode entry.
         static CompositorCameraRegistry s_CompositorCameraRegistry;
 
         public static CompositorCameraRegistry GetInstance() => s_CompositorCameraRegistry ??= new CompositorCameraRegistry();
@@ -23,12 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         internal void UnregisterInternalCamera(Camera camera)
         {
             m_CompositorManagedCameras.Remove(camera);
-        }
-
-        void Clear()
-        {
-            CleanUpCameraOrphans();
-            m_CompositorManagedCameras.Clear();
         }
 
         // Checks for any compositor allocated cameras that are now unused and frees their resources.
@@ -77,14 +73,5 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
             }
         }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_CompositorCameraRegistry?.Clear();
-            s_CompositorCameraRegistry = null;
-        }
-#endif
     }
 }

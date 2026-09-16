@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -6,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static readonly int _PivotData = Shader.PropertyToID(nameof(_PivotData));
 
+        [NoAutoStaticsCleanup] // Refcounted by the surviving HDRenderPipeline; Build/Cleanup run only from pipeline construction/disposal.
         static SPTDistribution s_Instance;
 
         public static SPTDistribution instance => s_Instance ??= new SPTDistribution();
@@ -74,22 +76,5 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalTexture(_PivotData, m_PivotData);
         }
-
-        void Clear()
-        {
-            m_refCounting = 0;
-
-            CoreUtils.Destroy(m_PivotData);
-            m_PivotData = null;
-        }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance?.Clear();
-            s_Instance = null;
-        }
-#endif
     }
 }

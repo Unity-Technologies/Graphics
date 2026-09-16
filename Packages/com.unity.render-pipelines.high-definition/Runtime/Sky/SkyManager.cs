@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.SceneManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -183,7 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This list will hold the static lighting sky that should be used for baking ambient probe.
         // We can have multiple but we only want to use the one from the active scene
-        private static Dictionary<int, StaticLightingSky> s_StaticLightingSkies = new();
+        [NoAutoStaticsCleanup]
+        private static readonly Dictionary<int, StaticLightingSky> s_StaticLightingSkies = new();
         private static StaticLightingSky s_ActiveStaticSky;
 
         // Only show the procedural sky upgrade message once
@@ -1791,9 +1793,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_SkyTypesDict?.Clear();
             s_SkyTypesDict = null;
-
-            s_StaticLightingSkies?.Clear();
-            s_StaticLightingSkies = new();
         }
 #endif
     }

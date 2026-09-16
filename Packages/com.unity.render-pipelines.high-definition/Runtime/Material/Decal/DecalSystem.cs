@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -211,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int m_Index;         // identifies decal within the set
         }
 
+        [NoAutoStaticsCleanup] // Owned by the surviving HDRenderPipeline; Initialize/Cleanup run only from pipeline construction/disposal.
         static DecalSystem s_Instance;
         public static DecalSystem instance => s_Instance ??= new DecalSystem();
 
@@ -1720,13 +1722,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateTransparentShaderGraphs()
         {
             m_ShaderGraphSaveRequested = true;
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance?.Cleanup();
-            s_Instance = null;
         }
 #endif
     }
