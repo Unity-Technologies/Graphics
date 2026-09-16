@@ -17,7 +17,7 @@ using UnityEngine.TestTools.Graphics.Platforms;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [AssetBundleSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXPrewarmComputeTest
     {
         private const string kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/PrewarmCompute.unity";

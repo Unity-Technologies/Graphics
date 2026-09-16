@@ -9,9 +9,11 @@ using UnityEngine.VFX;
 
 namespace Unity.Testing.VisualEffectGraph.Tests
 {
-    public class AssetBundleSetupAttribute : GraphicsPrebuildSetupAttribute
+    public class AssetBundleSetupAttribute : GraphicsPrebuildSetupAttribute, IPrebuildSetup
     {
         public AssetBundleSetupAttribute() : base() { }
+
+        void IPrebuildSetup.Setup() => Setup();
 
         protected override void Setup()
         {

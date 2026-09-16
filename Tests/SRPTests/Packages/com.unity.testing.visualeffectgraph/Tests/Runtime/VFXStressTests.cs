@@ -19,7 +19,7 @@ namespace UnityEngine.VFX.Test
 {
     [TestFixture]
     [MockHmdSetup]
-    [AssetBundleSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXStressTests
     {
 
