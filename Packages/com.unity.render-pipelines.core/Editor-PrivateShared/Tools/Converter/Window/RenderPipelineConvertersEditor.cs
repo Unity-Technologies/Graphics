@@ -156,12 +156,14 @@ namespace UnityEditor.Rendering.Converter
 
             var disabledHelpBox = rootVisualElement.Q<HelpBox>("disabledToolHelpBox");
             var convertersMainVE = rootVisualElement.Q<VisualElement>("converterEditorMainVE");
+            var bottomButtonVE = rootVisualElement.Q<VisualElement>("bottomButtonVE");
 
-            if (disabledHelpBox == null || convertersMainVE == null)
+            if (disabledHelpBox == null || convertersMainVE == null || bottomButtonVE == null)
                 return;
 
             disabledHelpBox.style.display = isPlaying ? DisplayStyle.Flex : DisplayStyle.None;
             convertersMainVE.SetEnabled(!isPlaying);
+            bottomButtonVE.SetEnabled(!isPlaying);
         }
 
         public void CreateGUI()
