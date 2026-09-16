@@ -16,12 +16,16 @@ class DebugMangerTests
         };
 
         DebugManager.windowStateChanged += action;
+        try
+        {
+            DebugManager.instance.displayEditorUI = true;
 
-        DebugManager.instance.displayEditorUI = true;
-
-        Assert.AreEqual(true, called);
-        DebugManager.windowStateChanged -= action;
-
-        DebugManager.instance.displayEditorUI = false;
+            Assert.AreEqual(true, called);
+        }
+        finally
+        {
+            DebugManager.windowStateChanged -= action;
+            DebugManager.instance.displayEditorUI = false;
+        }
     }
 }

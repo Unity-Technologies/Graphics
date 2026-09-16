@@ -14,18 +14,6 @@ namespace UnityEngine.Rendering.Universal.Tests
         GameObject m_TestObject4;
         GameObject m_TestObjectCached;
 
-        // Some residual Game Objects from previous test scenes can be left over,
-        // We destroy everything so they don't interfere with these tests
-        [OneTimeSetUp]
-        public void OneTimeSetup()
-        {
-            var allGameObjectsInScene = Object.FindObjectsByType<GameObject>();
-            foreach (var go in allGameObjectsInScene)
-            {
-                Object.DestroyImmediate(go);
-            }
-        }
-
         [SetUp]
         public void Setup()
         {
@@ -75,9 +63,16 @@ namespace UnityEngine.Rendering.Universal.Tests
             camera.TryGetCullingParameters(out cullingParams);
             cullResult.SetupCulling(ref cullingParams, camera);
 
-            Assert.AreSame(light3, cullResult.visibleLights[0]);
-            Assert.AreSame(light1, cullResult.visibleLights[1]);
-            Assert.AreSame(light2, cullResult.visibleLights[2]);
+            // Relative order, not indices, any other visible Light2D shares this list.
+            var index1 = cullResult.visibleLights.IndexOf(light1);
+            var index2 = cullResult.visibleLights.IndexOf(light2);
+            var index3 = cullResult.visibleLights.IndexOf(light3);
+
+            Assert.AreNotEqual(-1, index1, "light1 is missing from the visible lights.");
+            Assert.AreNotEqual(-1, index2, "light2 is missing from the visible lights.");
+            Assert.AreNotEqual(-1, index3, "light3 is missing from the visible lights.");
+            Assert.Less(index3, index1, "lightOrder 0 should sort before lightOrder 1.");
+            Assert.Less(index1, index2, "lightOrder 1 should sort before lightOrder 2.");
         }
 
         [Test]

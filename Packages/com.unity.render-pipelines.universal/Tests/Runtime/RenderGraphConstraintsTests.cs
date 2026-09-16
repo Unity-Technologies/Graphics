@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Tests
     {
         RenderPipelineAsset m_PreviousQualityRenderPipelineAsset;
         Type m_PreviousSessionType;
+        bool m_SessionStarted;
 
         UniversalRenderPipelineAsset m_UniversalRenderPipelineAsset;
         UniversalRendererData m_UniversalRendererData;
@@ -53,6 +54,11 @@ namespace UnityEngine.Rendering.Universal.Tests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            // Capture before the Assert.Ignore below: OneTimeTearDown runs even when OneTimeSetUp
+            // ignores, and restoring an uncaptured null would clear the project's pipeline.
+            m_PreviousSessionType = RenderGraphDebugSessionManager.currentDebugSession?.GetType();
+            m_PreviousQualityRenderPipelineAsset = QualitySettings.renderPipeline;
+
             if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
                 Assert.Ignore($"This test will be only executed when URP is the current pipeline");
 
@@ -61,10 +67,8 @@ namespace UnityEngine.Rendering.Universal.Tests
                 UnityEditor.EditorWindow.GetWindow<UnityEditor.Rendering.RenderGraphViewer>().Close();
 #endif
 
-            m_PreviousSessionType = RenderGraphDebugSessionManager.currentDebugSession?.GetType();
-            m_PreviousQualityRenderPipelineAsset = QualitySettings.renderPipeline;
-
             RenderGraphDebugSessionManager.BeginSession<TestRenderGraphDebugSession>();
+            m_SessionStarted = true;
 
             // Create new URP asset
             m_UniversalRenderPipelineAsset = Create();
@@ -138,16 +142,24 @@ namespace UnityEngine.Rendering.Universal.Tests
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
-            if (m_PreviousSessionType != null)
-                RenderGraphDebugSessionManager.BeginSession(m_PreviousSessionType);
-            else
-                RenderGraphDebugSessionManager.EndSession();
+            if (m_SessionStarted)
+            {
+                if (m_PreviousSessionType != null)
+                    RenderGraphDebugSessionManager.BeginSession(m_PreviousSessionType);
+                else
+                    RenderGraphDebugSessionManager.EndSession();
+            }
 
             QualitySettings.renderPipeline = m_PreviousQualityRenderPipelineAsset;
 
             Object.DestroyImmediate(m_UniversalRenderPipelineAsset);
             Object.DestroyImmediate(m_UniversalRendererData);
-            Object.DestroyImmediate(s_AdditionalCameraData.gameObject);
+            if (s_AdditionalCameraData != null)
+                Object.DestroyImmediate(s_AdditionalCameraData.gameObject);
+
+            s_AdditionalCameraData = null;
+            s_PostProcessData = null;
+            s_RenderingModes = null;
         }
 
         public class OnTileValidationConfiguration

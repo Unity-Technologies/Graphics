@@ -102,13 +102,18 @@ namespace UnityEngine.Rendering.Universal.Tests
             // _less_ clusters due increased accuracy. In either of these cases,
             // it is up to the author of these code changes to update the
             // expected values.
-            CollectionAssert.AreEqual(expectedZBins1, zBins);
-            CollectionAssert.AreEqual(expectedTileMasks1, tileMasks);
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
+            try
+            {
+                CollectionAssert.AreEqual(expectedZBins1, zBins);
+                CollectionAssert.AreEqual(expectedTileMasks1, tileMasks);
+            }
+            finally
+            {
+                lights.Dispose();
+                probes.Dispose();
+                zBins.Dispose();
+                tileMasks.Dispose();
+            }
         }
 
         static readonly uint[] expectedZBins1 =

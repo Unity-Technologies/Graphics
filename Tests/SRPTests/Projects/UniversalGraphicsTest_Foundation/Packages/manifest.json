@@ -53,6 +53,10 @@
     "com.unity.test-profiler": "0.1.0-exp.6",
     "com.unity.yamato": "1.0.1"
   },
+  "testables": [
+    "com.unity.render-pipelines.core",
+    "com.unity.render-pipelines.universal"
+  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

@@ -237,6 +237,7 @@ namespace ShaderStrippingAndPrefiltering
 
         private RenderPipelineAsset m_PreviousRenderPipelineAssetGraphicsSettings;
         private RenderPipelineAsset m_PreviousRenderPipelineAssetQualitySettings;
+        private UnityEditor.Rendering.DefaultMeshBufferTarget m_PreviousDefaultMeshBufferTarget;
         private TestHelper m_TestHelper;
 
         [OneTimeSetUp]
@@ -246,9 +247,11 @@ namespace ShaderStrippingAndPrefiltering
 
             m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.defaultRenderPipeline;
             m_PreviousRenderPipelineAssetQualitySettings = QualitySettings.renderPipeline;
+            m_PreviousDefaultMeshBufferTarget = UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget;
 
             GraphicsSettings.defaultRenderPipeline = null;
             QualitySettings.renderPipeline = null;
+            UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget = UnityEditor.Rendering.DefaultMeshBufferTarget.Raw;
         }
 
         [SetUp]
@@ -267,6 +270,7 @@ namespace ShaderStrippingAndPrefiltering
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
+            UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget = m_PreviousDefaultMeshBufferTarget;
             GraphicsSettings.defaultRenderPipeline = m_PreviousRenderPipelineAssetGraphicsSettings;
             QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetQualitySettings;
         }

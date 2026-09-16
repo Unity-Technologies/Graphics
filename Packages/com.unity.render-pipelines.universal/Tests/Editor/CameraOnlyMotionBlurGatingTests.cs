@@ -23,6 +23,10 @@ namespace UnityEditor.Rendering.Universal.Tests
         VolumeProfile m_Profile;
         SceneView m_SceneView;
         bool m_Initialized;
+        UniversalRenderPipelineAsset m_PipelineAsset;
+        UniversalRendererData m_RendererData;
+        RenderPipelineAsset m_PreviousQualityPipeline;
+        bool m_PipelineOverridden;
 
         static readonly MethodInfo s_GetMotionVectorFrameIndex = typeof(Camera).Assembly
             .GetType("UnityEngine.Rendering.RendererUpdateManagerBindings")
@@ -35,6 +39,18 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
                 Assert.Ignore("Requires URP to be the active render pipeline.");
+
+            // UniversalRenderer derives postProcessEnabled from the renderer's PostProcessData, and the
+            // gating under test only runs when it is on, so drive a dedicated asset rather than the
+            // project's, whose renderer may leave PostProcessData unassigned.
+            m_PreviousQualityPipeline = QualitySettings.renderPipeline;
+            m_RendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+            m_RendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+            Assume.That(m_RendererData.postProcessData, Is.Not.Null);
+            m_PipelineAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            m_PipelineAsset.m_RendererDataList[0] = m_RendererData;
+            QualitySettings.renderPipeline = m_PipelineAsset;
+            m_PipelineOverridden = true;
 
             // Close Game views and disarm all cameras so only the test camera can arm the frame index gate.
             foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
@@ -74,6 +90,17 @@ namespace UnityEditor.Rendering.Universal.Tests
         [TearDown]
         public void TearDown()
         {
+            // Restore before the early-out below: teardown also runs when setup throws part way through.
+            if (m_PipelineOverridden)
+            {
+                QualitySettings.renderPipeline = m_PreviousQualityPipeline;
+                m_PipelineOverridden = false;
+            }
+            if (m_PipelineAsset != null)
+                Object.DestroyImmediate(m_PipelineAsset);
+            if (m_RendererData != null)
+                Object.DestroyImmediate(m_RendererData);
+
             if (!m_Initialized)
                 return;
 

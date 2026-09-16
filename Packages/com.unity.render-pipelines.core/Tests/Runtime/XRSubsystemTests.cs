@@ -20,11 +20,16 @@ namespace UnityEngine.Rendering.Tests
 
         Camera m_Camera;
         XRDisplaySubsystem m_XRDisplay;
-        private RenderPipelineAsset m_RenderPipelineAsset;
+        float m_PreviousOcclusionMeshScale;
+        int m_PreviousMirrorViewMode;
 
         [SetUp]
         public void Setup()
         {
+            // Captured before the Assert.Ignore below: TearDown runs even when Setup ignores.
+            m_PreviousOcclusionMeshScale = XRSRPSettings.occlusionMeshScale;
+            m_PreviousMirrorViewMode = XRSRPSettings.mirrorViewMode;
+
             var camObj = new GameObject();
             camObj.AddComponent<Camera>();
             m_Camera = camObj.GetComponent<Camera>();
@@ -43,9 +48,12 @@ namespace UnityEngine.Rendering.Tests
         [TearDown]
         public void TearDown()
         {
+            XRSRPSettings.occlusionMeshScale = m_PreviousOcclusionMeshScale;
+            XRSRPSettings.mirrorViewMode = m_PreviousMirrorViewMode;
+
             if (m_Camera)
             {
-                Object.Destroy(m_Camera.gameObject);
+                Object.DestroyImmediate(m_Camera.gameObject);
             }
         }
 
@@ -72,10 +80,6 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
             Assert.AreEqual(targetScale, occlusionScale);
-            yield return WaitOneFrame();
-
-            // Reset to default 1.0f
-            XRSRPSettings.occlusionMeshScale = 1.0f;
             yield return WaitOneFrame();
         }
 

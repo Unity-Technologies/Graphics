@@ -10,13 +10,13 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void Setup()
         {
-            GameObject go = new GameObject("Light", typeof(Light));
+            go = new GameObject("Light", typeof(Light));
         }
 
         [TearDown]
         public void TearDown()
         {
-            GameObject.Destroy(go);
+            Object.DestroyImmediate(go);
         }
 
         [Test]

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Tests
         [TearDown]
         public void TearDown()
         {
-            m_Sampler.enableRecording = false;
+            m_Sampler.Dispose();
         }
 
         static void WaitAtLeastMs(int milliseconds)

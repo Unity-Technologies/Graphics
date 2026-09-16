@@ -27,25 +27,13 @@ namespace UnityEngine.Rendering.Tests
             if (GraphicsSettings.currentRenderPipeline == null)
                 Assert.Ignore("No active Render Pipeline is set, skipping test.");
 
-            // HACK #1 - really shouldn't have to do this here, but previous tests are leaking gameobjects
-#pragma warning disable CS0618 // Type or member is obsolete
-            var objects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.InstanceID);
-#pragma warning restore CS0618 // Type or member is obsolete
-            foreach (var o in objects)
-            {
-                // HACK #2 - must not destroy DebugUpdater
-                if (o.GetComponent<DebugUpdater>() == null)
-                    CoreUtils.Destroy(o);
-            }
-
             m_DebugFrameTiming = new DebugFrameTiming();
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (m_ToCleanup != null)
-                CoreUtils.Destroy(m_ToCleanup);
+            CoreUtils.Destroy(m_ToCleanup);
         }
 
         protected IEnumerator Warmup()

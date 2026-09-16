@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
             // Existing lights commonly affect every layer, so using a dedicated GameObject layer alone
             // does not stop them from appearing in the culling results or consuming the light budget.
             m_ExistingLightMasks = new List<(Light, int)>();
-            foreach (var light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (var light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include))
             {
                 if ((light.cullingMask & k_TestLayerMask) == 0)
                     continue;
@@ -91,16 +91,17 @@ namespace UnityEngine.Rendering.Tests
         public void Cleanup()
         {
             QualitySettings.renderPipeline = m_PreviousQualityPipeline;
-            if (m_Asset.hasCapturedLights)
-                m_Asset.capturedLights.Dispose();
-            Object.DestroyImmediate(m_Root);
-            Object.DestroyImmediate(m_Asset);
 
             foreach (var (light, cullingMask) in m_ExistingLightMasks)
             {
                 if (light != null)
                     light.cullingMask = cullingMask;
             }
+
+            if (m_Asset != null && m_Asset.hasCapturedLights)
+                m_Asset.capturedLights.Dispose();
+            Object.DestroyImmediate(m_Root);
+            Object.DestroyImmediate(m_Asset);
         }
 
         Light CreateLight(Vector3 position, LightType type = LightType.Point)
