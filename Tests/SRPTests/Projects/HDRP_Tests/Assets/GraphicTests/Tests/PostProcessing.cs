@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -99,12 +100,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [TestOnlySupportedOn(
             "4111_DRS-DLSS-With-CustomPass",
-            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only, and needs an NVIDIA GPU.
             GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
-            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer,
+            GraphicsVendor.Nvidia
         )]
         [IgnoreGraphicsTest(
-            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "4075_PhysicalCamera-gateFit",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
             RuntimePlatform.WindowsEditor
         )]
