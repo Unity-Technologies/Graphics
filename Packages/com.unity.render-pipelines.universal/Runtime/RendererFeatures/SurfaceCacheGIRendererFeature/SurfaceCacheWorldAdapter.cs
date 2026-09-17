@@ -566,7 +566,18 @@ namespace UnityEngine.Rendering.Universal
                 ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
                 var localToWorld = source.LocalToWorld;
-                _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, localToWorld);
+                try
+                {
+                    _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, localToWorld);
+                }
+                catch
+                {
+                    foreach (var matEntityId in acquiredMatIds)
+                        sharedMaterials.Release(matEntityId, world);
+                    _materialScratch.Clear();
+                    throw;
+                }
+
                 _meshes[slot] = mesh;
                 _localToWorlds[slot] = localToWorld;
                 _inputMaterialIds[slot] = inputMatIds.ToArray();
