@@ -9,15 +9,15 @@
 
 #if (SHADERPASS == SHADERPASS_FORWARD)
 
-float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, InputData inputData)
+float4 VFXCalcPixelOutputForward(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, InputData inputData, float3 geometricNormalWS)
 {
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    URP_LIGHT_ACCUM4 color = UniversalFragmentSixWay(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentSixWay(inputData, surfaceData, geometricNormalWS);
 #else
     #if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
         ApplyDecalToSurfaceData(i.VFX_VARYING_POSCS, surfaceData, inputData);
     #endif
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData, geometricNormalWS);
 #endif
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, i.VFX_VARYING_POSCS));
@@ -42,23 +42,25 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 {
     SurfaceData surfaceData;
     InputData inputData;
+    float3 geometricNormalWS;
 
-    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, frontFace, (uint2)0);
-    return VFXCalcPixelOutputForward(i, surfaceData, inputData);
+    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, frontFace, (uint2)0, geometricNormalWS);
+    return VFXCalcPixelOutputForward(i, surfaceData, inputData, geometricNormalWS);
 }
 
 #else
 
-float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, float3 normalWS)
+float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, float3 normalWS, bool frontFace)
 {
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
-    InputData inputData = VFXGetInputData(i, posInput, normalWS, true);
+    float3 geometricNormalWS;
+    InputData inputData = VFXGetInputData(i, posInput, normalWS, frontFace, geometricNormalWS);
 
-    return VFXCalcPixelOutputForward(i, surfaceData, inputData);
+    return VFXCalcPixelOutputForward(i, surfaceData, inputData, geometricNormalWS);
 }
 #endif
 
@@ -69,7 +71,8 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
 {
     SurfaceData surfaceData;
     InputData inputData;
-    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, true, (uint2)0);
+    float3 unusedGeometricNormalWS;
+    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, true, (uint2)0, unusedGeometricNormalWS);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
@@ -93,7 +96,8 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
-    InputData inputData = VFXGetInputData(i, posInput, normalWS, true);
+    float3 unusedGeometricNormalWS;
+    InputData inputData = VFXGetInputData(i, posInput, normalWS, true, unusedGeometricNormalWS);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);

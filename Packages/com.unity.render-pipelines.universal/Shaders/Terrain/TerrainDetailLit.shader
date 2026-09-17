@@ -144,11 +144,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
 
-                // Shadow Coords
-                output.ShadowCoords = GetShadowCoord(vertexInput, IsSurfaceTypeTransparent());
-
                 // Vertex Lighting
                 output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
+
+                // Shadow Coords
+                output.ShadowCoords = GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.NormalWS);
 
             #if USE_VERTEX_SH_INTERPOLATOR
                 if (!LightmapAvailable())

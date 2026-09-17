@@ -107,7 +107,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     output.clipPos = vertexInput.positionCS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     return output;

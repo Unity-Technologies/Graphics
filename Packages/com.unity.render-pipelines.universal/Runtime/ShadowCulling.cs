@@ -91,9 +91,12 @@ namespace UnityEngine.Rendering.Universal
                     int splitCount = ShadowUtils.GetPunctualLightShadowSlicesCount(lightType);
                     int sliceResolution = shadowAtlasLayout.GetSliceShadowResolutionRequest(lightIndex, 0).allocatedResolution;
                     bool shadowFiltering = visibleLight.light.shadows == LightShadows.Soft;
+                    float receiverBiasTexels = shadowData.normalBiasMode == ShadowNormalBiasMode.Receiver
+                        ? shadowData.bias[lightIndex].y * ShadowUtils.GetSoftShadowKernelRadius(ref visibleLight, shadowData.supportsSoftShadows, UniversalRenderPipeline.asset)
+                        : 0.0f;
 
                     // Note: the same fovBias will also be used to compute ShadowUtils.GetShadowBias
-                    float fovBias = Internal.AdditionalLightsShadowCasterPass.GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, shadowFiltering);
+                    float fovBias = Internal.AdditionalLightsShadowCasterPass.GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, shadowFiltering, receiverBiasTexels);
 
                     slices = new NativeArray<ShadowSliceData>(splitCount, Allocator.Temp);
                     slicesValidMask = 0;

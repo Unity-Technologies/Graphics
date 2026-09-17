@@ -239,6 +239,7 @@ TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
+float4      _MainLightShadowReceiverNormalBias; // world-space receiver normal bias, one component per cascade (all zero in caster mode)
 float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 
 
@@ -256,6 +257,10 @@ float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light da
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
+
+// Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode).
+// Lives outside CBUFFER(AdditionalLightShadows) so the persistent constant buffer layout stays unchanged.
+float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4];
 
 // x: depth bias,
 // y: normal bias,
@@ -341,6 +346,16 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
     }
 
     return results;
+}
+
+float GetMainLightShadowReceiverNormalBias(half cascadeIndex)
+{
+    return _MainLightShadowReceiverNormalBias[min(cascadeIndex, half(MAX_SHADOW_CASCADES - 1))];
+}
+
+float GetAdditionalLightShadowReceiverNormalBias(int lightIndex)
+{
+    return AdditionalLightShadowsAvailable() ? _AdditionalShadowReceiverNormalBias[lightIndex >> 2][lightIndex & 3] : 0.0;
 }
 
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
@@ -548,7 +563,7 @@ half ComputeCascadeIndex(float3 positionWS)
     return half(4.0) - dot(weights, half4(4, 3, 2, 1));
 }
 
-float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent)
+float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent, float3 normalWS)
 {
     float4 shadowCoord = (float4)0;
 
@@ -559,6 +574,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
     else
     {
         half cascadeIndex = _MAIN_LIGHT_SHADOWS_CASCADE ? ComputeCascadeIndex(positionWS) : 0;
+        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeIndex);
         shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
     }
 
@@ -597,7 +613,7 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTranspa
 
 // returns 0.0 if position is in light's shadow
 // returns 1.0 if position is in light
-half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData)
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS)
 {
     half result = 1.0;
 
@@ -619,6 +635,9 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
             shadowSliceIndex += CubeMapFaceID(-lightDirection);
         #endif
 
+            // Read behind the slice-index guard above, so the bias data may stay stale while the shadowmap is empty
+            positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
+
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
             result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
@@ -628,11 +647,11 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return result;
 }
 
-half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS)
 {
     half result = half(1.0);
     if (AdditionalLightShadowsAvailable())
-        result = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, GetAdditionalLightShadowParams(lightIndex), GetAdditionalLightShadowSamplingData(lightIndex));
+        result = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, GetAdditionalLightShadowParams(lightIndex), GetAdditionalLightShadowSamplingData(lightIndex), normalWS);
     return result;
 }
 
@@ -694,13 +713,13 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows)
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS)
 {
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     ShadowSamplingData samplingData = GetAdditionalLightShadowSamplingData(lightIndex);
     // receiveShadows only disables the realtime contribution; the baked shadowmask below still
     // applies (the material Receive Shadows toggle never affected baked shadows).
-    half realtimeShadow = receiveShadows ? SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData) : half(1.0);
+    half realtimeShadow = receiveShadows ? SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS) : half(1.0);
 
     half bakedShadow = half(1.0);
     if (BakedShadowsAvailable())
@@ -719,7 +738,7 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent)
+float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)
 {
     float4 result = (float4)0;
 
@@ -729,7 +748,7 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransp
     }
     else
     {
-        result = TransformWorldToShadowCoord(vertexInput.positionWS, isSurfaceTypeTransparent);
+        result = TransformWorldToShadowCoord(vertexInput.positionWS, isSurfaceTypeTransparent, normalWS);
     }
 
     return result;

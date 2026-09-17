@@ -6,14 +6,14 @@
 #define SurfaceData SixWaySurfaceData
 #endif
 
-void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace, uint2 tileIndex)
+void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace, uint2 tileIndex, out float3 geometricNormalWS)
 {
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 
     surfaceData = VFXGetSurfaceData(i, normalWS, uvData, frontFace);
-    inputData = VFXGetInputData(i, posInput, normalWS, frontFace);
+    inputData = VFXGetInputData(i, posInput, normalWS, frontFace, geometricNormalWS);
 }
 #endif
 

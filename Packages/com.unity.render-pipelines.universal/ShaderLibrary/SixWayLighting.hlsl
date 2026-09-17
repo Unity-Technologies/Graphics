@@ -120,7 +120,7 @@ half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tang
     return PI * cbsdf_R * radiance; // *PI because URP doesn't multiply by the Lambert term in its Lit implementation
 }
 
-URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
     if(surfaceData.alpha == 0)
         return half4(0,0,0,0);
@@ -146,7 +146,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData 
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
@@ -156,7 +156,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData 
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {

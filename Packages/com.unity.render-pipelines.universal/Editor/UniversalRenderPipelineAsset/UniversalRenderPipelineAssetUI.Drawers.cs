@@ -887,6 +887,11 @@ namespace UnityEditor.Rendering.Universal
             maxValue = useSlopeScaleDepthBias ? ShadowUtils.maxNormalizedSlopeScale : UniversalRenderPipeline.maxShadowBias;
         }
 
+        internal static GUIContent GetNormalBiasSliderLabel(ShadowNormalBiasMode normalBiasMode, GUIContent casterLabel, GUIContent receiverLabel)
+        {
+            return normalBiasMode == ShadowNormalBiasMode.Receiver ? receiverLabel : casterLabel;
+        }
+
         static void DrawShadows(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             using (new EditorGUI.MixedValueScope(serialized.shadowDistanceProp.hasMultipleDifferentValues))
@@ -944,9 +949,10 @@ namespace UnityEditor.Rendering.Universal
                }
             }
 
+            GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
             using (new EditorGUI.MixedValueScope(serialized.shadowDepthBiasProp.hasMultipleDifferentValues))
             {
-                GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(), Styles.shadowDepthBias, Styles.shadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
+                GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(shadowBiasSettings), Styles.shadowDepthBias, Styles.shadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
 
                 EditorGUI.BeginChangeCheck();
                 float newDepthBias = EditorGUILayout.Slider(depthBiasStyle, Mathf.Min(serialized.shadowDepthBiasProp.floatValue, maxDepthBias), 0.0f, maxDepthBias);
@@ -957,7 +963,8 @@ namespace UnityEditor.Rendering.Universal
             using (new EditorGUI.MixedValueScope(serialized.shadowNormalBiasProp.hasMultipleDifferentValues))
             {
                 EditorGUI.BeginChangeCheck();
-                float newNormalBias = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                GUIContent normalBiasStyle = GetNormalBiasSliderLabel(ShadowUtils.GetConfiguredNormalBiasMode(shadowBiasSettings), Styles.shadowNormalBiasCaster, Styles.shadowNormalBiasReceiver);
+                float newNormalBias = EditorGUILayout.Slider(normalBiasStyle, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 if (EditorGUI.EndChangeCheck())
                     serialized.shadowNormalBiasProp.floatValue = newNormalBias;
             }

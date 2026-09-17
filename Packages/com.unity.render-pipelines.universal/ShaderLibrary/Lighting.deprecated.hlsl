@@ -19,8 +19,8 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlights, bool clearCoatEnabled);
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlights, bool clearCoatEnabled);
 half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled);
-URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool specularSetup, bool specularHighlights, bool alphaPremultiplyEnabled, bool clearCoatEnabled, bool receiveShadows, bool surfaceTypeTransparent, bool environmentReflections);
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled, bool receiveShadows, bool surfaceTypeTransparent);
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool specularSetup, bool specularHighlights, bool alphaPremultiplyEnabled, bool clearCoatEnabled, bool receiveShadows, bool surfaceTypeTransparent, bool environmentReflections, float3 geometricNormalWS = float3(0.0, 0.0, 0.0));
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled, bool receiveShadows, bool surfaceTypeTransparent, float3 geometricNormalWS = float3(0.0, 0.0, 0.0));
 URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData, bool surfaceTypeTransparent);
 
 #if !defined(_ALPHAPREMULTIPLY_ON_KEYWORD_DECLARED)
@@ -180,14 +180,14 @@ half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceD
 }
 
 // Deprecated. Use UniversalFragmentPBR(inputData, surfaceData, specularSetup, specularHighlights, alphaPremultiplyEnabled, clearCoatEnabled, receiveShadows, surfaceTypeTransparent, environmentReflections).
-URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
-    return UniversalFragmentPBR(inputData, surfaceData, _SPECULAR_SETUP, !_SPECULARHIGHLIGHTS_OFF, _ALPHAPREMULTIPLY_ON, _CLEARCOAT || _CLEARCOATMAP, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, !_ENVIRONMENTREFLECTIONS_OFF);
+    return UniversalFragmentPBR(inputData, surfaceData, _SPECULAR_SETUP, !_SPECULARHIGHLIGHTS_OFF, _ALPHAPREMULTIPLY_ON, _CLEARCOAT || _CLEARCOATMAP, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, !_ENVIRONMENTREFLECTIONS_OFF, geometricNormalWS);
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
 URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+    half smoothness, half occlusion, half3 emission, half alpha, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
     SurfaceData surfaceData;
 
@@ -202,17 +202,17 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, half3 albedo, half me
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
 
-    return UniversalFragmentPBR(inputData, surfaceData, _SPECULAR_SETUP, !_SPECULARHIGHLIGHTS_OFF, _ALPHAPREMULTIPLY_ON, _CLEARCOAT || _CLEARCOATMAP, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, !_ENVIRONMENTREFLECTIONS_OFF);
+    return UniversalFragmentPBR(inputData, surfaceData, _SPECULAR_SETUP, !_SPECULARHIGHLIGHTS_OFF, _ALPHAPREMULTIPLY_ON, _CLEARCOAT || _CLEARCOATMAP, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, !_ENVIRONMENTREFLECTIONS_OFF, geometricNormalWS);
 }
 
 // Deprecated. Use UniversalFragmentBlinnPhong(inputData, surfaceData, specularEnabled, alphaPremultiplyEnabled, receiveShadows, surfaceTypeTransparent).
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
-    return UniversalFragmentBlinnPhong(inputData, surfaceData, _SPECGLOSSMAP || _SPECULAR_COLOR, _ALPHAPREMULTIPLY_ON, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT);
+    return UniversalFragmentBlinnPhong(inputData, surfaceData, _SPECGLOSSMAP || _SPECULAR_COLOR, _ALPHAPREMULTIPLY_ON, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, geometricNormalWS);
 }
 
 // Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
     SurfaceData surfaceData;
 
@@ -227,7 +227,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse,
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = normalTS;
 
-    return UniversalFragmentBlinnPhong(inputData, surfaceData, _SPECGLOSSMAP || _SPECULAR_COLOR, _ALPHAPREMULTIPLY_ON, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT);
+    return UniversalFragmentBlinnPhong(inputData, surfaceData, _SPECGLOSSMAP || _SPECULAR_COLOR, _ALPHAPREMULTIPLY_ON, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, geometricNormalWS);
 }
 
 // Deprecated. Use UniversalFragmentBakedLit(inputData, surfaceData, surfaceTypeTransparent).

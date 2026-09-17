@@ -457,7 +457,8 @@ namespace UnityEditor.Rendering.Universal
                     {
                         using (var checkScope = new EditorGUI.ChangeCheckScope())
                         {
-                            UniversalRenderPipelineAssetUI.GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(), Styles.ShadowDepthBias, Styles.ShadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
+                            GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
+                            UniversalRenderPipelineAssetUI.GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(shadowBiasSettings), Styles.ShadowDepthBias, Styles.ShadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
                             var shadowsBiasProp = serializedLight.settings.shadowsBias;
                             Rect depthBiasRect = EditorGUILayout.GetControlRect();
                             using (var propertyScope = new EditorGUI.PropertyScope(depthBiasRect, depthBiasStyle, shadowsBiasProp))
@@ -468,7 +469,8 @@ namespace UnityEditor.Rendering.Universal
                                 if (EditorGUI.EndChangeCheck())
                                     shadowsBiasProp.floatValue = newDepthBias;
                             }
-                            EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                            GUIContent normalBiasStyle = UniversalRenderPipelineAssetUI.GetNormalBiasSliderLabel(ShadowUtils.GetConfiguredNormalBiasMode(shadowBiasSettings), Styles.ShadowNormalBiasCaster, Styles.ShadowNormalBiasReceiver);
+                            EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, normalBiasStyle);
                             if (checkScope.changed)
                                 serializedLight.Apply();
                         }

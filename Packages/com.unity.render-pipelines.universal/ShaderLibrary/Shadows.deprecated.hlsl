@@ -66,14 +66,14 @@
 // Deprecated keyword-reading wrappers, kept for external back-compat.
 // New code passes the keyword state as parameters (Shadows.hlsl).
 
-float4 TransformWorldToShadowCoord(float3 positionWS, bool surfaceTypeTransparent);
+float4 TransformWorldToShadowCoord(float3 positionWS, bool surfaceTypeTransparent, float3 normalWS = float3(0.0, 0.0, 0.0));
 half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool surfaceTypeTransparent);
 half SampleMainLightRealtimeShadow(float4 shadowCoord, bool surfaceTypeTransparent);
-half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData);
-half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection);
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS = float3(0.0, 0.0, 0.0));
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS = float3(0.0, 0.0, 0.0));
 half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool surfaceTypeTransparent);
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows);
-float4 GetShadowCoord(VertexPositionInputs vertexInput, bool surfaceTypeTransparent);
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS = float3(0.0, 0.0, 0.0));
+float4 GetShadowCoord(VertexPositionInputs vertexInput, bool surfaceTypeTransparent, float3 normalWS = float3(0.0, 0.0, 0.0));
 bool AdditionalLightShadowsAvailable();
 half4 GetAdditionalLightShadowParams(int lightIndex);
 

@@ -2,6 +2,7 @@
 #define SG_TERRAIN_PBRGBUFFERPASS_INC
 
 #include "TerrainVert.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
@@ -12,12 +13,13 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
-    CalculateTerrainNormalWS(input, surfaceDescription, inputData);
+    half3 geometricNormalWS;
+    CalculateTerrainNormalWS(input, surfaceDescription, inputData, geometricNormalWS);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS);
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;

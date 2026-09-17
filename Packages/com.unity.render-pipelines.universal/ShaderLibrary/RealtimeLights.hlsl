@@ -226,7 +226,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
     return GetAdditionalPerObjectLight(lightIndex, positionWS);
 }
 
-Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows)
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows, float3 normalWS)
 {
 #if USE_CLUSTER_LIGHT_LOOP
     int lightIndex = i;
@@ -236,7 +236,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
-    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels, receiveShadows);
+    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels, receiveShadows, normalWS);
 
     real3 cookieColor = SampleAdditionalLightCookie(lightIndex, positionWS);
     light.color *= cookieColor;
@@ -244,9 +244,9 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     return light;
 }
 
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent, float3 geometricNormalWS)
 {
-    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows);
+    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, geometricNormalWS);
 
     if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {

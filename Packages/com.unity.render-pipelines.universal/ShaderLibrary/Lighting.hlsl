@@ -246,7 +246,7 @@ half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceD
 ////////////////////////////////////////////////////////////////////////////////
 /// PBR lighting...
 ////////////////////////////////////////////////////////////////////////////////
-URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool isSpecularSetup, bool useSpecularHighlights, bool useAlphaPremultiply, bool useClearCoat, bool receiveShadows, bool isSurfaceTypeTransparent, bool useEnvironmentReflections)
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool isSpecularSetup, bool useSpecularHighlights, bool useAlphaPremultiply, bool useClearCoat, bool receiveShadows, bool isSurfaceTypeTransparent, bool useEnvironmentReflections, float3 geometricNormalWS)
 {
     BRDFData brdfData = InitializeBRDFData(surfaceData, isSpecularSetup, useAlphaPremultiply);
 
@@ -303,7 +303,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
@@ -315,7 +315,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
@@ -344,7 +344,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool useSpecularHighlights, bool useAlphaPremultiply, bool receiveShadows, bool isSurfaceTypeTransparent)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool useSpecularHighlights, bool useAlphaPremultiply, bool receiveShadows, bool isSurfaceTypeTransparent, float3 geometricNormalWS)
 {
     #if defined(DEBUG_DISPLAY)
     float4 debugColor;
@@ -379,7 +379,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData su
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
@@ -389,7 +389,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData su
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent, geometricNormalWS);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {

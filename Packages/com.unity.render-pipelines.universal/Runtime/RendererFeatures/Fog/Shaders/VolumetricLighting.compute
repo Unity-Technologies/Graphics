@@ -327,7 +327,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
                 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                 if (_MainLightVolumetricShadowParams.x > 0)
                 {
-                    float4 shadowCoord = TransformWorldToShadowCoord(posSample);
+                    // A volume sample has no surface normal, so the receiver normal bias cannot be applied here (the depth bias still applies).
+                    float4 shadowCoord = TransformWorldToShadowCoord(posSample, false);
                     shadow = MainLightShadow(shadowCoord, posSample, half4(1, 1, 1, 1), half4(0, 0, 0, 0));
                     // This is equivalent to lerp(1, shadow, x), but with the (1 - x) term precomputed on the CPU.
                     shadow = half(shadow * _MainLightVolumetricShadowParams.x + _MainLightVolumetricShadowParams.y);

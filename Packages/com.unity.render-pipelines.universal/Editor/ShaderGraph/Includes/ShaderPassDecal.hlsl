@@ -6,6 +6,8 @@
 #error SHADERPASS_is_not_define
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
 #define DECAL_PROJECTOR
 #endif
@@ -76,10 +78,11 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData.viewDirectionWS = viewDirectionWS;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
+// Decal passes expose no geometric normal of the receiver, so the decal's shading normal drives the receiver normal bias
 #if defined(VARYINGS_NEED_SHADOW_COORD) && USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(positionWS);
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(positionWS, IsSurfaceTypeTransparent(), normalWS);
 #else
-    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(positionWS) : float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(positionWS, IsSurfaceTypeTransparent(), normalWS) : float4(0, 0, 0, 0);
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
@@ -340,7 +343,7 @@ void Frag(PackedVaryings packedInput,
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface, surfaceData.normalWS.xyz);
 
     float linearEyeDepth = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth));

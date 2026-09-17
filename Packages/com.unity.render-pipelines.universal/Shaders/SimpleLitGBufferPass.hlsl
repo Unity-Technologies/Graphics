@@ -100,9 +100,9 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.viewDirectionWS = viewDirWS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normal.xyz);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normal.xyz) : float4(0, 0, 0, 0);
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -207,7 +207,7 @@ Varyings LitPassVertexSimple(Attributes input)
     #endif
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normal.xyz) : float4(0, 0, 0, 0);
     #endif
 
     return output;

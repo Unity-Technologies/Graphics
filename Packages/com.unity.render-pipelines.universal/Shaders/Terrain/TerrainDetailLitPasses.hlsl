@@ -52,9 +52,9 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.viewDirectionWS = half3(0, 0, 1);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.ShadowCoords : TransformWorldToShadowCoord(input.PositionWS, IsSurfaceTypeTransparent());
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.ShadowCoords : TransformWorldToShadowCoord(input.PositionWS, IsSurfaceTypeTransparent(), input.NormalWS.xyz);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(input.PositionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(input.PositionWS, IsSurfaceTypeTransparent(), input.NormalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.VertexLighting;
@@ -151,13 +151,14 @@ Varyings TerrainLitVertex(Attributes input)
     output.Color = input.Color;
     output.PositionCS = vertexInput.positionCS;
 
+    half3 NormalWS = input.NormalOS;
+
     // Shadow Coords
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        output.ShadowCoords = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        output.ShadowCoords = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), NormalWS) : float4(0, 0, 0, 0);
     #endif
 
     // Vertex Lighting
-    half3 NormalWS = input.NormalOS;
     #if USE_VERTEX_SH_INTERPOLATOR
     if (!LightmapAvailable())
     {

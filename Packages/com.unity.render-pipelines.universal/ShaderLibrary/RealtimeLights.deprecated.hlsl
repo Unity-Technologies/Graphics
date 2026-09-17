@@ -12,8 +12,8 @@
 Light GetMainLight(float4 shadowCoord, bool receiveShadows, bool surfaceTypeTransparent);
 Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask, bool receiveShadows, bool surfaceTypeTransparent);
 Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool surfaceTypeTransparent);
-Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows);
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool surfaceTypeTransparent);
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows, float3 normalWS = float3(0.0, 0.0, 0.0));
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool surfaceTypeTransparent, float3 geometricNormalWS = float3(0.0, 0.0, 0.0));
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT_KEYWORD_DECLARED)
     #if !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -60,9 +60,9 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 }
 
 // Deprecated. Use GetAdditionalLight(i, inputData, shadowMask, aoFactor, receiveShadows, surfaceTypeTransparent).
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor)
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
-    return GetAdditionalLight(i, inputData, shadowMask, aoFactor, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT);
+    return GetAdditionalLight(i, inputData, shadowMask, aoFactor, !_RECEIVE_SHADOWS_OFF, _SURFACE_TYPE_TRANSPARENT, geometricNormalWS);
 }
 
 // Prevents leaking the fallback keyword definitions to shaders that include this file.

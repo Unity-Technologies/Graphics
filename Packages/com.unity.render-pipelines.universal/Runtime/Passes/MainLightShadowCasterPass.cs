@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public static readonly int _MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
             public static readonly int _ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
+            public static readonly int _ReceiverNormalBias = Shader.PropertyToID("_MainLightShadowReceiverNormalBias");
         }
 
         private class PassData
@@ -312,6 +313,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal static void SetShadowParamsForEmptyShadowmap(IBaseCommandBuffer cmd)
         {
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
         }
 
         // Binds the default (1x1) shadowmap as the global main light shadow texture. Called from the renderer's
@@ -406,7 +408,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             VisibleLight shadowLight = data.lightData.visibleLights[shadowLightIndex];
-            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, data.shadowData);
+            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
         }
 
         void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data)
@@ -431,23 +433,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RendererList shadowRendererList = data.shadowRendererListsHandle[cascadeIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias);
                 }
-                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, data.shadowData);
+                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
             }
         }
 
-        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, UniversalShadowData shadowData)
+        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
         {
             shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, shadowData.mainLightShadowCascadesCount == 1);
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
 
+            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowLightIndex, shadowData);
+        }
+
+        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
+        {
             Light light = shadowLight.light;
             bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
+
+            Vector4 receiverNormalBias = Vector4.zero;
+            for (int i = 0; i < m_ShadowCasterCascadesCount; ++i)
+                receiverNormalBias[i] = ShadowUtils.GetReceiverNormalBias(ref shadowLight, shadowLightIndex, shadowData, m_CascadeSlices[i].projectionMatrix, m_CascadeSlices[i].resolution);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, receiverNormalBias);
         }
 
         private void InitPassData(

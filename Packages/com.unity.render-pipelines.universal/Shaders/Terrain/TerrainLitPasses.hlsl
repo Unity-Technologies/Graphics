@@ -60,7 +60,7 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
+void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData, out half3 geometricNormalWS)
 {
     inputData = (InputData)0;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
@@ -71,6 +71,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.normalWS = IN.normal.xyz;
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
     half3 SH = 0;
+    geometricNormalWS = IN.normal.xyz;
 
     #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         if (UseNormalMap())
@@ -91,6 +92,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
         #if defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
             float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
             half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+            geometricNormalWS = normalWS;
             half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
             inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
         #endif
@@ -100,9 +102,9 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.viewDirectionWS = viewDirWS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? IN.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? IN.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -371,7 +373,7 @@ Varyings SplatmapVert(Attributes v)
     o.clipPos = Attributes.positionCS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        o.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(Attributes, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        o.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(Attributes, IsSurfaceTypeTransparent(), o.normal.xyz) : float4(0, 0, 0, 0);
     #endif
 
     return o;
@@ -466,7 +468,8 @@ void SplatmapFragment(
 #endif
 
     InputData inputData;
-    InitializeInputData(IN, normalTS, inputData);
+    half3 geometricNormalWS;
+    InitializeInputData(IN, normalTS, inputData, geometricNormalWS);
     SetupTerrainDebugTextureData(inputData, IN.uvMainAndLM.xy);
 
 #if defined(_DBUFFER)
@@ -507,7 +510,7 @@ void SplatmapFragment(
     return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), occlusion, ReceiveShadows(), IsSpecularSetup(), UseSpecularHighlights());
 #else
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha, geometricNormalWS);
 
     SplatmapFinalColor(color, IN.clipPos);
 

@@ -2,20 +2,21 @@
 #define SG_TERRAIN_PBRFORWARDPASS_INC
 
 #include "TerrainVert.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
-void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData, out half3 geometricNormalWS)
 {
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
-    CalculateTerrainNormalWS(input, surfaceDescription, inputData);
+    CalculateTerrainNormalWS(input, surfaceDescription, inputData, geometricNormalWS);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS);
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -90,7 +91,8 @@ void frag(PackedVaryings packedInput,
     #endif
 
     InputData inputData;
-    InitializeInputData(unpacked, surfaceDescription, inputData);
+    half3 geometricNormalWS;
+    InitializeInputData(unpacked, surfaceDescription, inputData, geometricNormalWS);
     SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0.xy);
 
     float3 specular = 0;
@@ -119,7 +121,7 @@ void frag(PackedVaryings packedInput,
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif
 
-    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentPBR(inputData, surface);
+    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentPBR(inputData, surface, geometricNormalWS);
     SplatmapFinalColor(finalColor, unpacked.positionCS);
 
 #ifdef _WRITE_RENDERING_LAYERS

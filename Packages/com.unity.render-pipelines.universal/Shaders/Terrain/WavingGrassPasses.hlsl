@@ -66,9 +66,9 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.viewDirectionWS = viewDirWS;
 
 #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normal.xyz);
 #else
-    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normal.xyz) : float4(0, 0, 0, 0);
 #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -144,7 +144,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     vertData.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
 #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-    vertData.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+    vertData.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), vertData.normal.xyz) : float4(0, 0, 0, 0);
 #endif
 }
 
@@ -235,7 +235,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData,
         UseSpecGlossMap() || UseSpecularColor(), UseAlphaPremultiply(),
-        ReceiveShadows(), IsSurfaceTypeTransparent());
+        ReceiveShadows(), IsSurfaceTypeTransparent(), input.normal.xyz);
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif

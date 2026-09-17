@@ -290,7 +290,7 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     output.positionWS = vertexInput.positionWS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     output.clipPos = vertexInput.positionCS;
@@ -334,7 +334,7 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
-void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
+void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData, out float3 geometricNormalWS)
 {
     inputData = (InputData)0;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
@@ -356,10 +356,23 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
     inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 
+#ifdef EFFECT_BACKSIDE_NORMALS
+    half geometricNormalSign = IS_FRONT_VFACE(input.facing, 1.0h, -1.0h);
+#else
+    half geometricNormalSign = 1.0h;
+#endif
+    geometricNormalWS = geometricNormalSign * input.interpolated.normalWS.xyz;
+
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.interpolated.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+        #ifdef EFFECT_BACKSIDE_NORMALS
+        // The interpolated shadow coord biases along the front-face normal, which points the wrong way on back faces
+        inputData.shadowCoord = (ShadowCoordInterpolatorAvailable() && geometricNormalSign > 0.0h) ? input.interpolated.shadowCoord
+            : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
+        #else
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.interpolated.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
+        #endif
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
@@ -452,7 +465,8 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     #endif
 
     InputData inputData;
-    InitializeInputData(input, normalTs, inputData);
+    float3 geometricNormalWS;
+    InitializeInputData(input, normalTs, inputData, geometricNormalWS);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv);
 
 #if defined(GBUFFER) || defined(EFFECT_SUBSURFACE)
@@ -464,7 +478,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half fSubsurfaceRough = 0.7 - smoothness * 0.5;
     half fSubsurface = D_GGX(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough);
 
-    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     half realtimeShadow = ReceiveShadows() ? SampleMainLightRealtimeShadow(shadowCoord, IsSurfaceTypeTransparent()) : half(1.0);
     float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
         float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * realtimeShadow;
@@ -504,7 +518,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData,
         IsSpecularSetup(), UseSpecularHighlights(), UseAlphaPremultiply(),
-        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections());
+        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections(), geometricNormalWS);
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.interpolated.clipPos));
     color.a = OutputAlpha(color.a, _Surface);

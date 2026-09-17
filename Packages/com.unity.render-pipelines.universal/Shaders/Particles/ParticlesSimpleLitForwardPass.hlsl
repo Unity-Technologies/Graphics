@@ -44,9 +44,9 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData.viewDirectionWS = viewDirWS;
 
 #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz);
 #else
-    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
@@ -122,7 +122,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 #endif
 
 #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 
     return output;
@@ -160,7 +160,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS, input.normalWS.xyz);
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
 #if defined(_TRANSPARENT_RECEIVE_FOG)

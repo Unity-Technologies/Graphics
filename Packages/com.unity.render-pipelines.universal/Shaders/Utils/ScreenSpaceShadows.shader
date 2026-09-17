@@ -27,6 +27,9 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             //Fetch shadow coordinates for cascade.
             float3 wpos = ComputeWorldSpacePosition(input.texcoord.xy, deviceDepth, unity_MatrixInvVP);
+
+            // The position is reconstructed from depth without a surface normal, so the receiver
+            // normal bias cannot be applied here (the depth bias still applies).
             float4 coords = TransformWorldToShadowCoord(wpos, false);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.

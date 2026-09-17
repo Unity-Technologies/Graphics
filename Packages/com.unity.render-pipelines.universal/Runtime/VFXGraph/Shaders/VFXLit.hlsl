@@ -3,6 +3,8 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SixWayLighting.hlsl"
     #include "Packages/com.unity.visualeffectgraph/Shaders/SixWay/VFXSixWayCommon.hlsl"
@@ -20,13 +22,22 @@ float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
     return VFXGetPositionRWS(posWS);
 }
 
-InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, float3 normalWS, bool frontFace)
+InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, float3 normalWS, bool frontFace, out float3 geometricNormalWS)
 {
     InputData inputData = (InputData)0;
 
 
     inputData.positionWS = posInputs.positionWS.xyz;
     inputData.normalWS = normalWS;
+#ifdef VFX_VARYING_NORMAL
+    float geometricNormalSign = 1.0f;
+    #if USE_DOUBLE_SIDED
+    geometricNormalSign = frontFace ? 1.0f : -1.0f;
+    #endif
+    geometricNormalWS = geometricNormalSign * normalize(i.VFX_VARYING_NORMAL);
+#else
+    geometricNormalWS = normalWS;
+#endif
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
     inputData.positionCS = i.VFX_VARYING_POSCS;
 
@@ -40,7 +51,7 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 //#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
 //    inputData.shadowCoord = inputData.shadowCoord;
     if (MainLightShadowsAvailable())
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     else
         inputData.shadowCoord = float4(0, 0, 0, 0);
 

@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 14;
+        internal const int k_LastVersion = 15;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -179,6 +179,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(asset);
                 asset.m_AssetVersion = 14;
+            }
+
+            if (asset.m_AssetVersion < 15)
+            {
+                var shadowBiasSettings = GetOrCreateGraphicsSettings<URPShadowBiasSettings>(asset);
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Caster;
+                asset.m_AssetVersion = 15;
             }
 
             // If the asset version has changed, means that a migration step has been executed

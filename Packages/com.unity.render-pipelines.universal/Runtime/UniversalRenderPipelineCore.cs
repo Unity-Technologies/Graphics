@@ -668,6 +668,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal ref ShadowDepthBiasMode depthBiasMode => ref frameData.Get<UniversalShadowData>().depthBiasMode;
 
+        internal ref ShadowNormalBiasMode normalBiasMode => ref frameData.Get<UniversalShadowData>().normalBiasMode;
+
         internal ref bool isKeywordAdditionalLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordAdditionalLightShadowsEnabled;
         internal ref bool isKeywordSoftShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordSoftShadowsEnabled;
         internal ref int mainLightShadowResolution => ref frameData.Get<UniversalShadowData>().mainLightShadowResolution;

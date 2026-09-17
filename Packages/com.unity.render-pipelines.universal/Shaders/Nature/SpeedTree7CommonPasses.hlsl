@@ -120,9 +120,9 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -226,7 +226,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #else
         URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData,
             UseSpecGlossMap() || UseSpecularColor(), UseAlphaPremultiply(),
-            ReceiveShadows(), IsSurfaceTypeTransparent());
+            ReceiveShadows(), IsSurfaceTypeTransparent(), input.normalWS.xyz);
         color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
         color.a = OutputAlpha(color.a, _Surface);
         return color;
