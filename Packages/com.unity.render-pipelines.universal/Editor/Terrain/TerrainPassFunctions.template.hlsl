@@ -3,7 +3,7 @@
 // graphVertex feature gate. Keep this comment free of the template command character as well: the
 // preprocessor reads commands inside comments and splices an error marker into the shader.
 
-void TerrainVaryingGeneration(inout Attributes input, inout Varyings output)
+void ApplyTerrainInstancing(inout Attributes input)
 {
     float4 positionOS = float4(input.positionOS, 1.0);
     #if defined(VARYINGS_NEED_TEXCOORD0) && defined(ATTRIBUTES_NEED_NORMAL)
@@ -17,15 +17,6 @@ void TerrainVaryingGeneration(inout Attributes input, inout Varyings output)
         TerrainInstancing(positionOS);
     #endif
     input.positionOS = positionOS.xyz;
-
-#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT01)
-    output.uvSplat01.xy = TRANSFORM_TEX(input.uv0, _Splat0);
-    output.uvSplat01.zw = TRANSFORM_TEX(input.uv0, _Splat1);
-#endif
-#if defined(VARYINGS_NEED_TEXCOORD0) && defined(UNIVERSAL_TERRAIN_SPLAT23)
-    output.uvSplat23.xy = TRANSFORM_TEX(input.uv0, _Splat2);
-    output.uvSplat23.zw = TRANSFORM_TEX(input.uv0, _Splat3);
-#endif
 }
 
 float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)

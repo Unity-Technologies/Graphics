@@ -110,7 +110,7 @@ Varyings BuildVaryings(Attributes input
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
         #ifdef UNIVERSAL_TERRAIN_ENABLED
-        TerrainVaryingGeneration(input, output);
+        ApplyTerrainInstancing(input);
         #endif
 
     #if defined(FEATURES_GRAPH_VERTEX)
