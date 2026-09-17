@@ -317,7 +317,9 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
             m_Asset.renderScale = renderScale;
 
             // Occlusion culling without baked data, as the scene the image suite ignores for this has.
+#pragma warning disable CS0618
             m_Camera.useOcclusionCulling = true;
+#pragma warning restore CS0618
 
             var scene = new GameObject("URP_Allocations_Scene") { hideFlags = HideFlags.HideAndDontSave };
             Material material = null;
