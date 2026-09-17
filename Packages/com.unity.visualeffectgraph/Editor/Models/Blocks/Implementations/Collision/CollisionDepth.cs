@@ -107,7 +107,6 @@ namespace UnityEditor.VFX.Block
                 var Source = new StringBuilder(@"
 float3 nextPos = position + deltaTime * velocity;
 float3 viewPos = mul(VFXToView,float4(nextPos,1.0f)).xyz;
-
 float4 projPos = mul(ViewToClip,float4(viewPos,1.0f));
 projPos.xyz /= projPos.w;
 float2 aProjPos = abs(projPos.xy);
@@ -120,17 +119,8 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
-    float linearEyeDepth, offset;
-    if (!Camera_orthographic)
-    {
-        linearEyeDepth = n * f / (depth * (n - f) + f);
-        offset = 2.0f;
-    }
-    else
-    {
-        linearEyeDepth = n + depth * (f - n);
-        offset = 32.0f; //Orthographic depth requires a larger offset to give out correct normals
-    }");
+    const float offset = Camera_orthographic ? 32.0f : 2.0f; //Orthographic depth requires a larger offset to give out correct normals
+    float linearEyeDepth = VFXGetLinearEyeDepth(depth, Camera_orthographic, n , f);");
 
                 if (surfaceThickness == SurfaceThickness.Infinite)
                     Source.AppendLine(@"
@@ -141,7 +131,49 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
                 Source.AppendLine(@"
     {
+        float3 viewPos0 = mul(VFXToView,float4(position,1.0f)).xyz;
+        float4 projPos0 = mul(ViewToClip,float4(viewPos0,1.0f));
+        bool prevOnScreen = projPos0.w > 0.0f;
+        projPos0.xyz /= projPos0.w;
+        prevOnScreen = prevOnScreen && all(abs(projPos0.xy) < 1.0f);
+
+        float2 uv0 = 0.0f;
+        float depth0 = 0.0f;
+        float linearEyeDepth0 = 0.0f;
+        if (prevOnScreen)
+        {
+            uv0 = saturate(projPos0.xy * 0.5f + 0.5f);
+            int2 texel0 = clamp(int2(uv0 * Camera_scaledPixelDimensions), 0, int2(Camera_scaledPixelDimensions) - 1);
+            depth0 = DecodeDepth(LOAD_TEXTURE2D_X(Camera_depthBuffer.t, texel0).r);
+            linearEyeDepth0 = VFXGetLinearEyeDepth(depth0, Camera_orthographic, n , f);
+        }
+
         hit = true;
+        if (prevOnScreen && viewPos0.z < linearEyeDepth0 - radius) // penetrated
+        {
+            // Just assume depth is planar, so linear interpolate tHit. Could use some remarching for more accuracy.
+            tHit = saturate((linearEyeDepth0 - viewPos0.z - radius) / (linearEyeDepth0 - viewPos0.z - linearEyeDepth + viewPos.z));
+            viewPos = lerp(viewPos0, viewPos, tHit);
+            projPos = mul(ViewToClip,float4(viewPos,1.0f));
+            projPos.xyz /= projPos.w;
+
+            uv = saturate(projPos.xy * 0.5f + 0.5f);
+            depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uv * Camera_scaledPixelDimensions).r;
+            depth = DecodeDepth(depth);
+            linearEyeDepth = VFXGetLinearEyeDepth(depth, Camera_orthographic, n , f);
+        }
+        else if (prevOnScreen) // already inside
+        {
+            tHit = 0.0f;
+            viewPos = viewPos0;
+            projPos = projPos0;
+
+            uv = uv0;
+            depth = depth0;
+            linearEyeDepth = linearEyeDepth0;
+        }
+        // prev off-screen
+
         const float2 pixelOffset = offset / Camera_scaledPixelDimensions;
 
         float2 projPos10 = projPos.xy + float2(pixelOffset.x,0.0f);
@@ -160,10 +192,12 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         vPos10.xyz /= vPos10.w;
         vPos01.xyz /= vPos01.w;
-        float r = 0.0f;
+        float r = 0.0f;      // for normal
+        float rPos = 0.0f;   // for position
         if(!Camera_orthographic)
         {
             r = linearEyeDepth / viewPos.z;
+            rPos = (linearEyeDepth - radius) / viewPos.z;
         }
         else
         {
@@ -172,13 +206,16 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
             pSurface.z = linearEyeDepth;
             float3 nEstimate = normalize(cross(vPos01.xyz - pSurface,vPos10.xyz - pSurface));
             r = dot(pSurface,nEstimate)/dot(viewPos,nEstimate);
-        }
-        viewPos *= r; // Position on depth surface
 
-        hitNormal = normalize(cross(vPos01.xyz - viewPos,vPos10.xyz - viewPos));
+            float3 pSurfaceRadius = viewPos;
+            pSurfaceRadius.z = linearEyeDepth - radius;
+            rPos = dot(pSurfaceRadius,nEstimate)/dot(viewPos,nEstimate);
+        }
+
+        hitNormal = normalize(cross(vPos01.xyz - viewPos * r,vPos10.xyz - viewPos * r));
         hitNormal = normalize(mul((float3x3)ViewToVFX, hitNormal));
 
-        viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
+        viewPos *= saturate(rPos);
         hitPos = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
     }
 }
