@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         readonly LightSet _lights;
         readonly InstanceSet<EntityId, MeshRendererSource> _meshRenderers;
         readonly EntityInstanceSet _entityInstances;
+        readonly HashSet<EntityId> _destroyedMeshesThisFrame = new();
 #if ENABLE_TERRAIN_MODULE
         readonly TerrainSet _terrains;
         // Per-frame set of TerrainData EntityIds that were reported changed by ObjectDispatcher.
@@ -73,6 +74,8 @@ namespace UnityEngine.Rendering.Universal
             bool filterChanged = renderingLayerMaskFilter != _renderingLayerMaskFilter;
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
 
+            RemoveInstancesWithDestroyedMeshes(changes.MeshDestroyedList, world);
+
             UpdateMeshRenderers(changes.MeshRendererTransformChangedIds, changes.MeshRendererTransformChangedLocalToWorlds, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
             UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
@@ -115,6 +118,20 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_TERRAIN_MODULE
         static readonly Unity.Profiling.ProfilerMarker k_GameObjectTerrainUpdateMarker = new("SurfaceCache.GameObjectTerrainUpdate");
 #endif
+
+        void RemoveInstancesWithDestroyedMeshes(NativeArray<EntityId> destroyedMeshes, SurfaceCacheWorld world)
+        {
+            if (destroyedMeshes.Length == 0)
+                return;
+
+            foreach (var meshId in destroyedMeshes)
+                _destroyedMeshesThisFrame.Add(meshId);
+
+            _meshRenderers.RemoveInstancesWithDestroyedMeshes(_destroyedMeshesThisFrame, _sharedMaterials, world);
+            _entityInstances.RemoveInstancesWithDestroyedMeshes(_destroyedMeshesThisFrame, _sharedMaterials, world);
+
+            _destroyedMeshesThisFrame.Clear();
+        }
 
         void UpdateMeshRenderers(NativeArray<EntityId> transformChangedIds, NativeArray<Matrix4x4> transformChangedLocalToWorlds, IEnumerable<Object> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
         {
@@ -374,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
             readonly List<TSource> _sources = new();
             readonly List<bool> _inWorld = new();
             readonly List<InstanceHandle> _handles = new();
-            readonly List<Mesh> _meshes = new();
+            readonly List<EntityId> _meshIds = new();
             // The transform last applied to the world instance.
             readonly List<Matrix4x4> _localToWorlds = new();
             // Materials provided by the source the last time we checked ("null materials" are EntityId.None).
@@ -469,6 +486,15 @@ namespace UnityEngine.Rendering.Universal
                 Unregister(slot);
             }
 
+            public void RemoveInstancesWithDestroyedMeshes(HashSet<EntityId> destroyedMeshes, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
+            {
+                for (int i = 0; i < _keys.Count; i++)
+                {
+                    if (_inWorld[i] && destroyedMeshes.Contains(_meshIds[i]))
+                        RemoveFromWorld(i, sharedMaterials, world);
+                }
+            }
+
             public void ReevaluateAll(SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, uint renderingLayerMaskFilter)
             {
                 // A copy is required because we mutate below.
@@ -515,7 +541,7 @@ namespace UnityEngine.Rendering.Universal
                 _sources.Add(source);
                 _inWorld.Add(false);
                 _handles.Add(default);
-                _meshes.Add(null);
+                _meshIds.Add(EntityId.None);
                 _localToWorlds.Add(default);
                 _inputMaterialIds.Add(null);
                 _acquiredMaterialIds.Add(null);
@@ -533,7 +559,7 @@ namespace UnityEngine.Rendering.Universal
                     _sources[slot] = _sources[last];
                     _inWorld[slot] = _inWorld[last];
                     _handles[slot] = _handles[last];
-                    _meshes[slot] = _meshes[last];
+                    _meshIds[slot] = _meshIds[last];
                     _localToWorlds[slot] = _localToWorlds[last];
                     _inputMaterialIds[slot] = _inputMaterialIds[last];
                     _acquiredMaterialIds[slot] = _acquiredMaterialIds[last];
@@ -543,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
                 _sources.RemoveAt(last);
                 _inWorld.RemoveAt(last);
                 _handles.RemoveAt(last);
-                _meshes.RemoveAt(last);
+                _meshIds.RemoveAt(last);
                 _localToWorlds.RemoveAt(last);
                 _inputMaterialIds.RemoveAt(last);
                 _acquiredMaterialIds.RemoveAt(last);
@@ -578,7 +604,7 @@ namespace UnityEngine.Rendering.Universal
                     throw;
                 }
 
-                _meshes[slot] = mesh;
+                _meshIds[slot] = mesh.GetEntityId();
                 _localToWorlds[slot] = localToWorld;
                 _inputMaterialIds[slot] = inputMatIds.ToArray();
                 _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
@@ -589,7 +615,7 @@ namespace UnityEngine.Rendering.Universal
 
             void UpdateInWorld(int slot, in TSource source, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                if (_meshes[slot] != mesh)
+                if (_meshIds[slot] != mesh.GetEntityId())
                 {
                     RemoveFromWorld(slot, sharedMaterials, world);
                     AddToWorld(slot, source, mesh, sharedMaterials, world);
@@ -660,7 +686,7 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var matEntityId in _acquiredMaterialIds[slot])
                     sharedMaterials.Release(matEntityId, world);
                 _handles[slot] = default;
-                _meshes[slot] = null;
+                _meshIds[slot] = EntityId.None;
                 _localToWorlds[slot] = default;
                 _inputMaterialIds[slot] = null;
                 _acquiredMaterialIds[slot] = null;

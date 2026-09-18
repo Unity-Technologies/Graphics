@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering
 
             bool foundInstanceIDs = _rayTracingAccelerationStructure.GetInstanceIDs(instanceHandle.Value, out int[] instanceIDs);
             Debug.Assert(foundInstanceIDs, "Instance was not in acceleration structure.");
-            for (int subMeshIdx = 0; subMeshIdx < info.Mesh.subMeshCount; subMeshIdx++)
+            for (int subMeshIdx = 0; subMeshIdx < info.SubMeshEmissiveMask.Length; subMeshIdx++)
             {
                 if (!info.SubMeshEmissiveMask[subMeshIdx])
                     continue;
