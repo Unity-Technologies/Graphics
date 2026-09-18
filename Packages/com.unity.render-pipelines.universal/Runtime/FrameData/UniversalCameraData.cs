@@ -626,6 +626,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal StpHistory stpHistory;
 
+        /// <summary>
+        /// Post-upscale alpha history for the alpha upscale pass that runs after color-only upscalers.
+        /// </summary>
+        internal AlphaUpscaleHistory alphaUpscaleHistory;
+
         // TAA settings.
         internal TemporalAA.Settings taaSettings;
 
@@ -712,6 +717,7 @@ namespace UnityEngine.Rendering.Universal
             backgroundColor = Color.black;
             taaHistory = null;
             stpHistory = null;
+            alphaUpscaleHistory = null;
             taaSettings = default;
             subpixelJitter = default;
             baseCamera = null;

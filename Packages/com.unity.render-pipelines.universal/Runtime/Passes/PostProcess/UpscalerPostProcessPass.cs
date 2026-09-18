@@ -56,8 +56,8 @@ namespace UnityEngine.Rendering.Universal
             // reconstructs to full resolution mid-frame, but ScalableBufferManager is a single global scale with no per-stage
             // render->display transition, so the post-upscale chain (UberPost, final blit) keeps writing into the
             // ScalableBufferManager-scaled sub-rect and only that sub-rect of the screen updates.
-            // Gate on camera.allowDynamicResolution (the stable opt-in), not the live ScalableBufferManager factor, 
-            // which would flip per-frame as the app crosses factor 1.0. 
+            // Gate on camera.allowDynamicResolution (the stable opt-in), not the live ScalableBufferManager factor,
+            // which would flip per-frame as the app crosses factor 1.0.
             if (cameraData.camera.allowDynamicResolution && postProcessingData.activeUpscaler.isTemporal)
             {
                 if (Debug.isDebugBuild && !m_WarnedHardwareDrsTemporalUnsupported)
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 return;
             }
-            
+
             if (Debug.isDebugBuild) // Saw valid motion data: reset so a later missing-data camera warns again.
                 m_WarnedMissingMotionData = false;
 
@@ -233,6 +233,14 @@ namespace UnityEngine.Rendering.Universal
 
             // Use the output texture of upscaling
             resourceData.cameraColor = io.cameraColor;
+
+            // The negated jitter follows HDRP's sign convention (see HDCamera.GetJitteredProjectionMatrix).
+            if (!upscaler.supportsAlphaUpscaling)
+            {
+                AlphaUpscaleUtils.Execute(renderGraph, cameraData, resourceData, sourceTexture, upscaler.isTemporal,
+                    io.preUpscaleResolution, io.postUpscaleResolution, -io.subpixelJitter,
+                    io.reactiveMask, upscaler.reactiveMaskSource == ReactiveMaskSource.Stencil);
+            }
 #endif
         }
 
