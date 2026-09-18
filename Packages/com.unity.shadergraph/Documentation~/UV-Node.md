@@ -15,3 +15,7 @@ UV coordinates usually have two channels, but the UV node outputs four channels 
 | **Name** | **Type** | **Options** | **Description** |
 |:------------ |:-------------|:-----|:---|
 | **Channel** | Dropdown | **UV0**, **UV1**, **UV2**, **UV3**, **UV4**, **UV5**, **UV6**, **UV7** | Selects the coordinate set to output. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

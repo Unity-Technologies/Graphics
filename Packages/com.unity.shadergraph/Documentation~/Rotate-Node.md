@@ -59,3 +59,7 @@ void Unity_Rotate_Degrees_float(float2 UV, float2 Center, float Rotation, out fl
     Out = UV;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

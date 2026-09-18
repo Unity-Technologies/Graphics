@@ -18,3 +18,7 @@ This node performs the refraction of the view ray in object space and returns th
 | **Cornea IOR**          | Input         | float   | The index of refraction of the eye (**1.333** by default).   |
 | **Iris Plane Offset**   | Input         | float   | Distance between the end of the cornea and the iris plane. For the default model, this value should be **0.02** |
 | **RefractedPositionOS** | Output        | Vector3 | Position of the refracted point on the iris plane in object space. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

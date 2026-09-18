@@ -30,3 +30,7 @@ void Unity_FresnelEffect_float(float3 Normal, float3 ViewDir, float Power, out f
     Out = pow((1.0 - saturate(dot(normalize(Normal), normalize(ViewDir)))), Power);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

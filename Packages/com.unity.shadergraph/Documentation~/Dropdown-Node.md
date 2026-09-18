@@ -30,3 +30,7 @@ It has one output port:
 [!include[nodes-related](./snippets/nodes-related.md)] Subgraph Dropdown node:
 
 - [Subgraph node](Sub-graph-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

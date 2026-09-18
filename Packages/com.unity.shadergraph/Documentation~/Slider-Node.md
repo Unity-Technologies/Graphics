@@ -25,3 +25,7 @@ The following example code represents one possible outcome of this node.
 ```
 float _Slider_Out = 1.0;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

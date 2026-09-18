@@ -36,3 +36,7 @@ The following example code represents one possible outcome of this node.
 ```
 SamplerState _SamplerState_Out = _SamplerState_Linear_Repeat_sampler;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

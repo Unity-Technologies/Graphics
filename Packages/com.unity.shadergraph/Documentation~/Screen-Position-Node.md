@@ -61,3 +61,6 @@ float4 Out = frac(float4((IN.NDCPosition.x * 2 - 1) * _ScreenParams.x / _ScreenP
 float4 Out = float4(IN.PixelPosition.xy, 0, 0);
 ```
 
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

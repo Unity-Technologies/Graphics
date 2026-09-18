@@ -23,3 +23,7 @@ The following example code represents one possible outcome of this node.
 ```
 float4 _SampleCubemap_Out = SAMPLE_TEXTURECUBE_LOD(Cubemap, Sampler, Dir, LOD);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -22,3 +22,7 @@ void Unity_Arctangent2_float4(float4 A, float4 B, out float4 Out)
     Out = atan2(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

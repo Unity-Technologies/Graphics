@@ -23,3 +23,7 @@ void Unity_Contrast_float(float3 In, float Contrast, out float3 Out)
     Out = (In - midpoint) * Contrast + midpoint;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

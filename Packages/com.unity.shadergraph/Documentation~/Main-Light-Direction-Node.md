@@ -10,3 +10,7 @@ The main directional light is the one casting shadows if there is any. Otherwise
 | Name          | Direction | Type           | Description                                               |
 | :------------ | :-------- | :------------- | :-------------------------------------------------------- |
 | **Direction** | Output    | Vector3        | The normalized direction of the sun light in world space. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

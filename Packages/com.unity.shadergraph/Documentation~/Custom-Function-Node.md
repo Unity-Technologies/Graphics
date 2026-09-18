@@ -225,3 +225,7 @@ However, you should manually upgrade Custom Function nodes that produce texture 
 
 
 From version 10.3, you can access data associated with textures via `myInputTex.samplerstate` and `myInputTex.texelSize`.
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

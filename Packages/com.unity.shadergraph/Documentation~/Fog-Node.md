@@ -31,3 +31,7 @@ void Unity_Fog_float(float3 Position, out float4 Color, out float Density)
     SHADERGRAPH_FOG(Position, Color, Density);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

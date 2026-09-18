@@ -21,3 +21,7 @@ void Unity_SawtoothWave_float4(float4 In, out float4 Out)
     Out = 2 * (In - floor(0.5 + In));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

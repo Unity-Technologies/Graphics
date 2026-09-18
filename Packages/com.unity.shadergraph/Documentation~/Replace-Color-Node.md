@@ -26,3 +26,7 @@ void Unity_ReplaceColor_float(float3 In, float3 From, float3 To, float Range, fl
     Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

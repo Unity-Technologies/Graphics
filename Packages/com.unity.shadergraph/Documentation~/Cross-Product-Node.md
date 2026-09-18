@@ -22,3 +22,7 @@ void Unity_CrossProduct_float(float3 A, float3 B, out float3 Out)
     Out = cross(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

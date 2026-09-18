@@ -27,3 +27,7 @@ void Unity_RadialShear_float(float2 UV, float2 Center, float Strength, float2 Of
     Out = UV + float2(delta.y, -delta.x) * delta_offset + Offset;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

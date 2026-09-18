@@ -33,3 +33,4 @@ If you use your own custom render pipeline, you must define the behavior of the 
 
 - [Scene Color Node](Scene-Color-Node.md) 
 - [Custom pass buffers and pyramids](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Custom-Pass-buffers-pyramids.html)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

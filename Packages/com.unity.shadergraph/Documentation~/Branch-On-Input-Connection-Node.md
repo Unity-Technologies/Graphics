@@ -39,3 +39,7 @@ The Branch On Input Connection [!include[nodes-single-output](./snippets/nodes-s
 
 - [Branch node](Branch-Node.md)
 - [Subgraph node](Sub-graph-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

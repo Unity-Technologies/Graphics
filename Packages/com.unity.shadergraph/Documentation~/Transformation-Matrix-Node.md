@@ -62,3 +62,7 @@ float4x4 _TransformationMatrix_Out = UNITY_MATRIX_VP;
 ```
 float4x4 _TransformationMatrix_Out = UNITY_MATRIX_I_VP;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

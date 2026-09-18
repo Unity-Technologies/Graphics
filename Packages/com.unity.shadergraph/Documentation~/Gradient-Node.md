@@ -48,3 +48,7 @@ Gradient Unity_Gradient_float()
 
 Gradient _Gradient = Unity_Gradient_float();
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

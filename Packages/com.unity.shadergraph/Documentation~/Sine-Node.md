@@ -21,3 +21,7 @@ void Unity_Sine_float4(float4 In, out float4 Out)
     Out = sin(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -49,3 +49,7 @@ float _Constant_E = 2.718282;
 ```
 float _Constant_SQRT2 = 1.414214;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

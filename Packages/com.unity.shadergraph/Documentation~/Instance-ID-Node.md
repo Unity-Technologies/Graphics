@@ -15,3 +15,7 @@ When Unity uses dynamic instancing, instance IDs might not be consistent across 
 | Name   | Direction  | Type  | Binding | Description |
 |:-------|:-----------|:------|:--------|:------------|
 | Out    | Output     | Float | None    | **Instance ID** for mesh of a given instanced draw call. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

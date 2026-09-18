@@ -31,3 +31,7 @@ You can only use the HD Scene Depth node in the Fragment Shader Stage and with n
 ## Notes
 
 To use the HD Scene Depth node in a Custom Render Pipeline, you need to explicitly define its behavior, otherwise it returns white.
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

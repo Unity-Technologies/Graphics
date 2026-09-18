@@ -22,3 +22,7 @@ void Unity_Reflection_float4(float4 In, float4 Normal, out float4 Out)
     Out = reflect(In, Normal);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

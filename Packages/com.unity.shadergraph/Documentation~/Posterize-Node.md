@@ -26,3 +26,7 @@ void Unity_Posterize_float4(float4 In, float4 Steps, out float4 Out)
     Out = floor(In / (1 / Steps)) * (1 / Steps);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

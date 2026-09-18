@@ -28,3 +28,7 @@ void Unity_Spherize_float(float2 UV, float2 Center, float Strength, float2 Offse
     Out = UV + delta * delta_offset + Offset;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -33,3 +33,7 @@ void Unity_Checkerboard_float(float2 UV, float3 ColorA, float3 ColorB, float2 Fr
     Out = lerp(ColorA, ColorB, alpha.xxx);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

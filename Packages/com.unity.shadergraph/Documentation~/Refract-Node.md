@@ -60,3 +60,7 @@ void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IOR
         (k >= 0.0 ? saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) : 1.0);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

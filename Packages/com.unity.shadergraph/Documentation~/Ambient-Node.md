@@ -32,3 +32,7 @@ float3 _Ambient_ColorSky = SHADERGRAPH_AMBIENT_SKY;
 float3 _Ambient_Equator = SHADERGRAPH_AMBIENT_EQUATOR;
 float3 _Ambient_Ground = SHADERGRAPH_AMBIENT_GROUND;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

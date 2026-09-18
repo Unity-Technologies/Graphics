@@ -75,3 +75,7 @@ void Unity_SimpleNoise_float(float2 UV, float Scale, out float Out)
     Out = t;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

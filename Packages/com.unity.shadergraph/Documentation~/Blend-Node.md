@@ -255,3 +255,7 @@ void Unity_Blend_Overwrite_float4(float4 Base, float4 Blend, float Opacity, out 
     Out = lerp(Base, Blend, Opacity);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

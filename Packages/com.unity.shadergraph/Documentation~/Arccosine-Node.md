@@ -21,3 +21,7 @@ void Unity_Arccosine_float4(float4 In, out float4 Out)
     Out = acos(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

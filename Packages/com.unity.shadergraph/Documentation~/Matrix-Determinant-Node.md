@@ -21,3 +21,7 @@ void Unity_MatrixDeterminant_float4x4(float4x4 In, out float Out)
     Out = determinant(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

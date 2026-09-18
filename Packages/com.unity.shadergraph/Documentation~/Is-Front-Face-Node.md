@@ -11,3 +11,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Out | Output      |    Boolean | None | Output value |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]
