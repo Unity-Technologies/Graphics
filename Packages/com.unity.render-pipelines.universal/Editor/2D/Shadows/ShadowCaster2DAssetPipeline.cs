@@ -1,15 +1,17 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Callbacks;
+using UnityEditor.AssetImporters;
+using UnityEditor.Build.Content;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.Universal
 {
     static class ShadowCaster2DAssetPipeline
     {
+		const string k_Physics2D_Enabled_DependencyKey = "ShadowCaster2D/Physics2DEnabled";
+
         [InitializeOnLoadMethod]
         static void Init()
         {
@@ -17,6 +19,12 @@ namespace UnityEngine.Rendering.Universal
             EditorSceneManager.sceneSaving += OnSceneSaving;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+			int physics2DEnabled = 0;
+#if USING_PHYSICS2D_MODULE
+			physics2DEnabled = 1;
+#endif
+			AssetDatabase.RegisterCustomDependency(k_Physics2D_Enabled_DependencyKey, Hash128.Compute(physics2DEnabled));
         }
 
         static void OnSceneSaving(Scene scene, string path)
@@ -39,14 +47,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [PostProcessScene]
-        static void OnPostProcessScene()
+	    class ShadowCaster2DSceneProcess : AssetPostprocessor
         {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
+            public override uint GetVersion() => 1;
+
+            void OnProcessScene(Scene scene, SceneImportContext sceneImportContext)
             {
-                var scene = SceneManager.GetSceneAt(i);
-                if (scene.IsValid() && scene.isLoaded)
-                    BakeScene(scene, markDirty: false);
+                BakeScene(scene, false, context);
             }
         }
 
@@ -55,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         // does not trigger reentrant scene baking.
         static readonly List<ShadowCaster2D> s_CastersBuffer = new List<ShadowCaster2D>();
 
-        static void BakeScene(Scene scene, bool markDirty)
+        static void BakeScene(Scene scene, bool markDirty, AssetImportContext importContext = null)
         {
             if (!scene.IsValid() || !scene.isLoaded)
                 return;
@@ -66,14 +73,14 @@ namespace UnityEngine.Rendering.Universal
                 s_CastersBuffer.Clear();
                 roots[r].GetComponentsInChildren(true, s_CastersBuffer);
                 for (int c = 0; c < s_CastersBuffer.Count; c++)
-                    BakeCaster(s_CastersBuffer[c], markDirty);
+                    BakeCaster(s_CastersBuffer[c], markDirty, importContext);
             }
             s_CastersBuffer.Clear();
         }
 
         static readonly Bounds s_InfiniteBounds = new Bounds(Vector3.zero, new Vector3(1e9f, 1e9f, 1e9f));
 
-        static void BakeCaster(ShadowCaster2D caster, bool markDirty)
+        static void BakeCaster(ShadowCaster2D caster, bool markDirty, AssetImportContext importContext)
         {
             if (caster == null)
                 return;
@@ -92,7 +99,7 @@ namespace UnityEngine.Rendering.Universal
             if (source == null || provider == null)
                 return;
 
-            ForceProviderSourceReady(source);
+            ForceProviderSourceReady(source, importContext);
             caster.EnsureMeshInitialized();
 
             // For Collider providers (and others that defer to render time), OnInitialized
@@ -116,10 +123,13 @@ namespace UnityEngine.Rendering.Universal
                 EditorUtility.SetDirty(caster);
         }
 
-        static void ForceProviderSourceReady(Component source)
+        static void ForceProviderSourceReady(Component source, AssetImportContext importContext)
         {
             if (source == null)
                 return;
+
+			if(importContext != null)
+				importContext.DependsOnCustomDependency(k_Physics2D_Enabled_DependencyKey);
 
 #if USING_PHYSICS2D_MODULE
             if (source is CompositeCollider2D composite)

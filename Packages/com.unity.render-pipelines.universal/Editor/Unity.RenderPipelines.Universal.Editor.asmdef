@@ -81,6 +81,11 @@
             "define": "ENABLE_TERRAIN_MODULE"
         },
         {
+            "name": "com.unity.modules.physics2d",
+            "expression": "1.0.0",
+            "define": "USING_PHYSICS2D_MODULE"
+        },
+        {
             "name": "com.unity.profiling.core",
             "expression": "1.0.3",
             "define": "PROFILER_INSTALLED"
