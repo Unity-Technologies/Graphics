@@ -91,7 +91,7 @@ namespace Unity.Testing.XR.Runtime
                 var resolution = GetResolutionFromSettings(settings);
 
         #if UNITY_EDITOR
-                UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.SetGameViewSize(resolution.width, resolution.height);
+                UnityEditor.TestTools.Graphics.GameViewSize.SetGameViewSize(resolution.width, resolution.height);
         #else
                 Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.Windowed);
         #endif
