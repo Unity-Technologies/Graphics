@@ -126,7 +126,6 @@ int BlockScan(int key, uint lidx)
 #endif
 }
 
-//[RootSignature(ROOT_SIGNATURE)]
 #pragma kernel Scatter
 [numthreads(GROUP_SIZE, 1, 1)]
 void Scatter(

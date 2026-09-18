@@ -20,6 +20,8 @@ THE SOFTWARE.
 // WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
 #pragma exclude_renderers webgpu
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 #pragma multi_compile __ ADD_PART_SUM
 
 uint g_constants_num_keys;
@@ -112,15 +114,13 @@ int BlockScan(int key, uint lidx)
 #endif
 }
 
-//[RootSignature(ROOT_SIGNATURE)]
 #pragma kernel BlockScanAdd
 [numthreads(GROUP_SIZE, 1, 1)]
 void BlockScanAdd(
-    in uint gidx: SV_DispatchThreadID,
     in uint lidx: SV_GroupThreadID,
     in uint bidx: SV_GroupID)
 {
-    uint i = 0; // Loop counter.
+    uint i; // Loop counter.
 
     // Perform coalesced load into LDS
     uint range_begin = bidx * GROUP_SIZE * KEYS_PER_THREAD;
@@ -131,7 +131,11 @@ void BlockScanAdd(
         uint col = (i * GROUP_SIZE + lidx) / KEYS_PER_THREAD;
         uint row = (i * GROUP_SIZE + lidx) % KEYS_PER_THREAD;
 
-        lds_loads[row][col] = (load_index < g_constants_num_keys) ? g_buffer[g_constants_input_keys_offset + load_index] : 0;
+        UNITY_OUT_OF_BOUNDS_BRANCH
+        if (load_index < g_constants_num_keys)
+            lds_loads[row][col] = g_buffer[g_constants_input_keys_offset + load_index];
+        else
+            lds_loads[row][col] = 0;
     }
 
     GroupMemoryBarrierWithGroupSync();
