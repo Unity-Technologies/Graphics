@@ -15,3 +15,7 @@ Defines a constant **Cubemap Asset** for use in the shader. To sample the **Cube
 | Control | Description |
 |:--- |:---|
 | (Cubemap)| Defines the cubemap asset from the project. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

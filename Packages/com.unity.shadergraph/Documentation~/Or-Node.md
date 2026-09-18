@@ -22,3 +22,7 @@ void Unity_Or_float(float In, out float Out)
     Out = A || B;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

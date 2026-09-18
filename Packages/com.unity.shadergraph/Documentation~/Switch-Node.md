@@ -35,3 +35,7 @@ The other input ports allow you to input different branches for each condition y
 | **Name** | The condition's name, which Unity also uses as the name for the corresponding input port. Unity automatically names the conditions with letters in alphabetical order and you can't edit them. |
 | **Type** | The type of comparison to make between the **Predicate** and the condition's **Value**. The options are:<ul><li>Equal</li><li>Not Equal</li><li>Less</li><li>Less Or Equal</li><li>Greater</li><li>Greater Or Equal</li></ul> |
 | **Value** | The value to test the **Predicate** against, according to the condition's **Type**. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

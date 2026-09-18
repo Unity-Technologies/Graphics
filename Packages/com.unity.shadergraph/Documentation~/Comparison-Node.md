@@ -75,3 +75,7 @@ void Unity_Comparison_GreaterOrEqual_float(float A, float B, out float Out)
     Out = A >= B ? 1 : 0;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

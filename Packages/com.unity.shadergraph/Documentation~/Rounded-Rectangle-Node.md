@@ -32,3 +32,7 @@ void Unity_RoundedRectangle_float(float2 UV, float Width, float Height, float Ra
     Out = saturate((1 - d) / fwidth(d));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

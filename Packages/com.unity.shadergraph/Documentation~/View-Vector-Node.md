@@ -18,3 +18,7 @@ Select a **Space** to modify the output value's coordinate space.
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of **View Direction** to output. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

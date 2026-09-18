@@ -24,3 +24,6 @@ The following basic test code represents one possible outcome of this node with 
 float _Boolean = 0;
 ```
 
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

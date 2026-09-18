@@ -21,3 +21,7 @@ If you want to keep using the old behavior in URP outside of object space, repla
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of **View Direction** to output. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

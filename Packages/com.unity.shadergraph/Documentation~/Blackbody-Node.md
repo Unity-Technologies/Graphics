@@ -31,3 +31,7 @@ void Unity_Blackbody_float(float Temperature, out float3 Out)
     Out = color;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

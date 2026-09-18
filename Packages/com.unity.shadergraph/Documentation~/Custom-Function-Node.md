@@ -18,3 +18,4 @@ You can either write small functions directly into graphs by using the string mo
 ## Additional resources
 
 - [Create a Custom Function node](Custom-nodes-hlsl-create-custom-function-node.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

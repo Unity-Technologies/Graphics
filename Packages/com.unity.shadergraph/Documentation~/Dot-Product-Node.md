@@ -26,3 +26,7 @@ void Unity_DotProduct_float4(float4 A, float4 B, out float Out)
     Out = dot(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

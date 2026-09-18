@@ -37,3 +37,4 @@ The Sample Element Texture [!include[nodes-additional-settings](./snippets/nodes
 ## Additional resources
 
 - [Introduction to UI Shader Graph](xref:uie-introduction-to-ui-shader-graph)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

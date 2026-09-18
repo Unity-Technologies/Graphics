@@ -28,3 +28,7 @@ void Unity_Twirl_float(float2 UV, float2 Center, float Strength, float2 Offset, 
     Out = float2(x + Center.x + Offset.x, y + Center.y + Offset.y);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

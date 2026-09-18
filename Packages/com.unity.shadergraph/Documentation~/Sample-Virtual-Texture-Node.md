@@ -69,3 +69,7 @@ float4 SampleVirtualTexture(float2 uv, VTPropertyWithTextureType vtProperty, out
     return GetResolveOutput(info);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]
