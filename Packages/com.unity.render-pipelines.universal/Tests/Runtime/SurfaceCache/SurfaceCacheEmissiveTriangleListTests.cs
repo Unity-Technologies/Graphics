@@ -1,10 +1,12 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
+using UnityEngine.TestTools;
 
 using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.MaterialPool.MaterialDescriptor>;
 
@@ -88,6 +90,18 @@ namespace UnityEngine.Rendering.Universal.Tests
             env.World = new SurfaceCacheWorld();
             env.World.Init(env.Context, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader, GeometryPoolDesc.NewMinimal());
             return env;
+        }
+
+        // Same as TestHarness.DrainDisposedGpuMemory in the core SurfaceCache tests: Dispose only queues
+        // GPU memory for release, and on Metal it is reclaimed later, at frame boundaries. Synchronous
+        // tests never yield, so per-test allocations stack up, which on iOS exhausts the per-process
+        // memory cap.
+        [UnityTearDown]
+        public IEnumerator DrainDisposedGpuMemory()
+        {
+            const int frames = 8;
+            for (int i = 0; i < frames; ++i)
+                yield return null;
         }
 
         static MaterialPool.MaterialDescriptor CreateMaterialDescriptor(bool emissive)

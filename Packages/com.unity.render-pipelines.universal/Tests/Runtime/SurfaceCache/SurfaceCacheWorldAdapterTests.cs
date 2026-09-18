@@ -1,14 +1,28 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
+using System.Collections;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Universal.Tests
 {
     class SurfaceCacheWorldAdapterTests
     {
+        // Same as TestHarness.DrainDisposedGpuMemory in the core SurfaceCache tests: Dispose only queues
+        // GPU memory for release, and on Metal it is reclaimed later, at frame boundaries. Synchronous
+        // tests never yield, so per-test allocations stack up, which on iOS exhausts the per-process
+        // memory cap.
+        [UnityTearDown]
+        public IEnumerator DrainDisposedGpuMemory()
+        {
+            const int frames = 8;
+            for (int i = 0; i < frames; ++i)
+                yield return null;
+        }
+
         [Test]
         public void UpdateLight_ChangedThenDestroyed_LightIsAddedThenRemoved()
         {
@@ -908,18 +922,6 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
 #if ENABLE_TERRAIN_MODULE
-        static Material s_TerrainTemplateMaterial;
-
-        [OneTimeTearDown]
-        public void DestroyTerrainTemplateMaterial()
-        {
-            if (s_TerrainTemplateMaterial != null)
-            {
-                Object.DestroyImmediate(s_TerrainTemplateMaterial);
-                s_TerrainTemplateMaterial = null;
-            }
-        }
-
         static GameObject CreateTerrainGameObject(out Terrain terrain, out TerrainData terrainData)
         {
             terrainData = new TerrainData
@@ -931,10 +933,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             go.name = "SurfaceCacheWorldAdapterTest Terrain";
             terrain = go.GetComponent<Terrain>();
 
-            // Pipeline-agnostic template with a Meta pass; URP terrain shaders resolve to a Meta-less fallback in batchmode where the pipeline never initializes.
-            if (s_TerrainTemplateMaterial == null)
-                s_TerrainTemplateMaterial = new Material(Shader.Find("Nature/Terrain/Standard"));
-            terrain.materialTemplate = s_TerrainTemplateMaterial;
+            terrain.materialTemplate = GraphicsSettings.GetRenderPipelineSettings<SurfaceCacheRenderPipelineResourceSet>().fallbackMaterial;
             return go;
         }
 

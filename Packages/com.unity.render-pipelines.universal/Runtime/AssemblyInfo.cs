@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Entities.Graphics")]
 [assembly: InternalsVisibleTo("Unity.Entities.Graphics.Tests")]
 [assembly: InternalsVisibleTo("Unity.Entities.Graphics.PerformanceTests")]
+[assembly: InternalsVisibleTo("Unity.Entities.Graphics.SurfaceCache.Tests")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.Universal.Runtime")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Multiple_SRP.RuntimeTests")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Multiple_SRP.EditorTests")]
