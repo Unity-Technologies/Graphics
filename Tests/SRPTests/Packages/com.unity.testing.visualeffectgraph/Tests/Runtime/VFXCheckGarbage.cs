@@ -84,10 +84,6 @@ namespace UnityEngine.VFX.Test
         [UnityTest]
         public IEnumerator Create_Garbage_Scenario([ValueSource(nameof(s_Scenarios))] string scenario, [ValueSource(nameof(s_CustomGarbageWrapperTest))] string garbageMode)
         {
-#if ENABLE_CORECLR
-            if (scenario == "021_Check_Garbage_OutputEvent" && garbageMode == "Basic_Usage")
-                Assert.Ignore("Output events allocate 24 B per event in IntPtrObjectMarshalling.GetIntPtr on CoreCLR, see https://jira.unity3d.com/browse/UUM-152638");
-#endif
             UnityEngine.SceneManagement.SceneManager.LoadScene(string.Format("Packages/com.unity.testing.visualeffectgraph/Scenes/{0}.unity", scenario));
             yield return null;
 
