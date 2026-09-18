@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
                 var activeScene = SceneManager.GetActiveScene();
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(activeScene);
                 if (set == null)
-                    UseTemporaryBakingSet(activeScene.GetGuid(), activeSet ? activeSet.Clone() : null);
+                    UseTemporaryBakingSet(activeScene.guid, activeSet ? activeSet.Clone() : null);
             }
 
             // Not sure how we can get to that state but we can
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering
                 var activeScene = SceneManager.GetActiveScene();
                 var activeSceneGuid = ProbeReferenceVolume.GetSceneGuid(activeScene);
                 var activeSceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeSceneGuid);
-                if (activeSceneSet && activeSceneSet.sceneGUIDs.Count == 1)
+                if (activeSceneSet && activeSceneSet.scenesInBakingSet.Count == 1)
                 {
                     if (!activeSceneSet.singleSceneMode)
                     {
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering
                         activeSet = activeSceneSet;
                     }
                 }
-                else if (activeSceneSet && (activeSceneSet.sceneGUIDs.Any(s => s != activeSceneGuid) && activeSceneSet.sceneGUIDs.Count > 1))
+                else if (activeSceneSet && activeSceneSet.scenesInBakingSet.Count > 1)
                 {
                     if (EditorUtility.DisplayDialog("Move Scene to new baking set", $"The scene '{activeScene.name}' is part of the Baking Set '{activeSceneSet.name}' with other scenes." +
                         " This is not compatible with the Single Scene mode.\nDo you want to move the scene to a new set?", "Yes", "Cancel"))
@@ -402,7 +402,7 @@ namespace UnityEngine.Rendering
                     else
                         m_SingleSceneMode = false;
                 }
-                else if (activeSet == null || (activeSet.sceneGUIDs.Any(s => s != activeSceneGuid) && activeSet.sceneGUIDs.Count > 1))
+                else if (activeSet == null || activeSet.scenesInBakingSet.Count > 1)
                     UseTemporaryBakingSet(activeSceneGuid);
             }
 
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering
             m_ScenesToEnable.Clear();
         }
 
-        void UseTemporaryBakingSet(string sceneGuid, ProbeVolumeBakingSet set = null)
+        void UseTemporaryBakingSet(GUID sceneGuid, ProbeVolumeBakingSet set = null)
         {
             if (set == null)
             {
@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering
             return evt.type == EventType.ExecuteCommand && evt.commandName == "ObjectSelectorSelectionDone" && GUIUtility.keyboardControl == k_AddSceneID;
         }
 
-        bool TryMoveSceneToActiveSet(string sceneName, string sceneGuid, ProbeVolumeBakingSet oldSet, int index = -1)
+        bool TryMoveSceneToActiveSet(string sceneName, GUID sceneGuid, ProbeVolumeBakingSet oldSet, int index = -1)
         {
             if (!EditorUtility.DisplayDialog("Move Scene to baking set", $"The scene '{sceneName}' was already added in the baking set '{oldSet.name}'. Do you want to move it to the current set?", "Yes", "Cancel"))
                 return false;
@@ -578,7 +578,7 @@ namespace UnityEngine.Rendering
         void TrySetSceneInSet(SceneData scene, int index)
         {
             var sceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene.guid);
-            if (scene.guid == null || sceneSet == activeSet)
+            if (scene.guid == default || sceneSet == activeSet)
                 return;
             if (sceneSet != null)
             {
@@ -593,9 +593,9 @@ namespace UnityEngine.Rendering
         }
 
         void TryAddSceneToSet(SceneAsset scene) { TryAddSceneToSet(scene.name, FindSceneData(scene).guid); }
-        void TryAddSceneToSet(Scene scene) { TryAddSceneToSet(scene.name, scene.GetGuid()); }
+        void TryAddSceneToSet(Scene scene) { TryAddSceneToSet(scene.name, scene.guid); }
 
-        void TryAddSceneToSet(string sceneName, string sceneGuid)
+        void TryAddSceneToSet(string sceneName, GUID sceneGuid)
         {
             // Don't allow the same scene in two different sets
             var sceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGuid);
@@ -615,7 +615,7 @@ namespace UnityEngine.Rendering
 
         void InitializeSceneList()
         {
-            m_ScenesInSet = new ReorderableList((System.Collections.IList)activeSet.sceneGUIDs, typeof(string), true, true, true, true)
+            m_ScenesInSet = new ReorderableList((System.Collections.IList)activeSet.scenesInBakingSet, typeof(GUID), true, true, true, true)
             {
                 multiSelect = true,
                 elementHeight = EditorGUIUtility.singleLineHeight + 2,
@@ -628,7 +628,7 @@ namespace UnityEngine.Rendering
 
                 onRemoveCallback = list =>
                 {
-                    var guid = (string)list.list[list.index];
+                    var guid = (GUID)list.list[list.index];
                     Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Deleted scene in baking set");
                     activeSet.RemoveScene(guid);
                 },
@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering
                     rect.yMax--;
                     SplitRectInThree(rect, out var sceneRect, out var statusRect, out var bakeRect);
 
-                    var scene = index < activeSet.sceneGUIDs.Count ? FindSceneData(activeSet.sceneGUIDs[index]) : default;
+                    var scene = index < activeSet.scenesInBakingSet.Count ? FindSceneData(activeSet.scenesInBakingSet[index]) : default;
                     Scene scene2 = SceneManager.GetSceneByPath(scene.GetPath());
                     bool isLoaded = scene2.isLoaded;
                     bool isActive = SceneManager.GetActiveScene() == scene2;
@@ -685,7 +685,7 @@ namespace UnityEngine.Rendering
                         bakeRect.width = 21;
 
                         bool bake = true;
-                        if (scene.guid != null)
+                        if (scene.guid != default)
                         {
                             var bakeData = activeSet.GetSceneBakeData(scene.guid);
                             if (bakeData.hasProbeVolume)
@@ -708,7 +708,7 @@ namespace UnityEngine.Rendering
                             content = Styles.iconEnableAll;
                             m_ScenesToEnable.Add(scene);
                         }
-                        if (!isLoaded && scene.guid != null)
+                        if (!isLoaded && scene.guid != default)
                         {
                             content = Styles.iconLoadForBake;
                             m_ScenesForBake.Add(scene);
@@ -771,7 +771,7 @@ namespace UnityEngine.Rendering
         struct SceneData
         {
             public SceneAsset asset;
-            public string guid;
+            public GUID guid;
 
             public string GetPath()
             {
@@ -819,7 +819,7 @@ namespace UnityEngine.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    guid = s,
+                    guid = new GUID(s),
                 };
             }).ToList();
         }
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering
             return data;
         }
 
-        SceneData FindSceneData(string guid)
+        SceneData FindSceneData(GUID guid)
         {
             var data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid);
 
@@ -862,7 +862,7 @@ namespace UnityEngine.Rendering
                 return null;
             if (!singleSceneMode || !instance.activeSet.singleSceneMode)
                 return null;
-            if (!instance.activeSet.sceneGUIDs.Contains(scene.GetGuid()))
+            if (!instance.activeSet.HasScene(scene.guid))
                 return null;
 
             return instance.activeSet;
@@ -1024,7 +1024,7 @@ namespace UnityEngine.Rendering
                 AdaptiveProbeVolumes.s_PartialBakeSceneList.Add(guid);
             }
 
-            if (AdaptiveProbeVolumes.s_PartialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
+            if (AdaptiveProbeVolumes.s_PartialBakeSceneList.Count == activeSet.scenesInBakingSet.Count)
                 AdaptiveProbeVolumes.s_PartialBakeSceneList = null;
 
             if (prv.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario) && activeSet.m_LightingScenarios.Count > 0)

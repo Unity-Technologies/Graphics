@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering
 
                 if (canFreezePlacement && !AdaptiveProbeVolumes.s_IsFreezingPlacement && m_LightingScenarios.arraySize > 1)
                 {
-                    foreach (var guid in bakingSet.sceneGUIDs)
+                    foreach (var guid in bakingSet.scenesInBakingSet)
                     {
                         Scene scene = SceneManager.GetSceneByPath(AssetDatabase.GUIDToAssetPath(guid));
                         if (scene.isLoaded) continue;

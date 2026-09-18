@@ -51,12 +51,11 @@ namespace UnityEditor.Rendering.Analytics
             if (volume == null)
                 return;
 
-            var sceneGUID = EditorSceneManager.GetActiveScene().GetGuid();
-            GUID guid = new GUID(sceneGUID);
-            if (guid.Empty())
+            var sceneGuid = EditorSceneManager.GetActiveScene().guid;
+            if (sceneGuid.Empty())
                 return;
 
-            Analytic analytic = new Analytic(volume, sceneGUID);
+            Analytic analytic = new Analytic(volume, sceneGuid.ToString());
             AnalyticsUtils.SendData(analytic);
 
         }
