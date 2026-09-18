@@ -64,6 +64,19 @@ namespace UnityEngine.Rendering.Tests
             if (XRSettings.enabled)
                 supportsGpuFrameTime = false; // XR
 #endif
+            // UGK-2996
+            if (IsForcedUGK() && Application.platform == RuntimePlatform.Android)
+                supportsGpuFrameTime = false;
+
+            // UGK-2994
+            if (IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                supportsGpuFrameTime = false;
+
+            bool supportsMainThreadCpuFrameTime = true;
+
+            // UGK-2992
+            if (IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.Switch2))
+                supportsMainThreadCpuFrameTime = false;
 
             yield return Warmup();
 
@@ -87,15 +100,15 @@ namespace UnityEngine.Rendering.Tests
             // After k_NumFramesToRender frames, we should have a valid average for every headline counter.
             // A failure means the counter was zero on every captured frame. RenderThreadCPUFrameTime and
             // MainThreadCPUPresentWaitTime are excluded because they can legitimately be zero (modes without
-            // a separate render thread; no vsync / no frame rate cap). GPUFrameTime is only asserted on
-            // platforms known to report it (see supportsGpuFrameTime above).
+            // a separate render thread; no vsync / no frame rate cap). GPUFrameTime and
+            // MainThreadCPUFrameTime are only asserted where the platform reports them (see flags above).
             var avg = m_DebugFrameTiming.m_FrameHistory.SampleAverage;
             var zeroAvg = new System.Collections.Generic.List<string>();
             if (avg.FramesPerSecond <= 0f)
                 zeroAvg.Add(nameof(avg.FramesPerSecond));
             if (avg.FullFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.FullFrameTime));
-            if (avg.MainThreadCPUFrameTime <= 0f)
+            if (supportsMainThreadCpuFrameTime && avg.MainThreadCPUFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.MainThreadCPUFrameTime));
             if (supportsGpuFrameTime && avg.GPUFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.GPUFrameTime));
@@ -107,5 +120,9 @@ namespace UnityEngine.Rendering.Tests
                 $"GPUFrameTime={avg.GPUFrameTime} (asserted={supportsGpuFrameTime}), " +
                 $"MainThreadCPUPresentWaitTime={avg.MainThreadCPUPresentWaitTime}.");
         }
+
+        static bool IsForcedUGK() =>
+            System.Array.Exists(System.Environment.GetCommandLineArgs(),
+                arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
     }
 }

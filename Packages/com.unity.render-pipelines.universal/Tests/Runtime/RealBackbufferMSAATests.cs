@@ -80,6 +80,11 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (XRSystem.displayActive || XRGraphicsAutomatedTests.enabled)
                 IgnoreWithLog("XR is active; URP renders into the XR-owned back buffer and never multisamples it directly, so there is nothing to test here.");
 
+            // UGK-2995
+            if (IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal
+                && SystemInfo.renderingThreadingMode == RenderingThreadingMode.MultiThreaded)
+                IgnoreWithLog("UGK Metal MultiThreaded does not apply back buffer MSAA.");
+
             // Frame isolation: only cameras a test creates should contribute to the per-frame back
             // buffer MSAA aggregation, so disable any cameras already present in the scene.
             foreach (var cam in Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude))
