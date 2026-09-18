@@ -751,10 +751,16 @@ namespace UnityEditor.Rendering
                 {
                     // Left click: Expand/Collapse
                     if (e.button == 0)
+                    {
                         expanded = !expanded;
+                    }
                     // Right click: Context menu
                     else if (contextAction != null)
+                    {
+                        // Commit any in-progress field edit first, same as clicking outside the field would
+                        GUI.FocusControl(null);
                         contextAction(e.mousePosition);
+                    }
 
                     e.Use();
                 }
@@ -842,7 +848,11 @@ namespace UnityEditor.Rendering
             if (contextAction != null)
             {
                 if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                {
+                    // Commit any in-progress field edit first, same as clicking outside the field would
+                    GUI.FocusControl(null);
                     contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                }
             }
         }
 
