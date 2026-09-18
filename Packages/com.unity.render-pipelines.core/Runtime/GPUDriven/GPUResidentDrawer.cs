@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering
         [NoAutoStaticsCleanup]  // Manually cleaned up with [OnCodeUnloading] Cleanup()
         private static GPUResidentDrawer s_Instance = null;
 
+        [NoAutoStaticsCleanup]
+        private static readonly Action k_CleanupDelegate = Cleanup;
+
         ////////////////////////////////////////
         // Public API for rendering pipelines //
         ////////////////////////////////////////
@@ -399,10 +402,10 @@ namespace UnityEngine.Rendering
 
         private static void Cleanup()
         {
-			RenderPipelineManager.activeRenderPipelineDisposed -= Cleanup;
-
             if (s_Instance == null)
                 return;
+
+            RenderPipelineManager.activeRenderPipelineDisposed -= k_CleanupDelegate;
 
             s_Instance.Dispose();
             s_Instance = null;
@@ -418,7 +421,7 @@ namespace UnityEngine.Rendering
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
                 s_Instance = new GPUResidentDrawer(settings);
-				RenderPipelineManager.activeRenderPipelineDisposed += Cleanup;
+                RenderPipelineManager.activeRenderPipelineDisposed += k_CleanupDelegate;
                 ++s_InstanceVersion;
             }
             else
