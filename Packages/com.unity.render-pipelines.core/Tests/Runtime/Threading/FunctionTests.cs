@@ -192,8 +192,15 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
         System.Array.Exists(System.Environment.GetCommandLineArgs(),
             arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
 
+    private const int kMicrosoftVendorId = 0x1414;
+    private const int kBasicRenderDriverDeviceId = 0x8c;
+
+    private static bool IsD3D12WarpAdapter() =>
+        SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12
+        && SystemInfo.graphicsDeviceVendorID == kMicrosoftVendorId
+        && SystemInfo.graphicsDeviceID == kBasicRenderDriverDeviceId;
+
     [Test]
-    [Ignore("Crashes - see https://jira.unity3d.com/browse/UUM-151453")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
 #if UNITY_ANDROID
@@ -210,6 +217,13 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
             Assert.Ignore("ReadAtBroadcast/native wave broken on Adreno 650 / Samsung Galaxy S20 FE (Vulkan)");
         }
 #endif
+
+        if (IsD3D12WarpAdapter()
+            && (kernel == Kernel.ReadAtBroadcast || kernel == Kernel.ReadAtShuffle)
+            && waveSizeKeyword == WaveSizeKeyword.WAVE_SIZE_NATIVE)
+        {
+            Assert.Ignore("WaveReadLaneAt with the native wave size removes the D3D12 WARP device - https://jira.unity3d.com/browse/UUM-151453");
+        }
 
         int groupSize = (int)GroupSizeKeyword.GROUP_SIZE_128;
 
