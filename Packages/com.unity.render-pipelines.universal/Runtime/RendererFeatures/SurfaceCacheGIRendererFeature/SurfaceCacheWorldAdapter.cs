@@ -1212,10 +1212,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        var oldAllowAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
-                        UnityEditor.ShaderUtil.allowAsyncCompilation = false;
-                        descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(_fallbackMaterial, kEmissionMode);
-                        UnityEditor.ShaderUtil.allowAsyncCompilation = oldAllowAsyncCompilation;
+                        descriptor = GetFallbackMaterialDescriptor();
                         _pendingMetaPassEvals.Add(matEntityId);
                         UnityEditor.ShaderUtil.CompilePass(mat, metaPassIndex);
                     }
@@ -1271,6 +1268,27 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!_pendingMetaPassEvals.Contains(matEntityId))
                 {
+#if UNITY_EDITOR
+                    // If the shader was modified, the meta pass may have been deleted, or not yet compiled.
+                    var metaPassIndex = material.FindPass("Meta");
+                    if (metaPassIndex == -1)
+                    {
+                        var fallbackEntry = _entries[matEntityId];
+                        DestroyDescriptorTextures(fallbackEntry.Descriptor);
+                        fallbackEntry.Descriptor = GetFallbackMaterialDescriptor();
+                        _entries[matEntityId] = fallbackEntry;
+
+                        world.UpdateMaterial(fallbackEntry.WorldHandle, in fallbackEntry.Descriptor, kUVChannel);
+                        return;
+                    }
+                    else if (!UnityEditor.ShaderUtil.IsPassCompiled(material, metaPassIndex))
+                    {
+                        _pendingMetaPassEvals.Add(matEntityId);
+                        UnityEditor.ShaderUtil.CompilePass(material, metaPassIndex);
+                        return;
+                    }
+#endif
+
                     var entry = _entries[matEntityId];
                     DestroyDescriptorTextures(entry.Descriptor);
                     entry.Descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material, kEmissionMode);
@@ -1312,6 +1330,17 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var id in ids)
                     RemoveHandle(id, world);
             }
+
+#if UNITY_EDITOR
+            MaterialPool.MaterialDescriptor GetFallbackMaterialDescriptor()
+            {
+                var oldAllowAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
+                UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+                var descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(_fallbackMaterial, kEmissionMode);
+                UnityEditor.ShaderUtil.allowAsyncCompilation = oldAllowAsyncCompilation;
+                return descriptor;
+            }
+#endif
 
             void RemoveHandle(EntityId matEntityId, SurfaceCacheWorld world)
             {
