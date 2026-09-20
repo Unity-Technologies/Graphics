@@ -134,11 +134,19 @@ namespace UnityEngine.Rendering.Universal
                 if (breakBatch && LightBatch.isBatchingSupported)
                     RendererLighting.lightBatch.Flush(cmd);
 
+                // s_PropertyBlock is shared and never cleared, so a stale texture stays bound.
+                // Render Graph can recycle that texture into this pass's own render target, and
+                // the ShaderGraph light shader samples _ShadowTex in every variant. Rebind both
+                // every draw so an unused slot holds black rather than a live colour target.
                 if (passData.layerBatch.lightStats.useNormalMap)
                     s_PropertyBlock.SetTexture(k_NormalMapID, passData.normalMap);
+                else
+                    s_PropertyBlock.SetTexture(k_NormalMapID, passData.fallbackTexture);
 
                 if (useShadows && TryGetShadowIndex(ref layerBatch, j, out var shadowIndex))
                     s_PropertyBlock.SetTexture(k_ShadowMapID, passData.shadowTextures[shadowIndex]);
+                else
+                    s_PropertyBlock.SetTexture(k_ShadowMapID, passData.fallbackTexture);
 
                 if (!passData.isVolumetric || (passData.isVolumetric && light.volumetricEnabled))
                     RendererLighting.SetCookieShaderProperties(light, s_PropertyBlock);
@@ -191,13 +199,14 @@ namespace UnityEngine.Rendering.Universal
 
             internal TextureHandle normalMap;
             internal TextureHandle[] shadowTextures;
+            internal TextureHandle fallbackTexture;
 
             internal int lightTextureIndex;
             internal bool useRenderingLayers;
             internal RenderingLayerUtils.MaskSize maskSize;
         }
 
-        void InitializeRenderPass(IRasterRenderGraphBuilder builder, ContextContainer frameData, PassData passData, int batchIndex, bool isVolumetric = false)
+        void InitializeRenderPass(RenderGraph graph, IRasterRenderGraphBuilder builder, ContextContainer frameData, PassData passData, int batchIndex, bool isVolumetric = false)
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
@@ -234,6 +243,8 @@ namespace UnityEngine.Rendering.Universal
             passData.rendererData = rendererData;
             passData.isVolumetric = isVolumetric;
             passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
+            passData.fallbackTexture = graph.defaultResources.blackTexture;
+            builder.UseTexture(passData.fallbackTexture);
 
             builder.AllowGlobalStateModification(true);
         }
@@ -262,7 +273,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, ProfilerMarkers.s_ProfilingSampleSRT)))
                     {
-                        InitializeRenderPass(builder, frameData, passData, batchIndex, isVolumetric);
+                        InitializeRenderPass(graph, builder, frameData, passData, batchIndex, isVolumetric);
 
                         var lightTextures = universal2DResourceData.lightTextures[batchIndex];
 
@@ -288,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
                 // Default Raster Pass with MRTs
                 using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, LayerDebug.GetProfilingSampler(passName, profilingSampler)))
                 {
-                    InitializeRenderPass(builder, frameData, passData, batchIndex, isVolumetric);
+                    InitializeRenderPass(graph, builder, frameData, passData, batchIndex, isVolumetric);
 
                     var lightTextures = !isVolumetric ? universal2DResourceData.lightTextures[batchIndex] : intermediateTexture;
 

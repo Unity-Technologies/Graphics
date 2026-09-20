@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// SRP_SmokeTest, which does not have the 2D packages. Those tests live in
     /// UniversalGraphicsTest_2D's <c>Assets/Test/Editor/SoftShadowInteriorFillTests.cs</c> instead.
     /// </remarks>
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowGeneratorTests
     {
         const int k_FixedRolesPerVertex = 7;
@@ -228,18 +227,20 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
-        public void BoundsAreTheOutlineBoundsRatherThanTheProjectedExtent()
+        public void BoundsAreLeftUnsetSoThatPS4StillDraws()
         {
-            // The mesh is light-independent, so a projected extent is not even computable here. The
-            // outline AABB is exact rather than approximate, because POSITION is always the
-            // caster-space vertex.
+            // This previously asserted that the bounds were the outline AABB. That assignment is
+            // gone: UUM-151894 showed PS4 drops every draw of this mesh when the bounds are
+            // assigned, whatever the value, and nothing consumes them. See the note in
+            // ShadowUtility.GenerateShadowMesh.
+            //
+            // The outline extent is still available where it is actually used --
+            // ShadowMesh2D.m_LocalBounds feeds the caster bounding sphere that URP culls on.
             ShadowMesh2D shadowMesh = BuildLines(3);
-            Bounds b = shadowMesh.mesh.bounds;
 
-            Assert.AreEqual(-1.0f, b.min.x, 1e-5f);
-            Assert.AreEqual(-1.0f, b.min.y, 1e-5f);
-            Assert.AreEqual(1.0f, b.max.x, 1e-5f);
-            Assert.AreEqual(1.0f, b.max.y, 1e-5f);
+            Assert.Greater(shadowMesh.mesh.vertexCount, 0, "Sanity: the shape must produce geometry.");
+            Assert.AreEqual(Vector3.zero, shadowMesh.mesh.bounds.size,
+                "Shadow mesh bounds must stay unset -- assigning them reintroduces UUM-151894 on PS4.");
         }
 
         // ------------------------------------------------------------------------------------

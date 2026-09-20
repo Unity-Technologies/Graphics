@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// caster has no <c>Renderer</c>, which is exactly when those passes draw this mesh.
     /// </remarks>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowInteriorFillTests
     {
         const int k_Segments = 3;

@@ -650,11 +650,11 @@ namespace UnityEngine.Rendering.Universal
             mesh.SetIndexBufferParams(result.indices.Length, IndexFormat.UInt32);
             mesh.SetIndexBufferData(result.indices, 0, 0, result.indices.Length);
 
-            var subMesh = new SubMeshDescriptor(0, result.indices.Length);
-            subMesh.bounds = result.localBounds;
-            mesh.SetSubMesh(0, subMesh, MeshUpdateFlags.DontRecalculateBounds);
+            // Bounds are deliberately left unset -- see the UUM-151894 note in
+            // ShadowUtility.GenerateShadowMesh. Assigning them makes PS4 drop the draw, and
+            // nothing consumes them.
+            mesh.SetSubMesh(0, new SubMeshDescriptor(0, result.indices.Length));
             mesh.subMeshCount = 1;
-            mesh.bounds = result.localBounds;
         }
 
 #if UNITY_EDITOR

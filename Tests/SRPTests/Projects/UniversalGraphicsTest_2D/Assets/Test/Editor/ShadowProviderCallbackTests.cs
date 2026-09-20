@@ -51,7 +51,6 @@ class BothSignaturesShadowProvider : ShadowShape2DProvider
     }
 }
 
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class ShadowProviderCallbackTests : Provider2DTestBase
 {
     Component NewSourceComponent()

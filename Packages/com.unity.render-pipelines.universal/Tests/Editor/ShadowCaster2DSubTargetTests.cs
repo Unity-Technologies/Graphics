@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.Universal.Tests
     /// .shadergraph asset.
     /// </summary>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class ShadowCaster2DSubTargetTests
     {
         static SubShaderDescriptor GetSubShader()
