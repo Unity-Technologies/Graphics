@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;

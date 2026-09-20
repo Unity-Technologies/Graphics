@@ -28,6 +28,11 @@
             "define": "HAS_BURST"
         },
         {
+            "name": "com.unity.test-framework",
+            "expression": "",
+            "define": "HAS_TEST_FRAMEWORK"
+        },
+        {
             "name": "com.unity.modules.physics",
             "expression": "1.0.0",
             "define": "ENABLE_PHYSICS_MODULE"

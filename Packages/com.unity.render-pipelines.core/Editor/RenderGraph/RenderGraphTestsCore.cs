@@ -1,3 +1,4 @@
+#if HAS_TEST_FRAMEWORK
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,11 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEditor.Rendering.Tests
 {
-    // TODO: Move this class to the Tests/Editor folder once the "IsolatedPackagesVerified" CI test correctly resolves all dependencies.
-    // Currently, the URP package fails to locate the RenderGraphTestsCore class when it's placed under Tests/Editor,
-    // unless the Core package is explicitly added to the "testables" list in the project manifest — which is not a sustainable solution.
+    // Compiled only when com.unity.test-framework is present, via the HAS_TEST_FRAMEWORK version define on
+    // this assembly: SRP Core must not require the test framework to compile. This fixture cannot live in
+    // Core's Tests/Editor assembly, because that one is marked UNITY_INCLUDE_TESTS and is therefore only
+    // compiled when its package is listed in the project manifest "testables" — which Core is not in the
+    // generated per-package test projects, where URP's RenderGraphTests derives from this class.
     internal class RenderGraphTestsCore
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
@@ -193,3 +196,4 @@ namespace UnityEditor.Rendering.Tests
         }
     }
 }
+#endif
