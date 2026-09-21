@@ -242,6 +242,9 @@ namespace UnityEngine.Rendering.Universal
         Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
+        // Unit normal of the light's mesh plane, cached here because ShadowCaster2D.IsLit projects onto it per light per caster.
+        internal Vector3 planeNormal { get; private set; }
+
         internal Mesh lightMesh
         {
             get
@@ -761,6 +764,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void UpdateBoundingSphere()
         {
+            // Unit length whatever the scale, because Transform.forward normalises.
+            planeNormal = transform.forward;
+
             if (isPointLight)
             {
                 boundingSphere = new BoundingSphere(transform.position, m_PointLightOuterRadius);

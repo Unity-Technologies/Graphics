@@ -587,7 +587,33 @@ namespace UnityEngine.Rendering.Universal
                     continue;
 
                 SetShadowProjectionGlobals(cmdBuffer, shadowCaster, light);
-                cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, material, 0, pass);
+
+                // unity_ObjectToWorld must be the SAME map the projection uses, flip included.
+                //
+                // The projection runs in the caster's frame and reaches world through
+                // _ShadowModelMatrix (T*R*flip) applied to a payload already scaled by
+                // _ShadowModelScale (lossy). transform.localToWorldMatrix is T*R*lossy -- the same
+                // thing WITHOUT the sprite flip. Passing that made a graph's Position (World) report,
+                // for every payload point, the position of that point's MIRROR IMAGE.
+                //
+                // A graph that throws each point radially away from the light -- the standard fake-3D
+                // projection -- then computes each vertex's displacement at the wrong point, so
+                // vertices swap throws with their mirrored partners and the projected geometry
+                // degenerates. A y-flipped centred sprite keeps its silhouette while its top and
+                // bottom throws exchange, which inverts the trapezoid into a converging wedge; an
+                // x-flip exchanges near and far and skews it. Unflipped, the two matrices are equal
+                // and nothing was ever wrong, which is why this only ever showed up under flip.
+                //
+                // Built from the cached values rather than the live transform so the draw cannot
+                // disagree with the globals set just above, which are cached.
+                //
+                // Only the PROJECTED draw needs this. The caster passes below apply the flip
+                // themselves in the shader, through UnityFlipSprite on positionOS, and so must keep
+                // the unflipped matrix or the flip would be applied twice.
+                Matrix4x4 projectedObjectToWorld =
+                    shadowCaster.m_CachedShadowMatrix * Matrix4x4.Scale(shadowCaster.m_CachedLossyScale);
+
+                cmdBuffer.DrawMesh(shadowCaster.mesh, projectedObjectToWorld, material, 0, pass);
             }
         }
 

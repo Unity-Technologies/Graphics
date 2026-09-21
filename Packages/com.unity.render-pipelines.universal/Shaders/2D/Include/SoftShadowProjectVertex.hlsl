@@ -688,6 +688,32 @@ float2 SoftShadowPointToLocal(float2 positionOS)
 #endif
 }
 
+// A WORLD-space direction in the space the projection runs in.
+//
+// The counterpart to SoftShadowPointToLocal, for vectors rather than points -- so no translation, since
+// a direction has none. _ShadowModelMatrix is an isometry (ShadowCaster2D.CacheValues builds it as TRS
+// with only a +/-1 flip for scale), so its inverse rotates and mirrors a direction without changing its
+// length. A world-length offset therefore stays a world-length offset, and stays one under non-uniform
+// caster scale as well: the scale is already spent bringing the payload into this space, and a
+// direction never picks it up.
+//
+// w = 0 rather than 1, which is the whole difference between transforming a direction and transforming
+// a point: it drops the matrix's translation column, and SoftShadowLightLocal above passes 1
+// because the light IS a point. Taking .xy afterwards projects onto the caster's plane for a caster
+// rotated out of it, the same truncation the rest of this file makes -- the projection is strictly 2D.
+//
+// Exposed because the ShadowCaster2D SubTarget's Shadow Displacement port is authored in world space
+// and converted with exactly this, and a Custom Function node deriving its own displacement from world
+// quantities needs the identical conversion rather than a second copy of it.
+float2 SoftShadowWorldDirectionToLocal(float2 worldDirection)
+{
+#if NOT_TRANSFORMABLE
+    return worldDirection;
+#else
+    return mul(_ShadowModelInvMatrix, float4(worldDirection, 0.0f, 0.0f)).xy;
+#endif
+}
+
 // Brings the payload and the light into one space.
 //
 // Exposed separately because a caller that evaluates the projection length per point must do so in the
@@ -707,6 +733,32 @@ void SoftShadowPrepare(inout SoftShadowPayload a, out float2 light)
     a.next.xy       *= _ShadowModelScale.xy;
     a.neighbor2.xy  *= _ShadowModelScale.xy;
     a.neighbor2.zw  *= _ShadowModelScale.xy;
+
+    // A MIRRORING scale flips the ring's orientation, so the baked winding sign stops describing the
+    // geometry the projection actually runs on.
+    //
+    // next.z is that sign, and SoftShadowGeometryGenerator bakes it from the signed area of the
+    // caster's UNSCALED local outline ("winding = area < 0 ? -1 : 1"). Every outward normal in
+    // SoftShadowVert is wg * Perp(edge), so an uncorrected sign points them all inward and BOTH away
+    // tests invert.
+    //
+    // The visible symptom is oddly specific, which is worth knowing when this is diagnosed from a
+    // screenshot: the band collapses to nothing because it gates on edgeAway directly, while the fin
+    // survives untouched because it gates on isPole == (awayPrev != awayNext), and that XOR is
+    // invariant when both flip. So only the BACK softness disappears. The shadow keeps its silhouette
+    // and its side penumbra, which makes it look like a softness bug rather than a winding one.
+    //
+    // The DETERMINANT's sign is the test, not either axis alone: two negative axes are a 180 degree
+    // rotation, which preserves orientation and must not flip anything.
+    //
+    // Corrected here rather than in the generator because lossy scale is transform state that can
+    // change -- an animated or script-driven flip -- without the shadow mesh being rebuilt, so a value
+    // baked at generation time cannot stay right. This also sits outside the vertex program that
+    // SoftShadowVertexReference and sim_shader.py verify: they consume an already-prepared payload and
+    // have no scale concept, so this changes which payload is built, not what SoftShadowVert does
+    // with one, and no goldens move.
+    if (_ShadowModelScale.x * _ShadowModelScale.y < 0.0f)
+        a.next.z = -a.next.z;
 #endif
 }
 
