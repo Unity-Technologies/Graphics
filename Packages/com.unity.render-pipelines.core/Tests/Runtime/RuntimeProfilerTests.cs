@@ -64,12 +64,8 @@ namespace UnityEngine.Rendering.Tests
             if (XRSettings.enabled)
                 supportsGpuFrameTime = false; // XR
 #endif
-            // UGK-2996
-            if (IsForcedUGK() && Application.platform == RuntimePlatform.Android)
-                supportsGpuFrameTime = false;
-
-            // UGK-2994
-            if (IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            // UGK-3010: zero on every UGK graphics API, not just Android/Metal.
+            if (IsForcedUGK())
                 supportsGpuFrameTime = false;
 
             bool supportsMainThreadCpuFrameTime = true;
