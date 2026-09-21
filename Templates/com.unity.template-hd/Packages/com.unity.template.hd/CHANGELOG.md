@@ -4,6 +4,11 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.3.0] - 2026-09-16
+
+- Upgraded version to Unity 6000.7.0b1
+- Disabled Static Batching
+
 ## [16.2.2] - 2026-08-07
 
 - Bump SRP packages to 17.7.0
