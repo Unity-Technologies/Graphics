@@ -10,6 +10,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShadowSamplingData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/PCSS.hlsl"
 
 #if !defined(_ADDITIONAL_LIGHT_SHADOWS_KEYWORD_DECLARED)
     #if !defined(_ADDITIONAL_LIGHT_SHADOWS)
@@ -80,6 +81,24 @@
     #elif DEFINED_NONZERO(_SHADOWS_SOFT)
         #undef _SHADOWS_SOFT
         #define _SHADOWS_SOFT 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
+    #if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
+        static const bool _MAIN_LIGHT_SHADOWS_SOFT_PCSS = 0;
+    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
+        #undef _MAIN_LIGHT_SHADOWS_SOFT_PCSS
+        #define _MAIN_LIGHT_SHADOWS_SOFT_PCSS 1
+    #endif
+#endif
+
+#if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
+    #if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
+        static const bool _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS = 0;
+    #elif DEFINED_NONZERO(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
+        #undef _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS
+        #define _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS 1
     #endif
 #endif
 
@@ -156,11 +175,24 @@ bool SoftShadowsAvailable()
     return _SHADOWS_SOFT || _SHADOWS_SOFT_LOW || _SHADOWS_SOFT_MEDIUM || _SHADOWS_SOFT_HIGH;
 }
 
+bool MainLightPCSSAvailable()
+{
+    return _MAIN_LIGHT_SHADOWS_SOFT_PCSS;
+}
+
+bool AdditionalLightPCSSAvailable()
+{
+    return _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS;
+}
+
 // Should match: UnityEngine.Rendering.Universal + 1
 #define SOFT_SHADOW_QUALITY_OFF     half(0)
 #define SOFT_SHADOW_QUALITY_LOW     half(1)
 #define SOFT_SHADOW_QUALITY_MEDIUM  half(2)
 #define SOFT_SHADOW_QUALITY_HIGH    half(3)
+
+// Passed by entry points that have no screen position. Those paths never take the PCSS branch.
+#define INVALID_SHADOW_SCREEN_POS float2(-1.0, -1.0)
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
 // ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
@@ -242,6 +274,11 @@ float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft s
 float4      _MainLightShadowReceiverNormalBias; // world-space receiver normal bias, one component per cascade (all zero in caster mode)
 float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 
+// Main light PCSS. Loose uniforms until the C# side fills them, then they move into GlobalShaderVariables.hlsl.
+float4      _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
+float4      _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
+float4      _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+float4      _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: TAA frame index)
 
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
@@ -254,9 +291,13 @@ CBUFFER_START(AdditionalLightShadows)
 #endif
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
+float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
+float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
+float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
+float4      _AdditionalLightsPCSSScalars;                        // (xy: shadow atlas size in texels, z: TAA frame index, w: unused)
 
 // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode).
 // Lives outside CBUFFER(AdditionalLightShadows) so the persistent constant buffer layout stays unchanged.
@@ -563,6 +604,11 @@ half ComputeCascadeIndex(float3 positionWS)
     return half(4.0) - dot(weights, half4(4, 3, 2, 1));
 }
 
+half GetMainLightCascadeIndex(float3 positionWS)
+{
+    return _MAIN_LIGHT_SHADOWS_CASCADE ? ComputeCascadeIndex(positionWS) : 0;
+}
+
 float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent, float3 normalWS)
 {
     float4 shadowCoord = (float4)0;
@@ -573,7 +619,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
     }
     else
     {
-        half cascadeIndex = _MAIN_LIGHT_SHADOWS_CASCADE ? ComputeCascadeIndex(positionWS) : 0;
+        half cascadeIndex = GetMainLightCascadeIndex(positionWS);
         positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeIndex);
         shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
     }
@@ -581,7 +627,33 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
     return shadowCoord;
 }
 
-half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool isSurfaceTypeTransparent)
+half SampleShadowmapPCSSDirectional(float4 shadowCoord, half cascadeIndex, float2 positionSS, half4 shadowParams)
+{
+    int ci = (int)cascadeIndex;
+    float4 p0 = _MainLightPCSSParams0[ci];
+    float4 p1 = _MainLightPCSSParams1[ci];
+    float4 atlas = _MainLightPCSSAtlas[ci];
+
+    // Unused cascade slots are zeroed. ComputeCascadeIndex returns MAX_SHADOW_CASCADES outside the
+    // last cascade, which would otherwise run the whole filter against atlas texel (0, 0).
+    if (atlas.z <= 0.0)
+        return half(1.0);
+
+    half attenuation = SampleShadow_PCSS_Directional(
+        shadowCoord.xyz, positionSS,
+        atlas.zw, atlas.xy, _MainLightPCSSScalars.x,
+        (int)_MainLightPCSSScalars.y, (int)_MainLightPCSSScalars.z,
+        p0.x, p0.y, p0.z, p0.w,
+        p1.x, p1.y, p1.z, p1.w,
+        (uint)_MainLightPCSSScalars.w, 0.0,
+        _MainLightShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
+
+    attenuation = LerpWhiteTo(attenuation, shadowParams.x);
+
+    return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
+}
+
+half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool isSurfaceTypeTransparent, half cascadeIndex, float2 positionSS, bool usePCSS)
 {
     half result = 1;
 
@@ -599,11 +671,20 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, Shado
         }
         else
         {
-            result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
+            UNITY_BRANCH
+            if (MainLightPCSSAvailable() && usePCSS)
+                result = SampleShadowmapPCSSDirectional(shadowCoord, cascadeIndex, positionSS, shadowParams);
+            else
+                result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
         }
     }
 
     return result;
+}
+
+half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool isSurfaceTypeTransparent)
+{
+    return SampleMainLightRealtimeShadow(shadowCoord, shadowParams, shadowSamplingData, isSurfaceTypeTransparent, half(0.0), INVALID_SHADOW_SCREEN_POS, false);
 }
 
 half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTransparent)
@@ -611,9 +692,35 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTranspa
     return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent);
 }
 
+half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 shadowCoord, float2 positionSS, half4 shadowParams)
+{
+    // Spot and point shadows use a perspective projection.
+    shadowCoord.xyz /= shadowCoord.w;
+
+    float4 pcssParams = _AdditionalLightsPCSSParams[lightIndex];
+    float4 atlas = _AdditionalLightsPCSSAtlas[shadowSliceIndex];
+
+    // A slice with no rectangle was never rendered, for example a culled face of a point light.
+    if (atlas.z <= 0.0)
+        return half(1.0);
+
+    half attenuation = SampleShadow_PCSS_Punctual(
+        shadowCoord.xyz, positionSS,
+        atlas.zw, atlas.xy,
+        pcssParams.x, pcssParams.y,
+        (int)pcssParams.z, (int)pcssParams.w,
+        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalLightsPCSSScalars.xy,
+        (uint)_AdditionalLightsPCSSScalars.z, 0.0,
+        _AdditionalLightsShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
+
+    attenuation = LerpWhiteTo(attenuation, shadowParams.x);
+
+    return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
+}
+
 // returns 0.0 if position is in light's shadow
 // returns 1.0 if position is in light
-half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS)
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS, float2 positionSS, bool usePCSS)
 {
     half result = 1.0;
 
@@ -640,11 +747,20 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
 
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
-            result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
+            UNITY_BRANCH
+            if (AdditionalLightPCSSAvailable() && usePCSS && shadowParams.y >= SOFT_SHADOW_QUALITY_HIGH)
+                result = SampleShadowmapPCSSPunctual(lightIndex, shadowSliceIndex, shadowCoord, positionSS, shadowParams);
+            else
+                result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
         }
     }
 
     return result;
+}
+
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS)
+{
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
 half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS)
@@ -699,12 +815,12 @@ half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels, half4 shadowPar
     return bakedShadow;
 }
 
-half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent)
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent, half cascadeIndex, float2 positionSS, bool usePCSS)
 {
     half4 shadowParams = GetMainLightShadowParams();
     // receiveShadows only disables the realtime contribution; the baked shadowmask below still
     // applies (the material Receive Shadows toggle never affected baked shadows).
-    half realtimeShadow = receiveShadows ? SampleMainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData(), isSurfaceTypeTransparent) : half(1.0);
+    half realtimeShadow = receiveShadows ? SampleMainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, cascadeIndex, positionSS, usePCSS) : half(1.0);
 
     half bakedShadow = BakedShadowsAvailable() ? BakedShadow(shadowMask, occlusionProbeChannels, shadowParams) : half(1.0);
 
@@ -713,13 +829,23 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS)
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent)
+{
+    return MainLightShadow(shadowCoord, positionWS, shadowMask, occlusionProbeChannels, receiveShadows, isSurfaceTypeTransparent, half(0.0), INVALID_SHADOW_SCREEN_POS, false);
+}
+
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent, float2 positionSS)
+{
+    return MainLightShadow(shadowCoord, positionWS, shadowMask, occlusionProbeChannels, receiveShadows, isSurfaceTypeTransparent, GetMainLightCascadeIndex(positionWS), positionSS, true);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS, float2 positionSS, bool usePCSS)
 {
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     ShadowSamplingData samplingData = GetAdditionalLightShadowSamplingData(lightIndex);
     // receiveShadows only disables the realtime contribution; the baked shadowmask below still
     // applies (the material Receive Shadows toggle never affected baked shadows).
-    half realtimeShadow = receiveShadows ? SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS) : half(1.0);
+    half realtimeShadow = receiveShadows ? SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS, positionSS, usePCSS) : half(1.0);
 
     half bakedShadow = half(1.0);
     if (BakedShadowsAvailable())
@@ -736,6 +862,11 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     half shadowFade = (AdditionalLightShadowsAvailable() && receiveShadows) ? GetAdditionalLightShadowFade(positionWS) : half(1.0);
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS)
+{
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)

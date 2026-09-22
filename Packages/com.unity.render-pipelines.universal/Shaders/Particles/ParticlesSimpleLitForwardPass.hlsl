@@ -20,6 +20,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
 #if FEATURES_NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);

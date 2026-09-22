@@ -9,6 +9,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
 
     #ifdef _NORMALMAP
         // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
@@ -53,8 +54,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
-
-    inputData.positionCS = input.positionCS;
     #endif
 
     inputData.preExposureMultiplier = GetPreExposureMultiplier();

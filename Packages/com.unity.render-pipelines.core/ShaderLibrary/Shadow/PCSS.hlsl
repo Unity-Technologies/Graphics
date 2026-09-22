@@ -1,6 +1,10 @@
+#ifndef SHADOW_SAMPLING_PCSS_INCLUDED
+#define SHADOW_SAMPLING_PCSS_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-#define DISK_SAMPLE_COUNT 64
+#define PCSS_DISK_SAMPLE_COUNT 64
+
 // Fibonacci Spiral Disk Sampling Pattern
 // https://people.irisa.fr/Ricardo.Marques/articles/2013/SF_CGF.pdf
 //
@@ -18,7 +22,7 @@
 //     res += "float2 (" + Math.cos(theta) + ", " + Math.sin(theta) + "),\n";
 // }
 
-static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
+static const float2 fibonacciSpiralDirection[PCSS_DISK_SAMPLE_COUNT] =
 {
     float2 (1, 0),
     float2 (-0.7373688780783197, 0.6754902942615238),
@@ -86,52 +90,51 @@ static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
     float2 (0.9205789302157817, 0.3905565685566777)
 };
 
-real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse, const in real sampleCountBias)
+// Samples uniformly spread across the disk kernel, radius baked in.
+// The radius is in texels so the disk stays circular on a non-square atlas.
+real2 ComputeFibonacciSpiralDiskSample_Punctual(const in int sampleIndex, const in real diskRadiusTexels, const in real sampleCountInverse, const in real sampleCountBias)
 {
-    real sampleRadius = diskRadius * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
-    real2 sampleDirection = fibonacciSpiralDirection[sampleIndex];
-    return sampleDirection * sampleRadius;
+    real sampleRadius = diskRadiusTexels * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
+    return fibonacciSpiralDirection[sampleIndex] * sampleRadius;
 }
 
-real PenumbraSizePunctual(real Reciever, real Blocker)
+real PenumbraSizePunctual(real receiver, real blocker)
 {
-    return abs((Reciever - Blocker) / Blocker);
+    return abs((receiver - blocker) / max(blocker, 1e-6));
 }
 
-real PenumbraSizeDirectional(real Reciever, real Blocker, real rangeScale)
+real PenumbraSizeDirectional(real receiver, real blocker, real rangeScale)
 {
-    return abs(Reciever - Blocker) * rangeScale;
+    return abs(receiver - blocker) * rangeScale;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real UMin, real UMax, real VMin, real VMax, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
+bool BlockerSearch_Punctual(inout real averageBlockerDepth, real filterRadiusTexels, real3 posTCAtlas, real2 invAtlasSize, real4 tileBounds, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
+    real numBlockers = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
     real sampleCountBias = 0.5 * sampleCountInverse;
-    real ditherRotation = sampleJitter.x;
 
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, lightArea, sampleCountInverse, sampleCountBias);
+        real2 offset = ComputeFibonacciSpiralDiskSample_Punctual(i, filterRadiusTexels, sampleCountInverse, sampleCountBias);
+        // Apply rotational temporal jitter, then convert texels to atlas UV per axis
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
-                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
+                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y) * invAtlasSize;
 
-        real U = coord.x + offset.x;
-        real V = coord.y + offset.y;
+        real u = posTCAtlas.x + offset.x;
+        real v = posTCAtlas.y + offset.y;
 
         //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
         //        Overfiltering will leak results from other shadow lights.
-        if (U < UMin || U > UMax || V < VMin || V > VMax)
+        // Discard the sample (it is located outside the shadow map, and it may correspond to another cube map face).
+        if (u >= tileBounds.x && u <= tileBounds.y && v >= tileBounds.z && v <= tileBounds.w)
         {
-            // Discard the sample (it is located outside the shadow map, and it may correspond to another cube map face).
-        }
-        else
-        {
-            real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, float2(U, V), 0.0).x;
+            real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, float2(u, v), 0.0).x;
 
-            if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
+            if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, posTCAtlas.z))
             {
-                blockerSum  += shadowMapDepth;
+                blockerSum += shadowMapDepth;
                 numBlockers += 1.0;
             }
         }
@@ -143,41 +146,86 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers > 0;
 }
 
-real PCSS(real3 coord, real UMin, real UMax, real VMin, real VMax, real filterRadius, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS_Punctual(real3 posTCAtlas, real filterRadiusTexels, real2 invAtlasSize, real4 tileBounds, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
     real sum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
     real sampleCountBias = 0.5 * sampleCountInverse;
-    real ditherRotation = sampleJitter.x;
-
     real numValidSamples = 0;
 
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, filterRadius, sampleCountInverse, sampleCountBias);
+        real2 offset = ComputeFibonacciSpiralDiskSample_Punctual(i, filterRadiusTexels, sampleCountInverse, sampleCountBias);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
-                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
+                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y) * invAtlasSize;
 
-        real U = coord.x + offset.x;
-        real V = coord.y + offset.y;
+        real u = posTCAtlas.x + offset.x;
+        real v = posTCAtlas.y + offset.y;
 
         //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
         //        Overfiltering will leak results from other shadow lights.
-        if (U < UMin || U > UMax || V < VMin || V > VMax)
+        if (u >= tileBounds.x && u <= tileBounds.y && v >= tileBounds.z && v <= tileBounds.w)
         {
-            // Discard the sample (it is located outside the shadow map, and it may correspond to another cube map face).
-        }
-        else
-        {
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z)).r;
+            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(u, v, posTCAtlas.z)).r;
             numValidSamples += 1.0;
         }
     }
 
     // Return the unoccluded (unshadowed) value if none of the samples are valid
-    return (numValidSamples > 0) ? (sum / numValidSamples) : 1.0;
+    return (numValidSamples > 0) ? sum / numValidSamples : 1.0;
 }
 
+float SampleShadow_PCSS_Punctual(
+    float3 posTCAtlas, float2 posSS,
+    float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset,
+    float shadowSoftness, float minFilterRadius,
+    int blockerSampleCount, int filterSampleCount,
+    float4 zBufferParam, float2 atlasSize,
+    uint taaFrameIndex, float depthBias,
+    Texture2D shadowMap, SamplerComparisonState compSampler, SamplerState pointSampler)
+{
+    posTCAtlas.z += depthBias;
+
+    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
+    float2 invAtlasSize = rcp(atlasSize);
+
+    // max softness is empirically set resolution of 512, so needs to be set res independent.
+    float tileResolution = shadowmapInAtlasScale.x * atlasSize.x;
+    float resIndependentMaxSoftness = 0.04 * (tileResolution / 512.0);
+
+    float2 halfTexelOffset = 0.5 * invAtlasSize;
+    float4 tileBounds = float4(
+        shadowmapInAtlasOffset.x + halfTexelOffset.x,
+        shadowmapInAtlasOffset.x + shadowmapInAtlasScale.x - halfTexelOffset.x,
+        shadowmapInAtlasOffset.y + halfTexelOffset.y,
+        shadowmapInAtlasOffset.y + shadowmapInAtlasScale.y - halfTexelOffset.y);
+
+    //1) Blocker Search
+    // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
+    // Scaling by it turns a softness value into a radius in texels.
+    float averageBlockerDepth = 0.0;
+    bool blockerFound = BlockerSearch_Punctual(averageBlockerDepth, min(shadowSoftness + 1e-6, resIndependentMaxSoftness) * 4096, posTCAtlas, invAtlasSize, tileBounds, sampleJitter, shadowMap, pointSampler, blockerSampleCount);
+
+    // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
+    // Also, we don't bother if the blocker has not been found.
+    // We need to clamp the distance as the fitted curve will do strange things after this point and because there is no point in scale further after this point.
+    float dist = min(1.0 / (zBufferParam.z * averageBlockerDepth + zBufferParam.w), 7.5);
+    float dist2 = dist * dist;
+    // Fitted curve to match ray trace reference as good as possible.
+    float distScale = 3.298300241 - 2.001364639 * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
+    // Clamp maximum softness here again and not C# as it could be scaled signifcantly by the distance scale.
+    shadowSoftness = min(shadowSoftness * distScale, resIndependentMaxSoftness);
+
+    //2) Penumbra Estimation
+    float filterSize = shadowSoftness * PenumbraSizePunctual(posTCAtlas.z, averageBlockerDepth);
+    filterSize = blockerFound ? max(filterSize, minFilterRadius) : minFilterRadius;
+
+    //3) Filter
+    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
+    return PCSS_Punctual(posTCAtlas, filterSize * 4096.0, invAtlasSize, tileBounds, sampleJitter, shadowMap, compSampler, filterSampleCount);
+}
 
 ///////////////////////////////
 // PCSS variant for area lights
@@ -234,7 +282,7 @@ bool BlockerSearch_Area(inout real closestBlocker, real maxSampleZDistance, real
     FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
 
     closestBlocker = NEARPLANE;
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
         real sampleDistNorm;
         real2 offset = ComputeFibonacciSpiralDiskSampleClumped(i, sampleCountInverse, sampleDistNorm);
@@ -257,6 +305,8 @@ bool BlockerSearch_Area(inout real closestBlocker, real maxSampleZDistance, real
     }
 
     return COMPARE_DEVICE_DEPTH_CLOSER(NEARPLANE, closestBlocker);
+
+    #undef NEARPLANE
 }
 
 real PCSS_Area(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 minCoord, real2 maxCoord, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
@@ -270,7 +320,7 @@ real PCSS_Area(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, 
     FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
 
     real sum = 0.0;
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
         real sampleDistNorm;
         real2 offset = ComputeFibonacciSpiralDiskSampleUniform(i, sampleCountInverse, sampleBias, sampleDistNorm);
@@ -306,18 +356,6 @@ real2 ComputeFibonacciSpiralDiskSampleClumped_Directional(const in int sampleInd
     return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
 }
 
-// Samples uniformly spread across the disk kernel
-real2 ComputeFibonacciSpiralDiskSampleUniform_Directional(const in int sampleIndex, const in real sampleCountInverse, const in real sampleBias, out real sampleDistNorm)
-{
-    // Samples biased away from the center, so that sample 0 doesn't fall at (0, 0), or it will not be affected by sample jitter and create a visible edge.
-    sampleDistNorm = (real)sampleIndex * sampleCountInverse + sampleBias;
-
-    // sqrt results in uniform distribution
-    sampleDistNorm = sqrt(sampleDistNorm);
-
-    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
-}
-
 bool BlockerSearch_Directional(inout real averageBlocker, real filterSize, real3 posTCAtlas, float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, float radial2DepthScale, real minFilterRadius, real minFilterRadial2DepthScale, real blockerClumpSampleExponent)
 {
     // Limitation:
@@ -335,11 +373,10 @@ bool BlockerSearch_Directional(inout real averageBlocker, real filterSize, real3
     averageBlocker = 0.0;
     real sum = 0.0;
     real totalSamples = 0.0;
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
         real sampleDistNorm;
-        real2 offset = 0.0f;
-        offset = ComputeFibonacciSpiralDiskSampleClumped_Directional(i, sampleCountInverse, blockerClumpSampleExponent, sampleDistNorm);
+        real2 offset = ComputeFibonacciSpiralDiskSampleClumped_Directional(i, sampleCountInverse, blockerClumpSampleExponent, sampleDistNorm);
         // Apply rotational temporal jitter
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
@@ -369,13 +406,15 @@ bool BlockerSearch_Directional(inout real averageBlocker, real filterSize, real3
             totalSamples += 1.0;
         }
     }
-    if(totalSamples > 0.0)
+    if (totalSamples > 0.0)
     {
         averageBlocker = sum / totalSamples;
         return true;
     }
     else
         return false;
+
+    #undef Z_OFFSET_DIRECTION
 }
 
 real PCSS_Directional(real3 posTCAtlas, real filterSize, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount, float radial2DepthScale, float maxPCSSOffset, real samplingFilterSize)
@@ -393,10 +432,10 @@ real PCSS_Directional(real3 posTCAtlas, real filterSize, real2 shadowmapInAtlasS
 
     real sum = 0.0;
     real totalSamples = 0.0;
-    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    for (int i = 0; i < sampleCount && i < PCSS_DISK_SAMPLE_COUNT; ++i)
     {
         real sampleDistNorm;
-        real2 offset = ComputeFibonacciSpiralDiskSampleUniform_Directional(i, sampleCountInverse, sampleCountBias, sampleDistNorm);
+        real2 offset = ComputeFibonacciSpiralDiskSampleUniform(i, sampleCountInverse, sampleCountBias, sampleDistNorm);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
         // Scale the normalized offset to shadowmap space
@@ -418,6 +457,66 @@ real PCSS_Directional(real3 posTCAtlas, real filterSize, real2 shadowmapInAtlasS
             totalSamples += 1.0;
         }
     }
-    // totalSamples shall not be zero (at least the center will get sampled)
-    return sum / totalSamples;
+
+    return totalSamples > 0 ? sum / totalSamples : 1.0;
+
+    #undef Z_OFFSET_DIRECTION
 }
+
+float SampleShadow_PCSS_Directional(
+    float3 posTCAtlas, float2 posSS,
+    float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, float texelSize,
+    int blockerSampleCount, int filterSampleCount,
+    float depth2RadialScale, float radial2DepthScale,
+    float maxSampleZDistance, float maxPCSSOffset,
+    float minFilterSizeTexels, float minFilterRadial2DepthScale,
+    float blockerRadial2DepthScale, float blockerClumpSampleExponent,
+    uint taaFrameIndex, float depthBias,
+    Texture2D shadowMap, SamplerComparisonState compSampler, SamplerState pointSampler)
+{
+    posTCAtlas.z += depthBias;
+
+    // This is a modified PCSS. Instead of performing both the blocker search and filtering phases using a flat disc of samples centered around
+    // the shaded point, it adds a z offset to sample points extruding them in a cone shape towards the light. The base of the cone
+    // is at infinity, the apex at the shaded point, and samples lie on the surface of the cone.
+    //
+    // The idea is that only casters within the volume of that pyramid would contribute to the shadow. In other words any casters caught by a sample with
+    // z further away from the light than z of that sample don't contribute to the shadow.
+    //
+    // The maximum height of the pyramid is the z distance between the shaded point and a specified parameter, this clamps the penumbra size
+    // and also avoid inconsistencies between cascades shall the distance exceed the near plane of a cascade because all occluders behind
+    // the near plane are clamped and are considered closer to the receiver than they are.  As the cascade frustum can dynamically change, we
+    // cannot use the near plane and it is thus best to use a fixed distance as tuning parameter so the penumbra size is at least consistent within
+    // each cascade. Higher maxSampleZDistance values result in wider penumbras.
+    float minFilterRadius = texelSize * minFilterSizeTexels;
+
+    // Fetch temporal rotational sample jitter
+    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
+    //1) Blocker Search
+    #if UNITY_REVERSED_Z
+    float blockSearchFilterSize = max(min(1.0 - posTCAtlas.z, maxSampleZDistance) * depth2RadialScale, minFilterRadius);
+    #else
+    float blockSearchFilterSize = max(min(posTCAtlas.z, maxSampleZDistance) * depth2RadialScale, minFilterRadius);
+    #endif
+    float blockerDepth = 0.0;
+    bool blockerFound = BlockerSearch_Directional(blockerDepth, blockSearchFilterSize, posTCAtlas, shadowmapInAtlasScale, shadowmapInAtlasOffset, sampleJitter, shadowMap, pointSampler, blockerSampleCount, blockerRadial2DepthScale, minFilterRadius, minFilterRadial2DepthScale, blockerClumpSampleExponent);
+
+    //2) Penumbra Estimation
+    // Extend the sampling cone only up to a certain margin before the blocker. Extending it past that distance will make samples miss the blocker and the shadow will fade.
+    float blockerDistance = min(abs(blockerDepth - posTCAtlas.z) * 0.9, maxSampleZDistance);
+    // Convert to filter size and clamp to minFilterRadius
+    float filterSize = blockerDistance * depth2RadialScale;
+    float samplingFilterSize = max(filterSize, minFilterRadius);
+
+    // Ensure PCSS sampling offset is at most at 25% of the blocker distance to deal
+    // with very close blockers causing light bleeding across jagged depths in shadowmap
+    maxPCSSOffset = min(maxPCSSOffset, blockerDistance * 0.25);
+
+    //3) Filter
+    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
+    return blockerFound ? PCSS_Directional(posTCAtlas, filterSize, shadowmapInAtlasScale, shadowmapInAtlasOffset, sampleJitter, shadowMap, compSampler, filterSampleCount, minFilterRadial2DepthScale, maxPCSSOffset, samplingFilterSize) : 1.0f;
+}
+
+#endif // SHADOW_SAMPLING_PCSS_INCLUDED

@@ -928,6 +928,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
         public static readonly GlobalKeyword SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
         public static readonly GlobalKeyword SoftShadowsHigh = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsHigh);
+        public static readonly GlobalKeyword MainLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.MainLightShadowsSoftPcss);
+        public static readonly GlobalKeyword AdditionalLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightShadowsSoftPcss);
         public static readonly GlobalKeyword MixedLightingSubtractive = GlobalKeyword.Create(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
         public static readonly GlobalKeyword LightmapShadowMixing = GlobalKeyword.Create(ShaderKeywordStrings.LightmapShadowMixing);
         public static readonly GlobalKeyword ShadowsShadowMask = GlobalKeyword.Create(ShaderKeywordStrings.ShadowsShadowMask);
@@ -1104,6 +1106,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for high quality soft shadows. </summary>
         public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
+
+        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on the main directional light. </summary>
+        internal const string MainLightShadowsSoftPcss = "_MAIN_LIGHT_SHADOWS_SOFT_PCSS";
+
+        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on additional punctual lights. </summary>
+        internal const string AdditionalLightShadowsSoftPcss = "_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS";
 
         /// <summary> Deprecated keyword, equivalent to LightmapShadowMixing without ShadowsShadowMask. Use those instead. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility

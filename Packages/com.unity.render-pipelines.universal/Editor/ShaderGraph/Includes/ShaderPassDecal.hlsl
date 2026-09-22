@@ -74,6 +74,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData = (InputData)0;
 
     inputData.positionWS = positionWS;
+    inputData.positionCS = input.positionCS;
     inputData.normalWS = normalWS;
     inputData.viewDirectionWS = viewDirectionWS;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();

@@ -8,6 +8,7 @@ void InitializeInputData(Varyings input, bool frontFace, out InputData inputData
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
 
     float signNormal = frontFace ? 1.0f : -1.0f;
     inputData.normalWS = signNormal * input.normalWS;
@@ -45,7 +46,6 @@ void InitializeInputData(Varyings input, bool frontFace, out InputData inputData
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
-    inputData.positionCS = input.positionCS;
     #endif
 
     inputData.preExposureMultiplier = GetPreExposureMultiplier();

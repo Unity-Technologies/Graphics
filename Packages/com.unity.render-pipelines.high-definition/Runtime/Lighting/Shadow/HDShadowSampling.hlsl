@@ -281,70 +281,24 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
         return (z[1] < 0.0 || z[2] > 1.0) ? ShadowMoments_SolveDelta4MSM(z, b, lightLeakBias) : ShadowMoments_SolveDelta3MSM(z, b.xy, lightLeakBias);
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDPCSS.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/PCSS.hlsl"
 
 //
 //                  PCSS sampling
 //
-// Note shadowAtlasInfo contains: x: resolution, y: the inverse of atlas resolution
 float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective, float2 shadowAtlasInfo)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
-    // add the depth bias
-    tcs.z += depthBias;
+    float bias = depthBias;
+#else
+    float bias = 0.0;
 #endif
 
-    uint taaFrameIndex = _TaaFrameInfo.z;
-    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
-    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
-
-
-    // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
-    // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
-    float atlasResFactor = (4096 * shadowAtlasInfo.y);
-
-    // max softness is empirically set resolution of 512, so needs to be set res independent.
-    float shadowMapRes = scale.x * shadowAtlasInfo.x; // atlas is square
-    float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
-
-    real halfTexelOffset = 0.5 * shadowAtlasInfo.y;
-
-    real UMin = offset.x + halfTexelOffset;
-    real UMax = offset.x + scale.x - halfTexelOffset;
-
-    real VMin = offset.y + halfTexelOffset;
-    real VMax = offset.y + scale.y - halfTexelOffset;
-
-    //1) Blocker Search
-    float averageBlockerDepth = 0.0;
-    float numBlockers         = 0.0;
-    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, UMin, UMax, VMin, VMax, sampleJitter, tex, samp, blockerSampleCount);
-
-    // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
-    // Also, we don't bother if the blocker has not been found.
-    if (isPerspective)
-    {
-        float dist = 1.0f / (zParams.z * averageBlockerDepth + zParams.w);
-        dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
-        float dist2 = dist * dist;
-        float dist4 = dist2 * dist2;
-        // Fitted curve to match ray trace reference as good as possible.
-        float distScale = 3.298300241 - 2.001364639  * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
-        shadowSoftness *= distScale;
-
-        // Clamp maximum softness here again and not C# as it could be scaled signifcantly by the distance scale.
-        shadowSoftness = min(shadowSoftness, resIndepenentMaxSoftness);
-    }
-
-    //2) Penumbra Estimation
-    float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) :
-                                                         PenumbraSizeDirectional(tcs.z, averageBlockerDepth, zParams.x));
-    filterSize = blockerFound ? max(filterSize, minFilterRadius) : minFilterRadius;
-    filterSize *= atlasResFactor;
-
-    //3) Filter
-    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
-    return PCSS(tcs, UMin, UMax, VMin, VMax, filterSize, sampleJitter, tex, compSamp, filterSampleCount);
+    // ShadowAtlasInfo is (resolution, 1 / resolution) and the punctual atlas is square, so the shared implementation gets the same value for both axes.
+    // It always treats the projection as perspective, which is what every caller of this function asks for.
+    return SampleShadow_PCSS_Punctual(tcs, posSS, scale, offset, shadowSoftness, minFilterRadius,
+        blockerSampleCount, filterSampleCount, zParams, shadowAtlasInfo.xx, _TaaFrameInfo.z, bias,
+        tex, compSamp, samp);
 }
 
 
@@ -407,59 +361,22 @@ float SampleShadow_PCSS_Area(float3 posTCAtlas, float2 posSS, float2 shadowmapIn
 float SampleShadow_PCSS_Directional(HDShadowData sd, float3 posTCAtlas, float2 posSS, float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, float texelSize, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
-    posTCAtlas.z += depthBias;
+    float bias = depthBias;
+#else
+    float bias = 0.0;
 #endif
-    // This is a modified PCSS. Instead of performing both the blocker search and filtering phases using a flat disc of samples centered around
-    // the shaded point, it adds a z offset to sample points extruding them in a cone shape towards the light. The base of the cone
-    // is at infinity, the apex at the shaded point, and samples lie on the surface of the cone.
-    //
-    // The idea is that only casters within the volume of that pyramid would contribute to the shadow. In other words any casters caught by a sample with
-    // z further away from the light than z of that sample don't contribute to the shadow.
-    //
-    // The maximum height of the pyramid is the z distance between the shaded point and a specified parameter, this clamps the penumbra size
-    // and also avoid inconsistencies between cascades shall the distance exceed the near plane of a cascade because all occluders behind
-    // the near plane are clamped and are considered closer to the receiver than they are.  As the cascade frustum can dynamically change, we
-    // cannot use the near plane and it is thus best to use a fixed distance as tuning parameter so the penumbra size is at least consistent within
-    // each cascade. Higher maxSampleZDistance values result in wider penumbras.
-    float depth2RadialScale =  sd.dirLightPCSSParams0.x;
-    float radial2DepthScale = sd.dirLightPCSSParams0.y;
-    float maxBlockerDistance = sd.dirLightPCSSParams0.z;
-    float maxSamplingDistance = sd.dirLightPCSSParams0.w;
-    float minFilterRadius = texelSize * sd.dirLightPCSSParams1.x;
-    float minFilterRadial2DepthScale = sd.dirLightPCSSParams1.y;
-    float blockerRadial2DepthScale = sd.dirLightPCSSParams1.z;
-    float blockerClumpSampleExponent = sd.dirLightPCSSParams1.w;
-    float maxPCSSOffset = maxSamplingDistance * abs(sd.proj.z);
-    float maxSampleZDistance = maxBlockerDistance * abs(sd.proj.z);
 
-    // Fetch temporal rotational sample jitter
-    uint taaFrameIndex = _TaaFrameInfo.z;
-    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
-    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+    // The shared implementation takes the two sampling distances already scaled into device depth.
+    float projZ = abs(sd.proj.z);
 
-    //1) Blocker Search
-    #if UNITY_REVERSED_Z
-    float blockSearchFilterSize = max(min(1.0 - posTCAtlas.z, maxSampleZDistance) * depth2RadialScale, minFilterRadius);
-    #else
-    float blockSearchFilterSize = max(min(posTCAtlas.z, maxSampleZDistance) * depth2RadialScale, minFilterRadius);
-    #endif
-    float blockerDepth = 0.0;
-    bool blockerFound = BlockerSearch_Directional(blockerDepth, blockSearchFilterSize, posTCAtlas, shadowmapInAtlasScale, shadowmapInAtlasOffset, sampleJitter, tex, samp, blockerSampleCount, blockerRadial2DepthScale, minFilterRadius, minFilterRadial2DepthScale, blockerClumpSampleExponent);
-
-    //2) Penumbra Estimation
-    // Extend the sampling cone only up to a certain margin before the blocker. Extending it past that distance will make samples miss the blocker and the shadow will fade.
-    float blockerDistance = min(abs(blockerDepth - posTCAtlas.z) * 0.9, maxSampleZDistance);
-    // Convert to filter size and clamp to minFilterRadius
-    float filterSize = blockerDistance * depth2RadialScale;
-    float samplingFilterSize = max(filterSize, minFilterRadius);
-
-    // Ensure PCSS sampling offset is at most at 25% of the blocker distance to deal
-    // with very close blockers causing light bleeding across jagged depths in shadowmap
-    maxPCSSOffset = min(maxPCSSOffset, blockerDistance * 0.25);
-
-    //3) Filter
-    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
-    return blockerFound ? PCSS_Directional(posTCAtlas, filterSize, shadowmapInAtlasScale, shadowmapInAtlasOffset, sampleJitter, tex, compSamp, filterSampleCount, minFilterRadial2DepthScale, maxPCSSOffset, samplingFilterSize) : 1.0f;
+    return SampleShadow_PCSS_Directional(posTCAtlas, posSS, shadowmapInAtlasScale, shadowmapInAtlasOffset, texelSize,
+        blockerSampleCount, filterSampleCount,
+        sd.dirLightPCSSParams0.x, sd.dirLightPCSSParams0.y,
+        sd.dirLightPCSSParams0.z * projZ, sd.dirLightPCSSParams0.w * projZ,
+        sd.dirLightPCSSParams1.x, sd.dirLightPCSSParams1.y,
+        sd.dirLightPCSSParams1.z, sd.dirLightPCSSParams1.w,
+        _TaaFrameInfo.z, bias,
+        tex, compSamp, samp);
 }
 
 // Note this is currently not available as an option, but is left here to show what needs including if IMS is to be used.

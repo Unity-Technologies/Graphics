@@ -69,9 +69,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const string k_AdditionalLightShadowMapTextureName = "_AdditionalLightsShadowmapTexture";
 
         // Persistent constant buffer backing store (non-SSBO mode).
+        // Keep in sync with CBUFFER_START(AdditionalLightShadows) in com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl
         private const int k_WorldToShadowChannel = 0;
         private const int k_ShadowParamsChannel = 4;
-        private const int k_AdditionalLightShadowsChannelCount = k_ShadowParamsChannel + 1; // 4 (matrix) + 1 (shadow params)
+        private const int k_PCSSChannel = 5;
+        private const int k_AdditionalLightShadowsChannelCount = k_PCSSChannel + 3; // 4 (matrix) + 1 (shadow params) + 3 (PCSS)
         private const string k_AdditionalLightShadowsCBName = "Additional Light Shadows Buffer";
         private const string k_EmptyAdditionalLightShadowsCBName = "Empty Additional Light Shadows Buffer";
         private const string k_ExtraForwardAdditionalLightShadowsCBName = "Extra Forward Additional Light Shadows Buffer";

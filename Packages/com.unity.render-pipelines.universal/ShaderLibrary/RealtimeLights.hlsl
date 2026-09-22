@@ -123,24 +123,30 @@ Light GetMainLight(float4 shadowCoord, bool receiveShadows, bool isSurfaceTypeTr
     return light;
 }
 
-Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask, bool receiveShadows, bool isSurfaceTypeTransparent)
+void ApplyMainLightCookieAndFog(inout Light light, float3 positionWS)
 {
-    Light light = GetMainLight();
-    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes, receiveShadows, isSurfaceTypeTransparent);
-
     real3 cookieColor = SampleMainLightCookie(positionWS);
     light.color *= cookieColor;
 
     // Dim the main light by how much height-fog its rays pass through to reach this fragment.
     // Returns 1 (no change) when no Fog volume override is active.
     light.color *= ComputeMainLightFogAttenuation(positionWS, light.direction);
+}
+
+Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask, bool receiveShadows, bool isSurfaceTypeTransparent)
+{
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes, receiveShadows, isSurfaceTypeTransparent);
+    ApplyMainLightCookieAndFog(light, positionWS);
 
     return light;
 }
 
 Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
-    Light light = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask, receiveShadows, isSurfaceTypeTransparent);
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightShadow(inputData.shadowCoord, inputData.positionWS, shadowMask, _MainLightOcclusionProbes, receiveShadows, isSurfaceTypeTransparent, inputData.positionCS.xy);
+    ApplyMainLightCookieAndFog(light, inputData.positionWS);
 
     if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
@@ -226,7 +232,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
     return GetAdditionalPerObjectLight(lightIndex, positionWS);
 }
 
-Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows, float3 normalWS)
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows, float3 normalWS, float2 positionSS, bool usePCSS)
 {
 #if USE_CLUSTER_LIGHT_LOOP
     int lightIndex = i;
@@ -236,7 +242,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
-    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels, receiveShadows, normalWS);
+    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, positionSS, usePCSS);
 
     real3 cookieColor = SampleAdditionalLightCookie(lightIndex, positionWS);
     light.color *= cookieColor;
@@ -244,9 +250,14 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     return light;
 }
 
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows, float3 normalWS)
+{
+    return GetAdditionalLight(i, positionWS, shadowMask, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
+}
+
 Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent, float3 geometricNormalWS)
 {
-    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, geometricNormalWS);
+    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, geometricNormalWS, inputData.positionCS.xy, true);
 
     if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
