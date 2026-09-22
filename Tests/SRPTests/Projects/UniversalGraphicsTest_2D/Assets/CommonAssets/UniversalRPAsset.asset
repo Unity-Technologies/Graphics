@@ -30,6 +30,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9b5b99c05ab3ae148b6d8faf2da44518, type: 2}
   - {fileID: 11400000, guid: 08012fb08abf2894db49f34a37e68159, type: 2}
   - {fileID: 11400000, guid: 039e24411cea2f6498a6a0733989ae55, type: 2}
+  - {fileID: 11400000, guid: 47f3a0f49714d5f47948925871b58f11, type: 2}
   m_DefaultRendererIndex: 2
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0
@@ -145,6 +146,7 @@ MonoBehaviour:
   m_PrefilterReflectionProbeAtlas: 0
   m_PrefilterPointSamplingUpsampling: 0
   m_PrefilterExposure: 0
+  m_PrefilterVolumetricFog: 0
   m_Light2DPrefilteringMode: 0
   m_Light2DKeptVariantCombos: []
   m_ShaderVariantLogLevel: 0

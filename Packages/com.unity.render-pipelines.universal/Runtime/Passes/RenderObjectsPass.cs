@@ -239,6 +239,7 @@ namespace UnityEngine.Rendering.Universal
             passData.renderPassEvent = renderPassEvent;
             passData.cameraData = cameraData;
             passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
+            passData.depthInputAttachment = false;
         }
 
         private void InitRendererLists(UniversalRenderingData renderingData, UniversalLightData lightData,
@@ -283,18 +284,20 @@ namespace UnityEngine.Rendering.Universal
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
 
-                // Configure depth attachment based on input attachment setting
-                if (m_DepthInputAttachment && SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                if (resourceData.activeDepthTexture.IsValid())
                 {
-                    // Input attachment mode: depth is read-only, accessed from tile memory
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
-                    builder.SetInputAttachment(resourceData.activeDepthTexture, 0, AccessFlags.Read);
-                    passData.depthInputAttachment = true;
-                }
-                else if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
-                {
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.ReadWrite);
-                    passData.depthInputAttachment = false;
+                    // Configure depth attachment based on input attachment setting
+                    if (m_DepthInputAttachment && SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                    {
+                        // Input attachment mode: depth is read-only, accessed from tile memory
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
+                        builder.SetInputAttachment(resourceData.activeDepthTexture, 0, AccessFlags.Read);
+                        passData.depthInputAttachment = true;
+                    }
+                    else if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
+                    {
+                        builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.ReadWrite);
+                    }
                 }
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
