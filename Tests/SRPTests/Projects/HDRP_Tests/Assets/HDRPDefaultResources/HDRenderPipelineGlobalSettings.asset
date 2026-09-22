@@ -216,6 +216,7 @@ MonoBehaviour:
       - rid: 6535566473957998598
       - rid: 7182773092123672577
       - rid: 7830723193898795008
+      - rid: 2350599065947340801
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -868,6 +869,11 @@ MonoBehaviour:
         m_setupCS: {fileID: 7200000, guid: 33be2e9a5506b2843bdb2bdff9cad5e1, type: 3}
         m_preTaaCS: {fileID: 7200000, guid: a679dba8ec4d9ce45884a270b0e22dda, type: 3}
         m_taaCS: {fileID: 7200000, guid: 3923900e2b41b5e47bc25bfdcbcdc9e6, type: 3}
+    - rid: 2350599065947340801
+      type: {class: UpscalerReactiveMaskResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 0
+        m_reactiveMaskPS: {fileID: 4800000, guid: a32e79e9a0e86a14894684c864a169a3, type: 3}
     - rid: 6535566473957998593
       type: {class: WorldRenderPipelineResources, ns: UnityEngine.PathTracing.Core, asm: Unity.PathTracing.Runtime}
       data:

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: MotionVectorVisualizerRPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 13
-  k_AssetPreviousVersion: 13
+  k_AssetVersion: 14
+  k_AssetPreviousVersion: 14
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -34,6 +34,7 @@ MonoBehaviour:
   m_EnableLODCrossFade: 1
   m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
+  m_LightFalloffMode: 0
   m_LightProbeSystem: 0
   m_ProbeVolumeMemoryBudget: 1024
   m_ProbeVolumeBlendingMemoryBudget: 128
@@ -114,15 +115,7 @@ MonoBehaviour:
   m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
   m_PrefilterAlphaOutput: 0
-  m_PrefilterSSAODepthNormals: 1
-  m_PrefilterSSAOSourceDepthLow: 1
-  m_PrefilterSSAOSourceDepthMedium: 1
-  m_PrefilterSSAOSourceDepthHigh: 1
-  m_PrefilterSSAOInterleaved: 1
-  m_PrefilterSSAOBlueNoise: 1
-  m_PrefilterSSAOSampleCountLow: 1
-  m_PrefilterSSAOSampleCountMedium: 1
-  m_PrefilterSSAOSampleCountHigh: 1
+  m_PrefilterSSAOKeywords: 0
   m_PrefilterDBufferMRT1: 1
   m_PrefilterDBufferMRT2: 1
   m_PrefilterDBufferMRT3: 1
@@ -140,6 +133,8 @@ MonoBehaviour:
   m_PrefilterReflectionProbeBoxProjection: 0
   m_PrefilterReflectionProbeAtlas: 0
   m_PrefilterPointSamplingUpsampling: 0
+  m_PrefilterExposure: 0
+  m_PrefilterVolumetricFog: 0
   m_Light2DPrefilteringMode: 0
   m_Light2DKeptVariantCombos: []
   m_ShaderVariantLogLevel: 0

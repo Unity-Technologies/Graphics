@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAssetRenderScaleLow
   m_EditorClassIdentifier: 
-  k_AssetVersion: 13
-  k_AssetPreviousVersion: 13
+  k_AssetVersion: 14
+  k_AssetPreviousVersion: 14
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
-  - {fileID: 11400000, guid: 676c15eaf197b43079a39998e6c23816, type: 2}
-  - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
-  - {fileID: 11400000, guid: 25dd23104304c1c44af89227207beefb, type: 2}
-  - {fileID: 11400000, guid: cf6f9a77b024a423386dd9c195cae7cd, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 11400000, guid: eb924988a8ba4aa4c93a60d0380ce254, type: 2}
   - {fileID: 11400000, guid: 56d7ecd0b54e2884191ca2c577dbacea, type: 2}
   m_DefaultRendererIndex: 0
@@ -39,6 +39,7 @@ MonoBehaviour:
   m_EnableLODCrossFade: 1
   m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
+  m_LightFalloffMode: 0
   m_LightProbeSystem: 0
   m_ProbeVolumeMemoryBudget: 1024
   m_ProbeVolumeBlendingMemoryBudget: 256
@@ -119,15 +120,7 @@ MonoBehaviour:
   m_PrefilterWriteRenderingLayers: 0
   m_PrefilterHDROutput: 0
   m_PrefilterAlphaOutput: 0
-  m_PrefilterSSAODepthNormals: 0
-  m_PrefilterSSAOSourceDepthLow: 0
-  m_PrefilterSSAOSourceDepthMedium: 0
-  m_PrefilterSSAOSourceDepthHigh: 0
-  m_PrefilterSSAOInterleaved: 0
-  m_PrefilterSSAOBlueNoise: 0
-  m_PrefilterSSAOSampleCountLow: 0
-  m_PrefilterSSAOSampleCountMedium: 0
-  m_PrefilterSSAOSampleCountHigh: 0
+  m_PrefilterSSAOKeywords: 0
   m_PrefilterDBufferMRT1: 0
   m_PrefilterDBufferMRT2: 0
   m_PrefilterDBufferMRT3: 0
@@ -145,6 +138,8 @@ MonoBehaviour:
   m_PrefilterReflectionProbeBoxProjection: 0
   m_PrefilterReflectionProbeAtlas: 0
   m_PrefilterPointSamplingUpsampling: 0
+  m_PrefilterExposure: 0
+  m_PrefilterVolumetricFog: 0
   m_Light2DPrefilteringMode: 0
   m_Light2DKeptVariantCombos: []
   m_ShaderVariantLogLevel: 0
