@@ -119,6 +119,7 @@ namespace UnityEditor.VFX
                     }
                     desc.supportMotionVectorPerVertex = srpBinder.GetSupportsMotionVectorPerVertex(actualShaderGraph, materialSettings);
                     desc.blendMode = srpBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
+                    desc.receiveShadows = srpBinder.GetReceiveShadows(actualShaderGraph, materialSettings);
                 }
                 desc.hasAlphaClipping = actualShaderGraph.alphaClipping;
 
@@ -258,6 +259,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        (VFXAbstractRenderedOutput.BlendMode blendMode, bool receiveShadows) GetShaderSettingsFromMaterial(ShaderGraphVfxAsset actualShaderGraph)
+        {
+            var srpBinder = VFXLibrary.currentSRPBinder;
+            return (
+                srpBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings),
+                srpBinder.GetReceiveShadows(actualShaderGraph, materialSettings));
+        }
+
         public override void InitInspectorGUI(VFXAbstractComposedParticleOutput parent)
         {
             base.InitInspectorGUI(parent);
@@ -322,13 +331,13 @@ namespace UnityEditor.VFX
                 var recordMessage = string.IsNullOrEmpty(parent.label) ? "VFX Material Changed" : $"VFX Material Changed - {parent.label}";
                 Undo.RecordObject(parent, recordMessage);
 
-                var previousBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
+                var previousShaderSettings = GetShaderSettingsFromMaterial(actualShaderGraph);
                 var material = parent.FindMaterial();
                 if (material != null)
                     materialSettings.SyncFromMaterial(material);
 
                 // If the blend mode is changed to one that may require sorting (Auto), we require a full recompilation.
-                if (previousBlendMode != VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings))
+                if (previousShaderSettings != GetShaderSettingsFromMaterial(actualShaderGraph))
                     invalidationCause = VFXModel.InvalidationCause.kSettingChanged;
                 else
                     invalidationCause = VFXModel.InvalidationCause.kMaterialChanged;

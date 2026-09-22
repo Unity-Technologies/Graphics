@@ -108,6 +108,15 @@ namespace UnityEditor.VFX.URP
             return false;
         }
 
+        public override bool GetReceiveShadows(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
+        {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            return materialSettings.TryGetFloat(Property.ReceiveShadows, material, out var receiveShadows)
+                ? receiveShadows != 0.0f
+                : base.GetReceiveShadows(shaderGraph, materialSettings);
+        }
+
         public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
             //N.B: About BlendMode multiply, it isn't officially supported by the VFX
@@ -319,7 +328,10 @@ namespace UnityEditor.VFX.URP
                 keywordsToDefines.Add((CoreKeywordDescriptors.LightmapBicubicSampling, 0));
                 keywordsToDefines.Add((CoreKeywordDescriptors.LightmapShadowMixing, 0));
                 keywordsToDefines.Add((CoreKeywordDescriptors.DynamicLightmap, 0));
+                keywordsToDefines.Add((CoreKeywordDescriptors.SurfaceTypeTransparent, output.isBlendModeOpaque ? 0 : 1));
             }
+            if (context is VFXAbstractComposedParticleOutput composedOutput)
+                keywordsToDefines.Add((UniversalLitSubTarget.LitKeywords.ReceiveShadowsOff, composedOutput.receiveShadows ? 0 : 1));
 
             return new ShaderGraphBinder()
             {

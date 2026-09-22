@@ -56,6 +56,11 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public virtual bool GetReceiveShadows(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
+        {
+            return true;
+        }
+
         public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
             return VFXAbstractRenderedOutput.BlendMode.Opaque;

@@ -980,7 +980,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Keywords
-        static class LitKeywords
+        internal static class LitKeywords
         {
             public static readonly KeywordDescriptor ReceiveShadowsOff = new KeywordDescriptor()
             {
