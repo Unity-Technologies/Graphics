@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_UPSCALER_FRAMEWORK
         bool m_WarnedHardwareDrsTemporalUnsupported;
         bool m_WarnedMissingMotionData;
+        bool m_WarnedMissingOpaqueTexture;
+        bool m_WarnedOpaqueDownsamplingNotCompatible;
 #endif
 
         public UpscalerPostProcessPass(Shader reactiveMaskShader, Texture2D[] blueNoise16LTex)
@@ -216,9 +218,15 @@ namespace UnityEngine.Rendering.Universal
             if (RequiresReactiveMaskPass(upscaler))
             {
                 if (resourceData.cameraOpaqueTexture.IsValid())
+                {
                     io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, frameData, m_UpscalerReactiveMaskMaterial, upscaler.reactiveMaskSource, upscalerOptions, io.enableTexArray);
-                else if (Debug.isDebugBuild)
-                    Debug.LogWarning("UpscalerPostProcessPass: Opaque Texture is disabled in the URP asset; reactive mask generation will be skipped.");
+                    m_WarnedMissingOpaqueTexture = false;
+                }
+                else if (Debug.isDebugBuild && !m_WarnedMissingOpaqueTexture)
+                {
+                    Debug.LogWarning("UpscalerPostProcessPass: Opaque Texture is disabled in the current RP asset. Reactive mask generation will be skipped.");
+                    m_WarnedMissingOpaqueTexture = true;
+                }
             }
 
             // Per-frame settings (sharpness, etc.); upscalers read these from io.options, not from the context.
@@ -304,42 +312,33 @@ namespace UnityEngine.Rendering.Universal
             return upscalerOptions != null && upscalerOptions.enableReactiveMaskPass && upscaler.reactiveMaskSource != ReactiveMaskSource.None;
         }
 
-        private class UpscalerReactiveMaskPassData
-        {
-            public Material reactiveMaskMaterial;
-            public int reactiveMaskPassId;
-            public int destWidth;
-            public int destHeight;
-            public float reactiveScale;
-            public float reactiveThreshold;
-            public float reactiveBinaryValue;
-            public uint reactiveFlags;
-            public TextureHandle cameraColorPreAlpha;
-            public TextureHandle cameraColorPostAlpha;
-        }
-
-        static internal TextureHandle UpscalerReactiveMaskPass(RenderGraph renderGraph, ContextContainer frameData, Material material, ReactiveMaskSource reactiveMaskSource, UpscalerOptions upscalerOptions, bool enableTexArray)
+        internal TextureHandle UpscalerReactiveMaskPass(RenderGraph renderGraph, ContextContainer frameData, Material material, ReactiveMaskSource reactiveMaskSource, UpscalerOptions upscalerOptions, bool enableTexArray)
         {
             if (reactiveMaskSource == ReactiveMaskSource.None)
                 return TextureHandle.nullHandle;
-
-            TextureHandle output = TextureHandle.nullHandle;
 
             var io = frameData.Get<UpscalingIO>();
             var cameraData = frameData.Get<UniversalCameraData>();
             var resourceData = frameData.Get<UniversalResourceData>();
 
-            if (Debug.isDebugBuild)
+            var preAlphaDesc = resourceData.cameraOpaqueTexture.GetDescriptor(renderGraph);
+            var postAlphaDesc = resourceData.cameraColorBeforePP.GetDescriptor(renderGraph);
+            if (preAlphaDesc.width != postAlphaDesc.width || preAlphaDesc.height != postAlphaDesc.height)
             {
-                var preAlphaDesc = resourceData.cameraOpaqueTexture.GetDescriptor(renderGraph);
-                var postAlphaDesc = resourceData.cameraColorBeforePP.GetDescriptor(renderGraph);
-                if (preAlphaDesc.width != postAlphaDesc.width || preAlphaDesc.height != postAlphaDesc.height)
+                if (Debug.isDebugBuild && !m_WarnedOpaqueDownsamplingNotCompatible)
                 {
-                    Debug.LogWarning("Opaque Downsampling in current URP Asset is not set to None. Reactive mask quality might degrade.");
+                    Debug.LogWarning($"Opaque Downsampling in the current RP Asset should be None for reactive mask generation, but is set to {UniversalRenderPipeline.asset.opaqueDownsampling}.");
+                    m_WarnedOpaqueDownsamplingNotCompatible = true;
                 }
+                return TextureHandle.nullHandle;
             }
 
-            using (var builder = renderGraph.AddRasterRenderPass<UpscalerReactiveMaskPassData>("Upscaler Reactive Mask", out var passData, k_ReactiveMaskProfilingSampler))
+            if (Debug.isDebugBuild)
+                m_WarnedOpaqueDownsamplingNotCompatible = false;
+
+            TextureHandle output = TextureHandle.nullHandle;
+
+            using (var builder = renderGraph.AddRasterRenderPass<UpscalerReactiveMask.PassData>("Upscaler Reactive Mask", out var passData, k_ReactiveMaskProfilingSampler))
             {
                 int passId = 0;
                 if (reactiveMaskSource == ReactiveMaskSource.Color)
@@ -371,11 +370,15 @@ namespace UnityEngine.Rendering.Universal
                     passId = 1;
                 }
 
+                CoreUtils.SetKeyword(material, UpscalerReactiveMask.ShaderKeywords.k_InputTextureArrayKeyword, enableTexArray);
+
                 uint reactiveFlags = 0;
+                if (io.hdrInput)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyTonemap;
                 if (upscalerOptions.reactiveMaskUseComponentMax)
-                    reactiveFlags |= ReactiveFlags._UseComponentMax;
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._UseComponentMax;
                 if (upscalerOptions.applyReactiveMaskThreshold)
-                    reactiveFlags |= ReactiveFlags._ApplyThreshold;
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyThreshold;
 
                 passData.reactiveMaskMaterial = material;
                 passData.reactiveMaskPassId = passId;
@@ -391,15 +394,15 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(passData.cameraColorPreAlpha, AccessFlags.Read);
                 builder.UseTexture(passData.cameraColorPostAlpha, AccessFlags.Read);
 
-                builder.SetRenderFunc((UpscalerReactiveMaskPassData data, RasterGraphContext ctx) =>
+                builder.SetRenderFunc((UpscalerReactiveMask.PassData data, RasterGraphContext ctx) =>
                 {
                     var material = data.reactiveMaskMaterial;
-                    material.SetFloat(ShaderConstants._ReactiveScale, data.reactiveScale);
-                    material.SetFloat(ShaderConstants._ReactiveThreshold, data.reactiveThreshold);
-                    material.SetFloat(ShaderConstants._ReactiveBinaryValue, data.reactiveBinaryValue);
-                    material.SetInteger(ShaderConstants._ReactiveFlags, (int)data.reactiveFlags);
-                    material.SetTexture(ShaderConstants._ColorPreAlpha, data.cameraColorPreAlpha);
-                    material.SetTexture(ShaderConstants._ColorPostAlpha, data.cameraColorPostAlpha);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveScale, data.reactiveScale);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveThreshold, data.reactiveThreshold);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveBinaryValue, data.reactiveBinaryValue);
+                    material.SetInteger(UpscalerReactiveMask.ShaderConstants._ReactiveFlags, (int)data.reactiveFlags);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPreAlpha, data.cameraColorPreAlpha);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPostAlpha, data.cameraColorPostAlpha);
 
                     ctx.cmd.SetViewport(new Rect(0, 0, data.destWidth, data.destHeight));
                     Blitter.BlitTexture(ctx.cmd, new Vector4(1, 1, 0, 0), material, data.reactiveMaskPassId);
@@ -409,26 +412,5 @@ namespace UnityEngine.Rendering.Universal
             return output;
         }
 #endif
-
-        // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
-        public static class ShaderConstants
-        {
-            public static readonly int _StencilRef           = Shader.PropertyToID("_StencilRef");
-            public static readonly int _StencilMask          = Shader.PropertyToID("_StencilMask");
-            public static readonly int _ReactiveScale        = Shader.PropertyToID("_ReactiveScale");
-            public static readonly int _ReactiveThreshold    = Shader.PropertyToID("_ReactiveThreshold");
-            public static readonly int _ReactiveBinaryValue  = Shader.PropertyToID("_ReactiveBinaryValue");
-            public static readonly int _ReactiveFlags        = Shader.PropertyToID("_ReactiveFlags");
-            public static readonly int _ColorPreAlpha        = Shader.PropertyToID("_ColorPreAlpha");
-            public static readonly int _ColorPostAlpha       = Shader.PropertyToID("_ColorPostAlpha");
-        }
-
-        public static class ReactiveFlags
-        {
-            public static uint _ApplyTonemap        = 1;
-            public static uint _ApplyInverseTonemap = 2;
-            public static uint _ApplyThreshold      = 4;
-            public static uint _UseComponentMax     = 8;
-        }
     }
 }
