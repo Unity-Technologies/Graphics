@@ -12,11 +12,20 @@
 #define UNIFIED_RT_GROUP_SIZE_Z 1
 
 #pragma kernel EstimateCompute Estimate=EstimateCompute UNIFIED_RT_BACKEND_COMPUTE
-// This guard silences an unexpected compilation errors on MacOS.
-#if !defined(SHADER_API_METAL)
 #pragma kernel EstimateHardware Estimate=EstimateHardware UNIFIED_RT_BACKEND_HARDWARE
-#endif
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+
+// Shader variant 'EstimateHardware' fails to compile on Metal with inlineraytracing
+// enabled due to inlineraytracing requiring DXC over FXC compilation path.
+// The DXC path fails to compile the expression 'float3 l1s[3]' in Common.hlsl
+// as it generates invalid SPIR-V OpTypeVector due to the extra DXC+MTL flag
+// '--convert-relaxed-to-half'. Requiring 'native16bit' on the variant removes
+// that extra DXC flag, and enables successful DXC compilation, just like on VK.
+//
+// Todo(UUM-153535) : Remove once DXC + MTL compilation error is addressed
+#if defined(SHADER_API_METAL)
+#pragma require native16bit : UNIFIED_RT_BACKEND_HARDWARE
+#endif
 
 #define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
 
