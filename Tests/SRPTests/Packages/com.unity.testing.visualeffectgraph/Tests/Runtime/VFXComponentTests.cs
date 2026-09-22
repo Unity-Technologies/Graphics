@@ -1670,6 +1670,7 @@ VisualEffect:Vector4.animation_expected_vector4.z
         }
 
         [UnityTest, Description("Regression test UUM-52510")]
+        [Ignore("VFXMemorySerializer::StoreObject failure when the view window builds the undo stack - see https://jira.unity3d.com/browse/UUM-153708")]
         public IEnumerator VisualEffectAsset_Authoring_Constant_Curve_And_Gradient()
         {
             VFXTestCommon.CloseAllUnecessaryWindows();

@@ -63,6 +63,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
             "Not XR compatible", XrDevice.Any
         )]
+        [IgnoreGraphicsTest(
+            "8101_Opaque$",
+            "https://jira.unity3d.com/browse/UUM-153642"
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);

@@ -127,6 +127,12 @@ namespace UnityEditor.VFX.Test
 
         //Cover case 1122404
         [UnityTest]
+#pragma warning disable CS0618 // UnityCoreClrExplicitDisabled is obsolete-marked, intended for internal use during CoreCLR bring-up
+        [UnityCoreClrExplicitDisabled(
+            "https://jira.unity3d.com/browse/UUM-153707",
+            "The test expects Mono float-to-int wraparound; CoreCLR saturates to int.MaxValue"
+        )]
+#pragma warning restore CS0618
         public IEnumerator Create_Asset_And_Set_Really_High_SpawnRate()
         {
             VisualEffect vfxComponent;

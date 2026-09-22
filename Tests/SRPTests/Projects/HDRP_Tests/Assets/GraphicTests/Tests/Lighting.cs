@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "2004|2224|2318|2319|2320|2551",
             "Not XR compatible", XrDevice.Any
         )]
+        [IgnoreGraphicsTest(
+            "(2307_Shadow_VeryHigh|2316_ShadowTint|2322_Directional_Light_Shadow_PCSS|2406_Area_Rect_Shadow_PCSS)$",
+            "https://jira.unity3d.com/browse/UUM-153640"
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
