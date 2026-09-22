@@ -85,9 +85,13 @@ GBufferFragOutput frag(PackedVaryings packedInput)
 
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 #ifdef _TERRAIN_SG_ALPHA_CLIP
-    half alpha = AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-#else
+    AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+#endif
+
+#ifdef TERRAIN_SPLAT_BASEPASS
     half alpha = 1.0;
+#else
+    half alpha = splatWeight;
 #endif
 
     InputData inputData;
