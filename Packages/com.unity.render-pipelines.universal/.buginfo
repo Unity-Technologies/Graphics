@@ -29,3 +29,9 @@ post-processing-and-compositing:
     path:
       - ^.*PostProcessPass?.*$
   area: Post-processing and Compositing
+
+surface-cache:
+  when:
+    path:
+      - ^.*SurfaceCache.*$
+  area: Lighting
