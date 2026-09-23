@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_QuadViewMVTex = Shader.PropertyToID("_QuadViewMVTex");
         private static readonly int k_QuadViewUVScales = Shader.PropertyToID("_QuadViewUVScales");
         private static readonly int k_QuadViewUVOffsets = Shader.PropertyToID("_QuadViewUVOffsets");
+        private static readonly int k_QuadViewPrevUVOffsets = Shader.PropertyToID("_QuadViewPrevUVOffsets");
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;
         private RTHandle m_XRMotionVectorDepth;
@@ -34,6 +35,8 @@ namespace UnityEngine.Rendering.Universal
         private RTHandle m_QuadViewOuterMV;
         // Store outer dimensions; symmetric projection can give the outer swapchain a FoV-adjusted width that differs from the inner
         private RenderTargetInfo m_QuadViewOuterMVImportInfo;
+        // Previous-frame inner UV offsets for the gaze-shift MV correction. NaN until the first inner pass Render.
+        private Vector4 m_PreviousQuadViewUVOffsets = new Vector4(float.NaN, float.NaN, float.NaN, float.NaN);
 
         /// <summary>
         /// Creates a new <c>XRDepthMotionPass</c> instance.
@@ -269,54 +272,51 @@ namespace UnityEngine.Rendering.Universal
             // First, import XR motion color and depth targets into the RenderGraph
             ImportXRMotionColorAndDepth(renderGraph, cameraData);
 
-            // Skipped under Temporal Pixel Synthesis because reprojection does not write the stencil
-            // bits the TPS compositor uses to exclude transparents from temporal reuse.
-            if (!cameraData.xr.isTemporalPixelSynthesisActive)
+            // For Quad View inner pass: reproject the outer MV texture rather than re-rendering all objects
+            if (cameraData.xr.isQuadViewInnerPass)
             {
-                // For Quad View inner pass: reproject the outer MV texture rather than re-rendering all objects
-                if (cameraData.xr.isQuadViewInnerPass)
+                // Skipped under TPS because reprojection does not yet write the stencil bits needed to exclude transparents from temporal reuse.
+                if (m_QuadViewOuterMV != null && !cameraData.xr.isTemporalPixelSynthesisActive)
                 {
-                    if (m_QuadViewOuterMV != null)
-                    {
-                        RecordReprojectionPass(renderGraph, cameraData);
-                        return;
-                    }
+                    RecordReprojectionPass(renderGraph, cameraData);
+                    m_PreviousQuadViewUVOffsets = cameraData.xr.uvOffsets;
+                    return;
                 }
-                else if (cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews)
+                m_PreviousQuadViewUVOffsets = cameraData.xr.uvOffsets;
+            }
+            else if (cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews && !cameraData.xr.isTemporalPixelSynthesisActive)
+            {
+                // Outer pass: capture the MV target for the inner reprojection to read
+                var outerTargetId = cameraData.xr.motionVectorRenderTarget;
+                if (m_QuadViewOuterMV == null)
+                    m_QuadViewOuterMV = RTHandles.Alloc(outerTargetId);
+                else if (m_QuadViewOuterMV.nameID != outerTargetId)
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_QuadViewOuterMV, outerTargetId);
+
+                // Save dimensions; symmetric projection can give the outer a different width than the inner
+                var desc = cameraData.xr.motionVectorRenderTargetDesc;
+                m_QuadViewOuterMVImportInfo = new RenderTargetInfo
                 {
-                    // Outer pass: capture the MV target for the inner reprojection to read
-                    var outerTargetId = cameraData.xr.motionVectorRenderTarget;
-                    if (m_QuadViewOuterMV == null)
-                        m_QuadViewOuterMV = RTHandles.Alloc(outerTargetId);
-                    else if (m_QuadViewOuterMV.nameID != outerTargetId)
-                        RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_QuadViewOuterMV, outerTargetId);
+                    width       = desc.width,
+                    height      = desc.height,
+                    volumeDepth = desc.volumeDepth,
+                    msaaSamples = desc.msaaSamples,
+                    format      = desc.graphicsFormat
+                };
 
-                    // Save dimensions; symmetric projection can give the outer a different width than the inner
-                    var desc = cameraData.xr.motionVectorRenderTargetDesc;
-                    m_QuadViewOuterMVImportInfo = new RenderTargetInfo
-                    {
-                        width       = desc.width,
-                        height      = desc.height,
-                        volumeDepth = desc.volumeDepth,
-                        msaaSamples = desc.msaaSamples,
-                        format      = desc.graphicsFormat
-                    };
-
-                    // m_XRMotionVectorColor/Depth would be mutated in-place when the inner pass calls ImportXRMotionColorAndDepth, corrupting the handles.
-                    // Instead, re-import via separate m_QuadViewOuterMV so the outer pass's attachments resolve to the correct native texture at execution time.
-                    var outerAttachmentParams = new ImportResourceParams
-                    {
-                        // Stencil must be cleared to 0 each frame for Pass 0's stencil test
-                        clearOnFirstUse  = true,
-                        clearColor       = Color.black,
-                        discardOnLastUse = false
-                    };
-                    xrMotionVectorColor = renderGraph.ImportTexture(m_QuadViewOuterMV, m_QuadViewOuterMVImportInfo, outerAttachmentParams);
-                    var outerDepthInfo = m_QuadViewOuterMVImportInfo;
-                    outerDepthInfo.format = desc.depthStencilFormat;
-                    xrMotionVectorDepth = renderGraph.ImportTexture(m_QuadViewOuterMV, outerDepthInfo, outerAttachmentParams);
-
-                }
+                // m_XRMotionVectorColor/Depth would be mutated in-place when the inner pass calls ImportXRMotionColorAndDepth, corrupting the handles.
+                // Instead, re-import via separate m_QuadViewOuterMV so the outer pass's attachments resolve to the correct native texture at execution time.
+                var outerAttachmentParams = new ImportResourceParams
+                {
+                    // Stencil must be cleared to 0 each frame for Pass 0's stencil test
+                    clearOnFirstUse  = true,
+                    clearColor       = Color.black,
+                    discardOnLastUse = false
+                };
+                xrMotionVectorColor = renderGraph.ImportTexture(m_QuadViewOuterMV, m_QuadViewOuterMVImportInfo, outerAttachmentParams);
+                var outerDepthInfo = m_QuadViewOuterMVImportInfo;
+                outerDepthInfo.format = desc.depthStencilFormat;
+                xrMotionVectorDepth = renderGraph.ImportTexture(m_QuadViewOuterMV, outerDepthInfo, outerAttachmentParams);
             }
 
             // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -443,6 +443,8 @@ namespace UnityEngine.Rendering.Universal
 
             var uvScales  = cameraData.xr.uvScales;
             var uvOffsets = cameraData.xr.uvOffsets;
+            // Fall back to the current offset if we don't have the immediately previous frame.
+            var prevUVOffsets = float.IsNaN(m_PreviousQuadViewUVOffsets.x) ? uvOffsets : m_PreviousQuadViewUVOffsets;
 
             using (var builder = renderGraph.AddRasterRenderPass<ReprojectionPassData>(
                 "XR MotionVector QuadView Reprojection", out var passData, base.profilingSampler))
@@ -462,6 +464,7 @@ namespace UnityEngine.Rendering.Universal
                     context.cmd.SetGlobalTexture(k_XRDepthTextureNameID, data.outerDepthSrc, RenderTextureSubElement.Depth);
                     context.cmd.SetGlobalVector(k_QuadViewUVScales, uvScales);
                     context.cmd.SetGlobalVector(k_QuadViewUVOffsets, uvOffsets);
+                    context.cmd.SetGlobalVector(k_QuadViewPrevUVOffsets, prevUVOffsets);
                     context.cmd.DrawProcedural(Matrix4x4.identity, m_XRMotionVectorMaterial, shaderPass: 2,
                         MeshTopology.Triangles, 3, 1);
                 });
@@ -477,6 +480,7 @@ namespace UnityEngine.Rendering.Universal
                 m_PreviousViewProjection[i] = Matrix4x4.identity;
             }
             m_LastFrameIndex = -1;
+            m_PreviousQuadViewUVOffsets = new Vector4(float.NaN, float.NaN, float.NaN, float.NaN);
         }
 
         /// <summary>

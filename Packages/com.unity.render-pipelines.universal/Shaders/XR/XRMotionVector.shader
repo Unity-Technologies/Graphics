@@ -238,11 +238,13 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
 
             // -------------------------------------
             // Constants
-            float4   _QuadViewUVScales;   // inner-to-outer UV scale,  xy = left eye, zw = right eye
-            float4   _QuadViewUVOffsets;  // inner-to-outer UV offset, xy = left eye, zw = right eye
+            float    _SpaceWarpNDCModifier;
+            float4   _QuadViewUVScales;       // inner-to-outer UV scale,         xy = left eye, zw = right eye
+            float4   _QuadViewUVOffsets;      // inner-to-outer UV offset (curr),  xy = left eye, zw = right eye
+            float4   _QuadViewPrevUVOffsets;  // inner-to-outer UV offset (prev),  xy = left eye, zw = right eye
 
             TEXTURE2D_X(_QuadViewMVTex);
-            SAMPLER(sampler_QuadViewMVTex);
+            SAMPLER(s_point_clamp_sampler);
             TEXTURE2D_X(_XRDepthTexture);
             SAMPLER(sampler_XRDepthTexture);
 
@@ -279,8 +281,9 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                float2 uvScale  = unity_StereoEyeIndex == 0 ? _QuadViewUVScales.xy  : _QuadViewUVScales.zw;
-                float2 uvOffset = unity_StereoEyeIndex == 0 ? _QuadViewUVOffsets.xy : _QuadViewUVOffsets.zw;
+                float2 uvScale      = unity_StereoEyeIndex == 0 ? _QuadViewUVScales.xy      : _QuadViewUVScales.zw;
+                float2 uvOffset     = unity_StereoEyeIndex == 0 ? _QuadViewUVOffsets.xy     : _QuadViewUVOffsets.zw;
+                float2 prevUVOffset = unity_StereoEyeIndex == 0 ? _QuadViewPrevUVOffsets.xy : _QuadViewPrevUVOffsets.zw;
 
                 // Remap inner UV to the outer MV texture.
                 // uvOffset.y uses (1 - uvScale.y - uvOffset.y) because the OpenXR Vulkan projection inverts the sign fed to ExtractFrustumBoundsFromProjection
@@ -292,8 +295,21 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
 
                 outDepth = SAMPLE_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, outerUV).x;
 
-                float4 outerMV = SAMPLE_TEXTURE2D_X(_QuadViewMVTex, sampler_QuadViewMVTex, outerUV);
-                return float4(outerMV.x / uvScale.x, outerMV.y / uvScale.y, outerMV.z, 0);
+                float4 outerMV = SAMPLE_TEXTURE2D_X(_QuadViewMVTex, s_point_clamp_sampler, outerUV);
+
+                // Gaze-shift correction: when the inner frustum center moves between frames due to eye tracking, the inner MVs must also pan by that amount.
+                // The UV-space offset delta is converted to NDC-space ([0,1] UV -> [-1, 1] NDC)
+                // The Y term is then brought into the SpaceWarp NDC convention via _SpaceWarpNDCModifier, matching Passes 0 and 1
+                float panX =  2.0 * (prevUVOffset.x - uvOffset.x) / uvScale.x;
+                float panY =  2.0 * (prevUVOffset.y - uvOffset.y) / uvScale.y;
+                #if UNITY_UV_STARTS_AT_TOP
+                panY *= _SpaceWarpNDCModifier;
+                #endif
+
+                return float4(outerMV.x / uvScale.x + panX,
+                              outerMV.y / uvScale.y + panY,
+                              outerMV.z,
+                              0);
             }
             ENDHLSL
         }
