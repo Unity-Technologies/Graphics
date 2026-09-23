@@ -710,6 +710,10 @@ PlayerSettings:
   additionalCompilerArguments:
     Standalone:
     - -warnaserror+
+    - -warnaserror-:CS0618
+    - -warnaserror-:UAC0005
+    - -warnaserror-:UAC0007
+    - -warnaserror-:UAC0020
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

@@ -834,9 +834,13 @@ PlayerSettings:
   additionalCompilerArguments:
     Standalone:
     - -warnaserror+
+    - -warnaserror-:CS0618
+    - -warnaserror-:UAC0005
+    - -warnaserror-:UAC0007
+    - -warnaserror-:UAC0020
     - -warnaserror-:UAC0024
-    - -warnaserror-:UAC1009
     - -warnaserror-:UAC0025
+    - -warnaserror-:UAC1009
   platformArchitecture: {}
   scriptingBackend:
     Android: 0
