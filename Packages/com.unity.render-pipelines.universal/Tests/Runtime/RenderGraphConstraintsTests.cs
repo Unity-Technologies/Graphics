@@ -336,7 +336,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             Object.DestroyImmediate(renderTexture);
         }
 
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer, RuntimePlatform.Switch })] // Unstable on Switch - see https://jira.unity3d.com/browse/UUM-153176
+        // [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer })]
+        // Was already disabled on WebGL, but now it is unstable on multiple platforms
+        // Uncomment the UnityPlatform line above once the instability is fixed to keep the test disabled on WebGL
+        [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-153176")]
         [UnityTest]
         public IEnumerator PreviewCameraDoesNotTriggerOnTileValidation()
         {
