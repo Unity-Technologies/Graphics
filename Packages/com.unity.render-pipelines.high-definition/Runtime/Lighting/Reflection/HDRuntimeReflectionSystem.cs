@@ -7,6 +7,7 @@ using System;
 using System.Reflection;
 #endif
 
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -25,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
+        [NoAutoStaticsCleanup]
+        static readonly HDRuntimeReflectionSystem k_instance = new HDRuntimeReflectionSystem();
 
         // We must use a static constructor and only set the system in the Initialize method
         // in case this method is called multiple times.
@@ -33,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void ResetStaticsOnLoad()
         {
             if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
-                ScriptableRuntimeReflectionSystemSettings.system = new HDRuntimeReflectionSystem();
+                ScriptableRuntimeReflectionSystemSettings.system = k_instance;
         }
 
         // Note: method bool TickRealtimeProbes() will create GC.Alloc due to Unity binding code
