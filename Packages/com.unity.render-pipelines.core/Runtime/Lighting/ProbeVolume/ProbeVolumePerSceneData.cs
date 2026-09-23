@@ -21,10 +21,7 @@ namespace UnityEngine.Rendering
         // Warning: this is the baking set this scene was part of during last bake
         // It shouldn't be used while baking as the scene may have been moved since then
         [SerializeField, FormerlySerializedAs("bakingSet")] internal ProbeVolumeBakingSet serializedBakingSet;
-        [SerializeField] GUID m_SceneGUID;
-        internal GUID sceneGUID => m_SceneGUID;
-
-        [SerializeField, FormerlySerializedAs("sceneGUID"), Obsolete] string m_LegacySceneGUID = "";
+        [SerializeField] internal string sceneGUID = "";
 
         // All code bellow is only kept in order to be able to cleanup obsolete data.
         [Serializable]
@@ -81,39 +78,31 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             // Check if we are trying to load APV data for a scene which has not enabled APV (or it was removed)
-            var bakedData = serializedBakingSet.GetSceneBakeData(m_SceneGUID, addIfMissing: false);
+            var bakedData = serializedBakingSet.GetSceneBakeData(sceneGUID, addIfMissing: false);
             if (bakedData != null && bakedData.hasProbeVolume == false)
                 return;
 #endif
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.AddPendingSceneLoading(m_SceneGUID, serializedBakingSet);
+            refVol.AddPendingSceneLoading(sceneGUID, serializedBakingSet);
         }
 
         internal void QueueSceneRemoval()
         {
             if (serializedBakingSet != null)
-                ProbeReferenceVolume.instance.AddPendingSceneRemoval(m_SceneGUID);
+                ProbeReferenceVolume.instance.AddPendingSceneRemoval(sceneGUID);
         }
 
         void OnEnable()
         {
-#pragma warning disable 612
-            if (m_SceneGUID == default && !string.IsNullOrEmpty(m_LegacySceneGUID))
-            {
-                m_SceneGUID = new GUID(m_LegacySceneGUID);
-                m_LegacySceneGUID = "";
-            }
-#pragma warning restore 612
-
+#if UNITY_EDITOR
             // In the editor, always refresh the GUID as it may become out of date is scene is duplicated or other weird things
             // This field is serialized, so it will be available in standalones, where it can't change anymore.
             // Only change the GUID if the new one is valid.
-#if UNITY_EDITOR
-            var newGuid = gameObject.scene.guid;
-            if (newGuid != m_SceneGUID && newGuid != default)
+            var newGuid = gameObject.scene.GetGuid();
+            if (newGuid != sceneGUID && new GUID(newGuid) != default)
             {
-                m_SceneGUID = newGuid;
+                sceneGUID = newGuid;
                 EditorUtility.SetDirty(this);
             }
 #endif
@@ -163,7 +152,7 @@ namespace UnityEngine.Rendering
         internal bool ResolveCellData()
         {
             if (serializedBakingSet != null)
-                return serializedBakingSet.ResolveCellData(serializedBakingSet.GetSceneCellIndexList(m_SceneGUID));
+                return serializedBakingSet.ResolveCellData(serializedBakingSet.GetSceneCellIndexList(sceneGUID));
 
             return false;
         }

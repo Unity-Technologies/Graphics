@@ -9,14 +9,14 @@ namespace UnityEditor.Rendering.Tests
     class ProbeVolumeBakingSetTests
     {
         ProbeVolumeBakingSet m_BakingSet;
-        GUID m_SceneGUID;
+        string m_SceneGUID;
 
         [SetUp]
         public void SetUp()
         {
             m_BakingSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             m_BakingSet.SetDefaults();
-            m_SceneGUID = GUID.Generate();
+            m_SceneGUID = GUID.Generate().ToString();
         }
 
         [TearDown]
@@ -33,16 +33,16 @@ namespace UnityEditor.Rendering.Tests
             Undo.IncrementCurrentGroup();
             Undo.RegisterCompleteObjectUndo(m_BakingSet, "Added scene in baking set");
             m_BakingSet.AddScene(m_SceneGUID);
-            Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsTrue(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
 
             Undo.IncrementCurrentGroup();
             Undo.PerformUndo();
-            Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsFalse(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.IsNull(ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
 
             Assert.IsTrue(m_BakingSet.TryAddScene(m_SceneGUID));
-            Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsTrue(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
         }
 
@@ -55,10 +55,10 @@ namespace UnityEditor.Rendering.Tests
 
             Undo.IncrementCurrentGroup();
             Undo.PerformUndo();
-            Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsFalse(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
 
             Undo.PerformRedo();
-            Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsTrue(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
         }
 
@@ -70,12 +70,12 @@ namespace UnityEditor.Rendering.Tests
             Undo.IncrementCurrentGroup();
             Undo.RegisterCompleteObjectUndo(m_BakingSet, "Deleted scene in baking set");
             m_BakingSet.RemoveScene(m_SceneGUID);
-            Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsFalse(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.IsNull(ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
 
             Undo.IncrementCurrentGroup();
             Undo.PerformUndo();
-            Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
+            Assert.IsTrue(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
             Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Tests
                 Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
 
                 duplicate.RemoveScene(m_SceneGUID);
-                Assert.IsFalse(duplicate.HasScene(m_SceneGUID));
+                Assert.IsFalse(duplicate.sceneGUIDs.Contains(m_SceneGUID));
                 Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
             }
             finally
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.Tests
             m_BakingSet.AddScene(m_SceneGUID);
 
             var duplicate = Object.Instantiate(m_BakingSet);
-            var replacementGUID = GUID.Generate();
+            var replacementGUID = GUID.Generate().ToString();
             try
             {
                 duplicate.SetScene(replacementGUID, 0);
@@ -134,14 +134,14 @@ namespace UnityEditor.Rendering.Tests
                 Undo.IncrementCurrentGroup();
                 Undo.RegisterCompleteObjectUndo(new Object[] { otherSet, m_BakingSet }, "Moved scene to baking set");
                 otherSet.MoveSceneToBakingSet(m_SceneGUID, -1);
-                Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
-                Assert.IsTrue(otherSet.HasScene(m_SceneGUID));
+                Assert.IsFalse(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
+                Assert.IsTrue(otherSet.sceneGUIDs.Contains(m_SceneGUID));
                 Assert.AreEqual(otherSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
 
                 Undo.IncrementCurrentGroup();
                 Undo.PerformUndo();
-                Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
-                Assert.IsFalse(otherSet.HasScene(m_SceneGUID));
+                Assert.IsTrue(m_BakingSet.sceneGUIDs.Contains(m_SceneGUID));
+                Assert.IsFalse(otherSet.sceneGUIDs.Contains(m_SceneGUID));
                 Assert.AreEqual(m_BakingSet, ProbeVolumeBakingSet.GetBakingSetForScene(m_SceneGUID));
             }
             finally
@@ -149,15 +149,6 @@ namespace UnityEditor.Rendering.Tests
                 Undo.ClearUndo(otherSet);
                 Object.DestroyImmediate(otherSet);
             }
-        }
-        [Test]
-        public void HasScene_ReturnsTrueForAddedScene()
-        {
-            Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
-            m_BakingSet.AddScene(m_SceneGUID);
-            Assert.IsTrue(m_BakingSet.HasScene(m_SceneGUID));
-            m_BakingSet.RemoveScene(m_SceneGUID);
-            Assert.IsFalse(m_BakingSet.HasScene(m_SceneGUID));
         }
     }
 }

@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering
             Initial,
             RemoveProbeVolumeSceneData,
             AssetsAlwaysReferenced,
-            SceneGUIDMigration,
         }
 
         [Serializable]
@@ -92,28 +91,13 @@ namespace UnityEngine.Rendering
 
         internal bool hasDilation => settings.dilationSettings.enableDilation && settings.dilationSettings.dilationDistance > 0.0f;
 
-        [SerializeField] List<GUID> m_ScenesInBakingSet = new();
-        [SerializeField, Obsolete] List<string> m_SceneGUIDs = new();
+        // We keep a separate list with only the guids for the sake of convenience when iterating from outside this class.
+        [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
         [SerializeField, Obsolete("This is now contained in the SceneBakeData structure. #from(2023.3)"), FormerlySerializedAs("scenesToNotBake")] internal List<string> obsoleteScenesToNotBake = new List<string>();
         [SerializeField, FormerlySerializedAs("lightingScenarios")] internal List<string> m_LightingScenarios = new List<string>();
 
-        /// <summary>The list of scene GUIDs in the baking set.</summary>
-        public IReadOnlyList<GUID> scenesInBakingSet => m_ScenesInBakingSet;
-
-        internal bool HasScene(GUID guid) => m_ScenesInBakingSet.Contains(guid);
-
         /// <summary>The list of scene GUIDs.</summary>
-        [Obsolete("Use scenesInBakingSet instead. #from(7000.0)")]
-        public IReadOnlyList<string> sceneGUIDs
-        {
-            get
-            {
-                var result = new List<string>(m_ScenesInBakingSet.Count);
-                for (int i = 0; i < m_ScenesInBakingSet.Count; i++)
-                    result.Add(m_ScenesInBakingSet[i].ToString());
-                return result;
-            }
-        }
+        public IReadOnlyList<string> sceneGUIDs => m_SceneGUIDs;
         /// <summary>The list of lighting scenarios.</summary>
         public IReadOnlyList<string> lightingScenarios => m_LightingScenarios;
 
@@ -123,20 +107,16 @@ namespace UnityEngine.Rendering
         internal Dictionary<int, CellData> m_CellDataMap = new Dictionary<int, CellData>();
         readonly List<int> m_TotalIndexList = new List<int>();
 
-        [SerializeField] Dictionary<GUID, List<int>> m_PerSceneCellData = new();
-        internal Dictionary<GUID, List<int>> perSceneCellData
-        {
-            get { return m_PerSceneCellData; }
-            set { m_PerSceneCellData = value; }
-        }
-
-        [Serializable, Obsolete]
-        struct ObsoleteSerializedPerSceneCellList
+        [Serializable]
+        struct SerializedPerSceneCellList
         {
             public string sceneGUID;
             public List<int> cellList;
         }
-        [SerializeField, Obsolete] List<ObsoleteSerializedPerSceneCellList> m_SerializedPerSceneCellList;
+        [SerializeField] List<SerializedPerSceneCellList> m_SerializedPerSceneCellList;
+
+        // Can't use SerializedDictionary here because we can't serialize a List of List T_T
+        internal Dictionary<string, List<int>> m_PerSceneCellLists = new Dictionary<string, List<int>>();
 
         // Assets containing actual cell data (SH, Validity, etc)
         // This data will be streamed from disk to the GPU.
@@ -327,7 +307,7 @@ namespace UnityEngine.Rendering
 
         void OnValidate()
         {
-            singleSceneMode &= m_ScenesInBakingSet.Count <= 1;
+            singleSceneMode &= m_SceneGUIDs.Count <= 1;
 
             if (m_LightingScenarios.Count == 0)
                 m_LightingScenarios = new List<string> { ProbeReferenceVolume.k_DefaultLightingScenario };
@@ -351,7 +331,7 @@ namespace UnityEngine.Rendering
         {
             if (version != CoreUtils.GetLastEnumValue<Version>())
             {
-#pragma warning disable 612, 618
+#pragma warning disable 618 // Type or member is obsolete
                 if (version < Version.RemoveProbeVolumeSceneData)
                 {
 #if UNITY_EDITOR
@@ -395,33 +375,7 @@ namespace UnityEngine.Rendering
                     UnityEditor.AssetDatabase.SaveAssetIfDirty(this);
 #endif
                 }
-
-                if (version < Version.SceneGUIDMigration)
-                {
-                    if (m_ScenesInBakingSet.Count == 0 && m_SceneGUIDs.Count > 0)
-                    {
-                        foreach (var guid in m_SceneGUIDs)
-                        {
-                            if (!string.IsNullOrEmpty(guid))
-                                m_ScenesInBakingSet.Add(new GUID(guid));
-                        }
-                    }
-
-#if UNITY_EDITOR
-                    if (m_SceneBakeDataMap.Count == 0 && m_SceneBakeData.Count > 0)
-                    {
-                        foreach (var kvp in m_SceneBakeData)
-                        {
-                            if (!string.IsNullOrEmpty(kvp.Key))
-                                m_SceneBakeDataMap.Add(new GUID(kvp.Key), kvp.Value);
-                        }
-                    }
-
-                    version = Version.SceneGUIDMigration;
-                    UnityEditor.EditorUtility.SetDirty(this);
-#endif
-                }
-#pragma warning restore 612, 618
+#pragma warning restore 618
             }
 
             if (sharedValidityMaskChunkSize == 0)
@@ -499,16 +453,11 @@ namespace UnityEngine.Rendering
                     lightingScenario = ProbeReferenceVolume.k_DefaultLightingScenario;
             }
 
-#pragma warning disable 612
-            if (m_PerSceneCellData.Count == 0 && m_SerializedPerSceneCellList != null)
+            m_PerSceneCellLists.Clear();
+            foreach (var scene in m_SerializedPerSceneCellList)
             {
-                foreach (var scene in m_SerializedPerSceneCellList)
-                {
-                    if (!string.IsNullOrEmpty(scene.sceneGUID))
-                        m_PerSceneCellData.Add(new GUID(scene.sceneGUID), scene.cellList);
-                }
+                m_PerSceneCellLists.Add(scene.sceneGUID, scene.cellList);
             }
-#pragma warning restore 612
 
             if (m_OtherScenario == "")
                 m_OtherScenario = null;
@@ -547,11 +496,11 @@ namespace UnityEngine.Rendering
         /// <summary>Called before serializing</summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-#pragma warning disable 612
-            m_SerializedPerSceneCellList = null;
-            if (version >= Version.SceneGUIDMigration)
-                m_SceneGUIDs.Clear();
-#pragma warning restore 612
+            m_SerializedPerSceneCellList = new List<SerializedPerSceneCellList>();
+            foreach (var kvp in m_PerSceneCellLists)
+            {
+                m_SerializedPerSceneCellList.Add(new SerializedPerSceneCellList { sceneGUID = kvp.Key, cellList = kvp.Value });
+            }
         }
 
         internal void Initialize(bool useStreamingAsset)
@@ -859,9 +808,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal List<int> GetSceneCellIndexList(GUID sceneGuid)
+        internal List<int> GetSceneCellIndexList(string sceneGuid)
         {
-            if (m_PerSceneCellData.TryGetValue(sceneGuid, out var indexList))
+            if (m_PerSceneCellLists.TryGetValue(sceneGuid, out var indexList))
                 return indexList;
             else
                 return null;
@@ -1183,13 +1132,13 @@ namespace UnityEngine.Rendering
 
         internal bool HasSameSceneGUIDs(ProbeVolumeBakingSet other)
         {
-            var otherSceneGUIDs = other.scenesInBakingSet;
-            if (m_ScenesInBakingSet.Count != otherSceneGUIDs.Count)
+            var otherSceneGUIDs = other.sceneGUIDs;
+            if (m_SceneGUIDs.Count != otherSceneGUIDs.Count)
                 return false;
 
-            for (var i = 0; i < m_ScenesInBakingSet.Count; ++i)
+            for (var i = 0; i < m_SceneGUIDs.Count; ++i)
             {
-                if (m_ScenesInBakingSet[i] != otherSceneGUIDs[i])
+                if (m_SceneGUIDs[i] != otherSceneGUIDs[i])
                     return false;
             }
             return true;

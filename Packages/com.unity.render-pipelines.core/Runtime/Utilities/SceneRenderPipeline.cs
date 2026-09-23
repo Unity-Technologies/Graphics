@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering
 
             static public void SendAnalytic(SceneRenderPipeline sender)
             {
-                SceneRenderPipelineAnalytic analytic = new SceneRenderPipelineAnalytic(sender.gameObject.scene.guid.ToString());
+                SceneRenderPipelineAnalytic analytic = new SceneRenderPipelineAnalytic(sender.gameObject.scene.GetGuid());
                 EditorAnalytics.SendAnalytic(analytic);
             }
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -17,6 +18,17 @@ using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
 namespace UnityEngine.Rendering
 {
+    internal static class SceneExtensions
+    {
+        static readonly PropertyInfo k_SceneGuid = typeof(Scene).GetProperty("guid", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public static string GetGuid(this Scene scene)
+        {
+            Debug.Assert(k_SceneGuid != null, "Reflection for scene GUID failed");
+            return k_SceneGuid.GetValue(scene).ToString();
+        }
+    }
+
     /// <summary>
     /// Initialization parameters for the probe volume system.
     /// </summary>
@@ -709,12 +721,12 @@ namespace UnityEngine.Rendering
         public Action checksDuringBakeAction = null;
 
         // Information of the probe volume scenes that is being loaded (if one is pending)
-        readonly Dictionary<GUID, (ProbeVolumeBakingSet, List<int>)> m_PendingScenesToBeLoaded = new Dictionary<GUID, (ProbeVolumeBakingSet, List<int>)>();
+        readonly Dictionary<string, (ProbeVolumeBakingSet, List<int>)> m_PendingScenesToBeLoaded = new Dictionary<string, (ProbeVolumeBakingSet, List<int>)>();
 
         // Information on probes we need to remove.
-        readonly Dictionary<GUID, List<int>> m_PendingScenesToBeUnloaded = new Dictionary<GUID, List<int>>();
+        readonly Dictionary<string, List<int>> m_PendingScenesToBeUnloaded = new Dictionary<string, List<int>>();
         // Information of the probe volume scenes that is being loaded (if one is pending)
-        readonly List<GUID> m_ActiveScenes = new List<GUID>();
+        readonly List<string> m_ActiveScenes = new List<string>();
 
         readonly ProbeVolumeBakingSetWeakReference m_CurrentBakingSetReference = new();
         ProbeVolumeBakingSet m_CurrentBakingSet
@@ -828,7 +840,7 @@ namespace UnityEngine.Rendering
                     m_CurrentBakingSet.BlendLightingScenario(m_CurrentBakingSet.otherScenario, value);
             }
         }
-        static internal GUID GetSceneGuid(Scene scene) => scene.guid;
+        static internal string GetSceneGuid(Scene scene) => scene.GetGuid();
 
         internal void SetActiveScenario(string scenario, bool verbose = true)
         {
@@ -996,7 +1008,7 @@ namespace UnityEngine.Rendering
                 UnloadBakingSet();
         }
 
-        internal bool TryGetPerSceneData(GUID sceneGuid, out ProbeVolumePerSceneData perSceneData)
+        internal bool TryGetPerSceneData(string sceneGuid, out ProbeVolumePerSceneData perSceneData)
         {
             foreach (var data in perSceneDataList)
             {
@@ -1403,7 +1415,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void AddPendingSceneLoading(GUID sceneGuid, ProbeVolumeBakingSet bakingSet)
+        internal void AddPendingSceneLoading(string sceneGuid, ProbeVolumeBakingSet bakingSet)
         {
             if (m_PendingScenesToBeLoaded.ContainsKey(sceneGuid))
             {
@@ -1448,7 +1460,7 @@ namespace UnityEngine.Rendering
             m_NeedLoadAsset = true;
         }
 
-        internal void AddPendingSceneRemoval(GUID sceneGuid)
+        internal void AddPendingSceneRemoval(string sceneGuid)
         {
             if (m_PendingScenesToBeLoaded.ContainsKey(sceneGuid))
                 m_PendingScenesToBeLoaded.Remove(sceneGuid);
@@ -1456,7 +1468,7 @@ namespace UnityEngine.Rendering
                 m_PendingScenesToBeUnloaded.TryAdd(sceneGuid, m_CurrentBakingSet.GetSceneCellIndexList(sceneGuid));
         }
 
-        internal void RemovePendingScene(GUID sceneGuid, List<int> cellList)
+        internal void RemovePendingScene(string sceneGuid, List<int> cellList)
         {
             if (m_ActiveScenes.Contains(sceneGuid))
             {
