@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering
             s_BakingSetsProcessedLastBuild.Clear();
             foreach (var scene in buildPlayerContext.BuildPlayerOptions.scenes)
             {
-                var sceneGuid = AssetDatabase.AssetPathToGUID(scene);
+                var sceneGuid = AssetDatabase.GUIDFromAssetPath(scene);
                 var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGuid);
                 if (bakingSet != null)
                 {

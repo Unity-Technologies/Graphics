@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering
             bool needRemap = cellRemapTable.Count != 0;
 
             // Build lists of scene GUIDs and assign baking set to the PerSceneData.
-            var bakedSceneGuidList = new List<string>();
+            var bakedSceneGuidList = new List<GUID>();
             foreach (var data in bakedSceneDataList)
             {
                 Debug.Assert(ProbeVolumeBakingSet.SceneHasProbeVolumes(data.sceneGUID));
@@ -147,12 +147,12 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            var currentPerSceneCellList = m_BakingSet.m_PerSceneCellLists; // Cell lists from last baking.
-            m_BakingSet.m_PerSceneCellLists = new SerializedDictionary<string, List<int>>();
+            var previousPerSceneCellData = m_BakingSet.perSceneCellData;
+            m_BakingSet.perSceneCellData = new Dictionary<GUID, List<int>>();
 
             // Partial baking: Copy over scene cell lists for scenes not being baked.
             // Layout change: Remap indices.
-            foreach (var scene in currentPerSceneCellList)
+            foreach (var scene in previousPerSceneCellData)
             {
                 // Scene is not baked. Remap if needed or add it back to the baking set.
                 if (!bakedSceneGuidList.Contains(scene.Key))
@@ -165,11 +165,11 @@ namespace UnityEngine.Rendering
                             newCellList.Add(cellRemapTable[cell]);
                         }
 
-                        m_BakingSet.m_PerSceneCellLists.Add(scene.Key, newCellList);
+                        m_BakingSet.perSceneCellData.Add(scene.Key, newCellList);
                     }
                     else
                     {
-                        m_BakingSet.m_PerSceneCellLists.Add(scene.Key, scene.Value);
+                        m_BakingSet.perSceneCellData.Add(scene.Key, scene.Value);
                     }
                 }
             }
@@ -183,10 +183,10 @@ namespace UnityEngine.Rendering
                     if (bakedSceneGuidList.Contains(scene))
                     {
                         List<int> indexList;
-                        if (!m_BakingSet.m_PerSceneCellLists.TryGetValue(scene, out indexList))
+                        if (!m_BakingSet.perSceneCellData.TryGetValue(scene, out indexList))
                         {
                             indexList = new List<int>();
-                            m_BakingSet.m_PerSceneCellLists.Add(scene, indexList);
+                            m_BakingSet.perSceneCellData.Add(scene, indexList);
                         }
 
                         indexList.Add(cell.index);
@@ -210,10 +210,10 @@ namespace UnityEngine.Rendering
                 // Resolve all unloaded scene cells in CPU memory. This will allow us to extract them into BakingCells in order to have the full list for writing.
                 // Other cells should already be in the baked cells list.
                 var loadedSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
-                foreach (var sceneGuid in m_BakingSet.sceneGUIDs)
+                foreach (var sceneGuid in m_BakingSet.scenesInBakingSet)
                 {
                     // If a scene was baked
-                    if (m_BakingSet.m_PerSceneCellLists.TryGetValue(sceneGuid, out var cellList))
+                    if (m_BakingSet.perSceneCellData.TryGetValue(sceneGuid, out var cellList))
                     {
                         // And the scene is not in the baked subset
                         if (cellList.Count != 0 && !s_PartialBakeSceneList.Contains(sceneGuid))

@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
 
             bool hasFoundBounds = false;
 
-            foreach (var sceneGuid in activeSet.sceneGUIDs)
+            foreach (var sceneGuid in activeSet.scenesInBakingSet)
             {
                 var bakeData = activeSet.GetSceneBakeData(sceneGuid);
                 if (bakeData.hasProbeVolume)
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
                 };
 
                 s_BakingBatch.cells.Add(cell);
-                s_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
+                s_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<GUID>(results.scenesPerCells[cell.position]);
             }
 
             return positions;
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering
 
                     if (!result.scenesPerCells.ContainsKey(cellPos))
                     {
-                        result.scenesPerCells[cellPos] = new HashSet<string>();
+                        result.scenesPerCells[cellPos] = new HashSet<GUID>();
 
                         var center = new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
 
@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    var scenesInCell = new HashSet<string>();
+                    var scenesInCell = new HashSet<GUID>();
 
                     // Calculate overlaping probe volumes to avoid unnecessary work
                     var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)>();

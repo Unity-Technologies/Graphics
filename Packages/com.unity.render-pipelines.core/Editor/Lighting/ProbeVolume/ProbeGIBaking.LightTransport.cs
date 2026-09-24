@@ -333,10 +333,10 @@ namespace UnityEngine.Rendering
 
             // Now we make the modifications persistent by modifying Lighting Data Assets (LDA) on disk.
             string ldaFolderPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(m_BakingSet));
-            for (int i = 0; i < m_BakingSet.sceneGUIDs.Count; i++)
+            for (int i = 0; i < m_BakingSet.scenesInBakingSet.Count; i++)
             {
-                string guid = m_BakingSet.sceneGUIDs[i];
-                Scene scene = SceneManager.GetSceneByPath(AssetDatabase.GUIDToAssetPath(new GUID(guid)));
+                var guid = m_BakingSet.scenesInBakingSet[i];
+                Scene scene = SceneManager.GetSceneByPath(AssetDatabase.GUIDToAssetPath(guid));
                 if (!scene.isLoaded)
                     continue;
 

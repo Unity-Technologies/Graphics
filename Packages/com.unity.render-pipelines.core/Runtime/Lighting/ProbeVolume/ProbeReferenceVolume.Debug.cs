@@ -250,7 +250,8 @@ namespace UnityEngine.Rendering
         // Scenario blending debug data
         GUIContent[] m_DebugScenarioNames = new GUIContent[0];
         int[] m_DebugScenarioValues = new int[0];
-        string m_DebugActiveSceneGuid, m_DebugActiveScenario;
+        GUID m_DebugActiveSceneGuid;
+        string m_DebugActiveScenario;
         DebugUI.EnumField m_DebugScenarioField;
 
         // Field used for the realtime subdivision preview
@@ -736,12 +737,12 @@ namespace UnityEngine.Rendering
                 blendingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Blended Per Frame", getter = () => instance.numberOfCellsBlendedPerFrame, setter = value => instance.numberOfCellsBlendedPerFrame = value, min = () => 0 });
                 blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Turnover Rate", getter = () => instance.turnoverRate, setter = value => instance.turnoverRate = value, min = () => 0, max = () => 1 });
 
-                void RefreshScenarioNames(string guid)
+                void RefreshScenarioNames(GUID guid)
                 {
                     HashSet<string> allScenarios = new();
                     foreach (var set in Resources.FindObjectsOfTypeAll<ProbeVolumeBakingSet>())
                     {
-                        if (!set.sceneGUIDs.Contains(guid))
+                        if (!set.HasScene(guid))
                             continue;
                         foreach (var scenario in set.lightingScenarios)
                         {

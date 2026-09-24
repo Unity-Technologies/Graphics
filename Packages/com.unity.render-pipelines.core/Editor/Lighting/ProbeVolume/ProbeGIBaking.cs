@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering
 
     class BakingBatch : IDisposable
     {
-        public Dictionary<int, HashSet<string>> cellIndex2SceneReferences = new();
+        public Dictionary<int, HashSet<GUID>> cellIndex2SceneReferences = new();
         public List<BakingCell> cells = new();
         // Used to retrieve probe data from it's position in order to fix seams
         public NativeHashMap<int, int> positionToIndex;
@@ -864,7 +864,7 @@ namespace UnityEngine.Rendering
 
         static readonly Dictionary<int, BakingCell> s_BakedCells = new Dictionary<int, BakingCell>();
 
-        internal static HashSet<string> s_PartialBakeSceneList;
+        internal static HashSet<GUID> s_PartialBakeSceneList;
         internal static bool isBakingSceneSubset => s_PartialBakeSceneList != null;
         internal static bool s_IsFreezingPlacement;
 
@@ -1482,7 +1482,7 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 return false;
 
-            string sceneGuid = SceneManager.GetActiveScene().GetGuid();
+            var sceneGuid = SceneManager.GetActiveScene().guid;
             ProbeReferenceVolume.instance.TryGetPerSceneData(sceneGuid, out var sceneData);
             if (sceneData == null || sceneData.bakingSet == null)
                 return false;

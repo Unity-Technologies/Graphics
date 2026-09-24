@@ -217,14 +217,14 @@ namespace UnityEngine.Rendering
             GeometryUtility.CalculateFrustumPlanes(ctx.ActiveCamera, ctx.FrustumPlanes);
         }
 
-        internal bool ShouldCullCell(in CellCullingContext ctx, Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSetMap, ProbeReferenceVolume probeRefVolume, Vector3 cellPosition)
+        internal bool ShouldCullCell(in CellCullingContext ctx, Dictionary<GUID, ProbeVolumeBakingSetWeakReference> sceneToBakingSetMap, ProbeReferenceVolume probeRefVolume, Vector3 cellPosition)
         {
             var cellSizeInMeters = probeRefVolume.MaxBrickSize();
             var probeOffset = probeRefVolume.ProbeOffset() + ProbeVolumeDebug.currentOffset;
             var debugDisplay = probeRefVolume.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneToBakingSetMap, gameObject.scene.GetGuid());
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneToBakingSetMap, gameObject.scene.guid);
                 if (bakingSet == null)
                     return true;
 
