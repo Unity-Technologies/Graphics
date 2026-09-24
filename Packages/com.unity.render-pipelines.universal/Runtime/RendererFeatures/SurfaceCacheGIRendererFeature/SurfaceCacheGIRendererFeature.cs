@@ -802,8 +802,7 @@ namespace UnityEngine.Rendering.Universal
 
                     {
                         Debug.Assert(k_UpscaleFactor == 4);
-                        uint cycleIndex = CurrentPerCameraState.FrameIndex % 4;
-                        uint shuffledCycleIndex = cycleIndex * 7 % 16;
+                        uint shuffledCycleIndex = CurrentPerCameraState.FrameIndex / (uint)cameraInfo.ViewCount * 7 % 16;
                         passData.FullResPixelOffset = new uint2(shuffledCycleIndex / 4, shuffledCycleIndex % 4);
                     }
 
