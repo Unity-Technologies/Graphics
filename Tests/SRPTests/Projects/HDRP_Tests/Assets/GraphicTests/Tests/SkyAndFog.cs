@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -65,6 +66,18 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "5001_Fog_FogFallback",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-144922",
             RuntimePlatform.LinuxEditor, RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
+            "5011_VolumetricCloudsShadowsBake",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "5011_VolumetricCloudsShadows",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
