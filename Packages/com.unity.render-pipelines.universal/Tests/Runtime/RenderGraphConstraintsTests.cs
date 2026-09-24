@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             s_AdditionalCameraData.UpdateCameraStack();
         }
 
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer })]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer, RuntimePlatform.Switch, RuntimePlatform.Switch2, RuntimePlatform.OSXPlayer })] // https://jira.unity3d.com/browse/UUM-153176
         [UnityTest]
         public IEnumerator RenderTextureCameraDoesNotTriggerOnTileValidation()
         {
