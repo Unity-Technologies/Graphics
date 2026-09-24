@@ -116,6 +116,24 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
             GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
         )]
+        [IgnoreGraphicsTest(
+            "5011_VolumetricCloudsShadowsBake",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "5011_VolumetricCloudsShadows",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "5011_VolumetricClouds",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Vulkan
+        )]
         [TestNotSupportedOn(
             "501[0-5]|5020",
             "Not XR compatible",
