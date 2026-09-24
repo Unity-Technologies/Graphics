@@ -296,6 +296,42 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
+        public void UpdateMeshRenderer_MeshDestroyedWhileInWorld_InstanceIsRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var changeSource = new ObjectDispatcherChangeSource();
+            var mesh = CreateQuadMesh();
+            GameObject go = null;
+            try
+            {
+                go = CreateMeshRendererGameObject(mesh, out var renderer);
+
+                using (var collected = changeSource.CollectChanges())
+                    Update(env.Adapter, collected.WorldChangeSet, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The renderer should be in the world before the mesh is destroyed.");
+
+                Object.DestroyImmediate(mesh);
+                mesh = null;
+
+                using (var collected = changeSource.CollectChanges())
+                    Update(env.Adapter, collected.WorldChangeSet, env.World);
+
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "The instance should be removed once its mesh is reported as destroyed.");
+                Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the instance.");
+            }
+            finally
+            {
+                changeSource.Dispose();
+                env.Dispose();
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                if (mesh != null)
+                    Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
         public void UpdateMeshRenderer_ChangedTwice_RendererIsNotDuplicated()
         {
             var env = CreateEnvironmentOrIgnore();
@@ -1169,6 +1205,39 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 env.Dispose();
                 Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_MeshDestroyedWhileInWorld_InstanceIsRemoved()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var changeSource = new ObjectDispatcherChangeSource();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The entity instance should be in the world before the mesh is destroyed.");
+
+                changeSource.CollectChanges().Dispose();
+
+                Object.DestroyImmediate(mesh);
+                mesh = null;
+
+                using (var collected = changeSource.CollectChanges())
+                    Update(env.Adapter, collected.WorldChangeSet, env.World);
+
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "The instance should be removed once its mesh is reported as destroyed.");
+                Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the instance.");
+            }
+            finally
+            {
+                changeSource.Dispose();
+                env.Dispose();
+                if (mesh != null)
+                    Object.DestroyImmediate(mesh);
             }
         }
 

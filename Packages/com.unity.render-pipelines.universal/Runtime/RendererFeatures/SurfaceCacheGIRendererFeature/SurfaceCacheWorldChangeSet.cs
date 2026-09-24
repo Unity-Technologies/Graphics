@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering.Universal
 
         public IEnumerable<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
 
+        public NativeArray<EntityId> MeshDestroyedList { get; set; }
+
         public IEnumerable<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; } = Array.Empty<SurfaceCacheEntityInstanceRecord>();
         public NativeArray<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; }
         public IEnumerable<EntityId> EntityInstanceDestroyedList { get; set; } = Array.Empty<EntityId>();
