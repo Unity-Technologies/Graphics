@@ -1,13 +1,34 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 
-#pragma kernel VisualizeMono DISABLE_TEXTURE2D_X_ARRAY
-#pragma kernel VisualizeSinglePassStereoInstancing
+// We're binding a large number of structured buffers in this shader, more than certain platforms accept
+// by default. Using this pragma extends this limit on these platforms at the expense
+// of some extra indirections. On platforms that don't have this limit, this is a no-op.
+#pragma extended_structured_buffer_bindings
+
+// Inline ray tracing caps the total group size at 32 on some platforms (e.g. GameCore compiles it as wave32).
+#define THREAD_GROUP_SIZE_X 8
+#define THREAD_GROUP_SIZE_Y 4
+
+#define UNIFIED_RT_GROUP_SIZE_X THREAD_GROUP_SIZE_X
+#define UNIFIED_RT_GROUP_SIZE_Y THREAD_GROUP_SIZE_Y
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+
+#pragma kernel VisualizeMonoCompute VisualizeMono=VisualizeMonoCompute UNIFIED_RT_BACKEND_COMPUTE DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel VisualizeSinglePassStereoInstancingCompute VisualizeSinglePassStereoInstancing=VisualizeSinglePassStereoInstancingCompute UNIFIED_RT_BACKEND_COMPUTE
+// This guard silences an unexpected compilation errors on MacOS.
+#if !defined(SHADER_API_METAL)
+#pragma kernel VisualizeMonoHardware VisualizeMono=VisualizeMonoHardware UNIFIED_RT_BACKEND_HARDWARE DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel VisualizeSinglePassStereoInstancingHardware VisualizeSinglePassStereoInstancing=VisualizeSinglePassStereoInstancingHardware UNIFIED_RT_BACKEND_HARDWARE
+#endif
+#pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PathTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/RingBuffer.hlsl"
 
@@ -18,6 +39,12 @@ StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _VolumeCascadeOffsets;
+StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
+Texture2DArray<float4> _AlbedoTextures;
+SamplerState sampler_AlbedoTextures;
+Texture2DArray<float4> _EmissionTextures;
+SamplerState sampler_EmissionTextures;
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
 RW_TEXTURE2D_X(float4, _Result);
 TYPED_TEXTURE2D_X(float, _ScreenDepths);
@@ -34,6 +61,9 @@ uint _FrameIdx;
 float _VolumeVoxelMinSize;
 float3 _VolumeTargetPos;
 int _PatchWarping;
+float _MaterialAtlasTexelSize; // The size of 1 texel in the albedo atlas
+uint _TileOffsetY;
+uint _TileHeight;
 
 uint _DummyBlackbox; // By using a uniform we force the compiler to not make any assumptions.
 float3 IsActuallyNan(float3 val) {
@@ -44,25 +74,56 @@ float3 IsActuallyInf(float3 val) {
     return isinf(asfloat(_DummyBlackbox ^ asuint(val)));
 }
 
-void Visualize(uint2 threadIdx)
+float3 TraceMaterialProperty(uint2 pixelIdx, uint2 screenSize, uint globalThreadIndex, uint groupThreadIdx, float nearClipValue, float rawFarClipValue)
+{
+    const float2 uv = (float2(pixelIdx) + 0.5f) / float2(screenSize);
+    const float4x4 clipToWorld = _ClipToWorldTransforms[unity_StereoEyeIndex];
+    const float3 nearPos = ComputeWorldSpacePosition(uv, nearClipValue, clipToWorld);
+    const float3 farPos = ComputeWorldSpacePosition(uv, rawFarClipValue, clipToWorld);
+
+    UnifiedRT::Ray ray;
+    ray.origin = nearPos;
+    ray.direction = normalize(farPos - nearPos);
+    ray.tMin = 0.0f;
+    ray.tMax = FLT_MAX;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+    UnifiedRT::Hit hit = TraceRayClosestHit(globalThreadIndex, groupThreadIdx, accelStruct, ray);
+    if (!hit.IsValid())
+        return 0.0f;
+
+    const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hit.instanceID);
+    const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hit);
+    const MaterialPool::MaterialEntry matEntry = _MaterialEntries[hitInstance.userMaterialID];
+    if (_ViewMode == 10)
+        return MaterialPool::LoadEmission(matEntry, _EmissionTextures, sampler_EmissionTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1);
+    return MaterialPool::LoadAlbedo(matEntry, _AlbedoTextures, sampler_AlbedoTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1).rgb;
+}
+
+void Visualize(uint2 threadIdx, uint groupThreadIdx)
 {
     const float3 green = float3(0, 1, 0);
     const float3 red = float3(1, 0, 0);
     const float3 pink = float3(1, 0, 1);
     const float3 white = float3(1, 1, 1);
     const float3 yellow = float3(1, 1, 0);
+    const float3 blue = float3(0, 0, 1);
 
     uint2 screenSize;
     GET_TEXTURE2D_X_SIZE(_ScreenDepths, screenSize.x, screenSize.y);
 
+    const uint2 pixelIdx = threadIdx + uint2(0, _TileOffsetY);
+    if (any(pixelIdx >= screenSize))
+        return;
+
     float3 output = 0.0f;
 
-    const float pixelPosYPercentage = float(threadIdx.y) / screenSize.y;
+    const float pixelPosYPercentage = float(pixelIdx.y) / screenSize.y;
     const float statusBarHeightPercentage = 0.05f;
     if (pixelPosYPercentage < statusBarHeightPercentage)
     {
         const RingBuffer::Config ringConfig = RingBuffer::LoadConfig(_RingConfigBuffer, _RingConfigOffset);
-        const uint patchIdx = float(threadIdx.x) / screenSize.x * patchCapacity;
+        const uint patchIdx = float(pixelIdx.x) / screenSize.x * patchCapacity;
         if (RingBuffer::IsPositionInUse(ringConfig, patchIdx))
         {
             if (_PatchCellIndices[patchIdx] == PatchUtil::invalidCellIndex)
@@ -85,16 +146,21 @@ void Visualize(uint2 threadIdx)
             output = white;
         }
     }
+    else if (_ViewMode == 9 || _ViewMode == 10) // albedo/emission via primary rays
+    {
+        const uint globalThreadIndex = (unity_StereoEyeIndex * _TileHeight + threadIdx.y) * screenSize.x + threadIdx.x;
+        output = TraceMaterialProperty(pixelIdx, screenSize, globalThreadIndex, groupThreadIdx, UNITY_NEAR_CLIP_VALUE, UNITY_RAW_FAR_CLIP_VALUE);
+    }
     else
     {
-        const float ndcDepth = LoadNdcDepth(_ScreenDepths, threadIdx);
+        const float ndcDepth = LoadNdcDepth(_ScreenDepths, pixelIdx);
         if (ndcDepth == invalidNdcDepth)
             return;
 
-        const float2 uv = (float2(threadIdx.xy) + 0.5f) / float2(screenSize);
+        const float2 uv = (float2(pixelIdx) + 0.5f) / float2(screenSize);
         const float3 worldPos = ComputeWorldSpacePosition(uv, ndcDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
-        const float3 worldShadedNormal = UnpackNormalWSFromTexture(_ScreenShadedNormals[COORD_TEXTURE2D_X(threadIdx.xy)]);
-        const float3 worldFlatNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(threadIdx.xy)];
+        const float3 worldShadedNormal = UnpackNormalWSFromTexture(_ScreenShadedNormals[COORD_TEXTURE2D_X(pixelIdx)]);
+        const float3 worldFlatNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(pixelIdx)];
 
         PatchUtil::VolumeParamSet volumeParams;
         volumeParams.targetPos = _VolumeTargetPos;
@@ -105,7 +171,7 @@ void Visualize(uint2 threadIdx)
         volumeParams.patchWarping = _PatchWarping != 0;
 
         PatchUtil::VolumePositionResolution posResolution = PatchUtil::ResolveVolumePosition(worldPos, volumeParams);
-        output = float3(1.0f, 0.0f, 1.0f);
+        output = blue;
         if (posResolution.isValid())
         {
             const uint directionIdx = PatchUtil::GetDirectionIndex(worldFlatNormal, PatchUtil::volumeAngularResolution);
@@ -204,18 +270,18 @@ void Visualize(uint2 threadIdx)
         }
     }
 
-    _Result[COORD_TEXTURE2D_X(threadIdx.xy)] = float4(output, 1.0f);
+    _Result[COORD_TEXTURE2D_X(pixelIdx)] = float4(output, 1.0f);
 }
 
-[numthreads(8,8,1)]
-void VisualizeMono(uint2 threadIdx : SV_DispatchThreadID)
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void VisualizeMono(uint2 threadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)
 {
-    Visualize(threadIdx);
+    Visualize(threadIdx, groupThreadIdx);
 }
 
-[numthreads(8,8,1)]
-void VisualizeSinglePassStereoInstancing(uint3 threadIdx : SV_DispatchThreadID)
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void VisualizeSinglePassStereoInstancing(uint3 threadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(threadIdx.z);
-    Visualize(threadIdx.xy);
+    Visualize(threadIdx.xy, groupThreadIdx);
 }

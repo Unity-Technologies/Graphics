@@ -584,7 +584,8 @@ namespace UnityEngine.Rendering
 #if ENABLE_RENDERING_DEBUGGER_UI
             protected override VisualElement Create()
             {
-                var maskField = new UIElements.MaskField(displayName, new List<string>(m_RenderingLayersNames), 0);
+                // Use the property so the name cache refreshes when layers were defined after construction.
+                var maskField = new UIElements.MaskField(displayName, new List<string>(renderingLayersNames), 0);
                 maskField.labelElement.AddToClassList("debug-window-search-filter-target");
                 maskField.RegisterCallback<ChangeEvent<int>>(evt =>
                 {
@@ -592,6 +593,12 @@ namespace UnityEngine.Rendering
                 });
                 this.ScheduleTracked(maskField, () => maskField.schedule.Execute(() =>
                 {
+                    if (LayerNamesOutOfDate())
+                    {
+                        Resize();
+                        maskField.choices = new List<string>(m_RenderingLayersNames);
+                    }
+
                     var value = GetValue();
                     maskField.SetValueWithoutNotify(Convert.ToInt32(value));
                 })
@@ -621,6 +628,24 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            private bool LayerNamesOutOfDate()
+            {
+                if (m_DefinedRenderingLayersCount != RenderingLayerMask.GetDefinedRenderingLayerCount())
+                    return true;
+
+                if (m_RenderingLayersNames.Length != maxRenderingLayerCount)
+                    return true;
+
+                for (int i = 0; i < m_RenderingLayersNames.Length; i++)
+                {
+                    var definedLayerName = RenderingLayerMask.RenderingLayerToName(i);
+                    if (!string.IsNullOrEmpty(definedLayerName) && m_RenderingLayersNames[i] != definedLayerName)
+                        return true;
+                }
+
+                return false;
+            }
+
             private void Resize()
             {
                 m_DefinedRenderingLayersCount = RenderingLayerMask.GetDefinedRenderingLayerCount();
@@ -635,33 +660,28 @@ namespace UnityEngine.Rendering
                     m_RenderingLayersNames[i] = definedLayerName;
                 }
 
-                // Foldout + Color for each layer
+                // Foldout + Color for each layer. Only shown when the field provides layer color accessors.
                 m_RenderingLayersColors.Clear();
-                var layersColor = new DebugUI.Foldout()
+                if (getRenderingLayerColor != null && setRenderingLayerColor != null)
                 {
-                    nameAndTooltip = s_RenderingLayerColors,
-                    flags = Flags.EditorOnly,
-                    parent = this,
-                };
-                m_RenderingLayersColors.Add(layersColor);
-
-                for (int i = 0; i < m_RenderingLayersNames.Length; i++)
-                {
-                    var index = i; // capture the variable for the color field index
-                    layersColor.children.Add(new DebugUI.ColorField
+                    var layersColor = new DebugUI.Foldout()
                     {
-                        displayName = m_RenderingLayersNames[index],
-                        getter = () =>
+                        nameAndTooltip = s_RenderingLayerColors,
+                        flags = Flags.EditorOnly,
+                        parent = this,
+                    };
+                    m_RenderingLayersColors.Add(layersColor);
+
+                    for (int i = 0; i < m_RenderingLayersNames.Length; i++)
+                    {
+                        var index = i; // capture the variable for the color field index
+                        layersColor.children.Add(new DebugUI.ColorField
                         {
-                            Assert.IsNotNull(getRenderingLayerColor, "Please specify a method for getting the rendering layer color");
-                            return getRenderingLayerColor(index);
-                        },
-                        setter = value =>
-                        {
-                            Assert.IsNotNull(setRenderingLayerColor, "Please specify a method for setting the rendering layer color");
-                            setRenderingLayerColor(value, index);
-                        }
-                    });
+                            displayName = m_RenderingLayersNames[index],
+                            getter = () => getRenderingLayerColor(index),
+                            setter = value => setRenderingLayerColor(value, index)
+                        });
+                    }
                 }
 
                 GenerateQueryPath();

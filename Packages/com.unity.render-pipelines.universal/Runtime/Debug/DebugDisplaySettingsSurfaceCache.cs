@@ -23,7 +23,9 @@ namespace UnityEngine.Rendering.Universal
         Drift,
         StdDev,
         UpdateCount,
-        FlatNormal
+        FlatNormal,
+        Albedo,
+        Emission
     }
 
     /// <summary>
@@ -33,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
     internal class DebugDisplaySettingsSurfaceCache : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
         /// <summary>
-        /// Current Surface Cache debug view mode. The debug view replaces the screen irradiance output when not None.
+        /// Current Surface Cache debug view mode. The debug view is displayed as a fullscreen overlay when not None.
         /// </summary>
         public SurfaceCacheDebugViewMode viewMode { get; set; }
 
@@ -73,7 +75,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class Strings
         {
-            public static readonly NameAndTooltip ViewMode = new() { name = "View Mode", tooltip = "Use the drop-down to select a Surface Cache debug visualization to render instead of the screen irradiance output." };
+            public static readonly NameAndTooltip ViewMode = new() { name = "View Mode", tooltip = "Use the drop-down to select a Surface Cache debug visualization to display as an overlay." };
+            public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the debug overlay texture in the view." };
             public static readonly NameAndTooltip ShowSamplePosition = new() { name = "Show Sample Position", tooltip = "Show patch sample positions in the debug view." };
             public static readonly NameAndTooltip ActiveCaches = new() { name = "Active Caches", tooltip = "Number of per-camera surface caches currently alive." };
             public static readonly NameAndTooltip WorldRenderingLayerMask = new() { name = "World Rendering Layer Mask", tooltip = "Combined (OR) rendering layer mask used for the shared world update this frame. This value is read only." };
@@ -106,6 +109,18 @@ namespace UnityEngine.Rendering.Universal
                 setIndex = (value) => data.viewMode = (SurfaceCacheDebugViewMode)value
             };
 
+            internal static DebugUI.Widget CreateMapSize(DebugDisplaySettingsSurfaceCache data) => new DebugUI.IntField
+            {
+                nameAndTooltip = Strings.MapSize,
+                getter = () => UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.fullScreenDebugModeOutputSizeScreenPercent,
+                setter = value => UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.fullScreenDebugModeOutputSizeScreenPercent = value,
+                incStep = 10,
+                incStepMult = 50,
+                min = () => 0,
+                max = () => 100,
+                isHiddenCallback = () => data.viewMode == SurfaceCacheDebugViewMode.None
+            };
+
             internal static DebugUI.Widget CreateShowSamplePosition(DebugDisplaySettingsSurfaceCache data) => new DebugUI.BoolField
             {
                 nameAndTooltip = Strings.ShowSamplePosition,
@@ -124,7 +139,8 @@ namespace UnityEngine.Rendering.Universal
             internal static DebugUI.Widget CreateWorldRenderingLayerMask(DebugDisplaySettingsSurfaceCache data)
             {
                 // No setter: DebugUI ignores edits when the setter is null, making the field read-only.
-                var field = new DebugUI.RenderingLayerField
+                // No layer color accessors: the field then omits its "Layers Color" child foldout.
+                return new DebugUI.RenderingLayerField
                 {
                     nameAndTooltip = Strings.WorldRenderingLayerMask,
                     getter = () =>
@@ -134,12 +150,6 @@ namespace UnityEngine.Rendering.Universal
                     },
                     isHiddenCallback = () => data.viewMode == SurfaceCacheDebugViewMode.None
                 };
-
-                // Drop RenderingLayerField's "Layers Color" child foldout; it belongs to the Rendering
-                // Layers visualization in the Material panel and has no meaning for this read-only mask.
-                field.children.Clear();
-
-                return field;
             }
         }
 
@@ -150,6 +160,7 @@ namespace UnityEngine.Rendering.Universal
                 : base(data)
             {
                 AddWidget(WidgetFactory.CreateViewMode(data));
+                AddWidget(WidgetFactory.CreateMapSize(data));
                 AddWidget(WidgetFactory.CreateShowSamplePosition(data));
                 AddWidget(WidgetFactory.CreateActiveCaches(data));
                 AddWidget(WidgetFactory.CreateWorldRenderingLayerMask(data));

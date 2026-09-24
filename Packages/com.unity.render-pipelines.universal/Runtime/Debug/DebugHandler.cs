@@ -5,6 +5,7 @@ using System.Diagnostics;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -87,6 +88,9 @@ namespace UnityEngine.Rendering.Universal
         Vector4 m_DebugRenderTargetPixelRect;
         Vector4 m_DebugRenderTargetRangeRemap;
         RTHandle m_DebugRenderTarget;
+        bool m_DebugRenderTargetIsCustom;
+        RTHandle m_CustomDebugRenderTarget;
+        bool m_HasCustomDebugTexture;
 
         RTHandle m_DebugFontTexture;
 
@@ -193,6 +197,7 @@ namespace UnityEngine.Rendering.Universal
             m_HDRDebugViewPass.Dispose();
             m_DebugScreenColorHandle?.Release();
             m_DebugScreenDepthHandle?.Release();
+            m_CustomDebugRenderTarget?.Release();
             m_DebugFontTexture?.Release();
             CoreUtils.Destroy(m_HDRDebugViewMaterial);
             CoreUtils.Destroy(m_ReplacementMaterial);
@@ -318,19 +323,40 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo, Vector4 dataRangeRemap)
+        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo, Vector4 dataRangeRemap, bool isCustomTexture = false)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetSupportsStereo = supportsStereo;
             m_DebugRenderTarget = renderTarget;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
             m_DebugRenderTargetRangeRemap = dataRangeRemap;
+            m_DebugRenderTargetIsCustom = isCustomTexture;
         }
 
         internal void ResetDebugRenderTarget()
         {
             m_HasDebugRenderTarget = false;
+            m_DebugRenderTargetIsCustom = false;
         }
+
+        // The texture is copied into a persistent target so it survives into the resolving camera's render graph
+        // when a camera stack resolves through a camera that does not publish a texture itself.
+        internal void SetCustomDebugTexture(RenderGraph renderGraph, TextureHandle texture)
+        {
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CustomDebugRenderTarget, renderGraph.GetTextureDesc(texture), "_CustomDebugTexture");
+            renderGraph.AddCopyPass(texture, renderGraph.ImportTexture(m_CustomDebugRenderTarget), passName: "Copy Custom Debug Texture");
+            m_HasCustomDebugTexture = true;
+        }
+
+        // Called once per camera stack by the resolving camera, after the fullscreen debug setup consumed the texture.
+        internal void ResetCustomDebugTexture()
+        {
+            m_HasCustomDebugTexture = false;
+        }
+
+        internal RTHandle customDebugTexture => m_CustomDebugRenderTarget;
+
+        internal bool IsCustomDebugTextureActive => RenderingSettings.fullScreenDebugMode == DebugFullScreenMode.None && m_HasCustomDebugTexture;
 
         class DebugFinalValidationPassData
         {
@@ -345,6 +371,7 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 debugRenderTargetPixelRect;
             public int debugRenderTargetSupportsStereo;
             public Vector4 debugRenderTargetRangeRemap;
+            public bool useCustomFullScreenMode;
 
             public TextureHandle debugFontTextureHandle;
 
@@ -367,6 +394,7 @@ namespace UnityEngine.Rendering.Universal
             passData.debugRenderTargetPixelRect = m_DebugRenderTargetPixelRect;
             passData.debugRenderTargetSupportsStereo = m_DebugRenderTargetSupportsStereo ? 1 : 0;
             passData.debugRenderTargetRangeRemap = m_DebugRenderTargetRangeRemap;
+            passData.useCustomFullScreenMode = m_DebugRenderTargetIsCustom;
 
             passData.debugFontTextureHandle = TextureHandle.nullHandle;
 
@@ -402,6 +430,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(k_DebugTextureDisplayRect, data.debugRenderTargetPixelRect);
                 cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, data.debugRenderTargetSupportsStereo);
                 cmd.SetGlobalVector(k_DebugRenderTargetRangeRemap, data.debugRenderTargetRangeRemap);
+
+                // A custom texture is not selectable in the settings, so the per-camera setup pass left the mode at None.
+                if (data.useCustomFullScreenMode)
+                    cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)DebugFullScreenMode.Custom);
             }
 
             var renderingSettings = data.renderingSettings;

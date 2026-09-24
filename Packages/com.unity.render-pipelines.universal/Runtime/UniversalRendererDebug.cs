@@ -63,7 +63,14 @@ namespace UnityEngine.Rendering.Universal
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent) &&
+                bool hasFullscreenDebugMode = DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent);
+                if (DebugHandler.IsCustomDebugTextureActive)
+                {
+                    fullScreenDebugMode = DebugFullScreenMode.Custom;
+                    hasFullscreenDebugMode = true;
+                }
+
+                if (hasFullscreenDebugMode &&
                     (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || usesClusterLightLoop))
                 {
                     // if we want to visualize RG internal resources, we need to create an RTHandle external to RG and copy to it the textures to visualize
@@ -154,6 +161,16 @@ namespace UnityEngine.Rendering.Universal
                                     BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
                                     break;
                                 }
+                                case DebugFullScreenMode.Custom:
+                                {
+                                    var textureHandle = DebugHandler.customDebugTexture != null
+                                        ? renderGraph.ImportTexture(DebugHandler.customDebugTexture)
+                                        : TextureHandle.nullHandle;
+
+                                    BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
+                                    supportsStereo = true;
+                                    break;
+                                }
                                 default:
                                 {
                                     break;
@@ -181,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     Rect uvRect = CalculateUVRect(cameraData, width, height);
-                    DebugHandler.SetDebugRenderTarget(s_RenderGraphDebugTextureHandle, uvRect, supportsStereo, dataRangeRemap);
+                    DebugHandler.SetDebugRenderTarget(s_RenderGraphDebugTextureHandle, uvRect, supportsStereo, dataRangeRemap, fullScreenDebugMode == DebugFullScreenMode.Custom);
                 }
                 else
                 {
@@ -202,6 +219,9 @@ namespace UnityEngine.Rendering.Universal
                     float maxHeight = screenHeight * textureHeightPercent / 100.0f;
                     GPUResidentDrawer.RenderDebugOccluderOverlay(renderGraph, debugSettings, new Vector2(0.25f * screenWidth, screenHeight - 1.5f * maxHeight), maxHeight, resourceData.activeColorTexture);
                 }
+
+                // The custom texture was either consumed above or is stale; require a fresh publish for the next stack.
+                DebugHandler.ResetCustomDebugTexture();
             }
         }
 
