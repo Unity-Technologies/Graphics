@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Owned by AdditionalLightsShadowCasterPass
         internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
+        internal GraphicsBuffer extraForwardAdditionalLightShadowsBuffer;
+        internal Vector4[] extraForwardAdditionalLightShadowParams;
         internal short[] visibleLightIndexToAdditionalLightIndex;
         internal bool[] visibleLightIndexToIsCastingShadows;
 
@@ -141,6 +143,8 @@ namespace UnityEngine.Rendering.Universal
             visibleLightIndexToIsCastingShadows = null;
 
             emptyAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightShadowParams = null;
 
             useCachedShadowMap = false;
             shadowMapCachingEnabled = false;

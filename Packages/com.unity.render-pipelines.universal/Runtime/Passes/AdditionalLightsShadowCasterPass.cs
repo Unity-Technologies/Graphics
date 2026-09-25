@@ -49,6 +49,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private short[] m_VisibleLightIndexToAdditionalLightIndex;                     // maps a "global" visible light index (index to lightData.visibleLights) to an "additional light index" (index to arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...), or -1 if it is not an additional light (i.e if it is the main light)
         private short[] m_AdditionalLightIndexToVisibleLightIndex;                     // maps additional light index (index to arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) to its "global" visible light index (index to lightData.visibleLights)
         private Vector4[] m_AdditionalLightIndexToShadowParams;                        // per-additional-light shadow info passed to the lighting shader (x: shadowStrength, y: softShadows, z: light type, w: perLightFirstShadowSliceIndex)
+        private Vector4[] m_ExtraForwardAdditionalLightIndexToShadowParams;            // same as m_AdditionalLightIndexToShadowParams, but always indexed by visible light index. m_AdditionalLightIndexToShadowParams is indexed by shadowcasting light index when using deferred rendering.
+        private bool m_NeedExtraForwardShadowParamsCopy;                               // do we need to populate m_ExtraForwardAdditionalLightIndexToShadowParams?
         private Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix;     // per-shadow-slice info passed to the lighting shader
         private ShadowSliceData[] m_AdditionalLightsShadowSlices;
         private readonly List<byte> m_GlobalShadowSliceIndexToPerLightShadowSliceIndex = new(); // For each shadow slice, store its "per-light shadow slice index" in the punctual light that casts it (can be up to 5 for point lights)
@@ -71,9 +73,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const int k_AdditionalLightShadowsChannelCount = k_ShadowParamsChannel + 1; // 4 (matrix) + 1 (shadow params)
         private const string k_AdditionalLightShadowsCBName = "Additional Light Shadows Buffer";
         private const string k_EmptyAdditionalLightShadowsCBName = "Empty Additional Light Shadows Buffer";
+        private const string k_ExtraForwardAdditionalLightShadowsCBName = "Extra Forward Additional Light Shadows Buffer";
 
-        private NativeArray<Vector4> m_AdditionalLightShadowsData;
+        private NativeArray<Vector4> m_AdditionalLightShadowsScratch; // write-only on CPU, just used to upload to GraphicsBuffer without allocating
         private GraphicsBuffer m_AdditionalLightShadowsBuffer;
+        private GraphicsBuffer m_ExtraForwardAdditionalLightShadowsBuffer; // only used with deferred renderer, see m_ExtraForwardAdditionalLightIndexToShadowParams
         private GraphicsBuffer m_EmptyAdditionalLightShadowsBuffer;
 
         // x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
@@ -147,14 +151,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         private void EnsureBuffersCreated()
         {
-            if (!m_UsePersistentConstantBuffer || m_AdditionalLightShadowsBuffer != null)
+            if (!m_UsePersistentConstantBuffer)
                 return;
 
             int length = m_MaxVisibleAdditionalLights * k_AdditionalLightShadowsChannelCount;
             if (length <= 0)
                 return;
 
-            m_AdditionalLightShadowsData = new NativeArray<Vector4>(length, Allocator.Persistent);
+            if (m_NeedExtraForwardShadowParamsCopy && m_ExtraForwardAdditionalLightShadowsBuffer == null)
+            {
+                m_ExtraForwardAdditionalLightShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, length, UnsafeUtility.SizeOf<Vector4>())
+                {
+                    name = k_ExtraForwardAdditionalLightShadowsCBName
+                };
+            }
+
+            if (m_AdditionalLightShadowsBuffer != null)
+                return;
+
+            m_AdditionalLightShadowsScratch = new NativeArray<Vector4>(length, Allocator.Persistent);
 
             m_AdditionalLightShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, length, UnsafeUtility.SizeOf<Vector4>())
             {
@@ -186,13 +201,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UsePersistentConstantBuffer)
             {
-                if (m_AdditionalLightShadowsData.IsCreated)
-                    m_AdditionalLightShadowsData.Dispose();
+                if (m_AdditionalLightShadowsScratch.IsCreated)
+                    m_AdditionalLightShadowsScratch.Dispose();
 
                 Shader.SetGlobalConstantBuffer(AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, (ComputeBuffer)null, 0, 0);
 
                 m_AdditionalLightShadowsBuffer?.Dispose();
                 m_AdditionalLightShadowsBuffer = null;
+
+                m_ExtraForwardAdditionalLightShadowsBuffer?.Dispose();
+                m_ExtraForwardAdditionalLightShadowsBuffer = null;
 
                 m_EmptyAdditionalLightShadowsBuffer?.Dispose();
                 m_EmptyAdditionalLightShadowsBuffer = null;
@@ -440,12 +458,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             shadowData.visibleLightIndexToAdditionalLightIndex = m_VisibleLightIndexToAdditionalLightIndex;
             shadowData.visibleLightIndexToIsCastingShadows = m_VisibleLightIndexToIsCastingShadows;
 
+            // Left null when there is nothing extra to bind, the empty shadowmap path already sets the params.
+            bool bindExtraForwardShadowParams = m_NeedExtraForwardShadowParamsCopy && m_ShadowPassMode != ShadowPassMode.Empty;
+            shadowData.extraForwardAdditionalLightShadowsBuffer = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightShadowsBuffer : null;
+            shadowData.extraForwardAdditionalLightShadowParams = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightIndexToShadowParams : null;
+
             return willRenderShadowGeometry;
         }
 
         // Decides the ShadowPassMode for the frame and prepares the state RecordRenderGraph() needs for it.
         bool SetupShadowPassMode(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData, bool stencilBuffer, bool shadowsEnabledByCamera)
         {
+            UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
+            bool isStencilDeferred = universalRenderer != null && universalRenderer.renderingModeActual == RenderingMode.Deferred;
+            m_NeedExtraForwardShadowParamsCopy = isStencilDeferred && universalRenderer.shadowTransparentReceive;
+
             // Lazy init: ensure buffers exist (may have been destroyed by domain reload or graphics device reset)
             EnsureBuffersCreated();
 
@@ -566,6 +593,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < maxAdditionalLightShadowParams; ++i)
                 m_AdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
 
+            if (m_NeedExtraForwardShadowParamsCopy)
+            {
+                // Match length of m_AdditionalLightIndexToShadowParams, so the array can be copied into the constant buffer as-is.
+                if (m_ExtraForwardAdditionalLightIndexToShadowParams == null || m_ExtraForwardAdditionalLightIndexToShadowParams.Length < m_AdditionalLightIndexToShadowParams.Length)
+                    m_ExtraForwardAdditionalLightIndexToShadowParams = new Vector4[m_AdditionalLightIndexToShadowParams.Length];
+
+                Array.Copy(m_AdditionalLightIndexToShadowParams, m_ExtraForwardAdditionalLightIndexToShadowParams, maxAdditionalLightShadowParams);
+            }
+
             for (int i = 0; i < m_VisibleLightIndexToAdditionalLightIndex.Length; ++i)
             {
                 m_VisibleLightIndexToAdditionalLightIndex[i] = -1;
@@ -574,18 +610,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             short additionalLightCount = 0;
             short validShadowCastingLightsCount = 0;
+            short stencilDeferredLightIndex = 0;
             bool supportsSoftShadows = shadowData.supportsSoftShadows;
-            UniversalRenderer universalRenderer = (UniversalRenderer)cameraData.renderer;
-            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
-            bool shadowTransparentReceive = universalRenderer.shadowTransparentReceive;
-            bool hasForwardShadowPass = !isDeferred || shadowTransparentReceive;
             for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; ++visibleLightIndex)
             {
                 // Skip main directional light as it is not packed into the shadow atlas
                 if (visibleLightIndex == lightData.mainLightIndex)
                     continue;
 
-                short lightIndexToUse = !hasForwardShadowPass ? validShadowCastingLightsCount : additionalLightCount++;
+                short forwardLightIndex = additionalLightCount++;
+                short lightIndexToUse = isStencilDeferred ? stencilDeferredLightIndex : forwardLightIndex;
 
                 // We need to always set these indices, even if the light is not shadow casting or doesn't fit in the shadow slices (UUM-46577)
                 m_VisibleLightIndexToAdditionalLightIndex[visibleLightIndex] = lightIndexToUse;
@@ -621,6 +655,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     break;
                 }
 
+                bool copyExtraForwardShadowParams = m_NeedExtraForwardShadowParamsCopy && forwardLightIndex < m_ExtraForwardAdditionalLightIndexToShadowParams.Length;
+
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
                 bool shouldAddLight = false;
                 for (byte perLightShadowSlice = 0; perLightShadowSlice < perLightShadowSlicesCount; ++perLightShadowSlice)
@@ -639,6 +675,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         {
                             shadowParams.w = lightIndexToUse;
                             m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
+                            if (copyExtraForwardShadowParams)
+                            {
+                                shadowParams.w = forwardLightIndex;
+                                m_ExtraForwardAdditionalLightIndexToShadowParams[forwardLightIndex] = shadowParams;
+                            }
                             m_VisibleLightIndexToIsCastingShadows[visibleLightIndex] = usesBakedShadows;
                         }
                         continue;
@@ -665,6 +706,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceData.shadowTransform;
                             shadowParams.w = perLightFirstShadowSliceIndex;
                             m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
+                            if (copyExtraForwardShadowParams)
+                                m_ExtraForwardAdditionalLightIndexToShadowParams[forwardLightIndex] = shadowParams;
                             shouldAddLight = true;
                         }
                     }
@@ -684,6 +727,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                             m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceData.shadowTransform;
                             shadowParams.w = perLightFirstShadowSliceIndex;
                             m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
+                            if (copyExtraForwardShadowParams)
+                                m_ExtraForwardAdditionalLightIndexToShadowParams[forwardLightIndex] = shadowParams;
                             shouldAddLight = true;
                         }
                     }
@@ -701,7 +746,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_VisibleLightIndexToIsCastingShadows[visibleLightIndex] = usesBakedShadows;
                     shadowParams.w = c_DefaultShadowParams.w;
                     m_AdditionalLightIndexToShadowParams[lightIndexToUse] = shadowParams;
+                    if (copyExtraForwardShadowParams)
+                        m_ExtraForwardAdditionalLightIndexToShadowParams[forwardLightIndex] = shadowParams;
                 }
+
+                // Every light that is reachable through m_VisibleLightIndexToIsCastingShadows needs its own slot,
+                // even mixed lights that only have baked shadows.
+                if (m_VisibleLightIndexToIsCastingShadows[visibleLightIndex])
+                    stencilDeferredLightIndex++;
             }
 
             // Lights that need to be rendered in the shadow map atlas
@@ -904,6 +956,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Clear();
         }
 
+
+        // Binds _AdditionalShadowParams using the visible light numbering, for the passes that still use forward rendering
+        // after the deferred lighting.
+        internal static void BindAdditionalShadowParamsForForwardRendering(RasterCommandBuffer cmd, UniversalShadowData shadowData)
+        {
+            GraphicsBuffer constantBuffer = shadowData.extraForwardAdditionalLightShadowsBuffer;
+            if (constantBuffer != null)
+                cmd.SetGlobalConstantBuffer(constantBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, constantBuffer.count * constantBuffer.stride);
+            else if (shadowData.extraForwardAdditionalLightShadowParams != null)
+                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, shadowData.extraForwardAdditionalLightShadowParams);
+        }
+
         internal static void SetShadowParamsForEmptyShadowmap(IBaseCommandBuffer cmd, GraphicsBuffer emptyShadowsBuffer)
         {
             cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, s_EmptyAdditionalShadowFadeParams);
@@ -1042,6 +1106,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupAdditionalLightsShadowReceiverConstants(cmd, data.usePersistentConstantBuffer);
         }
 
+        // Fills a graphics buffer with the data corresponding to the CBUFFER(AdditionalLightShadows) layout.
+        private void PackShadowsConstantBuffer(GraphicsBuffer constantBuffer, Matrix4x4[] worldToShadowMatrices, Vector4[] shadowParams)
+        {
+            int worldToShadowOffset = m_MaxVisibleAdditionalLights * k_WorldToShadowChannel;
+            int shadowParamsOffset = m_MaxVisibleAdditionalLights * k_ShadowParamsChannel;
+
+            if (worldToShadowMatrices != null && worldToShadowMatrices.Length > 0)
+                m_AdditionalLightShadowsScratch.GetSubArray(worldToShadowOffset, shadowParamsOffset).Reinterpret<Matrix4x4>(UnsafeUtility.SizeOf<Vector4>()).CopyFrom(worldToShadowMatrices);
+
+            if (shadowParams != null && shadowParams.Length > 0)
+                m_AdditionalLightShadowsScratch.GetSubArray(shadowParamsOffset, m_MaxVisibleAdditionalLights).CopyFrom(shadowParams);
+
+            constantBuffer.SetData(m_AdditionalLightShadowsScratch);
+        }
+
         // Set constant buffer data that will be used during the lighting/shadowing pass
         private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, bool usePersistentCBuffer)
         {
@@ -1050,24 +1129,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (usePersistentCBuffer)
             {
-                if (m_AdditionalLightShadowsData.IsCreated && m_AdditionalLightShadowsBuffer != null)
+                if (m_AdditionalLightShadowsScratch.IsCreated && m_AdditionalLightShadowsBuffer != null)
                 {
-                    // Pack per-channel managed arrays into the Vector4 backing store, matching CBUFFER(AdditionalLightShadows) layout.
-                    int worldToShadowOffset = m_MaxVisibleAdditionalLights * k_WorldToShadowChannel;
-                    int shadowParamsOffset = m_MaxVisibleAdditionalLights * k_ShadowParamsChannel;
+                    PackShadowsConstantBuffer(m_AdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_AdditionalLightIndexToShadowParams);
+                    cmd.SetGlobalConstantBuffer(m_AdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, m_AdditionalLightShadowsScratch.Length * UnsafeUtility.SizeOf<Vector4>());
 
-                    if (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix != null && m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length > 0)
+                    if (m_NeedExtraForwardShadowParamsCopy && m_ExtraForwardAdditionalLightShadowsBuffer != null)
                     {
-                        m_AdditionalLightShadowsData.GetSubArray(worldToShadowOffset, shadowParamsOffset).Reinterpret<Matrix4x4>(UnsafeUtility.SizeOf<Vector4>()).CopyFrom(m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
+                        // Will be bound later in the frame, in BindAdditionalShadowParamsForForwardRendering
+                        PackShadowsConstantBuffer(m_ExtraForwardAdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_ExtraForwardAdditionalLightIndexToShadowParams);
                     }
-
-                    if (m_AdditionalLightIndexToShadowParams != null && m_AdditionalLightIndexToShadowParams.Length > 0)
-                    {
-                        m_AdditionalLightShadowsData.GetSubArray(shadowParamsOffset, m_MaxVisibleAdditionalLights).CopyFrom(m_AdditionalLightIndexToShadowParams);
-                    }
-
-                    m_AdditionalLightShadowsBuffer.SetData(m_AdditionalLightShadowsData);
-                    cmd.SetGlobalConstantBuffer(m_AdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, m_AdditionalLightShadowsData.Length * UnsafeUtility.SizeOf<Vector4>());
                 }
             }
             else
