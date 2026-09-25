@@ -1,11 +1,14 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
+using System;
 using System.Collections;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using UnityEngine.TestTools;
+using InstanceHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Instance>;
+using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.MaterialPool.MaterialDescriptor>;
 
 namespace UnityEngine.Rendering.Universal.Tests
 {
@@ -1765,6 +1768,90 @@ namespace UnityEngine.Rendering.Universal.Tests
                 RenderingLayerMask = renderingLayerMask,
                 Visible = visible,
             };
+        }
+
+        [Test]
+        public void UpdateInstanceMaterials_AfterMeshDestroyed_EmissiveTrianglesAreRetracked()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var descriptor = CreateEmissiveMaterialDescriptor();
+            try
+            {
+                var materialHandle = env.World.AddMaterial(descriptor, UVChannel.UV0);
+                var instance = AddQuadInstance(env.World, mesh, materialHandle);
+                Assert.AreEqual(2, env.World.GetTrackedEmissiveTriangleCount(), "The quad's two emissive triangles should be tracked.");
+
+                Object.DestroyImmediate(mesh);
+                mesh = null;
+
+                Span<MaterialHandle> materials = stackalloc MaterialHandle[1] { materialHandle };
+                env.World.UpdateInstanceMaterials(instance, materials);
+
+                Assert.AreEqual(2, env.World.GetTrackedEmissiveTriangleCount(), "Re-tracking should restore the triangle count without reading the destroyed mesh.");
+            }
+            finally
+            {
+                DestroyDescriptorTextures(descriptor);
+                env.Dispose();
+                if (mesh != null)
+                    Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateMaterial_TurnsEmissiveAfterMeshDestroyed_EmissiveTrianglesAreRetracked()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var descriptor = CreateEmissiveMaterialDescriptor();
+            try
+            {
+                var nonEmissive = descriptor;
+                nonEmissive.EmissionType = PathTracing.Core.MaterialPropertyType.None;
+                nonEmissive.EmissionColor = Vector3.zero;
+
+                var materialHandle = env.World.AddMaterial(nonEmissive, UVChannel.UV0);
+                AddQuadInstance(env.World, mesh, materialHandle);
+                Assert.AreEqual(0, env.World.GetTrackedEmissiveTriangleCount(), "A non-emissive material should contribute no emissive triangles.");
+
+                Object.DestroyImmediate(mesh);
+                mesh = null;
+
+                env.World.UpdateMaterial(materialHandle, descriptor, UVChannel.UV0);
+
+                Assert.AreEqual(2, env.World.GetTrackedEmissiveTriangleCount(), "Turning the material emissive should re-track the instance without reading the destroyed mesh.");
+            }
+            finally
+            {
+                DestroyDescriptorTextures(descriptor);
+                env.Dispose();
+                if (mesh != null)
+                    Object.DestroyImmediate(mesh);
+            }
+        }
+
+        static InstanceHandle AddQuadInstance(SurfaceCacheWorld world, Mesh mesh, MaterialHandle materialHandle)
+        {
+            Span<MaterialHandle> materials = stackalloc MaterialHandle[1] { materialHandle };
+            Span<uint> masks = stackalloc uint[1] { 1u };
+            return world.AddInstance(mesh, materials, masks, Matrix4x4.identity);
+        }
+
+        static MaterialPool.MaterialDescriptor CreateEmissiveMaterialDescriptor()
+        {
+            var resourceSet = GraphicsSettings.GetRenderPipelineSettings<SurfaceCacheRenderPipelineResourceSet>();
+            var descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(resourceSet.fallbackMaterial, EmissionMode.Realtime);
+            descriptor.EmissionType = PathTracing.Core.MaterialPropertyType.Color;
+            descriptor.EmissionColor = Vector3.one;
+            return descriptor;
+        }
+
+        static void DestroyDescriptorTextures(in MaterialPool.MaterialDescriptor descriptor)
+        {
+            CoreUtils.Destroy(descriptor.Albedo);
+            CoreUtils.Destroy(descriptor.Emission);
+            CoreUtils.Destroy(descriptor.Transmission);
         }
 
         readonly struct Environment
