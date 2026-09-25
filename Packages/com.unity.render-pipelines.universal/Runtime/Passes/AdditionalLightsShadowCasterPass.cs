@@ -885,7 +885,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!computeShadowParams)
                 return;
 
-            shadowData.isKeywordAdditionalLightShadowsEnabled = true;
+            shadowData.isKeywordAdditionalLightShadowsEnabled = m_SetKeywordForEmptyShadowmap;
 
             // _AdditionalShadowFadeParams
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
