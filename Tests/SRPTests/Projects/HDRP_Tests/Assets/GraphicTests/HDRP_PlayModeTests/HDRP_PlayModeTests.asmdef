@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "UnityEngine.Graphics.Testing.Common.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

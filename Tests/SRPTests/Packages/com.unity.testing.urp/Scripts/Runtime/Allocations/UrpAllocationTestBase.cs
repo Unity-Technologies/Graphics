@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.TestTools.Graphics.Allocations;
 
 namespace UnityEngine.Rendering.Universal.Tests.Allocations
 {
