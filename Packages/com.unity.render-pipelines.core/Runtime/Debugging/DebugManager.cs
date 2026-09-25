@@ -183,6 +183,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Whether the currently registered debug display settings support hiding debug overlays.
+        /// Debug options implemented through <see cref="DebugDisplaySettings{T}"/> are disabled when hide toggle is active.
+        /// </summary>
+        internal bool supportsHidingDebugOverlays { get; set; } = true;
+
+        /// <summary>
         /// Recreates the debug UI for all panels. Use this when the panel structure needs to be rebuilt
         /// (e.g., when widgets need to be added/removed dynamically based on feature availability).
         /// For simple value refreshes, the UI automatically updates through widget getters.
@@ -200,6 +206,7 @@ namespace UnityEngine.Rendering
             DebugDisplaySerializer.SaveFoldoutStates();
             DebugDisplaySerializer.Clear();
             resetData?.Invoke();
+            DebugDisplaySerializer.areDebugOverlaysHidden = false;
 #if ENABLE_RENDERING_DEBUGGER_UI
             displayPersistentRuntimeUI = false;
             ForEachWidget(w => { if (w is DebugUI.ValueTuple vt) vt.pinnedElementIndex = -1; });

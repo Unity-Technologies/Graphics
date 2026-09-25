@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public static T Instance => s_Instance.Value;
 
+        /// <summary>
+        /// Returns true when the hide toggle has been activated. Settings are not considered active in this situation.
+        /// </summary>
+        protected bool areDebugOverlaysHidden =>
+            DebugManager.instance.supportsHidingDebugOverlays && DebugDisplaySerializer.areDebugOverlaysHidden;
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -61,6 +67,9 @@ namespace UnityEngine.Rendering
         {
             get
             {
+                if (areDebugOverlaysHidden)
+                    return false;
+
                 foreach (IDebugDisplaySettingsData setting in m_Settings)
                 {
                     if (setting.AreAnySettingsActive)
@@ -78,6 +87,9 @@ namespace UnityEngine.Rendering
         {
             get
             {
+                if (areDebugOverlaysHidden)
+                    return true;
+
                 // Only enable post-processing if we aren't using certain debug-views.
                 bool postProcessingAllowed = true;
                 foreach (IDebugDisplaySettingsData setting in m_Settings)
@@ -93,6 +105,9 @@ namespace UnityEngine.Rendering
         {
             get
             {
+                if (areDebugOverlaysHidden)
+                    return true;
+
                 bool lightingActive = true;
                 foreach (IDebugDisplaySettingsData setting in m_Settings)
                     lightingActive &= setting.IsLightingActive;
@@ -153,6 +168,9 @@ namespace UnityEngine.Rendering
         /// <returns>True if the color reference was updated, and false otherwise.</returns>
         public virtual bool TryGetScreenClearColor(ref Color color)
         {
+            if (areDebugOverlaysHidden)
+                return false;
+
             foreach (IDebugDisplaySettingsData setting in m_Settings)
             {
                 if (setting.TryGetScreenClearColor(ref color))

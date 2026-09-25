@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.Universal
         internal DebugDisplaySettingsSurfaceCache surfaceCacheSettings { get; private set; }
 #endif
 
+        internal bool isSceneOverrideActive => AreAnySettingsActive && renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None;
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -55,6 +57,9 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (areDebugOverlaysHidden)
+                    return true;
+
                 DebugPostProcessingMode debugPostProcessingMode = renderingSettings.postProcessingDebugMode;
 
                 switch (debugPostProcessingMode)

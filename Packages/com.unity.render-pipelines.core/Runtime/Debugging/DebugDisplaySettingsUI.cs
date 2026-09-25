@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering
             DebugManager.instance.onRecreateDebugUI += ReregisterDebugPanels;
             m_Settings = settings;
             m_Settings.Add(new DebugDisplaySettingsRenderGraph());
+            DebugManager.instance.supportsHidingDebugOverlays = true;
 
             // Don't initialize the UI immediately to avoid unnecessary work at pipeline init time. Instaed,
             // initialize UI when any debug UI is opened (or if the editor window is already open)

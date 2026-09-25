@@ -707,6 +707,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
+
+            // Most HDRP debug state lives in m_DebugDisplaySettings, which is not an IDebugDisplaySettings, which the
+            // hide functionality relies on. For simplicity, just opt out of proving the hide button functionality.
+            Unity.RenderPipelines.Core.Runtime.Shared.RenderingDebuggerBridge.SetSupportsHidingDebugOverlays(false);
 #endif
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
