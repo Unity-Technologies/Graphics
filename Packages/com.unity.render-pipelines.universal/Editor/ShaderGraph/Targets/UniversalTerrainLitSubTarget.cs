@@ -1440,6 +1440,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.Exposure },
                 { ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -1474,6 +1475,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.DebugDisplay },
             };
         }

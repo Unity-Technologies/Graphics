@@ -155,7 +155,9 @@ namespace UnityEngine.PathTracing.Core
                 {
                     if (mat.shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainColor))
                     {
-                        return mat.GetColor(mat.shader.GetPropertyNameId(i)).a;
+                        int nameId = mat.shader.GetPropertyNameId(i);
+                        if (mat.HasColor(nameId))
+                            return mat.GetColor(nameId).a;
                     }
                 }
 
