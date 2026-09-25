@@ -299,10 +299,14 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
         protected IEnumerator MeasurePopulatedFrame(RenderingMode renderingMode, float renderScale = 1f)
             => MeasurePopulatedFrame(renderingMode, renderScale, DebugSceneOverrideMode.None);
 
+        protected IEnumerator MeasurePopulatedFrameAfterGarbageCollection()
+            => MeasurePopulatedFrame(RenderingMode.Forward, 1f, DebugSceneOverrideMode.None, collectBeforeEachRender: true);
+
         IEnumerator MeasurePopulatedFrame(
             RenderingMode renderingMode,
             float renderScale,
-            DebugSceneOverrideMode sceneOverrideMode)
+            DebugSceneOverrideMode sceneOverrideMode,
+            bool collectBeforeEachRender = false)
         {
             UseRendererAuthoredFor(renderingMode);
 
@@ -384,7 +388,7 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
                     var frames = detector.RunIncremental(
                         $"URP populated frame, {renderingMode}",
                         Describe($"200 cubes, shadowed directional light, 16 shadowed point lights, bloom, {renderingMode}, render scale {renderScale}, scene override {sceneOverrideMode}"),
-                        m_Camera.Render,
+                        collectBeforeEachRender ? RenderAfterGarbageCollection : m_Camera.Render,
                         measured => result = measured);
 
                     while (frames.MoveNext())
@@ -413,6 +417,32 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
                 m_Asset.renderScale = previousRenderScale;
                 debugSettings.sceneOverrideMode = previousSceneOverride;
             }
+        }
+
+        void RenderAfterGarbageCollection()
+        {
+            GC.Collect();
+            m_Camera.Render();
+        }
+
+        protected void MeasureGlobalSettingsLookupAfterGarbageCollection()
+        {
+            Assert.That(UniversalRenderPipelineGlobalSettings.instance, Is.Not.Null,
+                "No URP global settings asset is registered for UniversalRenderPipeline.");
+
+            var detector = new AllocationDetector { logWatcher = m_Logs };
+            var result = detector.Run(
+                "URP global settings lookup",
+                "UniversalRenderPipelineGlobalSettings.instance after GC.Collect",
+                LookUpGlobalSettingsAfterGarbageCollection);
+
+            Assert.That(result.passed, Is.True, result.Report());
+        }
+
+        static void LookUpGlobalSettingsAfterGarbageCollection()
+        {
+            GC.Collect();
+            _ = UniversalRenderPipelineGlobalSettings.instance;
         }
 
         static void DestroyProfile(VolumeProfile profile)
