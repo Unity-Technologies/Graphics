@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
-using UnityEditor.AssetPackage;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
@@ -27,8 +26,6 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 [InitializeOnLoad]
 internal static class SampleDependencyImporter
 {
-    static bool s_ImportingTextMeshProEssentialResources = false;
-
     static SampleDependencyImporter()
     {
         Sample.OnBeforeImportFinish += OnSampleImported;
@@ -36,7 +33,6 @@ internal static class SampleDependencyImporter
 
     static void OnSampleImported(IReadOnlyList<SampleImportEventData> events)
     {
-        bool dependenciesImported = false;
 
         foreach (var data in events)
         {
@@ -49,13 +45,10 @@ internal static class SampleDependencyImporter
                 var sampleInfo = FindSampleByDisplayName(sampleList, data.sampleDisplayName);
                 if (sampleInfo?.dependencies != null && sampleInfo.dependencies.Length > 0)
                 {
-                    dependenciesImported |= ImportDependencies(sampleInfo.dependencies);
+                    ImportDependencies(sampleInfo.dependencies);
                 }
             }
         }
-
-        if (dependenciesImported)
-            ImportTextMeshProEssentialResources();
     }
 
     static SampleInformation FindSampleByDisplayName(SampleList sampleList, string displayName)
@@ -116,22 +109,6 @@ internal static class SampleDependencyImporter
         }
 
         return assetsImported;
-    }
-
-    static void ImportTextMeshProEssentialResources()
-    {
-        string essentialResourcesFolder = Path.GetFullPath("Assets/TextMesh Pro");
-        bool essentialResourcesImported = Directory.Exists(essentialResourcesFolder);
-
-        if (s_ImportingTextMeshProEssentialResources && essentialResourcesImported)
-            s_ImportingTextMeshProEssentialResources = false;
-
-        string packageFullPath = Path.GetFullPath("Packages/com.unity.ugui");
-        if (Directory.Exists(packageFullPath) && !s_ImportingTextMeshProEssentialResources && !essentialResourcesImported)
-        {
-            s_ImportingTextMeshProEssentialResources = true;
-            Package.Import(packageFullPath + "/Package Resources/TMP Essential Resources.unitypackage", interactive: false);
-        }
     }
 
     static void CopyDirectory(string sourcePath, string targetPath)
