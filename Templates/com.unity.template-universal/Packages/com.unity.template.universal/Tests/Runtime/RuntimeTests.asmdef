@@ -1,6 +1,0 @@
-﻿{
-    "name": "RuntimeTests",
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
-}
