@@ -130,12 +130,25 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
         /// <param name="cameraSettings">The settings for custom cameras values.</param>
         public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+            : this(profilerTag, renderPassEvent, shaderTags, renderQueueType, layerMask, uint.MaxValue, cameraSettings) { }
+
+        /// <summary>
+        /// Creates a rendering pass that draws only objects in the specified rendering layers.
+        /// </summary>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
+        /// <param name="renderPassEvent">Controls when the render pass executes.</param>
+        /// <param name="shaderTags">List of shader tags to render with.</param>
+        /// <param name="renderQueueType">The queue type for the objects to render.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="renderingLayerMask">The rendering layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="cameraSettings">The settings for custom cameras values.</param>
+        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, uint renderingLayerMask, RenderObjects.CustomCameraSettings cameraSettings)
         {
             profilingSampler = new ProfilingSampler(profilerTag);
-            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
+            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, renderingLayerMask, cameraSettings);
         }
 
-        internal void Init(RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        internal void Init(RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, uint renderingLayerMask, RenderObjects.CustomCameraSettings cameraSettings)
         {
             m_PassData = new PassData();
 
@@ -148,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
-            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask, renderingLayerMask);
 
             if (shaderTags != null && shaderTags.Length > 0)
             {

@@ -146,6 +146,11 @@ namespace UnityEngine.Rendering.Universal
             public LayerMask LayerMask;
 
             /// <summary>
+            /// The rendering layers that an object must match for the pass to render it.
+            /// </summary>
+            public RenderingLayerMask RenderingLayerMask;
+
+            /// <summary>
             /// The passes to render.
             /// </summary>
             public string[] PassNames;
@@ -157,6 +162,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderQueueType = RenderQueueType.Opaque;
                 LayerMask = 0;
+                RenderingLayerMask = uint.MaxValue;
             }
         }
 
@@ -208,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 settings.Event = RenderPassEvent.BeforeRenderingPrePasses;
 
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
-                filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
+                filter.RenderQueueType, filter.LayerMask, filter.RenderingLayerMask, settings.cameraSettings);
 
             switch (settings.overrideMode)
             {
@@ -245,8 +251,8 @@ namespace UnityEngine.Rendering.Universal
                 || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
                 return;
 
-            // An empty layer mask filters out all renderers, so the pass would never draw anything.
-            if (settings.filterSettings.LayerMask == 0)
+            // An empty layer or rendering layer mask filters out all renderers, so the pass would never draw anything.
+            if (settings.filterSettings.LayerMask == 0 || settings.filterSettings.RenderingLayerMask == 0u)
                 return;
 
             bool enableDepthInputAttachment = settings.depthInputAttachment;
