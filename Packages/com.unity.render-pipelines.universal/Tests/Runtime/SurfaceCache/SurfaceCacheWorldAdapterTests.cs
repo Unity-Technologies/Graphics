@@ -1192,11 +1192,11 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
                 Assert.AreEqual(1, env.World.GetMaterialCount(), "The fallback material should be acquired for the entity instance.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = EntityKeys(key) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be gone after it is reported as destroyed.");
                 Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the entity instance.");
             }
@@ -1217,7 +1217,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "The entity instance should be in the world before the mesh is destroyed.");
 
                 changeSource.CollectChanges().Dispose();
@@ -1249,7 +1249,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var record = CreateEntityRecord(CreateEntityKey(1), mesh, visible: false);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(record) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An invisible entity instance should not be added to the world.");
             }
             finally
@@ -1267,12 +1267,148 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var record = CreateEntityRecord(CreateEntityKey(1), null);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(record) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance without a mesh should not be added to the world.");
             }
             finally
             {
                 env.Dispose();
+            }
+        }
+
+        // MaterialMeshIndex.SubMeshIndex is authored data of arbitrary size, so an assignment can name a submesh
+        // the mesh does not have. Padding out to it would allocate that many entries before anything clamps.
+        [Test]
+        public void UpdateEntityInstance_SubMeshIndexBeyondSubMeshCount_AssignmentIsDropped()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            try
+            {
+                var key = CreateEntityKey(1);
+                var record = CreateEntityRecord(key, mesh);
+                record.MaterialsCount = 1;
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(record),
+                    EntityInstanceMaterialList = SubMeshMaterials((int.MaxValue, material)),
+                }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The instance should be added with its fallback material rather than padded out to the assignment's submesh index.");
+                AssertInputMaterials(env.Adapter, key, EntityId.None);
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "Only the fallback should be acquired, not the material of the dropped assignment.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(material);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_AssignmentPerSubMesh_EachSubMeshGetsItsMaterial()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateTwoSubMeshQuadMesh();
+            var decoy = CreateMetaPassMaterial();
+            var materialA = CreateMetaPassMaterial();
+            var materialB = CreateMetaPassMaterial();
+            try
+            {
+                var key = CreateEntityKey(1);
+                var record = CreateEntityRecord(key, mesh);
+                // Starts past an entry owned by no record, like a range orphaned in the bridge's buffer.
+                record.MaterialsStart = 1;
+                record.MaterialsCount = 2;
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(record),
+                    EntityInstanceMaterialList = SubMeshMaterials((0, decoy), (0, materialA), (1, materialB)),
+                }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The instance should be added.");
+                AssertInputMaterials(env.Adapter, key, materialA.GetEntityId(), materialB.GetEntityId());
+                Assert.AreEqual(2, env.World.GetMaterialCount(), "Both assigned materials should be acquired, and the entry outside the record's range should not.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(materialB);
+                Object.DestroyImmediate(materialA);
+                Object.DestroyImmediate(decoy);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_AssignmentOnlyForSecondSubMesh_FirstSubMeshIsUnassigned()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateTwoSubMeshQuadMesh();
+            var material = CreateMetaPassMaterial();
+            try
+            {
+                var key = CreateEntityKey(1);
+                var record = CreateEntityRecord(key, mesh);
+                record.MaterialsCount = 1;
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(record),
+                    EntityInstanceMaterialList = SubMeshMaterials((1, material)),
+                }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "The instance should be added.");
+                AssertInputMaterials(env.Adapter, key, EntityId.None, material.GetEntityId());
+                Assert.AreEqual(2, env.World.GetMaterialCount(), "The unassigned first submesh should take the fallback alongside the assigned material.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(material);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ReReportedWithNewMaterial_SubMeshTakesNewMaterial()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var materialA = CreateMetaPassMaterial();
+            var materialB = CreateMetaPassMaterial();
+            try
+            {
+                var key = CreateEntityKey(1);
+                var record = CreateEntityRecord(key, mesh);
+                record.MaterialsCount = 1;
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(record),
+                    EntityInstanceMaterialList = SubMeshMaterials((0, materialA)),
+                }, env.World);
+                AssertInputMaterials(env.Adapter, key, materialA.GetEntityId());
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(record),
+                    EntityInstanceMaterialList = SubMeshMaterials((0, materialB)),
+                }, env.World);
+
+                AssertInputMaterials(env.Adapter, key, materialB.GetEntityId());
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "The replaced material should be released.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(materialB);
+                Object.DestroyImmediate(materialA);
+                Object.DestroyImmediate(mesh);
             }
         }
 
@@ -1285,10 +1421,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, visible: false) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh, visible: false)) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be removed once a record reports it as invisible.");
                 Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the entity instance.");
             }
@@ -1308,8 +1444,8 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A repeated change report should update the entity instance in place, not duplicate it.");
                 Assert.AreEqual(1, env.World.GetMaterialCount(), "A repeated change report should not acquire additional materials.");
             }
@@ -1330,10 +1466,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, meshA) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, meshA)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "Entity instance should be present after it is reported as changed.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, meshB) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, meshB)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A mesh change should rebuild the entity instance in place, leaving exactly one.");
                 Assert.AreEqual(1, env.World.GetMaterialCount(), "A mesh change should not leak materials.");
             }
@@ -1376,13 +1512,13 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount());
 
                 var combined = new SurfaceCacheWorldChangeSet
                 {
                     EntityInstanceTransformChangedList = TransformChanges(new SurfaceCacheEntityTransformRecord { Key = key, LocalToWorld = Matrix4x4.identity }),
-                    EntityInstanceDestroyedList = new[] { key },
+                    EntityInstanceDestroyedList = EntityKeys(key),
                 };
                 Update(env.Adapter, combined, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An in-world entity instance reported as both transform-changed and destroyed should be removed.");
@@ -1403,7 +1539,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var record = CreateEntityRecord(CreateEntityKey(1), mesh, renderingLayerMask: 2u);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { record } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(record) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Entity instance should be excluded while the filter does not match its mask.");
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
@@ -1428,10 +1564,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, renderingLayerMask: 2u) } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh, renderingLayerMask: 2u)) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance excluded by the filter should not be in the world.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = EntityKeys(key) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Destroying a registered but filtered-out entity instance should be handled cleanly.");
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
@@ -1453,7 +1589,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount());
 
                 var movedTransform = Matrix4x4.Translate(new Vector3(4f, 5f, 6f));
@@ -1481,7 +1617,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             {
                 var key = CreateEntityKey(1);
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh, renderingLayerMask: 2u) } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh, renderingLayerMask: 2u)) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An entity instance excluded by the filter should not be in the world.");
 
                 var movedTransform = Matrix4x4.Translate(new Vector3(1f, 2f, 3f));
@@ -1518,12 +1654,12 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet
                 {
                     MeshRendererChangedList = new Object[] { renderer },
-                    EntityInstanceChangedList = new[] { CreateEntityRecord(key, mesh) },
+                    EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)),
                 }, env.World);
                 Assert.AreEqual(2, env.World.GetInstanceCount(), "The renderer and the entity instance should both be in the world.");
                 Assert.AreEqual(1, env.World.GetMaterialCount(), "Both instances should share a single fallback material entry.");
 
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = new[] { key } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = EntityKeys(key) }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "Only the entity instance should be removed.");
                 Assert.AreEqual(1, env.World.GetMaterialCount(), "The shared material should stay while the renderer still references it.");
 
@@ -1540,6 +1676,16 @@ namespace UnityEngine.Rendering.Universal.Tests
                     Object.DestroyImmediate(go);
                 Object.DestroyImmediate(mesh);
             }
+        }
+
+        static NativeArray<SurfaceCacheEntityInstanceRecord> EntityRecords(params SurfaceCacheEntityInstanceRecord[] records)
+        {
+            return new NativeArray<SurfaceCacheEntityInstanceRecord>(records, Allocator.Temp);
+        }
+
+        static NativeArray<EntityId> EntityKeys(params EntityId[] keys)
+        {
+            return new NativeArray<EntityId>(keys, Allocator.Temp);
         }
 
         static NativeArray<SurfaceCacheEntityTransformRecord> TransformChanges(params SurfaceCacheEntityTransformRecord[] records)
@@ -1575,6 +1721,30 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             return matrices;
         }
+
+        static NativeArray<SurfaceCacheSubMeshMaterial> SubMeshMaterials(params (int subMeshIndex, Material material)[] assignments)
+        {
+            var result = new NativeArray<SurfaceCacheSubMeshMaterial>(assignments.Length, Allocator.Temp);
+            for (int i = 0; i < assignments.Length; i++)
+            {
+                result[i] = new SurfaceCacheSubMeshMaterial
+                {
+                    SubMeshIndex = assignments[i].subMeshIndex,
+                    Material = assignments[i].material.GetEntityId(),
+                };
+            }
+
+            return result;
+        }
+
+        static void AssertInputMaterials(SurfaceCacheWorldAdapter adapter, EntityId key, params EntityId[] expected)
+        {
+#if UNITY_EDITOR
+            Assert.IsTrue(adapter.TryGetEntityInstanceInputMaterialIds(key, out var actual), "The instance should be in the world.");
+            CollectionAssert.AreEqual(expected, actual, "Each submesh should carry the material assigned to it, and None where nothing is assigned.");
+#endif
+        }
+
         static EntityId CreateEntityKey(int index)
         {
             // Version 1 in the [Version:24 | TypeId:12 | Index:28] layout, so index 0 is distinct from EntityId.None.
@@ -1587,8 +1757,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             return new SurfaceCacheEntityInstanceRecord
             {
                 Key = key,
-                Mesh = mesh,
-                Materials = mesh != null ? new Material[mesh.subMeshCount] : null,
+                Mesh = mesh != null ? mesh.GetEntityId() : EntityId.None,
+                // No submesh assignments, so the adapter pads every submesh to "unassigned" and takes the fallback.
+                MaterialsStart = 0,
+                MaterialsCount = 0,
                 LocalToWorld = Matrix4x4.identity,
                 RenderingLayerMask = renderingLayerMask,
                 Visible = visible,
@@ -1668,6 +1840,12 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             if (changes.EntityInstanceTransformChangedList.IsCreated)
                 changes.EntityInstanceTransformChangedList.Dispose();
+            if (changes.EntityInstanceChangedList.IsCreated)
+                changes.EntityInstanceChangedList.Dispose();
+            if (changes.EntityInstanceMaterialList.IsCreated)
+                changes.EntityInstanceMaterialList.Dispose();
+            if (changes.EntityInstanceDestroyedList.IsCreated)
+                changes.EntityInstanceDestroyedList.Dispose();
 
             if (changes.MeshRendererTransformChangedIds.IsCreated)
             {
@@ -1684,6 +1862,23 @@ namespace UnityEngine.Rendering.Universal.Tests
             mesh.uv = new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) };
             mesh.triangles = new[] { 0, 2, 1, 1, 2, 3 };
             return mesh;
+        }
+
+        static Mesh CreateTwoSubMeshQuadMesh()
+        {
+            var mesh = CreateQuadMesh();
+            mesh.name = "SurfaceCacheWorldAdapterTest Two-SubMesh Quad";
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(new[] { 0, 2, 1 }, 0);
+            mesh.SetTriangles(new[] { 1, 2, 3 }, 1);
+            return mesh;
+        }
+
+        // A copy of the fallback has a Meta pass, so it is acquired as itself rather than replaced.
+        static Material CreateMetaPassMaterial()
+        {
+            var fallback = GraphicsSettings.GetRenderPipelineSettings<SurfaceCacheRenderPipelineResourceSet>().fallbackMaterial;
+            return new Material(fallback) { name = "SurfaceCacheWorldAdapterTest Material" };
         }
 
         // No material is assigned on purpose: a null material takes the silent fallback path in the adapter.
