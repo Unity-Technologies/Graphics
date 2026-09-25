@@ -1,8 +1,12 @@
+using System;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Slots;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
@@ -20,6 +24,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 base.RegisterCompleteObjectUndo(actionName);
             }
         }
+
+        // Hosts a real control so it has a panel, for tests that need genuine UI Toolkit event dispatch.
+        class GradientEditorHostWindow : EditorWindow
+        {
+        }
+
+        // GradientPicker/GradientField's picker members aren't friend-visible to this test assembly.
+        static readonly Type k_GradientPickerType = TypeCache.GetTypesDerivedFrom<EditorWindow>()
+            .First(type => type.FullName == "UnityEditor.GradientPicker");
+        static readonly PropertyInfo k_GradientPickerVisible = k_GradientPickerType.GetProperty("visible", BindingFlags.Public | BindingFlags.Static);
+        static readonly MethodInfo k_GradientPickerCloseWindow = k_GradientPickerType.GetMethod("CloseWindow", BindingFlags.Public | BindingFlags.Static);
+        static readonly MethodInfo k_ShowGradientPicker = typeof(GradientField).GetMethod("ShowGradientPicker", BindingFlags.NonPublic | BindingFlags.Instance);
+        static readonly FieldInfo k_SlotControlViewField = typeof(GradientSlotControlView).GetField("m_Field", BindingFlags.NonPublic | BindingFlags.Instance);
 
         CountingGraphObject m_GraphObject;
         GradientObject m_GradientObject;
@@ -61,8 +78,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void TearDown()
         {
             Undo.ClearAll();
-            Object.DestroyImmediate(m_GradientObject);
-            Object.DestroyImmediate(m_GraphObject);
+            UnityEngine.Object.DestroyImmediate(m_GradientObject);
+            UnityEngine.Object.DestroyImmediate(m_GraphObject);
         }
 
         // Mirrors how MaterialGraphEditWindow.Update applies a restored snapshot to the live graph.
@@ -89,6 +106,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_GraphObject.RegisterCompleteObjectUndo("Add Node");
             m_GraphObject.graph.AddNode(new GradientNode());
             return FindGradientNode();
+        }
+
+        // Mirrors the node view being rebuilt after a restored snapshot, which is what reopens the picker.
+        void ReinstantiateGradientSlotControl()
+        {
+            m_GraphObject.graph.GetNodes<SampleGradient>().First()
+                .GetInputSlots<GradientInputMaterialSlot>().First()
+                .InstantiateControl();
+        }
+
+        // SampleGradient has a GradientInputMaterialSlot; GradientNode only has an output slot.
+        SampleGradient AddSampleGradientNode()
+        {
+            Undo.IncrementCurrentGroup();
+            m_GraphObject.RegisterCompleteObjectUndo("Add Node");
+            m_GraphObject.graph.AddNode(new SampleGradient());
+            return m_GraphObject.graph.GetNodes<SampleGradient>().First();
         }
 
         GradientUndoSession CreateSession(GradientNode node, bool canRecord = true)
@@ -276,6 +310,51 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(0f, FindGradientNode().gradient.colorKeys[0].time, 1e-4f,
                 "Undo.IncrementCurrentGroup flushes tracked objects, so a snapshot taken before the edits "
                 + "leaves redo with the pre-edit gradient. If this starts failing, that behaviour changed.");
+        }
+
+        // UUM-152938.
+        [Test]
+        public void UndoAfterClosingPicker_DoesNotReopenTheGradientEditor()
+        {
+            var node = AddSampleGradientNode();
+            var slot = node.GetInputSlots<GradientInputMaterialSlot>().First();
+
+            var window = EditorWindow.GetWindow<GradientEditorHostWindow>();
+            try
+            {
+                var view = slot.InstantiateControl();
+                window.rootVisualElement.Add(view);
+
+                var field = (GradientField)k_SlotControlViewField.GetValue(view);
+                k_ShowGradientPicker.Invoke(field, null);
+                Assert.IsTrue((bool)k_GradientPickerVisible.GetValue(null), "Test setup should open the real Gradient Editor window.");
+
+                field.value = CreateGradient(0.4f);
+
+                k_GradientPickerCloseWindow.Invoke(null, new object[] { false });
+                Assert.IsFalse((bool)k_GradientPickerVisible.GetValue(null), "Test setup should have closed the Gradient Editor window.");
+
+                Undo.PerformUndo();
+                PumpUndoRedo();
+                ReinstantiateGradientSlotControl();
+
+                Assert.IsFalse((bool)k_GradientPickerVisible.GetValue(null),
+                    "Undoing an edit made while closing the Gradient Editor must not reopen the window the user had already closed.");
+
+                Undo.PerformRedo();
+                PumpUndoRedo();
+                ReinstantiateGradientSlotControl();
+
+                Assert.IsFalse((bool)k_GradientPickerVisible.GetValue(null),
+                    "Redoing the edit must not reopen the Gradient Editor either: GradientField.OnPickerClosed "
+                    + "flushes the undo group after the pickerClosed callback, while the picker is still tearing down.");
+            }
+            finally
+            {
+                if ((bool)k_GradientPickerVisible.GetValue(null))
+                    k_GradientPickerCloseWindow.Invoke(null, new object[] { false });
+                window.Close();
+            }
         }
     }
 }
