@@ -1368,11 +1368,34 @@ namespace UnityEngine.Rendering.Universal
                 VFX.VFXCameraXRSettings cameraXRSettings;
 #endif
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // With Quad Views, the outer pass evaluates volumes into a per-camera stack that the
+                // inner pass reuses without re-running VolumeManager.Update. Volume component state
+                // and the camera's volume trigger / layer mask must not change between the two passes'
+                // BeginCameraRendering callbacks; the inner pass will render with the outer pass's
+                // evaluation regardless.
+                bool isQVOuterPass = xrPass.enabled
+                    && xrPass.xrLayoutType == XRLayoutType.TwoPassQuadViews
+                    && !xrPass.isQuadViewInnerPass;
+                bool isQVInnerPass = xrPass.enabled && xrPass.isQuadViewInnerPass;
+#endif
+
                 // Base Camera Rendering
                 using (new CameraRenderingScope(context, baseCamera))
                 {
                     // Update volumeframework before initializing additional camera data
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (isQVInnerPass
+                        && baseCameraAdditionalData != null
+                        && baseCameraAdditionalData.volumeStack != null)
+                    {
+                        VolumeManager.instance.stack = baseCameraAdditionalData.volumeStack;
+                    }
+                    else
+                        UpdateVolumeFramework(baseCamera, baseCameraAdditionalData, isQVOuterPass);
+#else
                     UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+#endif
 
                     ContextContainer frameData = renderer.frameData;
                     UniversalCameraData baseCameraData = CreateCameraData(frameData, baseCamera, baseCameraAdditionalData);
@@ -1471,7 +1494,17 @@ namespace UnityEngine.Rendering.Universal
                                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                                 VFX.VFXManager.PrepareCamera(overlayCamera, cameraXRSettings);
 #endif
+#if ENABLE_VR && ENABLE_XR_MODULE
+                                if (isQVInnerPass
+                                    && overlayAdditionalCameraData.volumeStack != null)
+                                {
+                                    VolumeManager.instance.stack = overlayAdditionalCameraData.volumeStack;
+                                }
+                                else
+                                    UpdateVolumeFramework(overlayCamera, overlayAdditionalCameraData, isQVOuterPass);
+#else
                                 UpdateVolumeFramework(overlayCamera, overlayAdditionalCameraData);
+#endif
 
                                 bool isLastOverlayCamera = i == lastActiveOverlayCameraIndex;
                                 InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, isLastOverlayCamera, isLastBaseCamera, overlayCameraData);
@@ -1629,7 +1662,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.blitsOffscreenUICover = rendersOffscreenUI && requireOffscreenUICoverPrepass;
         }
 
-        static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
+        static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool cacheIntoPerCameraStack = false)
         {
             using var profScope = new ProfilingScope(URPProfilingSamplers.UpdateVolumeFramework);
 
@@ -1665,6 +1698,25 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // When we want to update the volumes every frame...
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cacheIntoPerCameraStack && additionalCameraData != null)
+            {
+                // Evaluate into the per-camera stack so the inner Quad View pass can reuse it.
+                // Route the (re)allocation through GetOrCreateVolumeStack so released stacks come back
+                // from UniversalAdditionalCameraData's per-camera stack cache instead of always
+                // allocating a fresh one.
+                if (additionalCameraData.volumeStack != null && !additionalCameraData.volumeStack.isValid)
+                    camera.DestroyVolumeStack(additionalCameraData);
+                if (additionalCameraData.volumeStack == null)
+                    additionalCameraData.GetOrCreateVolumeStack();
+
+                camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask qvLayerMask, out Transform qvTrigger);
+                VolumeManager.instance.Update(additionalCameraData.volumeStack, qvTrigger, qvLayerMask);
+                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                return;
+            }
+#endif
 
             // We destroy the volumeStack in the additional camera data, if present, to make sure
             // it gets recreated and initialized if the update mode gets later changed to ViaScripting...
