@@ -118,11 +118,17 @@ namespace Tests
                     using (var fs = File.OpenRead(settingsFile))
                     {
                         const string unityMagicString = "%YAML 1.1";
+                        // Since U7 a text file starts with a "%UNITY <version>" directive and the magic follows on
+                        // the next line - see UnityTextFileHeader.h. Either first line means text.
+                        const string unityVersionDirective = "%UNITY ";
                         byte[] buffer = new byte[unityMagicString.Length];
                         var read = fs.Read(buffer, 0, unityMagicString.Length);
                         Assert.That(read, Is.EqualTo(unityMagicString.Length), "Could not read string from " + settingsFile);
                         var encoding = new UTF8Encoding(true);
-                        Assert.That(encoding.GetString(buffer), Is.EqualTo(unityMagicString), $"{settingsFile} does not start with {unityMagicString}");
+                        var header = encoding.GetString(buffer);
+                        var isText = header.Equals(unityMagicString, StringComparison.Ordinal)
+                            || header.StartsWith(unityVersionDirective, StringComparison.Ordinal);
+                        Assert.That(isText, Is.True, $"{settingsFile} does not start with {unityMagicString} or {unityVersionDirective}");
                     }
                 }
                 else if (settingsFilename.Equals("boot.config", StringComparison.OrdinalIgnoreCase))
