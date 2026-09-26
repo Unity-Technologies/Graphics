@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
             public static readonly NameAndTooltip ReflectionProbeAtlasDebugWarning = new() { name = "Warning: Reflection Probe Atlas visualization not supported for the current rendering path. Switch to Forward+ or Deferred+ to use this debug view.", tooltip = "Switch to Forward+ or Deferred+ in the main camera's Universal Renderer Data asset to use this debug overlay." };
-            public static readonly NameAndTooltip StpDebugWarning = new() { name = "Warning: STP Overlay Not Active. Enable STP upscaling filter in the render pipeline asset to use these debug view.", tooltip = "Enable STP upscaling filter in the render pipeline asset to use these debug views." };
+            public static readonly NameAndTooltip StpDebugWarning = new() { name = "Warning: STP Overlay Not Active. Enable STP upscaling filter in the render pipeline asset to use these debug views.", tooltip = "Enable STP upscaling filter in the render pipeline asset to use these debug views." };
             public static readonly NameAndTooltip StpDebugViews = new() { name = "STP Debug Views", tooltip = "Debug visualizations provided by STP." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
