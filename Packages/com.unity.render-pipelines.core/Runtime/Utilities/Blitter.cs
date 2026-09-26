@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering
             {
                 if (!s_TriangleMesh)
                 {
-                    s_TriangleMesh = new Mesh();
+                    s_TriangleMesh = new Mesh { hideFlags = HideFlags.HideAndDontSave };
                     s_TriangleMesh.vertices = GetFullScreenTriangleVertexPosition(nearClipZ);
                     s_TriangleMesh.uv = GetFullScreenTriangleTexCoord();
                     s_TriangleMesh.triangles = new int[3] { 0, 1, 2 };
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
             }
             if (!s_QuadMesh)
             {
-                s_QuadMesh = new Mesh();
+                s_QuadMesh = new Mesh { hideFlags = HideFlags.HideAndDontSave };
                 s_QuadMesh.vertices = GetQuadVertexPosition(nearClipZ);
                 s_QuadMesh.uv = GetQuadTexCoord();
                 s_QuadMesh.triangles = new int[6] { 0, 1, 2, 0, 2, 3 };
