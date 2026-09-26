@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -182,25 +180,9 @@ namespace UnityEditor.VFX
                 return true;
             }
 
-            private static void ForEachVFXInProject(Action<VisualEffectAsset> func)
-            {
-                var vfxAssets = new HashSet<VisualEffectAsset>();
-                var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-                foreach (var guid in vfxAssetsGuid)
-                {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                    if (vfxAsset != null)
-                        vfxAssets.Add(vfxAsset);
-                }
-
-                foreach (var vfxAsset in vfxAssets)
-                    func(vfxAsset);
-            }
-
             private static bool DisplayReimportPopup()
             {
-                return EditorUtility.DisplayDialog("Recompile all VFX?", "This change will only apply upon VFX asset recompilation.\n\nDo you want to recompile all VFX assets in the project? (This may take some time)", "Yes", "No");
+                return EditorUtility.DisplayDialog("Recompile all VFX?", "This setting is part of how Visual Effect assets are compiled, so changing it recompiles every Visual Effect asset in the project. (This may take some time)\n\nDo you want to apply the change?", "Apply", "Cancel");
             }
 
             public override void OnGUI(string searchContext)
@@ -213,11 +195,10 @@ namespace UnityEditor.VFX
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
 
-                    bool oldGenerateShaderWithDebugSymbols = importSettings.generateShadersWithDebugSymbols;
-                    importSettings.generateShadersWithDebugSymbols = EditorGUILayout.Toggle(new GUIContent("Generate Shaders with Debug Symbols", "When enabled, the VFX shaders are generated with debug symbols."), importSettings.generateShadersWithDebugSymbols);
-
-                    bool oldForceEditionCompilation = importSettings.forceEditionCompilation;
-                    importSettings.forceEditionCompilation = EditorGUILayout.Toggle(new GUIContent("Force Compilation in Edition Mode", "When enabled, the unoptimized edit version of the Visual Effect is compiled even when the effect is not being edited. Otherwise, an optimized runtime version is compiled."), importSettings.forceEditionCompilation);
+                    // Assigning any of these reimports every VFX asset in the project, so the new values are only
+                    // committed to the settings once the user has accepted that cost below.
+                    var generateShadersWithDebugSymbols = EditorGUILayout.Toggle(new GUIContent("Generate Shaders with Debug Symbols", "When enabled, the VFX shaders are generated with debug symbols."), importSettings.generateShadersWithDebugSymbols);
+                    var forceEditionCompilation = EditorGUILayout.Toggle(new GUIContent("Force Compilation in Edition Mode", "When enabled, the unoptimized edit version of the Visual Effect is compiled even when the effect is not being edited. Otherwise, an optimized runtime version is compiled."), importSettings.forceEditionCompilation);
 
 #if UNITY_2022_1_OR_NEWER
                     if (Unsupported.IsDeveloperMode())
@@ -256,12 +237,15 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(visualEffectTargetListedKey, m_VisualEffectTargetListed);
                     }
 
-                    //The reimport is only valid after writing EditorPrefs
-                    if (importSettings.forceEditionCompilation != oldForceEditionCompilation && DisplayReimportPopup())
-                        ForEachVFXInProject(vfx => AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfx)));
-
-                    if (oldGenerateShaderWithDebugSymbols != importSettings.generateShadersWithDebugSymbols && DisplayReimportPopup())
-                        ForEachVFXInProject(vfx => AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfx.GetResource())));
+                    if (generateShadersWithDebugSymbols != importSettings.generateShadersWithDebugSymbols
+                        || forceEditionCompilation != importSettings.forceEditionCompilation)
+                    {
+                        if (DisplayReimportPopup())
+                        {
+                            importSettings.generateShadersWithDebugSymbols = generateShadersWithDebugSymbols;
+                            importSettings.forceEditionCompilation = forceEditionCompilation;
+                        }
+                    }
                 }
 
                 base.OnGUI(searchContext);

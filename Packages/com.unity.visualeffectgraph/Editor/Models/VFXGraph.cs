@@ -162,6 +162,7 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Unexpected invoke of OnCompileResource: " + resource.name);
 
             context.DependsOnCustomDependency(VFXGraph.k_RenderPipelineDependency);
+            context.DependsOnCustomDependency(VFXGlobalImportSettings.k_CustomDependencyName);
 
             if (resource != null)
             {
@@ -1507,6 +1508,7 @@ namespace UnityEditor.VFX
             using var globalAutoScope = k_GenerateVisualEffectAssetDescMaker.Auto();
 
             ctx?.DependsOnCustomDependency(VFXGraph.k_RenderPipelineDependency);
+            ctx?.DependsOnCustomDependency(VFXGlobalImportSettings.k_CustomDependencyName);
 
             if (compilationOutput.success)
             {

@@ -11,6 +11,8 @@ namespace UnityEditor.VFX
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
         public const string useNewCompilerKey = "VFX.UseNewCompiler";
 
+        internal const string k_CustomDependencyName = "VFX/GlobalImportSettings";
+
         [SerializeField]
         bool m_GenerateShadersWithDebugSymbols;
         [SerializeField]
@@ -21,13 +23,13 @@ namespace UnityEditor.VFX
         public bool generateShadersWithDebugSymbols
         {
             get => m_GenerateShadersWithDebugSymbols;
-            set => Write(ref m_GenerateShadersWithDebugSymbols, value, generateShadersWithDebugSymbolsKey);
+            set => WriteAndPublish(ref m_GenerateShadersWithDebugSymbols, value, generateShadersWithDebugSymbolsKey);
         }
 
         public bool forceEditionCompilation
         {
             get => m_ForceEditionCompilation;
-            set => Write(ref m_ForceEditionCompilation, value, forceEditionCompilationKey);
+            set => WriteAndPublish(ref m_ForceEditionCompilation, value, forceEditionCompilationKey);
         }
 
         public bool useNewCompiler
@@ -43,6 +45,32 @@ namespace UnityEditor.VFX
 
             field = value;
             EditorPrefs.SetBool(editorPrefsKey, value);
+        }
+
+        static void WriteAndPublish(ref bool field, bool value, string editorPrefsKey)
+        {
+            if (field == value)
+                return;
+
+            Write(ref field, value, editorPrefsKey);
+            PublishCustomDependency();
+
+            // Applies the new value now; without it the assets stay stale until something else refreshes.
+            AssetDatabase.Refresh();
+        }
+
+        Hash128 ComputeValueHash()
+        {
+            var hash = new Hash128();
+            hash.Append(m_GenerateShadersWithDebugSymbols ? 1 : 0);
+            hash.Append(m_ForceEditionCompilation ? 1 : 0);
+            return hash;
+        }
+
+        // No-op on import workers, which record the dependency during import rather than publishing its value.
+        static void PublishCustomDependency()
+        {
+            AssetDatabase.RegisterCustomDependency(k_CustomDependencyName, instance.ComputeValueHash());
         }
 
         void OnEnable()
@@ -69,14 +97,18 @@ namespace UnityEditor.VFX
                 return;
 
             instance.Read();
+            PublishCustomDependency();
         }
 
         // ScriptableSingletons are lazily loaded so force a load on the editor thread to ensure they are synched on import workers.
         [InitializeOnLoadMethod]
         static void CreateBeforeAnyImport()
         {
-            if (!AssetDatabase.IsAssetImportWorkerProcess())
-                _ = instance;
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+                return;
+
+            _ = instance;
+            PublishCustomDependency();
         }
     }
 }
