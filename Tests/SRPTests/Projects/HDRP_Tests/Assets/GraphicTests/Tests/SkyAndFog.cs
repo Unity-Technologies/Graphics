@@ -72,67 +72,61 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "5016_VolumetricFogMultipleScattering",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5020_SkyOverride",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5003_Fog_DensityVolumesShadows",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5004_Pbr_Sky_High_Altitude",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5005_Pbr_Sky_Med_Altitude",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5008_FogFiltering",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5002_Fog_DensityVolumes",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5009_HDRI_Sky_Flow",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5011_VolumetricCloudsShadowsBake",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Direct3D12
         )]
         [IgnoreGraphicsTest(
             "5011_VolumetricCloudsShadows",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
-        )]
-        [IgnoreGraphicsTest(
-            "5011_VolumetricClouds",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
-            RuntimePlatform.WindowsEditor,
-            GraphicsDeviceType.Vulkan
+            GraphicsDeviceType.Direct3D12
         )]
         [TestNotSupportedOn(
             "501[0-5]|5020",

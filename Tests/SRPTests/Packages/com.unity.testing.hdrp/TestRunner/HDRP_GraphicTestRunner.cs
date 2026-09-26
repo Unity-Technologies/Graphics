@@ -119,23 +119,34 @@ public class HDRP_GraphicTestRunner
         int warmupTime = 1;
         Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(warmupTime, settings.ImageComparisonSettings);
 
-        if (!XRGraphicsAutomatedTests.enabled)
-            camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
-
-        // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
-        settings.doBeforeTest?.Invoke();
-
-        // Wait one rendered frame to trigger shader compilation.
-        for (int i = 0; i < warmupTime; ++i)
-            yield return new WaitForEndOfFrame();
-
-        // Wait for all compilation to end.
-        while (UnityEditor.ShaderUtil.anythingCompiling)
+        RenderTexture warmupTarget = null;
+        try
         {
-            yield return new WaitForEndOfFrame();
-        }
+            if (!XRGraphicsAutomatedTests.enabled)
+            {
+                warmupTarget = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+                camera.targetTexture = warmupTarget;
+            }
 
-        camera.targetTexture = null;
+            // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
+            settings.doBeforeTest?.Invoke();
+
+            // Wait one rendered frame to trigger shader compilation.
+            for (int i = 0; i < warmupTime; ++i)
+                yield return new WaitForEndOfFrame();
+
+            // Wait for all compilation to end.
+            while (UnityEditor.ShaderUtil.anythingCompiling)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+        }
+        finally
+        {
+            camera.targetTexture = null;
+            if (warmupTarget != null)
+                RenderTexture.ReleaseTemporary(warmupTarget);
+        }
 #endif
 
         // Reload the scene to reset time in order to be deterministic.
