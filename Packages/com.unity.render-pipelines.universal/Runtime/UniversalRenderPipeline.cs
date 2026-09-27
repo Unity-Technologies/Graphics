@@ -1403,6 +1403,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (xrPass.enabled)
                     {
+                        WarnIfOrthographicXRCamera(baseCamera, xrPass);
+
                         baseCameraData.xr = xrPass;
 
                         // Helper function for updating cameraData with xrPass Data
@@ -1477,6 +1479,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (xrPass.enabled)
                             {
+                                WarnIfOrthographicXRCamera(overlayCamera, xrPass);
+
                                 overlayCameraData.xr = xrPass;
                                 UpdateCameraData(overlayCameraData, xrPass);
                             }
@@ -2141,6 +2145,28 @@ namespace UnityEngine.Rendering.Universal
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = Unity.RenderPipelines.Core.Runtime.Shared.CameraCaptureBridge.GetCachedCaptureActionsEnumerator(baseCamera);
         }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        [AutoStaticsCleanup]
+        static HashSet<EntityId> s_WarnedOrthographicXRCameras = new HashSet<EntityId>();
+
+        /// <summary>
+        /// Emits a warning at most once per camera if it is set to Orthographic projection while the given XR pass is enabled.
+        /// </summary>
+        /// <param name="camera">Camera to check.</param>
+        /// <param name="xrPass">XR pass the camera is being rendered under</param>
+        static void WarnIfOrthographicXRCamera(Camera camera, XRPass xrPass)
+        {
+            if (!xrPass.enabled || !camera.orthographic || !s_WarnedOrthographicXRCameras.Add(camera.GetEntityId()))
+                return;
+
+            Debug.LogWarning(
+                $"Camera '{camera.name}' has its projection set as Orthographic while XR rendering is enabled. " +
+                "This is not supported on XR and may produce artifacts at runtime. " +
+                "Please change the projection setting to Perspective to avoid issues.",
+                camera);
+        }
+#endif
 
         /// <summary>
         /// Initialize settings that can be different for each camera in the stack.

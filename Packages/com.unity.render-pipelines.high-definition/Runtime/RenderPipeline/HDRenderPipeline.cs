@@ -990,6 +990,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnsetRenderingFeatures();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_WarnedOrthographicXRCameras.Clear();
+#endif
+
             if (!m_ValidAPI)
                 return;
 
@@ -2283,6 +2287,23 @@ namespace UnityEngine.Rendering.HighDefinition
         double m_RealtimeSinceLastLogUpdateWaterSurfaces;
 #endif
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        [NoAutoStaticsCleanup]
+        static HashSet<EntityId> s_WarnedOrthographicXRCameras = new HashSet<EntityId>();
+
+        static void WarnIfOrthographicXRCamera(Camera camera, XRPass xrPass)
+        {
+            if (!xrPass.enabled || !camera.orthographic || !s_WarnedOrthographicXRCameras.Add(camera.GetEntityId()))
+                return;
+
+            Debug.LogWarning(
+                $"Camera '{camera.name}' has its projection set as Orthographic while XR rendering is enabled. " +
+                "This is not supported on XR and may produce artifacts at runtime. " +
+                "Please change the projection setting to Perspective to avoid issues.",
+                camera);
+        }
+#endif
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
@@ -2462,6 +2483,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // and will workaround the aformentionned issue.
                     if (hasGameViewCamera && camera.cameraType == CameraType.Preview)
                         continue;
+#endif
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    WarnIfOrthographicXRCamera(camera, xrPass);
 #endif
 
                     bool cameraRequestedDynamicRes = false;
