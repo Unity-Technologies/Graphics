@@ -437,20 +437,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 DrawXRProjectValidationInfoBox(Styles.xrUpscalingInfo, Styles.xrUpscalingInfoButton);
             }
-
-            EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
-            EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
-            EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
-            if (serialized.asset.enableLODCrossFade && serialized.asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil)
-            {
-                var rendererData = serialized.asset.m_RendererDataList[serialized.asset.m_DefaultRendererIndex];
-                if (rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).defaultStencilState.overrideStencilState)
-                {
-                    EditorGUILayout.HelpBox(Styles.stencilLodCrossFadeWarningMessage.text, MessageType.Warning, true);
-                }
-            }
-
-            EditorGUI.EndDisabledGroup();
         }
 
         static void DrawUpscalerListAndOptions(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
