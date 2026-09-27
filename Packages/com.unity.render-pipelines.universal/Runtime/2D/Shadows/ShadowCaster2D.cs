@@ -296,6 +296,13 @@ namespace UnityEngine.Rendering.Universal
             deltaPos.y = light.boundingSphere.position.y - boundingSphere.position.y;
             deltaPos.z = light.boundingSphere.position.z - boundingSphere.position.z;
 
+            // Separation in the light's own plane, since its influence is that mesh extruded along its normal rather than a sphere, and its frame rotates with the scene where a world axis would not.
+            Vector3 planeNormal = light.planeNormal;
+            float alongNormal = deltaPos.x * planeNormal.x + deltaPos.y * planeNormal.y + deltaPos.z * planeNormal.z;
+            deltaPos.x -= alongNormal * planeNormal.x;
+            deltaPos.y -= alongNormal * planeNormal.y;
+            deltaPos.z -= alongNormal * planeNormal.z;
+
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
             float radiiLength = light.boundingSphere.radius + boundingSphere.radius;

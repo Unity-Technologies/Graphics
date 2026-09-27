@@ -30,15 +30,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // height math still works; it just has to resolve to a 2D offset inside the graph, which a
             // projection built on SoftShadowLightLocal / SoftShadowPointToLocal does.
             //
-            // Read in the CASTER'S OWN FRAME, not in world. That frame reaches world through an
-            // isometry, so this is a world-LENGTH offset along the sprite's local axes: (0, -2) means
-            // "two units along this sprite's own down". World would be the more obvious choice and it is
-            // the wrong one -- a graph literal does not rotate with the scene while the caster's inverse
-            // matrix does, so rotating an entire scene as a rigid body would swing every shadow by the
-            // scene's own rotation. See ShadowCaster2DPass.hlsl for the argument in full. A graph built
-            // from world quantities converts with a Transform (World -> Object) node, or sidesteps the
-            // question by working from SoftShadowLightLocal / SoftShadowPointToLocal, which report the
-            // light and the point in the caster's frame already.
+            // Read in WORLD space: (0, -2) means "two units along world -Y", whatever the sprite's
+            // rotation or flip. So a graph built from world quantities -- Position (World), the Active
+            // Shadow2D Light node -- feeds this port directly, with no conversion node in between.
+            //
+            // The pass converts into the caster's frame with SoftShadowWorldDirectionToLocal, which is
+            // length-preserving, so this is still a world-LENGTH offset. The cost is that rotating a
+            // whole scene as a rigid body now swings its shadows, because a graph literal does not
+            // rotate with the scene while that conversion does. A graph that wants the old,
+            // rotation-invariant behaviour states its displacement in the caster's frame -- from
+            // SoftShadowLightLocal / SoftShadowPointToLocal, which still report that frame -- and
+            // converts back with a Transform (Object -> World) node. See ShadowCaster2DPass.hlsl for
+            // the argument in full, and UUM-152815 for why the port moved.
             //
             // Default is a downward throw rather than anything radial: an unconnected port is a
             // CONSTANT, and "2 units along this point's own ray from the light" is not a constant. This
