@@ -15,54 +15,6 @@ using UnityEditor.TestTools.Graphics;
 
 namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
 {
-
-    public abstract class HDRP_DXR_GraphicsTestBase
-#if UNITY_EDITOR
-        : IPrebuildSetup
-#endif
-    {
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            Screen.SetResolution(1920, 1080, true);
-
-            // Standard resolution for backbuffer capture is 1080p
-            #if UNITY_EDITOR
-            GameViewSize.SetGameViewSize(1920, 1080);
-            #endif
-        }
-
-        [UnityOneTimeSetUp]
-        public IEnumerator UnityOneTimeSetUp()
-        {
-            // Some platforms seem to require setting the resolution after play mode, otherwise resolution is not consistently set.
-            yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
-        }
-
-#if UNITY_EDITOR
-
-        public void Setup()
-        {
-            Unity.Testing.XR.Editor.SetupMockHMD.SetupLoader();
-        }
-
-        [TearDown]
-        public void DumpImagesInEditor()
-        {
-            UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(
-                TestContext.CurrentContext.Test
-            );
-        }
-
-        [TearDown]
-        public void TearDownXR()
-        {
-            XRGraphicsAutomatedTests.running = false;
-        }
-
-#endif
-    }
-
     // Scenes 10_, 100-115, 1000-1001: Reflections and GI keyword tests
     // [MockHmdSetup]
     public class HDRP_DXR_Reflections : HDRP_DXR_GraphicsTestBase
@@ -322,26 +274,6 @@ namespace UnityEngine.Rendering.HighDefinition.DXR_Tests
                 Assert.Ignore("https://jira.unity3d.com/browse/UUM-119893");
             }
             yield return null;
-        }
-    }
-
-    public class HighDefinitionTestFixtureData
-    {
-        public static IEnumerable FixtureParams
-        {
-            get
-            {
-                yield return new TestFixtureData(
-                    GpuResidentDrawerContext.GRDDisabled
-                );
-
-                if (GraphicsTestPlatform.Current.IsEditorPlatform)
-                {
-                    yield return new TestFixtureData(
-                        GpuResidentDrawerContext.GRDEnabled
-                    );
-                }
-            }
         }
     }
 }
