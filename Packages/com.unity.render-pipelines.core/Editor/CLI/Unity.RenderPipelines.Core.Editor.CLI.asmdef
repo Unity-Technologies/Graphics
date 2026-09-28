@@ -3,6 +3,7 @@
     "rootNamespace": "UnityEditor.Rendering.CLI",
     "references": [
         "Unity.Pipeline",
+        "Unity.Pipeline.Attributes",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor"
     ],
