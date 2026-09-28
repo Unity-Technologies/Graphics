@@ -86,6 +86,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
+        public void WriteVariableDeclaration(string type, string name, bool isStatic = false)
+        {
+            WriteLine($"{(isStatic ? "static " : "")}{type} {name};");
+        }
+
         public void OpenBlock(bool newLine = true)
         {
             WriteLine("{", newLine ? WriteLineOptions.None : WriteLineOptions.NoNewLine);

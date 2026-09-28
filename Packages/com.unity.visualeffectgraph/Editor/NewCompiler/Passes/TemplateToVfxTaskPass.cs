@@ -26,8 +26,16 @@ namespace UnityEditor.VFX
             if (!m_DataWriter.TryGetDataDescriptionWriter(dataView.Root.DataDescription, out var writer))
                 return null;
 
-            var bindingName = writer.GetBindingName(dataView);
+            var bindingName = writer.GetResourceName(dataView);
             return bindingName != null ? new NameDataKey(bindingName) : null;
+        }
+
+        protected override void OnBindingLowered(ITask oldTask, VfxTask newTask, IDataKey logicalBindingKey, IDataKey concreteBindingKey)
+        {
+            if (oldTask is VfxTemplatedTask templatedTask && templatedTask.IsTaskParam(logicalBindingKey))
+            {
+                newTask.AddParamBinding(concreteBindingKey);
+            }
         }
 
         protected override void OnTaskNodeReplaced(TaskNodeId oldId, TaskNodeId newId, ref CompilationContext context)

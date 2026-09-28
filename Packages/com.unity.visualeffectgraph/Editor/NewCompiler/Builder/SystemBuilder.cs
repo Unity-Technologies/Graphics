@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
                 TaskGraphBuilder.BindData(taskId, new IndexDataKey(i), parentDataViewId, BindingUsage.Read);
             }
 
-            var dataDescription = ValueData.Create(VFXExpression.TypeToType(expression.valueType));
+            var dataDescription = VfxValueDataFactory.Create(expression.valueType);
             var expressionContainerName = $"{expression.GetType().Name}_{TaskGraphBuilder.Graph.DataContainers.Count}";
             dataViewId = TaskGraphBuilder.AddData(expressionContainerName, dataDescription);
             TaskGraphBuilder.BindData(taskId, LegacyExpressionTask.Value, dataViewId, BindingUsage.Write);

@@ -397,7 +397,9 @@ namespace UnityEditor.VFX
 
             HashSet<VFXMapping> bufferMappings = new();
             List<VFXMapping> valueMappings = new();
+            List<VFXMapping> paramMappings = new();
             var taskNode = context.graph.TaskNodes[task.Id];
+            var vfxTask = taskNode.Task as VfxTask;
             foreach (var dataBinding in taskNode.DataBindings)
             {
                 // A lowered task binds its buffers under the very names the generated shader declares them
@@ -418,13 +420,20 @@ namespace UnityEditor.VFX
                 }
                 if (m_ValuesExpressionIndices.TryGetValue(dataBinding.DataNode.Id, out var expressionIndex))
                 {
-                    // For textures/buffers for now we need to use the name of the data container to match with what is generated in the description writer, we should find a better way to link them together
-                    string name = dataBinding.DataNode.DataContainer.Name;
-                    valueMappings.Add(new VFXMapping(name, (int)expressionIndex));
+                    // Textures and buffers are declared in the generated shader under the very name they are
+                    // bound by, so the binding key is the mapping name. A task parameter is not in the shader
+                    // at all, and the runtime resolves it by that same name off the parameters instead.
+                    var bindingKey = dataBinding.BindingDataKey;
+                    var mapping = new VFXMapping(bindingKey.ToString(), (int)expressionIndex);
+                    if (vfxTask != null && vfxTask.IsParamBinding(bindingKey))
+                        paramMappings.Add(mapping);
+                    else
+                        valueMappings.Add(mapping);
                 }
             }
 
             taskDesc.values = valueMappings.ToArray();
+            taskDesc.parameters = paramMappings.ToArray();
             taskDesc.buffers = HashSetToArray(bufferMappings);
             taskDesc.modelId = task.ModelId;
             taskDesc.instanceSplitIndex = task.InstanceSplitIndex;

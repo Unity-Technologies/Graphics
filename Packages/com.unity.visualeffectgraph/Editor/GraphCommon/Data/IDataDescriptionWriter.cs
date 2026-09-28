@@ -25,7 +25,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// concrete buffer under the same name the generated code reads it by. Null when the writer has no
         /// binding for the view, in which case the caller skips it.
         /// </summary>
-        string GetBindingName(DataView dataView) => null;
+        string GetResourceName(DataView dataView) => null;
     }
 
     interface IDataDescriptionWriter<T> : IDataDescriptionWriter where T : class, IDataDescription

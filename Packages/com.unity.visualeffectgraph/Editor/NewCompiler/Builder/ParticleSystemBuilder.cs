@@ -30,7 +30,6 @@ namespace UnityEditor.VFX
         static IDataKey GraphValuesKey { get; } = new NameDataKey("GraphValues");
         static IDataKey EventListDataBindingKey { get; } = new NameDataKey("EventListDataBinding");
         static IDataKey SourceAttributesBindingKey { get; } = new NameDataKey("SourceAttributeDataBinding");
-        static IDataKey MainTextureKey { get; } = new NameDataKey("mainTexture");
 
         static IDataKey ContextDataKey { get; } = new NameDataKey("ContextData");
         static IDataKey MaxParticleCountKey { get; } = new NameDataKey("maxParticleCount");
@@ -262,9 +261,13 @@ namespace UnityEditor.VFX
         TaskNodeId AddContextTask(VFXContext context, string templateName, TaskNodeId systemTaskId, string particleSystemName,
             DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
         {
-            var contextTask = BuildContextTask(context, templateName);
+            // Resolved once and shared: the task bindings, the subtask code and the data bindings below all
+            // have to agree on the name each expression is bound under.
+            var contextExpressions = new ContextExpressions(context, ExpressionGraph);
+
+            var contextTask = BuildContextTask(context, templateName, contextExpressions);
             var contextTaskId = TaskGraphBuilder.AddTask(contextTask, $"{particleSystemName} {templateName}");
-            BindSharedData(context, contextTaskId, systemTaskId, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+            BindSharedData(context, contextTaskId, systemTaskId, particleDataViewId, contextDataViewId, graphValuesBufferViewId, contextExpressions);
             return contextTaskId;
         }
 
@@ -292,27 +295,35 @@ namespace UnityEditor.VFX
         }
 
         void BindSharedData(VFXContext context, TaskNodeId contextTaskId, TaskNodeId systemTaskId,
-            DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
+            DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId,
+            ContextExpressions contextExpressions)
         {
             TaskGraphBuilder.BindData(contextTaskId, ParticleDataBindingKey, particleDataViewId);
             TaskGraphBuilder.BindData(contextTaskId, ContextDataKey, contextDataViewId);
-            BindCpuExpressions(context, contextTaskId, systemTaskId);
-            BindGpuExpressions(context, contextTaskId, systemTaskId, graphValuesBufferViewId);
+            BindCpuExpressions(context, contextTaskId, systemTaskId, contextExpressions);
+            BindGpuExpressions(contextTaskId, systemTaskId, graphValuesBufferViewId, contextExpressions);
         }
 
-        void BindCpuExpressions(VFXContext context, TaskNodeId contextTask, TaskNodeId systemTaskId)
+        // The init context's CPU expressions describe the system as a whole, so they belong to the system
+        // task; every other context's describe that context's own task.
+        static bool BindsCpuExpressionsOnContextTask(VFXContext context) => context is not VFXBasicInitialize;
+
+        void BindCpuExpressions(VFXContext context, TaskNodeId contextTaskId, TaskNodeId systemTaskId,
+            ContextExpressions contextExpressions)
         {
-            var cpuMapper = ExpressionGraph.BuildCPUMapper(context);
+            var cpuMapper = contextExpressions.CpuMapper;
+            var taskToBind = BindsCpuExpressionsOnContextTask(context) ? contextTaskId : systemTaskId;
 
             foreach (var expression in cpuMapper.expressions)
             {
                 TryGetDataView(expression, out var expressionDataViewId);
                 string bindingName = cpuMapper.GetData(expression)[0].fullName;
-                TaskGraphBuilder.BindData(systemTaskId, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
+                TaskGraphBuilder.BindData(taskToBind, new NameDataKey(bindingName), expressionDataViewId, BindingUsage.Read);
             }
         }
 
-        void BindGpuExpressions(VFXContext context, TaskNodeId contextTaskId, TaskNodeId systemTask, DataViewId graphValuesBufferViewId)
+        void BindGpuExpressions(TaskNodeId contextTaskId, TaskNodeId systemTask, DataViewId graphValuesBufferViewId,
+            ContextExpressions contextExpressions)
         {
             var graphValuesViewId = TaskGraphBuilder.GetSubdata(graphValuesBufferViewId, GraphValuesKey);
 
@@ -320,22 +331,13 @@ namespace UnityEditor.VFX
             Debug.Assert(graphValuesUnordered != null);
             Debug.Assert(m_GraphValueNameCounts.ContainsKey(graphValuesUnordered));
 
-            var gpuMapper = ExpressionGraph.BuildGPUMapper(context);
-            var uniformMapper = new VFXUniformMapper(gpuMapper, false, false);
+            var uniformMapper = contextExpressions.UniformMapper;
 
-            foreach (var expression in uniformMapper.textures)
+            // Resources are bound by value on the context task itself, not through graph values
+            foreach (var (bindingKey, expression) in contextExpressions.RequestedResources)
             {
-                TryGetDataView(expression, out var expressionDataViewId);
-                string bindingName = uniformMapper.GetName(expression);
-                IDataKey bindingKey = new NameDataKey(bindingName);
-                TaskGraphBuilder.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
-            }
-            foreach (var expression in uniformMapper.buffers)
-            {
-                TryGetDataView(expression, out var expressionDataViewId);
-                string bindingName = uniformMapper.GetName(expression);
-                IDataKey bindingKey = new NameDataKey(bindingName);
-                TaskGraphBuilder.BindData(contextTaskId, bindingKey, expressionDataViewId, BindingUsage.Read);
+                TryGetDataView(expression, out var resourceDataViewId);
+                TaskGraphBuilder.BindData(contextTaskId, bindingKey, resourceDataViewId);
             }
 
             foreach (var expression in uniformMapper.uniforms)
@@ -388,14 +390,14 @@ namespace UnityEditor.VFX
             return new ParticleData(particleSystemName, new Bounds(), data is ISpaceable spaceable ? spaceable.space : VFXSpace.None, capacity);
         }
 
-        ITask BuildContextTask(VFXContext context, string templateName)
+        ITask BuildContextTask(VFXContext context, string templateName, ContextExpressions contextExpressions)
         {
             VfxTemplatedTask.Args args = new VfxTemplatedTask.Args
             {
                 BaseArgs = new TemplatedTask.Args
                 {
-                    Subtasks = m_SubtaskBuilder.GenerateSubtasks(context, ExpressionGraph),
-                    Bindings = new()
+                    Subtasks = m_SubtaskBuilder.GenerateSubtasks(context, contextExpressions),
+                    Bindings = new(),
                 },
                 AttributeKeyMappings = new()
                 {
@@ -404,14 +406,27 @@ namespace UnityEditor.VFX
             };
 
             // In the future this should be handled by reflection
-            CollectContextTaskArgs(context, args);
+            CollectContextTaskArgs(context, args, contextExpressions);
 
             bool isCompute = context is not VFXAbstractParticleOutput;
             return new VfxTemplatedTask(templateName, args, isCompute, context.GetEntityId());
         }
 
-        void CollectContextTaskArgs(VFXContext context, VfxTemplatedTask.Args args)
+        void CollectContextTaskArgs(VFXContext context, VfxTemplatedTask.Args args, ContextExpressions contextExpressions)
         {
+            foreach (var resourceBinding in contextExpressions.CreateContextResourceBindings())
+            {
+                args.BaseArgs.Bindings.Add(resourceBinding);
+            }
+
+            if (BindsCpuExpressionsOnContextTask(context))
+            {
+                foreach (var paramBinding in contextExpressions.CreateContextParamBindings())
+                {
+                    args.BaseArgs.Bindings.Add(paramBinding);
+                }
+            }
+
             switch (context)
             {
                 case VFXBasicInitialize initContext:
@@ -431,6 +446,7 @@ namespace UnityEditor.VFX
             var bindings = args.BaseArgs.Bindings;
 
             var particleSystemBinding = new TemplatedTaskBinding<ParticleData>(ParticleDataBindingKey);
+            particleSystemBinding.Add(AttributeDataPath, initContext.attributes);
             particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Alive, AttributeUsage.Write);
             particleSystemBinding.Add(AttributeDataPath, VFXAttribute.ParticleId, AttributeUsage.Write);
             particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Seed, AttributeUsage.Write);
@@ -461,6 +477,7 @@ namespace UnityEditor.VFX
             var subtasks = args.BaseArgs.Subtasks;
 
             var particleSystemBinding = new TemplatedTaskBinding<ParticleData>(ParticleDataBindingKey);
+            particleSystemBinding.Add(AttributeDataPath, updateContext.attributes);
             particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Alive, AttributeUsage.Read);
             particleSystemBinding.AddReadWrite(DataPath.Root + ParticleData.DeadlistKey);
             bindings.Add(particleSystemBinding);
@@ -497,7 +514,7 @@ namespace UnityEditor.VFX
             {
                 Name = subtaskName,
                 Bindings = new(),
-                Task = new TemplateSubtask(subtaskName, $"{bindingKey}.eventListData.AppendEvents(attributes.eventCount, threadData.index);", attributeSets)
+                Task = new TemplateSubtask(subtaskName, $"{bindingKey}.eventListData.AppendEvents({VFXAttribute.EventCount.name}, threadData.index);", attributeSets)
             };
         }
 
@@ -506,32 +523,13 @@ namespace UnityEditor.VFX
             var bindings = args.BaseArgs.Bindings;
 
             var particleSystemBinding = new TemplatedTaskBinding<ParticleData>(ParticleDataBindingKey);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Alive, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Color, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Alpha, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Position, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.Size, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AxisX, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AxisY, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AxisZ, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AngleX, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AngleY, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.AngleZ, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.PivotX, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.PivotY, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.PivotZ, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.ScaleX, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.ScaleY, AttributeUsage.Read);
-            particleSystemBinding.Add(AttributeDataPath, VFXAttribute.ScaleZ, AttributeUsage.Read);
+            particleSystemBinding.Add(AttributeDataPath, outputContext.attributes);
             bindings.Add(particleSystemBinding);
 
             var contextDataBinding = new TemplatedTaskBinding<ValueData>(ContextDataKey);
             contextDataBinding.ReadPathSet.Add(MaxParticleCountPath);
+            contextDataBinding.ReadPathSet.Add(SystemSeedPath);
             bindings.Add(contextDataBinding);
-
-            var mainTextureBinding = new TemplatedTaskBinding<ValueData<Texture2D>>(MainTextureKey);
-            mainTextureBinding.ReadPathSet.Add(DataPath.Root);
-            bindings.Add(mainTextureBinding);
 
             // Remove write attributes from attribute set, because attribute writes in outputs are ignored
             foreach (var subtask in args.BaseArgs.Subtasks)

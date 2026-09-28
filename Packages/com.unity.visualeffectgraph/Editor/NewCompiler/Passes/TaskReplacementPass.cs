@@ -58,6 +58,8 @@ namespace UnityEditor.VFX
 
         protected virtual void OnTaskNodeReplaced(TaskNodeId oldId, TaskNodeId newId, ref CompilationContext context) { }
 
+        protected virtual void OnBindingLowered(ITask oldTask, VfxTask newTask, IDataKey logicalBindingKey, IDataKey concreteBindingKey) { }
+
         static bool ShouldPassThroughNonConcreteView(DataView dataView)
             => dataView.DataDescription is ValueData && !dataView.Parent.HasValue;
 
@@ -83,6 +85,7 @@ namespace UnityEditor.VFX
                         {
                             concreteBindings.Add((dataViewId, binding.BindingDataKey, dataNode.Id, dataViewId));
                             RegisterUsage(newTask, binding.BindingDataKey, dataNode.IsRead(dataViewId), dataNode.IsWritten(dataViewId));
+                            OnBindingLowered(oldTaskNode.Task, newTask, binding.BindingDataKey, binding.BindingDataKey);
                         }
                         continue;
                     }
@@ -94,6 +97,7 @@ namespace UnityEditor.VFX
                     if (boundViews.Add(concreteViewId))
                         concreteBindings.Add((concreteViewId, bindingKey, dataNode.Id, dataViewId));
                     RegisterUsage(newTask, bindingKey, dataNode.IsRead(dataViewId), dataNode.IsWritten(dataViewId));
+                    OnBindingLowered(oldTaskNode.Task, newTask, binding.BindingDataKey, bindingKey);
                 }
             }
 

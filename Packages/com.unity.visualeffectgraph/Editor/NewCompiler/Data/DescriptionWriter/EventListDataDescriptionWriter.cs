@@ -8,6 +8,15 @@ namespace UnityEditor.VFX
     {
         IDataDescriptionWriter<AttributeData> m_AttributeDataWriter;
 
+        /// <summary>
+        /// Suffix of the event index list binding name, so the output pass can recognise a lowered GPU event
+        /// buffer without repeating the name shape.
+        /// </summary>
+        public const string EventIndexListSuffix = "_eventIndexList";
+
+        static string EventIndexListResourceName(string containerName) => $"_{containerName}{EventIndexListSuffix}";
+        static string AttributeBufferResourceName(string containerName) => $"_{containerName}_attributeBuffer";
+
         public EventListDataDescriptionWriter(IDataDescriptionWriter<AttributeData> attributeDataWriter)
         {
             Debug.Assert(attributeDataWriter != null);
@@ -48,8 +57,8 @@ namespace UnityEditor.VFX
             {
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint eventsPrefixSumBuffer;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint spawnCountPrefixSumBuffer;");
-                shaderWriter.WriteLine($"eventsPrefixSumBuffer.Init(_{name}_eventIndexList, 0, threadData.instancingData.activeCount);");
-                shaderWriter.WriteLine($"spawnCountPrefixSumBuffer.Init(_{name}_eventIndexList, threadData.instancingData.activeCount, {eventListData.BufferSize}u * threadData.instancingData.activeCount);");
+                shaderWriter.WriteLine($"eventsPrefixSumBuffer.Init({EventIndexListResourceName(name)}, 0, threadData.instancingData.activeCount);");
+                shaderWriter.WriteLine($"spawnCountPrefixSumBuffer.Init({EventIndexListResourceName(name)}, threadData.instancingData.activeCount, {eventListData.BufferSize}u * threadData.instancingData.activeCount);");
                 shaderWriter.WriteLine("eventListData.Init(eventsPrefixSumBuffer, spawnCountPrefixSumBuffer, threadData.instancingData.activeIndex);");
             }
             else
@@ -58,10 +67,10 @@ namespace UnityEditor.VFX
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint totalCountBuffer;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint prefixSumBuffer;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint sourceIndexBuffer;");
-                shaderWriter.WriteLine($"elementCountBuffer.Init(_{name}_eventIndexList, threadData.instancingData.instanceIndex, 1u);");
-                shaderWriter.WriteLine($"totalCountBuffer.Init(_{name}_eventIndexList, threadData.instancingData.batchSize + threadData.instancingData.instanceIndex, 1u);");
-                shaderWriter.WriteLine($"prefixSumBuffer.Init(_{name}_eventIndexList, 2u * threadData.instancingData.batchSize, threadData.instancingData.activeCount);");
-                shaderWriter.WriteLine($"sourceIndexBuffer.Init(_{name}_eventIndexList, 3u * threadData.instancingData.batchSize + threadData.instancingData.instanceIndex * {eventListData.Capacity}u, {eventListData.Capacity}u);");
+                shaderWriter.WriteLine($"elementCountBuffer.Init({EventIndexListResourceName(name)}, threadData.instancingData.instanceIndex, 1u);");
+                shaderWriter.WriteLine($"totalCountBuffer.Init({EventIndexListResourceName(name)}, threadData.instancingData.batchSize + threadData.instancingData.instanceIndex, 1u);");
+                shaderWriter.WriteLine($"prefixSumBuffer.Init({EventIndexListResourceName(name)}, 2u * threadData.instancingData.batchSize, threadData.instancingData.activeCount);");
+                shaderWriter.WriteLine($"sourceIndexBuffer.Init({EventIndexListResourceName(name)}, 3u * threadData.instancingData.batchSize + threadData.instancingData.instanceIndex * {eventListData.Capacity}u, {eventListData.Capacity}u);");
                 shaderWriter.WriteLine("eventListData.Init(elementCountBuffer, totalCountBuffer, prefixSumBuffer, sourceIndexBuffer, threadData.instancingData.activeIndex);");
             }
 
@@ -70,7 +79,7 @@ namespace UnityEditor.VFX
                 shaderWriter.NewLine();
                 shaderWriter.WriteLine("VFXByteAddressBuffer buffer;");
                 var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
-                shaderWriter.WriteLine($"buffer.Init(_{name}_attributeBuffer, threadData.instancingData.activeIndex * {layoutCompilationData[attributeData].GetBufferSize()}u, {layoutCompilationData[attributeData].GetBufferSize()}u);");
+                shaderWriter.WriteLine($"buffer.Init({AttributeBufferResourceName(name)}, threadData.instancingData.activeIndex * {layoutCompilationData[attributeData].GetBufferSize()}u, {layoutCompilationData[attributeData].GetBufferSize()}u);");
                 shaderWriter.WriteLine("attributes.Init(buffer);");
             }
 
@@ -133,31 +142,24 @@ namespace UnityEditor.VFX
             if (usedDataView.Valid)
             {
                 bool isCpu = (usedDataView.DataDescription as EventListData).IsCpu;
-                yield return (isCpu ? "StructuredBuffer<uint>" : "RWStructuredBuffer<uint>", $"_{name}_eventIndexList");
+                yield return (isCpu ? "StructuredBuffer<uint>" : "RWStructuredBuffer<uint>", EventIndexListResourceName(name));
             }
 
             if (usedDataView.FindSubData(EventData.AttributeDataKey, out var _))
             {
                 string attributeBufferType = "ByteAddressBuffer";
-                string attributeBufferName = $"_{name}_attributeBuffer";
+                string attributeBufferName = AttributeBufferResourceName(name);
                 yield return (attributeBufferType, attributeBufferName);
             }
         }
 
-        /// <summary>
-        /// Suffix of the event index list binding name, so the output pass can recognise a lowered GPU event
-        /// buffer without repeating the name shape.
-        /// </summary>
-        public const string EventIndexListSuffix = "_eventIndexList";
-
-        // Must stay in step with the names GetUsedResources declares.
-        public string GetBindingName(DataView dataView)
+        public string GetResourceName(DataView dataView)
         {
             string containerName = dataView.DataContainer.IdentifierName;
             if (dataView.IsRoot)
-                return $"_{containerName}{EventIndexListSuffix}";
+                return EventIndexListResourceName(containerName);
             if (dataView.SubDataKey == EventData.AttributeDataKey)
-                return $"_{containerName}_attributeBuffer";
+                return AttributeBufferResourceName(containerName);
             return null;
         }
 

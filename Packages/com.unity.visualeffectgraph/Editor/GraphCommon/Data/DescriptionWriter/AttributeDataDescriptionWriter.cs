@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     class AttributeDataDescriptionWriter : IDataDescriptionWriter<AttributeData>
@@ -103,23 +101,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock(false);
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
             return true;
-        }
-
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
-        {
-            string attributeBufferType = "ByteAddressBuffer"; //TODO: How can we determine if it is read or read/write? Probably related to DefineResourceUsage method
-            string attributeBufferName = $"_{name}";
-            yield return (attributeBufferType, attributeBufferName);
         }
     }
 }

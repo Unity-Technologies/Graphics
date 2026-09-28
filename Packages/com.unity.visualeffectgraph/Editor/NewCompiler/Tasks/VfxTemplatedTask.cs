@@ -29,6 +29,20 @@ namespace UnityEditor.VFX
         }
 
         /// <summary>
+        /// Adds the attributes a model declares to the read and/or write path sets of the binding.
+        /// </summary>
+        /// <param name="binding">The binding to add paths to.</param>
+        /// <param name="attributesPath">The base <see cref="DataPath"/> under which attribute keys will be added.</param>
+        /// <param name="attributeInfos">The attributes to add, along with how they are accessed.</param>
+        public static void Add(this TemplatedTaskBinding binding, DataPath attributesPath, IEnumerable<VFXAttributeInfo> attributeInfos)
+        {
+            foreach (var attributeInfo in attributeInfos)
+            {
+                binding.Add(attributesPath, attributeInfo.attrib, VFXAttributesManager.ConvertToNewCompiler(attributeInfo.mode));
+            }
+        }
+
+        /// <summary>
         /// Adds a VFX attribute to the read and/or write path sets of the binding.
         /// </summary>
         /// <param name="binding">The binding to add paths to.</param>
@@ -73,6 +87,28 @@ namespace UnityEditor.VFX
         /// Gets a value indicating whether the task is a compute task.
         /// </summary>
         public bool IsCompute { get; }
+
+        /// <summary>
+        /// The element type the task declared for the resource bound under the given key. False when the task
+        /// asked for no resource there, or asked for one with no declared element type: in both cases the
+        /// resource is declared with whatever its description says.
+        /// </summary>
+        public bool TryGetResourceType(IDataKey bindingKey, out BufferType bufferType)
+        {
+            if (TryGetBinding(bindingKey, out VfxResourceBinding resourceBinding) && resourceBinding.BufferType.valid)
+            {
+                bufferType = resourceBinding.BufferType;
+                return true;
+            }
+            bufferType = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Whether the given key is one the runtime resolves as a task parameter, which means the generated
+        /// code never names it.
+        /// </summary>
+        public bool IsTaskParam(IDataKey bindingKey) => TryGetBinding(bindingKey, out VfxTaskParamBinding _);
 
         /// <summary>
         /// Gets the mappings from attribute keys to their corresponding binding relative paths.

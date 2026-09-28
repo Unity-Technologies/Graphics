@@ -23,9 +23,9 @@ namespace UnityEditor.VFX
             m_DataWriter.Register(new StructuredDataDescriptionWriter());
             m_DataWriter.Register(new EventListDataDescriptionWriter(attributeDataWriter));
 
-            // The order matters: the layouts have to exist before the data can be lowered to buffers, the
-            // systems have to be collected while the tasks are still in their logical form, and the shader
-            // code has to be generated before the templated tasks it describes are replaced.
+            m_DataWriter.Register(new VfxTextureDataDescriptionWriter());
+            m_DataWriter.Register(new VfxGraphicsBufferDataDescriptionWriter());
+
             m_GraphCompiler = new(new OutputPass(),
                 new AttributeLayoutPass(),
                 new DataLayoutPass(),

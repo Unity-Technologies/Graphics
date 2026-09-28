@@ -15,9 +15,20 @@ namespace UnityEditor.VFX
 
         readonly HashSet<IDataKey> m_ReadBindings = new();
         readonly HashSet<IDataKey> m_WriteBindings = new();
+        readonly HashSet<IDataKey> m_ParamBindings = new();
 
         public void AddReadBinding(IDataKey bindingKey) => m_ReadBindings.Add(bindingKey);
         public void AddWriteBinding(IDataKey bindingKey) => m_WriteBindings.Add(bindingKey);
+
+        /// <summary>
+        /// Marks a binding as one the runtime resolves as a task parameter rather than as a value the
+        /// generated code reads. Carried over from the <see cref="VfxTaskParamBinding"/> the task was
+        /// lowered from, since a lowered task no longer knows what kind each of its bindings was.
+        /// </summary>
+        public void AddParamBinding(IDataKey bindingKey) => m_ParamBindings.Add(bindingKey);
+
+        /// <inheritdoc cref="AddParamBinding"/>
+        public bool IsParamBinding(IDataKey bindingKey) => m_ParamBindings.Contains(bindingKey);
 
         public BindingUsage GetBindingUsage(IDataKey dataKey, DataPathSet readUsage = null, DataPathSet writeUsage = null)
         {

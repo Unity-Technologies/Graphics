@@ -49,8 +49,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 { typeof(Color), "float4" },
                 { typeof(Matrix4x4), "float4x4" },
                 { typeof(Quaternion), "float4" },
-                { typeof(Texture2D), "texture2D" },
-                { typeof(Texture), "texture2D" },
             };
         }
 

@@ -6,6 +6,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
     {
         private static readonly string StructuredBufferTypeDefine = "STRUCTURED_BUFFER_TYPE";
 
+        static string BufferResourceName(string containerName) => $"_{containerName}_buffer";
+
         public void WriteDescription(ShaderWriter shaderWriter, DataView dataView, StructuredData structuredData, string name, CompilationContext context)
         {
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ByteAddressBuffer.hlsl");
@@ -21,7 +23,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             shaderWriter.WriteLine("void Init(ThreadData threadData)");
             shaderWriter.OpenBlock();
-            shaderWriter.WriteLine($"buffer.Init(_{name}_buffer, {layout.GetBufferSize()} * threadData.instancingData.activeIndex, {layout.GetBufferSize()});");
+            shaderWriter.WriteLine($"buffer.Init({BufferResourceName(name)}, {layout.GetBufferSize()} * threadData.instancingData.activeIndex, {layout.GetBufferSize()});");
             shaderWriter.CloseBlock();
             shaderWriter.NewLine();
 
@@ -124,11 +126,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 shaderWriter.Undefine(StructuredBufferTypeDefine);
             }
         }
+
         public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
         {
-            yield return (StructuredBufferTypeDefine, GetBindingName(usedDataView));
+            yield return (StructuredBufferTypeDefine, BufferResourceName(name));
         }
 
-        public string GetBindingName(DataView dataView) => $"_{dataView.DataContainer.IdentifierName}_buffer";
+        public string GetResourceName(DataView dataView) => BufferResourceName(dataView.DataContainer.IdentifierName);
     }
 }

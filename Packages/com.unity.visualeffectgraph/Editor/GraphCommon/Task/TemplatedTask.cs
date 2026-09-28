@@ -142,6 +142,24 @@ namespace Unity.GraphCommon.LowLevel.Editor
         protected bool HasBinding(IDataKey key) => m_Bindings.ContainsKey(key);
 
         /// <summary>
+        /// Gets the binding declared under the specified key, if it is of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The binding type to look for.</typeparam>
+        /// <param name="key">The data key to look up.</param>
+        /// <param name="binding">The binding found, or null.</param>
+        /// <returns>True if a binding with the key exists and is a <typeparamref name="T"/>, false otherwise.</returns>
+        protected bool TryGetBinding<T>(IDataKey key, out T binding) where T : TemplatedTaskBinding
+        {
+            if (m_Bindings.TryGetValue(key, out var found) && found is T typed)
+            {
+                binding = typed;
+                return true;
+            }
+            binding = null;
+            return false;
+        }
+
+        /// <summary>
         /// Adds a read path to the binding with the specified key.
         /// </summary>
         /// <param name="bindingKey">The binding key.</param>

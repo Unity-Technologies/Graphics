@@ -269,6 +269,16 @@ namespace UnityEditor.VFX
             return attribute;
         }
 
+        public static Unity.GraphCommon.LowLevel.Editor.AttributeUsage ConvertToNewCompiler(VFXAttributeMode mode)
+        {
+            Unity.GraphCommon.LowLevel.Editor.AttributeUsage usage = 0;
+            if (mode.HasFlag(VFXAttributeMode.Read))
+                usage |= Unity.GraphCommon.LowLevel.Editor.AttributeUsage.Read;
+            if (mode.HasFlag(VFXAttributeMode.Write))
+                usage |= Unity.GraphCommon.LowLevel.Editor.AttributeUsage.Write;
+            return usage;
+        }
+
         /****************************************************************/
 
         public static IEnumerable<VFXAttribute> LocalOnlyAttributes => s_LocalOnlyAttributes;

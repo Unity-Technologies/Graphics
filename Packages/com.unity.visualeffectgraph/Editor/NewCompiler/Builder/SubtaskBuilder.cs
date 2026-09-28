@@ -10,11 +10,17 @@ namespace UnityEditor.VFX
     {
         private ExpressionWriter m_ExpressionWriter = new ExpressionWriter();
 
-        public List<SubtaskDescription> GenerateSubtasks(VFXContext context, VFXExpressionGraph expressionGraph)
+        readonly Dictionary<VFXExpression, VfxResourceBinding> m_BlockResources = new();
+
+        // Per block caches to early exit expression tree walk
+        readonly HashSet<VFXExpression> m_WalkedResourceExpressions = new();
+        readonly HashSet<VFXExpression> m_WalkedAttributeExpressions = new();
+
+        public List<SubtaskDescription> GenerateSubtasks(VFXContext context, ContextExpressions contextExpressions)
         {
             List<SubtaskDescription> subtaskDescriptions = new List<SubtaskDescription>();
-            var gpuMapper = expressionGraph.BuildGPUMapper(context);
-            var uniformMapper = new VFXUniformMapper(gpuMapper, false, false);
+            var gpuMapper = contextExpressions.GpuMapper;
+            var uniformMapper = contextExpressions.UniformMapper;
             m_ExpressionWriter.Initialize(uniformMapper);
 
             int blockIndex = 0;
@@ -30,33 +36,51 @@ namespace UnityEditor.VFX
 
                 var defaultAttributeSet = new AttributeSet();
                 var sourceAttributeSet = new AttributeSet();
+                m_BlockResources.Clear();
+                m_WalkedResourceExpressions.Clear();
+                m_WalkedAttributeExpressions.Clear();
 
                 foreach (var attributeInfo in block.attributes)
                 {
                     var attribute = VFXAttributesManager.ConvertToNewCompiler(attributeInfo.attrib);
-                    AttributeUsage usage = GetAttributeUsage(attributeInfo.mode);
+                    var usage = VFXAttributesManager.ConvertToNewCompiler(attributeInfo.mode);
                     defaultAttributeSet.AddAttribute(attribute, usage);
-                    blockCodeBuilder.Replace(attributeInfo.attrib.name, "attributes." + attributeInfo.attrib.name);
+                }
+
+                // Workaround to handle RAND which implicitly uses the seed attribute
+                if (block.source != null && block.source.Contains("RAND"))
+                {
+                    defaultAttributeSet.AddAttribute(VFXAttributesManager.ConvertToNewCompiler(VFXAttribute.Seed), AttributeUsage.Read | AttributeUsage.Write);
                 }
 
                 // Generate parameters assignments and register attributes used by expressions
                 foreach (var parameter in block.parameters)
                 {
                     var reduced = gpuMapper.FromNameAndId(parameter.name, blockIndex);
-                    if (!VFXExpression.IsUniform(reduced.valueType)) // TODO: We'll need to handle buffers and textures as block inputs later.
-                        continue;
+                    Debug.Assert(reduced != null);
+                    var reducedValueType = reduced.valueType;
 
-                    string leftHandSide = $"{VFXExpression.TypeToCode(reduced.valueType)} {parameter.name}";
+                    if (!VFXExpression.IsUniform(reducedValueType))
+                    {
+                        WriteResourceParameter(subTaskDesc, expressionCodeBuilder, contextExpressions, parameter.name, reduced, reducedValueType);
+                        RegisterBlockAttributesFromExpression(defaultAttributeSet, sourceAttributeSet, reduced);
+                        continue;
+                    }
+
+                    string leftHandSide = $"{VFXExpression.TypeToCode(reducedValueType)} {parameter.name}";
                     string rightHandSide;
                     if (reduced.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                     {
+                        // The expression is evaluated inline in the block, so the resources it reads have to
+                        // be requested by the subtask just like a resource parameter would be.
+                        RequestResourceInputs(subTaskDesc, contextExpressions, reduced);
                         m_ExpressionWriter.WriteExpressionEvaluation(expressionCodeBuilder, reduced);
                         rightHandSide = m_ExpressionWriter.GetVariableValueString(reduced);
                     }
                     else
                     {
                         string bindingName = uniformMapper.GetName(reduced);
-                        var valueType = VFXExpression.TypeToType(reduced.valueType);
+                        var valueType = VFXExpression.TypeToType(reducedValueType);
                         var dataDescriptionType = ValueData.Create(valueType).GetType();
                         var binding = TemplatedTaskBinding<IDataDescription>.Create(dataDescriptionType, new NameDataKey(bindingName));
                         subTaskDesc.Bindings.Add(binding);
@@ -65,13 +89,6 @@ namespace UnityEditor.VFX
                     expressionCodeBuilder.Append($"{leftHandSide} = {rightHandSide};\n");
 
                     RegisterBlockAttributesFromExpression(defaultAttributeSet, sourceAttributeSet, reduced);
-                }
-
-                // Workaround to handle RAND which implicitly uses the seed attribute
-                if(block.source.Contains("RAND"))
-                {
-                    blockCodeBuilder.Insert(0, "uint seed = attributes.seed;\n");
-                    blockCodeBuilder.Append("attributes.seed = seed;\n");
                 }
 
                 blockCodeBuilder.Insert(0, expressionCodeBuilder.ToString());
@@ -91,8 +108,108 @@ namespace UnityEditor.VFX
             return subtaskDescriptions;
         }
 
+        /// <summary>
+        /// Declares the GPU resource a block parameter reads, and aliases it to the name the block source
+        /// uses. The resource is bound, and declared in the shader, under the name the uniform mapper gave
+        /// it, which is not the parameter name the block was written against.
+        /// </summary>
+        void WriteResourceParameter(SubtaskDescription subTaskDesc, StringBuilder expressionCodeBuilder,
+            ContextExpressions contextExpressions, string parameterName, VFXExpression reduced, VFXValueType reducedValueType)
+        {
+            var binding = RequestResource(subTaskDesc, contextExpressions, reduced);
+            if (binding == null)
+                return;
+
+            var bufferType = contextExpressions.GetBufferType(reduced);
+
+            string parameterType = GetResourceParameterType(reducedValueType, bufferType);
+            string parameterValue = GetResourceParameterValue(reducedValueType, bufferType, binding.Key.ToString());
+            expressionCodeBuilder.Append($"{parameterType} {parameterName} = {parameterValue};\n");
+        }
+
+        /// <summary>
+        /// The type a block declares a resource parameter with. Textures are handed to blocks as the struct
+        /// pairing the texture with its sampler, buffers as the container type a block declared for them.
+        /// </summary>
+        static string GetResourceParameterType(VFXValueType valueType, BufferType bufferType)
+        {
+            var bufferDeclaration = VfxBufferTypeHlsl.GetDeclaration(bufferType);
+            if (bufferDeclaration != null)
+                return bufferDeclaration;
+
+            return valueType switch
+            {
+                VFXValueType.Texture2D => "VFXSampler2D",
+                VFXValueType.Texture2DArray => "VFXSampler2DArray",
+                VFXValueType.Texture3D => "VFXSampler3D",
+                VFXValueType.TextureCube => "VFXSamplerCube",
+                VFXValueType.TextureCubeArray => "VFXSamplerCubeArray",
+                VFXValueType.CameraBuffer => "VFXSamplerCameraBuffer",
+                _ => VFXExpression.TypeToCode(valueType)
+            };
+        }
+
+        /// <summary>
+        /// What a resource parameter is initialized from. Textures are paired with the sampler declared next
+        /// to them; buffers are passed straight through.
+        /// </summary>
+        static string GetResourceParameterValue(VFXValueType valueType, BufferType bufferType, string bindingName)
+        {
+            if (VFXExpression.IsTexture(valueType) && !bufferType.valid)
+                return $"VFX_SAMPLER({bindingName})";
+            return bindingName;
+        }
+
+        /// <summary>
+        /// Declares every GPU resource an inlined expression reads. Such an expression is evaluated in the
+        /// block itself and refers to its resources by their binding name, so they need no alias, only a
+        /// binding. Mirrors how <see cref="VFXUniformMapper"/> walks the same tree: an expression that cannot
+        /// be evaluated on the CPU is inlined, anything below it is an input bound to the task.
+        /// </summary>
+        void RequestResourceInputs(SubtaskDescription subTaskDesc, ContextExpressions contextExpressions, VFXExpression expression)
+        {
+            foreach (var parent in expression.parents)
+            {
+                if (!m_WalkedResourceExpressions.Add(parent))
+                    continue;
+
+                // NotCompilableOnCPU is InvalidOnCPU | PerElement, propagated up from the leaves, so it
+                // marks exactly the expressions that have to be evaluated in the shader.
+                if (parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                    RequestResourceInputs(subTaskDesc, contextExpressions, parent);
+                else
+                    RequestResource(subTaskDesc, contextExpressions, parent);
+            }
+        }
+
+        /// <summary>
+        /// Adds the binding declaring <paramref name="expression"/>'s resource on the subtask, or returns the
+        /// one already declared for it. Null when the expression is not a GPU resource.
+        /// </summary>
+        VfxResourceBinding RequestResource(SubtaskDescription subTaskDesc, ContextExpressions contextExpressions, VFXExpression expression)
+        {
+            if (m_BlockResources.TryGetValue(expression, out var binding))
+                return binding;
+
+            if (!contextExpressions.IsResource(expression))
+                return null;
+
+            binding = contextExpressions.CreateResourceBinding(expression);
+            m_BlockResources.Add(expression, binding);
+            subTaskDesc.Bindings.Add(binding);
+            return binding;
+        }
+
         void RegisterBlockAttributesFromExpression(AttributeSet defaultAttributeSet, AttributeSet sourceAttributeSet, VFXExpression expression)
         {
+            // An attribute expression is per element, and that flag propagates to everything built on top of
+            // it, so a subexpression without it cannot hold one and the whole subtree can be skipped.
+            if (!expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                return;
+
+            if (!m_WalkedAttributeExpressions.Add(expression))
+                return;
+
             if (expression is VFXAttributeExpression attributeExpression)
             {
                 var attributeSet = attributeExpression.attributeLocation == VFXAttributeLocation.Source ? sourceAttributeSet : defaultAttributeSet;
@@ -105,15 +222,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        AttributeUsage GetAttributeUsage(VFXAttributeMode mode)
-        {
-            AttributeUsage usage = 0;
-            if (mode.HasFlag(VFXAttributeMode.Read))
-                usage |= AttributeUsage.Read;
-            if (mode.HasFlag(VFXAttributeMode.Write))
-                usage |= AttributeUsage.Write;
-            return usage;
-        }
     }
     class ExpressionWriter
     {
@@ -159,6 +267,14 @@ namespace UnityEditor.VFX
         {
             if (HasVariableValueString(exp)) // Expression value is already assigned within the scope.
                 return;
+
+            if (exp is VFXAttributeExpression attributeExpression)
+            {
+                AddGeneratedVariableValueString(exp, attributeExpression.attributeLocation == VFXAttributeLocation.Current
+                    ? attributeExpression.attributeName
+                    : attributeExpression.GetCodeString(null));
+                return;
+            }
 
             string entry;
             if (exp.Is(VFXExpression.Flags.Constant))
