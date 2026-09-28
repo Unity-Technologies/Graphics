@@ -774,11 +774,7 @@ namespace UnityEngine.Rendering
 
                 var instanceIndex = renderWorld.HandleToIndex(instance);
                 ref readonly AABB localAABB = ref renderWorld.localAABBs.ElementAt(instanceIndex);
-                boundsData[index] = new LocalBoundsGPUData
-                {
-                    center = new float4(localAABB.center, 0.0f),
-                    extents = new float4(localAABB.extents, 0.0f),
-                };
+                boundsData[index] = LocalBoundsGPUData.Pack(localAABB.center, localAABB.extents);
             }
         }
 

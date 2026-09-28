@@ -1250,8 +1250,7 @@ namespace UnityEngine.Rendering.Tests
                     AABB expected = m_InstanceDataSystem.renderWorld.localAABBs[instanceIndex];
                     LocalBoundsGPUData actual = readback.LoadData<LocalBoundsGPUData>(defaultGPUComponents.localBoundsAABB, gpuIndices[i]);
 
-                    Assert.AreEqual(new float4(expected.center, 0.0f), actual.center);
-                    Assert.AreEqual(new float4(expected.extents, 0.0f), actual.extents);
+                    Assert.AreEqual(LocalBoundsGPUData.Pack(expected.center, expected.extents).packedMinMax, actual.packedMinMax);
                 }
 
                 readback.Dispose();
@@ -1322,6 +1321,43 @@ namespace UnityEngine.Rendering.Tests
             extraInstanceIDs.Dispose();
 
             ShutdownGPUResidentDrawer();
+        }
+
+        [Test]
+        public void TestLocalBoundsFP16DirectedRounding()
+        {
+            static uint RoundedDown(float f) => LocalBoundsGPUData.F32ToF16Directed(f, roundUp: false);
+            static uint RoundedUp(float f) => LocalBoundsGPUData.F32ToF16Directed(f, roundUp: true);
+
+            void AssertBrackets(float f)
+            {
+                float down = math.f16tof32(RoundedDown(f));
+                float up = math.f16tof32(RoundedUp(f));
+                Assert.LessOrEqual(down, f, $"rounded-down fp16 must not exceed {f}");
+                Assert.GreaterOrEqual(up, f, $"rounded-up fp16 must not be below {f}");
+            }
+
+            // Exactly representable values must survive both directions unchanged.
+            foreach (var f in new[] { 0.0f, -0.0f, 0.5f, -0.5f, 1.0f, 65504.0f, -65504.0f, 0.000000059604645f /* 2^-24, smallest fp16 subnormal */ })
+            {
+                Assert.AreEqual(f, math.f16tof32(RoundedDown(f)));
+                Assert.AreEqual(f, math.f16tof32(RoundedUp(f)));
+            }
+
+            // Out-of-range values saturate outward to infinity and inward to the largest finite fp16.
+            Assert.AreEqual(0x7C00u, RoundedUp(1e6f));
+            Assert.AreEqual(0x7BFFu, RoundedDown(1e6f));
+            Assert.AreEqual(0xFC00u, RoundedDown(-1e6f));
+            Assert.AreEqual(0xFBFFu, RoundedUp(-1e6f));
+
+            // Sweep both signs across subnormal, normal, and overflow magnitudes.
+            var rng = new Unity.Mathematics.Random(0x12345678u);
+            for (int i = 0; i < 10000; ++i)
+            {
+                float magnitude = math.pow(10.0f, rng.NextFloat(-9.0f, 6.0f));
+                AssertBrackets(magnitude);
+                AssertBrackets(-magnitude);
+            }
         }
     }
 }
