@@ -319,7 +319,9 @@ namespace UnityEditor.Rendering.Universal
             
             static void OcclusionCullingWithWarningTileOnlyMode(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
+                #pragma warning disable CS0618
                 DisplayTileOnlyModeWarning(serialized.baseCameraSettings.occlusionCulling, p => p.boolValue, CameraUI.Rendering.Styles.occlusionCulling, serialized);
+                #pragma warning restore CS0618
             }
         }
     }

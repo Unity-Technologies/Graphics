@@ -33,7 +33,9 @@ namespace UnityEditor.Rendering
             /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_Rendering_OcclusionCulling(ISerializedCamera p, Editor owner)
             {
+                #pragma warning disable CS0618
                 EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, Styles.occlusionCulling);
+                #pragma warning restore CS0618
             }
         }
     }
