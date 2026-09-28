@@ -441,6 +441,9 @@ namespace UnityEditor.Rendering.Universal
 
                     foreach (var item in leafItems)
                     {
+                        if (!item.isEnabled)
+                            continue;
+
                         converterResult.items.Add(new ScanResultItem
                         {
                             name = item.name,
