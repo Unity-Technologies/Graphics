@@ -36,11 +36,24 @@ public class HDRP_Runtime_Graphics_Tests
         yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
     }
 
+    [SetUp]
+    public void ClearDeveloperConsole()
+    {
+        // UGK logs a startup error (UGK-3045) that leaves the console over the first capture.
+        if (GraphicsTestPlatform.Current.GetValue<UnityGraphicsKernelMode>() == UnityGraphicsKernelMode.UgkOn)
+            Debug.ClearDeveloperConsole();
+    }
+
     [UnityTest]
     [SceneGraphicsTest(@"Assets/Scenes/^(?!002-HDMaterials\.unity$)[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     [IgnoreGraphicsTest("005", "Was excluded from the build settings")]
     [IgnoreGraphicsTest("007|008", "Temporary ignore due to light baking")]
+    [IgnoreGraphicsTest(
+        "003-VirtualTexturing$|003-VirtualTexturing-Forward$",
+        "https://jira.unity3d.com/browse/UGK-3045",
+        UnityGraphicsKernelMode.UgkOn
+    )]
     [IgnoreGraphicsTest(
         "001-HDTemplate$",
         "https://jira.unity3d.com/browse/UUM-48116",
