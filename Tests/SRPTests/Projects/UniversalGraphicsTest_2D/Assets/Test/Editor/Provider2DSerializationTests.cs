@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class Provider2DSerializationTests : Provider2DTestBase
 {
     // Opening the inspector must not make a light reference every provider type in the project: that

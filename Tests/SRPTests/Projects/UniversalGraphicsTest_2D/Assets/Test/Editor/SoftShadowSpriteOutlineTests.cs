@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// sprites cannot drift from what the model was verified against.
     /// </remarks>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowSpriteOutlineTests
     {
         const string k_ShapeDir = "Assets/Scenes/140_Shadow_Materials/Shapes";

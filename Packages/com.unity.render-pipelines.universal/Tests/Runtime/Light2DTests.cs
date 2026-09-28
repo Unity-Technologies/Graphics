@@ -166,7 +166,6 @@ namespace UnityEngine.Rendering.Universal.Tests
 
         // Verifies UVs are computed from the vertex XY extents and normalized into [0,1]
         // for Freeform lights. The mesh XY bounds should touch UV (0,0) and (1,1).
-        [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
         [Test]
         public void FreeformMeshHasPositionDerivedUVs()
         {
@@ -217,7 +216,6 @@ namespace UnityEngine.Rendering.Universal.Tests
         // direction in color.rg and are pushed outward by falloffDistance * color.rg in
         // the vert shader, so the CPU-side UV normalization must use those same extended
         // positions to keep UV [0,1] spanning the visible falloff band.
-        [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
         [Test]
         public void ParametricMeshHasPositionDerivedUVs()
         {
@@ -273,7 +271,6 @@ namespace UnityEngine.Rendering.Universal.Tests
 
         // Sprite light meshes must retain the sprite's own UVs; the new
         // position-derived UV logic must not affect them.
-        [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
         [Test]
         public void SpriteMeshWithNullSpriteClearsMesh()
         {

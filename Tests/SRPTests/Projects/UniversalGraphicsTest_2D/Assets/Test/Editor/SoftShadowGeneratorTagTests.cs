@@ -19,7 +19,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// anything at runtime -- what it still has to do is describe each shader honestly.
     /// </remarks>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowGeneratorTagTests
     {
         const string k_FixtureDir = "Assets/Scenes/140_Shadow_Materials";

@@ -5,7 +5,6 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class Provider2DMultiSelectTests : Provider2DTestBase
 {
     static readonly Shadow2DProviderSources_PropertyDrawer s_ShadowDrawer = new Shadow2DProviderSources_PropertyDrawer();
