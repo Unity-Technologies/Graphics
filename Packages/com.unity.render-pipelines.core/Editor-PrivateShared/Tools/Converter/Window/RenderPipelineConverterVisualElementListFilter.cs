@@ -87,5 +87,20 @@ namespace UnityEditor.Rendering.Converter
             m_Error.Q<Label>("label").text = $"{state.errors}";
             m_Success.Q<Label>("label").text = $"{state.success}";
         }
+
+        /// <summary>
+        /// Refreshes the visual state of all filter toggles to match the current filter state.
+        /// Call this after modifying state.currentFilter directly (e.g., after Clear()).
+        /// </summary>
+        public void RefreshToggleStates()
+        {
+            if (m_State == null)
+                return;
+
+            UpdateToggleVisualState(m_Pending, (m_State.currentFilter & DisplayFilter.Pending) != 0);
+            UpdateToggleVisualState(m_Warning, (m_State.currentFilter & DisplayFilter.Warnings) != 0);
+            UpdateToggleVisualState(m_Error, (m_State.currentFilter & DisplayFilter.Errors) != 0);
+            UpdateToggleVisualState(m_Success, (m_State.currentFilter & DisplayFilter.Success) != 0);
+        }
     }
 }

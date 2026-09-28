@@ -71,21 +71,29 @@ namespace UnityEditor.Rendering.Converter
 
         public void OnBeforeSerialize()
         {
-            // TODO: As the converters have data stored inside during initialization we need to clear the states
-            // Once we keep the items to be classes and converters can inherit them to store any kind of data this can be removed
+            // Clear event handlers before serialization
+            // They will be re-established by the window during CreateGUI after reload
             foreach (var state in converterStates)
-                state.Clear();
+            {
+                state.OnBeforeSerialize();
+            }
         }
 
         public void OnAfterDeserialize()
         {
-            // Something null, remove it
+            // Remove null states
             for (int i = converterStates.Count - 1; i >= 0; i--)
             {
                 if (converterStates[i] == null || converterStates[i].converter == null)
                 {
                     converterStates.RemoveAt(i);
                 }
+            }
+
+            // Clean up invalid items and rebuild trees
+            foreach (var state in converterStates)
+            {
+                state.OnAfterDeserialize();
             }
         }
     }
