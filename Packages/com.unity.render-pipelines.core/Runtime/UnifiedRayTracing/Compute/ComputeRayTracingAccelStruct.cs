@@ -173,7 +173,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].localToWorldTransform = ConvertTranform(localToWorldMatrix);
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.localToWorldTransform = ConvertTranform(localToWorldMatrix);
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -181,7 +183,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].userInstanceID = instanceID;
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.userInstanceID = instanceID;
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -189,7 +193,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].instanceMask = mask;
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.instanceMask = mask;
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -916,7 +922,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         readonly Dictionary<int, RadeonRaysInstance> m_RadeonInstances = new ();
         readonly Queue<uint> m_FreeHandles = new();
 
-        sealed class RadeonRaysInstance
+        struct RadeonRaysInstance
         {
             public Blas blas;
             public uint instanceMask;
