@@ -467,6 +467,7 @@ namespace UnityEngine.Rendering
 
             public GraphicsBuffer GetEmissiveTriangleBuffer() => _emissiveTriangles;
             public GraphicsBuffer GetEmissiveTriangleCounterBuffer() => _emissiveTriangleCounter;
+            public int TrackedTriangleCount => _trackedTriangleCount;
 
             public void Dispose()
             {
@@ -480,7 +481,7 @@ namespace UnityEngine.Rendering
 
         private class InstanceInfo
         {
-            public Mesh Mesh;
+            public int[] SubMeshTriangleCounts; // Per-submesh triangle count
             public MaterialHandle[] SubMeshMaterials; // Per-submesh material handle
             public bool[] SubMeshEmissiveMask; // Per-submesh flag indicating if the submesh is emissive
         }
@@ -556,6 +557,11 @@ namespace UnityEngine.Rendering
         internal int GetMaterialCount()
         {
             return _materialHandleSet.Count;
+        }
+
+        internal int GetTrackedEmissiveTriangleCount()
+        {
+            return _emissiveTriangles.TrackedTriangleCount;
         }
 
         public void SetEnvironmentMaterial(Material mat)
@@ -683,10 +689,10 @@ namespace UnityEngine.Rendering
                 {
                     Debug.Assert(_trackedInstances.ContainsKey(instanceHandle), "Material references an instance that is not tracked.");
                     InstanceInfo info = _trackedInstances[instanceHandle];
-                    Mesh mesh = info.Mesh;
+                    int[] subMeshTriangleCounts = info.SubMeshTriangleCounts;
                     MaterialHandle[] materials = info.SubMeshMaterials;
                     UntrackInstance(instanceHandle);
-                    TrackInstance(instanceHandle, mesh, materials);
+                    TrackInstance(instanceHandle, subMeshTriangleCounts, materials);
                 }
             }
         }
@@ -713,9 +719,17 @@ namespace UnityEngine.Rendering
                 isOpaque[i] = !isTransmissive;
             }
 
+            Span<int> subMeshTriangleCounts = stackalloc int[mesh.subMeshCount];
+            for (int i = 0; i < subMeshTriangleCounts.Length; ++i)
+            {
+                uint indexCount = mesh.GetIndexCount(i);
+                Debug.Assert(indexCount % 3 == 0, "Mesh should contain triangles.");
+                subMeshTriangleCounts[i] = (int)(indexCount / 3);
+            }
+
             InstanceHandle instance = _instanceHandleSet.Add();
             _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, 0);
-            TrackInstance(instance, mesh, materials);
+            TrackInstance(instance, subMeshTriangleCounts, materials);
             return instance;
         }
 
@@ -766,14 +780,13 @@ namespace UnityEngine.Rendering
             _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
 
             Debug.Assert(_trackedInstances.ContainsKey(instance), "Cannot update an instance that is not tracked.");
-            Mesh mesh = _trackedInstances[instance].Mesh;
+            int[] subMeshTriangleCounts = _trackedInstances[instance].SubMeshTriangleCounts;
             UntrackInstance(instance);
-            TrackInstance(instance, mesh, materials);
+            TrackInstance(instance, subMeshTriangleCounts, materials);
         }
 
-        void TrackInstance(InstanceHandle instanceHandle, Mesh mesh, ReadOnlySpan<MaterialHandle> materialHandles)
+        void TrackInstance(InstanceHandle instanceHandle, ReadOnlySpan<int> subMeshTriangleCounts, ReadOnlySpan<MaterialHandle> materialHandles)
         {
-            Debug.Assert(mesh != null, "Cannot add invalid mesh.");
             Debug.Assert(!_trackedInstances.ContainsKey(instanceHandle), "Instance is already tracked.");
 
             bool foundInstanceIDs = _rayTracingAccelerationStructure.GetInstanceIDs(instanceHandle.Value, out int[] instanceIDs);
@@ -781,13 +794,13 @@ namespace UnityEngine.Rendering
 
             var info = new InstanceInfo
             {
-                Mesh = mesh,
+                SubMeshTriangleCounts = subMeshTriangleCounts.ToArray(),
                 SubMeshMaterials = materialHandles.ToArray(),
-                SubMeshEmissiveMask = new bool[mesh.subMeshCount],
+                SubMeshEmissiveMask = new bool[subMeshTriangleCounts.Length],
             };
             _trackedInstances[instanceHandle] = info;
 
-            int subMeshCount = Math.Min(mesh.subMeshCount, materialHandles.Length);
+            int subMeshCount = Math.Min(subMeshTriangleCounts.Length, materialHandles.Length);
             for (int subMeshIdx = 0; subMeshIdx < subMeshCount; subMeshIdx++)
             {
                 Debug.Assert(materialHandles[subMeshIdx] != MaterialHandle.Invalid, "Material referenced by instance is invalid");
@@ -795,9 +808,7 @@ namespace UnityEngine.Rendering
                     continue;
 
                 info.SubMeshEmissiveMask[subMeshIdx] = true;
-                int indexCount = (int)mesh.GetIndexCount(subMeshIdx);
-                Debug.Assert(indexCount % 3 == 0, "Mesh should contain triangles.");
-                _emissiveTriangles.AddSubmeshInstance(instanceIDs[subMeshIdx], indexCount / 3);
+                _emissiveTriangles.AddSubmeshInstance(instanceIDs[subMeshIdx], subMeshTriangleCounts[subMeshIdx]);
             }
 
             foreach (var materialHandle in materialHandles)
