@@ -209,5 +209,7 @@ out float4 outColor : SV_Target0
         float4 previousPositionCS = unpacked.texCoord2;
         float2 motionVector = CalculateMotionVector(unpacked.positionCS, previousPositionCS);
         outMotionVec = float4(motionVector * 0.5, 1, 1);
+    #else
+        outMotionVec = float4(0.0, 0.0, 0.0, 0.0);
     #endif
 }
