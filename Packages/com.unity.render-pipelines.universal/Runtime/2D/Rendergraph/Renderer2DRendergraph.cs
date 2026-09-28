@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
 
                 output.importInfoDepth = output.importInfo;
                 output.importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-                output.importInfoDepth.isMemoryless = UniversalRenderPipeline.IsBackbufferDepthMemorylessActive();
+                output.importInfoDepth.isMemoryless = cameraData.backbufferDepth.isMemoryless;
             }
 
             return output;

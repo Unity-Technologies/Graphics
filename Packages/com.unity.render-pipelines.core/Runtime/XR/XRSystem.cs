@@ -790,6 +790,7 @@ namespace UnityEngine.Experimental.Rendering
             rtDesc.vrUsage      = xrDesc.vrUsage;
             rtDesc.sRGB         = xrDesc.sRGB;
             rtDesc.shadowSamplingMode = xrDesc.shadowSamplingMode;
+            rtDesc.memoryless   = xrDesc.memoryless;
             return rtDesc;
         }
 

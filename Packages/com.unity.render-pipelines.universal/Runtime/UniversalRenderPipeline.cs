@@ -1567,12 +1567,18 @@ namespace UnityEngine.Rendering.Universal
                 format = xr.renderTargetDesc.graphicsFormat,
                 bindMS = xr.renderTargetDesc.msaaSamples > 1 && !UniversalRenderer.PlatformRequiresExplicitMsaaResolve(),
             };
+            baseCameraData.backbufferColor.isMemoryless = IsXRSurfaceMemoryless(
+                xr.renderTargetDesc.memoryless, xr.renderTargetDesc.msaaSamples, RenderTextureMemoryless.Color);
+
             baseCameraData.backbufferDepth = baseCameraData.backbufferColor;
             baseCameraData.backbufferDepth.format = xr.renderTargetDesc.depthStencilFormat;
+            baseCameraData.backbufferDepth.isMemoryless = IsXRSurfaceMemoryless(
+                xr.renderTargetDesc.memoryless, xr.renderTargetDesc.msaaSamples, RenderTextureMemoryless.Depth);
 
             // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
             baseCameraData.cameraTargetDescriptor = xr.renderTargetDesc;
+            baseCameraData.cameraTargetDescriptor.memoryless = RenderTextureMemoryless.None;
             if (baseCameraData.isHdrEnabled)
             {
                 baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
@@ -2987,6 +2993,11 @@ namespace UnityEngine.Rendering.Universal
         internal static bool IsBackbufferDepthMemorylessActive()
             => SystemInfo.supportsBackbufferDepthMemoryless
                && UnityEngineInternal.MemorylessManager.isDepthMemoryless;
+
+        internal static bool IsXRSurfaceMemoryless(RenderTextureMemoryless memoryless, int msaaSamples, RenderTextureMemoryless nonMsaaBit)
+            => msaaSamples > 1
+                ? (memoryless & RenderTextureMemoryless.MSAA) != 0
+                : (memoryless & nonMsaaBit) != 0;
 
         /// <summary>
         /// Checks if the hardware (main display and platform) and the render pipeline support HDR.

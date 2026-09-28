@@ -47,10 +47,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool bindMS;
         /// <summary>
         /// Set to true if this render target should use memoryless storage.
-        /// Mainly intended for the backbuffer depth on Metal iOS/tvOS/visionOS when PlayerSettings depth memoryless mode is enabled.
+        /// Mainly intended for the backbuffer depth on Metal iOS/tvOS/visionOS when PlayerSettings depth memoryless mode is
+        /// enabled, and for XR eye textures that the provider requests as memoryless.
         /// Memoryless resources can't be loaded or stored, so importing one forces discard on last use regardless of
-        /// <see cref="ImportResourceParams.discardOnLastUse"/>. If the resource ends up used across more than one native
-        /// render pass, the graph falls back to a regular resource so its contents survive the pass boundary.
+        /// <see cref="ImportResourceParams.discardOnLastUse"/>. Their contents only survive within a single native render
+        /// pass. This flag describes how the surface was created, so the graph can't compensate for it: a pass that loads
+        /// the contents after a native render pass boundary reads undefined data.
         /// </summary>
         public bool isMemoryless;
     }

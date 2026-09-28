@@ -1216,6 +1216,40 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return false;
         }
 
+        // An imported memoryless surface only retains its contents within a single native render pass. The graph does not
+        // own the surface, so it cannot make the contents survive a pass boundary - all it can do is tell the pipeline
+        // that it asked for something the hardware will not give it.
+        [Conditional("UNITY_ENABLE_CHECKS")]
+        void ValidateImportedMemorylessLifetimes()
+        {
+            if (!RenderGraph.enableValidityChecks)
+                return;
+
+            var textureData = contextData.resources.unversionedData[(int)RenderGraphResourceType.Texture];
+            for (int i = 1; i < textureData.Length; ++i)
+            {
+                ref readonly var resourceData = ref textureData.ElementAt(i);
+
+                if (!resourceData.isImported || !resourceData.memoryLess)
+                    continue;
+
+                // Unused or culled, nothing to validate.
+                if (resourceData.firstUsePassID < 0 || resourceData.lastUsePassID < 0)
+                    continue;
+
+                int firstNativePass = contextData.passData[resourceData.firstUsePassID].nativePassIndex;
+                int lastNativePass = contextData.passData[resourceData.lastUsePassID].nativePassIndex;
+
+                if (firstNativePass == lastNativePass)
+                    continue;
+
+                var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(RenderGraphResourceType.Texture, i);
+                Debug.LogWarning($"Imported memoryless resource '{name}' is used from pass '{contextData.GetPassName(resourceData.firstUsePassID)}' to pass '{contextData.GetPassName(resourceData.lastUsePassID)}', which span different native render passes. "
+                    + "A memoryless surface does not retain its contents across a native render pass boundary, so the later pass reads undefined data. "
+                    + "Either avoid the pass break, or render into a resource the render graph owns instead of importing a memoryless one.");
+            }
+        }
+
         void DetectMemoryLessResources()
         {
             using (k_DetectMemorylessResources.Auto())
@@ -1224,28 +1258,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (!SystemInfo.supportsMemorylessTextures)
                     return;
 
-                // Imported resources can be requested as memoryless at import time (see RenderTargetInfo.isMemoryless), but a
-                // memoryless surface only survives within a single native pass. If its lifetime spans several of them - e.g. a
-                // non-raster pass breaks the merge between two raster passes both using the backbuffer depth - a later pass
-                // would have to Load contents that were never retained, so clear the flag again for those.
-                var textureData = contextData.resources.unversionedData[(int)RenderGraphResourceType.Texture];
-                for (int i = 1; i < textureData.Length; ++i)
-                {
-                    ref var resourceData = ref textureData.ElementAt(i);
-
-                    if (!resourceData.isImported || !resourceData.memoryLess)
-                        continue;
-
-                    // Unused or culled, nothing to adjust.
-                    if (resourceData.firstUsePassID < 0 || resourceData.lastUsePassID < 0)
-                        continue;
-
-                    int firstNativePass = contextData.passData[resourceData.firstUsePassID].nativePassIndex;
-                    int lastNativePass = contextData.passData[resourceData.lastUsePassID].nativePassIndex;
-
-                    if (firstNativePass != lastNativePass)
-                        resourceData.memoryLess = false;
-                }
+                // Note: memoryless on an imported resource is imposed by whoever created the surface (PlayerSettings for
+                // the Metal backbuffer depth, the provider for XR eye textures), so the graph cannot retract it here.
+                ValidateImportedMemorylessLifetimes();
 
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp

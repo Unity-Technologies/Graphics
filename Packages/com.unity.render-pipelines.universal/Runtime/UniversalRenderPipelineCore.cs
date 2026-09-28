@@ -1563,6 +1563,7 @@ namespace UnityEngine.Rendering.Universal
                 };
                 cameraData.backbufferDepth = cameraData.backbufferColor;
                 cameraData.backbufferDepth.format = depthStencilFormat;
+                cameraData.backbufferDepth.isMemoryless = UniversalRenderPipeline.IsBackbufferDepthMemorylessActive();
             }
             else
             {
