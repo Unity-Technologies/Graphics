@@ -47,5 +47,18 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             Assert.AreEqual("Cull [_Cull]", CullState(NewTarget(face, allowMaterialOverride: true)));
         }
+
+        // Must mirror UberSwitchedCullRenderState's binding decision exactly.
+        [TestCase(RenderFace.Front, false, false)]
+        [TestCase(RenderFace.Back, false, false)]
+        [TestCase(RenderFace.Both, false, false)]
+        [TestCase(RenderFace.BackToFront, false, true)]
+        [TestCase(RenderFace.FrontToBack, false, true)]
+        [TestCase(RenderFace.Front, true, true)]
+        [TestCase(RenderFace.BackToFront, true, true)]
+        public void CullStateBoundToProperty_MatchesCullStateBinding(RenderFace face, bool allowMaterialOverride, bool expected)
+        {
+            Assert.AreEqual(expected, CoreRenderStates.CullStateBoundToProperty(allowMaterialOverride, face));
+        }
     }
 }

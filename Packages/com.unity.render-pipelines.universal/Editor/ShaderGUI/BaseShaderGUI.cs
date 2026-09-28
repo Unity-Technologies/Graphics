@@ -1230,6 +1230,13 @@ namespace UnityEditor
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+
+            // Without override, _Cull may still be live-bound (two-pass), so a stale value can't persist.
+            if (!material.HasProperty(Property.SurfaceType) && material.HasProperty(Property.CullMode))
+            {
+                int cullPropertyIndex = material.shader.FindPropertyIndex(Property.CullMode);
+                material.SetFloat(Property.CullMode, material.shader.GetPropertyDefaultFloatValue(cullPropertyIndex));
+            }
         }
 
         internal static void UpdateMotionVectorKeywordsAndPass(Material material)

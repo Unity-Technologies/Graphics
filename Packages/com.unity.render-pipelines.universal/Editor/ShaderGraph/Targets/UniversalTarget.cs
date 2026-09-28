@@ -1899,6 +1899,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return renderFace == RenderFace.BackToFront || renderFace == RenderFace.FrontToBack;
         }
 
+        // Two-pass renderFace has no Cull enum literal, so cull must stay bound to [_Cull] even without override.
+        public static bool CullStateBoundToProperty(bool allowMaterialOverride, RenderFace renderFace)
+        {
+            return allowMaterialOverride || IsTwoPassRendering(renderFace);
+        }
+
         public static bool RendersBothFaces(RenderFace renderFace)
         {
             return renderFace == RenderFace.Both || IsTwoPassRendering(renderFace);
@@ -2116,12 +2122,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static RenderStateDescriptor UberSwitchedCullRenderState(UniversalTarget target)
         {
-            if (target.allowMaterialOverride)
-                return RenderState.Cull(Uniforms.cullMode);
-            // Two-pass renderFace (BackToFront/FrontToBack) has no Cull enum value and ShaderLab
-            // rejects a numeric literal, so bind cull to [_Cull] (baked to 3/4 by the subtarget) -
-            // the engine two-pass injection reads it via EvaluateRawCullMode (only honored when IsVar).
-            if (IsTwoPassRendering(target.renderFace))
+            if (CullStateBoundToProperty(target.allowMaterialOverride, target.renderFace))
                 return RenderState.Cull(Uniforms.cullMode);
             return RenderState.Cull(RenderFaceToCull(target.renderFace));
         }
