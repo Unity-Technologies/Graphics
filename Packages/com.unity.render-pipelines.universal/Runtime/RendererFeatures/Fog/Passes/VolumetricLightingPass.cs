@@ -66,6 +66,8 @@ namespace UnityEngine.Rendering.Universal
         int m_Kernel;
         LocalKeyword m_DisableTexture2DXArrayKeyword;
         LocalKeyword m_EnableReprojectionKeyword;
+        LocalKeyword m_MainLightShadowsKeyword;
+        LocalKeyword m_MainLightShadowCascadesKeyword;
         LocalKeyword m_SupportLocalLightsKeyword;
         LocalKeyword m_SupportLocalLightsShadowsKeyword;
         RTHandle m_MainLightCookieRTHandle;
@@ -90,6 +92,8 @@ namespace UnityEngine.Rendering.Universal
             // Keywords
             public LocalKeyword disableTexture2DXArrayKeyword;
             public LocalKeyword enableReprojectionKeyword;
+            public LocalKeyword mainLightShadowsKeyword;
+            public LocalKeyword mainLightShadowCascadesKeyword;
             public LocalKeyword supportLocalLightsKeyword;
             public LocalKeyword supportLocalLightsShadowsKeyword;
             public bool depthIsArray;
@@ -178,6 +182,8 @@ namespace UnityEngine.Rendering.Universal
             m_Kernel = m_Shader.FindKernel("VolumetricLighting");
             m_DisableTexture2DXArrayKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.DisableTexture2DXArray);
             m_EnableReprojectionKeyword = new LocalKeyword(m_Shader, "ENABLE_REPROJECTION");
+            m_MainLightShadowsKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.MainLightShadows);
+            m_MainLightShadowCascadesKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.MainLightShadowCascades);
             m_SupportLocalLightsKeyword = new LocalKeyword(m_Shader, "SUPPORT_LOCAL_LIGHTS");
             m_SupportLocalLightsShadowsKeyword = new LocalKeyword(m_Shader, "SUPPORT_LOCAL_LIGHTS_SHADOWS");
         }
@@ -248,6 +254,8 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.disableTexture2DXArrayKeyword = m_DisableTexture2DXArrayKeyword;
                 passData.enableReprojectionKeyword = m_EnableReprojectionKeyword;
+                passData.mainLightShadowsKeyword = m_MainLightShadowsKeyword;
+                passData.mainLightShadowCascadesKeyword = m_MainLightShadowCascadesKeyword;
                 passData.supportLocalLightsKeyword = m_SupportLocalLightsKeyword;
                 passData.supportLocalLightsShadowsKeyword = m_SupportLocalLightsShadowsKeyword;
                 passData.depthIsArray = depthIsArray;
@@ -522,6 +530,11 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetKeyword(cs, data.disableTexture2DXArrayKeyword, !data.depthIsArray);
                     cmd.SetKeyword(cs, data.enableReprojectionKeyword, data.enableReprojection);
+                    Debug.Assert(!data.shadowData.supportsMainLightShadows || data.shadowData.mainLightShadowCascadesCount > 0);
+                    cmd.SetKeyword(cs, data.mainLightShadowsKeyword,
+                        data.shadowData.supportsMainLightShadows && data.shadowData.mainLightShadowCascadesCount == 1);
+                    cmd.SetKeyword(cs, data.mainLightShadowCascadesKeyword,
+                        data.shadowData.supportsMainLightShadows && data.shadowData.mainLightShadowCascadesCount > 1);
                     bool sampleLocalShadows = data.applyLocalLights && data.shadowData.isKeywordAdditionalLightShadowsEnabled;
                     cmd.SetKeyword(cs, data.supportLocalLightsKeyword, data.applyLocalLights && !sampleLocalShadows);
                     cmd.SetKeyword(cs, data.supportLocalLightsShadowsKeyword, sampleLocalShadows);
