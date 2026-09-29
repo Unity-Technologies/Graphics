@@ -14,6 +14,11 @@
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
     "com.unity.testing.hdrp-dxr": "file:../../../Packages/com.unity.testing.hdrp-dxr",
+    "com.unity.testing.hdrp-dxr.materials": "file:../../../Packages/com.unity.testing.hdrp-dxr.materials",
+    "com.unity.testing.hdrp-dxr.scenes1": "file:../../../Packages/com.unity.testing.hdrp-dxr.scenes1",
+    "com.unity.testing.hdrp-dxr.scenes2": "file:../../../Packages/com.unity.testing.hdrp-dxr.scenes2",
+    "com.unity.testing.hdrp-dxr.scenes3": "file:../../../Packages/com.unity.testing.hdrp-dxr.scenes3",
+    "com.unity.testing.hdrp-dxr.shadergraph": "file:../../../Packages/com.unity.testing.hdrp-dxr.shadergraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
@@ -51,7 +56,12 @@
     "com.unity.yamato": "1.0.1"
   },
   "testables": [
-    "com.unity.testing.hdrp-dxr"
+    "com.unity.testing.hdrp-dxr",
+    "com.unity.testing.hdrp-dxr.materials",
+    "com.unity.testing.hdrp-dxr.scenes1",
+    "com.unity.testing.hdrp-dxr.scenes2",
+    "com.unity.testing.hdrp-dxr.scenes3",
+    "com.unity.testing.hdrp-dxr.shadergraph"
   ],
   "scopedRegistries": [
     {
