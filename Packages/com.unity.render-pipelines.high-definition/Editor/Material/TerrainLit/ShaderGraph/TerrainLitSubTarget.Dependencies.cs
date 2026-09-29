@@ -115,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static IncludeCollection Includes = new IncludeCollection
             {
+                { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph },
                 { TerrainIncludes.kSplatmap, IncludeLocation.Pregraph },
             };
