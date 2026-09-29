@@ -8,7 +8,7 @@
     <ui:Box class="section alternate">
         <ui:Label text="Documentation" class="category" />
         <ui:Label text="&lt;a href=&quot;https://unity.com/visual-effect-graph&quot;&gt;VFX Graph Home&lt;/a&gt;" tooltip="Open Visual Effect Graph home page" class="indented" />
-        <ui:Label text="&lt;a href=&quot;https://discussions.unity.com/tags/c/unity-engine/52/visual-effects-graph&quot;&gt;VFX Graph Discussions&lt;/a&gt;" tooltip="Open Visual Effect Graph Discussions" class="indented" />
+        <ui:Label text="&lt;a href=&quot;https://discussions.unity.com/tag/visual-effects-graph&quot;&gt;VFX Graph Discussions&lt;/a&gt;" tooltip="Open Visual Effect Graph Discussions" class="indented" />
     </ui:Box>
     <ui:Box class="section">
         <ui:Label text="Examples and Resources" class="category" />
