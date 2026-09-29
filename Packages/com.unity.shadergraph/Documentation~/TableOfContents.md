@@ -30,6 +30,7 @@
         * [Create a Sub Graph](Create-Sub-Graph.md)
         * [Add a Sub Graph to a shader graph](Add-Sub-Graph-To-Shader-Graph.md)
         * [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md)
+        * [Change how Sub Graph inputs appear on a node](Sub-Graph-Input-Display.md)
         * [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md)
         * [Change the behavior of a Sub Graph](Change-Behaviour-Sub-Graph-Dropdown.md)
         * [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md)
