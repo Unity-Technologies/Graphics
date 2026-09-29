@@ -25,10 +25,10 @@ namespace UnityEditor.Rendering.Universal.Tests
             get
             {
                 int count = 0;
-                foreach (var field in typeof(GlobalShaderVariablesBase).GetFields(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var shaderField in typeof(GlobalShaderVariablesBase).GetFields(BindingFlags.Public | BindingFlags.Instance))
                 {
                     // Padding is never pushed, so it has no command to pay for.
-                    if (field.FieldType == typeof(float) && !field.Name.StartsWith("_URPPadding", StringComparison.Ordinal))
+                    if (shaderField.FieldType == typeof(float) && !shaderField.Name.StartsWith("_URPPadding", StringComparison.Ordinal))
                         count++;
                 }
 
