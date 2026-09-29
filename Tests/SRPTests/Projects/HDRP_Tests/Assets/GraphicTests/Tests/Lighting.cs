@@ -72,17 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Architecture.X64
         )]
         [IgnoreGraphicsTest(
-            "2405_EnlightenDynamicAreaLights$",
-            "Results on CI are very close to DX/VK ref-images. Maybe it just need a ref-image update?",
-            GraphicsDeviceType.Metal
-        )]
-        [IgnoreGraphicsTest(
-            "2405_EnlightenDynamicAreaLights$",
-            "Results on CI are very close to Windows ref-images. Maybe it just need a ref-image update?",
-            GraphicsDeviceType.Vulkan,
-            RuntimePlatform.LinuxEditor
-        )]
-        [IgnoreGraphicsTest(
             "2120_APV_Baking",
             "Failing with GpuResidentDrawer",
             RuntimePlatform.WindowsEditor,

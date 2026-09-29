@@ -48,7 +48,7 @@ public class HDRP_Runtime_Graphics_Tests
     [SceneGraphicsTest(@"Assets/Scenes/^(?!002-HDMaterials\.unity$)[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     [IgnoreGraphicsTest("005", "Was excluded from the build settings")]
-    [IgnoreGraphicsTest("007|008", "Temporary ignore due to light baking")]
+    [IgnoreGraphicsTest("007", "Temporary ignore due to light baking")]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$|003-VirtualTexturing-Forward$",
         "https://jira.unity3d.com/browse/UGK-3045",
