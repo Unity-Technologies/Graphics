@@ -248,14 +248,13 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
-            var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
-
             if (asset == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
 
+                var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
+                var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -264,13 +263,14 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
+            var precisionToken = asset.outputGraphPrecision.ToGenericString();
             var inputVariableName = $"_{GetVariableNameForNode()}";
 
             GenerationUtils.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
             // declare output variables
             foreach (var outSlot in asset.outputs)
-                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(outputPrecision), GetVariableNameForSlot(outSlot.id));
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(precisionToken), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
             foreach (AbstractShaderProperty prop in asset.inputs)
