@@ -25,7 +25,7 @@ struct Attributes
 struct Varyings
 {
     float4 positionCS : SV_POSITION;
-    float3 uv0AndFogCoord : TEXCOORD0; // xy: uv0, z: fogCoord
+    float2 uv : TEXCOORD0;
 #if USE_LIGHTMAP_UV_INTERPOLATOR
     float2 staticLightmapUV         : LIGHTMAPUV;
 #endif
@@ -132,7 +132,7 @@ Varyings BakedLitForwardPassVertex(Attributes input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     output.positionCS = vertexInput.positionCS;
-    output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+    output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
@@ -173,11 +173,11 @@ void BakedLitForwardPassFragment(
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half2 uv = input.uv0AndFogCoord.xy;
+    half2 uv = input.uv;
     half3 normalTS = SampleNormal(uv);
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv0AndFogCoord.xy, _BaseMap));
+    SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
     half4 texColor = SampleBaseMap(uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
