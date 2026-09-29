@@ -493,6 +493,8 @@ namespace UnityEngine.Rendering
         }
 
         private readonly Dictionary<InstanceHandle, InstanceInfo> _trackedInstances = new();
+        private readonly Dictionary<int, Stack<InstanceInfo>> _freeInstanceInfos = new();
+        private readonly List<InstanceHandle> _instancesToRetrack = new();
         private readonly Dictionary<MaterialHandle, MaterialInfo> _trackedMaterials = new();
 
         private readonly InstanceHandleSet _instanceHandleSet = new();
@@ -684,17 +686,26 @@ namespace UnityEngine.Rendering
                 matInfo.IsEmissive = isEmissive;
 
                 // Copy since this may be mutated
-                var instanceHandlesCopy = new List<InstanceHandle>(matInfo.Instances);
-                foreach (var instanceHandle in instanceHandlesCopy)
+                _instancesToRetrack.Clear();
+                _instancesToRetrack.AddRange(matInfo.Instances);
+                foreach (var instanceHandle in _instancesToRetrack)
                 {
-                    Debug.Assert(_trackedInstances.ContainsKey(instanceHandle), "Material references an instance that is not tracked.");
-                    InstanceInfo info = _trackedInstances[instanceHandle];
-                    int[] subMeshTriangleCounts = info.SubMeshTriangleCounts;
-                    MaterialHandle[] materials = info.SubMeshMaterials;
-                    UntrackInstance(instanceHandle);
-                    TrackInstance(instanceHandle, subMeshTriangleCounts, materials);
+                    RetrackInstance(instanceHandle);
                 }
+                _instancesToRetrack.Clear();
             }
+        }
+
+        void RetrackInstance(InstanceHandle instanceHandle)
+        {
+            Debug.Assert(_trackedInstances.ContainsKey(instanceHandle), "Material references an instance that is not tracked.");
+            InstanceInfo info = _trackedInstances[instanceHandle];
+            Span<int> copiedTriangleCounts = stackalloc int[info.SubMeshTriangleCounts.Length];
+            info.SubMeshTriangleCounts.CopyTo(copiedTriangleCounts);
+            Span<MaterialHandle> copiedMaterials = stackalloc MaterialHandle[info.SubMeshMaterials.Length];
+            info.SubMeshMaterials.CopyTo(copiedMaterials);
+            UntrackInstance(instanceHandle);
+            TrackInstance(instanceHandle, copiedTriangleCounts, copiedMaterials);
         }
 
         public InstanceHandle AddInstance(
@@ -780,24 +791,22 @@ namespace UnityEngine.Rendering
             _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
 
             Debug.Assert(_trackedInstances.ContainsKey(instance), "Cannot update an instance that is not tracked.");
-            int[] subMeshTriangleCounts = _trackedInstances[instance].SubMeshTriangleCounts;
+            int[] trackedTriangleCounts = _trackedInstances[instance].SubMeshTriangleCounts;
+            Span<int> copiedTriangleCounts = stackalloc int[trackedTriangleCounts.Length];
+            trackedTriangleCounts.CopyTo(copiedTriangleCounts);
             UntrackInstance(instance);
-            TrackInstance(instance, subMeshTriangleCounts, materials);
+            TrackInstance(instance, copiedTriangleCounts, materials);
         }
 
         void TrackInstance(InstanceHandle instanceHandle, ReadOnlySpan<int> subMeshTriangleCounts, ReadOnlySpan<MaterialHandle> materialHandles)
         {
             Debug.Assert(!_trackedInstances.ContainsKey(instanceHandle), "Instance is already tracked.");
 
-            bool foundInstanceIDs = _rayTracingAccelerationStructure.GetInstanceIDs(instanceHandle.Value, out int[] instanceIDs);
-            Debug.Assert(foundInstanceIDs, "Instance was not in acceleration structure.");
+            Debug.Assert(subMeshTriangleCounts.Length == materialHandles.Length, "Instance must have one material per submesh.");
 
-            var info = new InstanceInfo
-            {
-                SubMeshTriangleCounts = subMeshTriangleCounts.ToArray(),
-                SubMeshMaterials = materialHandles.ToArray(),
-                SubMeshEmissiveMask = new bool[subMeshTriangleCounts.Length],
-            };
+            var info = ReuseOrCreateInstanceInfo(materialHandles.Length);
+            subMeshTriangleCounts.CopyTo(info.SubMeshTriangleCounts);
+            materialHandles.CopyTo(info.SubMeshMaterials);
             _trackedInstances[instanceHandle] = info;
 
             int subMeshCount = Math.Min(subMeshTriangleCounts.Length, materialHandles.Length);
@@ -808,7 +817,8 @@ namespace UnityEngine.Rendering
                     continue;
 
                 info.SubMeshEmissiveMask[subMeshIdx] = true;
-                _emissiveTriangles.AddSubmeshInstance(instanceIDs[subMeshIdx], subMeshTriangleCounts[subMeshIdx]);
+                int instanceID = _rayTracingAccelerationStructure.GetInstanceID(instanceHandle.Value, subMeshIdx);
+                _emissiveTriangles.AddSubmeshInstance(instanceID, subMeshTriangleCounts[subMeshIdx]);
             }
 
             foreach (var materialHandle in materialHandles)
@@ -829,15 +839,42 @@ namespace UnityEngine.Rendering
                 _trackedMaterials[materialHandle].Instances.Remove(instanceHandle);
             }
 
-            bool foundInstanceIDs = _rayTracingAccelerationStructure.GetInstanceIDs(instanceHandle.Value, out int[] instanceIDs);
-            Debug.Assert(foundInstanceIDs, "Instance was not in acceleration structure.");
             for (int subMeshIdx = 0; subMeshIdx < info.SubMeshEmissiveMask.Length; subMeshIdx++)
             {
                 if (!info.SubMeshEmissiveMask[subMeshIdx])
                     continue;
 
-                _emissiveTriangles.RemoveSubmeshInstance(instanceIDs[subMeshIdx]);
+                int instanceID = _rayTracingAccelerationStructure.GetInstanceID(instanceHandle.Value, subMeshIdx);
+                _emissiveTriangles.RemoveSubmeshInstance(instanceID);
             }
+
+            RecycleInstanceInfo(info);
+        }
+
+        InstanceInfo ReuseOrCreateInstanceInfo(int subMeshCount)
+        {
+            if (_freeInstanceInfos.TryGetValue(subMeshCount, out var freeInfos) && freeInfos.Count != 0)
+                return freeInfos.Pop();
+
+            return new InstanceInfo
+            {
+                SubMeshTriangleCounts = new int[subMeshCount],
+                SubMeshMaterials = new MaterialHandle[subMeshCount],
+                SubMeshEmissiveMask = new bool[subMeshCount],
+            };
+        }
+
+        void RecycleInstanceInfo(InstanceInfo info)
+        {
+            int subMeshCount = info.SubMeshMaterials.Length;
+            if (!_freeInstanceInfos.TryGetValue(subMeshCount, out var freeInfos))
+            {
+                freeInfos = new Stack<InstanceInfo>();
+                _freeInstanceInfos.Add(subMeshCount, freeInfos);
+            }
+
+            Array.Clear(info.SubMeshEmissiveMask, 0, subMeshCount);
+            freeInfos.Push(info);
         }
 
         public LightHandle[] AddLights(Span<LightDescriptor> lightDescs)
