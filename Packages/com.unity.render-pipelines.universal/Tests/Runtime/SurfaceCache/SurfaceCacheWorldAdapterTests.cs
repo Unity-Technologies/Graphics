@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Collections;
+using UnityEngine.Profiling;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using UnityEngine.TestTools;
@@ -1691,6 +1694,371 @@ namespace UnityEngine.Rendering.Universal.Tests
             return new NativeArray<EntityId>(keys, Allocator.Temp);
         }
 
+        const int k_AllocationTestInstanceCount = 1000;
+        static readonly Regex k_MissingMetaPassError = new("does not have a 'Meta' shader pass");
+
+        [Test]
+        public void UpdateEntityInstance_ManyAdded_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            var added = CreateEntityAddedChangeSet(mesh, material);
+            var destroyed = CreateEntityDestroyedChangeSet();
+            try
+            {
+                AddAnchorEntities(env, mesh, material);
+                WarmUpInstanceStorage(env, added, destroyed);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, added, env.World)),
+                    "GC allocations during the entity instance update.");
+                Assert.AreEqual(1 + k_AllocationTestInstanceCount, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                DisposeNativeLists(added, destroyed);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyDestroyed_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            var added = CreateEntityAddedChangeSet(mesh, material);
+            var destroyed = CreateEntityDestroyedChangeSet();
+            try
+            {
+                AddAnchorEntities(env, mesh, material);
+                WarmUpInstanceStorage(env, added, destroyed);
+                UpdateWithoutDisposingChanges(env.Adapter, added, env.World);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, destroyed, env.World)),
+                    "GC allocations during the entity instance update.");
+                Assert.AreEqual(1, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                DisposeNativeLists(added, destroyed);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyChangedInPlace_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            var added = CreateEntityAddedChangeSet(mesh, material);
+            try
+            {
+                UpdateWithoutDisposingChanges(env.Adapter, added, env.World);
+                WarmUpInPlaceChanges(env, added);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, added, env.World)),
+                    "GC allocations during the entity instance update.");
+            }
+            finally
+            {
+                DisposeNativeLists(added);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyTransformsChanged_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            var added = CreateEntityAddedChangeSet(mesh, material);
+            var moved = CreateEntityTransformChangeSet(Matrix4x4.Translate(Vector3.right));
+            try
+            {
+                UpdateWithoutDisposingChanges(env.Adapter, added, env.World);
+                WarmUpTransformUpdates(env);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, moved, env.World)),
+                    "GC allocations during the entity instance update.");
+            }
+            finally
+            {
+                DisposeNativeLists(added, moved);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyMaterialsChanged_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var materialA = CreateMetaPassMaterial();
+            var materialB = CreateMetaPassMaterial();
+            var withMaterialA = CreateEntityAddedChangeSet(mesh, materialA);
+            var withMaterialB = CreateEntityAddedChangeSet(mesh, materialB);
+            try
+            {
+                AddAnchorEntities(env, mesh, materialA, materialB);
+                UpdateWithoutDisposingChanges(env.Adapter, withMaterialA, env.World);
+                WarmUpMaterialSwitches(env, withMaterialB, withMaterialA);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, withMaterialB, env.World)),
+                    "GC allocations while switching entity instance materials.");
+                Assert.AreEqual(2 + k_AllocationTestInstanceCount, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                DisposeNativeLists(withMaterialA, withMaterialB);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(materialA);
+                Object.DestroyImmediate(materialB);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_LogsErrorOnce()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var materialMissingMetaPass = CreateMaterialMissingMetaPass();
+            try
+            {
+                LogAssert.Expect(LogType.Error, k_MissingMetaPassError);
+                Update(env.Adapter, CreateEntityAddedChangeSet(mesh, materialMissingMetaPass), env.World);
+
+                LogAssert.NoUnexpectedReceived();
+                Assert.AreEqual(k_AllocationTestInstanceCount, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(materialMissingMetaPass);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var materialMissingMetaPass = CreateMaterialMissingMetaPass();
+            var added = CreateEntityAddedChangeSet(mesh, materialMissingMetaPass);
+            var destroyed = CreateEntityDestroyedChangeSet();
+            try
+            {
+                LogAssert.Expect(LogType.Error, k_MissingMetaPassError);
+                AddAnchorEntities(env, mesh, materialMissingMetaPass);
+                WarmUpInstanceStorage(env, added, destroyed);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, added, env.World)),
+                    "GC allocations while adding entities with a material missing a Meta pass.");
+                LogAssert.NoUnexpectedReceived();
+            }
+            finally
+            {
+                DisposeNativeLists(added, destroyed);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(materialMissingMetaPass);
+            }
+        }
+
+        [Test]
+        public void UpdateEntityInstance_NoChanges_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var material = CreateMetaPassMaterial();
+            var added = CreateEntityAddedChangeSet(mesh, material);
+            var empty = new SurfaceCacheWorldChangeSet
+            {
+                EntityInstanceChangedList = new NativeArray<SurfaceCacheEntityInstanceRecord>(0, Allocator.Persistent),
+                EntityInstanceMaterialList = new NativeArray<SurfaceCacheSubMeshMaterial>(0, Allocator.Persistent),
+                EntityInstanceDestroyedList = new NativeArray<EntityId>(0, Allocator.Persistent),
+            };
+            try
+            {
+                UpdateWithoutDisposingChanges(env.Adapter, added, env.World);
+                WarmUpIdleUpdates(env, empty);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, empty, env.World)),
+                    "GC allocations during the entity instance update.");
+            }
+            finally
+            {
+                DisposeNativeLists(added, empty);
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
+        public void UpdateMaterial_UnreferencedMaterialChanged_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var material = new Material(Shader.Find("Hidden/InternalErrorShader"));
+            try
+            {
+                var changes = new SurfaceCacheWorldChangeSet { MaterialChangedList = new Object[] { material } };
+                WarmUpMaterialUpdates(env, changes);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, changes, env.World)),
+                    "GC allocations while applying material changes.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        static void WarmUpMaterialUpdates(Environment env, SurfaceCacheWorldChangeSet changes)
+        {
+            UpdateWithoutDisposingChanges(env.Adapter, changes, env.World);
+        }
+
+        static void WarmUpInstanceStorage(
+            Environment env,
+            SurfaceCacheWorldChangeSet added,
+            SurfaceCacheWorldChangeSet destroyed)
+        {
+            UpdateWithoutDisposingChanges(env.Adapter, added, env.World);
+            UpdateWithoutDisposingChanges(env.Adapter, destroyed, env.World);
+        }
+
+        static void WarmUpInPlaceChanges(Environment env, SurfaceCacheWorldChangeSet changed)
+        {
+            UpdateWithoutDisposingChanges(env.Adapter, changed, env.World);
+        }
+
+        static void WarmUpTransformUpdates(Environment env)
+        {
+            Update(env.Adapter, CreateEntityTransformChangeSet(Matrix4x4.Translate(Vector3.up)), env.World);
+        }
+
+        static void WarmUpIdleUpdates(Environment env, SurfaceCacheWorldChangeSet empty)
+        {
+            UpdateWithoutDisposingChanges(env.Adapter, empty, env.World);
+        }
+
+        static void WarmUpMaterialSwitches(
+            Environment env,
+            SurfaceCacheWorldChangeSet switched,
+            SurfaceCacheWorldChangeSet original)
+        {
+            UpdateWithoutDisposingChanges(env.Adapter, switched, env.World);
+            UpdateWithoutDisposingChanges(env.Adapter, original, env.World);
+        }
+
+        static void AddAnchorEntities(Environment env, Mesh mesh, params Material[] materials)
+        {
+            var records = new SurfaceCacheEntityInstanceRecord[materials.Length];
+            var assignments = new (int subMeshIndex, Material material)[materials.Length];
+            for (int i = 0; i < materials.Length; i++)
+            {
+                records[i] = CreateEntityRecordWithMaterial(CreateEntityKey(k_AllocationTestInstanceCount + i), mesh, i);
+                assignments[i] = (0, materials[i]);
+            }
+
+            var changes = new SurfaceCacheWorldChangeSet
+            {
+                EntityInstanceChangedList = EntityRecords(records),
+                EntityInstanceMaterialList = SubMeshMaterials(assignments),
+            };
+            Update(env.Adapter, changes, env.World);
+        }
+
+        static SurfaceCacheWorldChangeSet CreateEntityAddedChangeSet(Mesh mesh, Material material)
+        {
+            var records = new NativeArray<SurfaceCacheEntityInstanceRecord>(k_AllocationTestInstanceCount, Allocator.Persistent);
+            var materials = new NativeArray<SurfaceCacheSubMeshMaterial>(k_AllocationTestInstanceCount, Allocator.Persistent);
+            for (int i = 0; i < k_AllocationTestInstanceCount; i++)
+            {
+                records[i] = CreateEntityRecordWithMaterial(CreateEntityKey(i), mesh, i);
+                materials[i] = new SurfaceCacheSubMeshMaterial { SubMeshIndex = 0, Material = material.GetEntityId() };
+            }
+
+            return new SurfaceCacheWorldChangeSet
+            {
+                EntityInstanceChangedList = records,
+                EntityInstanceMaterialList = materials,
+            };
+        }
+
+        static SurfaceCacheWorldChangeSet CreateEntityDestroyedChangeSet()
+        {
+            var keys = new NativeArray<EntityId>(k_AllocationTestInstanceCount, Allocator.Persistent);
+            for (int i = 0; i < k_AllocationTestInstanceCount; i++)
+                keys[i] = CreateEntityKey(i);
+
+            return new SurfaceCacheWorldChangeSet { EntityInstanceDestroyedList = keys };
+        }
+
+        static SurfaceCacheEntityInstanceRecord CreateEntityRecordWithMaterial(EntityId key, Mesh mesh, int materialIndex)
+        {
+            var record = CreateEntityRecord(key, mesh);
+            record.MaterialsStart = materialIndex;
+            record.MaterialsCount = 1;
+            return record;
+        }
+
+        static Material CreateMaterialMissingMetaPass()
+        {
+            var material = new Material(Shader.Find("Hidden/InternalErrorShader"));
+            Assert.AreEqual(-1, material.FindPass("Meta"), "The test material must not have a Meta pass.");
+            return material;
+        }
+
+        static SurfaceCacheWorldChangeSet CreateEntityTransformChangeSet(Matrix4x4 localToWorld)
+        {
+            var transforms = new NativeArray<SurfaceCacheEntityTransformRecord>(
+                k_AllocationTestInstanceCount, Allocator.Persistent);
+            for (int i = 0; i < k_AllocationTestInstanceCount; i++)
+            {
+                transforms[i] = new SurfaceCacheEntityTransformRecord
+                {
+                    Key = CreateEntityKey(i),
+                    LocalToWorld = localToWorld,
+                };
+            }
+
+            return new SurfaceCacheWorldChangeSet { EntityInstanceTransformChangedList = transforms };
+        }
+
+        static int CountGCAllocations(TestDelegate action)
+        {
+            var recorder = Recorder.Get("GC.Alloc");
+            recorder.enabled = false;
+            recorder.FilterToCurrentThread();
+            recorder.enabled = true;
+            try
+            {
+                action();
+            }
+            finally
+            {
+                recorder.enabled = false;
+                recorder.CollectFromAllThreads();
+            }
+
+            return recorder.sampleBlockCount;
+        }
+
         static NativeArray<SurfaceCacheEntityTransformRecord> TransformChanges(params SurfaceCacheEntityTransformRecord[] records)
         {
             return new NativeArray<SurfaceCacheEntityTransformRecord>(records, Allocator.Temp);
@@ -1913,6 +2281,12 @@ namespace UnityEngine.Rendering.Universal.Tests
 
         static void Update(SurfaceCacheWorldAdapter adapter, SurfaceCacheWorldChangeSet changes, SurfaceCacheWorld world, uint renderingLayerMaskFilter = 0xFFFFFFFFu)
         {
+            UpdateWithoutDisposingChanges(adapter, changes, world, renderingLayerMaskFilter);
+            DisposeNativeLists(changes);
+        }
+
+        static void UpdateWithoutDisposingChanges(SurfaceCacheWorldAdapter adapter, SurfaceCacheWorldChangeSet changes, SurfaceCacheWorld world, uint renderingLayerMaskFilter = 0xFFFFFFFFu)
+        {
             adapter.Update(
                 changes,
                 AmbientMode.Flat,
@@ -1924,20 +2298,26 @@ namespace UnityEngine.Rendering.Universal.Tests
                 false,
                 renderingLayerMaskFilter,
                 world);
+        }
 
-            if (changes.EntityInstanceTransformChangedList.IsCreated)
-                changes.EntityInstanceTransformChangedList.Dispose();
-            if (changes.EntityInstanceChangedList.IsCreated)
-                changes.EntityInstanceChangedList.Dispose();
-            if (changes.EntityInstanceMaterialList.IsCreated)
-                changes.EntityInstanceMaterialList.Dispose();
-            if (changes.EntityInstanceDestroyedList.IsCreated)
-                changes.EntityInstanceDestroyedList.Dispose();
-
-            if (changes.MeshRendererTransformChangedIds.IsCreated)
+        static void DisposeNativeLists(params SurfaceCacheWorldChangeSet[] changeSets)
+        {
+            foreach (var changes in changeSets)
             {
-                changes.MeshRendererTransformChangedIds.Dispose();
-                changes.MeshRendererTransformChangedLocalToWorlds.Dispose();
+                if (changes.EntityInstanceTransformChangedList.IsCreated)
+                    changes.EntityInstanceTransformChangedList.Dispose();
+                if (changes.EntityInstanceChangedList.IsCreated)
+                    changes.EntityInstanceChangedList.Dispose();
+                if (changes.EntityInstanceMaterialList.IsCreated)
+                    changes.EntityInstanceMaterialList.Dispose();
+                if (changes.EntityInstanceDestroyedList.IsCreated)
+                    changes.EntityInstanceDestroyedList.Dispose();
+
+                if (changes.MeshRendererTransformChangedIds.IsCreated)
+                {
+                    changes.MeshRendererTransformChangedIds.Dispose();
+                    changes.MeshRendererTransformChangedLocalToWorlds.Dispose();
+                }
             }
         }
 

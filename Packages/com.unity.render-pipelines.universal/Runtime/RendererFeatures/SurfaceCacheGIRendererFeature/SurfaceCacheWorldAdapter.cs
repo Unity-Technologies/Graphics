@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
                 _lights.TryRemove(entityId, world);
         }
 
-        void UpdateMaterials(IEnumerable<Object> changed, SurfaceCacheWorld world)
+        void UpdateMaterials(IReadOnlyList<Object> changed, SurfaceCacheWorld world)
         {
             using var _ = k_MaterialUpdateMarker.Auto();
 
@@ -271,10 +271,11 @@ namespace UnityEngine.Rendering.Universal
             _sharedMaterials.Update(world);
 #endif
 
-            foreach (var obj in changed)
+            for (int i = 0; i < changed.Count; i++)
             {
-                var material = (Material)obj;
+                var material = (Material)changed[i];
                 var matEntityId = material.GetEntityId();
+                _sharedMaterials.RemoveMaterialMissingMetaPass(matEntityId);
                 if (_sharedMaterials.IsReferenced(matEntityId))
                 {
                     _sharedMaterials.Update(matEntityId, material, world);
@@ -426,6 +427,7 @@ namespace UnityEngine.Rendering.Universal
             readonly List<TSource> _reevaluateScratch = new();
             readonly Material _fallbackMaterial;
             readonly List<Material> _materialScratch = new();
+            readonly Dictionary<int, Stack<EntityId[]>> _freeMaterialIdArrays = new();
 
             public InstanceSet(Material fallbackMaterial)
             {
@@ -506,7 +508,7 @@ namespace UnityEngine.Rendering.Universal
                 else if (shouldRegister)
                     slot = Register(key, source);
                 else if (isRegistered)
-                    _sources[slot] = source;
+                    ReplaceSource(slot, source);
 
                 if (shouldAddToWorld)
                     AddToWorld(slot, source, mesh, sharedMaterials, world);
@@ -562,6 +564,20 @@ namespace UnityEngine.Rendering.Universal
                 _sources[slot] = source;
             }
 
+            protected virtual void OnSourceReplaced(in TSource previous, in TSource replacement)
+            {
+            }
+
+            protected virtual void OnSourceUnregistered(in TSource source)
+            {
+            }
+
+            void ReplaceSource(int slot, in TSource source)
+            {
+                OnSourceReplaced(_sources[slot], source);
+                _sources[slot] = source;
+            }
+
             protected void ApplyTransform(int slot, in Matrix4x4 localToWorld, SurfaceCacheWorld world)
             {
                 if (!_inWorld[slot] || localToWorld == _localToWorlds[slot])
@@ -589,6 +605,7 @@ namespace UnityEngine.Rendering.Universal
             void Unregister(int slot)
             {
                 Debug.Assert(!_inWorld[slot]);
+                OnSourceUnregistered(_sources[slot]);
                 int last = _keys.Count - 1;
                 _slots.Remove(_keys[slot]);
                 if (slot != last)
@@ -644,8 +661,8 @@ namespace UnityEngine.Rendering.Universal
 
                 _meshIds[slot] = mesh.GetEntityId();
                 _localToWorlds[slot] = localToWorld;
-                _inputMaterialIds[slot] = inputMatIds.ToArray();
-                _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
+                _inputMaterialIds[slot] = CopyToReusedOrNewArray(inputMatIds);
+                _acquiredMaterialIds[slot] = CopyToReusedOrNewArray(acquiredMatIds);
                 _inWorld[slot] = true;
 
                 _materialScratch.Clear();
@@ -681,8 +698,10 @@ namespace UnityEngine.Rendering.Universal
                     foreach (var matEntityId in _acquiredMaterialIds[slot])
                         sharedMaterials.Release(matEntityId, world);
 
-                    _inputMaterialIds[slot] = inputMatIds.ToArray();
-                    _acquiredMaterialIds[slot] = acquiredMatIds.ToArray();
+                    RecycleMaterialIdArray(_inputMaterialIds[slot]);
+                    RecycleMaterialIdArray(_acquiredMaterialIds[slot]);
+                    _inputMaterialIds[slot] = CopyToReusedOrNewArray(inputMatIds);
+                    _acquiredMaterialIds[slot] = CopyToReusedOrNewArray(acquiredMatIds);
                 }
 
                 _materialScratch.Clear();
@@ -703,7 +722,7 @@ namespace UnityEngine.Rendering.Universal
                     bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
                     bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
 
-                    if (matIsSetAndNoMetaPass)
+                    if (matIsSetAndNoMetaPass && sharedMaterials.AddMaterialMissingMetaPass(inputMat.GetEntityId()))
                         Debug.LogError($"The material '{inputMat.name}' used by '{source.OwnerName}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
 
                     // Acquiring the fallback even for unset materials buys the assumption that a handle always exists.
@@ -723,6 +742,8 @@ namespace UnityEngine.Rendering.Universal
                 world.RemoveInstance(_handles[slot]);
                 foreach (var matEntityId in _acquiredMaterialIds[slot])
                     sharedMaterials.Release(matEntityId, world);
+                RecycleMaterialIdArray(_inputMaterialIds[slot]);
+                RecycleMaterialIdArray(_acquiredMaterialIds[slot]);
                 _handles[slot] = default;
                 _meshIds[slot] = EntityId.None;
                 _localToWorlds[slot] = default;
@@ -730,11 +751,33 @@ namespace UnityEngine.Rendering.Universal
                 _acquiredMaterialIds[slot] = null;
                 _inWorld[slot] = false;
             }
+
+            EntityId[] CopyToReusedOrNewArray(ReadOnlySpan<EntityId> materialIds)
+            {
+                var array = _freeMaterialIdArrays.TryGetValue(materialIds.Length, out var freeArrays) && freeArrays.Count != 0
+                    ? freeArrays.Pop()
+                    : new EntityId[materialIds.Length];
+                materialIds.CopyTo(array);
+                return array;
+            }
+
+            void RecycleMaterialIdArray(EntityId[] array)
+            {
+                if (!_freeMaterialIdArrays.TryGetValue(array.Length, out var freeArrays))
+                {
+                    freeArrays = new Stack<EntityId[]>();
+                    _freeMaterialIdArrays.Add(array.Length, freeArrays);
+                }
+
+                freeArrays.Push(array);
+            }
         }
 
         // Transform records carry no mesh or material data and cannot go through Refresh.
         sealed class EntityInstanceSet : InstanceSet<EntityId, EntityRecordSource>
         {
+            readonly Dictionary<int, Stack<SurfaceCacheSubMeshMaterial[]>> _freeSubMeshMaterialArrays = new();
+
             public EntityInstanceSet(Material fallbackMaterial)
                 : base(fallbackMaterial)
             {
@@ -761,10 +804,44 @@ namespace UnityEngine.Rendering.Universal
                 // A registered key usually re-reports the same count, so its buffer is reused rather than reallocated.
                 var buffer = TryGetSlot(record.Key, out int slot) ? GetSource(slot).SubMeshMaterials : null;
                 if (buffer == null || buffer.Length != count)
-                    buffer = new SurfaceCacheSubMeshMaterial[count];
+                    buffer = ReuseOrCreateSubMeshMaterialArray(count);
 
                 NativeArray<SurfaceCacheSubMeshMaterial>.Copy(materials, record.MaterialsStart, buffer, 0, count);
                 return new EntityRecordSource(record, buffer);
+            }
+
+            protected override void OnSourceReplaced(in EntityRecordSource previous, in EntityRecordSource replacement)
+            {
+                if (previous.SubMeshMaterials != replacement.SubMeshMaterials)
+                    RecycleSubMeshMaterialArray(previous.SubMeshMaterials);
+            }
+
+            protected override void OnSourceUnregistered(in EntityRecordSource source)
+            {
+                RecycleSubMeshMaterialArray(source.SubMeshMaterials);
+            }
+
+            SurfaceCacheSubMeshMaterial[] ReuseOrCreateSubMeshMaterialArray(int length)
+            {
+                if (_freeSubMeshMaterialArrays.TryGetValue(length, out var freeArrays) && freeArrays.Count != 0)
+                    return freeArrays.Pop();
+
+                return new SurfaceCacheSubMeshMaterial[length];
+            }
+
+            void RecycleSubMeshMaterialArray(SurfaceCacheSubMeshMaterial[] array)
+            {
+                bool isSharedEmptyArray = array.Length == 0;
+                if (isSharedEmptyArray)
+                    return;
+
+                if (!_freeSubMeshMaterialArrays.TryGetValue(array.Length, out var freeArrays))
+                {
+                    freeArrays = new Stack<SurfaceCacheSubMeshMaterial[]>();
+                    _freeSubMeshMaterialArrays.Add(array.Length, freeArrays);
+                }
+
+                freeArrays.Push(array);
             }
         }
 
@@ -1060,7 +1137,7 @@ namespace UnityEngine.Rendering.Universal
                 bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
                 bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
 
-                if (matIsSetAndNoMetaPass)
+                if (matIsSetAndNoMetaPass && sharedMaterials.AddMaterialMissingMetaPass(inputMatEntityId))
                     Debug.LogError($"The material '{inputMat.name}' used by terrain '{terrain.gameObject.name}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
 
                 // Using fallback material when there is no input material is redundant, but we do it anyway
@@ -1240,6 +1317,7 @@ namespace UnityEngine.Rendering.Universal
 
             readonly Dictionary<EntityId, Entry> _entries = new();
             readonly HashSet<EntityId> _pendingMetaPassEvals = new();
+            readonly HashSet<EntityId> _materialsMissingMetaPass = new();
             readonly Material _fallbackMaterial;
 
             public SharedMaterialSet(Material fallbackMaterial)
@@ -1351,6 +1429,16 @@ namespace UnityEngine.Rendering.Universal
 
                     world.UpdateMaterial(entry.WorldHandle, in entry.Descriptor, kUVChannel);
                 }
+            }
+
+            public bool AddMaterialMissingMetaPass(EntityId matEntityId)
+            {
+                return _materialsMissingMetaPass.Add(matEntityId);
+            }
+
+            public void RemoveMaterialMissingMetaPass(EntityId matEntityId)
+            {
+                _materialsMissingMetaPass.Remove(matEntityId);
             }
 
             public bool IsReferenced(EntityId matEntityId)
