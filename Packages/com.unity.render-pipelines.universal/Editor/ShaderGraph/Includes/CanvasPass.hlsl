@@ -79,7 +79,7 @@ Varyings BuildVaryings(Attributes input)
 
             float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
             float2 maskUV = (input.positionOS.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-            output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * half2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+            output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * float2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
         #else
             output.texCoord1 = input.uv1;
         #endif
@@ -154,7 +154,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     #ifdef UNITY_UI_CLIP_RECT
         //mask = Uv2
-        half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw);
+        float2 softness = float2(_UIMaskSoftnessX, _UIMaskSoftnessY);
+        float2 halfPixelBias = 0.5 - 0.5 * softness * unpacked.texCoord1.zw;
+        half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw + halfPixelBias);
+        half2 hardThreshold = 0.5 + 1e-3 * step(0, unpacked.texCoord1.xy);
+        m = lerp(m, step(hardThreshold, m), step(softness, 0));
         color.a *= m.x * m.y;
     #endif
 
