@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<ResourceReaderData>[] readerData;           // Partially packed reader data (semi-sparse)
 
 #if UNITY_ENABLE_CHECKS
-        public NativeList<FixedString64Bytes>[] resourceNames;
+        public DynamicArray<Name>[] resourceNames;
 #endif
 
         public ResourcesData()
@@ -256,7 +256,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
             readerData = new NativeList<ResourceReaderData>[(int)RenderGraphResourceType.Count];
 #if UNITY_ENABLE_CHECKS
-            resourceNames = new NativeList<FixedString64Bytes>[(int)RenderGraphResourceType.Count];
+            resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
+            for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
+                resourceNames[t] = new DynamicArray<Name>(NativePassCompiler.k_EstimatedPassCount, false);
 #endif
         }
 
@@ -296,7 +298,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 AllocateAndResizeNativeListIfNeeded(ref unversionedData[t], numResources, NativeArrayOptions.UninitializedMemory);
 
 #if UNITY_ENABLE_CHECKS
-                NameTableExtensions.AllocateOrClear(ref resourceNames[t], numResources);
+                resourceNames[t].Clear();
 #endif
 
                 if (numResources > 0) // Null Resource
@@ -305,7 +307,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     nullResource.InitializeNullResource();
                     unversionedData[t][0] = nullResource;
 #if UNITY_ENABLE_CHECKS
-                    resourceNames[t].Add(default);
+                    resourceNames[t].Add(new Name(""));
 #endif
                 }
 
@@ -320,7 +322,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     var h = new ResourceHandle(r, resourceType, false);
                     var rll = resources.GetResourceLowLevel(h);
 #if UNITY_ENABLE_CHECKS
-                    resourceNames[t].AddTruncated(rll.GetName());
+                    resourceNames[t].Add(new Name(rll.GetName()));
 #endif
 
                     // Initialize unversionedData based on resource type
@@ -422,11 +424,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (readerData[t].IsCreated)
                     readerData[t].Dispose();
-
-#if UNITY_ENABLE_CHECKS
-                if (resourceNames[t].IsCreated)
-                    resourceNames[t].Dispose();
-#endif
             }
         }
     }
