@@ -51,13 +51,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 readonly DataLinked link;
                 
                 //static
-                public readonly FrameSettingsField field;
-                public bool ignoreDependencies => staticFields[field].ignoreDependencies;
-                public FrameSettingsField fieldDependentLabel => staticFields[field].fieldDependentLabel;
-                public FrameSettingsFieldAttribute.DisplayType displayType => attributes[field].type;
-                public string tooltip => attributes[field].tooltip;
-                public Type targetType => attributes[field].targetType;
-                public int indentLevel => attributes[field].indentLevel;
+                public readonly FrameSettingsField frameSettingsField;
+                public bool ignoreDependencies => staticFields[frameSettingsField].ignoreDependencies;
+                public FrameSettingsField fieldDependentLabel => staticFields[frameSettingsField].fieldDependentLabel;
+                public FrameSettingsFieldAttribute.DisplayType displayType => attributes[frameSettingsField].type;
+                public string tooltip => attributes[frameSettingsField].tooltip;
+                public Type targetType => attributes[frameSettingsField].targetType;
+                public int indentLevel => attributes[frameSettingsField].indentLevel;
                 public FrameSettings? defaultValues
                 {
                     get
@@ -67,18 +67,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         return null;
                     }
                 }
-                public bool? enabledInDefault => defaultValues?.IsEnabled(field);
-                public FrameSettingsField[] dependencies => attributes[field].dependencies;
-                bool IsNegativeDependency(FrameSettingsField otherField) => attributes[field].IsNegativeDependency(otherField);
-                public Action<object, object> callbackOnChange => staticFields[field].callbackOnChange;
+                public bool? enabledInDefault => defaultValues?.IsEnabled(frameSettingsField);
+                public FrameSettingsField[] dependencies => attributes[frameSettingsField].dependencies;
+                bool IsNegativeDependency(FrameSettingsField otherField) => attributes[frameSettingsField].IsNegativeDependency(otherField);
+                public Action<object, object> callbackOnChange => staticFields[frameSettingsField].callbackOnChange;
 
                 //dynamic
                 FieldDynamic? fieldDynamic
                 {
                     get
                     {
-                        if (link.dynamicFields.ContainsKey(field))
-                            return link.dynamicFields[field];
+                        if (link.dynamicFields.ContainsKey(frameSettingsField))
+                            return link.dynamicFields[frameSettingsField];
                         return null;
                     }
                 }
@@ -89,47 +89,47 @@ namespace UnityEditor.Rendering.HighDefinition
                 public Func<object> overridedDefaultValue => fieldDynamic?.overridedDefaultValue;
                 
                 //Compound static/dynamic
-                public string displayedName => fieldDynamic?.overridedLabel?.Invoke() ?? attributes[field].displayedName;
+                public string displayedName => fieldDynamic?.overridedLabel?.Invoke() ?? attributes[frameSettingsField].displayedName;
 
                 //data
-                public bool hasMultipleDifferentValues => link.data.HasMultipleDifferentValues(field) || (fieldDynamic?.overridedMixedState?.Invoke() ?? false);
+                public bool hasMultipleDifferentValues => link.data.HasMultipleDifferentValues(frameSettingsField) || (fieldDynamic?.overridedMixedState?.Invoke() ?? false);
                 public bool? enabled
                 {
-                    get => link.data.GetEnabled(field);
+                    get => link.data.GetEnabled(frameSettingsField);
                     set {
-                        if (value.HasValue) 
-                            link.data.SetEnabled(field, value.Value);
+                        if (value.HasValue)
+                            link.data.SetEnabled(frameSettingsField, value.Value);
                     }
                 }
                 public bool enabledUnchecked
                 {
-                    get => link.data.GetEnabledUnchecked(field);
-                    set => link.data.SetEnabled(field, value);
+                    get => link.data.GetEnabledUnchecked(frameSettingsField);
+                    set => link.data.SetEnabled(frameSettingsField, value);
                 }
                 
                 public struct Override
                 {
                     SerializedFrameSettings.Mask mask;
-                    FieldDescriptor field;
-                    internal Override(SerializedFrameSettings.Mask mask, FieldDescriptor field)
+                    FieldDescriptor descriptor;
+                    internal Override(SerializedFrameSettings.Mask mask, FieldDescriptor descriptor)
                     {
                         this.mask = mask;
-                        this.field = field;
+                        this.descriptor = descriptor;
                     }
                     
-                    public bool hasMultipleDifferentOverrides => mask.HasMultipleDifferentOverrides(field.field);
+                    public bool hasMultipleDifferentOverrides => mask.HasMultipleDifferentOverrides(descriptor.frameSettingsField);
                     public bool? overrided
                     {
-                        get => mask.GetOverrided(field.field);
+                        get => mask.GetOverrided(descriptor.frameSettingsField);
                         set {
-                            if (value.HasValue) 
-                                mask.SetOverrided(field.field, value.Value);
+                            if (value.HasValue)
+                                mask.SetOverrided(descriptor.frameSettingsField, value.Value);
                         }
                     }
                     public bool overridedUnchecked
                     {
-                        get => mask.GetOverridedUnchecked(field.field);
-                        set => mask.SetOverrided(field.field, value);
+                        get => mask.GetOverridedUnchecked(descriptor.frameSettingsField);
+                        set => mask.SetOverrided(descriptor.frameSettingsField, value);
                     }
                     
                     public bool IsOverrideableWithDependencies()
@@ -138,25 +138,25 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool value;
                             if (o.overrided ?? false)
-                                value = o.field.enabled ?? false;
+                                value = o.descriptor.enabled ?? false;
                             else
-                                value = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(o.field.link.defaultType.Value).IsEnabled(o.field.field);
+                                value = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(o.descriptor.link.defaultType.Value).IsEnabled(o.descriptor.frameSettingsField);
                             return value ^ negative;
                         }
 
-                        bool locallyOverrideable = field.overrideable?.Invoke() ?? true;
-                        FrameSettingsField[] dependencies = field.dependencies;
-                        if (dependencies == null || staticFields[field.field].ignoreDependencies || !locallyOverrideable)
+                        bool locallyOverrideable = descriptor.overrideable?.Invoke() ?? true;
+                        FrameSettingsField[] dependencies = descriptor.dependencies;
+                        if (dependencies == null || staticFields[descriptor.frameSettingsField].ignoreDependencies || !locallyOverrideable)
                             return locallyOverrideable;
 
-                        if (!field.link.defaultType.HasValue)
+                        if (!descriptor.link.defaultType.HasValue)
                             return true;
 
                         bool dependenciesOverrideable = true;
                         for (int index = dependencies.Length - 1; index >= 0 && dependenciesOverrideable; --index)
                         {
                             FrameSettingsField dependency = dependencies[index];
-                            dependenciesOverrideable &= EvaluateBoolWithOverride(field.link.GetFieldDescriptor(dependency).GetOverrideInterface(mask), field.IsNegativeDependency(dependency));
+                            dependenciesOverrideable &= EvaluateBoolWithOverride(descriptor.link.GetFieldDescriptor(dependency).GetOverrideInterface(mask), descriptor.IsNegativeDependency(dependency));
                         }
                         return dependenciesOverrideable;
                     }
@@ -166,9 +166,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 public DataLinked boundData => link;
 
-                internal FieldDescriptor(FrameSettingsField field, DataLinked link)
+                internal FieldDescriptor(FrameSettingsField frameSettingsField, DataLinked link)
                 {
-                    this.field = field;
+                    this.frameSettingsField = frameSettingsField;
                     this.link = link;
                 }
             }

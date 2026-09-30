@@ -549,13 +549,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (header != null)
                 Add(header);
             foreach (var descriptor in m_BoundInstance.GetDescriptorForGroup(m_GroupIndex))
-                Add(CreateFieldLayout(descriptor), descriptor.field);
+                Add(CreateFieldLayout(descriptor), descriptor.frameSettingsField);
         }
 
         protected virtual VisualElement CreateHeader() => null;
 
         protected virtual LineField CreateFieldLayout(FrameSettingsExtractedDatas.DataLinked.FieldDescriptor descriptor)
-            => new LineField(descriptor.field, CreateInnerFieldLayout(descriptor));
+            => new LineField(descriptor.frameSettingsField, CreateInnerFieldLayout(descriptor));
 
         VisualElement CreateInnerFieldLayout(FrameSettingsExtractedDatas.DataLinked.FieldDescriptor descriptor)
         {
@@ -903,7 +903,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         
             //Handle direct impact of override toggle on value to display
             //Line is not fully constructed yet. So we must delay
-            AddDelayedInit(descriptor.field, elt =>
+            AddDelayedInit(descriptor.frameSettingsField, elt =>
             {
                 //Line not fully constructed yet -> Delaying
                 UpdateFieldAlongOverrides(toggle, GetSiblingFieldOnLine(toggle), descriptor);
@@ -928,7 +928,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddDelayedInit(field, elt =>
                 {
-                    m_QuickAccess[field].AddDependence(descriptor.field);
+                    m_QuickAccess[field].AddDependence(descriptor.frameSettingsField);
 
                     //As there is no common interface allowing to RegisterValueChangedCallback
                     //without knowing the type first, only handling supported types.
