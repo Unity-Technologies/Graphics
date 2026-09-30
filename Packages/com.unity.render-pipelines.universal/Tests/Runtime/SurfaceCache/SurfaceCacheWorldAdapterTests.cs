@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(lightGo);
                 lightGo = null;
-                var removed = new SurfaceCacheWorldChangeSet { LightDestroyedList = new[] { lightId } };
+                var removed = new SurfaceCacheWorldChangeSet { LightDestroyedList = EntityKeys(lightId) };
                 Update(env.Adapter, removed, env.World);
                 Assert.AreEqual(0u, env.World.GetPunctualLightCount(), "Light should be gone after it is reported as destroyed.");
             }
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(go);
                 go = null;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = new[] { rendererId } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = EntityKeys(rendererId) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Renderer should be gone after it is reported as destroyed.");
                 Assert.AreEqual(0, env.World.GetMaterialCount(), "The fallback material should be released with the renderer.");
             }
@@ -428,9 +428,9 @@ namespace UnityEngine.Rendering.Universal.Tests
                 {
                     MeshRendererTransformChangedIds = TransformIds(renderer),
                     MeshRendererTransformChangedLocalToWorlds = TransformMatrices(renderer),
-                    MeshRendererDestroyedList = new[] { renderer.GetEntityId() },
+                    MeshRendererDestroyedList = EntityKeys(renderer.GetEntityId()),
                     LightTransformChangedList = new Component[] { light },
-                    LightDestroyedList = new[] { light.GetEntityId() },
+                    LightDestroyedList = EntityKeys(light.GetEntityId()),
                 };
                 Update(env.Adapter, combined, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "An in-world renderer reported as both transform-changed and destroyed should be removed.");
@@ -479,8 +479,8 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet
                 {
-                    MeshRendererDestroyedList = new[] { unreportedId, EntityId.None },
-                    LightDestroyedList = new[] { unreportedId, EntityId.None },
+                    MeshRendererDestroyedList = EntityKeys(unreportedId, EntityId.None),
+                    LightDestroyedList = EntityKeys(unreportedId, EntityId.None),
                 }, env.World);
                 Assert.AreEqual(1, env.World.GetInstanceCount(), "A destroyed report for an id that was never added should not affect renderers.");
                 Assert.AreEqual(1u, env.World.GetPunctualLightCount(), "A destroyed report for an id that was never added should not affect lights.");
@@ -515,7 +515,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(go);
                 go = null;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = new[] { rendererId } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = EntityKeys(rendererId) }, env.World, 1u);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Destroying a registered but filtered-out renderer should be handled cleanly.");
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
@@ -683,7 +683,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(lightGo);
                 lightGo = null;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { LightDestroyedList = new[] { lightId } }, env.World, 1u);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { LightDestroyedList = EntityKeys(lightId) }, env.World, 1u);
                 Assert.AreEqual(0u, env.World.GetPunctualLightCount(), "Destroying a registered but filtered-out light should be handled cleanly.");
 
                 Update(env.Adapter, new SurfaceCacheWorldChangeSet(), env.World, 2u);
@@ -762,6 +762,78 @@ namespace UnityEngine.Rendering.Universal.Tests
                 if (lightGo != null)
                     Object.DestroyImmediate(lightGo);
             }
+        }
+
+        [Test]
+        public void Update_NoGameObjectChanges_DoesNotAllocateGCMemory()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var changes = CreateEmptyGameObjectChangeSet();
+            try
+            {
+                WarmUpIdleUpdates(env, changes);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, changes, env.World)),
+                    "GC allocations during an update without GameObject changes.");
+            }
+            finally
+            {
+                changes.MeshRendererDestroyedList.Dispose();
+                changes.LightDestroyedList.Dispose();
+#if ENABLE_TERRAIN_MODULE
+                changes.TerrainDestroyedList.Dispose();
+#endif
+                env.Dispose();
+            }
+        }
+
+        [Test]
+        public void UpdateMeshRenderer_ManyChangedInPlace_DoesNotAllocateGCMemory()
+        {
+            const int rendererCount = 100;
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var renderers = new Object[rendererCount];
+            var gameObjects = new GameObject[rendererCount];
+            try
+            {
+                for (int i = 0; i < rendererCount; i++)
+                {
+                    gameObjects[i] = CreateMeshRendererGameObject(mesh, out var renderer);
+                    renderers[i] = renderer;
+                }
+
+                var changes = new SurfaceCacheWorldChangeSet { MeshRendererChangedList = renderers };
+                UpdateWithoutDisposingChanges(env.Adapter, changes, env.World);
+                WarmUpInPlaceChanges(env, changes);
+
+                Assert.AreEqual(0, CountGCAllocations(() => UpdateWithoutDisposingChanges(env.Adapter, changes, env.World)),
+                    "GC allocations while re-reporting unchanged mesh renderers.");
+                Assert.AreEqual(rendererCount, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                env.Dispose();
+                foreach (var go in gameObjects)
+                {
+                    if (go != null)
+                        Object.DestroyImmediate(go);
+                }
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        // Like the ObjectDispatcher, which reports created, empty arrays when nothing was destroyed.
+        static SurfaceCacheWorldChangeSet CreateEmptyGameObjectChangeSet()
+        {
+            return new SurfaceCacheWorldChangeSet
+            {
+                MeshRendererDestroyedList = new NativeArray<EntityId>(0, Allocator.Persistent),
+                LightDestroyedList = new NativeArray<EntityId>(0, Allocator.Persistent),
+#if ENABLE_TERRAIN_MODULE
+                TerrainDestroyedList = new NativeArray<EntityId>(0, Allocator.Persistent),
+#endif
+            };
         }
 
         // Two LOD levels with one renderer each, so instance counts identify which level is in the world.
@@ -995,7 +1067,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(go);
                 go = null;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { TerrainDestroyedList = new[] { terrainId } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { TerrainDestroyedList = EntityKeys(terrainId) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "Terrain should be gone after it is reported as destroyed.");
             }
             finally
@@ -1671,7 +1743,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
                 Object.DestroyImmediate(go);
                 go = null;
-                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = new[] { rendererId } }, env.World);
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { MeshRendererDestroyedList = EntityKeys(rendererId) }, env.World);
                 Assert.AreEqual(0, env.World.GetInstanceCount(), "The renderer should be gone after it is reported as destroyed.");
                 Assert.AreEqual(0, env.World.GetMaterialCount(), "The shared material should be released with its last reference.");
             }
@@ -2312,6 +2384,14 @@ namespace UnityEngine.Rendering.Universal.Tests
                     changes.EntityInstanceMaterialList.Dispose();
                 if (changes.EntityInstanceDestroyedList.IsCreated)
                     changes.EntityInstanceDestroyedList.Dispose();
+                if (changes.MeshRendererDestroyedList.IsCreated)
+                    changes.MeshRendererDestroyedList.Dispose();
+                if (changes.LightDestroyedList.IsCreated)
+                    changes.LightDestroyedList.Dispose();
+#if ENABLE_TERRAIN_MODULE
+                if (changes.TerrainDestroyedList.IsCreated)
+                    changes.TerrainDestroyedList.Dispose();
+#endif
 
                 if (changes.MeshRendererTransformChangedIds.IsCreated)
                 {
