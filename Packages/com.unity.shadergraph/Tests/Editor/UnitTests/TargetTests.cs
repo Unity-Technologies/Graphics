@@ -3,6 +3,7 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
@@ -274,9 +275,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-#if ENABLE_CORECLR
-        [Explicit("MultiJson-serialized ShaderGraph written to disk fails to reimport on CoreCLR (JSON parse error: The document root must not follow by other values), so no Shader sub-assets are produced, see https://jira.unity3d.com/browse/UUM-150436")]
-#endif
         [Test]
         public void CanBuildMultipleShaders()
         {
@@ -310,6 +308,47 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var assets = AssetDatabase.LoadAllAssetsAtPath(path);
             int shaderCount = assets.OfType<Shader>().Count();
             Assert.AreEqual(2, shaderCount);
+
+            AssetDatabase.DeleteAsset(path);
+        }
+
+        [Test]
+        public void GraphDataRootTypeIsPopulatedOnSerialize()
+        {
+            var graph = new GraphData();
+            var json = MultiJson.Serialize(graph);
+            var entries = MultiJsonInternal.Parse(json);
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(entries[0].type));
+            Assert.AreEqual(typeof(GraphData).FullName, entries[0].type);
+        }
+
+        [TestCase("\"m_Type\": \"\",")]
+        [TestCase("")]
+        public void GraphWithBlankRootTypeImports(string rootTypeReplacement)
+        {
+            var graph = new GraphData();
+            graph.AddContexts();
+            graph.AddNode(new GradientNode());
+            var json = MultiJson.Serialize(graph);
+
+            var rootType = $"\"m_Type\": \"{typeof(GraphData).FullName}\",";
+            var index = json.IndexOf(rootType);
+            Assert.GreaterOrEqual(index, 0);
+            json = json.Remove(index, rootType.Length).Insert(index, rootTypeReplacement);
+
+            var entries = MultiJsonInternal.Parse(json);
+            Assert.Greater(entries.Count, 1);
+            Assert.IsTrue(string.IsNullOrWhiteSpace(entries[0].type));
+
+            var path = AssetDatabase.GenerateUniqueAssetPath("Assets/blankRootTypeTest.shadergraph");
+            File.WriteAllText(path, json);
+
+            Assert.DoesNotThrow(() => MinimalGraphData.GatherMinimalDependenciesFromFile(path, new AssetCollection()));
+
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate | ImportAssetOptions.DontDownloadFromCacheServer);
+
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Shader>(path));
 
             AssetDatabase.DeleteAsset(path);
         }
