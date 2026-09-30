@@ -260,6 +260,143 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Move_Range_Parameter_To_Output_Category_Keeps_Node_Port_Visible()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var window = VFXTestCommon.GetWindow(subgraph.GetResource(), true);
+            window.LoadResource(subgraph.GetResource());
+            yield return null;
+
+            var blackboard = window.graphView.blackboard;
+            blackboard.Update();
+            yield return null;
+
+            var viewController = window.graphView.controller;
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)));
+            var maxFrames = 16;
+            while (maxFrames-- > 0 && !viewController.parameterControllers.Any())
+            {
+                yield return null;
+            }
+
+            var parameterController = viewController.parameterControllers.Single();
+            // The blackboard row must be expanded for the Mode dropdown to be reachable, as it is in the repro
+            parameterController.expanded = true;
+            parameterController.valueFilter = VFXValueFilter.Range;
+            parameterController.maxValue = 100f;
+            viewController.LightApplyChanges();
+            maxFrames = 8;
+            while (maxFrames-- > 0)
+            {
+                yield return null;
+            }
+
+            // Act
+            // Same calls as VFXView when the property is dropped into the workspace...
+            viewController.AddVFXParameter(new Vector2(200, 200), parameterController, null);
+            yield return null;
+            // ...and as VFXBlackboard when it is then dropped onto the Output category
+            parameterController.model.category = string.Empty;
+            parameterController.isOutput = true;
+            parameterController.exposed = false;
+
+            maxFrames = 16;
+            while (maxFrames-- > 0)
+            {
+                yield return null;
+            }
+
+            // Assert
+            var parameterUI = window.graphView.Query<VFXParameterUI>().ToList().SingleOrDefault(x => x.controller?.parentController == parameterController);
+            Assert.NotNull(parameterUI, "The output parameter node was not created in the workspace.");
+            Assert.AreEqual(1, parameterUI.controller.inputPorts.Count, "The output parameter node has no input port.");
+            Assert.IsTrue(parameterUI.expanded, "The output parameter node is collapsed and cannot be expanded.");
+            var port = parameterUI.GetPorts(true, false).FirstOrDefault();
+            Assert.NotNull(port, "The output parameter node has no port element.");
+            Assert.IsTrue(port.visible, "The output parameter node port is invisible.");
+
+            // Laying the blackboard row out must not throw, otherwise the whole panel stops being
+            // updated, which is what makes the node unexpandable and its port invisible
+            var propertyView = blackboard.Query<VFXBlackboardPropertyView>().ToList().SingleOrDefault(x => x.controller == parameterController);
+            Assert.NotNull(propertyView, "The blackboard row of the output parameter was not found.");
+            var relayout = typeof(VFXBlackboardPropertyView).GetMethod("Relayout", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(relayout);
+            Assert.DoesNotThrow(() => relayout.Invoke(propertyView, null));
+        }
+
+        [Test]
+        public void Move_Parameter_To_Output_Category_And_Back_Keeps_Enum_Values()
+        {
+            // Arrange
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var viewController = VFXViewController.GetController(subgraph.GetResource(), true);
+            viewController.useCount++;
+            try
+            {
+                var parameter = viewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(uint)).variant);
+                viewController.LightApplyChanges();
+
+                var parameterController = viewController.GetParameterController(parameter);
+                parameterController.valueFilter = VFXValueFilter.Enum;
+                parameterController.model.enumValues = new List<string> { "Idle", "Walk", "Run" };
+                parameterController.value = 2u;
+                viewController.LightApplyChanges();
+
+                // Act
+                MoveToOutputCategoryAndBack(viewController, parameterController);
+
+                // Assert
+                Assert.AreEqual(VFXValueFilter.Enum, parameterController.valueFilter, "The enum mode was lost when moving the property to the Output category and back.");
+                CollectionAssert.AreEqual(new[] { "Idle", "Walk", "Run" }, parameterController.model.enumValues, "The enum labels were lost when moving the property to the Output category and back.");
+            }
+            finally
+            {
+                viewController.useCount--;
+            }
+        }
+
+        [Test]
+        public void Move_Parameter_To_Output_Category_And_Back_Keeps_Range()
+        {
+            // Arrange
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var viewController = VFXViewController.GetController(subgraph.GetResource(), true);
+            viewController.useCount++;
+            try
+            {
+                var parameter = viewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant);
+                viewController.LightApplyChanges();
+
+                var parameterController = viewController.GetParameterController(parameter);
+                parameterController.valueFilter = VFXValueFilter.Range;
+                parameterController.maxValue = 100f;
+                viewController.LightApplyChanges();
+
+                // Act
+                MoveToOutputCategoryAndBack(viewController, parameterController);
+
+                // Assert
+                Assert.AreEqual(VFXValueFilter.Range, parameterController.valueFilter, "The range mode was lost when moving the property to the Output category and back.");
+                Assert.AreEqual(0f, parameterController.minValue, "The range minimum was lost when moving the property to the Output category and back.");
+                Assert.AreEqual(100f, parameterController.maxValue, "The range maximum was lost when moving the property to the Output category and back.");
+            }
+            finally
+            {
+                viewController.useCount--;
+            }
+        }
+
+        private static void MoveToOutputCategoryAndBack(VFXViewController viewController, VFXParameterController parameterController)
+        {
+            parameterController.isOutput = true;
+            viewController.LightApplyChanges();
+            parameterController.isOutput = false;
+            viewController.LightApplyChanges();
+        }
+
+        [UnityTest]
         public IEnumerator Remove_Parameter()
         {
             // Arrange
