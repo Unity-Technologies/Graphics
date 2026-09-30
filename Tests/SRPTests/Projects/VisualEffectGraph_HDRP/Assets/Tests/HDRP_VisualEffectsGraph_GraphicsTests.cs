@@ -51,10 +51,6 @@ namespace UnityEngine.VFX.Test
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
             RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
         )]
-        [IgnoreGraphicsTest("014_ScreenSpaceSize$", "CoreCLR reference-image mismatch https://jira.unity3d.com/browse/UUM-151992")]
-        [IgnoreGraphicsTest("015_FixedTime$", "CoreCLR reference-image mismatch https://jira.unity3d.com/browse/UUM-151992")]
-        [IgnoreGraphicsTest("019_CustomSimulate$", "CoreCLR reference-image mismatch https://jira.unity3d.com/browse/UUM-151992")]
-        [IgnoreGraphicsTest("Timeline_Scrubbing$", "CoreCLR reference-image mismatch https://jira.unity3d.com/browse/UUM-151992")]
 
         [TestNotSupportedOn(
             "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
