@@ -670,6 +670,9 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing, m_DrawOverlayUIPass.RequiresComposition());
 
+            // Report this camera's real back buffer MSAA need to the pipeline.
+            ReportRealBackbufferMSAA(cameraData, s_RequiresIntermediateAttachments);
+
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
             m_ValidationHandler.active = cameraData.cameraType == CameraType.Game;
