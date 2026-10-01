@@ -53,6 +53,31 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        // The keyword state CreateLightMaterial bakes onto a built-in light material, recorded per draw
+        // for a custom (Light2D.material) one. A custom material is shared by every light it is assigned
+        // to, and by both the volumetric and non-volumetric pass, so it cannot hold these as baked state.
+        static void SetCustomMaterialKeywords(RasterCommandBuffer cmd, Light2D light, Material lightMaterial, bool isVolumetric)
+        {
+            RendererLighting.SetVolumetricKeyword(cmd, lightMaterial, isVolumetric);
+
+            // USE_ADDITIVE_BLENDING: non-volumetric pass only, matching CreateLightMaterial. On the
+            // volumetric pass its branch would win over USE_VOLUMETRIC's, making the volume too
+            // bright by 1/_L2D_VOLUME_OPACITY.
+            RendererLighting.SetAdditiveBlendingKeyword(cmd, lightMaterial, !isVolumetric && light.overlapOperation == Light2D.OverlapOperation.Additive);
+
+            // USE_POINT_LIGHT_COOKIES: enabled only for Point lights that have a valid cookie
+            // sprite assigned. Matches the built-in cache condition in CreateLightMaterial.
+            bool useCookie = light.lightType == Light2D.LightType.Point
+                && light.lightCookieSprite != null && light.lightCookieSprite.texture != null;
+            RendererLighting.SetPointLightCookiesKeyword(cmd, lightMaterial, useCookie);
+
+            // USE_NORMAL_MAP: enabled per-light based on normalMapQuality, matching CreateLightMaterial.
+            // Without it, Light2DPass.hlsl skips its normal-map block on custom materials. Required by
+            // the 056_2D_Lights Material Override graphics tests.
+            bool useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled;
+            RendererLighting.SetNormalMapKeyword(cmd, lightMaterial, useNormalMap);
+        }
+
         private static void Execute(RasterCommandBuffer cmd, PassData passData, LayerBatch layerBatch, int lightTextureIndex)
         {
             cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / passData.rendererData.hdrEmulationScale);
@@ -91,38 +116,21 @@ namespace UnityEngine.Rendering.Universal
                 var useShadows = (!passData.isVolumetric && passData.layerBatch.lightStats.useShadows) || (passData.isVolumetric && passData.layerBatch.lightStats.useVolumetricShadowLights);
                 useShadows &= layerBatch.shadowIndices.Contains(j);
                 var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
-                // Record per-light keyword state into the command buffer so it executes in draw-call
-                // order. Custom (ShaderGraph) materials bypass the built-in per-config material cache,
-                // so their keyword state must be pushed per-frame. Built-in cached materials bake the
-                // same keywords at CreateLightMaterial time; because the values pushed here match that
-                // baked state per (isVolumetric, overlapOperation, point-cookie) tuple, the calls are
-                // no-ops on the built-in path — no risk of flipping their shader branches.
-                RendererLighting.SetVolumetricKeyword(cmd, lightMaterial, passData.isVolumetric);
-                // USE_ADDITIVE_BLENDING: only enabled for the non-volumetric pass, matching the
-                // built-in cache (CreateLightMaterial enables the keyword only when !isVolume).
-                // Enabling it on the volumetric pass would make the freeform-arm's
-                // `#if USE_ADDITIVE_BLENDING` branch win over `#elif USE_VOLUMETRIC`, which runs
-                // `lightColor *= falloff` (rgb+alpha) instead of writing `_L2D_COLOR.a *
-                // _L2D_VOLUME_OPACITY * falloff` into alpha only. Under the vol blend SrcAlpha,One
-                // that yields a per-fragment contribution of `_L2D_COLOR.rgb * falloff²` instead
-                // of `_L2D_COLOR.rgb * _L2D_VOLUME_OPACITY * falloff` — visibly too bright by a
-                // factor of 1/_L2D_VOLUME_OPACITY at the light interior.
-                RendererLighting.SetAdditiveBlendingKeyword(cmd, lightMaterial, !passData.isVolumetric && light.overlapOperation == Light2D.OverlapOperation.Additive);
-                // USE_POINT_LIGHT_COOKIES: enabled only for Point lights that have a valid cookie
-                // sprite assigned. Matches the built-in cache condition in CreateLightMaterial.
-                bool useCookie = light.lightType == Light2D.LightType.Point
-                    && light.lightCookieSprite != null && light.lightCookieSprite.texture != null;
-                RendererLighting.SetPointLightCookiesKeyword(cmd, lightMaterial, useCookie);
-                // USE_NORMAL_MAP: enabled per-light based on normalMapQuality, matching the
-                // built-in cache condition in CreateLightMaterial line 332-333. Without this,
-                // custom (ShaderGraph) materials never see USE_NORMAL_MAP set and the normal-map
-                // block in Light2DPass.hlsl is skipped even when the layer batch has bound a
-                // normal texture on the property block (line 127-128 above). The built-in path
-                // bakes this at material-cache time; custom-material lights need it per-draw
-                // because the same material instance is shared across lights that may differ
-                // in normalMapQuality.
-                bool useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled;
-                RendererLighting.SetNormalMapKeyword(cmd, lightMaterial, useNormalMap);
+
+                // Same test GetLightMaterial uses to pick the custom clone over the built-in cache.
+                bool isCustomMaterial = light.material != null;
+
+                // Dual-pass materials (ShaderGraph Light2D) use pass 0 for non-volumetric and pass 1 for
+                // volumetric. Built-in materials are single-pass, so only a custom material can be one.
+                bool isDualPassMaterial = isCustomMaterial && lightMaterial.passCount > 1;
+                int shaderPass = passData.isVolumetric && isDualPassMaterial ? 1 : 0;
+
+                // Custom materials bypass the built-in cache, so their keywords are recorded per draw.
+                // Built-in materials already bake the same keywords, and recording them anyway costs
+                // four keyword commands per light draw (UUM-154097).
+                if (isCustomMaterial)
+                    SetCustomMaterialKeywords(cmd, light, lightMaterial, passData.isVolumetric);
+
                 var lightMesh = light.lightMesh;
 
                 // For Batching.
@@ -157,13 +165,8 @@ namespace UnityEngine.Rendering.Universal
                 if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                     RendererLighting.SetPerPointLightShaderGlobals(cmd, light, slotIndex, LightBatch.isBatchingSupported);
 
-                // Dual-pass materials (ShaderGraph Light2D) use pass 0 for non-volumetric and pass 1 for
-                // volumetric. Single-pass built-in materials always use pass 0. The batch path uses
-                // DrawMultipleMeshes with shaderPass=-1 (all passes), which would render both passes and
-                // double-draw dual-pass materials, so skip batching for them.
-                int shaderPass = passData.isVolumetric && lightMaterial.passCount > 1 ? 1 : 0;
-                bool isDualPassMaterial = lightMaterial.passCount > 1;
-
+                // The batch path uses DrawMultipleMeshes with shaderPass=-1 (all passes), which would
+                // render both passes and double-draw dual-pass materials, so skip batching for them.
                 if (LightBatch.isBatchingSupported && !isDualPassMaterial)
                 {
                     RendererLighting.lightBatch.AddBatch(light, lightMaterial, light.GetMatrix(), lightMesh, 0, lightHash, index);
