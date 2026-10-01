@@ -297,9 +297,18 @@ namespace UnityEditor.Rendering
             VolumeComponent.FindParameters(target, m_VolumeNotAdditionalParameters, field => field.GetCustomAttribute<AdditionalPropertyAttribute>() == null);
         }
 
-        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop = null)
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos)
         {
-            if (o == null)
+            var visited = new HashSet<object>(VolumeComponent.ReferenceComparer.instance);
+            GetFields(o, infos, null, visited);
+        }
+
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop, HashSet<object> visited)
+        {
+            // There is a recursive call below. The visited set holds the objects on the current recursion path only, so an
+            // early return here prevents an infinite loop, while an object reachable through several fields is still
+            // visited once per field (each field has its own serialized property).
+            if (o == null || !visited.Add(o))
                 return;
 
             var fields = o.GetType()
@@ -314,9 +323,13 @@ namespace UnityEditor.Rendering
                          (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
                         infos.Add((field, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
                 }
-                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
-                    GetFields(field.GetValue(o), infos, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
+                else if (VolumeComponent.ShouldSearchForNestedParameters(field.FieldType))
+                {
+                    GetFields(field.GetValue(o), infos, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name), visited);
+                }
             }
+
+            visited.Remove(o);
         }
 
         /// <summary>

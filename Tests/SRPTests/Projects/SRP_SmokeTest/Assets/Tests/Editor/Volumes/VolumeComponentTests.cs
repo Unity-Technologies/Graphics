@@ -186,6 +186,165 @@ namespace UnityEditor.Rendering.Tests
         }
     }
 
+    // Holds a VolumeParameter that does not belong to any VolumeComponent. If the parameter discovery walk
+    // follows a delegate into its target, this parameter is wrongly reported as part of the component.
+    class ExternalParameterHolder
+    {
+        public FloatParameter externalParameter = new FloatParameter(0f);
+        public void OnChanged() { }
+    }
+
+    [HideInInspector]
+    class VolumeComponentWithEvent : VolumeComponent
+    {
+        public FloatParameter parameter = new FloatParameter(0f);
+        internal event Action changed;
+        internal void Subscribe(Action handler) => changed += handler;
+        internal void Unsubscribe(Action handler) => changed -= handler;
+        internal void RaiseChanged() => changed?.Invoke();
+    }
+
+    [Serializable]
+    class CyclicNestedParameters
+    {
+        public FloatParameter nestedParameter = new FloatParameter(0f);
+        [NonSerialized] public CyclicNestedParameters self;
+    }
+
+    [HideInInspector]
+    class VolumeComponentWithCyclicNestedClass : VolumeComponent
+    {
+        public FloatParameter parameter = new FloatParameter(0f);
+        public CyclicNestedParameters nested = new CyclicNestedParameters();
+    }
+
+    [Serializable]
+    class NestedParameters
+    {
+        public FloatParameter nestedParameter = new FloatParameter(0f);
+    }
+
+    [HideInInspector]
+    class VolumeComponentWithSharedNestedClass : VolumeComponent
+    {
+        public NestedParameters first = new NestedParameters();
+        public NestedParameters second = new NestedParameters();
+    }
+
+    class VolumeComponentFindParametersTests
+    {
+        // Delegate fields are only visible to reflection on CoreCLR, so the behavioral test below can only
+        // reproduce UUM-153887 there. This check guards the fix on every scripting runtime.
+        [Test]
+        public void ShouldSearchForNestedParameters_SkipsDelegates()
+        {
+            Assert.IsFalse(VolumeComponent.ShouldSearchForNestedParameters(typeof(Action)));
+            Assert.IsFalse(VolumeComponent.ShouldSearchForNestedParameters(typeof(Delegate)));
+            Assert.IsTrue(VolumeComponent.ShouldSearchForNestedParameters(typeof(CyclicNestedParameters)));
+        }
+
+        [Test]
+        public void FindParameters_DoesNotWalkIntoEventDelegates()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithEvent>();
+            var holder = new ExternalParameterHolder();
+            Action handler = holder.OnChanged;
+            // Reading Method populates the delegate's cached RuntimeMethodInfo, which on CoreCLR creates a
+            // reference cycle through the reflection cache (UUM-153887).
+            Assert.IsNotNull(handler.Method);
+            component.Subscribe(handler);
+
+            try
+            {
+                var parameters = new List<VolumeParameter>();
+                VolumeComponent.FindParameters(component, parameters);
+
+                Assert.AreEqual(1, parameters.Count);
+                Assert.AreSame(component.parameter, parameters[0]);
+            }
+            finally
+            {
+                component.Unsubscribe(handler);
+                ScriptableObject.DestroyImmediate(component);
+            }
+        }
+
+        [Test]
+        public void FindParameters_FindsNestedParametersAndTerminatesOnCycles()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithCyclicNestedClass>();
+            // Create the cycle here rather than in OnEnable, so that other tests instantiating every
+            // VolumeComponent type (e.g. through VolumeManager.Initialize) never see it.
+            component.nested.self = component.nested;
+
+            try
+            {
+                var parameters = new List<VolumeParameter>();
+                VolumeComponent.FindParameters(component, parameters);
+
+                CollectionAssert.AreEqual(new VolumeParameter[] { component.parameter, component.nested.nestedParameter }, parameters);
+            }
+            finally
+            {
+                ScriptableObject.DestroyImmediate(component);
+            }
+        }
+
+        [Test]
+        public void FindParameters_VisitsSharedNestedObjectThroughEachField()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithSharedNestedClass>();
+            // Both fields reference the same instance. This is not a cycle, so each field must still be walked.
+            component.second = component.first;
+
+            try
+            {
+                var parameters = new List<VolumeParameter>();
+                VolumeComponent.FindParameters(component, parameters);
+
+                CollectionAssert.AreEqual(new VolumeParameter[] { component.first.nestedParameter, component.second.nestedParameter }, parameters);
+            }
+            finally
+            {
+                ScriptableObject.DestroyImmediate(component);
+            }
+        }
+
+        [Test]
+        public void FindParameters_SupportsNestedCallFromFilter()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithCyclicNestedClass>();
+            component.nested.self = component.nested;
+            var other = ScriptableObject.CreateInstance<VolumeComponentWithCyclicNestedClass>();
+            var innerParameters = new List<VolumeParameter>();
+
+            try
+            {
+                var parameters = new List<VolumeParameter>();
+                VolumeComponent.FindParameters(component, parameters, field =>
+                {
+                    // Discovering the component itself again must work from inside the outer walk.
+                    innerParameters.Clear();
+                    VolumeComponent.FindParameters(component, innerParameters);
+                    return true;
+                });
+
+                CollectionAssert.AreEqual(new VolumeParameter[] { component.parameter, component.nested.nestedParameter }, parameters);
+                CollectionAssert.AreEqual(parameters, innerParameters);
+
+                // The cached set must be left in a usable state after the nested calls.
+                parameters.Clear();
+                VolumeComponent.FindParameters(other, parameters);
+                CollectionAssert.AreEqual(new VolumeParameter[] { other.parameter, other.nested.nestedParameter }, parameters);
+            }
+            finally
+            {
+                ScriptableObject.DestroyImmediate(other);
+                ScriptableObject.DestroyImmediate(component);
+            }
+        }
+    }
+
     class VolumeComponentEditorTests : RenderPipelineTests
     {
 #pragma warning disable CS0618
@@ -306,6 +465,62 @@ namespace UnityEditor.Rendering.Tests
             DestroyEditorAndComponent(component, editor);
 
             return fields;
+        }
+
+        [Test]
+        public void EditorDoesNotCollectParametersThroughEventDelegates()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithEvent>();
+            var holder = new ExternalParameterHolder();
+            Action handler = holder.OnChanged;
+            Assert.IsNotNull(handler.Method);
+            // Simulates another editor already being subscribed to the component when this one is created.
+            component.Subscribe(handler);
+
+            var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
+            try
+            {
+                editor.Invoke("Init");
+
+                // Filled by VolumeComponentEditor.GetFields during OnEnable. It holds serialized wrappers rather
+                // than the parameters themselves, so check the property path of the single entry.
+                var parameters = editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>;
+                Assert.IsNotNull(parameters);
+                Assert.AreEqual(1, parameters.Count);
+                Assert.AreEqual("parameter.m_Value", parameters[0].param.value.propertyPath);
+
+                // Filled by VolumeComponent.FindParameters during Init. It holds the parameter instances.
+                var notAdditionalParameters = editor.GetField("m_VolumeNotAdditionalParameters") as List<VolumeParameter>;
+                Assert.IsNotNull(notAdditionalParameters);
+                CollectionAssert.AreEqual(new VolumeParameter[] { component.parameter }, notAdditionalParameters);
+            }
+            finally
+            {
+                component.Unsubscribe(handler);
+                DestroyEditorAndComponent(component, editor);
+            }
+        }
+
+        [Test]
+        public void EditorShowsSharedNestedObjectThroughEachField()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentWithSharedNestedClass>();
+            // Both fields reference the same instance, but each has its own serialized property to display.
+            component.second = component.first;
+            var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
+
+            try
+            {
+                var parameters = editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>;
+                Assert.IsNotNull(parameters);
+                CollectionAssert.AreEquivalent(
+                    new[] { "first.nestedParameter.m_Value", "second.nestedParameter.m_Value" },
+                    parameters.Select(p => p.param.value.propertyPath));
+            }
+            finally
+            {
+                DestroyEditorAndComponent(component, editor);
+            }
         }
 
         #region Decorators Handling Test

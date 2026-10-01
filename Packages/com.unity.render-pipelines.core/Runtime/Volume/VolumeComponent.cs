@@ -180,7 +180,52 @@ namespace UnityEngine.Rendering
         /// <param name="filter">If you want to filter the parameters</param>
         internal static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter = null)
         {
-            if (o == null)
+            // Each active call on this thread takes its own set, so a nested call (e.g. from the filter) never shares
+            // the outer call's set. Sets go back to the pool, so this only allocates the first time a nesting depth is reached.
+            var pool = s_VisitedSetPool ??= new Stack<HashSet<object>>();
+            var visited = pool.Count > 0 ? pool.Pop() : new HashSet<object>(ReferenceComparer.instance);
+            try
+            {
+                FindParameters(o, parameters, filter, visited);
+            }
+            finally
+            {
+                visited.Clear();
+                pool.Push(visited);
+            }
+        }
+
+        // Per-thread pool of reference-equality visited sets, one per active (possibly nested) FindParameters call.
+        [ThreadStatic]
+        static Stack<HashSet<object>> s_VisitedSetPool;
+
+        /// <summary>
+        /// Compares objects by reference, ignoring any Equals/GetHashCode override.
+        /// </summary>
+        internal sealed class ReferenceComparer : IEqualityComparer<object>
+        {
+            public static readonly ReferenceComparer instance = new();
+            bool IEqualityComparer<object>.Equals(object x, object y) => ReferenceEquals(x, y);
+            int IEqualityComparer<object>.GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+        }
+
+        /// <summary>
+        /// Whether a field of this type can contain nested <see cref="VolumeParameter"/>s that the parameter
+        /// discovery walk should visit. Delegates (e.g. event backing fields) are not part of the component's own
+        /// data and can lead to unbounded or cyclic walks.
+        /// </summary>
+        internal static bool ShouldSearchForNestedParameters(Type fieldType)
+            => fieldType.IsClass
+               && !fieldType.IsArray
+               && fieldType != typeof(string)
+               && !typeof(Delegate).IsAssignableFrom(fieldType);
+
+        static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter, HashSet<object> visited)
+        {
+            // There is a recursive call below. The visited set holds the objects on the current recursion path only, so an
+            // early return here prevents an infinite loop, while an object reachable through several fields is still
+            // visited once per field.
+            if (o == null || !visited.Add(o))
                 return;
 
             var fields = o.GetType()
@@ -201,9 +246,14 @@ namespace UnityEngine.Rendering
                         parameters.Add(volumeParameter);
                     }
                 }
-                else if (!fieldType.IsArray && fieldType.IsClass)
-                    FindParameters(field.GetValue(o), parameters, filter);
+                else if (ShouldSearchForNestedParameters(fieldType))
+                {
+                    // Recursive call
+                    FindParameters(field.GetValue(o), parameters, filter, visited);
+                }
             }
+
+            visited.Remove(o);
         }
 
         /// <summary>
