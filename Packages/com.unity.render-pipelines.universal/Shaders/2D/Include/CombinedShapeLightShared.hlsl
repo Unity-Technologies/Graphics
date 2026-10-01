@@ -21,7 +21,16 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
     half alpha = surfaceData.alpha;
     half4 color = half4(surfaceData.albedo, alpha);
     const half4 mask = surfaceData.mask;
-    const half2 lightingUV = inputData.lightingUV;
+    half2 lightingUV = inputData.lightingUV;
+
+#if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+    // When this pass renders straight to the backbuffer (2D renderer with no intermediate color
+    // target), Vulkan swapchain pre-transform has rotated clip space, so lightingUV is a physical
+    // screen coordinate. The shape light textures are offscreen and so are still in the logical
+    // orientation - undo the rotation before sampling them. lightingUV comes from ComputeScreenPos()
+    // followed by the perspective divide, so this is the positionNDC overload. UUM-147359.
+    lightingUV = half2(RemovePretransformRotation(float2(lightingUV)));
+#endif
 
     if (alpha == 0.0)
         discard;
