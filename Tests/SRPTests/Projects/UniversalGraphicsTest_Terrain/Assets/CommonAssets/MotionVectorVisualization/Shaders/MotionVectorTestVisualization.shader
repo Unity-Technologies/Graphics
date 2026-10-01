@@ -113,12 +113,14 @@ Shader "MotionVectorTestVisualization"
                 float body = min(size.x, size.y) / sqrt(2.0);
                 float2 positionSS = texCoord.xy;
                 positionSS *= _ScreenSize.xy;
-                float2 center = (floor(positionSS / size) + 0.5) * size;
+                float2 cell = floor(positionSS / size);
+                float2 center = (cell + 0.5) * size;
                 positionSS -= center;
 
                 // Sample the center of the cell to get the current arrow vector
+                uint2 sampleTexel = (uint2(cell) * 2 + 1) * uint2(_ScreenSize.xy) / (uint2(float2(cols, rows)) * 2);
                 float2 mv_arrow = 0.0f;
-                mv_arrow = SampleMotionVectors(center * _ScreenSize.zw);
+                mv_arrow = SampleMotionVectors((sampleTexel + 0.5) * _ScreenSize.zw);
                 mv_arrow.y *= -1;
 
                 float3 arrowColor = lerp(float3(.1,.1,.1), float3(1,1,1), saturate(length(mv_arrow)*_Intensity));
