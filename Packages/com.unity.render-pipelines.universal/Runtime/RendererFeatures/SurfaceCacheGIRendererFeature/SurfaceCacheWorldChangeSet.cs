@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         public IEnumerable<Object> LightChangedList { get; set; } = Array.Empty<Object>();
         public IEnumerable<EntityId> LightDestroyedList { get; set; } = Array.Empty<EntityId>();
 
-        public IEnumerable<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
+        public IReadOnlyList<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
 
         public NativeArray<EntityId> MeshDestroyedList { get; set; }
 

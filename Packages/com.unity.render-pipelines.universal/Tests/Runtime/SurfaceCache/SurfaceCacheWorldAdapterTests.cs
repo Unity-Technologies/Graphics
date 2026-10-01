@@ -1,10 +1,12 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine.PathTracing.Core;
 using UnityEngine.Rendering.UnifiedRayTracing;
+using UnityEngine.TestTools;
 using InstanceHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.Rendering.SurfaceCacheWorld.Instance>;
 using MaterialHandle = UnityEngine.PathTracing.Core.Handle<UnityEngine.PathTracing.Core.MaterialPool.MaterialDescriptor>;
 
@@ -1544,6 +1546,58 @@ namespace UnityEngine.Rendering.Universal.Tests
                     Object.DestroyImmediate(go);
                 Object.DestroyImmediate(mesh);
             }
+        }
+
+        const int k_ManyInstanceCount = 1000;
+        static readonly Regex k_MissingMetaPassError = new("does not have a 'Meta' shader pass");
+
+        // The adapter keeps track of the materials it already reported, so a material shared by many instances must
+        // not turn into one log entry (and one formatted message allocation) per instance.
+        [Test]
+        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_LogsErrorOnce()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var materialMissingMetaPass = CreateMaterialMissingMetaPass();
+            try
+            {
+                LogAssert.Expect(LogType.Error, k_MissingMetaPassError);
+                Update(env.Adapter, CreateEntityAddedChangeSet(mesh, materialMissingMetaPass), env.World);
+
+                LogAssert.NoUnexpectedReceived();
+                Assert.AreEqual(k_ManyInstanceCount, env.World.GetInstanceCount());
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+                Object.DestroyImmediate(materialMissingMetaPass);
+            }
+        }
+
+        static SurfaceCacheWorldChangeSet CreateEntityAddedChangeSet(Mesh mesh, Material material)
+        {
+            var records = new SurfaceCacheEntityInstanceRecord[k_ManyInstanceCount];
+            for (int i = 0; i < k_ManyInstanceCount; i++)
+                records[i] = CreateEntityRecordWithMaterial(CreateEntityKey(i), mesh, material);
+
+            return new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = records };
+        }
+
+        static SurfaceCacheEntityInstanceRecord CreateEntityRecordWithMaterial(EntityId key, Mesh mesh, Material material)
+        {
+            var record = CreateEntityRecord(key, mesh);
+            for (int i = 0; i < record.Materials.Length; i++)
+                record.Materials[i] = material;
+
+            return record;
+        }
+
+        static Material CreateMaterialMissingMetaPass()
+        {
+            var material = new Material(Shader.Find("Hidden/InternalErrorShader"));
+            Assert.AreEqual(-1, material.FindPass("Meta"), "The test material must not have a Meta pass.");
+            return material;
         }
 
         static NativeArray<SurfaceCacheEntityTransformRecord> TransformChanges(params SurfaceCacheEntityTransformRecord[] records)
