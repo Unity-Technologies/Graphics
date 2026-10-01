@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 parentElement.Add(new Label("Source Path"));
                 parentElement.Add(new HelpBoxRow(sourcePath, MessageType.None));
 
-                string qualifiedSignature = ShaderObjectUtils.QualifySignature(node.Provider.Definition, true, true);
+                string qualifiedSignature = ShaderObjectUtils.QualifySignature(node.Provider.Definition);
                 parentElement.Add(new Label("Qualified Signature"));
                 parentElement.Add(new HelpBoxRow(qualifiedSignature, MessageType.None));
 
