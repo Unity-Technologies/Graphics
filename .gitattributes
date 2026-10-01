@@ -247,3 +247,7 @@ Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree9.shader filter=l
 # against expected files, and LFS round-tripping can alter whitespace/formatting.
 Editor/Tools/UnityYAMLMerge/TestData/**/*.unity -filter -diff -merge text=auto eol=lf
 Editor/Tools/UnityYAMLMerge/TestData/**/*.prefab -filter -diff -merge text=auto eol=lf
+
+# ShadowPackman/ holds directory symlinks named after packages. Some names end in an LFS-tracked
+# extension (com.autodesk.fbx, com.unity.formats.fbx), but a symlink is never an LFS pointer.
+ShadowPackman/* -filter -diff -merge
