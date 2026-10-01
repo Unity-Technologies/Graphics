@@ -74,7 +74,6 @@ class NoLeaksOnEnterLeavePlaymode
     }
 
     [UnityTest]
-    [Ignore("An extra Hidden/GUITextureBlitSceneGUI material survives the play mode domain reload - see https://jira.unity3d.com/browse/UUM-153700")]
     public IEnumerator NoResourceLeaks()
     {
         // Ignoring OpenGL as it has now been deprecated and this test is unstable on that platform.
