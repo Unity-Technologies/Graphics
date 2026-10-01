@@ -148,6 +148,24 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Depth source the GTAO horizon search samples.
+    /// </summary>
+    public enum ScreenSpaceAmbientOcclusionDepthSampling
+    {
+        /// <summary>
+        /// Samples the camera depth texture directly.
+        /// </summary>
+        [InspectorName("Camera Depth")]
+        CameraDepth = 0,
+
+        /// <summary>
+        /// Samples a prefiltered depth pyramid, reading a coarser level the further a tap is from the shaded pixel.
+        /// </summary>
+        [InspectorName("Depth Pyramid")]
+        DepthPyramid = 1
+    }
+
+    /// <summary>
     /// Quality presets for ambient occlusion settings.
     /// </summary>
     public enum ScreenSpaceAmbientOcclusionQuality
@@ -398,7 +416,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_UseComputeShader.value;
             set => m_UseComputeShader.value = value;
         }
-        [Tooltip("When enabled, uses compute shaders for GTAO calculation. Provides temporal filtering support and configurable direction/step counts.")]
+        [Tooltip("When enabled, Unity uses compute shaders to calculate GTAO. This enables Temporal Accumulation, the Spatial Filter option and custom Direction and Step counts. Requires a platform that supports compute shaders.")]
         [SerializeField]
         private BoolParameter m_UseComputeShader = new BoolParameter(false);
 
@@ -413,6 +431,18 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Spatial filter used by the GTAO compute path.")]
         [SerializeField]
         private ScreenSpaceAmbientOcclusionSpatialFilterParameter m_SpatialFilter = new ScreenSpaceAmbientOcclusionSpatialFilterParameter(ScreenSpaceAmbientOcclusionSpatialFilter.Bilateral);
+
+        /// <summary>
+        /// Depth source the GTAO horizon search samples.
+        /// </summary>
+        public ScreenSpaceAmbientOcclusionDepthSampling depthSampling
+        {
+            get => m_DepthSampling.value;
+            set => m_DepthSampling.value = value;
+        }
+        [Tooltip("The depth data to use for the GTAO horizon search. When set to 'Depth Pyramid', Unity generates a depth pyramid and samples coarser levels for distant taps, which improves performance at high resolutions and large radii. Requires compute shader support and is not supported with non-uniform foveated rendering; otherwise 'Camera Depth' is used.")]
+        [SerializeField]
+        private ScreenSpaceAmbientOcclusionDepthSamplingParameter m_DepthSampling = new ScreenSpaceAmbientOcclusionDepthSamplingParameter(ScreenSpaceAmbientOcclusionDepthSampling.CameraDepth);
 
         // ============================
         // Temporal Filter Parameters
@@ -665,6 +695,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public ScreenSpaceAmbientOcclusionSpatialFilterParameter(ScreenSpaceAmbientOcclusionSpatialFilter value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="ScreenSpaceAmbientOcclusionDepthSampling"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class ScreenSpaceAmbientOcclusionDepthSamplingParameter : VolumeParameter<ScreenSpaceAmbientOcclusionDepthSampling>
+    {
+        /// <summary>
+        /// Creates a new <see cref="ScreenSpaceAmbientOcclusionDepthSamplingParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public ScreenSpaceAmbientOcclusionDepthSamplingParameter(ScreenSpaceAmbientOcclusionDepthSampling value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>

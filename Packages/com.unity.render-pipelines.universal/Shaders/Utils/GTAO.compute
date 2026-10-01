@@ -6,6 +6,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore gles3 webgpu
 
 #pragma kernel ComputeAO
+#pragma kernel ComputeAODepthPyramid _GTAO_DEPTH_PYRAMID
 #pragma kernel BilateralBlurH
 #pragma kernel BilateralBlurV
 #pragma kernel BoxSpatialFilter
@@ -29,7 +30,7 @@ TEXTURE2D_HALF(_BlueNoiseTexture);
 SAMPLER(sampler_BlitTexture);
 #define SSAO_COMMON_SAMPLE_BASEMAP_R(uv)                            half(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv), 0).r)
 #define SSAO_COMMON_SAMPLE_BLUE_NOISE(uv)                           SAMPLE_TEXTURE2D_LOD(_BlueNoiseTexture, sampler_PointRepeat, UnityStereoTransformScreenSpaceTex(uv), 0).a
-#define SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, downsample)  LoadSceneDepth(uint2(samplePos * rcp(downsample)))
+#define SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, downsample)  LoadSceneDepth(uint2(clamp(samplePos * rcp(downsample), 0.0, _SourceSize.xy - 1.0)))
 #define SSAO_COMMON_DECLARE_UNIFORMS
 
 // Compute path uses dynamic values instead of compile-time constants
@@ -40,6 +41,17 @@ float _GTAOBoxFilterStep; // a-trous step width, height
 
 #define GTAO_STEP_COUNT             _GTAOStepCount
 #define GTAO_DIRECTION_COUNT        _GTAODirectionCount
+
+#if defined(_GTAO_DEPTH_PYRAMID)
+// Prefiltered depth pyramid, every MIP packed into one surface with MIP 0 at the AO resolution.
+TYPED_TEXTURE2D_X(float, _GTAODepthPyramid);
+float4 _GTAODepthPyramidSize;               // xy = MIP 0 viewport size
+float4 _GTAODepthPyramidParams;             // x = MIP sampling offset, y = highest usable MIP level, z = MIP footprint cap
+float4 _GTAODepthPyramidMipLevelOffsets[4]; // xy = where each MIP sits in the packed pyramid
+
+#define SSAO_COMMON_LOAD_PYRAMID_DEPTH(coord)  LOAD_TEXTURE2D_X(_GTAODepthPyramid, coord).r
+#define SSAO_COMMON_PYRAMID_MIP_OFFSET(mip)    int2(_GTAODepthPyramidMipLevelOffsets[mip].xy)
+#endif
 
 // Includes
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -63,7 +75,7 @@ TEXTURE2D_X(_MotionVectorTexture);
 #define DOWNSAMPLED_SCREEN_SIZE uint2(_SourceSize.xy * DOWNSAMPLE)
 #define DOWNSAMPLED_TEXEL_SIZE  (_SourceSize.zw * rcp(DOWNSAMPLE))
 
-static const float kMaxTemporalHistoryFrameCount = 64.0;
+static const float kMaxTemporalHistoryFrameCount = 20.0; // min current-frame weight 0.05, as in HDRP GTAO
 static const float kInvMaxTemporalHistoryFrameCount = 1.0 / kMaxTemporalHistoryFrameCount;
 static const int kGTAOSpatialFilterBilateral = 0;
 // SVGF-style normal edge-stop: weight = pow(max(0, dot(nCenter, nSample)), kNormalRejectionPower) instead of a hard threshold.
@@ -140,8 +152,7 @@ float3 FindMinMaxAvgAO(TEXTURE2D_X(blurredAO), uint2 centralPixelCoords)
 // ------------------------------------------------------------------
 // GTAO Compute Kernel
 // ------------------------------------------------------------------
-[numthreads(SSAO_GROUP_SIZE, SSAO_GROUP_SIZE, 1)]
-void ComputeAO(uint3 dispatchThreadId : SV_DispatchThreadID)
+void TraceAO(uint3 dispatchThreadId)
 {
     const uint2 pixelCoords = dispatchThreadId.xy;
     if (any(pixelCoords >= DOWNSAMPLED_SCREEN_SIZE))
@@ -155,27 +166,44 @@ void ComputeAO(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, temporalRotation, temporalOffset);
+#if defined(_GTAO_DEPTH_PYRAMID)
+    SetGTAODepthPyramidConfig(config, _GTAODepthPyramidSize, _GTAODepthPyramidParams);
+#endif
 
     float2 positionSS = float2(pixelCoords) + 0.5;
     float2 uv = positionSS * DOWNSAMPLED_TEXEL_SIZE;
     uint2 fullResCoords = uint2(positionSS * rcp(config.downsample));
 
     float centerRawDepth = LoadSceneDepth(fullResCoords);
-    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
-    half centerHalfLinearDepth = half(centerLinearDepth);
+    float centerEyeDepth = GetGTAOCenterEyeDepth(config, positionSS, centerRawDepth);
+    // Skip on this pixel's own depth, not the far-biased pyramid MIP 0.
+    half centerRawEyeDepth = half(GetLinearEyeDepth(centerRawDepth));
     half3 centerNormal = half3(LoadSceneNormals(fullResCoords));
 
-    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, config.falloff))
+    if (ShouldSkipAO(centerRawDepth, centerRawEyeDepth, config.falloff))
     {
         _AOOutput[pixelCoords] = PackAOAndNormal(HALF_ZERO, centerNormal);
         return;
     }
 
-    float3 positionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
+    float3 positionVS = GetPositionVSFromEyeDepth(positionSS, centerEyeDepth, config.depthToViewParams);
     half3 V = GetViewVectorVS(positionVS);
 
-    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, centerNormal, centerLinearDepth);
+    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, centerNormal, centerEyeDepth);
     _AOOutput[pixelCoords] = PackAOAndNormal(ao, centerNormal);
+}
+
+// Two entry points over one body. The kernel pragmas above compile the second with _GTAO_DEPTH_PYRAMID.
+[numthreads(SSAO_GROUP_SIZE, SSAO_GROUP_SIZE, 1)]
+void ComputeAO(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    TraceAO(dispatchThreadId);
+}
+
+[numthreads(SSAO_GROUP_SIZE, SSAO_GROUP_SIZE, 1)]
+void ComputeAODepthPyramid(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    TraceAO(dispatchThreadId);
 }
 
 // ------------------------------------------------------------------
@@ -239,9 +267,9 @@ void BoxSpatialFilter(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, temporalRotation, temporalOffset);
     float centerRawDepth = LoadSceneDepth(fullResCoords);
-    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
+    float centerEyeDepth = GetLinearEyeDepth(centerRawDepth);
 
-    if (ShouldSkipAO(centerRawDepth, half(centerLinearDepth), config.falloff))
+    if (ShouldSkipAO(centerRawDepth, half(centerEyeDepth), config.falloff))
     {
         _BlurOutput[pixelCoords] = PackAOAndNormal(HALF_ZERO, centerNormal);
         return;
@@ -280,7 +308,7 @@ void BoxSpatialFilter(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 samplePositionVS = GetPositionVS(samplePositionSS, sampleRawDepth, config.depthToViewParams);
 
         float planeDelta = abs(dot(samplePositionVS, float3(centerNormalVS)) - planeDistance);
-        float depthDifference = planeDelta / max(centerLinearDepth, 1.0e-4);
+        float depthDifference = planeDelta / max(centerEyeDepth, 1.0e-4);
         float depthWeight = exp(-kDepthRejectionScale * depthDifference);
         float normalWeight = pow(max(0.0, dot(centerNormal, sampleNormal)), kNormalRejectionPower);
         float sampleWeight = depthWeight * normalWeight;
