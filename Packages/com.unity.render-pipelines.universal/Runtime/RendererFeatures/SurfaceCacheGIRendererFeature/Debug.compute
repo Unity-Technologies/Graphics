@@ -89,15 +89,19 @@ float3 TraceMaterialProperty(uint2 pixelIdx, uint2 screenSize, uint globalThread
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
     UnifiedRT::Hit hit = TraceRayClosestHit(globalThreadIndex, groupThreadIdx, accelStruct, ray);
-    if (!hit.IsValid())
-        return 0.0f;
 
-    const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hit.instanceID);
-    const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hit);
-    const MaterialPool::MaterialEntry matEntry = _MaterialEntries[hitInstance.userMaterialID];
-    if (_ViewMode == 10)
-        return MaterialPool::LoadEmission(matEntry, _EmissionTextures, sampler_EmissionTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1);
-    return MaterialPool::LoadAlbedo(matEntry, _AlbedoTextures, sampler_AlbedoTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1).rgb;
+    float3 result = 0.0f;
+    if (hit.IsValid())
+    {
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hit.instanceID);
+        const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hit);
+        const MaterialPool::MaterialEntry matEntry = _MaterialEntries[hitInstance.userMaterialID];
+        if (_ViewMode == 10)
+            result = MaterialPool::LoadEmission(matEntry, _EmissionTextures, sampler_EmissionTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1);
+        else
+            result = MaterialPool::LoadAlbedo(matEntry, _AlbedoTextures, sampler_AlbedoTextures, _MaterialAtlasTexelSize, hitGeo.uv0, hitGeo.uv1).rgb;
+    }
+    return result;
 }
 
 void Visualize(uint2 threadIdx, uint groupThreadIdx)
