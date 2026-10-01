@@ -799,7 +799,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 vars._FPParams0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
                 vars._FPParams1 = math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
-                vars._FPParams2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0);
+                vars._FPParams2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, m_TileResolution.y, 0);
             }
 
             // Light Cookies
