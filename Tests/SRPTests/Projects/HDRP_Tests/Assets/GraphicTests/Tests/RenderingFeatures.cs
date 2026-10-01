@@ -30,11 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
         [IgnoreGraphicsTest(
-            "9701_CustomPass_DrawRenderers",
-            "Unstable - see https://jira.unity3d.com/browse/UUM-130183",
-            GraphicsDeviceType.Metal
-        )]
-        [IgnoreGraphicsTest(
             "9703_SampleColorBuffer_InjectionPoints_Scaling$",
             "Small differences in texture-sampling. Could be related to the forced-trilinear issue?",
             GraphicsDeviceType.Metal
@@ -93,11 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest(
             "9950-LineRendering",
             "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
-        )]
-        [IgnoreGraphicsTest(
-            "9701_CustomPass_DrawRenderers",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
-            RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
             "9001_LODTransition",
