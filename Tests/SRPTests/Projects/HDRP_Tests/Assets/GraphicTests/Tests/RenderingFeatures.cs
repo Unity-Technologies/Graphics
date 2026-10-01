@@ -60,21 +60,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
-            "9921_UnderWater$",
-            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
-            "9921_UnderWater_Back",
-            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
-            "9922_WaterPrefab",
-            "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
             "9922_WaterPrefab$",
             "Minor divergence across the waves' crests.",
             GraphicsDeviceType.Metal

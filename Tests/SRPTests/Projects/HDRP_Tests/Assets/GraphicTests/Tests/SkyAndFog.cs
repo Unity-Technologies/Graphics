@@ -64,11 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Architecture.X64
         )]
         [IgnoreGraphicsTest(
-            "5001_Fog_FogFallback",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-144922",
-            RuntimePlatform.LinuxEditor, RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
             "5016_VolumetricFogMultipleScattering",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152671",
             RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor,

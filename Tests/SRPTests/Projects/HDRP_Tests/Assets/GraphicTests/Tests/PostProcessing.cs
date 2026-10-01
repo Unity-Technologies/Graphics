@@ -94,10 +94,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
             RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
         )]
-        [IgnoreGraphicsTest(
-            "4103_DRS-DLSS-AfterPost",
-            "Unstable: https://jira.unity3d.com/browse/UUM-137893"
-        )]
         [TestOnlySupportedOn(
             "4111_DRS-DLSS-With-CustomPass",
             "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only, and needs an NVIDIA GPU.
@@ -106,23 +102,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsVendor.Nvidia
         )]
         [IgnoreGraphicsTest(
-            "4075_PhysicalCamera-gateFit",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
             "4014_PrecomputedVelocityAlembic",
             "https://jira.unity3d.com/browse/UUM-136889"
-        )]
-        [IgnoreGraphicsTest(
-            "4089_DRS-DLSS-Software",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-135194",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
-            "4088_DRS-DLSS-Hardware",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-135194",
-            RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
             "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass|4112_AlphaUpscaling-FP16Alpha)).*",
