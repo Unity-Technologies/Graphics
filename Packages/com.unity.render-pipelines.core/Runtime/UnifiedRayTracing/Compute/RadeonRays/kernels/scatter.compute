@@ -46,6 +46,10 @@ RWStructuredBuffer<uint> g_buffer : register(u0);
 groupshared int lds_scratch[GROUP_SIZE];
 // Temporary storage for the keys
 groupshared int lds_keys[GROUP_SIZE];
+#ifdef SORT_VALUES
+// Reusing lds_keys for the value exchange makes the Adreno 650 Vulkan driver return keys as values (UUM-153355).
+groupshared int lds_values[GROUP_SIZE];
+#endif
 // Cache for scanned histogram for faster indexing
 groupshared int lds_scanned_histogram[NUM_BINS];
 // Block histogram
@@ -207,9 +211,9 @@ void Scatter(
 #ifdef SORT_VALUES
             // Perform value exchange
             GroupMemoryBarrierWithGroupSync();
-            lds_keys[offset] = value;
+            lds_values[offset] = value;
             GroupMemoryBarrierWithGroupSync();
-            value = lds_keys[lidx];
+            value = lds_values[lidx];
             GroupMemoryBarrierWithGroupSync();
 #endif
         }
