@@ -22,9 +22,10 @@ namespace UnityEngine.Rendering.Universal
 
         public NativeArray<EntityId> MeshDestroyedList { get; set; }
 
-        public IEnumerable<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; } = Array.Empty<SurfaceCacheEntityInstanceRecord>();
+        public NativeArray<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; }
+        public NativeArray<SurfaceCacheSubMeshMaterial> EntityInstanceMaterialList { get; set; }
         public NativeArray<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; }
-        public IEnumerable<EntityId> EntityInstanceDestroyedList { get; set; } = Array.Empty<EntityId>();
+        public NativeArray<EntityId> EntityInstanceDestroyedList { get; set; }
 
 #if ENABLE_TERRAIN_MODULE
         public IEnumerable<Component> TerrainTransformChangedList { get; set; } = Array.Empty<Component>();

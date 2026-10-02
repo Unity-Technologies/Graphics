@@ -63,6 +63,11 @@ namespace UnityEngine.Rendering.Universal
         {
             return _entityInstances.TryGetAppliedLocalToWorld(key, out localToWorld);
         }
+
+        internal bool TryGetEntityInstanceInputMaterialIds(EntityId key, out EntityId[] materialIds)
+        {
+            return _entityInstances.TryGetInputMaterialIds(key, out materialIds);
+        }
 #endif
 
         public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
@@ -77,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
             RemoveInstancesWithDestroyedMeshes(changes.MeshDestroyedList, world);
 
             UpdateMeshRenderers(changes.MeshRendererTransformChangedIds, changes.MeshRendererTransformChangedLocalToWorlds, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
-            UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceDestroyedList, world);
+            UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceMaterialList, changes.EntityInstanceDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
             UpdateTerrains(changes.TerrainTransformChangedList, changes.TerrainChangedList, changes.TerrainDestroyedList, changes.TerrainDataChangedList, world);
 #endif
@@ -163,21 +168,15 @@ namespace UnityEngine.Rendering.Universal
                 _meshRenderers.TryRemove(entityId, _sharedMaterials, world);
         }
 
-        void UpdateEntityInstances(NativeArray<SurfaceCacheEntityTransformRecord> transformChanged, IEnumerable<SurfaceCacheEntityInstanceRecord> changed, IEnumerable<EntityId> destroyed, SurfaceCacheWorld world)
+        void UpdateEntityInstances(NativeArray<SurfaceCacheEntityTransformRecord> transformChanged, NativeArray<SurfaceCacheEntityInstanceRecord> changed, NativeArray<SurfaceCacheSubMeshMaterial> materials, NativeArray<EntityId> destroyed, SurfaceCacheWorld world)
         {
             using var _ = k_EntityInstanceUpdateMarker.Auto();
 
-            if (transformChanged.IsCreated)
-            {
-                for (int i = 0; i < transformChanged.Length; i++)
-                {
-                    var record = transformChanged[i];
-                    _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
-                }
-            }
+            foreach (var record in transformChanged)
+                _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
 
             foreach (var record in changed)
-                _entityInstances.Refresh(new EntityRecordSource(record), _sharedMaterials, world, _renderingLayerMaskFilter);
+                _entityInstances.Refresh(_entityInstances.CreateSource(record, materials), _sharedMaterials, world, _renderingLayerMaskFilter);
 
             foreach (var key in destroyed)
                 _entityInstances.TryRemove(key, _sharedMaterials, world);
@@ -298,8 +297,8 @@ namespace UnityEngine.Rendering.Universal
             uint RenderingLayerMask { get; }
             Matrix4x4 LocalToWorld { get; }
             string OwnerName { get; }
-            // May fill and return the given scratch list to avoid heap allocation.
-            IReadOnlyList<Material> GetMaterials(List<Material> scratch);
+            // May fill and return the given scratch list. Assignments outside subMeshCount are dropped.
+            IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount);
         }
 
         readonly struct MeshRendererSource : IInstanceSource<EntityId>
@@ -346,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
             public string OwnerName => _renderer.gameObject.name;
 
-            public IReadOnlyList<Material> GetMaterials(List<Material> scratch)
+            public IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount)
             {
                 _renderer.GetSharedMaterials(scratch);
                 return scratch;
@@ -356,29 +355,54 @@ namespace UnityEngine.Rendering.Universal
         readonly struct EntityRecordSource : IInstanceSource<EntityId>
         {
             readonly SurfaceCacheEntityInstanceRecord _record;
+            // Copied out: a drained record only carries a range into a buffer the bridge reuses every frame.
+            readonly SurfaceCacheSubMeshMaterial[] _materials;
 
-            public EntityRecordSource(in SurfaceCacheEntityInstanceRecord record)
+            public EntityRecordSource(in SurfaceCacheEntityInstanceRecord record, SurfaceCacheSubMeshMaterial[] materials)
             {
                 _record = record;
+                _materials = materials;
             }
+
+            public SurfaceCacheSubMeshMaterial[] SubMeshMaterials => _materials;
 
             public EntityId Key => _record.Key;
             public bool Visible => _record.Visible;
-            public Mesh Mesh => _record.Mesh;
+
+            // Safe only because the live RenderMeshArrayHost keeps these meshes resident.
+            public Mesh Mesh => _record.Mesh != EntityId.None ? Resources.EntityIdToObject(_record.Mesh) as Mesh : null;
+
             public uint RenderingLayerMask => _record.RenderingLayerMask;
             public Matrix4x4 LocalToWorld => _record.LocalToWorld;
             public string OwnerName => _record.Key.ToString();
 
-            public IReadOnlyList<Material> GetMaterials(List<Material> scratch)
+            // Pads the producer's sparse assignments to one entry per submesh; unassigned ones stay null and are
+            // masked out downstream. Out-of-range assignments are dropped rather than padded to, because
+            // SubMeshIndex is authored data of arbitrary size and this is the first place subMeshCount is known.
+            public IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount)
             {
-                return _record.Materials ?? Array.Empty<Material>();
+                scratch.Clear();
+                foreach (var assignment in _materials)
+                {
+                    if ((uint)assignment.SubMeshIndex >= (uint)subMeshCount)
+                        continue;
+
+                    while (scratch.Count <= assignment.SubMeshIndex)
+                        scratch.Add(null);
+
+                    scratch[assignment.SubMeshIndex] = assignment.Material != EntityId.None
+                        ? Resources.EntityIdToObject(assignment.Material) as Material
+                        : null;
+                }
+
+                return scratch;
             }
 
             public EntityRecordSource WithLocalToWorld(in Matrix4x4 localToWorld)
             {
                 var record = _record;
                 record.LocalToWorld = localToWorld;
-                return new EntityRecordSource(record);
+                return new EntityRecordSource(record, _materials);
             }
         }
 
@@ -429,6 +453,18 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 localToWorld = default;
+                return false;
+            }
+
+            public bool TryGetInputMaterialIds(TKey key, out EntityId[] materialIds)
+            {
+                if (_slots.TryGetValue(key, out int slot) && _inWorld[slot])
+                {
+                    materialIds = _inputMaterialIds[slot];
+                    return true;
+                }
+
+                materialIds = null;
                 return false;
             }
 #endif
@@ -583,7 +619,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(mesh != null && mesh.vertexCount != 0);
 
                 Debug.Assert(_materialScratch.Count == 0);
-                var inputMats = source.GetMaterials(_materialScratch);
+                var inputMats = source.GetMaterials(_materialScratch, mesh.subMeshCount);
 
                 Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
                 ResolveMaterialIds(inputMats, inputMatIds);
@@ -626,7 +662,7 @@ namespace UnityEngine.Rendering.Universal
 
                 Debug.Assert(mesh != null && mesh.vertexCount != 0);
                 Debug.Assert(_materialScratch.Count == 0);
-                var inputMats = source.GetMaterials(_materialScratch);
+                var inputMats = source.GetMaterials(_materialScratch, mesh.subMeshCount);
 
                 Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
                 ResolveMaterialIds(inputMats, inputMatIds);
@@ -736,6 +772,23 @@ namespace UnityEngine.Rendering.Universal
 
                 SetSource(slot, GetSource(slot).WithLocalToWorld(localToWorld));
                 ApplyTransform(slot, localToWorld, world);
+            }
+
+            public EntityRecordSource CreateSource(in SurfaceCacheEntityInstanceRecord record, NativeArray<SurfaceCacheSubMeshMaterial> materials)
+            {
+                int count = record.MaterialsCount;
+
+                // Such a record is never registered, so nothing reads its materials.
+                if (count == 0 || !record.Visible || record.Mesh == EntityId.None)
+                    return new EntityRecordSource(record, Array.Empty<SurfaceCacheSubMeshMaterial>());
+
+                // A registered key usually re-reports the same count, so its buffer is reused rather than reallocated.
+                var buffer = TryGetSlot(record.Key, out int slot) ? GetSource(slot).SubMeshMaterials : null;
+                if (buffer == null || buffer.Length != count)
+                    buffer = new SurfaceCacheSubMeshMaterial[count];
+
+                NativeArray<SurfaceCacheSubMeshMaterial>.Copy(materials, record.MaterialsStart, buffer, 0, count);
+                return new EntityRecordSource(record, buffer);
             }
         }
 

@@ -2,13 +2,19 @@
 
 namespace UnityEngine.Rendering.Universal
 {
+    struct SurfaceCacheSubMeshMaterial
+    {
+        public int SubMeshIndex;
+        public EntityId Material;
+    }
+
     struct SurfaceCacheEntityInstanceRecord
     {
         public EntityId Key;
-        // Null when the entity has no resolvable mesh; the instance is then kept out of the world.
-        public Mesh Mesh;
-        // Per-submesh materials, length equal to Mesh.subMeshCount. Null entries mask out the submesh.
-        public Material[] Materials;
+        public EntityId Mesh;
+        // Into the buffer this record was drained with, so valid only until that buffer is reused.
+        public int MaterialsStart;
+        public int MaterialsCount;
         public Matrix4x4 LocalToWorld;
         public uint RenderingLayerMask;
         public bool Visible;
