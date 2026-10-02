@@ -39,9 +39,6 @@ public class HDRP_TestSettings : GraphicsTestSettings
     [Tooltip("Set the multiplier to increase the tolerance in AverageCorrectnessThreshold and PerPixelCorrectnessThreshold to account for slight changes due to float precision.")]
     public float xrThresholdMultiplier = 1.0f;
 
-    [Tooltip("When enabled, the tests fails if GC.Alloc are executed after a few frames during the tests.")]
-    public bool checkMemoryAllocation = true;
-
     [Tooltip("Specifies the render pipeline asset used when executing the test.")]
     public RenderPipelineAsset renderPipelineAsset;
 

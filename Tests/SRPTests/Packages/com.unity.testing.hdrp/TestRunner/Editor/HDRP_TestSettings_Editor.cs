@@ -22,7 +22,6 @@ public class HDRP_TestSettings_Editor : Editor
     SerializedProperty gpuDrivenCompatible;
     SerializedProperty waitForFrameCountMultiple;
     SerializedProperty frameCountMultiple;
-    SerializedProperty checkMemoryAllocation;
     SerializedProperty renderPipelineAsset;
     SerializedProperty forceCameraRenderDuringSetup;
     SerializedProperty containsVFX;
@@ -39,7 +38,6 @@ public class HDRP_TestSettings_Editor : Editor
         gpuDrivenCompatible = serializedObject.FindProperty("gpuDrivenCompatible");
         waitForFrameCountMultiple = serializedObject.FindProperty("waitForFrameCountMultiple");
         frameCountMultiple = serializedObject.FindProperty("frameCountMultiple");
-        checkMemoryAllocation = serializedObject.FindProperty("checkMemoryAllocation");
         renderPipelineAsset = serializedObject.FindProperty("renderPipelineAsset");
         forceCameraRenderDuringSetup = serializedObject.FindProperty("forceCameraRenderDuringSetup");
         containsVFX = serializedObject.FindProperty("containsVFX");
@@ -74,7 +72,6 @@ public class HDRP_TestSettings_Editor : Editor
         }
 
 
-        EditorGUILayout.PropertyField(checkMemoryAllocation);
         EditorGUILayout.PropertyField(renderPipelineAsset);
         EditorGUILayout.PropertyField(forceCameraRenderDuringSetup);
 

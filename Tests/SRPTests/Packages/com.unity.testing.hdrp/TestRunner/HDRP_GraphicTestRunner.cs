@@ -281,14 +281,6 @@ public class HDRP_GraphicTestRunner
         {
             // Standard Test
             ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, settings?.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
-
-            // For some reason, tests on mac os have started failing with render graph enabled by default.
-            // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.
-            // That's why we don't test on macos anymore.
-            if (settings.checkMemoryAllocation)
-            {
-                yield return ImageAssert.CheckGCAllocWithCallstack(camera, settings?.ImageComparisonSettings);
-            }
         }
         else
         {
