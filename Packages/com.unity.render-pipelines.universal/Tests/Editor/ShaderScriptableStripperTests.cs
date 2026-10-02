@@ -2456,7 +2456,7 @@ namespace ShaderStrippingAndPrefiltering
 
             helper = new TestHelper(shader, ShaderFeatures.LightFalloffQuadratic);
             TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.LightFalloffQuadratic);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };

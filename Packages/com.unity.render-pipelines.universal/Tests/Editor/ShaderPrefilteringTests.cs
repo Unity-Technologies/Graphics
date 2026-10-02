@@ -301,6 +301,26 @@ namespace ShaderStrippingAndPrefiltering
         }
 
         [Test]
+        public void TestCreatePrefilteringSettings_LightFalloff()
+        {
+            ShaderPrefilteringData actual;
+            ShaderPrefilteringData expected;
+            TestHelper helper = new();
+
+            // Inverse Squared
+            expected = helper.defaultPrefilteringData;
+            expected.stripLightFalloffQuadratic = true;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            // Quadratic
+            expected = helper.defaultPrefilteringData;
+            expected.stripLightFalloffQuadratic = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.LightFalloffQuadratic);
+            helper.AssertPrefilteringData(expected, actual);
+        }
+
+        [Test]
         public void TestCreatePrefilteringSettings_RenderingLayers()
         {
             ShaderPrefilteringData actual;

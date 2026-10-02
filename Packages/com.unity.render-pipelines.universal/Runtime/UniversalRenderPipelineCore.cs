@@ -1896,7 +1896,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool IsQuadraticFalloffEnabled()
         {
-            return asset != null && asset.lightFalloffMode == LightFalloffMode.Quadratic;
+            return GraphicsSettings.TryGetRenderPipelineSettings<URPLightFalloffSettings>(out var lightFalloffSettings)
+                && lightFalloffSettings.lightFalloffMode == LightFalloffMode.Quadratic;
         }
 
         /// <summary>

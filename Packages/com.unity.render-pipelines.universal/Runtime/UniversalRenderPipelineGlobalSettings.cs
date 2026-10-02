@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 15;
+        internal const int k_LastVersion = 16;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -186,6 +186,12 @@ namespace UnityEngine.Rendering.Universal
                 var shadowBiasSettings = GetOrCreateGraphicsSettings<URPShadowBiasSettings>(asset);
                 shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Caster;
                 asset.m_AssetVersion = 15;
+            }
+
+            if (asset.m_AssetVersion < 16)
+            {
+                MigrateLightFalloffMode(asset);
+                asset.m_AssetVersion = 16;
             }
 
             // If the asset version has changed, means that a migration step has been executed
@@ -483,6 +489,28 @@ namespace UnityEngine.Rendering.Universal
             };
 
             // GTAO and temporal filtering have no feature equivalent and keep the override defaults
+        }
+
+        static void MigrateLightFalloffMode(UniversalRenderPipelineGlobalSettings data)
+        {
+            // Quadratic is the value a user had to opt into, so it wins when assets disagree.
+            var lightFalloffSettings = GetOrCreateGraphicsSettings<URPLightFalloffSettings>(data);
+
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets"))
+                    continue;
+
+                var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
+#pragma warning disable 618 // Type or member is obsolete
+                if (urpAsset == null || urpAsset.m_ObsoleteLightFalloffMode != LightFalloffMode.Quadratic)
+                    continue;
+#pragma warning restore 618
+
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
+                break;
+            }
         }
 
 #endif // #if UNITY_EDITOR

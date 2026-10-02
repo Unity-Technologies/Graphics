@@ -202,6 +202,15 @@ namespace UnityEngine.Rendering.Universal
             get => default;
             set {}
         }
+
+        /// <summary>
+        /// Defines the light attenuation formula used by URP lights.
+        /// </summary>
+        [Obsolete("Moved to URPLightFalloffSettings on GraphicsSettings. #from(6000.7)")]
+        public LightFalloffMode lightFalloffMode
+        {
+            get => GraphicsSettings.GetRenderPipelineSettings<URPLightFalloffSettings>().lightFalloffMode;
+        }
     }
 
     public abstract partial class ScriptableRenderer

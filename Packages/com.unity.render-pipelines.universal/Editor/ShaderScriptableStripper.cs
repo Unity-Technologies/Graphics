@@ -898,7 +898,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_LightFalloffQuadratic(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
-            return stripTool.StripMultiCompileKeepOffVariant(m_LightFalloffQuadratic, ShaderFeatures.LightFalloffQuadratic);
+            return stripTool.StripMultiCompile(m_LightFalloffQuadratic, ShaderFeatures.LightFalloffQuadratic);
         }
 
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)

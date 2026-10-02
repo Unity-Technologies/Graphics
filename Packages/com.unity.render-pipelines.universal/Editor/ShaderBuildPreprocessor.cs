@@ -674,7 +674,7 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 
-            if (urpAsset.lightFalloffMode == LightFalloffMode.Quadratic)
+            if (UniversalRenderPipeline.IsQuadraticFalloffEnabled())
                 urpAssetShaderFeatures |= ShaderFeatures.LightFalloffQuadratic;
 
             if (urpAsset.supportScreenSpaceLensFlare)
@@ -1146,6 +1146,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripScreenSpaceIrradiance = stripScreenSpaceIrradiance;
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
             spd.stripVolumetricFog = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.VolumetricFog);
+            spd.stripLightFalloffQuadratic = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.LightFalloffQuadratic);
 
             // Rendering Modes
             // Check if only Deferred is being used

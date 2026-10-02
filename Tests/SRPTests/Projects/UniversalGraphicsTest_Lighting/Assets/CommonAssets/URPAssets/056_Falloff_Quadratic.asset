@@ -36,7 +36,6 @@ MonoBehaviour:
   m_EnableLODCrossFade: 0
   m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
-  m_LightFalloffMode: 1
   m_LightProbeSystem: 0
   m_ProbeVolumeMemoryBudget: 1024
   m_ProbeVolumeBlendingMemoryBudget: 128

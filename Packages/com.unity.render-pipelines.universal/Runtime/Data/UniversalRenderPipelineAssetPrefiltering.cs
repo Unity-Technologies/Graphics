@@ -236,6 +236,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.FogAnalytic)]
         [SerializeField] private bool m_PrefilterVolumetricFog = false;
 
+        // Light falloff (_LIGHT_FALLOFF_QUADRATIC)
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
+        [SerializeField] private bool m_PrefilterLightFalloffQuadratic = true;
+
         // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
         // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
         // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
@@ -288,6 +293,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripExposure;
 
             public bool stripVolumetricFog;
+
+            public bool stripLightFalloffQuadratic;
 
             public bool stripScreenSpaceIrradiance;
 
@@ -359,6 +366,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterExposure                      = prefilteringData.stripExposure;
 
             m_PrefilterVolumetricFog                 = prefilteringData.stripVolumetricFog;
+
+            m_PrefilterLightFalloffQuadratic         = prefilteringData.stripLightFalloffQuadratic;
 
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 

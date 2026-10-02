@@ -414,15 +414,24 @@ namespace ShaderStrippingAndPrefiltering
         [Test]
         public void TestGetSupportedShaderFeaturesFromAsset_LightFalloff()
         {
-            m_TestHelper.urpAsset.lightFalloffMode = LightFalloffMode.InverseSquared;
-            ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
-            ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+            var lightFalloffSettings = GraphicsSettings.GetRenderPipelineSettings<URPLightFalloffSettings>();
+            LightFalloffMode previousLightFalloffMode = lightFalloffSettings.lightFalloffMode;
+            try
+            {
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.InverseSquared;
+                ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
-            m_TestHelper.urpAsset.lightFalloffMode = LightFalloffMode.Quadratic;
-            actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
-            expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.LightFalloffQuadratic;
-            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
+                actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.LightFalloffQuadratic;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+            }
+            finally
+            {
+                lightFalloffSettings.lightFalloffMode = previousLightFalloffMode;
+            }
         }
 
         [Test]

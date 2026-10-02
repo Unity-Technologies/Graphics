@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
 
         public SerializedProperty shEvalModeProp { get; }
-        public SerializedProperty lightFalloffModeProp { get; }
 
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
@@ -130,7 +129,6 @@ namespace UnityEditor.Rendering.Universal
             fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
             shEvalModeProp = serializedObject.FindProperty("m_ShEvalMode");
-            lightFalloffModeProp = serializedObject.FindProperty("m_LightFalloffMode");
 
             lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
