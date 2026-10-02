@@ -3,6 +3,7 @@
     <uie:Toolbar class="top-toolbar">
         <uie:ToolbarSpacer style="flex-grow: 1" />
         <uie:ToolbarSearchField name="search-field"/>
+        <uie:ToolbarToggle name="btn-hide-overlays" class="hide-overlays-toggle" />
         <uie:ToolbarButton text="Reset" name="btn-reset" focusable="false" />
     </uie:Toolbar>
     <ui:TwoPaneSplitView fixed-pane-index="0" fixed-pane-initial-dimension="225" view-data-key="debug-window-split-view">
@@ -13,6 +14,7 @@
             </ui:ScrollView>
         </ui:VisualElement>
         <ui:VisualElement name="debug-window-tab-container" class="">
+            <ui:HelpBox name="debug-window-overlays-hidden-notice" message-type="Info" />
             <ui:ScrollView horizontal-scroller-visibility="Hidden" view-data-key="debug-window-tab-container-scrollview">
                 <ui:VisualElement name="panels-inspector-insertion-element" />
                 <ui:Label name="debug-window-no-results-label" text="No results match your search." />
