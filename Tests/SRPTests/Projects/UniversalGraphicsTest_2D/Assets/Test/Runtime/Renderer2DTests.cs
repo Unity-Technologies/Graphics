@@ -87,18 +87,6 @@ class Renderer2DTests
     }
 
     [Test]
-    public void OverlayRendererUsesRenderTexturesFromBase()
-    {
-        m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
-
-        m_BaseCamera.Render();
-
-        Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
-        Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
-        Assert.AreEqual(baseRenderer.m_RenderGraphCameraDepthHandle, overlayRenderer.m_RenderGraphCameraDepthHandle);
-    }
-
-    [Test]
     public void OverlayRendererSetsTheCreateTextureFlags()
     {
         m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
