@@ -398,7 +398,8 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
-            // Just here to add "padding" to the number of passes to ensure resources are not released right at the first sync pass.
+            // Just here to add "padding" to the number of passes to ensure resources are not released right after the
+            // last async pass using them.
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass3", out var passData))
             {
                 builder.UseTexture(texture3, AccessFlags.Write);
@@ -406,7 +407,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
-            // Pass prior to synchronization should be where textures are released.
+            // More padding, so that releasing at the synchronizing pass is distinguishable from releasing just before it.
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass4", out var passData))
             {
                 builder.UseTexture(texture3, AccessFlags.Write);
@@ -414,7 +415,9 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
-            // Graphics pass that reads texture1. This will request a sync with compute pipe. The previous pass should be the one releasing async textures.
+            // Graphics pass that reads texture1. This will request a sync with compute pipe. This pass should be the one
+            // releasing async textures: it creates its resources before waiting on the fence, so it must not be handed
+            // memory the compute pipe is still using either.
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass5", out var passData))
             {
                 builder.UseTexture(texture1, AccessFlags.Read);
@@ -436,18 +439,427 @@ namespace UnityEngine.Rendering.Tests
             var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
             var compiledPasses = result.contextData.GetPasses();
 
-            var releasedResourcePass4List = new List<int>();
-            foreach (ref readonly var releasedRes in compiledPasses[4].LastUsedResources(result.contextData))
+            var releasedResourcePass5List = new List<int>();
+            foreach (ref readonly var releasedRes in compiledPasses[5].LastUsedResources(result.contextData))
             {
-                releasedResourcePass4List.Add(releasedRes.index);
+                releasedResourcePass5List.Add(releasedRes.index);
             }
 
             Assert.AreEqual(7, compiledPasses.Count);
             Assert.AreEqual(5, compiledPasses[2].awaitingMyGraphicsFencePassId);
             Assert.AreEqual(2, compiledPasses[5].waitOnGraphicsFencePassId);
 
-            Assert.Contains(texture0.handle.index, releasedResourcePass4List);
-            Assert.Contains(texture2.handle.index, releasedResourcePass4List);
+            Assert.Contains(texture0.handle.index, releasedResourcePass5List);
+            Assert.Contains(texture2.handle.index, releasedResourcePass5List);
+        }
+
+        // Helpers for the UUM-141896 tests below. Recycling a pooled resource creates a dependency between the pass
+        // releasing it and the pass receiving it that the compiler cannot see or fence. Two rules keep this safe with
+        // async compute: resources touched by an async compute pass are pooled separately from graphics queue only
+        // ones, and their release back to the pool is delayed until every queue with work in flight on them is
+        // provably done.
+        void AddTestComputePass(string name, bool asyncCompute, TextureHandle[] reads = null,
+            TextureHandle[] writes = null, bool allowCulling = true, Action<RTHandle> captureFirstWrite = null)
+        {
+            using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>(name, out var passData))
+            {
+                foreach (var texture in reads ?? Array.Empty<TextureHandle>())
+                    builder.UseTexture(texture, AccessFlags.Read);
+                foreach (var texture in writes ?? Array.Empty<TextureHandle>())
+                    builder.UseTexture(texture, AccessFlags.Write);
+
+                if (!allowCulling)
+                    builder.AllowPassCulling(false);
+                builder.EnableAsyncCompute(asyncCompute);
+
+                if (captureFirstWrite != null)
+                {
+                    passData.textures[0] = writes[0];
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) =>
+                    {
+                        captureFirstWrite(data.textures[0]);
+                    });
+                }
+                else
+                {
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) => { });
+                }
+            }
+        }
+
+        void AddTestComputePass(string name, bool asyncCompute, BufferHandle[] reads = null,
+            BufferHandle[] writes = null, bool allowCulling = true, Action<GraphicsBuffer> captureFirstWrite = null)
+        {
+            using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>(name, out var passData))
+            {
+                foreach (var buffer in reads ?? Array.Empty<BufferHandle>())
+                    builder.UseBuffer(buffer, AccessFlags.Read);
+                foreach (var buffer in writes ?? Array.Empty<BufferHandle>())
+                    builder.UseBuffer(buffer, AccessFlags.Write);
+
+                if (!allowCulling)
+                    builder.AllowPassCulling(false);
+                builder.EnableAsyncCompute(asyncCompute);
+
+                if (captureFirstWrite != null)
+                {
+                    passData.buffers[0] = writes[0];
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) =>
+                    {
+                        captureFirstWrite(data.buffers[0]);
+                    });
+                }
+                else
+                {
+                    builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) => { });
+                }
+            }
+        }
+
+        static List<int> LastUsedResourceIndices(in PassData pass, CompilerContextData ctx)
+        {
+            var indices = new List<int>();
+            foreach (ref readonly var res in pass.LastUsedResources(ctx))
+                indices.Add(res.index);
+            return indices;
+        }
+
+        // The compiler records the last pass using each resource per queue; the pool split and the delayed release
+        // are driven by it.
+        [Test]
+        public void AsyncComputeResourceUsageIsTracked()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle graphicsTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle graphicsCopy = m_RenderGraph.CreateTexture(desc);
+            TextureHandle asyncTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle asyncReadByGraphics = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Gfx_Produce", asyncCompute: false, writes: new[] { graphicsTexture });
+            AddTestComputePass("Gfx_Copy", asyncCompute: false,
+                reads: new[] { graphicsTexture }, writes: new[] { graphicsCopy });
+            AddTestComputePass("Async_Produce", asyncCompute: true,
+                writes: new[] { asyncTexture, asyncReadByGraphics }, allowCulling: false);
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { graphicsCopy, asyncReadByGraphics }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var contextData = result.contextData;
+
+            Assert.AreEqual(4, contextData.GetPasses().Count);
+
+            const int gfxCopyPassId = 1;
+            const int asyncProducePassId = 2;
+            const int gfxConsumePassId = 3;
+
+            ref readonly var graphicsTextureData = ref contextData.UnversionedResourceData(graphicsTexture.handle);
+            Assert.AreEqual(gfxCopyPassId, graphicsTextureData.lastGraphicsUsePassID);
+            Assert.AreEqual(-1, graphicsTextureData.lastAsyncComputeUsePassID);
+
+            ref readonly var graphicsCopyData = ref contextData.UnversionedResourceData(graphicsCopy.handle);
+            Assert.AreEqual(gfxConsumePassId, graphicsCopyData.lastGraphicsUsePassID);
+            Assert.AreEqual(-1, graphicsCopyData.lastAsyncComputeUsePassID);
+
+            ref readonly var asyncTextureData = ref contextData.UnversionedResourceData(asyncTexture.handle);
+            Assert.AreEqual(-1, asyncTextureData.lastGraphicsUsePassID);
+            Assert.AreEqual(asyncProducePassId, asyncTextureData.lastAsyncComputeUsePassID);
+
+            // A read is a use: graphics never writes this texture, yet its graphics read must be tracked.
+            ref readonly var asyncReadByGraphicsData = ref contextData.UnversionedResourceData(asyncReadByGraphics.handle);
+            Assert.AreEqual(gfxConsumePassId, asyncReadByGraphicsData.lastGraphicsUsePassID);
+            Assert.AreEqual(asyncProducePassId, asyncReadByGraphicsData.lastAsyncComputeUsePassID);
+        }
+
+        // A resource used from both queues cannot go back to the pool at the pass that last uses it: the work left on
+        // the other queue is not ordered against the passes that follow. With a later async compute pass that nothing
+        // orders after that work, the release can only happen at the end of the graph.
+        [Test]
+        public void ResourceUsedOnBothQueuesIsReleasedAtEndOfGraph()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle mixedQueueTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle graphicsTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle laterAsyncTexture = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Async_Produce", asyncCompute: true, writes: new[] { mixedQueueTexture });
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { mixedQueueTexture }, writes: new[] { graphicsTexture }, allowCulling: false);
+            AddTestComputePass("Async_Later", asyncCompute: true, writes: new[] { laterAsyncTexture });
+            // Padding, so that "released at the end of the graph" is distinguishable from "released at its last use".
+            AddTestComputePass("Gfx_Padding", asyncCompute: false,
+                reads: new[] { graphicsTexture, laterAsyncTexture }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var compiledPasses = result.contextData.GetPasses();
+
+            Assert.AreEqual(4, compiledPasses.Count);
+
+            var lastPassId = compiledPasses.Count - 1;
+
+            Assert.AreEqual(lastPassId,
+                result.contextData.UnversionedResourceData(mixedQueueTexture.handle).lastUsePassID);
+            Assert.Contains(mixedQueueTexture.handle.index,
+                LastUsedResourceIndices(compiledPasses[lastPassId], result.contextData));
+        }
+
+        // The delay ends at the first pass on the opposite queue that is ordered after the work left behind, just as
+        // in #78999: Async_Later waits on the graphics queue past the graphics use of mixedQueueTexture, so from that
+        // pass onwards the in-order async compute queue can safely be handed the texture. That pass is itself the
+        // release point, not the one before it, because a pass creates its resources before its own fence wait.
+        [Test]
+        public void ResourceUsedOnBothQueuesIsReleasedAtFirstOrderedAsyncPass()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle mixedQueueTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle graphicsTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle asyncInput = m_RenderGraph.CreateTexture(desc);
+            TextureHandle laterAsyncTexture = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Async_Produce", asyncCompute: true, writes: new[] { mixedQueueTexture });
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { mixedQueueTexture }, writes: new[] { graphicsTexture }, allowCulling: false);
+            AddTestComputePass("Gfx_ProduceForAsync", asyncCompute: false, writes: new[] { asyncInput });
+            AddTestComputePass("Async_Later", asyncCompute: true,
+                reads: new[] { asyncInput }, writes: new[] { laterAsyncTexture });
+            AddTestComputePass("Gfx_Padding", asyncCompute: false,
+                reads: new[] { graphicsTexture, laterAsyncTexture }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var compiledPasses = result.contextData.GetPasses();
+
+            Assert.AreEqual(5, compiledPasses.Count);
+
+            const int gfxProduceForAsyncPassId = 2;
+            const int asyncLaterPassId = 3;
+
+            // The async compute pass really is ordered after the graphics use, otherwise this would prove nothing.
+            Assert.AreEqual(gfxProduceForAsyncPassId, compiledPasses[asyncLaterPassId].waitOnGraphicsFencePassId);
+
+            // Released at it, rather than at the end of the graph.
+            Assert.AreEqual(asyncLaterPassId,
+                result.contextData.UnversionedResourceData(mixedQueueTexture.handle).lastUsePassID);
+            Assert.Contains(mixedQueueTexture.handle.index,
+                LastUsedResourceIndices(compiledPasses[asyncLaterPassId], result.contextData));
+        }
+
+        // The mirror of the test above: the last use of mixedQueueTexture is on the async compute queue, and that use
+        // already waits on a fence covering the graphics work, so what keeps the texture out of the pool is its own
+        // async write still in flight. The release waits for the first graphics pass awaiting an async fence signaled
+        // at or after that write.
+        [Test]
+        public void ResourceUsedOnBothQueuesIsReleasedAtFirstOrderedGraphicsPass()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle mixedQueueTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle laterAsyncTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle paddingTexture = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Gfx_Produce", asyncCompute: false, writes: new[] { mixedQueueTexture });
+            AddTestComputePass("Async_Consume", asyncCompute: true,
+                reads: new[] { mixedQueueTexture }, allowCulling: false);
+            AddTestComputePass("Async_Later", asyncCompute: true, writes: new[] { laterAsyncTexture });
+            AddTestComputePass("Gfx_Padding", asyncCompute: false, writes: new[] { paddingTexture });
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { laterAsyncTexture, paddingTexture }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var compiledPasses = result.contextData.GetPasses();
+
+            Assert.AreEqual(5, compiledPasses.Count);
+
+            const int gfxProducePassId = 0;
+            const int asyncConsumePassId = 1;
+            const int asyncLaterPassId = 2;
+            const int gfxConsumePassId = 4;
+
+            // The graphics work is already fenced at the last use itself, so it is not what delays the release.
+            Assert.AreEqual(gfxProducePassId, compiledPasses[asyncConsumePassId].waitOnGraphicsFencePassId);
+
+            // The graphics pass really is ordered after the async work, otherwise this would prove nothing.
+            Assert.AreEqual(asyncLaterPassId, compiledPasses[gfxConsumePassId].waitOnGraphicsFencePassId);
+
+            // Released at it, rather than at the end of the graph. Not at Gfx_Padding, the pass before it: Gfx_Consume
+            // creates its resources before waiting on the fence, so it must not be handed the memory either.
+            Assert.AreEqual(gfxConsumePassId,
+                result.contextData.UnversionedResourceData(mixedQueueTexture.handle).lastUsePassID);
+            Assert.Contains(mixedQueueTexture.handle.index,
+                LastUsedResourceIndices(compiledPasses[gfxConsumePassId], result.contextData));
+        }
+
+        // Once the last async compute pass of the graph is behind us the delay is unnecessary: only resources touched
+        // by an async pass share the pool bucket, and such a resource is never created after the last async pass, so
+        // nothing that could be handed the memory remains.
+        [Test]
+        public void ResourceUsedOnBothQueuesIsReleasedAtLastUseWhenNoAsyncPassFollows()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle mixedQueueTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle graphicsTexture = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Async_Produce", asyncCompute: true, writes: new[] { mixedQueueTexture });
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { mixedQueueTexture }, writes: new[] { graphicsTexture }, allowCulling: false);
+            // Padding, so that "released at its last use" is distinguishable from "released at the end of the graph".
+            AddTestComputePass("Gfx_Padding", asyncCompute: false, reads: new[] { graphicsTexture }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var compiledPasses = result.contextData.GetPasses();
+
+            Assert.AreEqual(3, compiledPasses.Count);
+
+            const int gfxConsumePassId = 1;
+
+            Assert.AreEqual(gfxConsumePassId,
+                result.contextData.UnversionedResourceData(mixedQueueTexture.handle).lastUsePassID);
+            Assert.Contains(mixedQueueTexture.handle.index,
+                LastUsedResourceIndices(compiledPasses[gfxConsumePassId], result.contextData));
+        }
+
+        // A resource released by a graphics pass must never be handed to an async compute pass by the pool, while
+        // pooling between passes on the same queue keeps working.
+        [Test]
+        public void AsyncPassDoesNotReuseGraphicsQueueResourceFromPool()
+        {
+            RTHandle graphicsRTHandle = null;
+            RTHandle asyncRTHandle = null;
+            RTHandle graphicsReuseRTHandle = null;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // One shared descriptor, so pool reuse is constrained by the queue split alone.
+                var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+                var graphicsTexture = m_RenderGraph.CreateTexture(desc);
+                var graphicsCopy = m_RenderGraph.CreateTexture(desc);
+                var asyncTexture = m_RenderGraph.CreateTexture(desc);
+                var graphicsReuse = m_RenderGraph.CreateTexture(desc);
+
+                AddTestComputePass("Gfx_Produce", asyncCompute: false, writes: new[] { graphicsTexture },
+                    captureFirstWrite: rtHandle => graphicsRTHandle = rtHandle);
+                // Last use of graphicsTexture, so it goes back to the pool at the end of this pass.
+                AddTestComputePass("Gfx_Copy", asyncCompute: false,
+                    reads: new[] { graphicsTexture }, writes: new[] { graphicsCopy });
+                // Allocates right after that release, but on the async queue with no fence to wait on, exactly as in
+                // the bug report: it must get its own resource.
+                AddTestComputePass("Async_Produce", asyncCompute: true, writes: new[] { asyncTexture },
+                    captureFirstWrite: rtHandle => asyncRTHandle = rtHandle);
+                // The same allocation on the graphics queue is expected to recycle graphicsTexture.
+                AddTestComputePass("Gfx_Reuse", asyncCompute: false, writes: new[] { graphicsReuse },
+                    captureFirstWrite: rtHandle => graphicsReuseRTHandle = rtHandle);
+                AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                    reads: new[] { graphicsCopy, asyncTexture, graphicsReuse }, allowCulling: false);
+            };
+
+            m_Camera.Render();
+
+            Assert.IsNotNull(graphicsRTHandle);
+            Assert.IsNotNull(asyncRTHandle);
+            Assert.IsNotNull(graphicsReuseRTHandle);
+
+            Assert.AreNotSame(graphicsRTHandle, asyncRTHandle);
+
+            // Same queue reuse still happens, so the assert above cannot pass trivially.
+            Assert.AreSame(graphicsRTHandle, graphicsReuseRTHandle);
+        }
+
+        // Companion to the test above: shows the reuse would race, not just waste memory. The graphics queue only
+        // resource is released at its last graphics use, nothing orders the async pass that follows after that
+        // release, and the only fence in the graph runs the other way, ordering the graphics consumer after the
+        // async pass.
+        [Test]
+        public void AsyncPassFollowingGraphicsResourceReleaseHasNoFenceToWaitOn()
+        {
+            var desc = new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm };
+
+            TextureHandle graphicsTexture = m_RenderGraph.CreateTexture(desc);
+            TextureHandle graphicsCopy = m_RenderGraph.CreateTexture(desc);
+            TextureHandle asyncTexture = m_RenderGraph.CreateTexture(desc);
+
+            AddTestComputePass("Gfx_Produce", asyncCompute: false, writes: new[] { graphicsTexture });
+            AddTestComputePass("Gfx_Copy", asyncCompute: false,
+                reads: new[] { graphicsTexture }, writes: new[] { graphicsCopy });
+            AddTestComputePass("Async_Produce", asyncCompute: true, writes: new[] { asyncTexture });
+            AddTestComputePass("Gfx_Consume", asyncCompute: false,
+                reads: new[] { graphicsCopy, asyncTexture }, allowCulling: false);
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var compiledPasses = result.contextData.GetPasses();
+
+            Assert.AreEqual(4, compiledPasses.Count);
+
+            const int gfxCopyPassId = 1;
+            const int asyncProducePassId = 2;
+            const int gfxConsumePassId = 3;
+
+            // The async pass survives culling because its output is read, not because culling was disabled.
+            Assert.IsTrue(compiledPasses[asyncProducePassId].asyncCompute);
+
+            // Graphics only, so nothing delays its release past its last graphics use.
+            Assert.AreEqual(-1, result.contextData.UnversionedResourceData(graphicsTexture.handle).lastAsyncComputeUsePassID);
+            Assert.AreEqual(gfxCopyPassId, result.contextData.UnversionedResourceData(graphicsTexture.handle).lastUsePassID);
+
+            // Nothing orders the async pass after the pass that released the resource.
+            Assert.AreEqual(-1, compiledPasses[asyncProducePassId].waitOnGraphicsFencePassId);
+
+            // The only fence involved runs the other way: the consumer waits for the async pass.
+            Assert.AreEqual(gfxConsumePassId, compiledPasses[asyncProducePassId].awaitingMyGraphicsFencePassId);
+            Assert.AreEqual(asyncProducePassId, compiledPasses[gfxConsumePassId].waitOnGraphicsFencePassId);
+        }
+
+        // The buffer variant of the cross queue race: bufferA is written on the async queue and read on the graphics
+        // queue, and nothing makes the async queue wait for that read, so a later async pass must not be handed its
+        // buffer. Graphics queue only buffers keep pooling normally.
+        [Test]
+        public void AsyncComputePassDoesNotReuseBufferLastUsedByGraphicsPass()
+        {
+            GraphicsBuffer asyncWrittenBuffer = null;
+            GraphicsBuffer laterAsyncBuffer = null;
+            GraphicsBuffer graphicsWrittenBuffer = null;
+            GraphicsBuffer graphicsReuseBuffer = null;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // One shared descriptor, so pool reuse is constrained by the queue split alone.
+                var desc = new BufferDesc(1024, 4, GraphicsBuffer.Target.Structured);
+
+                var bufferA = m_RenderGraph.CreateBuffer(desc);
+                var bufferB = m_RenderGraph.CreateBuffer(desc);
+                var graphicsOnlyBuffer = m_RenderGraph.CreateBuffer(desc);
+                var graphicsReuse = m_RenderGraph.CreateBuffer(desc);
+
+                AddTestComputePass("Async_WriteA", asyncCompute: true, writes: new[] { bufferA },
+                    captureFirstWrite: buffer => asyncWrittenBuffer = buffer);
+                // Last use of bufferA, on the graphics queue.
+                AddTestComputePass("Gfx_ReadA", asyncCompute: false,
+                    reads: new[] { bufferA }, writes: new[] { graphicsOnlyBuffer }, allowCulling: false,
+                    captureFirstWrite: buffer => graphicsWrittenBuffer = buffer);
+                // Last use of graphicsOnlyBuffer, so it goes back to the pool at the end of this pass.
+                AddTestComputePass("Gfx_ReadGraphicsOnly", asyncCompute: false,
+                    reads: new[] { graphicsOnlyBuffer }, allowCulling: false);
+                // Allocates on the async queue with no fence to wait on: it must not receive bufferA's buffer.
+                AddTestComputePass("Async_WriteB", asyncCompute: true, writes: new[] { bufferB },
+                    allowCulling: false, captureFirstWrite: buffer => laterAsyncBuffer = buffer);
+                // The same allocation on the graphics queue is expected to recycle graphicsOnlyBuffer.
+                AddTestComputePass("Gfx_Reuse", asyncCompute: false, writes: new[] { graphicsReuse },
+                    allowCulling: false, captureFirstWrite: buffer => graphicsReuseBuffer = buffer);
+            };
+
+            m_Camera.Render();
+
+            Assert.IsNotNull(asyncWrittenBuffer);
+            Assert.IsNotNull(laterAsyncBuffer);
+            Assert.IsNotNull(graphicsWrittenBuffer);
+            Assert.IsNotNull(graphicsReuseBuffer);
+
+            Assert.AreNotSame(asyncWrittenBuffer, laterAsyncBuffer);
+
+            // Same queue reuse still happens, so the assert above cannot pass trivially.
+            Assert.AreSame(graphicsWrittenBuffer, graphicsReuseBuffer);
         }
 
         [Test]
