@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering
                 return false;
 #endif
             // If we are forcing the system, no need to perform further checks
-            if (IsForcedOnViaCommandLine() || MaintainContext)
+            if (IsForcedOnViaCommandLine())
                 return true;
 
             if (GraphicsSettings.currentRenderPipeline is not IGPUResidentRenderPipeline asset)
@@ -107,7 +107,11 @@ namespace UnityEngine.Rendering
                 return false;
             }
 
-            return asset.IsGPUResidentDrawerSupportedBySRP(out message, out severity) && IsProjectSupported(out message, out severity);
+            if (!asset.IsGPUResidentDrawerSupportedBySRP(out message, out severity))
+                return false;
+
+            // MaintainContext skips only the project-level checks; per-asset SRP support always applies
+            return MaintainContext || IsProjectSupported(out message, out severity);
         }
 
         internal static void LogMessage(string message, LogType severity)

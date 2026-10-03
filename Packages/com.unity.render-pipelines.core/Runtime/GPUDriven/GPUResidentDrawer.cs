@@ -563,7 +563,7 @@ namespace UnityEngine.Rendering
                 InsertIntoPlayerLoop();
 
             string extraText = IsForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
-            extraText = MaintainContext ? " (forced on via MaintainContext)" : extraText;
+            extraText = MaintainContext ? " (project-level checks skipped via MaintainContext)" : extraText;
             if (settings.enableOcclusionCulling)
             {
                 string occlusionText = IsOcclusionForcedOnViaCommandLine() ? " (forced on via commandline)" : "";

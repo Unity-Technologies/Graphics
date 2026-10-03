@@ -77,10 +77,19 @@ namespace Unity.Rendering.Universal.Tests
             XRGraphicsAutomatedTests.running = false;
 #endif
 
+            // Ignored tests load no scene, so the drawer state reflects an unrelated quality level
+            if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Skipped)
+                return;
+
             Assert.That(
                 gpuResidentDrawerContext.IsDrawerCreated,
                 Is.EqualTo(requestedGRDContext == GpuResidentDrawerContext.GRDEnabled),
-                $"GPU Resident Drawer instance did not match the {requestedGRDContext} fixture while the scene rendered."
+                () =>
+                {
+                    gpuResidentDrawerContext.IsDrawerSupportedByCurrentPipeline(out var unsupportedReason);
+                    return $"GPU Resident Drawer instance did not match the {requestedGRDContext} fixture while the scene rendered." +
+                        (string.IsNullOrEmpty(unsupportedReason) ? string.Empty : " " + unsupportedReason);
+                }
             );
         }
 
