@@ -71,6 +71,15 @@ namespace UnityEngine.Rendering.Tests
                     Assert.Ignore("Test is failing on Linux OpenGLCore. https://jira.unity3d.com/browse/GFXFOUND-559");
                 }
 
+            // The EmbeddedLinux OpenGLES3 CI device (Raspberry Pi V3D / Mesa GLES 3.1) does not expose
+            // GL_EXT_disjoint_timer_query, so GPU frame timing is always zero there.
+            if ((Application.platform == RuntimePlatform.EmbeddedLinuxArm64 ||
+                 Application.platform == RuntimePlatform.EmbeddedLinuxX64)
+                && SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                {
+                    Assert.Ignore("GPU frame timing is not supported on EmbeddedLinux GLES (no GL_EXT_disjoint_timer_query), skipping test.");
+                }
+
             yield return Warmup();
 
             m_ToCleanup = new GameObject();

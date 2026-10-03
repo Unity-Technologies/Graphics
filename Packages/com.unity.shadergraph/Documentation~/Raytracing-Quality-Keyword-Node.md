@@ -9,3 +9,4 @@ Refer to `https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-defi
 ## Additional resources:
 
 * [Keywords](Keywords.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -11,3 +11,4 @@ Some built-in nodes are Sub Graph nodes, for example the [ThreadMapDetail node](
 ## Additional resources
 
 - [Sub Graphs](Sub-graph.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

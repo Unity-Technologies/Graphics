@@ -2529,7 +2529,19 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destTexture;
-                builder.SetRenderAttachment(destTexture, 0, AccessFlags.Write);
+
+                // Full-screen blit to backbuffer with no alpha will overwrite every pixel, so use flag
+                // WriteAll for the compiler to set load op DontCare later and skip the color load
+                AccessFlags destAccessFlag = AccessFlags.Write;
+                if (resourceData.isActiveTargetBackBuffer && cameraData.isDefaultViewport && !enableAlphaOutput)
+                {
+                    destAccessFlag = AccessFlags.WriteAll;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh) // Not a full-screen blit
+                        destAccessFlag = AccessFlags.Write;
+#endif
+                }
+                builder.SetRenderAttachment(destTexture, 0, destAccessFlag);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
                 passData.lutTexture = lutTexture;

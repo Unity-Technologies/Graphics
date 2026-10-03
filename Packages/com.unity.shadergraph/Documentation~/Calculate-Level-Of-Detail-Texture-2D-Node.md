@@ -69,3 +69,7 @@ In the following example, a Calculate Level of Detail Texture 2D node calculates
 - [Sampler State node](Sampler-State-Node.md)
 - [Gather Texture 2D node](Gather-Texture-2D-Node.md)
 - [Texture 2D Asset node](Texture-2D-Asset-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

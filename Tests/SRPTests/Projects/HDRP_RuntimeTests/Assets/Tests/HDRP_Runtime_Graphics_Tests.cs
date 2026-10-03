@@ -73,6 +73,11 @@ public class HDRP_Runtime_Graphics_Tests
         "https://jira.unity3d.com/browse/UUM-70791",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2 }
     )]
+    [IgnoreGraphicsTest(
+        "006-Compositor$",
+        "https://jira.unity3d.com/browse/UUM-147661 - 6000.3 only: crashes the player and aborts the rest of the suite.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);

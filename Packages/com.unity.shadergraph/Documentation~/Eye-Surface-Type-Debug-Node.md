@@ -18,3 +18,7 @@ Debug node that allows you to visually validate the current pupil radius.
 | **Pupil Radius** | Input         | float   | Radius of the pupil in the iris texture as a percentage.     |
 | **IsActive**     | Input         | bool    | Flag that defines if the node should be active.              |
 | **SurfaceColor** | Output        | Color   | Final Diffuse color of the Eye.                              |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

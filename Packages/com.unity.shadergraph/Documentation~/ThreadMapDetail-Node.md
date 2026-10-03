@@ -62,3 +62,7 @@ To view these Shader Graphs:
 2. Next to the **Shader** dropdown, select **Edit**.
 
 Your chosen Fabric's Shader Graph opens. You can view the ThreadMapDetail node, its Subgraph, and the other nodes that create HDRP's Fabric shaders.
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

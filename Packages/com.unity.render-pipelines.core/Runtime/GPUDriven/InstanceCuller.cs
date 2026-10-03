@@ -1900,11 +1900,10 @@ namespace UnityEngine.Rendering
                 sceneCullingMask = cc.sceneCullingMask,
             }.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize, jobHandle);
 
-            receiverPlanes.Dispose(cullingJob);
-            frustumPlaneCuller.Dispose(cullingJob);
-            receiverSphereCuller.Dispose(cullingJob);
-
-            return cullingJob;
+            return JobHandle.CombineDependencies(
+                receiverPlanes.Dispose(cullingJob),
+                frustumPlaneCuller.Dispose(cullingJob),
+                receiverSphereCuller.Dispose(cullingJob));
         }
 
         private int ComputeWorstCaseDrawCommandCount(
@@ -2211,10 +2210,9 @@ namespace UnityEngine.Rendering
 
             var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
 
-            filteredRenderers.Dispose(drawOutputHandle);
-            dummyExcludedRenderers.Dispose(drawOutputHandle);
-
-            return drawOutputHandle;
+            return JobHandle.CombineDependencies(
+                filteredRenderers.Dispose(drawOutputHandle),
+                dummyExcludedRenderers.Dispose(drawOutputHandle));
         }
 
         private JobHandle CreatePickingCullingOutputJob_EditorOnly(in BatchCullingContext cc, BatchCullingOutput cullingOutput,

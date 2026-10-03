@@ -301,19 +301,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseTexture(src, AccessFlags.Read);
                 passData.destination = dest;
 
-                // Default flag for non-XR common case
-                AccessFlags targetAccessFlag = AccessFlags.Write;
+                // The access flag can be set to WriteAll if there is a full screen blit and no alpha blending,
+                // so engine will set loadOperation to DontCare down to the pipe.
+                AccessFlags targetAccessFlag = cameraData.isDefaultViewport && !outputsAlpha ? AccessFlags.WriteAll : AccessFlags.Write;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
                 bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
                 builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
-
-                // Optimization: In XR, we don't have split screen use case.
-                // The access flag can be set to WriteAll if there is a full screen blit and no alpha blending,
-                // so engine will set loadOperation to DontCare down to the pipe.
-                if (cameraData.xr.enabled && cameraData.isDefaultViewport && !outputsAlpha)
-                    targetAccessFlag =  AccessFlags.WriteAll;
 #endif
                 builder.SetRenderAttachment(dest, 0, targetAccessFlag);
 

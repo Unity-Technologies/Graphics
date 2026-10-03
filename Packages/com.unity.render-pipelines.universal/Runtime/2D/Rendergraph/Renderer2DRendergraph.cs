@@ -159,11 +159,15 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
+            // Renderer2DData.useDepthStencilBuffer
             bool allowDepth = rendererData.useDepthStencilBuffer;
 
             // 3D Render Textures with depth/stencil buffer are not supported
             if (cameraData.targetTexture != null)
                 allowDepth &= cameraData.targetTexture.dimension != TextureDimension.Tex3D;
+
+            // The back buffer has none when PlayerSettings.disableDepthAndStencilBuffers is enabled on a graphics API that acts on it
+            allowDepth &= Graphics.backBufferHasDepthStencil;
 
             return allowDepth;
         }
@@ -441,7 +445,7 @@ namespace UnityEngine.Rendering.Universal
             CreateShadowTextures(renderGraph, width, height);
 
             if (m_Renderer2DData.useCameraSortingLayerTexture)
-                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor, width, height);
+                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor);
 
             // Create the attachments
             if (cameraData.renderType == CameraRenderType.Base) // require intermediate textures
@@ -454,6 +458,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
                 m_CreateDepthTexture |= m_CreateColorTexture;
+                m_CreateDepthTexture &= IsDepthUsageAllowed(frameData, m_Renderer2DData);
 
                 // Camera Target Color
                 if (m_CreateColorTexture)
@@ -522,9 +527,12 @@ namespace UnityEngine.Rendering.Universal
             if (m_CreateColorTexture)
             {
             	importSummary.cameraColorParams.discardOnLastUse = lastCameraInTheStack;
-                importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
-
                 commonResourceData.cameraColor = renderGraph.ImportTexture(currentRenderGraphCameraColorHandle, importSummary.cameraColorParams);
+            }
+
+            if (m_CreateDepthTexture)
+            {
+                importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
                 commonResourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importSummary.cameraDepthParams);
             }
 
@@ -548,17 +556,21 @@ namespace UnityEngine.Rendering.Universal
                 RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferColorHandle, targetColorId);
             }
 
-            if (m_RenderGraphBackbufferDepthHandle == null)
-            {
-                m_RenderGraphBackbufferDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer depth");
-            }
-            else if (m_RenderGraphBackbufferDepthHandle.nameID != targetDepthId)
-            {
-                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferDepthHandle, targetDepthId);
-            }
-
             commonResourceData.backBufferColor = renderGraph.ImportTexture(m_RenderGraphBackbufferColorHandle, importSummary.importInfo, importSummary.backBufferColorParams);
-            commonResourceData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle, importSummary.importInfoDepth, importSummary.backBufferDepthParams);
+
+            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            {
+                if (m_RenderGraphBackbufferDepthHandle == null)
+                {
+                    m_RenderGraphBackbufferDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer depth");
+                }
+                else if (m_RenderGraphBackbufferDepthHandle.nameID != targetDepthId)
+                {
+                    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_RenderGraphBackbufferDepthHandle, targetDepthId);
+                }
+
+                commonResourceData.backBufferDepth = renderGraph.ImportTexture(m_RenderGraphBackbufferDepthHandle, importSummary.importInfoDepth, importSummary.backBufferDepthParams);
+            }
 
             var postProcessDesc = PostProcessPassRenderGraph.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat);
             commonResourceData.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
@@ -578,11 +590,15 @@ namespace UnityEngine.Rendering.Universal
             desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
             desc.autoGenerateMips = false;
             desc.msaaSamples = descriptor.msaaSamples;
+            bool useNormals = false;
 
             for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
+            {
+                useNormals |= m_LayerBatches[i].useNormals;
                 resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
+            }
 
-            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            if (useNormals && IsDepthUsageAllowed(frameData, m_Renderer2DData))
             {
                 // Normals pass can reuse active depth if same dimensions, if not create a new depth texture
 #if !(ENABLE_VR && ENABLE_XR_MODULE)
@@ -645,15 +661,12 @@ namespace UnityEngine.Rendering.Universal
             resourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDepthDesc, "_ShadowDepth", false, FilterMode.Bilinear);
         }
 
-        void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor cameraDesc, int width, int height)
+        void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor cameraDesc)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            var desc = new RenderTextureDescriptor(width, height);
-            desc.graphicsFormat = cameraDesc.graphicsFormat;
-
-            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref desc, out var filterMode);
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, desc, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
+            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref cameraDesc, out var filterMode);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, cameraDesc, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
             resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
         }
 
@@ -919,13 +932,17 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle activeColor = commonResourceData.activeColorTexture;
 
                 bool isTargetBackbuffer = resolvePostProcessingToCameraTarget;
-
-                // if the postprocessing pass is trying to read and write to the same CameraColor target, we need to swap so it writes to a different target,
-                // since reading a pass attachment is not possible. Normally this would be possible using temporary RenderGraph managed textures.
-                // The reason why in this case we need to use "external" RTHandles is to preserve the results for camera stacking.
-                // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we can just use temporary RenderGraph textures as intermediate buffer.
-                if (!isTargetBackbuffer)
+                if (isTargetBackbuffer)
                 {
+                    commonResourceData.activeColorID = ActiveID.BackBuffer;
+                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
+                }
+                else
+                {
+                    // if the postprocessing pass is trying to read and write to the same CameraColor target, we need to swap so it writes to a different target,
+                    // since reading a pass attachment is not possible. Normally this would be possible using temporary RenderGraph managed textures.
+                    // The reason why in this case we need to use "external" RTHandles is to preserve the results for camera stacking.
+                    // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we can just use temporary RenderGraph textures as intermediate buffer.
                     ImportResourceParams importColorParams = new ImportResourceParams();
                     importColorParams.clearOnFirstUse = true;
                     importColorParams.clearColor = Color.black;
@@ -950,12 +967,6 @@ namespace UnityEngine.Rendering.Universal
                     applyFinalPostProcessing,
                     resolveToDebugScreen,
                     doSRGBEncoding);
-
-                if (isTargetBackbuffer)
-                {
-                    commonResourceData.activeColorID = ActiveID.BackBuffer;
-                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
-                }
             }
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);

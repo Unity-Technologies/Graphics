@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool useBicubicLightmapSampling = false;
                 if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
                     useBicubicLightmapSampling = lightmapSamplingSettings.useBicubicLightmapSampling;
-                if (inputData.shaderKeywordSet.IsEnabled(m_LightmapBicubicSampling) != useBicubicLightmapSampling)
+                if (inputData.shaderKeywordSet.IsEnabled(m_LightmapBicubicSampling) && !useBicubicLightmapSampling)
                     return true;
             }
 

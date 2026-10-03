@@ -10,3 +10,7 @@ This node lets you pass compute deformed vertex data to a vertex shader, and onl
 | Position  | Output     | Vector3 | Vertex | Outputs the deformed vertex position. |
 | Normal    | Output     | Vector3 | Vertex | Outputs the deformed vertex normal. |
 | Tangent   | Output     | Vector3 | Vertex | Outputs the deformed vertex tangent. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]
