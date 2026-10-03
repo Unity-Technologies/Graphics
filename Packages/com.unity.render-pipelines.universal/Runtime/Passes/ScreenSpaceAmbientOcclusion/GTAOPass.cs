@@ -165,8 +165,12 @@ namespace UnityEngine.Rendering.Universal
                 if (!cs.HasKernel("PrefilterDepths"))
                     return;
 
+                int prefilterKernel = cs.FindKernel("PrefilterDepths");
+                if (!cs.IsSupported(prefilterKernel))
+                    return;
+
                 shader = cs;
-                kernel = shader.FindKernel("PrefilterDepths");
+                kernel = prefilterKernel;
 
                 shader.GetKernelThreadGroupSizes(kernel, out uint groupSizeX, out uint groupSizeY, out _);
                 Debug.Assert(groupSizeX * 2 == k_DepthPrefilterTileSize && groupSizeY * 2 == k_DepthPrefilterTileSize, "The tile size must match the group size times the 2x2 block each thread owns.");
