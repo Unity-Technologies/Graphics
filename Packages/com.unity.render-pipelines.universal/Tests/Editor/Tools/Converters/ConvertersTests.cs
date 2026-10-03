@@ -318,6 +318,27 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 #endif
 
+#if !PIXEL_PERFECT_2D_EXISTS
+        // Without the Pixel Perfect package the Pixel Perfect Camera converter has nothing to search for.
+        [Test]
+        public void ScanToFile_PixelPerfectCameraConverterWithoutPixelPerfectPackage_FinishesScan()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(BuiltInPixelPerfectCameraConverter) },
+                "ConverterScanPixelPerfectTest.json", status => finishedStatus = status);
+
+            Assert.IsFalse(Converters.IsScanInProgress, "The Pixel Perfect Camera converter must not leave the scan hanging.");
+            Assert.AreEqual("Completed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual(nameof(BuiltInPixelPerfectCameraConverter), scanFile.converters[0].converterType);
+            Assert.That(scanFile.converters[0].items, Is.Null.Or.Empty);
+        }
+#endif
+
         [Test]
         public void ScanToFile_NoConverterCanBeCreated_ReportsFailure()
         {
