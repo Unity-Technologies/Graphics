@@ -27,12 +27,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
             "2120_APV_Baking$",
-            "Incorrect on DX12/Metal.",
+            "Incorrect on DX12/Metal. Bug: https://jira.unity3d.com/browse/UUM-155351",
             GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "2121_APV_Baking_Sky_Occlusion$",
-            "Incorrect on Metal/VK.",
+            "Incorrect on Metal/VK. Bug: https://jira.unity3d.com/browse/UUM-155394",
             GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
         )]
         [IgnoreGraphicsTest(
@@ -42,17 +42,17 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "2220_SmoothPlanarReflection$",
-            "Rough reflections seem to be very different in Metal compared to other APIs.",
+            "Rough reflections seem to be very different in Metal compared to other APIs. Bug: https://jira.unity3d.com/browse/UUM-155395",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "2222_ReflectionProbeDistanceBased$",
-            "Need to update Metal ref-image.",
+            "Need to update Metal ref-image. Bug: https://jira.unity3d.com/browse/UUM-155396",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "2301_Shadow_Mask$",
-            "Rendered results are too bright on Metal and DX11(instability?).",
+            "Rendered results are too bright on Metal and DX11(instability?). Bug: https://jira.unity3d.com/browse/UUM-155352",
             GraphicsDeviceType.Metal, GraphicsDeviceType.Direct3D11
         )]
         [IgnoreGraphicsTest(

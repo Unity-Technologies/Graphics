@@ -66,7 +66,7 @@ public class HDRP_Runtime_Graphics_Tests
     )]
     [IgnoreGraphicsTest(
         "001-HDTemplate$",
-        "Linux/VK: The test is a bit flaky, failing around 1/6 runs. Needs further investigation.",
+        "Linux/VK: The test is a bit flaky, failing around 1/6 runs. Needs further investigation. Bug: https://jira.unity3d.com/browse/UUM-155350",
         RuntimePlatform.LinuxPlayer,
         GraphicsDeviceType.Vulkan
     )]

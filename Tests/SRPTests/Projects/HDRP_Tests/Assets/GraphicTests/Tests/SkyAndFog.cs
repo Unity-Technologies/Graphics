@@ -28,17 +28,17 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
             "5006_Pbr_Sky_Low_Altitude$",
-            "Differences in banding around the horizon.",
+            "Differences in banding around the horizon. Bug: https://jira.unity3d.com/browse/UUM-155368",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5007_Exponential_Fog$",
-            "Small divergence. Needs further investigation.",
+            "Small divergence. Needs further investigation. Bug: https://jira.unity3d.com/browse/UUM-155397",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "5010_CloudLayer$",
-            "Very minor divergence. Maybe it's an outdated ref-image.",
+            "Very minor divergence. Maybe it's an outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155369",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "5011_VolumetricCloudsShadows$",
-            "Sky and planar reflections diverge too much from the reference image.",
+            "Sky and planar reflections diverge too much from the reference image. Bug: https://jira.unity3d.com/browse/UUM-155398",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(

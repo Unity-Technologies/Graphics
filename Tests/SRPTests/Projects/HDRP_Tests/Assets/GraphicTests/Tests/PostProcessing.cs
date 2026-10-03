@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
+        [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image. Bug: https://jira.unity3d.com/browse/UUM-155361")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
@@ -34,12 +34,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
-            "Very small fringing across edges. Maybe a sampling artifact?",
+            "Very small fringing across edges. Maybe a sampling artifact? Bug: https://jira.unity3d.com/browse/UUM-155362",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "4101_FP16Alpha$",
-            "Outdated ref-image.",
+            "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155399",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(

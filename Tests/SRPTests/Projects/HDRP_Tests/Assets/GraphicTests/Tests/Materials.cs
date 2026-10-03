@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
             "1104_Unlit_Distortion_Compose$",
-            "Need to update DX/VK/Intel-Mac ref-images."
+            "Need to update DX/VK/Intel-Mac ref-images. Bug: https://jira.unity3d.com/browse/UUM-155353"
         )]
         [IgnoreGraphicsTest(
             "1206_Lit_Transparent_Distortion$",
@@ -36,22 +36,22 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "1215_Lit_SubSurfaceScattering$",
-            "Outdated ref-image + Slight noise divergence in the SSS.",
+            "Outdated ref-image + Slight noise divergence in the SSS. Bug: https://jira.unity3d.com/browse/UUM-155354",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "1217_Lit_SSS_Pre-Post$",
-            "Slight noise divergence in the SSS + Some bigger difference near the top of the image.",
+            "Slight noise divergence in the SSS + Some bigger difference near the top of the image. Bug: https://jira.unity3d.com/browse/UUM-155355",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "1221_Lit_POM_Emission$",
-            "There seems to be differences in texture-sampling between DX/VK and Metal GPUs. DX seems to be forcing trilinear filtering when using anisotropy, according to: https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Texture-anisoLevel.html",
+            "There seems to be differences in texture-sampling between DX/VK and Metal GPUs. DX seems to be forcing trilinear filtering when using anisotropy, according to: https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Texture-anisoLevel.html. Bug: https://jira.unity3d.com/browse/UUM-155356",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
             "1227_Lit_Planar_Triplanar_ObjectSpace$",
-            "Similar sampling issue to 1221.",
+            "Similar sampling issue to 1221. Bug: https://jira.unity3d.com/browse/UUM-155357",
             GraphicsDeviceType.Metal, GraphicsDeviceType.Vulkan
         )]
         [IgnoreGraphicsTest(
@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "1705_Decals-stress-test",
-            "Fails when GRD is enabled.",
+            "Fails when GRD is enabled. Bug: https://jira.unity3d.com/browse/UUM-155359",
             GpuResidentDrawerContext.GRDEnabled
         )]
         [IgnoreGraphicsTest(
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal,
             Architecture.X64
         )]
-        [IgnoreGraphicsTest("1806_BatchCount$", "Fails everywhere (seems to be missing CPU markers).")]
+        [IgnoreGraphicsTest("1806_BatchCount$", "Fails everywhere (seems to be missing CPU markers). Bug: https://jira.unity3d.com/browse/UUM-155360")]
         [IgnoreGraphicsTest(
             "1219_Lit_Light_on_Tesselation",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-152664",

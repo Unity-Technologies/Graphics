@@ -26,12 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/9x_Other/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
-        [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
-        [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
+        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image. Bug: https://jira.unity3d.com/browse/UUM-155363")]
+        [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155364")]
+        [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155365")]
         [IgnoreGraphicsTest(
             "9703_SampleColorBuffer_InjectionPoints_Scaling$",
-            "Small differences in texture-sampling. Could be related to the forced-trilinear issue?",
+            "Small differences in texture-sampling. Could be related to the forced-trilinear issue? Bug: https://jira.unity3d.com/browse/UUM-155366",
             GraphicsDeviceType.Metal
         )]
         [TestNotSupportedOn(
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "9920_WaterSurface$",
-            "Diverges in the wave-modifier edges.",
+            "Diverges in the wave-modifier edges. Bug: https://jira.unity3d.com/browse/UUM-155367",
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
