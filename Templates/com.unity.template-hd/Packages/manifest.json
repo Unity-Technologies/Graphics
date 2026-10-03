@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.unity.collab-proxy": "2.13.6",
     "com.unity.cinemachine": "6.7.0",
     "com.unity.ide.rider": "3.0.40",
     "com.unity.ide.visualstudio": "2.0.28",
