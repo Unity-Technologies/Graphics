@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.Universal
 
                 inputSummary.requiresDepthTexture |= needsDepth;
                 inputSummary.requiresColorTexture |= needsColor;
+                inputSummary.requiresColorTexture |= pass.requiresIntermediateTexture;
             }
 
             // Volumetric shadow pass requires intermediate texture
