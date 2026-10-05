@@ -247,3 +247,8 @@ Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree9.shader filter=l
 # against expected files, and LFS round-tripping can alter whitespace/formatting.
 Editor/Tools/UnityYAMLMerge/TestData/**/*.unity -filter -diff -merge text=auto eol=lf
 Editor/Tools/UnityYAMLMerge/TestData/**/*.prefab -filter -diff -merge text=auto eol=lf
+
+# Header conformance fixtures are byte-exact test data: some fixtures pin CRLF
+# line endings and exact byte offsets. Disable all eol conversion so git never
+# rewrites them.
+Runtime/Serialize/TestData/HeaderCorpus/**/*.yaml -text
