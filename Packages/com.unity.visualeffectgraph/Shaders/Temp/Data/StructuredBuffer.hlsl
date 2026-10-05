@@ -6,7 +6,7 @@
 
 #define __VFX_STRUCTURED_BUFFER(type) VFXStructuredBuffer_##type
 #define __VFX_STRUCTURED_BUFFER_EMPTY(type) __VFXEmptyStructuredBuffer_##type
-#define __VFX_STRUCTURED_BUFFER_RW_EMPTY(type) __VFXEmptyRWStructuredBuffer_##_type
+#define __VFX_STRUCTURED_BUFFER_RW_EMPTY(type) __VFXEmptyRWStructuredBuffer_##type
 
 StructuredBuffer<__VFX_STRUCTURED_BUFFER_TYPE> __VFX_STRUCTURED_BUFFER_EMPTY(__VFX_STRUCTURED_BUFFER_TYPE);
 RWStructuredBuffer<__VFX_STRUCTURED_BUFFER_TYPE> __VFX_STRUCTURED_BUFFER_RW_EMPTY(__VFX_STRUCTURED_BUFFER_TYPE);
@@ -43,7 +43,7 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         this.writeAccess = true;
         this.rangeCheck = false;
     }
-	
+
 	void GetRange(inout __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE) rangeBuffer, uint from, uint count)
 	{
 		from = min(from, size - 1);
@@ -85,79 +85,6 @@ struct __VFX_STRUCTURED_BUFFER(__VFX_STRUCTURED_BUFFER_TYPE)
         }
         return valid;
     }
-
-#if __VFX_STRUCTURED_BUFFER_TYPE == uint || __VFX_STRUCTURED_BUFFER_TYPE == int
-    void DoInterlockedAdd(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedAdd(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedAnd(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedAnd(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedOr(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedOr(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedXor(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedXor(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedMin(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedMin(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedMax(uint index, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedMax(bufferRW[offset + index], value, original);
-        }
-    }
-
-    void DoInterlockedCompareStore(uint index, __VFX_STRUCTURED_BUFFER_TYPE compare, __VFX_STRUCTURED_BUFFER_TYPE value)
-    {
-        if (writeAccess)
-        {
-            InterlockedCompareStore(bufferRW[offset + index], compare, value);
-        }
-    }
-
-    void DoInterlockedCompareExchange(uint index, __VFX_STRUCTURED_BUFFER_TYPE compare, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)
-    {
-        original = 0;
-        if (writeAccess)
-        {
-            InterlockedCompareExchange(bufferRW[offset + index], compare, value, original);
-        }
-    }
-#endif
 
 #ifdef __VFX_STRUCTURED_BUFFER_EXCHANGE
     void DoInterlockedExchange(uint index, __VFX_STRUCTURED_BUFFER_TYPE compare, __VFX_STRUCTURED_BUFFER_TYPE value, out __VFX_STRUCTURED_BUFFER_TYPE original)

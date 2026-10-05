@@ -29,6 +29,18 @@ namespace UnityEditor.VFX
         }
 
         /// <summary>
+        /// Adds the attributes a model declares to the read path set of the binding, whatever access it
+        /// declares for them. For a task that never stores what it writes - an output, and the output
+        /// update derived from it - a write is a load followed by a local change; declared as a write it
+        /// would make everything reading the particles after it wait on a store that never happens.
+        /// </summary>
+        public static void AddAsRead(this TemplatedTaskBinding binding, DataPath attributesPath, IEnumerable<VFXAttributeInfo> attributeInfos)
+        {
+            foreach (var attributeInfo in attributeInfos)
+                binding.Add(attributesPath, attributeInfo.attrib, AttributeUsage.Read);
+        }
+
+        /// <summary>
         /// Adds the attributes a model declares to the read and/or write path sets of the binding.
         /// </summary>
         /// <param name="binding">The binding to add paths to.</param>
@@ -60,11 +72,41 @@ namespace UnityEditor.VFX
         }
     }
 
+    enum VfxTaskStage
+    {
+        Initialize,
+        Update,
+        Output,
+    }
+
+    enum VfxOutputTopology
+    {
+        Point,
+        Line,
+        Triangle,
+        Quad,
+        Octagon,
+        Hexahedron,
+        Mesh,
+    }
+
     /// <summary>
     /// Represents a VFX task generated using a template and a list of subtasks, with attribute support.
     /// </summary>
     class VfxTemplatedTask : TemplatedTask
     {
+        public readonly struct ContextParameter
+        {
+            public string HlslTypeName { get; }
+            public string Name { get; }
+
+            public ContextParameter(string hlslTypeName, string name)
+            {
+                HlslTypeName = hlslTypeName;
+                Name = name;
+            }
+        }
+
         /// <summary>
         /// Arguments used to initialize a <see cref="VfxTemplatedTask"/>.
         /// </summary>
@@ -79,14 +121,44 @@ namespace UnityEditor.VFX
             /// Mappings from generic attribute keys to their corresponding data paths.
             /// </summary>
             public Dictionary<IDataKey, (IDataKey, DataPath)> AttributeKeyMappings;
+
+            public VfxTaskStage Stage;
+
+            // Only meaningful for an Output stage.
+            public VfxOutputTopology Topology;
+
+            // Only meaningful for an Update stage.
+            public bool IsPerCamera;
+
+            /// <summary>
+            /// The values the context's own slots feed.
+            /// </summary>
+            public List<ContextParameter> ContextParameters;
+
+            /// <inheritdoc cref="VfxTemplatedTask.ParameterValues"/>
+            public List<(IDataKey key, int value)> ParameterValues;
         }
 
         readonly Dictionary<IDataKey, (IDataKey, DataPath)> m_AttributeKeyMappings;
 
+        public VfxTaskStage Stage { get; }
+        public VfxOutputTopology Topology { get; }
+        public bool IsPerCamera { get; }
+
+        public bool IsCompute => Stage != VfxTaskStage.Output;
+        public bool IsOutput => Stage == VfxTaskStage.Output;
+
         /// <summary>
-        /// Gets a value indicating whether the task is a compute task.
+        /// Gets the values the context's own slots feed.
         /// </summary>
-        public bool IsCompute { get; }
+        public IReadOnlyList<ContextParameter> ContextParameters { get; }
+
+        /// <summary>
+        /// The task parameters the runtime resolves to a constant rather than to a graph value, such as
+        /// whether an output draws indirect. They carry no data binding, so they never reach the graph:
+        /// the lowering hands them straight to the <see cref="VfxTask"/>.
+        /// </summary>
+        public IReadOnlyList<(IDataKey key, int value)> ParameterValues { get; }
 
         /// <summary>
         /// The element type the task declared for the resource bound under the given key. False when the task
@@ -108,7 +180,7 @@ namespace UnityEditor.VFX
         /// Whether the given key is one the runtime resolves as a task parameter, which means the generated
         /// code never names it.
         /// </summary>
-        public bool IsTaskParam(IDataKey bindingKey) => TryGetBinding(bindingKey, out VfxTaskParamBinding _);
+        public bool IsTaskParameter(IDataKey bindingKey) => TryGetBinding(bindingKey, out VfxTaskParameterBinding _);
 
         /// <summary>
         /// Gets the mappings from attribute keys to their corresponding binding relative paths.
@@ -122,16 +194,24 @@ namespace UnityEditor.VFX
         public EntityId SourceModelId { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VfxTemplatedTask"/> class using the specified template name, arguments, and compute flag.
+        /// Initializes a new instance of the <see cref="VfxTemplatedTask"/> class using the specified template name and arguments.
         /// </summary>
         /// <param name="templateName">The name of the template associated with the task.</param>
         /// <param name="args">The parameters to setup the templated task <see cref="Args"/>.</param>
-        /// <param name="isCompute">Indicates if the task is a compute task.</param>
         /// <param name="sourceModelId">Optional entity ID of the source model (e.g., VFXContext) that this task was created from.</param>
-        public VfxTemplatedTask(string templateName, Args args, bool isCompute, EntityId sourceModelId = default)
+        public VfxTemplatedTask(string templateName, Args args, EntityId sourceModelId = default)
             : base(templateName, args.BaseArgs)
         {
-            IsCompute = isCompute;
+            Stage = args.Stage;
+            Topology = args.Topology;
+            IsPerCamera = args.IsPerCamera;
+            var contextParameters = args.ContextParameters != null
+                ? new List<ContextParameter>(args.ContextParameters)
+                : new List<ContextParameter>();
+            ContextParameters = contextParameters;
+            ParameterValues = args.ParameterValues != null
+                ? new List<(IDataKey key, int value)>(args.ParameterValues)
+                : new List<(IDataKey key, int value)>();
             m_AttributeKeyMappings = args.AttributeKeyMappings != null ? new(args.AttributeKeyMappings) : new();
             SourceModelId = sourceModelId;
 

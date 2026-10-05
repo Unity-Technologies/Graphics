@@ -297,6 +297,110 @@ namespace Unity.GraphCommon.LowLevel.Editor
     }
 
     /// <summary>
+    /// What a usage question is asked of: a whole data node, or one of its bindings alone. Exactly one
+    /// of the two ids is valid, which is what says which of the graph's usage lookups answers.
+    /// </summary>
+    readonly struct DataUsageScope
+    {
+        readonly DataNodeId m_DataNodeId;
+        readonly DataBindingId m_DataBindingId;
+
+        DataUsageScope(DataNodeId dataNodeId, DataBindingId dataBindingId)
+        {
+            m_DataNodeId = dataNodeId;
+            m_DataBindingId = dataBindingId;
+        }
+
+        public static DataUsageScope Of(DataNodeId dataNodeId) => new(dataNodeId, DataBindingId.Invalid);
+        public static DataUsageScope Of(DataBindingId dataBindingId) => new(DataNodeId.Invalid, dataBindingId);
+
+        public bool HasUsage(IReadOnlyGraph graph, DataViewId dataViewId, UsageFlags usage)
+            => m_DataNodeId.IsValid
+                ? graph.HasUsage(m_DataNodeId, dataViewId, usage)
+                : graph.HasUsage(m_DataBindingId, dataViewId, usage);
+    }
+
+    /// <summary>
+    /// The data views a data node - or one binding of it - uses under a given usage: the views its
+    /// bindings declared, and everything those imply - their ancestors up to the container root, and
+    /// everything under a view declared as a whole. Walks the real view tree, skipping whatever is not
+    /// reached under that usage, so the order is the hierarchy's own and does not depend on the order
+    /// the bindings were added.
+    /// </summary>
+    /*public*/ readonly struct UsedDataViewEnumerable
+    {
+        readonly IReadOnlyGraph m_Graph;
+        readonly DataUsageScope m_Scope;
+        readonly DataViewId m_RootDataViewId;
+        readonly UsageFlags m_Usage;
+
+        internal UsedDataViewEnumerable(IReadOnlyGraph graph, DataUsageScope scope, DataViewId rootDataViewId, UsageFlags usage)
+        {
+            m_Graph = graph;
+            m_Scope = scope;
+            m_RootDataViewId = rootDataViewId;
+            m_Usage = usage;
+        }
+
+        public UsedDataViewEnumerator GetEnumerator() => new(m_Graph, m_Scope, m_RootDataViewId, m_Usage);
+    }
+
+    /// <summary>
+    /// Depth-first enumerator over the data views a data node, or one of its bindings, uses under a
+    /// given usage.
+    /// </summary>
+    /*public*/ struct UsedDataViewEnumerator
+    {
+        readonly IReadOnlyGraph m_Graph;
+        readonly DataUsageScope m_Scope;
+        readonly UsageFlags m_Usage;
+        Stack<DataViewId> m_Stack;
+        DataView m_Current;
+
+        internal UsedDataViewEnumerator(IReadOnlyGraph graph, DataUsageScope scope, DataViewId rootDataViewId, UsageFlags usage)
+        {
+            m_Graph = graph;
+            m_Scope = scope;
+            m_Usage = usage;
+            m_Stack = new Stack<DataViewId>();
+            m_Current = default;
+
+            if (graph != null && rootDataViewId.IsValid && scope.HasUsage(graph, rootDataViewId, usage))
+                m_Stack.Push(rootDataViewId);
+        }
+
+        /// <summary>
+        /// Gets the current value in the enumeration.
+        /// </summary>
+        public DataView Current => m_Current;
+
+        /// <summary>
+        /// Moves to the next item in the enumeration.
+        /// </summary>
+        /// <returns><see langword="true"/> if there are more items; otherwise, <see langword="false"/>.</returns>
+        public bool MoveNext()
+        {
+            if (m_Stack.Count == 0)
+            {
+                m_Current = default;
+                return false;
+            }
+
+            m_Current = m_Graph.DataViews[m_Stack.Pop()];
+
+            // A view that is not used has nothing used under it, so a whole subtree goes with it.
+            var children = m_Current.Children;
+            for (int i = children.Count - 1; i >= 0; --i)
+            {
+                var childId = children[i].Id;
+                if (m_Scope.HasUsage(m_Graph, childId, m_Usage))
+                    m_Stack.Push(childId);
+            }
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Flat representation of a <see cref="DataView"/> tree.
     /// </summary>
     /*public*/ readonly struct DataViewFlatTreeEnumerable

@@ -120,6 +120,27 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
         public DataNode DataNode => Graph.DataNodes[Info.DataNodeId];
 
+        /// <summary>
+        /// Gets the data views this binding alone uses: the ones it declared, plus the ones they imply -
+        /// their ancestors up to the container root, and everything under a view declared whole. Where
+        /// <see cref="DataNode.UsedDataViews"/> answers for every binding of the container together,
+        /// this answers for this one.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public UsedDataViewEnumerable UsedDataViews => Graph.GetDataViews(Info.Id, UsageFlags.Any);
+
+        /// <summary>
+        /// Returns whether this binding reads the specified data view.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public bool Reads(DataViewId dataViewId) => Graph.HasUsage(Info.Id, dataViewId, UsageFlags.Read);
+
+        /// <summary>
+        /// Returns whether this binding writes the specified data view.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data binding has been removed from the graph.</exception>
+        public bool Writes(DataViewId dataViewId) => Graph.HasUsage(Info.Id, dataViewId, UsageFlags.Written);
+
         internal DataBinding(IReadOnlyGraph graph, DataBindingInfo info)
         {
             m_Graph = graph;

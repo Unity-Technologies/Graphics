@@ -18,7 +18,7 @@ void main(ThreadData threadData)
 
     if (particleAttributes.alive)
     {
-        VFXProcessBlocks(particleAttributes);
+        VFXProcessSubtasks(particleAttributes);
 
         ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
 

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     interface IDataDescriptionWriter
@@ -8,17 +6,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         void WriteDescription(ShaderWriter writer, DataView dataView, string name, CompilationContext context);
 
-        bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context) => false;
+        bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context) => false;
 
         string GetSubdataName(DataView dataView, IDataKey subDataKey) => throw new System.NotImplementedException();
 
         string GetSubdataTypeName(IDataKey subDataKey) => throw new System.NotImplementedException();
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode) { }
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode) { }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode) { }
-
-        IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView) => System.Array.Empty<(string, string)>();
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode) { }
 
         /// <summary>
         /// The shader binding name this data view is declared under, so a lowered task can bind the

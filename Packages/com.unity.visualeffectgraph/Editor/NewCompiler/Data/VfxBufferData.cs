@@ -3,8 +3,7 @@ using Unity.GraphCommon.LowLevel.Editor;
 namespace UnityEditor.VFX
 {
     /// <summary>
-    /// A concrete VFX buffer, the lowered form of the logical data descriptions (attributes, graph
-    /// values, dead lists, event lists) that the templated tasks are written against.
+    /// A concrete VFX buffer, the lowered form of the logical data descriptions.
     /// </summary>
     interface IVfxBufferData : IDataDescription { }
 

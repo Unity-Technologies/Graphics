@@ -115,32 +115,48 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
         public DataContainer DataContainer => Graph.DataContainers[Info.DataContainerId];
 
-        /// <summary>
-        /// Gets the data views used by this data node, as a tree.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
-        public DataView UsedDataViewsRoot => Graph.GetUsedDataViews(Info.Id);
-
         /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
         public DataBindingEnumerable DataBindings => Graph.GetDataBindings(Info.Id);
 
         /// <summary>
-        /// Gets the data views used by this data node, as an enumerable.
+        /// Gets the data views used by this data node: the ones its bindings declared, plus the ones
+        /// they imply - the ancestors of a declared view, and everything under a view declared whole.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
-        public DataViewFlatTreeEnumerable UsedDataViews => UsedDataViewsRoot.Flat;
+        public UsedDataViewEnumerable UsedDataViews => Graph.GetDataViews(Info.Id, UsageFlags.Any);
 
         /// <summary>
-        /// Returns whether the specified data view is read by this data node.
+        /// Gets the data views read by this data node - the <see cref="UsedDataViews"/> that
+        /// <see cref="Reads"/> answers true for.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
-        public bool IsRead(DataViewId dataViewId) => Graph.IsRead(Info.Id, dataViewId);
+        public UsedDataViewEnumerable ReadDataViews => Graph.GetDataViews(Info.Id, UsageFlags.Read);
 
         /// <summary>
-        /// Returns whether the specified data view is written by this data node.
+        /// Gets the data views written by this data node - the <see cref="UsedDataViews"/> that
+        /// <see cref="Writes"/> answers true for.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
-        public bool IsWritten(DataViewId dataViewId) => Graph.IsWritten(Info.Id, dataViewId);
+        public UsedDataViewEnumerable WrittenDataViews => Graph.GetDataViews(Info.Id, UsageFlags.Written);
+
+        /// <summary>
+        /// Returns whether this data node uses the specified data view, i.e. whether it is one of the
+        /// views <see cref="UsedDataViews"/> enumerates.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public bool Uses(DataViewId dataViewId) => Graph.HasUsage(Info.Id, dataViewId, UsageFlags.Any);
+
+        /// <summary>
+        /// Returns whether this data node reads the specified data view.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public bool Reads(DataViewId dataViewId) => Graph.HasUsage(Info.Id, dataViewId, UsageFlags.Read);
+
+        /// <summary>
+        /// Returns whether this data node writes the specified data view.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the data node has been removed from the graph.</exception>
+        public bool Writes(DataViewId dataViewId) => Graph.HasUsage(Info.Id, dataViewId, UsageFlags.Written);
 
         internal DataNode(IIndexable<GraphNode<DataNodeId>, DataNode> nodeConverter, GraphNode<DataNodeId> node, IReadOnlyGraph graph, DataNodeInfo info)
         {

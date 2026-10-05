@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine.VFX;
+using Attribute = Unity.GraphCommon.LowLevel.Editor.Attribute;
 
 namespace UnityEditor.VFX
 {
@@ -81,15 +83,6 @@ namespace UnityEditor.VFX
             m_IncludeFileShaderWriter.Begin(containerName);
             if (m_DataWriter.TryGetDataDescriptionWriter(rootDataView.DataDescription, out var dataDescriptionWriter))
             {
-                foreach (var resource in dataDescriptionWriter.GetUsedResources(containerName, rootDataView))
-                {
-                    if (resource.Item2 != null)
-                    {
-                        m_IncludeFileShaderWriter.WriteVariableDeclaration(resource.Item1, resource.Item2);
-                        m_IncludeFileShaderWriter.NewLine();
-                    }
-                }
-
                 dataDescriptionWriter.WriteDescription(m_IncludeFileShaderWriter, rootDataView, containerName, context);
             }
             return m_IncludeFileShaderWriter.End();
@@ -121,19 +114,19 @@ namespace UnityEditor.VFX
 
             m_ComputeShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
 
+            GenerateThreadDataDeclaration(m_ComputeShaderWriter);
+
             IncludeData(m_ComputeShaderWriter, taskNode, context);
 
             GenerateAttributeSets(m_ComputeShaderWriter, taskNode, templatedTask, context);
 
-            GenerateDataViews(m_ComputeShaderWriter, taskNode, templatedTask, context);
+            GenerateContextParametersStruct(m_ComputeShaderWriter, templatedTask, declareInstance: false);
 
-            ForwardDeclarations(m_ComputeShaderWriter, templatedTask);
+            GenerateDataViews(m_ComputeShaderWriter, taskNode, templatedTask, context, declareBindingGlobals: false);
 
-            IncludeTemplateFile(m_ComputeShaderWriter, templatedTask.TemplateName);
+            GenerateTaskStruct(m_ComputeShaderWriter, taskNode, templatedTask);
 
             GenerateEntryPoint_Compute(m_ComputeShaderWriter, taskNode, context);
-
-            GenerateSnippetFunctions(m_ComputeShaderWriter, taskNode, templatedTask);
 
             return m_ComputeShaderWriter.End();
         }
@@ -157,11 +150,15 @@ namespace UnityEditor.VFX
                     m_RenderingShaderWriter.WriteLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl\"");
                     m_RenderingShaderWriter.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ThreadData.hlsl\"");
 
+                    GenerateThreadDataDeclaration(m_RenderingShaderWriter);
+
                     IncludeData(m_RenderingShaderWriter, taskNode, context);
 
                     GenerateAttributeSets(m_RenderingShaderWriter, taskNode, templatedTask, context);
 
-                    GenerateDataViews(m_RenderingShaderWriter, taskNode, templatedTask, context);
+                    GenerateDataViews(m_RenderingShaderWriter, taskNode, templatedTask, context, declareBindingGlobals: true);
+
+                    GenerateContextParametersStruct(m_RenderingShaderWriter, templatedTask, declareInstance: true);
 
                     ForwardDeclarations(m_RenderingShaderWriter, templatedTask);
 
@@ -189,7 +186,7 @@ namespace UnityEditor.VFX
                 var dataDescription = rootDataView.DataDescription;
                 // The task only hands this one to the runtime, so the generated code has no use for it, and
                 // its type is not necessarily one that could even be declared in a shader.
-                if (IsBoundOnlyAsTaskParam(templatedTask, dataNode))
+                if (IsBoundOnlyAsTaskParameter(templatedTask, dataNode))
                 {
                     continue;
                 }
@@ -217,11 +214,12 @@ namespace UnityEditor.VFX
                 }
 
                 shaderWriter.NewLine();
-                shaderWriter.WriteLine($"// Begin {dataNode.DataContainer.Name}");
-                dataDescriptionWriter.DefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode);
+                //shaderWriter.IncludeFile($"{dataNode.DataContainer.IdentifierName}.hlsl");
+                shaderWriter.WriteLine($"// Begin {dataNode.DataContainer.IdentifierName}");
+                dataDescriptionWriter.DefineResourceUsage(shaderWriter, rootDataView, dataNode);
                 shaderWriter.WriteLine(containerSourceCode, ShaderWriter.WriteLineOptions.Multiline);
-                dataDescriptionWriter.UndefineResourceUsage(shaderWriter, dataNode.UsedDataViewsRoot, dataNode);
-                shaderWriter.WriteLine($"// End   {dataNode.DataContainer.Name}");
+                dataDescriptionWriter.UndefineResourceUsage(shaderWriter, rootDataView, dataNode);
+                shaderWriter.WriteLine($"// End   {dataNode.DataContainer.IdentifierName}");
             }
         }
 
@@ -243,7 +241,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        // The name the attribute struct is passed under to VFXProcessBlocks. Must match the name
+        // The name the attribute struct is passed under to VFXProcessSubtasks. Must match the name
         // VFXAttribute.GetNameInCode builds for the matching attribute location.
         static string GetAttributeStructName(IDataKey attributeKey)
         {
@@ -288,35 +286,20 @@ namespace UnityEditor.VFX
         }
 
         void GenerateDataViews(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask,
-            CompilationContext context)
+            CompilationContext context, bool declareBindingGlobals)
         {
-            void LocateDataView(DataView dataView, ref DataView usedDataView)
-            {
-                if (dataView.Parent.HasValue)
-                {
-                    LocateDataView(dataView.Parent.Value, ref usedDataView);
-                    usedDataView.FindSubData(dataView.SubDataKey, out usedDataView);
-                }
-            }
-
             m_DataBindingsWithView.Clear();
 
             var dataBindings = taskNode.DataBindings;
             foreach(var dataBinding in dataBindings)
             {
                 // The runtime resolves this one for the task, the generated code never names it.
-                if (IsTaskParam(templatedTask, dataBinding))
+                if (IsTaskParameter(templatedTask, dataBinding))
                     continue;
 
                 var dataView = dataBinding.DataView;
                 var dataNode = dataBinding.DataNode;
-
-                var usedDataView = dataNode.UsedDataViewsRoot;
-                LocateDataView(dataView, ref usedDataView);
-
                 var dataDescription = dataView.DataDescription;
-
-                Debug.Assert(!usedDataView.Valid || usedDataView.DataDescription == dataDescription);
 
                 shaderWriter.NewLine();
 
@@ -324,11 +307,9 @@ namespace UnityEditor.VFX
                 string typeName = m_DataWriter.FindDataTypeName(dataView);
                 string bindingName = dataBinding.BindingDataKey.ToString();
 
-                // What a binding needs in the shader is the writer's business: a composite declares a view
-                // struct over the container, a GPU resource declares itself under the binding name.
                 if (m_DataWriter.TryGetDataDescriptionWriter(dataDescription, out var dataDescriptionWriter))
                 {
-                    hasView = dataDescriptionWriter.WriteView(shaderWriter, usedDataView, dataNode, bindingName, typeName, context);
+                    hasView = dataDescriptionWriter.WriteView(shaderWriter, dataView, dataNode, bindingName, typeName, context);
                 }
 
                 if (hasView)
@@ -336,40 +317,92 @@ namespace UnityEditor.VFX
                     m_DataBindingsWithView.Add(dataBinding.Id);
                 }
 
-                if (BindingNeedsRemapping(dataBinding))
+                if (declareBindingGlobals)
                 {
-                    bool isStatic = !IsCompositeData(dataDescription);
-                    shaderWriter.WriteVariableDeclaration(hasView ? $"{bindingName}View": typeName, bindingName, isStatic);
+                    var kind = GetBindingVariableKind(templatedTask, dataBinding);
+                    if (kind != BindingVariableKind.None)
+                    {
+                        shaderWriter.WriteVariableDeclaration(GetBindingVariableType(kind, dataBinding), bindingName,
+                            isStatic: kind == BindingVariableKind.Value);
+                    }
                 }
-
             }
             var attributeSourceManager = context.data.GetOrCreate<AttributeSourceManager>();
             attributeSourceManager.Clear();
         }
 
-        static bool IsTaskParam(VfxTemplatedTask templatedTask, DataBinding dataBinding)
-            => templatedTask != null && templatedTask.IsTaskParam(dataBinding.BindingDataKey);
+        enum BindingVariableKind
+        {
+            None,
+            Value,
+            View,
+            ContainerAlias
+        }
+
+        BindingVariableKind GetBindingVariableKind(VfxTemplatedTask templatedTask, DataBinding dataBinding)
+        {
+            if (IsTaskParameter(templatedTask, dataBinding))
+                return BindingVariableKind.None;
+
+            if (m_DataBindingsWithView.Contains(dataBinding.Id))
+                return BindingVariableKind.View;
+
+            if (!BindingNeedsRemapping(dataBinding))
+                return BindingVariableKind.None;
+
+            return IsCompositeData(dataBinding.DataView.DataDescription)
+                ? BindingVariableKind.ContainerAlias
+                : BindingVariableKind.Value;
+        }
+
+        string GetBindingVariableType(BindingVariableKind kind, DataBinding dataBinding)
+            => kind == BindingVariableKind.View
+                ? $"{dataBinding.BindingDataKey}View"
+                : m_DataWriter.FindDataTypeName(dataBinding.DataView);
+
+        static string GetTaskStructName(VfxTemplatedTask templatedTask) => $"{templatedTask.TemplateName}_Task";
+
+        void GenerateTaskStruct(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask)
+        {
+            shaderWriter.NewLine();
+            shaderWriter.WriteLine("// Build task");
+            shaderWriter.WriteLine($"struct {GetTaskStructName(templatedTask)}");
+            shaderWriter.OpenBlock();
+            foreach (var dataBinding in taskNode.DataBindings)
+            {
+                var kind = GetBindingVariableKind(templatedTask, dataBinding);
+                if (kind != BindingVariableKind.None)
+                    shaderWriter.WriteVariableDeclaration(GetBindingVariableType(kind, dataBinding), dataBinding.BindingDataKey.ToString());
+            }
+            if (templatedTask.ContextParameters.Count > 0)
+                shaderWriter.WriteVariableDeclaration(VfxContextParametersHlsl.TypeName, VfxContextParametersHlsl.VariableName);
+
+            GenerateSnippetFunctions(shaderWriter, taskNode, templatedTask);
+
+            IncludeTemplateFile(shaderWriter, templatedTask.TemplateName);
+            shaderWriter.CloseBlock(false);
+            shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
+        }
+
+        static bool IsTaskParameter(VfxTemplatedTask templatedTask, DataBinding dataBinding)
+            => templatedTask != null && templatedTask.IsTaskParameter(dataBinding.BindingDataKey);
 
         // Whether the task reaches this data only to hand it to the runtime. The same container can be a
-        // task param here and something the code reads elsewhere, so this is asked per task.
-        static bool IsBoundOnlyAsTaskParam(VfxTemplatedTask templatedTask, DataNode dataNode)
+        // task parameter here and something the code reads elsewhere, so this is asked per task.
+        static bool IsBoundOnlyAsTaskParameter(VfxTemplatedTask templatedTask, DataNode dataNode)
         {
             bool any = false;
             foreach (var dataBinding in dataNode.DataBindings)
             {
-                if (!IsTaskParam(templatedTask, dataBinding))
+                if (!IsTaskParameter(templatedTask, dataBinding))
                     return false;
                 any = true;
             }
             return any;
         }
 
-        // Whether the data is reached through a variable named after its container, which is what
-        // InitContainers declares and a binding then aliases.
         static bool HasContainerVariable(IDataDescription dataDescription) => dataDescription is not ResourceValueData;
 
-        // Whether the binding needs a local of its own aliasing the container variable, both declared here
-        // and assigned in InitBindings.
         bool BindingNeedsRemapping(DataBinding dataBinding)
         {
             var dataView = dataBinding.DataView;
@@ -382,23 +415,16 @@ namespace UnityEditor.VFX
             return !dataView.IsRoot || containerName != bindingName;
         }
 
-        void WriteProcessBlocksDeclaration(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
+        void WriteProcessSubtasksDeclaration(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
         {
             shaderWriter.Indent();
-            shaderWriter.Write("void VFXProcessBlocks(");
+            shaderWriter.Write("void VFXProcessSubtasks(");
             bool first = true;
             foreach (var attributeKeyMapping in templatedTask.AttributeKeyMappings)
             {
-                var structType = attributeKeyMapping.Key.ToString();
-                var structName = GetAttributeStructName(attributeKeyMapping.Key);
                 if (!first)
-                {
                     shaderWriter.Write(", ");
-                }
-                shaderWriter.Write("inout ");
-                shaderWriter.Write(structType);
-                shaderWriter.Write(" ");
-                shaderWriter.Write(structName);
+                shaderWriter.Write($"inout {attributeKeyMapping.Key} {GetAttributeStructName(attributeKeyMapping.Key)}");
                 first = false;
             }
             shaderWriter.Write(")");
@@ -416,9 +442,37 @@ namespace UnityEditor.VFX
         void ForwardDeclarations(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask)
         {
             shaderWriter.NewLine();
-            WriteProcessBlocksDeclaration(shaderWriter, templatedTask);
+            WriteProcessSubtasksDeclaration(shaderWriter, templatedTask);
             shaderWriter.Write(";");
             shaderWriter.NewLine();
+        }
+
+        void GenerateContextParametersStruct(ShaderWriter shaderWriter, VfxTemplatedTask templatedTask, bool declareInstance)
+        {
+            if (templatedTask.ContextParameters.Count == 0)
+                return;
+
+            shaderWriter.NewLine();
+            shaderWriter.WriteLine($"struct {VfxContextParametersHlsl.TypeName}");
+            shaderWriter.OpenBlock();
+            foreach (var parameter in templatedTask.ContextParameters)
+            {
+                shaderWriter.WriteVariableDeclaration(parameter.HlslTypeName, parameter.Name);
+            }
+            shaderWriter.CloseBlock(false);
+            shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
+
+            if (declareInstance)
+            {
+                shaderWriter.WriteVariableDeclaration(VfxContextParametersHlsl.TypeName,
+                    VfxContextParametersHlsl.VariableName, isStatic: true);
+            }
+        }
+
+        void GenerateThreadDataDeclaration(ShaderWriter shaderWriter)
+        {
+            shaderWriter.NewLine();
+            shaderWriter.WriteVariableDeclaration("ThreadData", "threadData", isStatic: true);
         }
 
         void IncludeTemplateFile(ShaderWriter shaderWriter, string templateName)
@@ -431,25 +485,22 @@ namespace UnityEditor.VFX
             CompilationContext context)
         {
             computeShaderWriter.NewLine();
-            computeShaderWriter.WriteLine("static ThreadData threadData;");
-            computeShaderWriter.NewLine();
             computeShaderWriter.WriteMainFunction(VfxDispatch.ThreadsPerGroup, 1, 1);
             computeShaderWriter.OpenBlock();
-            InitMainData(computeShaderWriter, taskNode, context);
+            InitMainData(computeShaderWriter, taskNode, context, declareBindingLocals: true);
+            InitTask(computeShaderWriter, taskNode);
             computeShaderWriter.NewLine();
             computeShaderWriter.WriteLine("// Template entry point");
-            computeShaderWriter.WriteLine("main(threadData);");
+            computeShaderWriter.WriteLine("task.main(threadData);");
             computeShaderWriter.CloseBlock();
         }
 
         void GenerateEntryPoints_Rendering(RenderingShaderWriter renderingShaderWriter, TaskNode taskNode, CompilationContext context)
         {
             renderingShaderWriter.NewLine();
-            renderingShaderWriter.WriteLine("static ThreadData threadData;");
-            renderingShaderWriter.NewLine();
             renderingShaderWriter.WriteVertexFunction();
             renderingShaderWriter.OpenBlock();
-            InitMainData(renderingShaderWriter, taskNode, context);
+            InitMainData(renderingShaderWriter, taskNode, context, declareBindingLocals: false);
             renderingShaderWriter.NewLine();
             renderingShaderWriter.WriteLine("return vert(threadData, id, input);");
             renderingShaderWriter.CloseBlock();
@@ -461,11 +512,11 @@ namespace UnityEditor.VFX
             renderingShaderWriter.CloseBlock();
         }
 
-        void InitMainData(ShaderWriter shaderWriter, TaskNode taskNode, CompilationContext context)
+        void InitMainData(ShaderWriter shaderWriter, TaskNode taskNode, CompilationContext context, bool declareBindingLocals)
         {
             InitInstancing(shaderWriter, taskNode, context);
             InitContainers(shaderWriter, taskNode);
-            InitBindings(shaderWriter, taskNode);
+            InitBindings(shaderWriter, taskNode, declareBindingLocals);
         }
 
         void InitContainers(ShaderWriter shaderWriter, TaskNode taskNode)
@@ -498,7 +549,7 @@ namespace UnityEditor.VFX
 
             shaderWriter.WriteLine("// Init instancing");
 
-            bool isOutput = templatedTask.TemplateName == "Output";
+            bool isOutput = templatedTask.IsOutput;
             if(isOutput)
                 shaderWriter.WriteLine($"uint linearThreadIndex = (id >> 2) + input.instanceID * {k_QuadParticlesPerDrawInstance}u;");
             else
@@ -532,12 +583,11 @@ namespace UnityEditor.VFX
             if (isOutput)
                 return true;
 
-            if (templatedTask.TemplateName == "Init")
+            if (templatedTask.Stage == VfxTaskStage.Initialize)
                 return false;
 
-            var particleSystem = FindOwningParticleSystem(context.data.Get<ParticleSystemContainer>(), taskNode.Id);
-            if (particleSystem == null)
-                return true;
+            if (!context.data.Get<ParticleSystemContainer>().TryGetOwner(taskNode.Id, out var particleSystem))
+                throw new InvalidOperationException($"Task {taskNode.Name} belongs to no particle system.");
 
             // TODO: strips also force a fixed size update once they are supported.
             const UnityEngine.VFX.VFXSystemFlag fixedSizeUpdateFlags =
@@ -545,51 +595,51 @@ namespace UnityEditor.VFX
             return (particleSystem.SystemFlags & fixedSizeUpdateFlags) != 0;
         }
 
-        static ParticleSystemContainer.ParticleSystem FindOwningParticleSystem(ParticleSystemContainer particleSystemContainer, TaskNodeId taskNodeId)
-        {
-            foreach (var particleSystem in particleSystemContainer)
-            {
-                foreach (var task in particleSystem.Tasks)
-                {
-                    if (task.Id.Equals(taskNodeId))
-                        return particleSystem;
-                }
-            }
-
-            return null;
-        }
-
-        void InitBindings(ShaderWriter shaderWriter, TaskNode taskNode)
+        void InitBindings(ShaderWriter shaderWriter, TaskNode taskNode, bool declareLocals)
         {
             var templatedTask = taskNode.Task as VfxTemplatedTask;
             bool initBindings = false;
             foreach (var dataBinding in taskNode.DataBindings)
             {
-                // A task param is not in the generated code at all, so there is nothing to initialize.
-                // Anything else is decided by whether it got a view or needs remapping, which is where a
-                // resource drops out: it was declared under the binding name to begin with.
-                if (IsTaskParam(templatedTask, dataBinding))
+                var kind = GetBindingVariableKind(templatedTask, dataBinding);
+                if (kind == BindingVariableKind.None)
                     continue;
 
-                bool hasView = m_DataBindingsWithView.Contains(dataBinding.Id);
-                if (!hasView && !BindingNeedsRemapping(dataBinding))
-                    continue;
-
+                shaderWriter.NewLine();
                 if (!initBindings)
                 {
                     shaderWriter.WriteLine("// Init bindings");
                     initBindings = true;
                 }
 
-                if (hasView)
+                string localType = declareLocals ? GetBindingVariableType(kind, dataBinding) : null;
+                if (kind == BindingVariableKind.View)
                 {
+                    if (localType != null)
+                        shaderWriter.WriteVariableDeclaration(localType, dataBinding.BindingDataKey.ToString());
                     WriteBindingInit(shaderWriter, dataBinding);
                 }
                 else
                 {
-                    WriteBindingRemap(shaderWriter, dataBinding);
+                    WriteBindingRemap(shaderWriter, dataBinding, localType);
                 }
-                shaderWriter.NewLine();
+            }
+        }
+
+        void InitTask(ShaderWriter shaderWriter, TaskNode taskNode)
+        {
+            var templatedTask = taskNode.Task as VfxTemplatedTask;
+
+            shaderWriter.NewLine();
+            shaderWriter.WriteLine("// Init task");
+            shaderWriter.WriteLine($"{GetTaskStructName(templatedTask)} task;");
+            foreach (var dataBinding in taskNode.DataBindings)
+            {
+                if (GetBindingVariableKind(templatedTask, dataBinding) == BindingVariableKind.None)
+                    continue;
+
+                var bindingName = dataBinding.BindingDataKey.ToString();
+                shaderWriter.WriteLine($"task.{bindingName} = {bindingName};");
             }
         }
 
@@ -599,15 +649,20 @@ namespace UnityEditor.VFX
             shaderWriter.Write(dataBinding.BindingDataKey.ToString());
             shaderWriter.Write(".Init(");
             WriteSubdataPath(shaderWriter, dataBinding.DataNode.DataContainer, dataBinding.DataView);
-            if (dataBinding.DataView.DataDescription is EventListData eventListData)
-                shaderWriter.Write(", ContextData);");
+            if (dataBinding.DataView.DataDescription is EventListData)
+                shaderWriter.WriteLine(", ContextData);", ShaderWriter.WriteLineOptions.NoIndent);
             else
                 shaderWriter.WriteLine(");", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        void WriteBindingRemap(ShaderWriter shaderWriter, DataBinding dataBinding)
+        void WriteBindingRemap(ShaderWriter shaderWriter, DataBinding dataBinding, string localType)
         {
             shaderWriter.Indent();
+            if (localType != null)
+            {
+                shaderWriter.Write(localType);
+                shaderWriter.Write(" ");
+            }
             shaderWriter.Write(dataBinding.BindingDataKey.ToString());
             shaderWriter.Write(" = ");
             WriteSubdataPath(shaderWriter, dataBinding.DataNode.DataContainer, dataBinding.DataView);
@@ -651,13 +706,13 @@ namespace UnityEditor.VFX
         void GenerateSnippetFunctions(ShaderWriter shaderWriter, TaskNode taskNode, VfxTemplatedTask templatedTask)
         {
             shaderWriter.NewLine();
-            WriteProcessBlocksDeclaration(shaderWriter, templatedTask);
+            WriteProcessSubtasksDeclaration(shaderWriter, templatedTask);
             shaderWriter.NewLine();
             shaderWriter.OpenBlock();
 
-            // Block sources are written against plain attribute names, so the attribute struct is copied into
-            // locals of those names for the duration of the function, and copied back once every block has
-            // run. That is also what makes a block's write visible to the blocks after it.
+            // Subtask sources are written against plain attribute names, so the attribute struct is copied
+            // into locals of those names for the duration of the function, and copied back once every subtask
+            // has run. That is also what makes a block's write visible to the subtasks after it.
             var attributeLocals = AttributeLocals.Collect(taskNode, templatedTask);
 
             attributeLocals.WriteDeclarations(shaderWriter);
@@ -676,7 +731,7 @@ namespace UnityEditor.VFX
         }
 
         /// <summary>
-        /// The locals VFXProcessBlocks copies the current attribute struct into and back out of, so that the
+        /// The locals VFXProcessSubtasks copies the current attribute struct into and back out of, so that the
         /// block sources can use plain attribute names and see each other's writes. Source attributes need
         /// none: a block never names one in its source, it only reaches them through expressions, which
         /// ExpressionWriter writes as sourceAttributes.name.
@@ -720,10 +775,9 @@ namespace UnityEditor.VFX
             }
 
             /// <summary>
-            /// Copies every local back, without trying to work out which ones a block wrote: getting that
-            /// wrong silently drops the write, and the cost of getting it wrong the other way is a copy the
-            /// shader compiler folds away. What actually reaches the attribute buffer stays decided by the
-            /// write paths the task declared, which is what the generated StoreData is built from.
+            /// Copies every local back into the struct, which the template reads once this returns. Not
+            /// narrowed to the declared write paths: an output has none — they never reach the buffer, so
+            /// <see cref="ParticleSystemBuilder"/> clears them — yet its blocks still assign these locals.
             /// </summary>
             public void WriteStores(ShaderWriter shaderWriter)
             {

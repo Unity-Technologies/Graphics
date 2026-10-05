@@ -15,12 +15,14 @@ Varyings vert(ThreadData threadData, uint vertexId, VertexInput vs_input)
 {
     Varyings o = (Varyings)0;
 
-    uint particleIndex = threadData.index;
-
-    if (particleIndex >= ContextData.maxParticleCount)
+    if (threadData.index >= ContextData.maxParticleCount)
     {
         return o;
     }
+
+    uint particleIndex;
+    if (!RenderingDataBinding.GetRenderingIndex(threadData.index, particleIndex))
+        return o;
 
     Attributes particleAttributes;
     particleAttributes.Init();
@@ -28,7 +30,7 @@ Varyings vert(ThreadData threadData, uint vertexId, VertexInput vs_input)
 
     if (particleAttributes.alive)
     {
-        VFXProcessBlocks(particleAttributes);
+        VFXProcessSubtasks(particleAttributes);
 
         if (particleAttributes.alive)
         {

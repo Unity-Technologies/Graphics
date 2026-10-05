@@ -1,6 +1,7 @@
 using System;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine.Pool;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -21,7 +22,7 @@ namespace UnityEditor.VFX
                 var systemTaskNode = context.graph.TaskNodes[system.SystemTask.Id];
 
                 if (system.SystemFlags.HasFlag(UnityEngine.VFX.VFXSystemFlag.SystemReceivedEventGPU))
-                    BindGpuEventList(system, systemTaskNode, concretization, ref context);
+                    BindGpuEventList(system, systemTaskNode, concretization, particleSystemContainer, ref context);
 
                 // Snapshotted: binding below adds to the very sublist being walked.
                 using var bindingIds = systemTaskNode.DataBindings.Snapshot();
@@ -52,28 +53,38 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        // A GPU event list is read by the init task, not by the system task, so it is picked up from there.
+        // A GPU event list is read by the init task, not by the system task, so it is picked up from
+        // there - found in the graph rather than in the system's task list, which is only filled once
+        // the tasks have been lowered.
         static void BindGpuEventList(ParticleSystemContainer.ParticleSystem system,
-            TaskNode systemTaskNode, DataConcretizationResult concretization, ref CompilationContext context)
+            TaskNode systemTaskNode, DataConcretizationResult concretization,
+            ParticleSystemContainer particleSystemContainer, ref CompilationContext context)
         {
-            foreach (var task in system.Tasks)
+            // Found before anything is bound: binding adds to the very graph this walks.
+            var eventListViewId = DataViewId.Invalid;
+            foreach (var taskNode in context.graph.TaskNodes)
             {
-                if (task.TaskType != UnityEngine.VFX.VFXTaskType.Initialize)
+                if (taskNode.Task is not VfxTemplatedTask { Stage: VfxTaskStage.Initialize })
+                    continue;
+                if (!particleSystemContainer.TryGetOwner(taskNode.Id, out var owner) || owner != system)
                     continue;
 
-                foreach (var binding in context.graph.TaskNodes[task.Id].DataBindings)
+                foreach (var binding in taskNode.DataBindings)
                 {
-                    if (binding.DataView.DataDescription is not EventListData eventListData || eventListData.IsCpu)
-                        continue;
-                    if (!concretization.TryGetConcreteDataView(binding.DataView.Id, out var concreteRootViewId))
-                        continue;
-
-                    // A GPU buffer is written by the system task, so it depends on nothing here.
-                    context.graph.BindData(systemTaskNode.Id, ParticleSystemTask.BufferKeys.EventListBufferKey,
-                        concreteRootViewId, Array.Empty<DataNodeId>());
+                    if (binding.DataView.DataDescription is EventListData { IsCpu: false })
+                        eventListViewId = binding.DataView.Id;
                 }
                 break;
             }
+
+            if (!eventListViewId.IsValid)
+                return;
+            if (!concretization.TryGetConcreteDataView(eventListViewId, out var concreteRootViewId))
+                return;
+
+            // A GPU buffer is written by the system task, so it depends on nothing here.
+            context.graph.BindData(systemTaskNode.Id, ParticleSystemTask.BufferKeys.EventListBufferKey,
+                concreteRootViewId, Array.Empty<DataNodeId>());
         }
 
         static IDataKey BufferKeyFor(IDataKey logicalBindingKey, DataView dataView)
@@ -94,6 +105,10 @@ namespace UnityEditor.VFX
                     return ParticleSystemTask.BufferKeys.SpawnBufferKey;
                 case EventData:
                     return ParticleSystemTask.BufferKeys.SpawnerInputBufferKey;
+                case SortingData when logicalBindingKey == ParticleSystemTask.InputSortingBufferKey:
+                    return ParticleSystemTask.BufferKeys.PerCameraIndirectBufferKey;
+                case DrawIndirectionData when logicalBindingKey == ParticleSystemTask.IndirectBufferKey:
+                    return ParticleSystemTask.BufferKeys.IndirectBufferKey;
                 default:
                     return null;
             }

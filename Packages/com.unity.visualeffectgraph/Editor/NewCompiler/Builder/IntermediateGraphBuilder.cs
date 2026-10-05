@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
                 if (model is VFXData data && data.CanBeCompiled())
                     compilableData.Add(data);
             }
-
+            
             foreach (var data in compilableData)
                 data.InitImplicitContexts();
 

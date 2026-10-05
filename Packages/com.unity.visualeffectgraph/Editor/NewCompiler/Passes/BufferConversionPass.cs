@@ -31,7 +31,65 @@ namespace UnityEditor.VFX
                 case DeadListData:                ConcretizeDeadListData(dataView, context, graph, result); break;
                 case EventListData eventListData: ConcretizeEventListData(dataView, context, graph, result, eventListData); break;
                 case EventData:                   ConcretizeEventData(dataView, context, graph, result); break;
+                case SortingData sortingData:     ConcretizeSortingData(dataView, graph, result, sortingData); break;
+                case SortScratchData scratchData: ConcretizeSortScratchData(dataView, graph, result, scratchData); break;
+                case DrawIndirectionData indirectionData: ConcretizeDrawIndirectionData(dataView, graph, result, indirectionData); break;
             }
+        }
+
+        // The keys an output update registers, as key-value pairs ahead of a counter.
+        void ConcretizeSortingData(DataView dataView, IGraph graph, DataConcretizationResult result,
+            SortingData sortingData)
+        {
+            var containerName = dataView.DataContainer.Name;
+            var gpuBuffer = new VfxGpuBufferData(new VFXGPUBufferDesc
+            {
+                debugName = $"{containerName}_SortingKeys",
+                size = sortingData.Capacity + 1,
+                target = GraphicsBuffer.Target.Structured,
+                stride = 8u,
+                mode = ComputeBufferMode.Immutable,
+            });
+
+            var concreteRootViewId = graph.AddData($"{containerName}_SortingKeysBuffer", gpuBuffer);
+            result.Add(dataView.Id, concreteRootViewId);
+        }
+
+        void ConcretizeSortScratchData(DataView dataView, IGraph graph, DataConcretizationResult result,
+            SortScratchData scratchData)
+        {
+            if (scratchData.Capacity <= SortScratchData.MinCapacity)
+                return;
+
+            var containerName = dataView.DataContainer.Name;
+            var gpuBuffer = new VfxGpuBufferData(new VFXGPUBufferDesc
+            {
+                debugName = $"{containerName}_SortScratch",
+                size = scratchData.Capacity + 1,
+                target = GraphicsBuffer.Target.Structured,
+                stride = 8u,
+                mode = ComputeBufferMode.Immutable,
+            });
+
+            var concreteRootViewId = graph.AddData($"{containerName}_SortScratchBuffer", gpuBuffer);
+            result.Add(dataView.Id, concreteRootViewId);
+        }
+
+        void ConcretizeDrawIndirectionData(DataView dataView, IGraph graph, DataConcretizationResult result,
+            DrawIndirectionData indirectionData)
+        {
+            var containerName = dataView.DataContainer.Name;
+            var gpuBuffer = new VfxGpuBufferData(new VFXGPUBufferDesc
+            {
+                debugName = $"{containerName}_Indirection",
+                size = indirectionData.Capacity + 1,
+                target = GraphicsBuffer.Target.Structured,
+                stride = 4u,
+                mode = ComputeBufferMode.Immutable,
+            });
+
+            var concreteRootViewId = graph.AddData($"{containerName}_IndirectionBuffer", gpuBuffer);
+            result.Add(dataView.Id, concreteRootViewId);
         }
 
         void ConcretizeAttributeData(DataView dataView, CompilationContext context, IGraph graph,
@@ -268,18 +326,24 @@ namespace UnityEditor.VFX
         /// <summary>
         /// Fills <paramref name="parentNodes"/> with the concrete counterparts of a logical node's parents,
         /// which is what a rebinding has to name now that binding no longer infers its parents. A parent
-        /// with no mapping is kept as is, having never been rebound.
+        /// that was never lowered is kept as is; one that was, but not under this view, is left out - the
+        /// dependency on it is carried by the views it did lower.
         /// </summary>
+        /// <param name="loweredTasks">
+        /// The tasks lowered so far, which is what tells "this parent keeps its logical node" from
+        /// "this parent has been rebound, just not under this view". Only the pass doing the lowering
+        /// knows them; anything running before it passes none.
+        /// </param>
         public void CollectConcreteParents(DataNode logicalDataNode, DataViewId logicalDataViewId,
-            List<DataNodeId> parentNodes)
+            List<DataNodeId> parentNodes, HashSet<TaskNodeId> loweredTasks = null)
         {
             parentNodes.Clear();
             foreach (var parent in logicalDataNode.Parents)
             {
-                parentNodes.Add(
-                    TryGetConcreteDataNode(parent.Id, logicalDataViewId, out var concreteParentId)
-                        ? concreteParentId
-                        : parent.Id);
+                if (TryGetConcreteDataNode(parent.Id, logicalDataViewId, out var concreteParentId))
+                    parentNodes.Add(concreteParentId);
+                else if (loweredTasks == null || !loweredTasks.Contains(parent.TaskNode.Id))
+                    parentNodes.Add(parent.Id);
             }
         }
     }

@@ -68,6 +68,15 @@ namespace UnityEditor.VFX
         readonly Dictionary<DataContainerId, uint> m_CpuBufferDescIndices = new();
         readonly Dictionary<DataNodeId, uint> m_ValuesExpressionIndices = new();
         readonly Dictionary<ParticleSystemContainer.ParticleSystem, int> m_ParticleSystemIndices = new();
+
+        // The runtime reads a system's tasks as one block per phase - initialize, then everything that
+        // updates the particles, sorting included, then the outputs - by offset and count, and a task type
+        // carries its phase in its high bits, in that same order.
+        const uint k_PhaseMask = 0xF0000000u;
+
+        // Where each task sits in a parents-first walk of the lowered graph, which is the order the tasks
+        // of one phase have to run in for a task to come after everything it depends on.
+        readonly Dictionary<TaskNodeId, int> m_TaskRanks = new();
         readonly List<uint> m_StartSystems = new();
         readonly List<uint> m_StopSystems = new();
 
@@ -176,8 +185,12 @@ namespace UnityEditor.VFX
         {
             GenerateSpawnerSystemDescs(ref context);
 
+            m_TaskRanks.Clear();
+            foreach (var taskNode in context.graph.CreateTraverser().TraverseTasksParentsFirst())
+                m_TaskRanks.Add(taskNode.Id, m_TaskRanks.Count);
+
             var particleSystemContainer = context.data.Get<ParticleSystemContainer>();
-            foreach (var particleSystem in particleSystemContainer)
+            foreach (var particleSystem in particleSystemContainer.EnumerateParentsFirst())
             {
                 if (GenerateParticleSystemDesc(ref context, particleSystem, out var systemDesc))
                 {
@@ -185,19 +198,6 @@ namespace UnityEditor.VFX
                     m_currentOutput.SystemDescs.Add(systemDesc);
                 }
             }
-
-            m_currentOutput.SystemDescs.Sort((a, b) =>
-            {
-                bool aIsUnordered = a.layer == ~0u;
-                bool bIsUnordered = b.layer == ~0u;
-                if (aIsUnordered && bIsUnordered)
-                    return 0;
-                if (aIsUnordered)
-                    return -1;
-                if (bIsUnordered)
-                    return 1;
-                return a.layer.CompareTo(b.layer);
-            });
         }
 
         void GenerateSpawnerSystemDescs(ref CompilationContext context)
@@ -273,7 +273,7 @@ namespace UnityEditor.VFX
             systemDesc.buffers = bufferMappings;
 
             List<UnityEditor.VFX.VFXEditorTaskDesc> taskDescs = new();
-            foreach (var task in particleSystem.Tasks)
+            foreach (var task in OrderTasksForRuntime(context, particleSystem))
             {
                 if (GenerateParticleSystemTask(ref context, task, out var taskDesc))
                 {
@@ -385,21 +385,61 @@ namespace UnityEditor.VFX
             return HashSetToArray(bufferMappings);
         }
 
+        /// <summary>
+        /// The system's tasks in the order the runtime runs them: by phase, and parents-first within a
+        /// phase. The container keeps them in the order they were met; only the asset cares about this one.
+        /// </summary>
+        List<ParticleSystemContainer.Task> OrderTasksForRuntime(CompilationContext context, ParticleSystemContainer.ParticleSystem particleSystem)
+        {
+            var ordered = new List<(ParticleSystemContainer.Task task, uint phase, int rank)>(particleSystem.Tasks.Count);
+            foreach (var task in particleSystem.Tasks)
+            {
+                // A task still listed under an id the graph no longer has was lowered by something that
+                // never reported it; one whose task is not a VfxTask was never lowered at all.
+                if (!m_TaskRanks.TryGetValue(task.Id, out var rank))
+                    throw new InvalidOperationException($"Task {task.Name} of {particleSystem.Name} is no longer in the graph.");
+                if (context.graph.TaskNodes[task.Id].Task is not VfxTask vfxTask)
+                    throw new InvalidOperationException($"Task {task.Name} of {particleSystem.Name} was never lowered.");
+
+                ordered.Add((task, (uint)vfxTask.TaskType & k_PhaseMask, rank));
+            }
+
+            // Ranks are unique, so the sort is a total order and its stability does not matter.
+            ordered.Sort((a, b) => a.phase != b.phase ? a.phase.CompareTo(b.phase) : a.rank.CompareTo(b.rank));
+
+            var tasks = new List<ParticleSystemContainer.Task>(ordered.Count);
+            foreach (var entry in ordered)
+                tasks.Add(entry.task);
+            return tasks;
+        }
+
         bool GenerateParticleSystemTask(ref CompilationContext context, ParticleSystemContainer.Task task, out UnityEditor.VFX.VFXEditorTaskDesc taskDesc)
         {
             taskDesc = new();
 
-            var generatedCodeContainer = context.data.Get<GeneratedCodeContainer>();
-            string sourceCode = generatedCodeContainer.Find(task.Id);
-            bool isCompute = !task.TaskType.HasFlag(UnityEngine.VFX.VFXTaskType.Output);
-            taskDesc.shaderSourceIndex = (int)AddShaderSourceDesc(task.Name, sourceCode, isCompute);
-            taskDesc.type = task.TaskType;
+            var taskNode = context.graph.TaskNodes[task.Id];
+            var vfxTask = taskNode.Task as VfxTask;
+
+            // A task the runtime implements itself, a sort, runs no code of ours: it is described by
+            // its buffers and its parameters alone, and the runtime refuses one that names a shader.
+            if (vfxTask != null && !vfxTask.HasShaderSource)
+            {
+                taskDesc.shaderSourceIndex = -1;
+            }
+            else
+            {
+                var generatedCodeContainer = context.data.Get<GeneratedCodeContainer>();
+                string sourceCode = generatedCodeContainer.Find(task.Id);
+                bool isCompute = !vfxTask.TaskType.HasFlag(UnityEngine.VFX.VFXTaskType.Output);
+                taskDesc.shaderSourceIndex = (int)AddShaderSourceDesc(task.Name, sourceCode, isCompute);
+            }
+
+            taskDesc.type = vfxTask.TaskType;
 
             HashSet<VFXMapping> bufferMappings = new();
             List<VFXMapping> valueMappings = new();
-            List<VFXMapping> paramMappings = new();
-            var taskNode = context.graph.TaskNodes[task.Id];
-            var vfxTask = taskNode.Task as VfxTask;
+            List<VFXMapping> parameterMappings = new();
+            var indirectionBufferIndex = -1;
             foreach (var dataBinding in taskNode.DataBindings)
             {
                 // A lowered task binds its buffers under the very names the generated shader declares them
@@ -409,6 +449,9 @@ namespace UnityEditor.VFX
                 {
                     var name = dataBinding.BindingDataKey.ToString();
                     bufferMappings.Add(new VFXMapping(name, (int)gpuIndex));
+
+                    if (name.EndsWith(RenderingDataDescriptionWriter.IndirectionBufferSuffix))
+                        indirectionBufferIndex = (int)gpuIndex;
 
                     // A written GPU event list additionally needs the eventListOut mapping the runtime scans
                     // every system for. That lookup should move here so this extra mapping can go away.
@@ -425,20 +468,77 @@ namespace UnityEditor.VFX
                     // at all, and the runtime resolves it by that same name off the parameters instead.
                     var bindingKey = dataBinding.BindingDataKey;
                     var mapping = new VFXMapping(bindingKey.ToString(), (int)expressionIndex);
-                    if (vfxTask != null && vfxTask.IsParamBinding(bindingKey))
-                        paramMappings.Add(mapping);
+                    if (vfxTask != null && vfxTask.IsParameterBinding(bindingKey))
+                        parameterMappings.Add(mapping);
                     else
                         valueMappings.Add(mapping);
                 }
             }
 
+            if (indirectionBufferIndex != -1
+                && vfxTask.HasParameterValue(VfxOutputTaskParameters.IndirectDrawKey))
+            {
+                parameterMappings.Add(new VFXMapping(VfxOutputTaskParameters.IndirectIndexKey.ToString(),
+                    indirectionBufferIndex));
+            }
+
             taskDesc.values = valueMappings.ToArray();
-            taskDesc.parameters = paramMappings.ToArray();
-            taskDesc.buffers = HashSetToArray(bufferMappings);
-            taskDesc.modelId = task.ModelId;
+            taskDesc.parameters = GenerateTaskParameters(vfxTask, parameterMappings);
+            taskDesc.buffers = vfxTask.TaskType == UnityEngine.VFX.VFXTaskType.PerOutputSort
+                ? OrderSortTaskBuffers(bufferMappings)
+                : HashSetToArray(bufferMappings);
+            taskDesc.modelId = vfxTask.SourceModelId;
             taskDesc.instanceSplitIndex = task.InstanceSplitIndex;
 
             return true;
+        }
+
+        /// <summary>
+        /// Works around the runtime reading a sort task's buffers by position rather than by name
+        /// (SortTaskConstants in Modules/VFX/Public/Systems/VFXParticleSystem.cpp): they have to come in
+        /// src, scratch, dst order, and the scratch mapping has to be there even when no buffer backs it,
+        /// which is how the runtime is told to sort in a single pass.
+        /// </summary>
+        static VFXMapping[] OrderSortTaskBuffers(HashSet<VFXMapping> bufferMappings)
+        {
+            var ordered = new List<VFXMapping>();
+            foreach (var key in SortTask.OrderedBufferKeys)
+            {
+                var name = key.ToString();
+                var index = -1;
+                foreach (var mapping in bufferMappings)
+                {
+                    if (mapping.name == name)
+                    {
+                        index = mapping.index;
+                        break;
+                    }
+                }
+                ordered.Add(new VFXMapping(name, index));
+            }
+
+            foreach (var mapping in bufferMappings)
+            {
+                if (!ordered.Exists(orderedMapping => orderedMapping.name == mapping.name))
+                    ordered.Add(mapping);
+            }
+
+            return ordered.ToArray();
+        }
+
+        // The parameters the task carries a constant for come in the order it declared them, ahead of
+        // the ones a graph value feeds.
+        static VFXMapping[] GenerateTaskParameters(VfxTask vfxTask, List<VFXMapping> parameterMappings)
+        {
+            if (vfxTask == null || vfxTask.ParameterValues.Count == 0)
+                return parameterMappings.ToArray();
+
+            var mappings = new List<VFXMapping>();
+            foreach (var (key, value) in vfxTask.ParameterValues)
+                mappings.Add(new VFXMapping(key.ToString(), value));
+
+            mappings.AddRange(parameterMappings);
+            return mappings.ToArray();
         }
 
         VFXExpressionValueContainerDesc CreateValueContainerDesc(VFXExpression exp, uint expressionIndex)
@@ -533,6 +633,7 @@ namespace UnityEditor.VFX
             m_CpuBufferDescIndices.Clear();
             m_ValuesExpressionIndices.Clear();
             m_ParticleSystemIndices.Clear();
+            m_TaskRanks.Clear();
             m_StartSystems.Clear();
             m_StopSystems.Clear();
             m_currentOutput = null;

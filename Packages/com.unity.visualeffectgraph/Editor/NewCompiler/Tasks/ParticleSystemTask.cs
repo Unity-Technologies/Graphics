@@ -7,6 +7,8 @@ namespace UnityEditor.VFX
         public static UniqueDataKey ParticleDataBindingKey { get; } = new UniqueDataKey(nameof(ParticleDataBindingKey));
         public static UniqueDataKey GraphValuesBindingKey { get; } = new UniqueDataKey(nameof(GraphValuesBindingKey));
         public static UniqueDataKey CpuEventListBindingKey { get; } = new UniqueDataKey(nameof(CpuEventListBindingKey));
+        public static UniqueDataKey InputSortingBufferKey { get; } = new UniqueDataKey(nameof(InputSortingBufferKey));
+        public static UniqueDataKey IndirectBufferKey { get; } = new UniqueDataKey(nameof(IndirectBufferKey));
 
         /// <summary>
         /// Keys for the concrete buffers bound onto the system task once the data has been lowered. The
@@ -23,16 +25,20 @@ namespace UnityEditor.VFX
             public static NameDataKey SpawnerInputBufferKey { get; } = new("spawner_input");
             public static NameDataKey InstancingBufferKey = new("instancingIndirectAndActiveIndirect");
             public static NameDataKey InstancingPrefixSumBufferKey = new("instancingPrefixSum");
+            public static NameDataKey PerCameraIndirectBufferKey { get; } = new("indirectBuffer_PerCamera");
+            public static NameDataKey IndirectBufferKey { get; } = new("indirectBuffer");
 
             public static bool IsGpuBuffer(IDataKey dataKey) =>
                 dataKey is NameDataKey key &&
                 (key == AttributeBufferKey || key == SourceAttributeBufferKey || key == DeadListBufferKey ||
                  key == SpawnBufferKey || key == GraphValuesBufferKey || key == EventListBufferKey ||
-                 key == InstancingBufferKey || key == InstancingPrefixSumBufferKey);
+                 key == InstancingBufferKey || key == InstancingPrefixSumBufferKey ||
+                 key == PerCameraIndirectBufferKey || key == IndirectBufferKey);
 
             public static bool IsCpuBuffer(IDataKey dataKey) =>
                 dataKey is NameDataKey key && key == SpawnerInputBufferKey;
         }
+
 
         public System.Type GetBindingExpectedDataType(IDataKey dataKey)
         {
@@ -46,6 +52,8 @@ namespace UnityEditor.VFX
                     return typeof(ParticleData);
                 case var _ when dataKey == GraphValuesBindingKey:
                     return typeof(StructuredData);
+                case var _ when dataKey == InputSortingBufferKey:
+                    return typeof(SortingData);
                 case var _ when BufferKeys.IsGpuBuffer(dataKey):
                     return typeof(VfxGpuBufferData);
                 case var _ when BufferKeys.IsCpuBuffer(dataKey):
@@ -73,6 +81,12 @@ namespace UnityEditor.VFX
                     return BindingUsage.Write;
                 case var _ when dataKey == GraphValuesBindingKey:
                     writeUsage?.Add(DataPath.Root);
+                    return BindingUsage.Write;
+                case var _ when dataKey == InputSortingBufferKey:
+                    writeUsage?.Add(DataPath.Root + RenderingData.SortingData);
+                    return BindingUsage.Write;
+                case var _ when dataKey == IndirectBufferKey:
+                    writeUsage?.Add(DataPath.Root + RenderingData.IndirectBuffer);
                     return BindingUsage.Write;
                 case var _ when BufferKeys.IsGpuBuffer(dataKey):
                     writeUsage?.Add(DataPath.Root);

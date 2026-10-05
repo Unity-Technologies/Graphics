@@ -31,7 +31,7 @@ void main(ThreadData threadData)
 	uint sourceIndex = EventListDataBinding.eventListData.GetAttributesIndex(spawnIndex);
 	SourceAttributeDataBinding.LoadData(sourceAttributes, sourceIndex);
 
-    VFXProcessBlocks(particleAttributes, sourceAttributes);
+    VFXProcessSubtasks(particleAttributes, sourceAttributes);
 
     if (particleAttributes.alive)
     {

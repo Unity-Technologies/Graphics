@@ -1,300 +1,282 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
-    partial class TaskGraph
+    [Flags]
+    enum UsageFlags : byte
     {
-        // Per-node usage flags packed into a byte. Stored parallel to the cache tree slots.
-        [System.Flags]
-        enum UsageFlags : byte
+        None    = 0,
+        Read    = 1 << 0,
+        Written = 1 << 1,
+        Any     = Read | Written,
+    }
+
+    /// <summary>
+    /// Ref counted usage of a data view. Enables correct removal.
+    /// </summary>
+    struct DataViewUsage
+    {
+        public DataViewId ViewId;
+        public int ReadRefs;
+        public int WriteRefs;
+
+        public UsageFlags Flags =>
+            (ReadRefs > 0 ? UsageFlags.Read : UsageFlags.None) |
+            (WriteRefs > 0 ? UsageFlags.Written : UsageFlags.None);
+
+        public bool Declares(UsageFlags flags) => (Flags & flags) != 0;
+    }
+
+    /// <summary>
+    /// Caches which data views each data node's bindings declared through <see cref="ITask.GetBindingUsage"/>.
+    /// </summary>
+    sealed class DataNodeToDataViewsCache : ICopyableCache<DataNodeToDataViewsCache>, IDataNodeObserver, IDataBindingObserver
+    {
+        const int k_ViewsPerNodeCapacity = 4;
+        const int k_ViewsPerBindingCapacity = 2;
+
+        LinearMultiList<DataViewUsage> m_NodeUsage = new();
+        LinearMultiList<DataViewUsage> m_BindingUsage = new();
+
+        readonly ReadOnlyTaskGraphStore m_Store;
+
+        readonly IDataViewProvider m_DataViews;
+
+        public DataNodeToDataViewsCache(ReadOnlyTaskGraphStore store, IDataViewProvider dataViews)
         {
-            None    = 0,
-            Read    = 1 << 0,
-            Written = 1 << 1,
+            m_Store = store;
+            m_DataViews = dataViews;
         }
 
-        sealed class DataNodeToDataViewsCache : ICopyableCache<DataNodeToDataViewsCache>, IDataNodeObserver, IDataBindingObserver, IDataViewObserver
+        public void OnDataNodeAdded(DataNodeId id, TaskNodeId taskNodeId, DataContainerId dataContainerId)
+            => m_NodeUsage.AddList(k_ViewsPerNodeCapacity);
+
+        public void OnDataNodeRemoved(DataNodeId id, TaskNodeId taskNodeId, DataContainerId dataContainerId)
+            => m_NodeUsage.ClearList(id.Index);
+
+        public void OnDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage,
+            DataPathSet readPaths, DataPathSet writePaths)
         {
-            LinearMultiTree<DataViewId> m_Tree = new();
-            readonly List<UsageFlags> m_Flags = new();
-            readonly TaskGraph m_Owner;
-            readonly Dictionary<DataNodeId, int> m_DataNodeIdToSlotIndex = new();
-            readonly Dictionary<(DataNodeId, DataViewId), int> m_PairToSlot = new();
+            m_BindingUsage.AddList(k_ViewsPerBindingCapacity);
+            AddBinding(id, dataViewId, dataNodeId, readPaths, writePaths);
+        }
 
-            readonly DataPathSet m_ReadUsage = new();
-            readonly DataPathSet m_WriteUsage = new();
-
-            public LinearMultiTree<DataViewId> Data => m_Tree;
-
-            public DataNodeToDataViewsCache(TaskGraph owner) => m_Owner = owner;
-
-            public void OnDataNodeAdded(DataNodeId id, TaskNodeId taskNodeId, DataContainerId dataContainerId)
+        public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+            TaskNodeId taskNodeId, BindingUsage usage)
+        {
+            // A data node is removed before the bindings it carried, so its sublist may already be
+            // cleared - releasing against an empty one is a no-op.
+            int count = m_BindingUsage.CountInList(id.Index);
+            for (int i = 0; i < count; i++)
             {
-                int slot = m_Tree.AddItem(DataViewId.Invalid, -1, 0);
-                m_DataNodeIdToSlotIndex.Add(id, slot);
-                EnsureFlagsCapacity(slot + 1);
+                var contribution = m_BindingUsage[id.Index, i];
+                AddRefs(m_NodeUsage, dataNodeId.Index, contribution.ViewId,
+                    -contribution.ReadRefs, -contribution.WriteRefs);
             }
 
-            public void OnDataNodeRemoved(DataNodeId id, TaskNodeId taskNodeId, DataContainerId dataContainerId)
-            {
-                if (!m_DataNodeIdToSlotIndex.TryGetValue(id, out int rootSlot))
-                    return;
+            m_BindingUsage.ClearList(id.Index);
+        }
 
-                ResetDataNode(id, rootSlot);
-                m_DataNodeIdToSlotIndex.Remove(id);
+        void AddBinding(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
+            DataPathSet readPaths, DataPathSet writePaths)
+        {
+            var bindingDataView = m_DataViews[dataViewId];
+            if (readPaths != null)
+            {
+                foreach (var path in readPaths)
+                    Declare(id.Index, bindingDataView, path, UsageFlags.Read);
             }
 
-            public void OnDataBindingAdded(DataBindingId id,  DataViewId dataViewId,
-                DataNodeId dataNodeId, TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
+            if (writePaths != null)
             {
-                var dataBinding = m_Owner.m_DataBindings[id];
-                var task = m_Owner.m_TaskNodes[taskNodeId].Task;
-                m_ReadUsage.Clear();
-                m_WriteUsage.Clear();
-                if (task.GetBindingUsage(dataBinding.BindingDataKey, m_ReadUsage, m_WriteUsage) == BindingUsage.Unknown)
-                    return;
-
-                bool hasRead = !m_ReadUsage.Empty;
-                bool hasWritten = !m_WriteUsage.Empty;
-                if (!hasRead && !hasWritten) return;
-
-                var bindingDataView = m_Owner.DataViews[dataViewId];
-                BeginBinding(bindingDataView.Root.Id, dataNodeId);
-
-                if (hasRead)
-                    foreach (var path in m_ReadUsage)
-                        InsertPath(dataNodeId, bindingDataView, path, UsageFlags.Read);
-
-                if (hasWritten)
-                    foreach (var path in m_WriteUsage)
-                        InsertPath(dataNodeId, bindingDataView, path, UsageFlags.Written);
+                foreach (var path in writePaths)
+                    Declare(id.Index, bindingDataView, path, UsageFlags.Written);
             }
 
-            public void OnDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
-                TaskNodeId taskNodeId, BindingUsage usage)
+            int count = m_BindingUsage.CountInList(id.Index);
+            for (int i = 0; i < count; i++)
             {
-                // Flags are ORed from every binding of the node, so one binding's contribution cannot be
-                // subtracted: drop the node's subtree and restamp it from the bindings that remain.
-                if (!m_DataNodeIdToSlotIndex.TryGetValue(dataNodeId, out int rootSlot))
+                var contribution = m_BindingUsage[id.Index, i];
+                AddRefs(m_NodeUsage, dataNodeId.Index, contribution.ViewId,
+                    contribution.ReadRefs, contribution.WriteRefs);
+            }
+        }
+
+        // Resolves one declared path against the binding's own view, as this binding's contribution;
+        // folding those into the data node comes after, so the two stay in step by construction.
+        void Declare(int bindingListIndex, DataView bindingDataView, DataPath path, UsageFlags flag)
+        {
+            if (!bindingDataView.FindSubData(path, out var subDataView))
+                return;
+
+            AddRefs(m_BindingUsage, bindingListIndex, subDataView.Id,
+                flag == UsageFlags.Read ? 1 : 0, flag == UsageFlags.Written ? 1 : 0);
+        }
+
+        public void OnGraphCleared()
+        {
+            m_NodeUsage = new LinearMultiList<DataViewUsage>();
+            m_BindingUsage = new LinearMultiList<DataViewUsage>();
+        }
+
+        public void RebuildFromPrimary()
+        {
+            m_NodeUsage = new LinearMultiList<DataViewUsage>();
+            m_BindingUsage = new LinearMultiList<DataViewUsage>();
+
+            // A sublist per slot, dead ones included, so that a sublist index stays an id index.
+            for (int slot = 0; slot < m_Store.DataNodes.SlotCount; slot++)
+                m_NodeUsage.AddList(k_ViewsPerNodeCapacity);
+
+            var readPaths = new DataPathSet();
+            var writePaths = new DataPathSet();
+            for (int slot = 0; slot < m_Store.DataBindings.SlotCount; slot++)
+            {
+                m_BindingUsage.AddList(k_ViewsPerBindingCapacity);
+
+                if (!m_Store.DataBindings.IsAliveAtSlot(slot)) continue;
+
+                var binding = m_Store.DataBindings.AtSlot(slot);
+                if (!m_Store.DataNodes.IsAlive(binding.DataNodeId)) continue;
+
+                readPaths.Clear();
+                writePaths.Clear();
+                var taskNodeId = m_Store.DataNodes[binding.DataNodeId].TaskNodeId;
+                m_Store.TaskNodes[taskNodeId].Task.GetBindingUsage(binding.BindingDataKey, readPaths, writePaths);
+
+                AddBinding(binding.Id, binding.DataViewId, binding.DataNodeId, readPaths, writePaths);
+            }
+        }
+
+        public void CopyFrom(DataNodeToDataViewsCache other)
+        {
+            m_NodeUsage.CopyFrom(other.m_NodeUsage);
+            m_BindingUsage.CopyFrom(other.m_BindingUsage);
+        }
+
+        /// <summary>The views this data node declared, in declaration order.</summary>
+        public bool TryGetDeclaredViews(DataNodeId dataNodeId, out LinearMultiList<DataViewUsage>.Sublist views)
+        {
+            if (dataNodeId.Index >= m_NodeUsage.ListCount)
+            {
+                views = default;
+                return false;
+            }
+
+            views = m_NodeUsage[dataNodeId.Index];
+            return true;
+        }
+
+        public bool HasUsage(DataNodeId dataNodeId, DataViewId dataViewId, UsageFlags flags)
+            => HasUsage(m_NodeUsage, dataNodeId.Index, dataViewId, flags);
+
+        public bool HasUsage(DataBindingId dataBindingId, DataViewId dataViewId, UsageFlags flags)
+            => HasUsage(m_BindingUsage, dataBindingId.Index, dataViewId, flags);
+
+        bool HasUsage(LinearMultiList<DataViewUsage> lists, int listIndex, DataViewId dataViewId, UsageFlags flags)
+        {
+            if (listIndex >= lists.ListCount)
+                return false;
+
+            int count = lists.CountInList(listIndex);
+            for (int i = 0; i < count; i++)
+            {
+                var usage = lists[listIndex, i];
+                if (!usage.Declares(flags))
+                    continue;
+
+                if (IsAncestorOrSelf(usage.ViewId, dataViewId) || IsAncestorOrSelf(dataViewId, usage.ViewId))
+                    return true;
+            }
+            return false;
+        }
+
+        bool IsAncestorOrSelf(DataViewId ancestorViewId, DataViewId dataViewId)
+        {
+            for (var current = dataViewId; current.IsValid; current = ParentOf(current))
+            {
+                if (current.Equals(ancestorViewId))
+                    return true;
+            }
+            return false;
+        }
+
+        DataViewId ParentOf(DataViewId dataViewId)
+            => m_Store.DataViews.IsAlive(dataViewId)
+                ? m_Store.DataViews[dataViewId].ParentDataViewId
+                : DataViewId.Invalid;
+
+        // The one mutation: takes references on a view's entry, or releases them with negative
+        // deltas, creating the entry on its first reference and dropping it with its last.
+        static void AddRefs(LinearMultiList<DataViewUsage> lists, int listIndex, DataViewId viewId,
+            int readRefs, int writeRefs)
+        {
+            int count = lists.CountInList(listIndex);
+            int itemIndex = IndexOf(lists, listIndex, count, viewId);
+            if (itemIndex < 0)
+            {
+                if (readRefs <= 0 && writeRefs <= 0)
                     return;
 
-                ResetDataNode(dataNodeId, rootSlot);
+                lists.AddItem(listIndex, new DataViewUsage { ViewId = viewId });
+                itemIndex = count;
+            }
 
-                var bindings = m_Owner.DataNodeToDataBindings.Data;
-                int count = bindings.CountInList(dataNodeId.Index);
+            var usage = lists[listIndex, itemIndex];
+            usage.ReadRefs += readRefs;
+            usage.WriteRefs += writeRefs;
+
+            if (usage.ReadRefs <= 0 && usage.WriteRefs <= 0)
+                lists.RemoveItem(listIndex, itemIndex);
+            else
+                lists[listIndex, itemIndex] = usage;
+        }
+
+        // By view, where LinearMultiList.FindItem would compare whole entries, ref-counts included.
+        static int IndexOf(LinearMultiList<DataViewUsage> lists, int listIndex, int count, DataViewId viewId)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (lists[listIndex, i].ViewId.Equals(viewId))
+                    return i;
+            }
+            return -1;
+        }
+
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new();
+            sb.AppendLine("DataNodeToDataViewsCache:");
+
+            for (int listIndex = 0; listIndex < m_NodeUsage.ListCount; listIndex++)
+            {
+                int count = m_NodeUsage.CountInList(listIndex);
+                if (count == 0)
+                    continue;
+
+                sb.Append("Data node ").Append(listIndex).AppendLine(":");
                 for (int i = 0; i < count; i++)
                 {
-                    var bindingId = bindings[dataNodeId.Index, i];
-                    if (bindingId.Equals(id))
-                        continue;
-                    var bindingInfo = m_Owner.m_DataBindings[bindingId];
-                    OnDataBindingAdded(bindingId, bindingInfo.DataViewId, dataNodeId, taskNodeId,
-                        bindingInfo.BindingDataKey, bindingInfo.Usage);
+                    var usage = m_NodeUsage[listIndex, i];
+                    sb.Append("    ").Append(usage.ViewId).Append(' ')
+                        .Append(FormatFlags(usage.Flags))
+                        .Append(" R:").Append(usage.ReadRefs)
+                        .Append(" W:").Append(usage.WriteRefs)
+                        .AppendLine();
                 }
             }
 
-            void ResetDataNode(DataNodeId dataNodeId, int rootSlot)
-            {
-                RemoveCacheSubtree(dataNodeId, rootSlot, removeSlot: false);
-                m_PairToSlot.Remove((dataNodeId, m_Tree[rootSlot].Data));
-                m_Flags[rootSlot] = UsageFlags.None;
-                m_Tree.SetRootData(dataNodeId.Index, DataViewId.Invalid);
-            }
-
-            public void OnDataViewRemoved(DataViewId id, DataViewId parentId, DataContainerId dataContainerId)
-            {
-                // m_PairToSlot is mutated below, so iterate the data node keys instead.
-                foreach (var dataNodeId in m_DataNodeIdToSlotIndex.Keys)
-                {
-                    if (!m_PairToSlot.TryGetValue((dataNodeId, id), out int slot))
-                        continue;
-
-                    // A node's root slot is owned by OnDataNodeAdded/Removed: clear it, don't remove it.
-                    if (slot == m_DataNodeIdToSlotIndex[dataNodeId])
-                        ResetDataNode(dataNodeId, slot);
-                    else
-                        RemoveCacheSubtree(dataNodeId, slot, removeSlot: true);
-                }
-            }
-
-            void RemoveCacheSubtree(DataNodeId dataNodeId, int slot, bool removeSlot)
-            {
-                using (ListPool<int>.Get(out var subtree))
-                {
-                    subtree.Add(slot);
-                    for (int i = 0; i < subtree.Count; i++)
-                    {
-                        var children = m_Tree[subtree[i]].Children;
-                        for (int c = 0; c < children.Count; c++)
-                            subtree.Add(children[c].Index);
-                    }
-
-                    for (int i = subtree.Count - 1; i >= (removeSlot ? 0 : 1); i--)
-                    {
-                        int subtreeSlot = subtree[i];
-                        m_PairToSlot.Remove((dataNodeId, m_Tree[subtreeSlot].Data));
-                        m_Flags[subtreeSlot] = UsageFlags.None;
-                        m_Tree.RemoveNode(subtreeSlot);
-                    }
-                }
-            }
-
-            public void OnGraphCleared()
-            {
-                m_Tree = new LinearMultiTree<DataViewId>();
-                m_Flags.Clear();
-                m_DataNodeIdToSlotIndex.Clear();
-                m_PairToSlot.Clear();
-            }
-
-            public void RebuildFromPrimary()
-            {
-                m_Tree = new LinearMultiTree<DataViewId>();
-                m_Flags.Clear();
-                m_DataNodeIdToSlotIndex.Clear();
-                m_PairToSlot.Clear();
-
-                for (int slot = 0; slot < m_Owner.m_DataNodes.SlotCount; slot++)
-                {
-                    int rootSlot = m_Tree.AddItem(DataViewId.Invalid, -1, 0);
-                    EnsureFlagsCapacity(rootSlot + 1);
-                    if (m_Owner.m_DataNodes.IsAliveAtSlot(slot))
-                    {
-                        ref var info = ref m_Owner.m_DataNodes.AtSlot(slot);
-                        m_DataNodeIdToSlotIndex[info.Id] = rootSlot;
-                    }
-                }
-
-
-                for (int slot = 0; slot < m_Owner.m_DataBindings.SlotCount; slot++)
-                {
-                    if (!m_Owner.m_DataBindings.IsAliveAtSlot(slot)) continue;
-                    ref var binding = ref m_Owner.m_DataBindings.AtSlot(slot);
-                    var dataNodeId = binding.DataNodeId;
-                    if (!m_Owner.m_DataNodes.IsAlive(dataNodeId)) continue;
-                    OnDataBindingAdded(binding.Id, binding.DataViewId, dataNodeId,
-                        m_Owner.m_DataNodes[dataNodeId].TaskNodeId, binding.BindingDataKey, binding.Usage);
-                }
-            }
-
-            public void CopyFrom(DataNodeToDataViewsCache other)
-            {
-                m_Tree.CopyFrom(other.m_Tree);
-                m_Flags.Clear();
-                m_Flags.AddRange(other.m_Flags);
-                m_DataNodeIdToSlotIndex.Clear();
-                foreach (var kv in other.m_DataNodeIdToSlotIndex)
-                    m_DataNodeIdToSlotIndex.Add(kv.Key, kv.Value);
-                m_PairToSlot.Clear();
-                foreach (var kv in other.m_PairToSlot)
-                    m_PairToSlot.Add(kv.Key, kv.Value);
-            }
-
-            public bool IsRead(DataNodeId dataNode, DataViewId dataView)
-                => (GetFlag(dataNode, dataView) & UsageFlags.Read) != 0;
-
-            public bool IsWritten(DataNodeId dataNode, DataViewId dataView)
-                => (GetFlag(dataNode, dataView) & UsageFlags.Written) != 0;
-
-            UsageFlags GetFlag(DataNodeId dataNode, DataViewId dataView)
-                => m_PairToSlot.TryGetValue((dataNode, dataView), out int slot)
-                    ? (UsageFlags)m_Flags[slot]
-                    : UsageFlags.None;
-
-            void BeginBinding(DataViewId rootDataViewId, DataNodeId dataNodeId)
-            {
-                int rootSlot = m_DataNodeIdToSlotIndex[dataNodeId];
-                m_Tree.SetRootData(dataNodeId.Index, rootDataViewId);
-                // Pre-mark the root for this data node so InsertWithFlag anchors sub-views to
-                // the existing root slot rather than creating a duplicate.
-                m_PairToSlot.TryAdd((dataNodeId, rootDataViewId), rootSlot);
-                EnsureFlagsCapacity(rootSlot + 1);
-            }
-
-            void InsertPath(DataNodeId dataNodeId, DataView dataView, DataPath path, UsageFlags flag)
-            {
-                if (!dataView.FindSubData(path, out var subDataView))
-                    return;
-                InsertWithFlag(dataNodeId, subDataView.Id, flag);
-            }
-
-            int InsertWithFlag(DataNodeId dataNodeId, DataViewId dataViewId, UsageFlags flag)
-            {
-                if (m_PairToSlot.TryGetValue((dataNodeId, dataViewId), out int existing))
-                {
-                    PropagateFlagUpward(existing, flag);
-                    return existing;
-                }
-
-                int parentIndex = -1;
-                var parentDataViewId = m_Owner.m_DataViews[dataViewId].ParentDataViewId;
-                if (parentDataViewId.IsValid)
-                    parentIndex = InsertWithFlag(dataNodeId, parentDataViewId, flag);
-
-                int childCount = m_Owner.DataViewTrees.Data[dataViewId.Index].Children.Count;
-                int slot = m_Tree.AddItem(dataViewId, parentIndex, childCount);
-                m_PairToSlot.Add((dataNodeId, dataViewId), slot);
-                EnsureFlagsCapacity(slot + 1);
-                m_Flags[slot] = flag;
-                return slot;
-            }
-
-            void PropagateFlagUpward(int slot, UsageFlags flag)
-            {
-                while (slot >= 0)
-                {
-                    var current = (UsageFlags)m_Flags[slot];
-                    if ((current & flag) == flag) return;
-                    m_Flags[slot] = (current | flag);
-                    var parent = m_Tree[slot].Parent;
-                    slot = parent.HasValue ? parent.Value.Index : -1;
-                }
-            }
-
-            void EnsureFlagsCapacity(int requiredCount)
-            {
-                while (m_Flags.Count < requiredCount)
-                    m_Flags.Add(0);
-            }
-
-            public override string ToString()
-            {
-                System.Text.StringBuilder sb = new();
-                sb.AppendLine("DataNodeToDataViewsCache:");
-
-                void DrawNode(MultiTreeNode<DataViewId> node, string indent, bool isLast)
-                {
-                    sb.Append(indent);
-                    sb.Append(isLast ? "└── " : "├── ");
-                    sb.Append(node.Data.ToString());
-                    sb.Append(' ');
-                    sb.AppendLine(FormatFlag((UsageFlags)m_Flags[node.Index]));
-
-                    var children = node.Children;
-                    int childCount = children.Count;
-                    for (int i = 0; i < childCount; i++)
-                        DrawNode(children[i], indent + (isLast ? "    " : "│   "), i == childCount - 1);
-                }
-
-                var roots = m_Tree.RootNodes;
-                int rootCount = roots.Count;
-                for (int i = 0; i < rootCount; i++)
-                    DrawNode(roots[i], $"{i}", i == rootCount - 1);
-
-                return sb.ToString();
-            }
-
-            static string FormatFlag(UsageFlags flag) => flag switch
-            {
-                UsageFlags.None              => "[ ]",
-                UsageFlags.Read              => "[R]",
-                UsageFlags.Written           => "[W]",
-                UsageFlags.Read | UsageFlags.Written => "[RW]",
-                _                            => $"[?{flag}]",
-            };
+            return sb.ToString();
         }
+
+        static string FormatFlags(UsageFlags flags) => flags switch
+        {
+            UsageFlags.None    => "[ ]",
+            UsageFlags.Read    => "[R]",
+            UsageFlags.Written => "[W]",
+            UsageFlags.Any     => "[RW]",
+            _                  => $"[?{flags}]",
+        };
     }
 }

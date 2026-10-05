@@ -79,7 +79,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             => BuildableGraph.BindData(taskNodeId, bindingKey, dataViewId, parentNodeIds, usage);
 
         void IDataBindingObserver.OnDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
-            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
+            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage, DataPathSet readPaths, DataPathSet writePaths)
         {
             if (!usage.HasFlag(BindingUsage.Write))
                 return;

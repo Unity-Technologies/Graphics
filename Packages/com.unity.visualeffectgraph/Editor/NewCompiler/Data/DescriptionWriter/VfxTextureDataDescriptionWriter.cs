@@ -19,15 +19,15 @@ namespace UnityEditor.VFX
         {
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name,
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name,
             string sourceName, CompilationContext context)
         {
-            var texture = (VfxTextureData)usedDataView.DataDescription;
+            var texture = (VfxTextureData)dataView.DataDescription;
 
             // A block that declared its own container for this texture (RWTexture2D, for instance) dictates
             // the declaration; otherwise it is read through the plain type, sampled rather than indexed.
             var resourceTypes = context.data.GetOrCreate<ResourceTypeContainer>();
-            string declaration = resourceTypes.TryGetBufferType(usedDataView, dataNode, out var bufferType)
+            string declaration = resourceTypes.TryGetBufferType(dataView, dataNode, out var bufferType)
                 ? VfxBufferTypeHlsl.GetDeclaration(bufferType)
                 : null;
 

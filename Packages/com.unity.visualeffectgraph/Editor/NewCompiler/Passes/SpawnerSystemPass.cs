@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
         public class SpawnerSystem
         {
             /// <summary>
-            /// Repointed at the concrete spawn buffer by <see cref="SpawnerToVfxTaskPass"/>,
+            /// Repointed at the concrete spawn buffer by <see cref="SpawnerTaskLowering"/>,
             /// once the event data has been lowered.
             /// </summary>
             public DataViewId EventDataViewId { get; set; }

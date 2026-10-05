@@ -250,7 +250,7 @@ namespace UnityEditor.VFX.Test
             var view = subKey == Root
                 ? m_ContainerViewIds[node.DataContainer.Name]
                 : GetSubView(node.DataContainer.Name, subKey);
-            return read ? node.IsRead(view) : node.IsWritten(view);
+            return read ? node.Reads(view) : node.Writes(view);
         }
 
         /// <summary>
@@ -258,10 +258,10 @@ namespace UnityEditor.VFX.Test
         /// removed — the <see cref="DataNode"/> handle throws once its node is gone.
         /// </summary>
         public bool IsWrittenById(DataNodeId dataNodeId, DataViewId dataViewId)
-            => Graph.IsWritten(dataNodeId, dataViewId);
+            => Graph.HasUsage(dataNodeId, dataViewId, UsageFlags.Written);
 
         public bool IsReadById(DataNodeId dataNodeId, DataViewId dataViewId)
-            => Graph.IsRead(dataNodeId, dataViewId);
+            => Graph.HasUsage(dataNodeId, dataViewId, UsageFlags.Read);
 
         /// <summary>The registered names of a data node's parents, for order-independent assertions.</summary>
         public string[] ParentNames(string dataNodeName)

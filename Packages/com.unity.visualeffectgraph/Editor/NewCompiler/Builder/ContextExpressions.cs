@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     {
         // Expressions from the context's own slots are registered under this id, the ones from a block under
         // the block's index.
-        const int k_ContextSlotId = -1;
+        public const int ContextSlotId = -1;
 
         readonly Dictionary<IDataKey, VFXExpression> m_RequestedResources = new();
         readonly HashSet<VFXExpression> m_Resources = new();
@@ -27,25 +27,46 @@ namespace UnityEditor.VFX
         public ReadOnlyDictionary<VFXExpression, BufferType> BufferTypeUsage { get; }
 
         public ContextExpressions(VFXContext context, VFXExpressionGraph expressionGraph)
+            : this(expressionGraph.BuildGPUMapper(context), expressionGraph.BuildCPUMapper(context),
+                expressionGraph.GetBufferUsage(context))
         {
-            GpuMapper = expressionGraph.BuildGPUMapper(context);
-            CpuMapper = expressionGraph.BuildCPUMapper(context);
-            UniformMapper = new VFXUniformMapper(GpuMapper, false, false);
-            BufferTypeUsage = expressionGraph.GetBufferUsage(context);
+        }
 
-            // Asking the uniform mapper, which already sorted the expressions by kind, avoids going through
-            // VFXExpression.valueType later: it is recomputed and allocates on every access.
+        ContextExpressions(VFXExpressionMapper gpuMapper, VFXExpressionMapper cpuMapper,
+            ReadOnlyDictionary<VFXExpression, BufferType> bufferTypeUsage)
+        {
+            GpuMapper = gpuMapper;
+            CpuMapper = cpuMapper;
+            UniformMapper = new VFXUniformMapper(GpuMapper, false, false);
+            BufferTypeUsage = bufferTypeUsage;
+
             foreach (var texture in UniformMapper.textures)
                 m_Resources.Add(texture);
             foreach (var buffer in UniformMapper.buffers)
                 m_Resources.Add(buffer);
         }
 
-        /// <summary>
-        /// The expression behind each resource binding created so far, so the builder can bind their values
-        /// onto the task. Only populated by <see cref="CreateResourceBinding"/>, so read it once the task is
-        /// built.
-        /// </summary>
+        public static ContextExpressions ForDerivedTask(VFXExpressionMapper sourceGpuMapper,
+            ReadOnlyDictionary<VFXExpression, BufferType> bufferTypeUsage,
+            IEnumerable<VFXNamedExpression> ownParameters)
+        {
+            var gpuMapper = new VFXExpressionMapper();
+
+            foreach (var expression in sourceGpuMapper.expressions)
+            {
+                foreach (var data in sourceGpuMapper.GetData(expression))
+                {
+                    if (data.id != ContextSlotId)
+                        gpuMapper.AddExpression(expression, data);
+                }
+            }
+
+            foreach (var parameter in ownParameters)
+                gpuMapper.AddExpression(parameter.exp, parameter.name, ContextSlotId);
+
+            return new ContextExpressions(gpuMapper, new VFXExpressionMapper(), bufferTypeUsage);
+        }
+
         public IReadOnlyDictionary<IDataKey, VFXExpression> RequestedResources => m_RequestedResources;
 
         public string GetBindingName(VFXExpression expression) => UniformMapper.GetName(expression);
@@ -53,17 +74,8 @@ namespace UnityEditor.VFX
         public BufferType GetBufferType(VFXExpression expression)
             => BufferTypeUsage.TryGetValue(expression, out var bufferType) ? bufferType : default;
 
-        /// <summary>
-        /// Whether <paramref name="expression"/> is a GPU resource this context binds, i.e. whether it can be
-        /// passed to <see cref="CreateResourceBinding"/>.
-        /// </summary>
         public bool IsResource(VFXExpression expression) => expression != null && m_Resources.Contains(expression);
 
-        /// <summary>
-        /// Creates the binding declaring a GPU resource on a task, under <paramref name="key"/> or under the
-        /// name the uniform mapper gave it. <paramref name="expression"/> must be a resource this context
-        /// binds; check <see cref="IsResource"/> first if that isn't already known.
-        /// </summary>
         public VfxResourceBinding CreateResourceBinding(VFXExpression expression, IDataKey key = null)
         {
             Debug.Assert(IsResource(expression));
@@ -74,11 +86,6 @@ namespace UnityEditor.VFX
             return new VfxResourceBinding(key, GetBufferType(expression));
         }
 
-        /// <summary>
-        /// The bindings for the GPU resources fed by the context's own slots rather than by its blocks, keyed
-        /// by slot name: that is the name the template refers to them by. A resource a block also uses still
-        /// gets its own binding here, under the context's name for it.
-        /// </summary>
         public IEnumerable<VfxResourceBinding> CreateContextResourceBindings()
         {
             foreach (var expression in UniformMapper.textures)
@@ -90,35 +97,38 @@ namespace UnityEditor.VFX
                     yield return binding;
         }
 
-        /// <summary>
-        /// The bindings for the parameters the context asks the runtime to resolve, such as a mesh output's
-        /// mesh and submesh mask, keyed by slot name. These come from the CPU expressions, so none of them is
-        /// read by the generated code, whatever their type says.
-        /// </summary>
-        public IEnumerable<VfxTaskParamBinding> CreateContextParamBindings()
-        {
-            foreach (var expression in CpuMapper.expressions)
-            {
-                foreach (var data in CpuMapper.GetData(expression))
-                {
-                    if (data.id != k_ContextSlotId)
-                        continue;
-
-                    yield return new VfxTaskParamBinding(new NameDataKey(data.name));
-                }
-            }
-        }
-
         IEnumerable<VfxResourceBinding> CreateContextResourceBindings(VFXExpression expression)
         {
             foreach (var data in GpuMapper.GetData(expression))
             {
-                if (data.id != k_ContextSlotId)
+                if (data.id != ContextSlotId)
                     continue;
 
                 yield return CreateResourceBinding(expression, new NameDataKey(data.name));
             }
         }
 
+        public IEnumerable<VFXNamedExpression> EnumerateContextParameters()
+        {
+            foreach (var namedExpression in GpuMapper.CollectExpression(ContextSlotId))
+            {
+                if (VFXExpression.IsUniform(namedExpression.exp.valueType))
+                    yield return namedExpression;
+            }
+        }
+
+        public IEnumerable<VfxTaskParameterBinding> CreateContextParameterBindings()
+        {
+            foreach (var expression in CpuMapper.expressions)
+            {
+                foreach (var data in CpuMapper.GetData(expression))
+                {
+                    if (data.id != ContextSlotId)
+                        continue;
+
+                    yield return new VfxTaskParameterBinding(new NameDataKey(data.name));
+                }
+            }
+        }
     }
 }

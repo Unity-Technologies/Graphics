@@ -19,11 +19,9 @@ namespace UnityEditor.VFX
 
                 for (int i = 0; i < system.Tasks.Count; i++)
                 {
-                    var task = system.Tasks[i];
-                    var taskNode = context.graph.TaskNodes[task.Id];
+                    var taskNode = context.graph.TaskNodes[system.Tasks[i].Id];
                     var splitValuesNodes = GenerateInstancingSplitDataNodes(taskNode);
-                    task.InstanceSplitIndex = AddInstanceSplitDesc(splitValueSets, splitValuesNodes);
-                    system.Tasks[i] = task;
+                    particleSystemContainer.SetInstanceSplitIndex(system, i, AddInstanceSplitDesc(splitValueSets, splitValuesNodes));
                 }
 
                 var systemTaskNode = context.graph.TaskNodes[system.SystemTask.Id];
@@ -81,6 +79,11 @@ namespace UnityEditor.VFX
 
                 foreach (var task in system.Tasks)
                 {
+                    // A task with no generated code has nothing to read these from, and the runtime
+                    // resolves its buffers and parameters by position: an extra one would shift them.
+                    if (context.graph.TaskNodes[task.Id].Task is VfxTask { HasShaderSource: false })
+                        continue;
+
                     context.graph.BindData(task.Id, VfxTask.InstancingBufferKey, instancingId, parentInstancingNode, BindingUsage.Read);
                     if(prefixSumId.IsValid)
                         context.graph.BindData(task.Id, VfxTask.InstancingPrefixSumBufferKey, prefixSumId, prefixSumDataNode, BindingUsage.Read);

@@ -50,7 +50,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
             var variableName = "data";
 
@@ -65,7 +65,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock();
 
             var attributeSourceManager = context.data.Get<AttributeSourceManager>();
-            if (attributeSourceManager != null && attributeSourceManager.TryGetAttributeSource(usedDataView.Id, out var attributeSource))
+            if (attributeSourceManager != null && attributeSourceManager.TryGetAttributeSource(dataView.Id, out var attributeSource))
             {
                 // TODO: Detach attribute sources from attribute buffers?
                 // That would allow multiple attribute sources for each attribute buffer, overloading the methods
@@ -76,9 +76,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     shaderWriter.WriteLine($"void LoadData(out {attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
                     shaderWriter.WriteLine($"{variableName}.Init();");
-                    foreach (var attributeDataView in usedDataView.Children)
+                    foreach (var attributeDataView in dataView.Children)
                     {
-                        if (!dataNode.IsRead(attributeDataView.Id)) continue;
+                        if (!dataNode.Reads(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"{variableName}.{attribute.Name} = buffer.Load_{attribute.Name}(index);");
                     }
@@ -88,9 +88,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     shaderWriter.NewLine();
                     shaderWriter.WriteLine($"void StoreData({attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
-                    foreach (var attributeDataView in usedDataView.Children)
+                    foreach (var attributeDataView in dataView.Children)
                     {
-                        if (!dataNode.IsWritten(attributeDataView.Id)) continue;
+                        if (!dataNode.Writes(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"buffer.Store_{attribute.Name}({variableName}.{attribute.Name}, index);");
                     }

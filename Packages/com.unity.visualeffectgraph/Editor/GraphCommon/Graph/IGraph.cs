@@ -66,23 +66,33 @@ namespace Unity.GraphCommon.LowLevel.Editor
         internal DataBindingEnumerable GetDataBindings(DataNodeId dataNodeId);
 
         /// <summary>
-        /// Retrieves an enumerable collection of data views used in the specified data node.
+        /// Retrieves the data views the specified data node uses under any of <paramref name="usage"/>.
         /// </summary>
         /// <param name="dataNodeId">The identifier of the data node.</param>
+        /// <param name="usage">The usage a view must carry to be enumerated.</param>
         /// <returns>
-        /// The <see cref="DataView"/> subtree containing the data views used by the specified <paramref name="dataNodeId"/>.
+        /// The data views the specified <paramref name="dataNodeId"/> declared under that usage, plus
+        /// the ones they imply above and below them, in depth-first order.
         /// </returns>
-        internal DataView GetUsedDataViews(DataNodeId dataNodeId);
+        internal UsedDataViewEnumerable GetDataViews(DataNodeId dataNodeId, UsageFlags usage);
 
         /// <summary>
-        /// Returns whether the specified data view is read by the specified data node.
+        /// Retrieves the data views the specified binding alone uses under any of
+        /// <paramref name="usage"/>. Where the data node answers for everything its bindings reach
+        /// together, this answers for one of them, which is what tells apart two bindings of the same
+        /// container - a task's input and its output.
         /// </summary>
-        internal bool IsRead(DataNodeId dataNodeId, DataViewId dataViewId);
+        internal UsedDataViewEnumerable GetDataViews(DataBindingId dataBindingId, UsageFlags usage);
 
         /// <summary>
-        /// Returns whether the specified data view is written by the specified data node.
+        /// Returns whether the specified data node uses the specified data view under any of
+        /// <paramref name="usage"/>, i.e. whether <see cref="GetDataViews"/> enumerates it for that
+        /// same usage.
         /// </summary>
-        internal bool IsWritten(DataNodeId dataNodeId, DataViewId dataViewId);
+        internal bool HasUsage(DataNodeId dataNodeId, DataViewId dataViewId, UsageFlags usage);
+
+        /// <inheritdoc cref="HasUsage(DataNodeId, DataViewId, UsageFlags)"/>
+        internal bool HasUsage(DataBindingId dataBindingId, DataViewId dataViewId, UsageFlags usage);
 
         /// <summary>
         /// Retrieves the data container where the specified data view is stored.

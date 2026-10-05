@@ -9,7 +9,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<TaskNodeInfo>.Enumerator m_Inner;
         IIndexable<TaskNodeId, TaskNode> m_Provider;
 
-        internal TaskNodeEnumerator(GraphDataList<TaskNodeInfo> source, IIndexable<TaskNodeId, TaskNode> provider)
+        internal TaskNodeEnumerator(ReadOnlyGraphDataList<TaskNodeInfo> source, IIndexable<TaskNodeId, TaskNode> provider)
         {
             m_Inner = source.GetEnumerator();
             m_Provider = provider;
@@ -38,7 +38,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<DataNodeInfo>.Enumerator m_Inner;
         IIndexable<DataNodeId, DataNode> m_Provider;
 
-        internal DataNodeEnumerator(GraphDataList<DataNodeInfo> source, IIndexable<DataNodeId, DataNode> provider)
+        internal DataNodeEnumerator(ReadOnlyGraphDataList<DataNodeInfo> source, IIndexable<DataNodeId, DataNode> provider)
         {
             m_Inner = source.GetEnumerator();
             m_Provider = provider;
@@ -67,7 +67,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<DataViewInfo>.Enumerator m_Inner;
         IIndexable<DataViewId, DataView> m_Provider;
 
-        internal DataViewEnumerator(GraphDataList<DataViewInfo> source, IIndexable<DataViewId, DataView> provider)
+        internal DataViewEnumerator(ReadOnlyGraphDataList<DataViewInfo> source, IIndexable<DataViewId, DataView> provider)
         {
             m_Inner = source.GetEnumerator();
             m_Provider = provider;
@@ -96,7 +96,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<DataBindingInfo>.Enumerator m_Inner;
         IIndexable<DataBindingId, DataBinding> m_Provider;
 
-        internal DataBindingEnumerator(GraphDataList<DataBindingInfo> source, IIndexable<DataBindingId, DataBinding> provider)
+        internal DataBindingEnumerator(ReadOnlyGraphDataList<DataBindingInfo> source, IIndexable<DataBindingId, DataBinding> provider)
         {
             m_Inner = source.GetEnumerator();
             m_Provider = provider;
@@ -125,7 +125,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         GraphDataList<DataContainerInfo>.Enumerator m_Inner;
         IIndexable<DataContainerId, DataContainer> m_Provider;
 
-        internal DataContainerEnumerator(GraphDataList<DataContainerInfo> source, IIndexable<DataContainerId, DataContainer> provider)
+        internal DataContainerEnumerator(ReadOnlyGraphDataList<DataContainerInfo> source, IIndexable<DataContainerId, DataContainer> provider)
         {
             m_Inner = source.GetEnumerator();
             m_Provider = provider;

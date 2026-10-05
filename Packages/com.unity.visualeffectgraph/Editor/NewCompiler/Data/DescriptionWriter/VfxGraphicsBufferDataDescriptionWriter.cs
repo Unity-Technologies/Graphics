@@ -24,10 +24,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name,
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name,
             string sourceName, CompilationContext context)
         {
-            context.data.GetOrCreate<ResourceTypeContainer>().TryGetBufferType(usedDataView, dataNode, out var bufferType);
+            context.data.GetOrCreate<ResourceTypeContainer>().TryGetBufferType(dataView, dataNode, out var bufferType);
             shaderWriter.WriteVariableDeclaration(VfxBufferTypeHlsl.GetDeclaration(bufferType) ?? RawBufferType, name);
 
             // Nothing to build a view over: the buffer is what the generated code names.
@@ -59,15 +59,15 @@ namespace UnityEditor.VFX
         /// task node itself needs: the shape is shared by every reader, but whether a task reads or writes
         /// it is per task, resolved off the generic usage its binding registered.
         /// </summary>
-        public bool TryGetBufferType(DataView usedDataView, DataNode dataNode, out BufferType bufferType)
+        public bool TryGetBufferType(DataView dataView, DataNode dataNode, out BufferType bufferType)
         {
-            if (!TryGetShape(usedDataView.Id, out var shape))
+            if (!TryGetShape(dataView.Id, out var shape))
             {
                 bufferType = default;
                 return false;
             }
 
-            bufferType = VfxBufferTypeHlsl.WithReadWrite(shape, dataNode.IsWritten(usedDataView.Id));
+            bufferType = VfxBufferTypeHlsl.WithReadWrite(shape, dataNode.Writes(dataView.Id));
             return true;
         }
 

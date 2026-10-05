@@ -7,23 +7,16 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <summary>
     /// Represents a graph of tasks and data nodes with their dependencies.
     /// </summary>
-    sealed partial class TaskGraph : IGraph
+    sealed class TaskGraph : IGraph
     {
-        // Note: not readonly so the copy ctor can rebind via CopyPrimaryStateFrom.
-        // Reference reassignment otherwise never happens at runtime.
-        GraphDataList<TaskNodeInfo> m_TaskNodes = new();
-        GraphDataList<DataNodeInfo> m_DataNodes = new();
-        GraphDataList<DataContainerInfo> m_DataContainers = new();
-        GraphDataList<DataViewInfo> m_DataViews = new();
-        GraphDataList<DataBindingInfo> m_DataBindings = new();
+        // Private so that TaskGraph is the only writer: caches and providers get the ReadOnly base.
+        readonly TaskGraphStore m_Store;
 
-        HashSet<DataDependency> m_DataDependencies = new();
-
-        TaskNodeProvider m_TaskNodeProvider;
-        DataNodeProvider m_DataNodeProvider;
-        DataViewProvider m_DataViewProvider;
-        DataBindingProvider m_DataBindingProvider;
-        DataContainerProvider m_DataContainerProvider;
+        readonly TaskNodeProvider m_TaskNodeProvider;
+        readonly DataNodeProvider m_DataNodeProvider;
+        readonly DataViewProvider m_DataViewProvider;
+        readonly DataBindingProvider m_DataBindingProvider;
+        readonly DataContainerProvider m_DataContainerProvider;
 
         readonly List<IGraphLifecycleObserver>  m_LifecycleObservers    = new();
         readonly List<ITaskObserver>            m_TaskObservers          = new();
@@ -62,42 +55,29 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </summary>
         public TaskGraph() : this(source: null, copyCache: false) { }
 
+        // DataNodeToDataViewsCache reads through a provider, so it is built after them.
         private TaskGraph(TaskGraph source, bool copyCache = true)
         {
-            InitProviders();
-            if (source != null) CopyPrimaryStateFrom(source);
+            m_Store = source != null ? new TaskGraphStore(source.m_Store) : new TaskGraphStore();
 
-            DataViewTrees              = RegisterCache(new DataViewTreesCache(this),              source?.DataViewTrees,              copyCache);
-            TaskNodeGraph              = RegisterCache(new TaskNodeGraphCache(this),              source?.TaskNodeGraph,              copyCache);
-            DataNodeGraph              = RegisterCache(new DataNodeGraphCache(this),              source?.DataNodeGraph,              copyCache);
-            TaskNodeToDataNodes        = RegisterCache(new TaskNodeToDataNodesCache(this),        source?.TaskNodeToDataNodes,        copyCache);
-            TaskNodeToDataBindings     = RegisterCache(new TaskNodeToDataBindingsCache(this),     source?.TaskNodeToDataBindings,     copyCache);
-            DataNodeToDataBindings     = RegisterCache(new DataNodeToDataBindingsCache(this),     source?.DataNodeToDataBindings,     copyCache);
-            DataViewToDataContainer    = RegisterCache(new DataViewToDataContainerCache(this),    source?.DataViewToDataContainer,    copyCache);
-            DataNodeToDataViews        = RegisterCache(new DataNodeToDataViewsCache(this),        source?.DataNodeToDataViews,        copyCache);
+            DataViewTrees              = RegisterCache(new DataViewTreesCache(m_Store),              source?.DataViewTrees,              copyCache);
+            TaskNodeGraph              = RegisterCache(new TaskNodeGraphCache(m_Store),              source?.TaskNodeGraph,              copyCache);
+            DataNodeGraph              = RegisterCache(new DataNodeGraphCache(m_Store),              source?.DataNodeGraph,              copyCache);
+            TaskNodeToDataNodes        = RegisterCache(new TaskNodeToDataNodesCache(m_Store),        source?.TaskNodeToDataNodes,        copyCache);
+            TaskNodeToDataBindings     = RegisterCache(new TaskNodeToDataBindingsCache(m_Store),     source?.TaskNodeToDataBindings,     copyCache);
+            DataNodeToDataBindings     = RegisterCache(new DataNodeToDataBindingsCache(m_Store),     source?.DataNodeToDataBindings,     copyCache);
+            DataViewToDataContainer    = RegisterCache(new DataViewToDataContainerCache(m_Store),    source?.DataViewToDataContainer,    copyCache);
+
+            m_TaskNodeProvider      = new TaskNodeProvider(this, m_Store, TaskNodeGraph);
+            m_DataNodeProvider      = new DataNodeProvider(this, m_Store, DataNodeGraph);
+            m_DataViewProvider      = new DataViewProvider(this, m_Store, DataViewTrees);
+            m_DataBindingProvider   = new DataBindingProvider(this, m_Store);
+            m_DataContainerProvider = new DataContainerProvider(this, m_Store);
+
+            DataNodeToDataViews        = RegisterCache(new DataNodeToDataViewsCache(m_Store, m_DataViewProvider), source?.DataNodeToDataViews, copyCache);
         }
 
-        void InitProviders()
-        {
-            m_TaskNodeProvider      = new TaskNodeProvider(this);
-            m_DataNodeProvider      = new DataNodeProvider(this);
-            m_DataViewProvider      = new DataViewProvider(this);
-            m_DataBindingProvider   = new DataBindingProvider(this);
-            m_DataContainerProvider = new DataContainerProvider(this);
-        }
-
-        void CopyPrimaryStateFrom(TaskGraph source)
-        {
-            m_TaskNodes      = new(source.m_TaskNodes);
-            m_DataNodes      = new(source.m_DataNodes);
-            m_DataContainers = new(source.m_DataContainers);
-            m_DataViews      = new(source.m_DataViews);
-            m_DataBindings   = new(source.m_DataBindings);
-
-            m_DataDependencies = new(source.m_DataDependencies);
-        }
-
-        T RegisterCache<T>(T cache, T sourcePeer, bool copyCache) where T : class, ICopyableCache<T>
+        T RegisterCache<T>(T cache, T sourcePeer, bool copyCache) where T : class, ICopyableCache<T>, IGraphLifecycleObserver
         {
             if (sourcePeer != null)
             {
@@ -108,9 +88,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return cache;
         }
 
-        internal void RegisterObserver(object observer)
+        public void RegisterObserver(IGraphLifecycleObserver observer)
         {
-            if (observer is IGraphLifecycleObserver lifecycle) m_LifecycleObservers.Add(lifecycle);
+            m_LifecycleObservers.Add(observer);
             if (observer is ITaskObserver task)                m_TaskObservers.Add(task);
             if (observer is IDataNodeObserver dataNode)        m_DataNodeObservers.Add(dataNode);
             if (observer is IDataBindingObserver dataBinding)  m_DataBindingObservers.Add(dataBinding);
@@ -118,9 +98,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             if (observer is IDataContainerObserver container)  m_DataContainerObservers.Add(container);
         }
 
-        internal void UnregisterObserver(object observer)
+        public void UnregisterObserver(IGraphLifecycleObserver observer)
         {
-            if (observer is IGraphLifecycleObserver lifecycle) m_LifecycleObservers.Remove(lifecycle);
+            m_LifecycleObservers.Remove(observer);
             if (observer is ITaskObserver task)                m_TaskObservers.Remove(task);
             if (observer is IDataNodeObserver dataNode)        m_DataNodeObservers.Remove(dataNode);
             if (observer is IDataBindingObserver dataBinding)  m_DataBindingObservers.Remove(dataBinding);
@@ -131,12 +111,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <inheritdoc/>
         public void Clear()
         {
-            m_TaskNodes.Clear();
-            m_DataNodes.Clear();
-            m_DataContainers.Clear();
-            m_DataViews.Clear();
-            m_DataBindings.Clear();
-            m_DataDependencies.Clear();
+            m_Store.Clear();
 
             Version = 1u;
             NotifyGraphCleared();
@@ -146,7 +121,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public TaskNodeId AddTask(ITask task, string name = null)
         {
             Version++;
-            m_TaskNodes.Allocate(out var taskNodeId) = new TaskNodeInfo(taskNodeId, task, name);
+            m_Store.AllocateTaskNode(out var taskNodeId) = new TaskNodeInfo(taskNodeId, task, name);
             NotifyTaskNodeAdded(taskNodeId, task, name);
             return taskNodeId;
         }
@@ -156,8 +131,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             Version++;
 
-            m_DataViews.Allocate(out var dataViewId) = new DataViewInfo(dataViewId, dataDescription);
-            m_DataContainers.Allocate(out var dataContainerId) = new DataContainerInfo(dataContainerId, name, dataViewId);
+            m_Store.AllocateDataView(out var dataViewId) = new DataViewInfo(dataViewId, dataDescription);
+            m_Store.AllocateDataContainer(out var dataContainerId) = new DataContainerInfo(dataContainerId, name, dataViewId);
 
             NotifyDataContainerAdded(dataContainerId, name, dataViewId);
             NotifyDataViewAdded(dataViewId, DataViewId.Invalid, dataContainerId, dataDescription);
@@ -169,9 +144,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <inheritdoc/>
         public void OverrideDataDescription(DataViewId dataViewId, IDataDescription dataDescription)
         {
-            DataViewInfo dataViewInfo = m_DataViews[dataViewId];
+            DataViewInfo dataViewInfo = m_Store.DataViews[dataViewId];
             Debug.Assert(dataViewInfo.DataDescription.IsCompatible(dataDescription));
-            m_DataViews[dataViewId] = new DataViewInfo(dataViewInfo.Id, dataDescription, dataViewInfo.ParentDataViewId, dataViewInfo.SubDataKey );
+            m_Store.SetDataView(dataViewId, new DataViewInfo(dataViewInfo.Id, dataDescription, dataViewInfo.ParentDataViewId, dataViewInfo.SubDataKey));
         }
 
         /// <inheritdoc/>
@@ -180,7 +155,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             if (!DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out DataViewId dataViewId))
             {
                 dataViewId = DataViewId.Invalid;
-                IDataDescription targetDataDescription = m_DataViews[parentDataViewId].DataDescription.GetSubdata(subDataKey);
+                IDataDescription targetDataDescription = m_Store.DataViews[parentDataViewId].DataDescription.GetSubdata(subDataKey);
                 if (targetDataDescription != null)
                 {
                     if (dataDescription == null)
@@ -194,7 +169,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                     Version++;
 
                     var containerId = DataViews[parentDataViewId].DataContainer.Id;
-                    m_DataViews.Allocate(out var newDataViewId) = new DataViewInfo(newDataViewId, dataDescription, parentDataViewId, subDataKey);
+                    m_Store.AllocateDataView(out var newDataViewId) = new DataViewInfo(newDataViewId, dataDescription, parentDataViewId, subDataKey);
                     dataViewId = newDataViewId;
 
                     NotifyDataViewAdded(dataViewId, parentDataViewId, containerId, dataDescription);
@@ -202,7 +177,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
             else if (dataDescription != null)
             {
-                Debug.Assert(m_DataViews[dataViewId].DataDescription.IsCompatible(dataDescription));
+                Debug.Assert(m_Store.DataViews[dataViewId].DataDescription.IsCompatible(dataDescription));
             }
 
             return dataViewId;
@@ -226,7 +201,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             readPaths = new();
             writePaths = new();
-            var usageFromTask = m_TaskNodes[taskNodeId].Task.GetBindingUsage(bindingKey, readPaths, writePaths);
+            var usageFromTask = m_Store.TaskNodes[taskNodeId].Task.GetBindingUsage(bindingKey, readPaths, writePaths);
 
             if (usage != BindingUsage.Unknown)
             {
@@ -270,14 +245,15 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             if (!TaskNodeToDataNodes.TryGetDataNode(taskNodeId, dataContainerId, out var dataNodeId))
             {
-                m_DataNodes.Allocate(out var newDataNodeId) = new DataNodeInfo(newDataNodeId, taskNodeId, dataContainerId);
+                m_Store.AllocateDataNode(out var newDataNodeId) = new DataNodeInfo(newDataNodeId, taskNodeId, dataContainerId);
                 NotifyDataNodeAdded(newDataNodeId, taskNodeId, dataContainerId);
                 dataNodeId = newDataNodeId;
             }
 
-            m_DataBindings.Allocate(out var dataBindingId) =
+            m_Store.AllocateDataBinding(out var dataBindingId) =
                 new DataBindingInfo(dataBindingId, dataNodeId, dataViewId, bindingKey, usage);
-            NotifyDataBindingAdded(dataBindingId, dataViewId, dataNodeId, taskNodeId, bindingKey, usage);
+            NotifyDataBindingAdded(dataBindingId, dataViewId, dataNodeId, taskNodeId, bindingKey, usage,
+                readPaths, writePaths);
 
             foreach (var parentNodeId in parentNodeIds)
             {
@@ -332,7 +308,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Debug.Assert(dataNodeId.IsValid);
             Debug.Assert(parentDataNodeId.IsValid);
             Debug.Assert(!dataNodeId.Equals(parentDataNodeId), $"Data node {dataNodeId} cannot depend on itself.");
-            bool added = m_DataDependencies.Add(new DataDependency(dataNodeId, parentDataNodeId));
+            bool added = m_Store.AddDependency(new DataDependency(dataNodeId, parentDataNodeId));
             if (added)
             {
                 Version++;
@@ -372,19 +348,29 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return new(DataBindings, subEnumerable);
         }
 
+        /// <inheritdoc/>
+        UsedDataViewEnumerable IReadOnlyGraph.GetDataViews(DataNodeId dataNodeId, UsageFlags usage)
+            => new(this, DataUsageScope.Of(dataNodeId), RootDataViewOf(dataNodeId), usage);
 
         /// <inheritdoc/>
-        DataView IReadOnlyGraph.GetUsedDataViews(DataNodeId dataNodeId)
-        {
-            var treeNode = DataNodeToDataViews.Data.RootNodes[dataNodeId.Index];
-            return treeNode.Data.IsValid ? new(m_DataViewProvider, treeNode, this, m_DataViews[treeNode.Data]) : new();
-        }
+        // Rooted at the container root like the data node's own views, since a binding reaches its
+        // ancestors as much as its descendants: a task bound to one value of a buffer uses the buffer.
+        UsedDataViewEnumerable IReadOnlyGraph.GetDataViews(DataBindingId dataBindingId, UsageFlags usage)
+            => new(this, DataUsageScope.Of(dataBindingId),
+                RootDataViewOf(m_Store.DataBindings[dataBindingId].DataNodeId), usage);
 
         /// <inheritdoc/>
-        bool IReadOnlyGraph.IsRead(DataNodeId dataNodeId, DataViewId dataViewId) => DataNodeToDataViews.IsRead(dataNodeId, dataViewId);
+        bool IReadOnlyGraph.HasUsage(DataNodeId dataNodeId, DataViewId dataViewId, UsageFlags usage)
+            => DataNodeToDataViews.HasUsage(dataNodeId, dataViewId, usage);
 
         /// <inheritdoc/>
-        bool IReadOnlyGraph.IsWritten(DataNodeId dataNodeId, DataViewId dataViewId) => DataNodeToDataViews.IsWritten(dataNodeId, dataViewId);
+        bool IReadOnlyGraph.HasUsage(DataBindingId dataBindingId, DataViewId dataViewId, UsageFlags usage)
+            => DataNodeToDataViews.HasUsage(dataBindingId, dataViewId, usage);
+
+        // All of a data node's bindings target the same container, so its used views all hang off that
+        // container's root.
+        DataViewId RootDataViewOf(DataNodeId dataNodeId)
+            => m_Store.DataContainers[m_Store.DataNodes[dataNodeId].DataContainerId].RootDataViewId;
 
         /// <inheritdoc/>
         DataContainer IReadOnlyGraph.GetDataContainer(DataViewId dataViewId)
@@ -397,38 +383,23 @@ namespace Unity.GraphCommon.LowLevel.Editor
         bool IReadOnlyGraph.TryGetSubView(DataViewId parentDataViewId, IDataKey subDataKey, out DataViewId dataViewId)
             => DataViewTrees.TryGetSubView(parentDataViewId, subDataKey, out dataViewId);
 
-        // Reads the declaration back from ITask.GetBindingUsage rather than from DataNodeToDataViews: the
-        // cached Read/Written bits propagate upward, so every node touching a container overlaps at its root.
-        // Either output may be null to collect only the other side.
+        // The views the node's bindings declared, straight from the cache, and deliberately not the ones
+        // ReadDataViews/WrittenDataViews report: those also cover ancestors, so every node touching a
+        // container would reduce to its root here. Either output may be null to collect only one side.
         void CollectDeclaredViews(DataNode dataNode, List<DataViewId> readViews, List<DataViewId> writeViews)
         {
             readViews?.Clear();
             writeViews?.Clear();
 
-            var readUsage = readViews != null ? new DataPathSet() : null;
-            var writeUsage = writeViews != null ? new DataPathSet() : null;
+            if (!DataNodeToDataViews.TryGetDeclaredViews(dataNode.Id, out var declaredViews))
+                return;
 
-            var task = dataNode.TaskNode.Task;
-            foreach (var binding in dataNode.DataBindings)
+            foreach (var usage in declaredViews)
             {
-                readUsage?.Clear();
-                writeUsage?.Clear();
-                if (task.GetBindingUsage(binding.BindingDataKey, readUsage, writeUsage) == BindingUsage.Unknown)
-                    continue;
-
-                if (readViews != null)
-                    AddResolvedPaths(binding.DataView, readUsage, readViews);
-                if (writeViews != null)
-                    AddResolvedPaths(binding.DataView, writeUsage, writeViews);
-            }
-        }
-
-        void AddResolvedPaths(DataView bindingDataView, DataPathSet paths, List<DataViewId> result)
-        {
-            foreach (var path in paths)
-            {
-                if (bindingDataView.FindSubData(path, out var subDataView))
-                    AddTopmost(result, subDataView);
+                if (readViews != null && usage.Declares(UsageFlags.Read))
+                    AddTopmost(readViews, DataViews[usage.ViewId]);
+                if (writeViews != null && usage.Declares(UsageFlags.Written))
+                    AddTopmost(writeViews, DataViews[usage.ViewId]);
             }
         }
 
@@ -467,7 +438,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             foreach (var childId in childIds)
             {
-                if (m_DataDependencies.Remove(new DataDependency(childId, dataNode.Id)))
+                if (m_Store.RemoveDependency(new DataDependency(childId, dataNode.Id)))
                     NotifyDataDependencyRemoved(childId, dataNode.Id);
             }
 
@@ -476,7 +447,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             foreach (var parentId in parentIds)
             {
-                if (m_DataDependencies.Remove(new DataDependency(dataNode.Id, parentId)))
+                if (m_Store.RemoveDependency(new DataDependency(dataNode.Id, parentId)))
                     NotifyDataDependencyRemoved(dataNode.Id, parentId);
             }
         }
@@ -549,16 +520,16 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         void RemoveDataNodeAndBindings(DataNodeId dataNodeId)
         {
-            var dataNodeInfo = m_DataNodes[dataNodeId];
+            var dataNodeInfo = m_Store.DataNodes[dataNodeId];
             using var bindingIds = DataNodes[dataNodeId].DataBindings.Snapshot();
 
-            m_DataNodes.Remove(dataNodeId);
+            m_Store.RemoveDataNode(dataNodeId);
             NotifyDataNodeRemoved(dataNodeId, dataNodeInfo.TaskNodeId, dataNodeInfo.DataContainerId);
 
             foreach (var bindingId in bindingIds)
             {
-                var bindingInfo = m_DataBindings[bindingId];
-                m_DataBindings.Remove(bindingId);
+                var bindingInfo = m_Store.DataBindings[bindingId];
+                m_Store.RemoveDataBinding(bindingId);
                 NotifyDataBindingRemoved(bindingId, bindingInfo.DataViewId, dataNodeId, dataNodeInfo.TaskNodeId,
                     bindingInfo.Usage);
             }
@@ -578,7 +549,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             foreach (var dataNodeId in dataNodeIds)
                 RemoveDataNodeAndBindings(dataNodeId);
 
-            m_TaskNodes.Remove(taskNodeId);
+            m_Store.RemoveTaskNode(taskNodeId);
             NotifyTaskNodeRemoved(taskNodeId);
             Version++;
         }
@@ -600,8 +571,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
             else
             {
-                var bindingInfo = m_DataBindings[dataBinding.Value.Id];
-                m_DataBindings.Remove(bindingInfo.Id);
+                var bindingInfo = m_Store.DataBindings[dataBinding.Value.Id];
+                m_Store.RemoveDataBinding(bindingInfo.Id);
                 NotifyDataBindingRemoved(bindingInfo.Id, bindingInfo.DataViewId, dataNode.Id, taskNodeId,
                     bindingInfo.Usage);
             }
@@ -634,11 +605,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
             for (int i = dataViewIds.Count - 1; i >= 0; i--)
             {
                 var dataViewId = dataViewIds[i];
-                NotifyDataViewRemoved(dataViewId, m_DataViews[dataViewId].ParentDataViewId, dataContainerId);
-                m_DataViews.Remove(dataViewId);
+                NotifyDataViewRemoved(dataViewId, m_Store.DataViews[dataViewId].ParentDataViewId, dataContainerId);
+                m_Store.RemoveDataView(dataViewId);
             }
 
-            m_DataContainers.Remove(dataContainerId);
+            m_Store.RemoveDataContainer(dataContainerId);
             NotifyDataContainerRemoved(dataContainerId, rootDataViewId);
             Version++;
         }
@@ -699,10 +670,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         void NotifyDataBindingAdded(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
-            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage)
+            TaskNodeId taskNodeId, IDataKey bindingKey, BindingUsage usage, DataPathSet readPaths, DataPathSet writePaths)
         {
             for (int i = 0; i < m_DataBindingObservers.Count; i++)
-                m_DataBindingObservers[i].OnDataBindingAdded(id, dataViewId, dataNodeId, taskNodeId, bindingKey, usage);
+                m_DataBindingObservers[i].OnDataBindingAdded(id, dataViewId, dataNodeId, taskNodeId, bindingKey, usage,
+                    readPaths, writePaths);
         }
 
         void NotifyDataBindingRemoved(DataBindingId id, DataViewId dataViewId, DataNodeId dataNodeId,
@@ -730,20 +702,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 m_LifecycleObservers[i].OnGraphCleared();
         }
 
-        public bool IsValid(DataViewId dataViewId) => m_DataViews.IsAlive(dataViewId);
-        public bool IsValid(TaskNodeId taskNodeId) => m_TaskNodes.IsAlive(taskNodeId);
-        public bool IsValid(DataNodeId dataNodeId) => m_DataNodes.IsAlive(dataNodeId);
-        public bool IsValid(DataBindingId dataBindingId) => m_DataBindings.IsAlive(dataBindingId);
-        public bool IsValid(DataContainerId dataContainerId) => m_DataContainers.IsAlive(dataContainerId);
-
-        DataViewId FindRootDataViewId(DataViewId dataViewId)
-        {
-            var parentDataView = m_DataViews[dataViewId];
-            while (parentDataView.ParentDataViewId.IsValid)
-            {
-                parentDataView = m_DataViews[parentDataView.ParentDataViewId];
-            }
-            return parentDataView.Id;
-        }
+        public bool IsValid(DataViewId dataViewId) => m_Store.DataViews.IsAlive(dataViewId);
+        public bool IsValid(TaskNodeId taskNodeId) => m_Store.TaskNodes.IsAlive(taskNodeId);
+        public bool IsValid(DataNodeId dataNodeId) => m_Store.DataNodes.IsAlive(dataNodeId);
+        public bool IsValid(DataBindingId dataBindingId) => m_Store.DataBindings.IsAlive(dataBindingId);
+        public bool IsValid(DataContainerId dataContainerId) => m_Store.DataContainers.IsAlive(dataContainerId);
     }
 }

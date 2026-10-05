@@ -47,7 +47,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                             {
                                 if (parentDataNode.Id.Equals(dataNode.Id))
                                     return true;
-                                if (parentDataNode.IsWritten(dataView.Id))
+                                if (parentDataNode.Writes(dataView.Id))
                                 {
                                     int parentNodeIndex = parentDataNode.Id.Index | dataView.Id.Index << 16;
                                     GraphVisualizer.AddLink(sb, parentNodeIndex, nodeIndex);
@@ -182,13 +182,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             bool anyRead = false;
             bool anyWritten = false;
-            if (dataNode.UsedDataViewsRoot.Valid)
+            foreach (var dataView in dataNode.UsedDataViews)
             {
-                foreach (var dataView in dataNode.UsedDataViews)
-                {
-                    anyRead |= dataNode.IsRead(dataView.Id);
-                    anyWritten |= dataNode.IsWritten(dataView.Id);
-                }
+                anyRead |= dataNode.Reads(dataView.Id);
+                anyWritten |= dataNode.Writes(dataView.Id);
             }
 
             var bindingsList = new List<string>(dataNode.DataBindings.Count);
@@ -202,8 +199,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             // The data views used by this node, laid out as a tree: each parent view sits above its
             // (indented) children, colour- and tag-coded by whether this node reads and/or writes it.
             html.Append("<BR ALIGN=\"LEFT\"/>");
-            if (dataNode.UsedDataViewsRoot.Valid)
-                AppendDataViewHierarchy(html, dataNode, dataNode.UsedDataViewsRoot, 0);
+            var rootDataView = dataNode.DataContainer.RootDataView;
+            if (dataNode.Uses(rootDataView.Id))
+                AppendDataViewHierarchy(html, dataNode, rootDataView, 0);
             html.Append("<FONT POINT-SIZE=\"8\" COLOR=\"#888888\">#")
                 .Append(dataNode.Id.Index)
                 .Append("</FONT>");
@@ -224,8 +222,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         // children) to the node's HTML label, colour- and tag-coded by this node's read/write usage.
         static void AppendDataViewHierarchy(StringBuilder html, DataNode dataNode, DataView dataView, int depth)
         {
-            bool read = dataNode.IsRead(dataView.Id);
-            bool written = dataNode.IsWritten(dataView.Id);
+            bool read = dataNode.Reads(dataView.Id);
+            bool written = dataNode.Writes(dataView.Id);
             (string color, string tag) = (read, written) switch
             {
                 (true,  true)  => ("#7a3fa0", " [RW]"), // read + written — purple
@@ -242,7 +240,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 .Append("</FONT><BR ALIGN=\"LEFT\"/>");
 
             foreach (var child in dataView.Children)
-                AppendDataViewHierarchy(html, dataNode, child, depth + 1);
+            {
+                if (dataNode.Uses(child.Id))
+                    AppendDataViewHierarchy(html, dataNode, child, depth + 1);
+            }
         }
 
         // Pick (fill, border) colors for a task cluster based on a coarse category.

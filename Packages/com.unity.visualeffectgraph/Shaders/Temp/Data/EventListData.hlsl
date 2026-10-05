@@ -78,12 +78,12 @@ struct GPUEventListData
         for (uint i = 0; i < count; ++i)
         {
             uint eventIndex;
-            elementCountBuffer.DoInterlockedAdd(0, 1u, eventIndex);
+            DoInterlockedAdd(elementCountBuffer, 0, 1u, eventIndex);
             if (eventIndex < capacity)
                 indexBuffer.StoreData(index, eventIndex);
         }
         uint original;
-        totalCountBuffer.DoInterlockedAdd(0, count, original);
+        DoInterlockedAdd(totalCountBuffer, 0, count, original);
     }
 };
 

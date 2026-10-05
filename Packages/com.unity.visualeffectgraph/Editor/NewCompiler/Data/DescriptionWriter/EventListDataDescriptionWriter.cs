@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine;
 
@@ -28,6 +27,17 @@ namespace UnityEditor.VFX
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/EventListData.hlsl");
 
             var attributeData = dataView.FindSubData(EventData.AttributeDataKey, out var attributeDataView) ? attributeDataView.DataDescription as AttributeData : null;
+
+            shaderWriter.WriteVariableDeclaration(
+                eventListData.IsCpu ? "StructuredBuffer<uint>" : "RWStructuredBuffer<uint>",
+                EventIndexListResourceName(name));
+            shaderWriter.NewLine();
+            if (attributeData != null)
+            {
+                shaderWriter.WriteVariableDeclaration("ByteAddressBuffer", AttributeBufferResourceName(name));
+                shaderWriter.NewLine();
+            }
+
             if (attributeData != null)
             {
                 shaderWriter.NewLine();
@@ -88,18 +98,18 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
-            usedDataView.FindSubData(EventData.AttributeDataKey, out var attributeUsedDataView);
-            bool needsAttributeData = attributeUsedDataView.Valid;
+            bool needsAttributeData = dataView.FindSubData(EventData.AttributeDataKey, out var attributeDataView)
+                && dataNode.Uses(attributeDataView.Id);
             if (needsAttributeData)
             {
-                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, dataNode, name + "_Attributes", sourceName + "_Attributes", context);
+                m_AttributeDataWriter.WriteView(shaderWriter, attributeDataView, dataNode, name + "_Attributes", sourceName + "_Attributes", context);
                 shaderWriter.NewLine();
             }
             shaderWriter.WriteLine($"struct {name}View");
             shaderWriter.OpenBlock();
-            var eventListData = usedDataView.DataDescription as EventListData;
+            var eventListData = dataView.DataDescription as EventListData;
             if (eventListData.IsCpu)
             {
                 shaderWriter.WriteLine("CPUEventListData eventListData;");
@@ -135,22 +145,6 @@ namespace UnityEditor.VFX
             shaderWriter.CloseBlock(false);
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
             return true;
-        }
-
-        public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
-        {
-            if (usedDataView.Valid)
-            {
-                bool isCpu = (usedDataView.DataDescription as EventListData).IsCpu;
-                yield return (isCpu ? "StructuredBuffer<uint>" : "RWStructuredBuffer<uint>", EventIndexListResourceName(name));
-            }
-
-            if (usedDataView.FindSubData(EventData.AttributeDataKey, out var _))
-            {
-                string attributeBufferType = "ByteAddressBuffer";
-                string attributeBufferName = AttributeBufferResourceName(name);
-                yield return (attributeBufferType, attributeBufferName);
-            }
         }
 
         public string GetResourceName(DataView dataView)

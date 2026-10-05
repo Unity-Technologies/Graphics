@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine.VFX;
 using UnityEngine;
+using static UnityEditor.VFX.VfxTemplateBindings;
 
 namespace UnityEditor.VFX
 {
@@ -25,24 +26,16 @@ namespace UnityEditor.VFX
             public bool Built { get; set; }
         }
 
-        static DataPath AttributeDataPath { get; } = DataPath.Root + ParticleData.AttributeDataKey;
-        static IDataKey ParticleDataBindingKey { get; } = new NameDataKey("ParticleDataBinding");
-        static IDataKey GraphValuesKey { get; } = new NameDataKey("GraphValues");
-        static IDataKey EventListDataBindingKey { get; } = new NameDataKey("EventListDataBinding");
-        static IDataKey SourceAttributesBindingKey { get; } = new NameDataKey("SourceAttributeDataBinding");
-
-        static IDataKey ContextDataKey { get; } = new NameDataKey("ContextData");
-        static IDataKey MaxParticleCountKey { get; } = new NameDataKey("maxParticleCount");
-        static DataPath MaxParticleCountPath { get; } = DataPath.Root + MaxParticleCountKey;
-        static IDataKey SystemSeedKey { get; } = new NameDataKey("systemSeed");
-        static DataPath SystemSeedPath { get; } = DataPath.Root + SystemSeedKey;
-        static IDataKey InitSpawnIndexKey { get; } = new NameDataKey("initSpawnIndex");
-        static DataPath InitSpawnIndexPath { get; } = DataPath.Root + InitSpawnIndexKey;
-
         Dictionary<VFXData, BuildInfo> m_ParticleSystems = new();
         Dictionary<IDataDescription, Dictionary<string, uint>> m_GraphValueNameCounts = new();
 
         readonly SubtaskBuilder m_SubtaskBuilder = new();
+        readonly OutputUpdateTaskBuilder m_OutputUpdateTaskBuilder;
+
+        public ParticleSystemBuilder()
+        {
+            m_OutputUpdateTaskBuilder = new OutputUpdateTaskBuilder(m_SubtaskBuilder);
+        }
 
         public override bool ProcessContext(VFXContext context)
         {
@@ -123,7 +116,7 @@ namespace UnityEditor.VFX
 
             if (buildInfo.InitContext != null)
             {
-                var contextTaskId = AddContextTask(buildInfo.InitContext, "Init", systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+                var contextTaskId = AddContextTask(buildInfo.InitContext, "Init", VfxTaskStage.Initialize, systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
                 if (GetInputEventList(buildInfo, particleSystemName, systemTaskId, out var eventListDataViewId, out var sourceAttributesViewId))
                 {
                     TaskGraphBuilder.BindData(contextTaskId, EventListDataBindingKey, eventListDataViewId);
@@ -133,7 +126,7 @@ namespace UnityEditor.VFX
 
             foreach (var updateContext in buildInfo.UpdateContexts)
             {
-                var contextTaskId = AddContextTask(updateContext, "Update", systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+                var contextTaskId = AddContextTask(updateContext, "Update", VfxTaskStage.Update, systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
 
                 if (buildInfo.OutputGpuEvents.TryGetValue(updateContext, out var outputGpuEvents))
                 {
@@ -148,10 +141,34 @@ namespace UnityEditor.VFX
 
             foreach (var outputContext in buildInfo.OutputContexts)
             {
-                var contextTaskId = AddContextTask(outputContext, "Output", systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+                var outputTaskId = AddContextTask(outputContext, "Output", VfxTaskStage.Output, systemTaskId, particleSystemName, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+
+                var renderingData = BuildRenderingDataDescription(buildInfo.Data, outputContext.name);
+                var renderingDataId = TaskGraphBuilder.AddData(renderingData.Name, renderingData);
+
+                if (outputContext.HasSorting())
+                {
+                    TaskGraphBuilder.BindData(systemTaskId, ParticleSystemTask.InputSortingBufferKey, renderingDataId,
+                        BindingUsage.Write);
+
+                    var outputUpdateTaskId = AddOutputUpdateTask(outputContext, systemTaskId, particleSystemName,
+                        particleDataDescription.Space, particleDataViewId, contextDataViewId, graphValuesBufferViewId);
+
+                    TaskGraphBuilder.BindData(outputUpdateTaskId, RenderingDataBindingKey, renderingDataId);
+
+                    AddSortTask(outputContext, particleSystemName, renderingDataId);
+                }
+                else if (outputContext.HasIndirectDraw())
+                {
+                    TaskGraphBuilder.BindData(systemTaskId, ParticleSystemTask.IndirectBufferKey, renderingDataId,
+                        BindingUsage.Write);
+
+                    AddFillIndirectTask(outputContext, particleSystemName, particleDataViewId, contextDataViewId,
+                        renderingDataId);
+                }
+                TaskGraphBuilder.BindData(outputTaskId, RenderingDataBindingKey, renderingDataId, BindingUsage.Read);
             }
 
-            // Register particle data for this particle system
             RegisterDataView(buildInfo, particleDataViewId);
 
             buildInfo.Built = true;
@@ -258,17 +275,50 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        TaskNodeId AddContextTask(VFXContext context, string templateName, TaskNodeId systemTaskId, string particleSystemName,
+        TaskNodeId AddContextTask(VFXContext context, string templateName, VfxTaskStage stage, TaskNodeId systemTaskId, string particleSystemName,
             DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
         {
             // Resolved once and shared: the task bindings, the subtask code and the data bindings below all
             // have to agree on the name each expression is bound under.
             var contextExpressions = new ContextExpressions(context, ExpressionGraph);
 
-            var contextTask = BuildContextTask(context, templateName, contextExpressions);
+            var contextTask = BuildContextTask(context, templateName, stage, contextExpressions);
             var contextTaskId = TaskGraphBuilder.AddTask(contextTask, $"{particleSystemName} {templateName}");
             BindSharedData(context, contextTaskId, systemTaskId, particleDataViewId, contextDataViewId, graphValuesBufferViewId, contextExpressions);
             return contextTaskId;
+        }
+
+        TaskNodeId AddOutputUpdateTask(VFXAbstractParticleOutput outputContext, TaskNodeId systemTaskId,
+            string particleSystemName, VFXSpace space, DataViewId particleDataViewId,
+            DataViewId contextDataViewId, DataViewId graphValuesBufferViewId)
+        {
+            var task = m_OutputUpdateTaskBuilder.Build(outputContext, space, ExpressionGraph, CompilationMode,
+                out var expressions);
+
+            var taskId = TaskGraphBuilder.AddTask(task, $"{particleSystemName} OutputUpdate");
+            BindSharedData(outputContext, taskId, systemTaskId, particleDataViewId, contextDataViewId,
+                graphValuesBufferViewId, expressions);
+            return taskId;
+        }
+
+        void AddFillIndirectTask(VFXAbstractParticleOutput outputContext, string particleSystemName,
+            DataViewId particleDataViewId, DataViewId contextDataViewId, DataViewId renderingDataId)
+        {
+            var task = FillIndirectTaskBuilder.Build(outputContext);
+            var taskId = TaskGraphBuilder.AddTask(task, $"{particleSystemName} FillIndirect");
+
+            TaskGraphBuilder.BindData(taskId, ParticleDataBindingKey, particleDataViewId);
+            TaskGraphBuilder.BindData(taskId, ContextDataKey, contextDataViewId);
+            TaskGraphBuilder.BindData(taskId, RenderingDataBindingKey, renderingDataId);
+        }
+
+        void AddSortTask(VFXAbstractParticleOutput outputContext, string particleSystemName,
+            DataViewId renderingDataId)
+        {
+            var sortTask = new SortTask(OutputUpdateTaskBuilder.IsPerCamera(outputContext));
+            var sortTaskId = TaskGraphBuilder.AddTask(sortTask, $"{particleSystemName} Sort");
+
+            TaskGraphBuilder.BindData(sortTaskId, SortTask.RenderingDataBindingKey, renderingDataId);
         }
 
         DataViewId BuildGraphValuesBuffer(out DataViewId contextDataViewId)
@@ -390,26 +440,37 @@ namespace UnityEditor.VFX
             return new ParticleData(particleSystemName, new Bounds(), data is ISpaceable spaceable ? spaceable.space : VFXSpace.None, capacity);
         }
 
-        ITask BuildContextTask(VFXContext context, string templateName, ContextExpressions contextExpressions)
+        RenderingData BuildRenderingDataDescription(VFXData data, string outputName)
+        {
+            uint capacity = (uint)data.GetSettingValue("capacity");
+            return new RenderingData($"{outputName}_RenderingData", capacity);
+        }
+
+        ITask BuildContextTask(VFXContext context, string templateName, VfxTaskStage stage, ContextExpressions contextExpressions)
         {
             VfxTemplatedTask.Args args = new VfxTemplatedTask.Args
             {
+                Stage = stage,
+                Topology = VfxOutputTopology.Quad, // The only topology the code generation emits so far.
                 BaseArgs = new TemplatedTask.Args
                 {
-                    Subtasks = m_SubtaskBuilder.GenerateSubtasks(context, contextExpressions),
+                    Subtasks = new(),
                     Bindings = new(),
                 },
+                ContextParameters = new(),
+                ParameterValues = new(),
                 AttributeKeyMappings = new()
                 {
                     [IntermediateGraphBuilder.DefaultAttributeKey] = new(ParticleDataBindingKey, AttributeDataPath)
                 }
             };
 
+            m_SubtaskBuilder.GenerateSubtasks(context, contextExpressions, args);
+
             // In the future this should be handled by reflection
             CollectContextTaskArgs(context, args, contextExpressions);
 
-            bool isCompute = context is not VFXAbstractParticleOutput;
-            return new VfxTemplatedTask(templateName, args, isCompute, context.GetEntityId());
+            return new VfxTemplatedTask(templateName, args, EntityId.None);
         }
 
         void CollectContextTaskArgs(VFXContext context, VfxTemplatedTask.Args args, ContextExpressions contextExpressions)
@@ -421,27 +482,28 @@ namespace UnityEditor.VFX
 
             if (BindsCpuExpressionsOnContextTask(context))
             {
-                foreach (var paramBinding in contextExpressions.CreateContextParamBindings())
+                foreach (var parameterBinding in contextExpressions.CreateContextParameterBindings())
                 {
-                    args.BaseArgs.Bindings.Add(paramBinding);
+                    args.BaseArgs.Bindings.Add(parameterBinding);
                 }
             }
 
             switch (context)
             {
                 case VFXBasicInitialize initContext:
-                    CollectInitArgs(initContext, args);
+                    CollectInitArgs(initContext, args, contextExpressions);
                     break;
                 case VFXBasicUpdate updateContext:
-                    CollectUpdateArgs(updateContext, args);
+                    CollectUpdateArgs(updateContext, args, contextExpressions);
                     break;
                 case VFXAbstractParticleOutput outputContext:
-                    CollectOutputArgs(outputContext, args);
+                    CollectOutputArgs(outputContext, args, contextExpressions);
                     break;
             }
         }
 
-        void CollectInitArgs(VFXBasicInitialize initContext, VfxTemplatedTask.Args args)
+        void CollectInitArgs(VFXBasicInitialize initContext, VfxTemplatedTask.Args args,
+            ContextExpressions contextExpressions)
         {
             var bindings = args.BaseArgs.Bindings;
 
@@ -471,7 +533,8 @@ namespace UnityEditor.VFX
             args.AttributeKeyMappings.Add(IntermediateGraphBuilder.SourceAttributeKey, new(SourceAttributesBindingKey, DataPath.Root));
         }
 
-        void CollectUpdateArgs(VFXBasicUpdate updateContext, VfxTemplatedTask.Args args)
+        void CollectUpdateArgs(VFXBasicUpdate updateContext, VfxTemplatedTask.Args args,
+            ContextExpressions contextExpressions)
         {
             var bindings = args.BaseArgs.Bindings;
             var subtasks = args.BaseArgs.Subtasks;
@@ -518,18 +581,31 @@ namespace UnityEditor.VFX
             };
         }
 
-        void CollectOutputArgs(VFXAbstractParticleOutput outputContext, VfxTemplatedTask.Args args)
+        void CollectOutputArgs(VFXAbstractParticleOutput outputContext, VfxTemplatedTask.Args args,
+            ContextExpressions contextExpressions)
         {
             var bindings = args.BaseArgs.Bindings;
 
             var particleSystemBinding = new TemplatedTaskBinding<ParticleData>(ParticleDataBindingKey);
-            particleSystemBinding.Add(AttributeDataPath, outputContext.attributes);
+            particleSystemBinding.AddAsRead(AttributeDataPath, outputContext.attributes);
             bindings.Add(particleSystemBinding);
 
             var contextDataBinding = new TemplatedTaskBinding<ValueData>(ContextDataKey);
             contextDataBinding.ReadPathSet.Add(MaxParticleCountPath);
             contextDataBinding.ReadPathSet.Add(SystemSeedPath);
             bindings.Add(contextDataBinding);
+
+            var renderingDataBinding = new TemplatedTaskBinding<RenderingData>(RenderingDataBindingKey);
+            if(outputContext.HasIndirectDraw())
+                renderingDataBinding.ReadPathSet.Add(DataPath.Root + RenderingData.IndirectBuffer);
+            bindings.Add(renderingDataBinding);
+
+            if (outputContext.HasIndirectDraw())
+            {
+                args.ParameterValues.Add((VfxOutputTaskParameters.IndirectDrawKey, 1));
+                if (outputContext.HasSorting() && OutputUpdateTaskBuilder.IsPerCamera(outputContext))
+                    args.ParameterValues.Add((VfxOutputTaskParameters.IndirectPerCameraKey, 1));
+            }
 
             // Remove write attributes from attribute set, because attribute writes in outputs are ignored
             foreach (var subtask in args.BaseArgs.Subtasks)

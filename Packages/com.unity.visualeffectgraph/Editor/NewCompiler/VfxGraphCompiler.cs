@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
             m_DataWriter.Register(new ParticleSystemDataDescriptionWriter(attributeDataWriter));
             m_DataWriter.Register(new StructuredDataDescriptionWriter());
             m_DataWriter.Register(new EventListDataDescriptionWriter(attributeDataWriter));
+            m_DataWriter.Register(new RenderingDataDescriptionWriter());
 
             m_DataWriter.Register(new VfxTextureDataDescriptionWriter());
             m_DataWriter.Register(new VfxGraphicsBufferDataDescriptionWriter());
@@ -32,10 +33,12 @@ namespace UnityEditor.VFX
                 new ParticleSystemPass(),
                 new SpawnerSystemPass(),
                 new BufferConversionPass(),
-                new SpawnerToVfxTaskPass(),
                 new SystemTaskBindingsPass(),
                 new VfxTemplateCodeGenerationPass(m_DataWriter),
-                new TemplateToVfxTaskPass(m_DataWriter),
+                new TaskLoweringPass(
+                    new TemplateTaskLowering(m_DataWriter),
+                    new SortTaskLowering(),
+                    new SpawnerTaskLowering()),
                 new InstancingBuffersPass());
         }
 

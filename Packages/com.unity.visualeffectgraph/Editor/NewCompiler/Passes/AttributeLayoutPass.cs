@@ -45,8 +45,8 @@ namespace UnityEditor.VFX
 
                         attributeKeys.TryAdd(dataView.Id, 0);
 
-                        bool isRead = dataNode.IsRead(dataView.Id);
-                        bool isWritten = dataNode.IsWritten(dataView.Id);
+                        bool isRead = dataNode.Reads(dataView.Id);
+                        bool isWritten = dataNode.Writes(dataView.Id);
 
                         long readWriteValue = 0;
                         if (isRead)
@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
                             {
                                 if(dataNode.Id.Equals(parentDataNode.Id))
                                     continue;
-                                if (parentDataNode.IsWritten(dataView.Id))
+                                if (parentDataNode.Writes(dataView.Id))
                                 {
                                     storedAttributes.Add(dataView.Id);
                                     break;

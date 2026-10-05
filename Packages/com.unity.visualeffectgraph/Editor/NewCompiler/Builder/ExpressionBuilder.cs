@@ -16,10 +16,8 @@ namespace UnityEditor.VFX
 
         public override void Build()
         {
-            var expressionGraphOptions = CompilationMode == VFXCompilationMode.Runtime
-                ? VFXExpressionContextOption.ConstantFolding
-                : VFXExpressionContextOption.Reduction;
-            ExpressionGraph.CompileExpressions(m_CompilableContexts, expressionGraphOptions);
+            ExpressionGraph.CompileExpressions(m_CompilableContexts,
+                VfxExpressionReducer.GetReductionOptions(CompilationMode));
         }
 
         public override void EndBuilding()
