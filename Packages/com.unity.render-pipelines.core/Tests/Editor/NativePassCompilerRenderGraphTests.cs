@@ -5,6 +5,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -2514,6 +2515,9 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void CompileOnFreshCompilationCacheEntry_DoesNotAllocateGCMemory()
         {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+
             RenderGraph.s_EnableCompilationCachingForTests = true;
             NativePassCompiler.s_ForceGenerateAuditsForTests = false;
             try
