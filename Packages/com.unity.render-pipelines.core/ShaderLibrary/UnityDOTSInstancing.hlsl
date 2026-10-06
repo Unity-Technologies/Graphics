@@ -625,17 +625,25 @@ float4x4 LoadDOTSInstancedDataOverridden_float4x4_from_float3x4(uint metadata)
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
 {
-    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8);
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 2 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
+
     return float2x4(
-        asfloat(DOTSInstanceData_Load4(address + 0 * 8)),
-        asfloat(DOTSInstanceData_Load4(address + 1 * 8)));
+        p1.x, p1.z, p2.x, p2.z,
+        p1.y, p1.w, p2.y, p2.w
+    );
 }
 float2x4 LoadDOTSInstancedDataOverridden_float2x4(uint metadata)
 {
-    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 4 * 8);
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, 2 * 16);
+    float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
+
     return float2x4(
-        asfloat(DOTSInstanceData_Load4(address + 0 * 8)),
-        asfloat(DOTSInstanceData_Load4(address + 1 * 8)));
+        p1.x, p1.z, p2.x, p2.z,
+        p1.y, p1.w, p2.y, p2.w
+    );
 }
 
 float4x4 LoadDOTSInstancedData_float4x4(float4x4 default_value, uint metadata)
