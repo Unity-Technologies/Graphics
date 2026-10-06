@@ -1232,6 +1232,17 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
     return abs(viewSpaceZ);
 }
 
+// Orthographic Z buffer to linear view space (eye) depth.
+// Orthographic projection is linear in view space Z, so the raw depth maps directly onto [near, far].
+float LinearEyeDepthOrtho(float depth, float near, float far)
+{
+#if UNITY_REVERSED_Z
+    return far - (far - near) * depth;
+#else
+    return near + (far - near) * depth;
+#endif
+}
+
 // 'z' is the view space Z position (linear depth).
 // saturate(z) the output of the function to clamp them to the [0, 1] range.
 // d = log2(c * (z - n) + 1) / log2(c * (f - n) + 1)

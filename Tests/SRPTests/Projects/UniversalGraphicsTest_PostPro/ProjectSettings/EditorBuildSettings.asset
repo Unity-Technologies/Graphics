@@ -150,6 +150,9 @@ EditorBuildSettings:
     path: Assets/Scenes/202_Lens_Flare_Data_Driven_Occlusion.unity
     guid: 4ef59c3ae21f842c5858909f4d07493f
   - enabled: 1
+    path: Assets/Scenes/203_Lens_Flare_Data_Driven_Occlusion_Ortho.unity
+    guid: b2d7ac8631fbd4450b7398b72b21df30
+  - enabled: 1
     path: Assets/Scenes/241_MultiCamMotionBlur.unity
     guid: 743d01f5817f118469f5095b0192f5ce
   - enabled: 1
