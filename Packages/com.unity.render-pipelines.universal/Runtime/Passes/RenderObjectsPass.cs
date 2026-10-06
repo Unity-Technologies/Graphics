@@ -387,6 +387,13 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     ExecutePass(data, rgContext.cmd, data.rendererListHdl, isYFlipped);
+
+                    // Global keywords: later passes must not read a depth input attachment they never bound
+                    if (data.depthInputAttachment)
+                    {
+                        rgContext.cmd.SetKeyword(ShaderGlobalKeywords.DEPTH_AS_INPUT_ATTACHMENT, false);
+                        rgContext.cmd.SetKeyword(ShaderGlobalKeywords.DEPTH_AS_INPUT_ATTACHMENT_MSAA, false);
+                    }
                 });
             }
         }

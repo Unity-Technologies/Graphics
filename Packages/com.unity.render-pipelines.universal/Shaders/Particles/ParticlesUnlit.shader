@@ -110,6 +110,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DEPTH_AS_INPUT_ATTACHMENT _DEPTH_AS_INPUT_ATTACHMENT_MSAA
             #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
             #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile_fragment _ DEBUG_DISPLAY

@@ -84,6 +84,23 @@ half4 MixParticleColor(half4 baseColor, half4 particleColor, half4 colorAddSubDi
 #endif
 }
 
+// Scene depth used by soft particles. When the particles are drawn by a RenderObjects pass with
+// "Set As Input Attachment" enabled, the depth attachment is read from tile memory through the
+// framebuffer-fetch path instead of sampling _CameraDepthTexture, so no depth prepass or copy is needed.
+float SoftParticlesSceneDepth(float2 uv)
+{
+#if defined(_DEPTH_AS_INPUT_ATTACHMENT)
+    // Real framebuffer fetch ignores the coordinate and always reads the current fragment;
+    // pixel coordinates are only used by the non-native-render-pass emulation fallback.
+    return FetchSceneDepth(uv * _ScreenSize.xy);
+#elif defined(_DEPTH_AS_INPUT_ATTACHMENT_MSAA)
+    // Sample 0 is sufficient for the fade computation.
+    return FetchSceneDepth(uv * _ScreenSize.xy, 0);
+#else
+    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
+#endif
+}
+
 // Soft particles - returns alpha value for fading particles based on the depth to the background pixel
 float SoftParticles(float near, float far, float4 projection)
 {
@@ -96,7 +113,7 @@ float SoftParticles(float near, float far, float4 projection)
 #endif
         uv = FoveatedRemapLinearToNonUniform(uv);
 
-        float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
+        float rawDepth = SoftParticlesSceneDepth(uv);
         float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
         fade = saturate(far * ((sceneZ - near) - thisZ));
@@ -115,7 +132,7 @@ float SoftParticles(float near, float far, ParticleParams params)
         uv = RemovePretransformRotation(uv);
 #endif
         uv = FoveatedRemapLinearToNonUniform(uv);
-        float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
+        float rawDepth = SoftParticlesSceneDepth(uv);
         float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
         float thisZ = LinearEyeDepth(params.positionWS.xyz, GetWorldToViewMatrix());
         fade = saturate(far * ((sceneZ - near) - thisZ));
