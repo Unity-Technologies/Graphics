@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             // Skip corner case testing
             bool isOnTileDeferred = config.renderingMode == RenderingMode.Deferred || config.renderingMode == RenderingMode.DeferredPlus;
             if (isOnTileDeferred && SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5)
-                Assert.Ignore("PS5 GNMP backend has limitation that backbuffer cannot be used as GBuffer.");
+                Assert.Ignore("PS5 legacy backend has limitation that backbuffer cannot be used as GBuffer.");
 
             // Arrange
             LogAssert.ignoreFailingMessages = true;
