@@ -10,13 +10,16 @@ namespace UnityEngine.Rendering.Universal
         // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we should remove all RTHandles and use per frame RG textures.
         // We use 2 camera color handles so we can handle the edge case when a pass might want to read and write the same target.
         // This is not allowed so we just swap the current target, this keeps camera stacking working and avoids an extra blit pass.
-        static int m_CurrentColorHandle = 0;
+        static int s_CurrentColorHandle = 0;
         RTHandle[] m_RenderGraphCameraColorHandles = new RTHandle[]
         {
             null, null
         };
 
-        RTHandle m_RenderGraphCameraDepthHandle;
+        // Shared across all Renderer2D instances. An overlay camera can be rendered by a different
+        // Renderer2D than its base camera, so keeping a per-instance copy of the base camera's handle
+        // leaves the overlay pointing at a stale attachment once the base camera reallocates it.
+        static RTHandle s_RenderGraphCameraDepthHandle;
         RTHandle m_RenderGraphBackbufferColorHandle;
         RTHandle m_RenderGraphBackbufferDepthHandle;
         RTHandle m_CameraSortingLayerHandle;
@@ -47,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return m_RenderGraphCameraColorHandles[m_CurrentColorHandle];
+                return m_RenderGraphCameraColorHandles[s_CurrentColorHandle];
             }
         }
 
@@ -56,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                m_CurrentColorHandle = (m_CurrentColorHandle + 1) % 2;
+                s_CurrentColorHandle = (s_CurrentColorHandle + 1) % 2;
                 return currentRenderGraphCameraColorHandle;
             }
         }
@@ -351,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
-                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref s_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     commonResourceData.activeDepthID = ActiveID.Camera;
                 }
                 else
@@ -363,7 +366,6 @@ namespace UnityEngine.Rendering.Universal
                 var baseRenderer = (Renderer2D)baseCameraData.scriptableRenderer;
 
                 m_RenderGraphCameraColorHandles = baseRenderer.m_RenderGraphCameraColorHandles;
-                m_RenderGraphCameraDepthHandle = baseRenderer.m_RenderGraphCameraDepthHandle;
                 m_RenderGraphBackbufferColorHandle = baseRenderer.m_RenderGraphBackbufferColorHandle;
                 m_RenderGraphBackbufferDepthHandle = baseRenderer.m_RenderGraphBackbufferDepthHandle;
 
@@ -385,7 +387,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_CreateDepthTexture)
             {
                 importSummary.cameraDepthParams.discardOnLastUse = lastCameraInTheStack;
-                commonResourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importSummary.cameraDepthParams);
+                commonResourceData.cameraDepth = renderGraph.ImportTexture(s_RenderGraphCameraDepthHandle, importSummary.cameraDepthParams);
             }
 
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
@@ -872,7 +874,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_RenderGraphCameraColorHandles[0]?.Release();
             m_RenderGraphCameraColorHandles[1]?.Release();
-            m_RenderGraphCameraDepthHandle?.Release();
+            s_RenderGraphCameraDepthHandle?.Release();
             m_RenderGraphBackbufferColorHandle?.Release();
             m_RenderGraphBackbufferDepthHandle?.Release();
             m_CameraSortingLayerHandle?.Release();
