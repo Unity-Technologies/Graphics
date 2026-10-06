@@ -391,7 +391,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 worldToViews = worldToViews,
                 lights = localLights,
-                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount)
+                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount),
+                near = nearClipPlane
             };
             // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
             var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(localLightCount * viewCount, 32, new JobHandle());
