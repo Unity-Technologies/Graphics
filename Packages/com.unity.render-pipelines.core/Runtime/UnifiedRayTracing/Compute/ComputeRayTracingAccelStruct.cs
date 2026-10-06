@@ -313,6 +313,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             vertexBufferDesc.baseVertex = submeshDescriptor.baseVertex + submeshDescriptor.firstVertex;
             vertexBufferDesc.vertexCount = (uint)submeshDescriptor.vertexCount;
             vertexBufferDesc.vertexStride = (uint)stride;
+            vertexBufferDesc.format = mesh.GetVertexAttributeFormat(VertexAttribute.Position);
+            vertexBufferDesc.dimension = mesh.GetVertexAttributeDimension(VertexAttribute.Position);
             m_BlasPositions.Add(vertexBufferDesc, out blas.blasVertices);
 
             var meshBuildInfo = new MeshBuildInfo();
