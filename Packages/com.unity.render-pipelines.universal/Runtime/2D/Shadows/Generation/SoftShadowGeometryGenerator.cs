@@ -71,6 +71,12 @@ namespace UnityEngine.Rendering.Universal
         // Roles that exist exactly once per outline vertex, before the four fans.
         const int k_FixedRolesPerVertex = 7;
 
+        // Rings with fewer edges enclose no area. EmitOrClear drops them before anything else sees
+        // the outline, so buffer sizing, emission, interior fill and bounds all agree by construction.
+        // If they disagreed, the uninitialized index buffer would keep garbage slots and the mesh
+        // upload would throw, or the fill and bounds would cover a ring that was never emitted.
+        const int k_MinRingEdges = 3;
+
         internal const int k_FloatsPerVertex = 14;
 
         /// <summary>
@@ -306,18 +312,58 @@ namespace UnityEngine.Rendering.Universal
                          NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges,
                          NativeArray<int> shapeStarts)
         {
-            if (shapeStarts.Length == 0 || edges.Length < 3)
+            int ringTotal = 0;
+            int ringCount = 0;
+            for (int s = 0; s < shapeStarts.Length; s++)
             {
-                // Clipped away to nothing, or too few edges to form a ring. Drop the geometry rather
-                // than leaving the previous mesh rendering. Clear() marks the mesh dirty itself, so
-                // markDirty is deliberately not set here.
+                int n = RingLength(s, edges.Length, shapeStarts);
+                if (IsEmittedRing(n))
+                {
+                    ringTotal += n;
+                    ringCount++;
+                }
+            }
+
+            if (ringTotal == 0)
+            {
+                // Clipped away to nothing, or no ring has enough edges to enclose an area. Drop the
+                // geometry rather than leaving the previous mesh rendering. Clear() marks the mesh
+                // dirty itself, so markDirty is deliberately not set here.
                 result.localBounds = new Bounds();
                 result.localBoundsAssigned = true;
                 result.cleared = true;
                 return;
             }
 
-            Emit(ref input, ref result, vertices, edges, shapeStarts);
+            if (ringCount == shapeStarts.Length)
+            {
+                Emit(ref input, ref result, vertices, edges, shapeStarts, ringTotal);
+            }
+            else
+            {
+                // Copy out only the rings large enough to emit, so the later passes never see the rest.
+                var keptEdges = new NativeArray<ShadowEdge>(ringTotal, Allocator.Temp,
+                                                            NativeArrayOptions.UninitializedMemory);
+                var keptStarts = new NativeArray<int>(ringCount, Allocator.Temp,
+                                                      NativeArrayOptions.UninitializedMemory);
+                int head = 0;
+                int ring = 0;
+                for (int s = 0; s < shapeStarts.Length; s++)
+                {
+                    int n = RingLength(s, edges.Length, shapeStarts);
+                    if (!IsEmittedRing(n))
+                        continue;
+
+                    keptStarts[ring++] = head;
+                    NativeArray<ShadowEdge>.Copy(edges, shapeStarts[s], keptEdges, head, n);
+                    head += n;
+                }
+
+                Emit(ref input, ref result, vertices, keptEdges, keptStarts, ringTotal);
+                keptEdges.Dispose();
+                keptStarts.Dispose();
+            }
+
             result.localBoundsAssigned = true;
             result.markDirty = true;
         }
@@ -326,9 +372,10 @@ namespace UnityEngine.Rendering.Universal
         // Emission
         // ------------------------------------------------------------------------------------
 
+        // Every ring reaching here is emitted: EmitOrClear has already dropped the ones too small.
         void Emit(ref ShadowShapeInput input, ref ShadowGeometryResult result,
                   NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges,
-                  NativeArray<int> shapeStarts)
+                  NativeArray<int> shapeStarts, int ringTotal)
         {
             // Clamped again here even though ShadowMesh2D.fanSegments clamps: the value can also
             // arrive straight off disk, and zero is not merely coarse but wrong -- see
@@ -338,10 +385,6 @@ namespace UnityEngine.Rendering.Universal
             int shapeCount = shapeStarts.Length;
             int perVertex = VerticesPerOutlineVertex(segments);
             int perVertexTris = TrianglesPerOutlineVertex(segments);
-
-            int ringTotal = 0;
-            for (int s = 0; s < shapeCount; s++)
-                ringTotal += RingLength(s, edges.Length, shapeStarts);
 
             int mainVertexCount = ringTotal * perVertex;
             int mainIndexCount = ringTotal * perVertexTris * 3;
@@ -357,7 +400,8 @@ namespace UnityEngine.Rendering.Universal
             int interiorVertexCount = 0, interiorIndexCount = 0;
             if (input.createInteriorGeometry)
             {
-                TessellateInterior(vertices, edges, out interiorVertices, out interiorIndices,
+                TessellateInterior(vertices, edges, shapeStarts,
+                                   out interiorVertices, out interiorIndices,
                                    out interiorVertexCount, out interiorIndexCount);
             }
 
@@ -377,8 +421,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 int start = shapeStarts[s];
                 int n = RingLength(s, edges.Length, shapeStarts);
-                if (n < 3)
-                    continue;
 
                 EmitShape(vertices, edges, start, n, segments, perVertex, payloads, vertexBase,
                           indices, ref indexHead);
@@ -425,6 +467,8 @@ namespace UnityEngine.Rendering.Universal
             int end = shape + 1 < shapeStarts.Length ? shapeStarts[shape + 1] : edgeCount;
             return end - start;
         }
+
+        static bool IsEmittedRing(int ringLength) => ringLength >= k_MinRingEdges;
 
         void EmitShape(NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges,
                        int edgeStart, int n, int segments, int perVertex,
@@ -586,23 +630,44 @@ namespace UnityEngine.Rendering.Universal
 
         // Mirrors ShadowUtility.GenerateInteriorMesh's tessellation. Not a call to it: that function
         // is Burst-typed to ShadowMeshVertex and appends into Legacy's buffers.
+        // Each ring is walked through its v0s with wraparound, exactly as EmitShape and OutlineBounds
+        // walk it, so the fill closes an open ring the same way the projected outline does and never
+        // reaches past the bounds. Vertices are remapped to a compact range because outline vertex
+        // indices can exceed the edge count.
         static void TessellateInterior(NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges,
+                                       NativeArray<int> shapeStarts,
                                        out NativeArray<float2> outVertices,
                                        out NativeArray<int> outIndices,
                                        out int outVertexCount, out int outIndexCount)
         {
             int edgeCount = edges.Length;
+            var remap = new NativeArray<int>(vertices.Length, Allocator.Temp,
+                                             NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < remap.Length; i++)
+                remap[i] = -1;
+
             var tessInEdges = new NativeArray<int2>(edgeCount, Allocator.Temp,
                                                     NativeArrayOptions.UninitializedMemory);
-            var tessInVertices = new NativeArray<float2>(edgeCount, Allocator.Temp,
-                                                         NativeArrayOptions.ClearMemory);
-            for (int i = 0; i < edgeCount; i++)
+            var compactVertices = new NativeArray<float2>(edgeCount, Allocator.Temp,
+                                                          NativeArrayOptions.UninitializedMemory);
+            int tessVertexCount = 0;
+            int tessEdgeCount = 0;
+            for (int s = 0; s < shapeStarts.Length; s++)
             {
-                var edge = new int2(edges[i].v0, edges[i].v1);
-                tessInEdges[i] = edge;
-                Vector3 p = vertices[edge.x];
-                tessInVertices[edge.x] = new float2(p.x, p.y);
+                int start = shapeStarts[s];
+                int n = RingLength(s, edgeCount, shapeStarts);
+                int first = CompactVertex(vertices, edges[start].v0, remap, compactVertices, ref tessVertexCount);
+                int a = first;
+                for (int i = 0; i < n; i++)
+                {
+                    int b = i + 1 < n
+                        ? CompactVertex(vertices, edges[start + i + 1].v0, remap, compactVertices, ref tessVertexCount)
+                        : first;
+                    tessInEdges[tessEdgeCount++] = new int2(a, b);
+                    a = b;
+                }
             }
+            var tessInVertices = compactVertices.GetSubArray(0, tessVertexCount);
 
             outVertices = new NativeArray<float2>(edgeCount * 4, Allocator.Persistent,
                                                   NativeArrayOptions.UninitializedMemory);
@@ -619,9 +684,22 @@ namespace UnityEngine.Rendering.Universal
                 ref outIndices, out outIndexCount, ref tessOutEdges, out _, false);
 #endif
 
+            remap.Dispose();
             tessInEdges.Dispose();
-            tessInVertices.Dispose();
+            compactVertices.Dispose();
             tessOutEdges.Dispose();
+        }
+
+        static int CompactVertex(NativeArray<Vector3> vertices, int vertex, NativeArray<int> remap,
+                                 NativeArray<float2> compactVertices, ref int compactCount)
+        {
+            if (remap[vertex] < 0)
+            {
+                Vector3 p = vertices[vertex];
+                compactVertices[compactCount] = new float2(p.x, p.y);
+                remap[vertex] = compactCount++;
+            }
+            return remap[vertex];
         }
 
         // ------------------------------------------------------------------------------------
