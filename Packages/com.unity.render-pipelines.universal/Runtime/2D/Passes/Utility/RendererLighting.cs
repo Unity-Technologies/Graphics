@@ -452,10 +452,11 @@ namespace UnityEngine.Rendering.Universal
         {
             // Light2D.material override: a non-null custom material bypasses URP's variant-bit cache.
             // Keywords are driven by cmd-recorded SetVolumetricKeyword / SetAdditiveBlendingKeyword /
-            // SetPointLightCookiesKeyword. Blend state is baked into a per-(source, overlapOperation,
-            // lightType) clone so multiple Light2Ds sharing the same source material don't stomp
-            // each other's _SrcBlend/_DstBlend at frame recording. Clones live on Renderer2DData and
-            // are destroyed alongside `lightMaterials` in Dispose / ClearLightMaterialCache.
+            // SetPointLightCookiesKeyword / SetNormalMapKeyword. Blend state is baked into a
+            // per-(source, overlapOperation, lightType) clone so multiple Light2Ds sharing the same
+            // source material don't stomp each other's _SrcBlend/_DstBlend at frame recording. Clones
+            // live on Renderer2DData and are destroyed alongside `lightMaterials` in Dispose /
+            // ClearLightMaterialCache.
             //
             // Trade-off: property changes on the source material at runtime (e.g. user-tweaked
             // color) don't propagate to the clones. Users needing dynamic property updates should
@@ -491,11 +492,7 @@ namespace UnityEngine.Rendering.Universal
         // where the same material instance is used for both the non-volumetric and volumetric passes.
         internal static void SetVolumetricKeyword(RasterCommandBuffer cmd, Material material, bool isVolumetric)
         {
-            var keyword = new LocalKeyword(material.shader, k_UseVolumetric);
-            if (isVolumetric)
-                cmd.EnableKeyword(material, keyword);
-            else
-                cmd.DisableKeyword(material, keyword);
+            SetLocalKeywordIfDeclared(cmd, material, k_UseVolumetric, isVolumetric);
         }
 
         // Records USE_ADDITIVE_BLENDING keyword state into the command buffer for the same reason
@@ -508,11 +505,7 @@ namespace UnityEngine.Rendering.Universal
         // (volumetric works because that path is gated on USE_VOLUMETRIC, which IS being set).
         internal static void SetAdditiveBlendingKeyword(RasterCommandBuffer cmd, Material material, bool isAdditive)
         {
-            var keyword = new LocalKeyword(material.shader, k_UseAdditiveBlendingKeyword);
-            if (isAdditive)
-                cmd.EnableKeyword(material, keyword);
-            else
-                cmd.DisableKeyword(material, keyword);
+            SetLocalKeywordIfDeclared(cmd, material, k_UseAdditiveBlendingKeyword, isAdditive);
         }
 
         // Records USE_POINT_LIGHT_COOKIES keyword state into the command buffer so custom
@@ -523,11 +516,7 @@ namespace UnityEngine.Rendering.Universal
         // were assigned even though _PointLightCookieTex is bound on the property block.
         internal static void SetPointLightCookiesKeyword(RasterCommandBuffer cmd, Material material, bool useCookie)
         {
-            var keyword = new LocalKeyword(material.shader, k_UsePointLightCookiesKeyword);
-            if (useCookie)
-                cmd.EnableKeyword(material, keyword);
-            else
-                cmd.DisableKeyword(material, keyword);
+            SetLocalKeywordIfDeclared(cmd, material, k_UsePointLightCookiesKeyword, useCookie);
         }
 
         // Records USE_NORMAL_MAP keyword state into the command buffer so custom
@@ -538,8 +527,8 @@ namespace UnityEngine.Rendering.Universal
         // off on the ShaderGraph variant, the `#if USE_NORMAL_MAP && !USE_VOLUMETRIC`
         // block never fires, and _NormalMap/sampler_NormalMap aren't even declared
         // (NORMALS_LIGHTING_VARIABLES in LightingUtility.hlsl expands to empty without
-        // the keyword). The per-light normal texture set on the property block at
-        // DrawLight2DPass line 127-128 is therefore invisible to the shader — a
+        // the keyword). The per-light normal texture set on the property block in
+        // DrawLight2DPass.Execute is therefore invisible to the shader — a
         // Light2D with normalMapQuality != Disabled renders as if normal mapping were off.
         //
         // Same cmd-vs-material rationale as SetVolumetricKeyword: a single custom material
@@ -548,11 +537,22 @@ namespace UnityEngine.Rendering.Universal
         // material immediately.
         internal static void SetNormalMapKeyword(RasterCommandBuffer cmd, Material material, bool useNormalMap)
         {
-            var keyword = new LocalKeyword(material.shader, k_UseNormalMap);
-            if (useNormalMap)
-                cmd.EnableKeyword(material, keyword);
-            else
-                cmd.DisableKeyword(material, keyword);
+            SetLocalKeywordIfDeclared(cmd, material, k_UseNormalMap, useNormalMap);
+        }
+
+        // A custom light or shadow shader may leave out any of the keywords it is driven with. The
+        // LocalKeyword constructor logs "Local keyword X doesn't exist in the shader." for each
+        // missing one on every draw, so keywords the shader does not declare are skipped.
+        // Shared by the Light2D setters above and ShadowRendering's custom caster keywords.
+        internal static void SetLocalKeywordIfDeclared(IBaseCommandBuffer cmd, Material material, string keywordName, bool enabled)
+        {
+            var shader = material.shader;
+            if (shader == null)
+                return;
+
+            var keyword = shader.keywordSpace.FindKeyword(keywordName);
+            if (keyword.isValid)
+                cmd.SetKeyword(material, keyword, enabled);
         }
 
         internal static short GetCameraSortingLayerBoundsIndex(this Renderer2DData rendererData)
