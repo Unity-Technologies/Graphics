@@ -61,14 +61,25 @@ namespace UnityEditor.Rendering.Universal
                 if (!sceneSettings.enabled)
                     continue;
 
-                Scene scene = EditorSceneManager.GetSceneByPath(sceneSettings.path);
+                // Use the same path the build uses (EditorBuildSettingsScene.GetActiveSceneList), so
+                // we analyze exactly the scenes that get built. The engine already updates this path
+                // from the GUID when a scene is moved.
+                string scenePath = sceneSettings.path;
+
+                // Skip entries that don't point at a scene asset (deleted, never existed, or not a
+                // scene); OpenScene would throw. Use the AssetDatabase rather than File.Exists so
+                // scenes in immutable packages (virtual Packages/... paths) are still found.
+                if (string.IsNullOrEmpty(scenePath) || AssetDatabase.GetMainAssetTypeAtPath(scenePath) != typeof(SceneAsset))
+                    continue;
+
+                Scene scene = EditorSceneManager.GetSceneByPath(scenePath);
                 bool weOpenedIt = !scene.isLoaded;
 
                 // Open as a preview scene rather than additively: Light2DManager registers preview
                 // scene lights in a per scene list, so a global light in a build scene can't be
                 // mistaken for a duplicate of one in a scene the user already has open.
                 if (weOpenedIt)
-                    scene = EditorSceneManager.OpenPreviewScene(sceneSettings.path);
+                    scene = EditorSceneManager.OpenPreviewScene(scenePath);
 
                 try
                 {
