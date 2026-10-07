@@ -1,3 +1,6 @@
+#ifndef LIGHTING_UTILITY_INCLUDED
+#define LIGHTING_UTILITY_INCLUDED
+
 // Must match: LightBatch.isBatchingSupported
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA 0
 
@@ -215,3 +218,5 @@ struct PerLight2D
     #define _L2D_LIGHT_RENDERING_LAYER  L2DLightRenderingLayer
 
 #endif
+
+#endif  // LIGHTING_UTILITY_INCLUDED

@@ -89,9 +89,18 @@ uniform StructuredBuffer<float4x4> _SpriteBoneTransforms;
 
 #endif
 
+float2 UnityFlipVector(in float spritePropsX)
+{
+    uint flipBits = asuint(spritePropsX);
+    float fx = (flipBits & 1u) ? -1.0f : 1.0f;
+    float fy = (flipBits & 2u) ? -1.0f : 1.0f;
+    return float2(fx, fy);
+}
+
 float3 UnityFlipSprite(in float3 pos, in float2 flip)
 {
-    return float3(pos.xy * flip, pos.z);
+    float2 fv = UnityFlipVector(flip.x);
+    return float3(pos.xy * fv, pos.z);
 }
 
 float3 UnifiedSpriteDeform(in float3 inputData, uint vertexId, in float4 spriteProps, in float w)
@@ -99,8 +108,10 @@ float3 UnifiedSpriteDeform(in float3 inputData, uint vertexId, in float4 spriteP
     float4 outputData = float4(inputData, w);
 
 #if defined(SKINNED_SPRITE) && !defined(SHADERGRAPH_PREVIEW)
-    uint _ofst = asint(spriteProps.w);
-    uint _addr = _ofst + vertexId * 12; // Only pos,
+    uint _prop = asuint(spriteProps.x);
+    uint _strd = (_prop >> 2) & 63u;    // Fat Vertex Stride.
+    uint _ofst = asuint(spriteProps.w); // Unified Verts Offset.
+    uint _addr = _ofst + (vertexId * _strd);
     outputData.xyz = asfloat(_UnifiedDeformedVerts.Load3(_addr));
 #endif // SKINNED_SPRITE
 
@@ -129,23 +140,23 @@ float3 UnitySkinSprite(in float3 inputData, in uint4 blendIndices, in float4 ble
 
 #ifdef UNITY_INSTANCING_ENABLED
     UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
+        // Refer unity_SpriteProps in UnityInput.hlsl
+        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpritePropArray)
         // SpriteRenderer.Color while Non-Batched/Instanced.
         UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpriteRendererColorArray)
-        // this could be smaller but that's how bit each entry is regardless of type
-        UNITY_DEFINE_INSTANCED_PROP(float2, unity_SpriteFlipArray)
         // To support RSUV in Instanced code-path
         UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
     UNITY_INSTANCING_BUFFER_END(PerDrawSprite)
 
-    #define unity_SpriteColor  UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteRendererColorArray)
-    #define unity_SpriteFlip   UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteFlipArray)
+    #define unity_SpriteProp        UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpritePropArray)
+    #define unity_SpriteColor       UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteRendererColorArray)
     #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_RendererUserValueArray).x)
 #endif // instancing
 
 void SetUpSpriteInstanceProperties()
 {
 #if defined(UNITY_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
-    unity_SpriteProps = float4(unity_SpriteFlip.x, unity_SpriteFlip.y, -1.0f, -1.0f);
+    unity_SpriteProps = unity_SpriteProp;
 #endif
 }
 

@@ -137,8 +137,8 @@ float4 unity_MotionVectorsParams;
 
 // Sprite.
 float4 unity_SpriteColor;
-//X : FlipX
-//Y : FlipY
+//X : FatVertexStride (6) | FlipY (1) | FlipX (1)
+//Y : Reserved for gpu-driven.
 //Z : Sprite Skinning Bone Matrix Offset.
 //W : Unified Compute Vertex Pull Offset.
 float4 unity_SpriteProps;
