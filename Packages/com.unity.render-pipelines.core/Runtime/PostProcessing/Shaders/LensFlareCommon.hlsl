@@ -157,6 +157,9 @@ float GetLinearDepthValue(float2 uv)
 
 #endif
 
+    if (unity_OrthoParams.w != 0.0)
+        return LinearEyeDepthOrtho(depth, _ProjectionParams.y, _ProjectionParams.z);
+
     return LinearEyeDepth(depth, _ZBufferParams);
 }
 
