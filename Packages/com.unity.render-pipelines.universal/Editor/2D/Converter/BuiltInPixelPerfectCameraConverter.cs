@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
 
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (2D Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP2D", "PixelPerfectCamera")]
     [ElementInfo(Name = "Pixel Perfect Camera Converter",
              Order = 1000,
              Description = "This will upgrade all 2D Pixel Perfect Camera (com.unity.2d.pixel-perfect) to the Universal Render Pipeline version.")]
