@@ -93,12 +93,20 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public static readonly int _OutputVBOffset = Shader.PropertyToID("_OutputVBOffset");
             public static readonly int _InputPosBufferStride = Shader.PropertyToID("_InputPosBufferStride");
             public static readonly int _InputPosBufferOffset = Shader.PropertyToID("_InputPosBufferOffset");
+            public static readonly int _InputPosBufferFormat = Shader.PropertyToID("_InputPosBufferFormat");
+            public static readonly int _InputPosBufferDimension = Shader.PropertyToID("_InputPosBufferDimension");
             public static readonly int _InputUv0BufferStride = Shader.PropertyToID("_InputUv0BufferStride");
             public static readonly int _InputUv0BufferOffset = Shader.PropertyToID("_InputUv0BufferOffset");
+            public static readonly int _InputUv0BufferFormat = Shader.PropertyToID("_InputUv0BufferFormat");
+            public static readonly int _InputUv0BufferDimension = Shader.PropertyToID("_InputUv0BufferDimension");
             public static readonly int _InputUv1BufferStride = Shader.PropertyToID("_InputUv1BufferStride");
             public static readonly int _InputUv1BufferOffset = Shader.PropertyToID("_InputUv1BufferOffset");
+            public static readonly int _InputUv1BufferFormat = Shader.PropertyToID("_InputUv1BufferFormat");
+            public static readonly int _InputUv1BufferDimension = Shader.PropertyToID("_InputUv1BufferDimension");
             public static readonly int _InputNormalBufferStride = Shader.PropertyToID("_InputNormalBufferStride");
             public static readonly int _InputNormalBufferOffset = Shader.PropertyToID("_InputNormalBufferOffset");
+            public static readonly int _InputNormalBufferFormat = Shader.PropertyToID("_InputNormalBufferFormat");
+            public static readonly int _InputNormalBufferDimension = Shader.PropertyToID("_InputNormalBufferDimension");
             public static readonly int _PosBuffer = Shader.PropertyToID("_PosBuffer");
             public static readonly int _Uv0Buffer = Shader.PropertyToID("_Uv0Buffer");
             public static readonly int _Uv1Buffer = Shader.PropertyToID("_Uv1Buffer");
@@ -169,6 +177,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public int stride;
             public int offset;
             public int byteCount;
+            public VertexAttributeFormat format;
+            public int dimension;
 
             public bool valid => buffer != null;
         }
@@ -745,6 +755,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 output.buffer = null;
                 output.stride = output.offset = output.byteCount = 0;
+                output.format = VertexAttributeFormat.Float32;
+                output.dimension = 0;
                 return;
             }
 
@@ -753,6 +765,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             output.stride = mesh.GetVertexBufferStride(stream);
             output.offset = mesh.GetVertexAttributeOffset(attribute);
             output.byteCount = GetFormatByteCount(mesh.GetVertexAttributeFormat(attribute)) * mesh.GetVertexAttributeDimension(attribute);
+            output.format = mesh.GetVertexAttributeFormat(attribute);
+            output.dimension = mesh.GetVertexAttributeDimension(attribute);
 
             output.buffer = mesh.GetVertexBuffer(stream);
             m_InputBufferReferences.Add(output.buffer);
@@ -837,12 +851,20 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._OutputVBOffset, location.block.offset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferStride, pos.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferOffset, pos.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferFormat, (int)pos.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferDimension, pos.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferStride, uv0.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferOffset, uv0.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferFormat, (int)uv0.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferDimension, uv0.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferStride, uv1.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferOffset, uv1.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferFormat, (int)uv1.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferDimension, uv1.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferStride, n.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferOffset, n.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferFormat, (int)n.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferDimension, n.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._AttributesMask, (int)attributes);
 
             int kernel = m_KernelMainUpdateVertexBuffer;
