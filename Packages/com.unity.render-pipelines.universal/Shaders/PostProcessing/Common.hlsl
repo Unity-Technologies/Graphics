@@ -98,6 +98,8 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
     return input * lerp(color, (1.0).xxx, vfactor);
 }
 
+static const float4 kAgXDefaultParams = float4(1.193, 0.18, 0.5889541, 0.97826);
+
 // agxParams (x: contrast, y: mid-grey, z: toe-a, w: slope) only used under _TONEMAP_AGX.
 half3 ApplyTonemap(half3 input, float4 agxParams)
 {
@@ -111,6 +113,11 @@ half3 ApplyTonemap(half3 input, float4 agxParams)
 #endif
 
     return saturate(input);
+}
+
+half3 ApplyTonemap(half3 input)
+{
+    return ApplyTonemap(input, kAgXDefaultParams);
 }
 
 half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex, lutSampler), float3 lutParams, TEXTURE2D_PARAM(userLutTex, userLutSampler), float3 userLutParams, float userLutContrib, float paperWhite, float oneOverPaperWhite, float4 agxParams)
@@ -167,6 +174,11 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
     #endif
 
     return input;
+}
+
+half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex, lutSampler), float3 lutParams, TEXTURE2D_PARAM(userLutTex, userLutSampler), float3 userLutParams, float userLutContrib, float paperWhite, float oneOverPaperWhite)
+{
+    return ApplyColorGrading(input, postExposure, TEXTURE2D_ARGS(lutTex, lutSampler), lutParams, TEXTURE2D_ARGS(userLutTex, userLutSampler), userLutParams, userLutContrib, paperWhite, oneOverPaperWhite, kAgXDefaultParams);
 }
 
 half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSampler), float intensity, float response, float2 scale, float2 offset, float oneOverPaperWhite)
