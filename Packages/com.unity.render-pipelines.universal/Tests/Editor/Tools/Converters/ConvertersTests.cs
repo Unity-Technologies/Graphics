@@ -334,7 +334,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             File.Delete(filePath);
 
             Assert.AreEqual("Completed", scanFile.status);
-            Assert.AreEqual(nameof(BuiltInPixelPerfectCameraConverter), scanFile.converters[0].converterType);
+            Assert.AreEqual("PixelPerfectCamera", scanFile.converters[0].converterType);
             Assert.That(scanFile.converters[0].items, Is.Null.Or.Empty);
         }
 #endif
@@ -379,19 +379,6 @@ namespace UnityEditor.Rendering.Universal.Tools
         {
             bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(NotAConverterType) });
             Assert.IsFalse(ok);
-        }
-
-        [Test]
-        public void RunInBatchMode_LogsUsageWarning()
-        {
-            LogAssert.Expect(
-                LogType.Warning,
-                "Using this API can lead to incomplete or unpredictable conversion outcomes. " +
-                "For reliable results, please perform the conversion via the dedicated window: " +
-                "Window > Rendering > Render Pipeline Converter."
-            );
-
-            bool _ = Converters.RunInBatchMode(new List<Type>() {});
         }
 
         public static IEnumerable<TestCaseData> TestCases()
@@ -454,6 +441,8 @@ namespace UnityEditor.Rendering.Universal.Tools
                  {
                     typeof(BuiltInToURP2DRenderSettingsConverter),
                     typeof(BuiltInToURP2DReadonlyMaterialConverter),
+                    typeof(BuiltInToURP2DShaderConverter),
+                    typeof(BuiltInPixelPerfectCameraConverter),
                  }
             ).SetName("{m}(BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything)");
 

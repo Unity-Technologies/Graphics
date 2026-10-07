@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (2D Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP2D", "Shader2D")]
     [ElementInfo(Name = "Material Shader Converter",
                  Order = 100,
                  Description = "Converts references to Built-In shaders to URP (2D) shaders.")]
