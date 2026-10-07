@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering
         bool m_Initialized;
 
         readonly ProbeVolumeBakingSetWeakReference m_ActiveSet = new();
-        ProbeVolumeBakingSet activeSet
+        internal ProbeVolumeBakingSet activeSet
         {
             get => m_ActiveSet.Get();
             set
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering
             return m_ActiveSet.Get() != null;
         }
 
-        void Initialize()
+        internal void Initialize()
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
@@ -179,7 +179,12 @@ namespace UnityEngine.Rendering
             if (m_Initialized)
                 return;
 
-            FindActiveSet();
+            var currentBakingSet = ProbeReferenceVolume.instance.currentBakingSet;
+            if (currentBakingSet != null)
+                activeSet = currentBakingSet;
+            else
+                FindActiveSet(forceRefresh: true);
+            m_TrackedActiveScene = default;
 
             EditorSceneManager.sceneOpened += OnSceneOpened;
 
@@ -192,6 +197,7 @@ namespace UnityEngine.Rendering
                 Object.DestroyImmediate(m_ActiveSetEditor);
 
             EditorSceneManager.sceneOpened -= OnSceneOpened;
+            m_Initialized = false;
 
             // We keep allocated acceleration structures while the Lighting window is open in order to make subsequent bakes faster, but when the window closes we dispose of them
             // Unless a bake is running, in which case we leave disposing to CleanBakeData()
@@ -204,6 +210,9 @@ namespace UnityEngine.Rendering
             EditorGUIUtility.hierarchyMode = true;
 
             Initialize();
+
+            if (m_Initialized)
+                TrackActiveScene();
 
             var prv = ProbeReferenceVolume.instance;
 
@@ -487,7 +496,7 @@ namespace UnityEngine.Rendering
             m_ScenesToEnable.Clear();
         }
 
-        void UseTemporaryBakingSet(GUID sceneGuid, ProbeVolumeBakingSet set = null)
+        internal void UseTemporaryBakingSet(GUID sceneGuid, ProbeVolumeBakingSet set = null)
         {
             if (set == null)
             {
@@ -780,6 +789,22 @@ namespace UnityEngine.Rendering
         }
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
+
+        Scene m_TrackedActiveScene;
+
+        // Only the scene's own set may replace the cached one: FindActiveSet would fall back to another loaded
+        // scene's set, which is not what ProbeReferenceVolume.TrackActiveScene leaves rendering.
+        internal void TrackActiveScene()
+        {
+            var active = SceneManager.GetActiveScene();
+            if (active == m_TrackedActiveScene)
+                return;
+            m_TrackedActiveScene = active;
+
+            var set = ProbeVolumeBakingSet.GetBakingSetForScene(active);
+            if (set != null)
+                activeSet = set;
+        }
 
         internal void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
