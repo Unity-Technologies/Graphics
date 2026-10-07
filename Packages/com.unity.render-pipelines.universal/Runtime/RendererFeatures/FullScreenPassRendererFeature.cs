@@ -150,18 +150,6 @@ namespace UnityEngine.Rendering.Universal
                 m_BindDepthStencilAttachment = bindDepthStencilAttachment;
             }
 
-            private static void ExecuteMainPass(RasterCommandBuffer cmd, MaterialPropertyBlock mbp, RTHandle sourceTexture, Material material, int passIndex, Vector4 blitScaleBias)
-            {
-                mbp.Clear();
-                if (sourceTexture != null)
-                    mbp.SetTexture(ShaderPropertyId.blitTexture, sourceTexture);
-
-                // We need to set the "_BlitScaleBias" uniform for user materials with shaders relying on core Blit.hlsl to work
-                mbp.SetVector(ShaderPropertyId.blitScaleBias, blitScaleBias);
-
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, mbp);
-            }
-
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 UniversalResourceData resourcesData = frameData.Get<UniversalResourceData>();
@@ -194,24 +182,14 @@ namespace UnityEngine.Rendering.Universal
                 // If resourcesData.isActiveTargetBackBuffer == true, then the backbuffer is alread written to and this could overwrite it.
                 // However, the user might want to blend into the backbuffer so we allow it here.
                 destination = resourcesData.activeColorTexture;
-                
-                AddFullscreenRenderPassInputPass(renderGraph, resourcesData, cameraData, source, destination);                
-            }
 
-            private void AddFullscreenRenderPassInputPass(RenderGraph renderGraph, UniversalResourceData resourcesData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination)
-            {
-                using (var builder = renderGraph.AddRasterRenderPass<MainPassData>(passName, out var passData, profilingSampler))
+                var blitMaterialParameters = new BlitMaterialParameters(source, destination, m_Material, m_PassIndex);
+
+                if (m_BindDepthStencilAttachment)
+                    blitMaterialParameters.destinationDepth = resourcesData.activeDepthTexture;
+
+                using (var builder = renderGraph.AddBlitPass(blitMaterialParameters, passName: "Blit Color Full Screen", returnBuilder: true))
                 {
-                    passData.material = m_Material;
-                    passData.materialPropertyBlock = m_MaterialPropertyBlock;
-                    passData.passIndex = m_PassIndex;
-
-                    passData.source = source;
-                    passData.destination = destination;
-
-                    if (passData.source.IsValid())
-                        builder.UseTexture(passData.source, AccessFlags.Read);
-
                     bool needsColor = (input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
                     bool needsDepth = (input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                     bool needsMotion = (input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
@@ -221,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         Debug.Assert(resourcesData.cameraOpaqueTexture.IsValid());
                         builder.UseTexture(resourcesData.cameraOpaqueTexture);
-                    }
+                    } 
 
                     if (needsDepth)
                     {
@@ -247,26 +225,7 @@ namespace UnityEngine.Rendering.Universal
                         Debug.Assert(resourcesData.cameraNormalsTexture.IsValid());
                         builder.UseTexture(resourcesData.cameraNormalsTexture);
                     }
-
-                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-
-                    if (m_BindDepthStencilAttachment)
-                        builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.ReadWrite);
-
-                    builder.SetRenderFunc(static (MainPassData data, RasterGraphContext rgContext) =>
-                    {
-                        Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(rgContext, in data.source, in data.destination);
-                        ExecuteMainPass(rgContext.cmd, data.materialPropertyBlock, data.source, data.material, data.passIndex, scaleBias);
-                    });
                 }
-            }
-            private class MainPassData
-            {
-                internal Material material;
-                internal MaterialPropertyBlock materialPropertyBlock;
-                internal int passIndex;
-                internal TextureHandle source;
-                internal TextureHandle destination;
             }
         }
     }

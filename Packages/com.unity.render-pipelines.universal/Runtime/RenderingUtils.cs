@@ -841,23 +841,6 @@ namespace UnityEngine.Rendering.Universal
             return renderGraphContext.GetTextureUVOrigin(textureHandle) == TextureUVOrigin.BottomLeft;
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Returns the scale bias vector to use for final blits to the backbuffer, based on scaling mode and y-flip platform requirements.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="cameraData"></param>
-        /// <returns></returns>
-        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData)
-        {
-            Vector2 scale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
-            Vector4 scaleBias = !yflip ? new Vector4(scale.x, -scale.y, 0, scale.y) : new Vector4(scale.x, scale.y, 0, 0);
-
-            return scaleBias;
-        }
-#endif
         internal static Vector4 GetFinalBlitScaleBias(in RasterGraphContext renderGraphContext, in TextureHandle source, in TextureHandle destination)
         {
             RTHandle srcRTHandle = source;

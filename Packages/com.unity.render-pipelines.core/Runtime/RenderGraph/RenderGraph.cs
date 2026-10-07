@@ -945,6 +945,41 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return info;
         }
 
+        // Check if we already know at record time that the source and destination handles will have a different UV origin
+        // If this functions returns false you are guaranteed to always get identical uv origins at *execute* time because:
+        // - Both known and identical -> returns false -> identical at execute
+        // - Both unknown -> return false at record, compile succeeded resolving origins -> execute sees identical
+        // - Both unknown -> return false at record, compile failed resolving origins -> errors before execute returs
+        // Because of all this explanation needed, we keep this function internal it should generally not be relied on except
+        // in niche cases like to improve error messages etc.
+        internal bool UvOriginDifferAtRecordTime(in TextureHandle source, in TextureHandle destination)
+        {
+            CheckNotUsedWhenExecuting();
+            CheckNotUsedWhenIdle();
+
+            if (!source.IsValid() || !destination.IsValid())
+                throw new ArgumentException("Attempting to get uv origin of an invalid texture handle.");
+
+            // Reject if both textures have known but incompatible origins.
+            // If either origin is Unknown (i.e. a texture created within the graph rather than imported), the
+            // compiler will resolve and propagate the orientation later, so there is nothing to reject here.
+            // At first it may seem the compiler could decide these two textures get assigned different orientations
+            // and then we have a problem on execute but this will not happen as the compiler will error out and never execute.
+            // So theory we don't need to call this fucntion but it allows us to give slightly nicer errors at record time in some cases instead of at execute
+            // when the pass execute runs and relevant record-time context for debugging is lost.
+            // It also makes sure the blit can use copy in some cases where it is allowed as an optimization.
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                var srcOrigin = m_Resources.GetTextureResource(source.handle).textureUVOrigin;
+                var dstOrigin = m_Resources.GetTextureResource(destination.handle).textureUVOrigin;
+                if (srcOrigin != TextureUVOriginSelection.Unknown && dstOrigin != TextureUVOriginSelection.Unknown
+                    && srcOrigin != dstOrigin)
+                    return true;
+            }
+            //else ->  graphicsUVStartsAtTop is false, that means the backbuffer and other textures always have BottomLeft, nothing to do here
+            return false;
+        }
+
         /// <summary>
         /// Creates a new Renderer List Render Graph resource.
         /// </summary>
