@@ -1,4 +1,4 @@
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_METALFX_MODULE && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS)
+#if ENABLE_METALFX_MODULE && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS)
 using System;
 using Unity.Profiling.LowLevel;
 using UnityEngine.Experimental.Rendering;
@@ -100,15 +100,22 @@ namespace UnityEngine.Rendering.MetalFX
 #endif
     public class MetalFXTemporalUpscaler : AbstractUpscaler
     {
+        /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
         public static readonly string registeredId = "apple.metalfx-temporal";
+        /// <summary>Display name for this upscaler.</summary>
         public static readonly string registeredName = "MetalFX Temporal";
 
         static readonly ProfilingSampler k_MetalFXTemporal = ProfilingSampler.Create("MetalFXTemporal", MarkerFlags.Default);
 
+        /// <inheritdoc/>
         public override string upscalerId => registeredId;
+        /// <inheritdoc/>
         public override string name => registeredName;
+        /// <inheritdoc/>
         public override bool isTemporal => true;
+        /// <inheritdoc/>
         public override bool supportsSharpening => false;
+        /// <inheritdoc/>
         public override bool isSupportedOnDevice => Supported;
 
         uint m_WarnCounter;

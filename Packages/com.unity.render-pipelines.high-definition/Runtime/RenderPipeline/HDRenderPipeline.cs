@@ -84,9 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly List<int> m_RenderRequestIndicesToRender = new List<int>(256);
         readonly List<int> m_VisitStatus = new List<int>(256);
 
-#if ENABLE_UPSCALER_FRAMEWORK
         internal Upscaling upscaling;
-#endif
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
@@ -754,9 +752,8 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
             VrsInitializeResources();
-#if ENABLE_UPSCALER_FRAMEWORK
+
             upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions);
-#endif
 
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
@@ -1399,13 +1396,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         // Last (requested, clamped) forced render percentages we warned about; NaN means none. Keying on both values
         // (rather than a once-ever bool) warns on each new out-of-range value without spamming per frame, and the
         // clamped key also catches a quality-mode change that moves the supported range under an unchanged forced value.
         float m_LastWarnedForcedScale = float.NaN;
         float m_LastWarnedClampedScale = float.NaN;
-#endif
 
         void SetupPartnerUpscalers(
             in HDAdditionalCameraData hdCam,
@@ -1420,10 +1415,8 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCam.cameraCanRenderDLSS = false;
             hdCam.cameraCanRenderFSR2 = false;
             hdCam.cameraCanRenderSTP = false;
-#if ENABLE_UPSCALER_FRAMEWORK
             hdCam.cameraCanRenderIUpscaler = false;
             hdCam.cameraIUpscalerIsTemporalUpscaler = false;
-#endif
 
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
@@ -1474,7 +1467,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         found = hdCam.cameraCanRenderSTP;
                         break;
 
-#if ENABLE_UPSCALER_FRAMEWORK
                     default:
                     {
                         // The upscaler ID should be an IUpscaler
@@ -1602,7 +1594,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                     break;
-#endif // ENABLE_UPSCALER_FRAMEWORK
                 } // switch(advancedUpscalers[i])
             }
         }
@@ -2535,11 +2526,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynResHandler.runUpscalerFilterOnFullResolution =
                         (
                             hdCam != null &&
-                            (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP
-#if ENABLE_UPSCALER_FRAMEWORK
-                            || hdCam.cameraCanRenderIUpscaler
-#endif
-                            )
+                            (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP || hdCam.cameraCanRenderIUpscaler)
                         )
                         || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
@@ -2664,7 +2651,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderGraph.EndFrame();
             XRSystem.EndLayout();
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // Clean up expired upscaler contexts (unused for > 400 frames)
             if (upscaling != null)
             {
@@ -2673,7 +2659,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-#endif
 
             EndContextRendering(renderContext, cameras);
         }
@@ -3195,12 +3180,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool currentAntiAliasingValue = currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing);
                 bool antiAliasingValue = currentAntiAliasingValue && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2;
 
-#if ENABLE_UPSCALER_FRAMEWORK
                 if(additionalCameraData.cameraIUpscalerIsTemporalUpscaler)
                 {
                     antiAliasingValue = antiAliasingValue && !additionalCameraData.cameraCanRenderIUpscaler;
                 }
-#endif
 
                 currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, antiAliasingValue);
             }

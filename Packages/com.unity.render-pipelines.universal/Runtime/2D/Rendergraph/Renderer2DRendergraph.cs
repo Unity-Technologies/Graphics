@@ -1206,15 +1206,11 @@ namespace UnityEngine.Rendering.Universal
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcess != null;
             bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcess != null;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // A standalone (non-embedded) spatial upscaler resolves through the FinalPost pass:
             // FSR1 and any spatial upscaler qualify.
             IUpscaler activeUpscaler = postProcessingData.activeUpscaler;
             bool requiresFinalPostUpscale = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1
                             || (activeUpscaler != null && !activeUpscaler.isTemporal && !postProcessingData.activeUpscalerIsEmbedded);
-#else
-            bool requiresFinalPostUpscale = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
-#endif
 
             bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData, out var ppc) && ppc.requiresUpscalePass;
 

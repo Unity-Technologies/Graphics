@@ -1,4 +1,4 @@
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_METALFX_MODULE && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS)
+#if ENABLE_METALFX_MODULE && (UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS)
 using System;
 using Unity.Profiling.LowLevel;
 using UnityEngine.Experimental.Rendering;
@@ -97,15 +97,22 @@ namespace UnityEngine.Rendering.MetalFX
 #endif
     public class MetalFXSpatialUpscaler : AbstractUpscaler
     {
+        /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
         public static readonly string registeredId = "apple.metalfx-spatial";
+        /// <summary>Display name for this upscaler.</summary>
         public static readonly string registeredName = "MetalFX Spatial";
 
         static readonly ProfilingSampler k_MetalFXSpatial = ProfilingSampler.Create("MetalFXSpatial", MarkerFlags.Default);
 
+        /// <inheritdoc/>
         public override string upscalerId => registeredId;
+        /// <inheritdoc/>
         public override string name => registeredName;
+        /// <inheritdoc/>
         public override bool isTemporal => false;
+        /// <inheritdoc/>
         public override bool supportsSharpening => false;
+        /// <inheritdoc/>
         public override bool isSupportedOnDevice => Supported;
 
         // MetalFX Spatial is a single-frame upscaler with no temporal reprojection, so it reports zero jitter.

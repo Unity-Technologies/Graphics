@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 using UnityEngine.NVIDIA;
 #endif
 using System;
@@ -11,7 +11,7 @@ using System;
 using UnityEditor;
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 
 #if UNITY_EDITOR
 [InitializeOnLoad]
@@ -88,7 +88,9 @@ public class DLSSUpscalerContext : PluginUpscalerContext<DLSSContext, DLSSOption
 #endif
 public class DLSSIUpscaler : AbstractUpscaler
 {
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
     public static readonly string registeredId = "nvidia.dlss4";
+    /// <summary>Display name for this upscaler.</summary>
     public static readonly string registeredName = "Deep Learning Super Sampling 4";
 
 #region DLSS_UTILITIES
@@ -148,11 +150,17 @@ public class DLSSIUpscaler : AbstractUpscaler
         m_DLSSReady = CheckDLSSFeatureAvailable();
     }
 
+    /// <inheritdoc/>
     public override string upscalerId => registeredId;
+    /// <inheritdoc/>
     public override string name => registeredName;
+    /// <inheritdoc/>
     public override bool isSupportedOnDevice => m_DLSSReady;
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => false;
+    /// <inheritdoc/>
     public override bool hasQualityMode => true;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
@@ -366,4 +374,4 @@ public class DLSSIUpscaler : AbstractUpscaler
     #endregion
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#endif // ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE

@@ -38,9 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty TAAUInjectionPoint;
         public SerializedProperty STPInjectionPoint;
         public SerializedProperty defaultInjectionPoint;
-#if ENABLE_UPSCALER_FRAMEWORK
         public SerializedProperty IUpscalerOptions;
-#endif
+
         public SerializedDynamicResolutionSettings(SerializedProperty root)
         {
             this.root = root;
@@ -71,9 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             fsrOverrideSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrOverrideSharpness);
             fsrSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrSharpness);
 
-#if ENABLE_UPSCALER_FRAMEWORK
             IUpscalerOptions = root.Find((GlobalDynamicResolutionSettings s) => s.upscalerOptions);
-#endif
 
             maxPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
             minPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);

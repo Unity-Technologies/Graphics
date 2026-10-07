@@ -262,13 +262,8 @@ namespace UnityEngine.Rendering.Universal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsFsrEnabled(UniversalCameraData cameraData)
         {
-            return ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) &&
-#if ENABLE_UPSCALER_FRAMEWORK
-                (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1)
-#else
-                (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)
-#endif
-            );
+            return (cameraData.imageScalingMode == ImageScalingMode.Upscaling) &&
+                (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1);
         }
 
 #region HDR Output

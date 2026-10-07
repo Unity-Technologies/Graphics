@@ -261,13 +261,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RenderClouds(m_RenderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
 
-#if ENABLE_UPSCALER_FRAMEWORK
                     if (RequiresReactiveMaskPass(hdCamera, upscaling.activeUpscaler, upscaling.GetGlobalOptions(upscaling.activeUpscaler)))
                     {
                         opaqueColorBuffer = m_RenderGraph.CreateTexture(colorBuffer, "CameraColorBeforeTransparency", false);
                         CopyOpaqueColor(m_RenderGraph, colorBuffer, opaqueColorBuffer);
                     }
-#endif
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, renderContext, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
@@ -746,7 +744,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         class CopyOpaqueColorPassData
         {
             public TextureHandle source;
@@ -770,7 +767,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
         }
-#endif
 
         class CopyXRDepthPassData
         {

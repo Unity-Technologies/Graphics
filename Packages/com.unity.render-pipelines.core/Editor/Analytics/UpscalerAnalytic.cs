@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Analytics;
-#if ENABLE_UPSCALER_FRAMEWORK
 using UnityEngine.Rendering;
-#endif
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -95,7 +93,6 @@ namespace UnityEditor.Rendering.Analytics
             return formattedList;
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
         /// Tries to get the quality info for known upscaler options (DLSS, FSR2).
         /// </summary>
@@ -129,7 +126,6 @@ namespace UnityEditor.Rendering.Analytics
             qualityInfo = default;
             return false;
         }
-#endif
 
         /// <summary>
         /// Collects and sends upscaler analytics for all render pipeline assets in the build.

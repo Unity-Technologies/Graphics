@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEngine.AMD;
 #endif
 using System;
@@ -11,7 +11,7 @@ using System;
 using UnityEditor;
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 
 #if UNITY_EDITOR
 [InitializeOnLoad]
@@ -105,7 +105,9 @@ public class FSR3UpscalerContext : PluginUpscalerContext<FSRUpscalerContext, FSR
 #endif
 public class FSR3IUpscaler : AbstractUpscaler
 {
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
     public static readonly string registeredId = "amd.fsr3";
+    /// <summary>Display name for this upscaler.</summary>
     public static readonly string registeredName = "FidelityFX Super Resolution 3";
 
 #region FSR3_UTILITIES
@@ -148,12 +150,19 @@ public class FSR3IUpscaler : AbstractUpscaler
             () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR3Quality.Quality));
     }
 
+    /// <inheritdoc/>
     public override string upscalerId => registeredId;
+    /// <inheritdoc/>
     public override string name => registeredName;
+    /// <inheritdoc/>
     public override bool isSupportedOnDevice => m_Ready;
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => true;
+    /// <inheritdoc/>
     public override bool hasQualityMode => true;
+    /// <inheritdoc/>
     public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Color;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
@@ -309,4 +318,4 @@ public class FSR3IUpscaler : AbstractUpscaler
 #endregion
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#endif // ENABLE_AMD && ENABLE_AMD_MODULE
