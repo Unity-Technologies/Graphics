@@ -1286,6 +1286,33 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
+        public void UpdateEntityInstance_DestroyedAndChangedInSameChangeSet_InstanceIsPresent([Values] bool presentBefore)
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            try
+            {
+                var key = CreateEntityKey(1);
+                if (presentBefore)
+                    Update(env.Adapter, new SurfaceCacheWorldChangeSet { EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)) }, env.World);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet
+                {
+                    EntityInstanceChangedList = EntityRecords(CreateEntityRecord(key, mesh)),
+                    EntityInstanceDestroyedList = EntityKeys(key),
+                }, env.World);
+
+                Assert.AreEqual(1, env.World.GetInstanceCount(), "A key destroyed and then tracked again should end up in the world.");
+                Assert.AreEqual(1, env.World.GetMaterialCount(), "The instance should hold exactly one material reference.");
+            }
+            finally
+            {
+                env.Dispose();
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
         public void UpdateEntityInstance_MeshDestroyedWhileInWorld_InstanceIsRemoved()
         {
             var env = CreateEnvironmentOrIgnore();

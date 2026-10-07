@@ -175,11 +175,13 @@ namespace UnityEngine.Rendering.Universal
             foreach (var record in transformChanged)
                 _entityInstances.UpdateTransform(record.Key, record.LocalToWorld, world);
 
-            foreach (var record in changed)
-                _entityInstances.Refresh(_entityInstances.CreateSource(record, materials), _sharedMaterials, world, _renderingLayerMaskFilter);
-
+            // Remove before adding: an entity that stopped and then resumed being tracked since the last drain has a
+            // destroy and a newer record, and the record must win.
             foreach (var key in destroyed)
                 _entityInstances.TryRemove(key, _sharedMaterials, world);
+
+            foreach (var record in changed)
+                _entityInstances.Refresh(_entityInstances.CreateSource(record, materials), _sharedMaterials, world, _renderingLayerMaskFilter);
         }
 
 #if ENABLE_TERRAIN_MODULE
