@@ -43,18 +43,18 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 yield return new RenderingSettingsIssue(URP0005);
             }
 
-            using (UnityEngine.Pool.ListPool<(int level, string name)>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<(int level, string assetName)>.Get(out var tmp))
             {
                 QualitySettings.ForEach((level, name) =>
                 {
                     if (GetMsaaSampleCountSetting(QualitySettings.renderPipeline) >= 4)
                     {
-                        tmp.Add((level, name));
+                        tmp.Add((level, QualitySettings.renderPipeline.name));
                     }
                 });
 
-                foreach (var (level, name) in tmp)
-                    yield return new RenderingSettingsIssue(URP0005, level, name);
+                foreach (var (level, assetName) in tmp)
+                    yield return new RenderingSettingsIssue(URP0005, level, assetName);
             }
         }
 
