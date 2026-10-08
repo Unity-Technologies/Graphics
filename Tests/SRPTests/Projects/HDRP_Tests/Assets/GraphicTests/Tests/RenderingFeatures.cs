@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/9x_Other/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image. Bug: https://jira.unity3d.com/browse/UUM-155363")]
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155364")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155365")]
         [IgnoreGraphicsTest(
