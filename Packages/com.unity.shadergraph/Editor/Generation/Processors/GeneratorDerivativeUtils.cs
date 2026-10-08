@@ -160,8 +160,6 @@ namespace UnityEditor.ShaderGraph
             KeywordCollector keywordCollector,
             List<AbstractMaterialNode> vertexNodes,
             List<AbstractMaterialNode> pixelNodes,
-            List<int>[] vertexNodePermutations,
-            List<int>[] pixelNodePermutations,
             List<StructDescriptor> originalPassStructs,
             bool applyEmulatedDerivatives,
             bool isHumanReadable,
@@ -234,8 +232,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // use the new uv derivative needs to produce text
                 ShaderGraphRequirementsPerKeyword graphRequirements = new ShaderGraphRequirementsPerKeyword();
-                GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, adjustedUvDerivs,
-                    vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
+                GenerationUtils.GetActiveFieldsAndRequirements(pass, vertexNodes, pixelNodes, adjustedUvDerivs, activeFields, out graphRequirements);
 
                 ShaderStringBuilder interpolatorBuilder = new ShaderStringBuilder();
                 ShaderStringBuilder passStructBuilder = new ShaderStringBuilder();
@@ -265,8 +262,6 @@ namespace UnityEditor.ShaderGraph
             KeywordCollector keywordCollector,
             List<AbstractMaterialNode> vertexNodes,
             List<AbstractMaterialNode> pixelNodes,
-            List<int>[] vertexNodePermutations,
-            List<int>[] pixelNodePermutations,
             List<StructDescriptor> originalPassStructs,
             bool applyEmulatedDerivatives,
             bool isHumanReadable,
@@ -289,8 +284,6 @@ namespace UnityEditor.ShaderGraph
                     keywordCollector,
                     vertexNodes,
                     pixelNodes,
-                    vertexNodePermutations,
-                    pixelNodePermutations,
                     originalPassStructs,
                     pass.analyticDerivativesApplyEmulate,
                     isHumanReadable,

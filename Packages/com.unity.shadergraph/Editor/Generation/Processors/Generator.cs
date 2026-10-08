@@ -676,14 +676,13 @@ namespace UnityEditor.ShaderGraph
             customInterpSubGen.ProcessExistingStackData(vertexNodes, vertexSlots, pixelNodes, activeFields.baseInstance);
 
             // Track permutation indices for all nodes
-            List<int>[] vertexNodePermutations = new List<int>[vertexNodes.Count];
-            List<int>[] pixelNodePermutations = new List<int>[pixelNodes.Count];
+            Lazy<List<int>[]> pixelNodePermutations = new(() => GenerationUtils.GetPermutationsForNodes(keywordCollector, pixelNodes));
 
             // Get active fields from upstream Node requirements
             Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[ShaderGeneratorNames.UVCount],
-                vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
+            GenerationUtils.GetActiveFieldsAndRequirements(pass, vertexNodes, pixelNodes, new bool[ShaderGeneratorNames.UVCount],
+                activeFields, out graphRequirements);
             Profiler.EndSample();
 
             // Moved this up so that we can reuse the information to figure out which struct Descriptors
@@ -953,7 +952,6 @@ namespace UnityEditor.ShaderGraph
                     m_Mode,
                     m_OutputNode,
                     vertexNodes,
-                    vertexNodePermutations,
                     vertexSlots,
                     vertexGraphInputName,
                     vertexGraphFunctionName,
@@ -1188,8 +1186,6 @@ namespace UnityEditor.ShaderGraph
                 keywordCollector,
                 vertexNodes,
                 pixelNodes,
-                vertexNodePermutations,
-                pixelNodePermutations,
                 originalPassStructs,
                 pass.analyticDerivativesApplyEmulate,
                 m_HumanReadable,

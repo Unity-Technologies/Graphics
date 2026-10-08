@@ -12,7 +12,6 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    // TODO: rename this file to VirtualTexturingFeedbackUtils
     static class VirtualTexturingFeedbackUtils
     {
         // TODO: could get rid of this if we could run a codegen prepass (with proper keyword #ifdef)
