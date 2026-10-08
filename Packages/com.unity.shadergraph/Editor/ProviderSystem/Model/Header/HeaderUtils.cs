@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             // Dynamic typing isn't supported on return values.
             IShaderType returnType = ApplyLegacy(func.ReturnType, applyPrecision ? precisionToken : null, 0);
-            result = new ShaderFunction(funcName, namespaces, fields, returnType, func.FunctionBody, func.Hints);
+            result = new ShaderFunction(funcName, namespaces, fields, returnType, func.FunctionBody, func.Hints, false, func.Dependencies);
             return true;
         }
     }

@@ -61,8 +61,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal override bool ExposeToSearcher => false;
 
-        internal virtual bool requiresGeneration => false;
-
         public ProviderNode()
         {
             name = "Provider Based Node";
@@ -239,30 +237,24 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                     }
                 }
 
-                ShaderStringBuilder call = new(); // for the callsite.
-                ShaderStringBuilder args = new(); // for building up the argument list.
-
-                // The return result is an output slot, but will instead get initialized by the function call.
-                if (returnSlot != null)
-                {
-                    call.Append($"{HeaderUtils.ToShaderType(returnSlot)} {GetVariableNameForSlot(returnSlot.id)} = ");
-                }
-
-                bool first = true;
+                // Adapts Shader Graph's slot values and variables to the producer and writer.
+                Dictionary<string, ShaderArgument> arguments = new();
+                Dictionary<string, IShaderField> outputVariables = new();
                 foreach (var param in func.Parameters)
                 {
-                    var inputSlot = paramSlotMap[param.Name].input;
-                    var outputSlot = paramSlotMap[param.Name].output;
+                    paramSlotMap.TryGetValue(param.Name, out var paramSlots);
+                    var inputSlot = paramSlots.input;
+                    var outputSlot = paramSlots.output;
 
-                    var typeString = outputSlot != null ? HeaderUtils.ToShaderType(outputSlot) : HeaderUtils.ToShaderType(inputSlot);
+                    if (outputSlot != null)
+                        outputVariables[param.Name] = new ShaderField(GetVariableNameForSlot(outputSlot.id), false, true, new ShaderType(HeaderUtils.ToShaderType(outputSlot)), null);
 
-                    var variableName = outputSlot != null ? GetVariableNameForSlot(outputSlot.id) : null;
-                    var valueString = inputSlot != null ? GetSlotValue(inputSlot.id, generationMode) : null;
+                    if (inputSlot == null)
+                        continue;
 
-                    if (inputSlot != null && inputSlot.bareResource) // Texture/Sampler slots are normally 'Unity' wrapper structures
+                    var valueString = GetSlotValue(inputSlot.id, generationMode);
+                    if (inputSlot.bareResource) // Texture/Sampler slots are normally 'Unity' wrapper structures
                         valueString += inputSlot is SamplerStateMaterialSlot ? ".samplerstate" : ".tex";
-
-                    var argument = valueString; // assume it's an input, in which case the arg will be the upstream value/connection.
 
                     // apply linkage override
                     if (ParamHeaders.TryGetValue(param.Name, out var ph) && ph.isLinkage)
@@ -271,31 +263,21 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
                         // this concept is awkward for inout slots, but that could be improved in the future.
                         // ie. add support for int and set it to 0 = none, 1 = in, 2 = out, 3 = both.
-                        if (targetSlots.input != null && targetSlots.input.isConnected
-                        || targetSlots.output != null && targetSlots.output.isConnected)
-                        {
-                            argument = "true";
-                        }
-                        else argument = "false";
+                        bool linked = targetSlots.input != null && targetSlots.input.isConnected
+                            || targetSlots.output != null && targetSlots.output.isConnected;
+                        valueString = linked ? "true" : "false";
                     }
 
-                    if (outputSlot != null)
-                    {
-                        // inout and out define a variable to be used as the argument.
-                        // but only inout gets initialized by the value.
-                        argument = variableName;
-                        sb.AddLine($"{typeString} {variableName}{(inputSlot != null ? $" = {valueString}" : "")};");
-                    }
-
-                    if (!first)
-                        args.Append(", ");
-                    first = false;
-
-                    args.Append(argument);
+                    arguments[param.Name] = ShaderArgument.Value(valueString);
                 }
 
-                call.Append(ShaderObjectUtils.GenerateCall(func, args.ToString()));
-                sb.AddLine(call.ToString());
+                if (returnSlot != null)
+                    outputVariables[ShaderObjectUtils.kReturnName] = new ShaderField(GetVariableNameForSlot(returnSlot.id), false, true, new ShaderType(HeaderUtils.ToShaderType(returnSlot)), null);
+
+                var callSite = new CallProducer().Produce(func, new ProducerContext(objectId, arguments));
+                var code = ShaderWriter.WriteCallSites(new[] { callSite }, (_, output) => outputVariables.TryGetValue(output, out var variable) ? variable : null);
+                foreach (var line in code.Split('\n'))
+                    sb.AddLine(line);
             }
         }
 
@@ -304,18 +286,23 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (Provider == null || !Provider.IsValid || Provider.Definition == null)
                 return;
 
-            // Asset-backed providers contribute their source .hlsl as an include; scripted
-            // providers carry their source inline via the generated function body below.
-            if (Provider.AssetID != default)
-            {
-                var includePath = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
-                registry.RequiresIncludePath(includePath, false);
-            }
+            HeaderUtils.TryApplyLegacy(Provider.Definition, Header, ParamHeaders, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
+            var contents = ShaderWriter.Collect(new IDefinition[] { func });
 
-            if (HeaderUtils.TryApplyLegacy(Provider.Definition, Header, ParamHeaders, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func) || requiresGeneration)
+            foreach (var include in contents.Includes)
+                registry.RequiresIncludePath(ShaderWriter.GetIncludePath(include), false);
+
+            // FunctionRegistry keys functions by name, so overloads can't both be registered.
+            Dictionary<string, string> signatures = new();
+            foreach (var function in contents.Functions)
             {
-                string code = ShaderObjectUtils.GenerateCode(func, false, false, true);
-                registry.ProvideFunction(func.Name, s => s.AppendLine(code));
+                var signature = ShaderObjectUtils.QualifySignature(function);
+                if (signatures.TryGetValue(function.Name, out var registered) && registered != signature)
+                    throw new InvalidOperationException($"'{function.Name}' has overloads, which can't be registered: {registered} and {signature}.");
+                signatures[function.Name] = signature;
+
+                string code = ShaderWriter.GetCode(function);
+                registry.ProvideFunction(function.Name, s => s.AppendLine(code));
             }
         }
 

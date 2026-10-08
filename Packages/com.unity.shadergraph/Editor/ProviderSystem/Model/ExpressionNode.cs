@@ -37,8 +37,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             }
         }
 
-        internal override bool requiresGeneration => true;
-
         [TextControl(null, true)]
         internal string Expression
         {
