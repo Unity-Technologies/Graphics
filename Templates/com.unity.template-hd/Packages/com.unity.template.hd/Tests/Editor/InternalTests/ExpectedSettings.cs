@@ -118,7 +118,7 @@ namespace Tests
                     using (var fs = File.OpenRead(settingsFile))
                     {
                         const string unityMagicString = "%YAML 1.1";
-                        // Since U7 a text file starts with a "%UNITY <version>" directive and the magic follows on
+                        // A file saved by a 7.0 alpha starts with a "%UNITY <version>" directive and the magic follows on
                         // the next line - see UnityTextFileHeader.h. Either first line means text.
                         const string unityVersionDirective = "%UNITY ";
                         byte[] buffer = new byte[unityMagicString.Length];
