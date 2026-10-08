@@ -32,6 +32,8 @@ Shader "Hidden/VoxelizeShader"
 
     int dimX, dimY, dimZ;
 
+    int upperBoundCount;
+
     uint id3(int i, int j, int k)
     {
         return (uint)(i + dimX * j + dimX * dimY * k);
@@ -41,6 +43,14 @@ Shader "Hidden/VoxelizeShader"
         return id3(coord.x, coord.y, coord.z);
     }
 
+
+    void StoreTriangleID(uint indexTri, uint triangleID)
+    {
+        if (indexTri < (uint)upperBoundCount)
+        {
+            triangleIDs[indexTri] = triangleID;
+        }
+    }
 
     float2 GetCustomScreenParams()
     {
@@ -83,50 +93,32 @@ Shader "Hidden/VoxelizeShader"
 
     void ComputeCoordAndDepthStep(float2 myScreenParams, float4 pos, out int3 coord, out int3 depthStep, out bool stepMinus, out bool stepPlus)
     {
-        stepPlus = true;
-        stepMinus = true; //TODO : Now we're conservative about how we share triangle data across neighbouring cells, to fix visible artefacts
         if (currentAxis == 1)
         {
             coord = (pos.xyz * float3(myScreenParams, dimY));
             coord.xyz = coord.yzx;
             depthStep = int3(0, 1, 0);
-            if (coord.y == 0)
-            {
-                stepMinus = false;
-            }
-            if (coord.y == dimY - 1)
-            {
-                stepPlus = false;
-            }
         }
         else if (currentAxis == 2)
         {
             coord = (pos.xyz * float3(myScreenParams, dimX));
             coord.xyz = coord.zxy;
             depthStep = int3(1, 0, 0);
-            if (coord.x == 0)
-            {
-                stepMinus = false;
-            }
-            if (coord.x == dimX - 1)
-            {
-                stepPlus = false;
-            }
-
         }
         else
         {
             coord = (pos.xyz * float3(myScreenParams, dimZ));
             depthStep = int3(0, 0, 1);
-            if (coord.z == 0)
-            {
-                stepMinus = false;
-            }
-            if (coord.z == dimZ - 1)
-            {
-                stepPlus = false;
-            }
         }
+
+        int3 dims = int3(dimX, dimY, dimZ);
+        coord = clamp(coord, int3(0, 0, 0), dims - 1);
+
+        //TODO : Now we're conservative about how we share triangle data across neighbouring cells, to fix visible artefacts
+        int depthCoord = dot(coord, depthStep);
+        int depthDim = dot(dims, depthStep);
+        stepMinus = depthCoord > 0;
+        stepPlus = depthCoord < depthDim - 1;
     }
 
     void GetCellCoordinatesData(Varyings input, out int3 coord, out int3 depthStep, out bool stepMinus, out bool stepPlus)
@@ -218,16 +210,16 @@ Shader "Hidden/VoxelizeShader"
                 uint indexTri = 0u;
 
                 InterlockedAdd(counter[id3(coord)], 1, indexTri);
-                triangleIDs[indexTri] = input.triangleID;
+                StoreTriangleID(indexTri, input.triangleID);
                 if (stepPlus)
                 {
                     InterlockedAdd(counter[id3(coord + depthStep)], 1, indexTri);
-                    triangleIDs[indexTri] = input.triangleID;
+                    StoreTriangleID(indexTri, input.triangleID);
                 }
                 if (stepMinus)
                 {
                     InterlockedAdd(counter[id3(coord - depthStep)], 1, indexTri);
-                    triangleIDs[indexTri] = input.triangleID;
+                    StoreTriangleID(indexTri, input.triangleID);
                 }
                 return input.position;
             }
