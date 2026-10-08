@@ -720,6 +720,11 @@ PlayerSettings:
   additionalCompilerArguments:
     Standalone:
     - -warnaserror+
+    - -warnaserror-:UAL0010
+    - -warnaserror-:UAL0011
+    - -warnaserror-:UAL0012
+    - -warnaserror-:UAL0013
+    - -warnaserror-:UAL0014
   platformArchitecture: {}
   scriptingBackend:
     Android: 0
