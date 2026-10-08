@@ -75,11 +75,11 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent k_OverrideSettingText = L10n.TextContent("", "Override this setting for this volume.", null, null);
 
             public static readonly GUIContent k_AllText =
-                L10n.TextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.", null, null);
+                L10n.TextContent("ALL", "Enable all overrides. To maximize performance, only enable the overrides you need.", null, null);
 
-            public static readonly GUIContent k_NoneText = L10n.TextContent("NONE", "Toggle all overrides off.", null, null);
+            public static readonly GUIContent k_NoneText = L10n.TextContent("NONE", "Disable all overrides.", null, null);
 
-            public static string toggleAllText { get; } = L10n.Tr("Toggle All", null);
+            public static string changeAllOverridesUndoText { get; } = L10n.Tr("Change All Overrides", null);
 
             public const int overrideCheckboxWidth = 14;
             public const int overrideCheckboxOffset = 9;
@@ -508,7 +508,7 @@ namespace UnityEditor.Rendering
                 SetAllOverridesTo(state);
             else
             {
-                Undo.RecordObject(target, Styles.toggleAllText);
+                Undo.RecordObject(target, Styles.changeAllOverridesUndoText);
                 volumeComponent.SetOverridesTo(m_VolumeNotAdditionalParameters, state);
                 serializedObject.Update();
             }
@@ -527,7 +527,7 @@ namespace UnityEditor.Rendering
 
         internal void SetAllOverridesTo(bool state)
         {
-            Undo.RecordObject(target, Styles.toggleAllText);
+            Undo.RecordObject(target, Styles.changeAllOverridesUndoText);
             volumeComponent.SetAllOverridesTo(state);
             serializedObject.Update();
         }

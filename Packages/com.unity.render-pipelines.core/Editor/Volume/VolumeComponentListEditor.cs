@@ -496,9 +496,9 @@ namespace UnityEditor.Rendering
             if (!m_IsDefaultVolumeProfile)
             {
                 menu.AddSeparator(string.Empty);
-                menu.AddItem(L10n.TextContent("Toggle All", null, null, null), false,
+                menu.AddItem(L10n.TextContent("Enable All", null, null, null), false,
                     () => m_Editors[id].SetAllOverridesTo(true));
-                menu.AddItem(L10n.TextContent("Toggle None", null, null, null), false,
+                menu.AddItem(L10n.TextContent("Disable All", null, null, null), false,
                     () => m_Editors[id].SetAllOverridesTo(false));
             }
 
