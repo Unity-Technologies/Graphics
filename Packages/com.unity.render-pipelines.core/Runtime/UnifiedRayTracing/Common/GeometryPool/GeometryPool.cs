@@ -25,6 +25,18 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 meshChunkTablesByteSize = 4 * 1024 * 1024
             };
         }
+
+        // Reserve a minimal pool in test contexts, Vulkan frees these allocations at the end of the
+        // frame, so when testing this can accumulate and result in an OOM crash.
+        public static GeometryPoolDesc NewMinimal()
+        {
+            return new GeometryPoolDesc()
+            {
+                vertexPoolByteSize = 1024 * 1024,
+                indexPoolByteSize = 256 * 1024,
+                meshChunkTablesByteSize = 64 * 1024
+            };
+        }
     }
 
     // Handle to a piece of geo. Geometry meshes registered are ref counted.

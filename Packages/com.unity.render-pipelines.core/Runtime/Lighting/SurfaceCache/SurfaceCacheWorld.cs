@@ -510,13 +510,18 @@ namespace UnityEngine.Rendering
 
         public void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader)
         {
+            Init(ctx, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader, GeometryPoolDesc.NewDefault());
+        }
+
+        internal void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader, in GeometryPoolDesc geometryPoolDesc)
+        {
             _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie);
 
             var options = new AccelerationStructureOptions()
             {
                 buildFlags = BuildFlags.None, // TODO: Consider whether to use BuildFlags.MinimizeMemory once https://jira.unity3d.com/browse/UUM-54575 is fixed.
             };
-            _rayTracingAccelerationStructure = new AccelStructAdapter(ctx.CreateAccelerationStructure(options), new GeometryPool(GeometryPoolDesc.NewDefault(), ctx.Resources.geometryPoolKernels, ctx.Resources.copyBuffer));
+            _rayTracingAccelerationStructure = new AccelStructAdapter(ctx.CreateAccelerationStructure(options), new GeometryPool(geometryPoolDesc, ctx.Resources.geometryPoolKernels, ctx.Resources.copyBuffer));
 
             _emissiveTriangles = new EmissiveTriangleList(emissiveTriangleAdditionShader, emissiveTriangleRemovalShader);
 

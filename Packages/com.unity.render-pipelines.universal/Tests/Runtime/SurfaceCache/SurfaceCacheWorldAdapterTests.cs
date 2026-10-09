@@ -2067,7 +2067,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             var ctx = new RayTracingContext(RayTracingBackend.Compute, rtResources);
             var world = new SurfaceCacheWorld();
-            world.Init(ctx, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader);
+            world.Init(ctx, worldResources, coreResourceSet.emissiveTriangleAdditionComputeShader, coreResourceSet.emissiveTriangleRemovalComputeShader, GeometryPoolDesc.NewMinimal());
             var adapter = new SurfaceCacheWorldAdapter(resourceSet.fallbackMaterial);
             return new Environment(ctx, world, adapter);
         }
