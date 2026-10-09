@@ -1714,14 +1714,14 @@ namespace UnityEditor.VFX.UI
 
         public bool RenameCategory(string oldName, string newName)
         {
-            var category = graph.UIInfos.categories.SingleOrDefault(x => x.name == oldName);
-            if (!string.IsNullOrEmpty(category.name))
+            var categoryIndex = graph.UIInfos.categories.FindIndex(x => x.name == oldName);
+            if (categoryIndex != -1)
             {
                 if (graph.UIInfos.categories.All(t => t.name == oldName || !string.Equals(t.name, newName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    graph.UIInfos.categories.Remove(category);
+                    var category = graph.UIInfos.categories[categoryIndex];
                     category.name = newName;
-                    graph.UIInfos.categories.Add(category);
+                    graph.UIInfos.categories[categoryIndex] = category;
 
                     foreach (var parameter in m_ParameterControllers)
                     {

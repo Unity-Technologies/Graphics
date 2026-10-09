@@ -380,10 +380,18 @@ namespace UnityEditor.VFX.UI
             foreach (var id in info.elements)
             {
                 var e = graphView.GetElementByGuid(id);
-                if (e is VFXBlackboardField || e is VFXBlackboardAttributeField)
+                if (e is VFXBlackboardField or VFXBlackboardAttributeField)
                 {
                     var tokens = id.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    blackboard.ScrollToItem(tokens.Length == 1 ? tokens[0] : tokens[1]);
+                    var itemName = tokens.Length == 1 ? tokens[0] : tokens[1];
+                    if (e is VFXBlackboardField)
+                    {
+                        blackboard.ScrollToItem<PropertyItem>(itemName);
+                    }
+                    else
+                    {
+                        blackboard.ScrollToItem<AttributeItem>(itemName);
+                    }
                     elements.Add(e);
                 }
             }
