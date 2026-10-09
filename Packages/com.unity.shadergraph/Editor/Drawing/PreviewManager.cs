@@ -1199,7 +1199,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             int childStart = childStartStack.Pop();
 
                             // process node
-                            process(node, allChildren.Slice(childStart, allChildren.Count));
+                            process(node, allChildren.EnumerateRange(childStart, allChildren.Count - childStart));
                             processed.Add(node);
 
                             // remove the children that were added in state 0
@@ -1228,7 +1228,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ForeachConnectedNode(node, PropagationDirection.Upstream, n => allChildren.Add(n));
 
                 // process children
-                var children = allChildren.Slice(childStart, allChildren.Count);
+                var children = allChildren.EnumerateRange(childStart, allChildren.Count - childStart);
                 foreach (var child in children)
                     ProcessInDependencyOrderRecursive(child);
 
