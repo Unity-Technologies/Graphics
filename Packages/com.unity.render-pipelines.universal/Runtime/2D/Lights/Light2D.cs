@@ -258,19 +258,35 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Takes the mesh a Light2DProvider handed us, releasing any mesh we allocated ourselves first so replacing
-        // it does not leak.
-        void SetProviderMesh(Mesh providerMesh)
+        // Takes the mesh a Light2DProvider handed us and returns its bounds, releasing any mesh we allocated ourselves
+        // first so replacing it does not leak. A null mesh means "draw nothing": we keep one empty mesh we own, so the
+        // render path never sees null and lightMesh does not allocate a new one every frame.
+        Bounds SetProviderMesh(Mesh providerMesh)
         {
+            if (providerMesh == null)
+            {
+                // Drop the provider's mesh without destroying it; it is not ours. lightMesh then allocates our own.
+                if (!m_OwnsMesh)
+                    m_Mesh = null;
+
+                var emptyMesh = lightMesh;
+                if (emptyMesh.vertexCount != 0)
+                    emptyMesh.Clear();
+
+                return kEmptyBounds;
+            }
+
             // A provider is free to hand back the mesh we already hold, in which case ownership is unchanged.
-            if (m_Mesh == providerMesh)
-                return;
+            if (m_Mesh != providerMesh)
+            {
+                if (m_OwnsMesh)
+                    CoreUtils.Destroy(m_Mesh);
 
-            if (m_OwnsMesh)
-                CoreUtils.Destroy(m_Mesh);
+                m_Mesh = providerMesh;
+                m_OwnsMesh = false;
+            }
 
-            m_Mesh = providerMesh;
-            m_OwnsMesh = false;
+            return providerMesh.bounds;
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
@@ -679,14 +695,11 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        // A provider light can legitimately have no provider -- the script backing it was deleted, for instance --
+        // and that draws nothing, the same as a provider that returns no mesh.
         internal Bounds UpdateProviderMesh()
         {
-            SetProviderMesh(light2DProvider.GetMesh());
-
-            if (m_Mesh != null)
-                return m_Mesh.bounds;
-            else
-                return kEmptyBounds;
+            return SetProviderMesh(light2DProvider?.GetMesh());
         }
 
         internal void UpdateCookieSpriteTexture()
@@ -742,23 +755,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (light2DProvider != null)
-                {
-                    if (m_Mesh != null)
-                    {
-                        SetProviderMesh(light2DProvider.GetMesh());
-                        m_LocalBounds = m_Mesh.bounds;
-                    }
-                }
-                else
-                {
-                    // A provider light can legitimately have no provider -- the script backing it was
-                    // deleted, for instance -- and then no mesh was ever allocated, so m_Mesh is null.
-                    if (m_Mesh != null)
-                        m_Mesh.Clear();
-
-                    m_LocalBounds = kEmptyBounds;
-                }
+                m_LocalBounds = UpdateProviderMesh();
             }
         }
 
