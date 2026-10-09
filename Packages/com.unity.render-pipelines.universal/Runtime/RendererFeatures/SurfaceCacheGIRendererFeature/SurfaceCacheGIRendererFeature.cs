@@ -305,7 +305,8 @@ namespace UnityEngine.Rendering.Universal
             if (viewCount > 1)
                 ComputeViewInfo(cameraData, 1, out _, out clipToWorld1, out _);
 
-            return new CameraInfo(clipToWorld0, clipToWorld1, worldToClip, worldPos, new int2(cameraData.pixelWidth, cameraData.pixelHeight), viewCount, screenTexturesAreArrays);
+            var screenResolution = new int2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+            return new CameraInfo(clipToWorld0, clipToWorld1, worldToClip, worldPos, screenResolution, viewCount, screenTexturesAreArrays);
         }
 
         // Keeps DrawObjectsPass/GBufferPass on the screen-space-GI path instead of falling back to lightmap/APV/SH.
