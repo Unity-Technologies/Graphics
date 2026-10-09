@@ -90,6 +90,7 @@ namespace UnityEditor.VFX
             AddDataContainerSources(ref context);
 
             GenerateExpressionSheet(ref context);
+            GenerateExposedMappings(ref context);
             GenerateBufferDescriptions(ref context);
             GenerateSystemDescs(ref context);
 
@@ -130,6 +131,31 @@ namespace UnityEditor.VFX
             }
 
             return vfxExpressionIndex;
+        }
+
+        void GenerateExposedMappings(ref CompilationContext context)
+        {
+            var exposed = new List<VFXExposedMapping>();
+            foreach (var dataNode in context.graph.DataNodes)
+            {
+                if (dataNode.TaskNode.Task is ExternalSetTask externalSetTask)
+                {
+                    uint index = AddExpressionRecursively(externalSetTask.Expression);
+                    exposed.Add(new VFXExposedMapping
+                    {
+                        mapping = new VFXMapping(externalSetTask.ExposedName, (int)index),
+                        space = externalSetTask.Space
+                    });
+
+                    foreach (var childDataNode in dataNode.Children)
+                    {
+                        if (childDataNode.TaskNode.Task is VfxTask or ParticleSystemTask or SpawnerTask)
+                            m_ValuesExpressionIndices.Add(childDataNode.Id, index);
+                    }
+                }
+            }
+            
+            m_currentOutput.SheetExposed.AddRange(exposed);
         }
 
         void AddDataContainerSources(ref CompilationContext context)

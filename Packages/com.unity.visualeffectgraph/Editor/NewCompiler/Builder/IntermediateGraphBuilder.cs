@@ -19,8 +19,8 @@ namespace UnityEditor.VFX
 
         public IntermediateGraphBuilder()
         {
-            // Order is relevant, it is the order in which they are built
             m_GraphBuilder = new CompositeSystemBuilder(
+                new ExposedParameterBuilder(),
                 new ExpressionBuilder(),
                 new SpawnerSystemBuilder(),
                 new GpuEventBuilder(),
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
                 if (model is VFXData data && data.CanBeCompiled())
                     compilableData.Add(data);
             }
-            
+
             foreach (var data in compilableData)
                 data.InitImplicitContexts();
 

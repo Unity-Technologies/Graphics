@@ -94,6 +94,13 @@ namespace UnityEditor.VFX
             return true;
         }
 
+        static VFXExpression GetProducedExpression(ITask task) => task switch
+        {
+            LegacyExpressionTask legacyExpressionTask => legacyExpressionTask.Expression,
+            ExternalSetTask externalSetTask => externalSetTask.Expression,
+            _ => null
+        };
+
         List<DataNodeId> GenerateInstancingSplitDataNodes(TaskNode taskNode)
         {
             List<DataNodeId> instancingSplitDescValues = new List<DataNodeId>();
@@ -101,17 +108,12 @@ namespace UnityEditor.VFX
             {
                 foreach (var dataNodeParent in dataNode.Parents)
                 {
-                    if (dataNodeParent.TaskNode.Task is LegacyExpressionTask expressionTask)
+                    var expression = GetProducedExpression(dataNodeParent.TaskNode.Task);
+                    if (expression != null
+                        && (VFXExpression.IsTexture(expression.valueType) || VFXExpression.IsBufferOnGPU(expression.valueType))
+                        && !expression.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
                     {
-                        if (VFXExpression.IsTexture(expressionTask.Expression.valueType) ||
-                            VFXExpression.IsBufferOnGPU(expressionTask.Expression.valueType))
-                        {
-                            if (!expressionTask.Expression.IsAny(VFXExpression.Flags.Constant |
-                                                                 VFXExpression.Flags.Foldable))
-                            {
-                                instancingSplitDescValues.Add(dataNode.Id);
-                            }
-                        }
+                        instancingSplitDescValues.Add(dataNode.Id);
                     }
                 }
             }
