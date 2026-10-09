@@ -247,7 +247,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                     var outputSlot = paramSlots.output;
 
                     if (outputSlot != null)
-                        outputVariables[param.Name] = new ShaderField(GetVariableNameForSlot(outputSlot.id), false, true, new ShaderType(HeaderUtils.ToShaderType(outputSlot)), null);
+                        outputVariables[param.Name] = DefinitionCodeGenerator.OutputVariable(GetVariableNameForSlot(outputSlot.id), HeaderUtils.ToShaderType(outputSlot));
 
                     if (inputSlot == null)
                         continue;
@@ -272,12 +272,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 }
 
                 if (returnSlot != null)
-                    outputVariables[ShaderObjectUtils.kReturnName] = new ShaderField(GetVariableNameForSlot(returnSlot.id), false, true, new ShaderType(HeaderUtils.ToShaderType(returnSlot)), null);
+                    outputVariables[ShaderObjectUtils.kReturnName] = DefinitionCodeGenerator.OutputVariable(GetVariableNameForSlot(returnSlot.id), HeaderUtils.ToShaderType(returnSlot));
 
-                var callSite = new CallProducer().Produce(func, new ProducerContext(objectId, arguments));
-                var code = ShaderWriter.WriteCallSites(new[] { callSite }, (_, output) => outputVariables.TryGetValue(output, out var variable) ? variable : null);
-                foreach (var line in code.Split('\n'))
-                    sb.AddLine(line);
+                DefinitionCodeGenerator.GenerateCall(func, objectId, arguments, outputVariables, sb);
             }
         }
 
@@ -287,23 +284,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 return;
 
             HeaderUtils.TryApplyLegacy(Provider.Definition, Header, ParamHeaders, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
-            var contents = ShaderWriter.Collect(new IDefinition[] { func });
-
-            foreach (var include in contents.Includes)
-                registry.RequiresIncludePath(ShaderWriter.GetIncludePath(include), false);
-
-            // FunctionRegistry keys functions by name, so overloads can't both be registered.
-            Dictionary<string, string> signatures = new();
-            foreach (var function in contents.Functions)
-            {
-                var signature = ShaderObjectUtils.QualifySignature(function);
-                if (signatures.TryGetValue(function.Name, out var registered) && registered != signature)
-                    throw new InvalidOperationException($"'{function.Name}' has overloads, which can't be registered: {registered} and {signature}.");
-                signatures[function.Name] = signature;
-
-                string code = ShaderWriter.GetCode(function);
-                registry.ProvideFunction(function.Name, s => s.AppendLine(code));
-            }
+            DefinitionCodeGenerator.CollectFunctions(func, registry);
         }
 
         public override void ValidateNode()

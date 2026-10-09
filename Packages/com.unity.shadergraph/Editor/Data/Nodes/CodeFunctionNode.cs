@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.ProviderSystem;
 using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
@@ -27,6 +29,37 @@ namespace UnityEditor.ShaderGraph
     {
         [NonSerialized]
         private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
+
+        IShaderFunction ResolveDefinition()
+        {
+            var method = GetFunctionToConvert();
+            var provider = new CodeFunctionProvider(method, GetFunctionBody(method));
+            return ResolveDynamicTypes(provider.Definition);
+        }
+
+        IShaderFunction ResolveDynamicTypes(IShaderFunction source)
+        {
+            Dictionary<string, string> slotTypes = new();
+            string body = source.FunctionBody;
+            using (ListPool<MaterialSlot>.Get(out var slots))
+            {
+                GetSlots(slots);
+                foreach (var slot in slots)
+                {
+                    slotTypes[slot.shaderOutputName] = slot.concreteValueType.ToShaderString(PrecisionUtil.Token);
+                    body = body.Replace($"{{slot{slot.id}dimension}}", NodeUtils.GetSlotDimension(slot.concreteValueType));
+                }
+            }
+
+            List<IShaderField> parameters = new();
+            foreach (var param in source.Parameters)
+            {
+                if (!slotTypes.TryGetValue(param.Name, out var slotType))
+                    throw new InvalidOperationException($"'{param.Name}' of '{source.Name}' has no matching slot on '{name}'.");
+                parameters.Add(new ShaderField(param.Name, param.IsInput, param.IsOutput, new ShaderType(slotType), null));
+            }
+            return new ShaderFunction(GetFunctionName(), null, parameters, source.ReturnType, body, null);
+        }
 
         public override bool hasPreview
         {
@@ -153,7 +186,7 @@ namespace UnityEditor.ShaderGraph
 
         protected abstract MethodInfo GetFunctionToConvert();
 
-        private static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
+        internal static SlotValueType ConvertTypeToSlotValueType(ParameterInfo p)
         {
             Type t = p.ParameterType;
             if (p.ParameterType.IsByRef)
@@ -370,36 +403,21 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            using (ListPool<MaterialSlot>.Get(out var tempSlots))
+            Dictionary<string, ShaderArgument> arguments = new();
+            Dictionary<string, IShaderField> outputVariables = new();
+            using (ListPool<MaterialSlot>.Get(out var slots))
             {
-                GetOutputSlots(tempSlots);
-                foreach (var outSlot in tempSlots)
+                GetSlots(slots);
+                foreach (var slot in slots)
                 {
-                    sb.AppendLine(outSlot.concreteValueType.ToShaderString(PrecisionUtil.Token) + " " + GetVariableNameForSlot(outSlot.id) + ";");
-                }
-
-                string call = GetFunctionName() + "(";
-                bool first = true;
-                tempSlots.Clear();
-                GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-                foreach (var slot in tempSlots)
-                {
-                    if (!first)
-                    {
-                        call += ", ";
-                    }
-                    first = false;
-
                     if (slot.isInputSlot)
-                        call += GetSlotValue(slot.id, generationMode);
+                        arguments[slot.shaderOutputName] = ShaderArgument.Value(GetSlotValue(slot.id, generationMode));
                     else
-                        call += GetVariableNameForSlot(slot.id);
+                        outputVariables[slot.shaderOutputName] = DefinitionCodeGenerator.OutputVariable(GetVariableNameForSlot(slot.id), slot.concreteValueType.ToShaderString(PrecisionUtil.Token));
                 }
-                call += ");";
-
-                sb.AppendLine(call);
             }
+
+            DefinitionCodeGenerator.GenerateCall(ResolveDefinition(), objectId, arguments, outputVariables, sb);
         }
 
         private string GetFunctionName()
@@ -408,35 +426,6 @@ namespace UnityEditor.ShaderGraph
             return function.Name + (function.IsStatic ? string.Empty : "_" + objectId) + "_$precision"
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
-        }
-
-        private string GetFunctionHeader()
-        {
-            string header = "void " + GetFunctionName() + "(";
-
-            using (ListPool<MaterialSlot>.Get(out var tempSlots))
-            {
-                GetSlots(tempSlots);
-                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-                var first = true;
-                foreach (var slot in tempSlots)
-                {
-                    if (!first)
-                        header += ", ";
-
-                    first = false;
-
-                    if (slot.isOutputSlot)
-                        header += "out ";
-
-                    // always use generic precisions for parameters, they will get concretized by the system
-                    header += slot.concreteValueType.ToShaderString(PrecisionUtil.Token) + " " + slot.shaderOutputName;
-                }
-
-                header += ")";
-            }
-
-            return header;
         }
 
         private static object GetDefault(Type type)
@@ -452,35 +441,13 @@ namespace UnityEditor.ShaderGraph
 
             var result = info.Invoke(this, args.ToArray()) as string;
 
-            if (string.IsNullOrEmpty(result))
-                return string.Empty;
-
             // stomp any newline differences that might try to sneak in via this path
-            result = result.Replace("\r\n", "\n");
-
-            using (ListPool<MaterialSlot>.Get(out var tempSlots))
-            {
-                GetSlots(tempSlots);
-                foreach (var slot in tempSlots)
-                {
-                    var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                    var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
-                    result = result.Replace(toReplace, replacement);
-                }
-            }
-
-            return result;
+            return string.IsNullOrEmpty(result) ? string.Empty : result.Replace("\r\n", "\n");
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine(GetFunctionHeader());
-                var functionBody = GetFunctionBody(GetFunctionToConvert());
-                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
-                s.AppendLines(lines);
-            });
+            DefinitionCodeGenerator.CollectFunctions(ResolveDefinition(), registry);
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)
@@ -488,6 +455,8 @@ namespace UnityEditor.ShaderGraph
             var attrs = info.GetCustomAttributes(typeof(SlotAttribute), false).OfType<SlotAttribute>().ToList();
             return attrs.FirstOrDefault();
         }
+
+        internal static int? GetSlotId(ParameterInfo info) => GetSlotAttribute(info)?.slotId;
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
