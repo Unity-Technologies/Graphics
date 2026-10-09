@@ -115,6 +115,17 @@ Pass
     // --------------------------------------------------
     // Build Surface Data
 
+    // With XYZ normal map encoding we sporadically sample normals with near-zero length that would result in NaN (see NormalizeNormalPerPixel).
+    half3 DecalSafeNormalize(half3 n, half3 fallback)
+    {
+    #if defined(UNITY_NO_DXT5nm)
+        half lenSq = dot(n, n);
+        return lenSq > HALF_MIN ? n * rsqrt(lenSq) : fallback;
+    #else
+        return normalize(n);
+    #endif
+    }
+
     void GetSurfaceData(Varyings input, float4 positionCS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
@@ -166,7 +177,7 @@ Pass
 
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             #if defined(_MATERIAL_AFFECTS_NORMAL)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = DecalSafeNormalize(mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz), normalize(normalToWorld[2].xyz));
             #else
                 surfaceData.normalWS.xyz = normalize(normalToWorld[2].xyz);
             #endif
@@ -177,7 +188,7 @@ Pass
                 half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = DecalSafeNormalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld), normalize(half3(input.normalWS)));
             #else
                 surfaceData.normalWS.xyz = normalize(half3(input.normalWS)); // Default to vertex normal
             #endif

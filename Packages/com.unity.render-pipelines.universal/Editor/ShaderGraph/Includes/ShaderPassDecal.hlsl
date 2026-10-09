@@ -51,7 +51,7 @@
 #ifdef DECAL_MESH
 #include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DecalMeshBiasTypeEnum.cs.hlsl"
 #endif
-#ifdef DECAL_RECONSTRUCT_NORMAL
+#if defined(DECAL_RECONSTRUCT_NORMAL) || (defined(DECAL_LOAD_NORMAL) && defined(_RENDER_PASS_ENABLED))
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 #endif
 
@@ -253,7 +253,8 @@ void Frag(PackedVaryings packedInput,
     #endif
 #elif defined(DECAL_LOAD_NORMAL)
     #if defined(_RENDER_PASS_ENABLED)
-    half3 normalWS = normalize(LOAD_FRAMEBUFFER_X_INPUT(GBUFFER2, positionCS.xy).rgb);
+    // Scene normals aren't bound as framebuffer input in this pass, so reconstruct them from depth instead.
+    half3 normalWS = half3(ReconstructNormalDerivative(input.positionCS.xy, LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, positionCS.xy).x));
     #else
     half3 normalWS = normalize(LoadSceneNormals(positionCS.xy).rgb);
     #endif
