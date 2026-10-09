@@ -9,13 +9,22 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {
+        internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
+
         private static class Styles
         {
-            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
-            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
-            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+            static GUIContent s_LightTypeFreeform;
+            static GUIContent s_LightTypeSprite;
+            static GUIContent s_LightTypePoint;
+            static GUIContent s_LightTypeGlobal;
 
+            public static GUIContent lightTypeFreeform => s_LightTypeFreeform ??= new GUIContent("Freeform", LoadIcon("FreeformLight.png"));
+            public static GUIContent lightTypeSprite => s_LightTypeSprite ??= new GUIContent("Sprite", LoadIcon("SpriteLight.png"));
+            public static GUIContent lightTypePoint => s_LightTypePoint ??= new GUIContent("Spot", LoadIcon("PointLight.png"));
+            public static GUIContent lightTypeGlobal => s_LightTypeGlobal ??= new GUIContent("Global", LoadIcon("GlobalLight.png"));
+
+            static Texture LoadIcon(string fileName) => AssetDatabase.LoadAssetAtPath<Texture>(ResourcePath + "InspectorIcons/" + fileName);
+            
             public static GUIContent lightTypeMissing = new GUIContent("Missing", "The Light Type this light is set to is not available on this GameObject.");
             public static GUIContent lightTypeParametricDeprecated = new GUIContent("Parametric (Deprecated)", "Parametric lights are deprecated. Upgrade this light to a Freeform light.");
 
