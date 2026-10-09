@@ -1,1 +1,8 @@
-area: SRP Settings
+default:
+  area: SRP Settings
+
+surface-cache:
+  when:
+    path:
+      - ^.*SurfaceCache.*$
+  area: Lighting
