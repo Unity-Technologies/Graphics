@@ -1932,6 +1932,14 @@ namespace UnityEngine.Rendering
         }
 
         static int s_AsyncBakeTaskId = -1;
+
+        // Always go through this, the runtime assembly can't read isRunning and uses the mirrored flag instead.
+        static void SetAsyncBakeTaskId(int taskId)
+        {
+            s_AsyncBakeTaskId = taskId;
+            ProbeReferenceVolume.instance.isBakingAdaptiveProbeVolumes = taskId != -1;
+        }
+
         internal static void AsyncBakeCallback()
         {
             float progress = 0.0f;
@@ -1947,7 +1955,7 @@ namespace UnityEngine.Rendering
                 Debug.LogException(e);
                 EditorApplication.update -= AsyncBakeCallback;
                 Progress.Remove(s_AsyncBakeTaskId);
-                s_AsyncBakeTaskId = -1;
+                SetAsyncBakeTaskId(-1);
                 OnBakeCancelled();
                 return;
             }
@@ -1960,7 +1968,7 @@ namespace UnityEngine.Rendering
                 Progress.Remove(s_AsyncBakeTaskId);
 
                 EditorApplication.update -= AsyncBakeCallback;
-                s_AsyncBakeTaskId = -1;
+                SetAsyncBakeTaskId(-1);
             }
         }
 
@@ -1973,12 +1981,12 @@ namespace UnityEngine.Rendering
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking(BakeType.ApvOnly, DoProbePlacement, AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests))
                 return false;
 
-            s_AsyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous);
+            SetAsyncBakeTaskId(Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous));
             Progress.RegisterCancelCallback(s_AsyncBakeTaskId, () =>
             {
                 OnBakeCancelled();
                 EditorApplication.update -= AsyncBakeCallback;
-                s_AsyncBakeTaskId = -1;
+                SetAsyncBakeTaskId(-1);
                 return true;
             });
 
