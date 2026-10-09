@@ -351,27 +351,10 @@ namespace UnityEngine.Rendering.Universal
         // would see whichever value was written last.
         private static void SetCustomCasterKeywords(UnsafeCommandBuffer cmdBuffer, Material material, bool spriteCaster, bool skinned)
         {
-            SetLocalKeywordIfDeclared(cmdBuffer, material, k_SpriteCasterKeyword, spriteCaster);
-            SetLocalKeywordIfDeclared(cmdBuffer, material, k_SkinnedSpriteKeyword, skinned);
-        }
-
-        // Keywords a custom shader never declares are skipped rather than set: constructing a
-        // LocalKeyword for a name outside the shader's keyword space yields an invalid keyword, and
-        // a hand-written shadow shader with no sprite/skinning variants is a legitimate case.
-        private static void SetLocalKeywordIfDeclared(UnsafeCommandBuffer cmdBuffer, Material material, string keywordName, bool enabled)
-        {
-            var shader = material.shader;
-            if (shader == null)
-                return;
-
-            var keyword = shader.keywordSpace.FindKeyword(keywordName);
-            if (!keyword.isValid)
-                return;
-
-            if (enabled)
-                cmdBuffer.EnableKeyword(material, keyword);
-            else
-                cmdBuffer.DisableKeyword(material, keyword);
+            // A hand-written shadow shader with no sprite/skinning variants is a legitimate case,
+            // so keywords the shader never declares are skipped rather than set.
+            RendererLighting.SetLocalKeywordIfDeclared(cmdBuffer, material, k_SpriteCasterKeyword, spriteCaster);
+            RendererLighting.SetLocalKeywordIfDeclared(cmdBuffer, material, k_SkinnedSpriteKeyword, skinned);
         }
 
         private static void CalculateFrustumCornersPerspective(Camera camera, float distance, NativeArray<Vector3> corners)
