@@ -1,4 +1,5 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "disableProjectUpdate": true,
   "dependencies": {
@@ -49,17 +50,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
-    "com.unity.test-profiler": "0.1.0-exp.6",
-    "com.unity.yamato": "1.0.1"
-  },
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal Candidates",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.yamato",
-        "com.unity.test-profiler"
-      ]
-    }
-  ]
+    "com.unity.test-profiler": "file:../../../../../ShadowPackages/com.unity.test-profiler",
+    "com.unity.yamato": "file:../../../../../ShadowPackages/com.unity.yamato"
+  }
 }
