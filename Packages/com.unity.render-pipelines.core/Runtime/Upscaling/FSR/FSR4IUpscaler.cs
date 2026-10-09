@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEngine.AMD;
 #endif
 using System;
@@ -11,7 +11,7 @@ using System;
 using UnityEditor;
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 
 #if UNITY_EDITOR
 [InitializeOnLoad]
@@ -104,7 +104,9 @@ public class FSR4UpscalerContext : PluginUpscalerContext<FSRUpscalerContext, FSR
 #endif
 public class FSR4IUpscaler : AbstractUpscaler
 {
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
     public static readonly string registeredId = "amd.fsr4";
+    /// <summary>Display name for this upscaler.</summary>
     public static readonly string registeredName = "FidelityFX Super Resolution 4";
 
 #region FSR4_UTILITIES
@@ -121,7 +123,7 @@ public class FSR4IUpscaler : AbstractUpscaler
 
         return true;
     }
-    #endregion
+#endregion
 
 #region RENDERGRAPH_INTERFACE_DATA
     class FSR4PassData
@@ -134,7 +136,7 @@ public class FSR4IUpscaler : AbstractUpscaler
         public TextureHandle motionVectors;
         public TextureHandle colorOutput;
     }
-    #endregion
+#endregion
 
 #region IUPSCALER_INTERFACE
     public FSR4IUpscaler()
@@ -146,11 +148,17 @@ public class FSR4IUpscaler : AbstractUpscaler
             () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR4Quality.Quality));
     }
 
+    /// <inheritdoc/>
     public override string upscalerId => registeredId;
+    /// <inheritdoc/>
     public override string name => registeredName;
+    /// <inheritdoc/>
     public override bool isSupportedOnDevice => m_Ready;
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => true;
+    /// <inheritdoc/>
     public override bool hasQualityMode => true;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
@@ -295,7 +303,7 @@ public class FSR4IUpscaler : AbstractUpscaler
 #region DATA
     private bool m_Ready = false;
     private FSRUtils.ResolutionSuggestion m_ResolutionSuggestion = null;
-    #endregion
+#endregion
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#endif // ENABLE_AMD && ENABLE_AMD_MODULE

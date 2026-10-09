@@ -4,9 +4,7 @@ using System.Runtime.CompilerServices; // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
 {
-#if ENABLE_UPSCALER_FRAMEWORK
     [Obsolete("StpPostProcessPass is replaced by STPIUpscaler #from(6000.3)")]
-#endif
     internal sealed class StpPostProcessPass : PostProcessPass
     {
         public const string k_UpscaledColorTargetName = "CameraColorUpscaledSTP";
@@ -35,11 +33,9 @@ namespace UnityEngine.Rendering.Universal
             if (!m_IsValid)
                 return;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
             if (postProcessingData.activeUpscaler != null)
                 return;
-#endif
 
             // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
@@ -83,7 +79,6 @@ namespace UnityEngine.Rendering.Universal
 
             resourceData.cameraColor = destinationTexture;
 
-#if !ENABLE_UPSCALER_FRAMEWORK
             // STP only upscales the color channels; rebuild the output alpha from the pre-upscale image.
             // cameraData.jitter is in NDC space; converting it back to pixels at the rendering resolution
             // recovers the applied sub-pixel jitter. Negated because the alpha upscale kernel follows
@@ -92,7 +87,6 @@ namespace UnityEngine.Rendering.Universal
             Vector2 alphaJitter = -0.5f * new Vector2(cameraData.jitter.x * srcDesc.width, cameraData.jitter.y * srcDesc.height);
             AlphaUpscaleUtils.Execute(renderGraph, cameraData, resourceData, sourceTexture, isTemporalUpscaler: true,
                 new Vector2Int(srcDesc.width, srcDesc.height), new Vector2Int(destDesc.width, destDesc.height), alphaJitter);
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

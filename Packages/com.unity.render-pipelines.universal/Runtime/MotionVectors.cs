@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.Universal
         Vector3 m_previousWorldSpaceCameraPos;
         Vector3 m_previousPreviousWorldSpaceCameraPos;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         // Per-view array form of the scalar camera-position history above, consumed by the upscaler IO
         // (io.worldSpaceCameraPositions is a Vector3[] — per-view so XR-capable pipelines can supply distinct per-eye
         // positions). NOT independent data: the scalars remain the authoritative store; these are filled by replicating
@@ -45,7 +44,6 @@ namespace UnityEngine.Rendering.Universal
         Vector3[] m_WorldSpaceCameraPosViews;
         Vector3[] m_PreviousWorldSpaceCameraPosViews;
         Vector3[] m_PreviousPreviousWorldSpaceCameraPosViews;
-#endif
 
         // Resolution tracking for DRS support in upscaling framework
         Vector2Int m_previousPreUpscaleResolution;
@@ -158,7 +156,6 @@ namespace UnityEngine.Rendering.Universal
             set => m_previousPreUpscaleResolution = value;
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         static Vector3[] EnsureViewBuffer(ref Vector3[] buffer, int viewCount)
         {
             if (buffer == null || buffer.Length < viewCount)
@@ -171,7 +168,6 @@ namespace UnityEngine.Rendering.Universal
         internal Vector3[] GetWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_WorldSpaceCameraPosViews, viewCount);
         internal Vector3[] GetPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousWorldSpaceCameraPosViews, viewCount);
         internal Vector3[] GetPreviousPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousPreviousWorldSpaceCameraPosViews, viewCount);
-#endif
         #endregion
 
         public void Reset()

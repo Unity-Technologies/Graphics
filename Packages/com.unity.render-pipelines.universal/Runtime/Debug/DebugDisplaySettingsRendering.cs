@@ -241,12 +241,8 @@ namespace UnityEngine.Rendering.Universal
             get {
                 var asset = UniversalRenderPipeline.asset;
                 return asset != null && fullScreenDebugMode == DebugFullScreenMode.STP &&
-#if ENABLE_UPSCALER_FRAMEWORK
                     // The overlay only has anything to show while STP is the upscaler actually running.
                     UniversalRenderPipeline.upscaling?.activeUpscaler is not STPIUpscaler;
-#else
-                    asset.upscalingFilter != UpscalingFilterSelection.STP;
-#endif
             }
         }
 

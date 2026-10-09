@@ -994,9 +994,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initially, we don't want to clear any history buffer
             m_ClearHistoryRequest = false;
             contextContainer = new ContextContainer();
-#if ENABLE_UPSCALER_FRAMEWORK
             contextContainer.Create<UpscalingIO>();
-#endif
 
             Reset();
         }
@@ -1024,7 +1022,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderSTP;
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         internal bool IsIUpscalerEnabled()
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderIUpscaler;
@@ -1033,7 +1030,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraIUpscalerIsTemporalUpscaler;
         }
-#endif
 
         internal bool IsPathTracingEnabled()
         {
@@ -1082,7 +1078,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint;
             }
-#if ENABLE_UPSCALER_FRAMEWORK
             else if (IsIUpscalerEnabled())
             {
                 // get activeUpscalerName
@@ -1102,7 +1097,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost // temporal upscaler
                     : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost; // spatial upscaler
             }
-#endif
             else if (IsTAAUEnabled())
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint;
@@ -1142,10 +1136,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            bool isTemporalUpscaler = IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled();
-#if ENABLE_UPSCALER_FRAMEWORK
-            isTemporalUpscaler = isTemporalUpscaler || IsIUpscalerTemporalUpscaler();
-#endif
+            bool isTemporalUpscaler = IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled() || IsIUpscalerTemporalUpscaler();
 
             return (antialiasing == AntialiasingMode.TemporalAntialiasing || isTemporalUpscaler) && !IsPathTracingEnabled();
         }
@@ -1415,7 +1406,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Calculate mip bias: use upscaler's recommendation when active, otherwise fall back to DynamicResolutionHandler
                 bool shouldApplyMipBias = UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField;
                 bool isUpscaling = scaledSize.x <= nonScaledViewport.x || scaledSize.y <= nonScaledViewport.y;
-#if ENABLE_UPSCALER_FRAMEWORK
                 if (IsIUpscalerEnabled() && IsIUpscalerTemporalUpscaler())
                 {
                     // Temporal upscaler is active - use its mip bias calculation directly, bypassing TAA settings
@@ -1427,7 +1417,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
                 else
-#endif
                 {
                     globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, shouldApplyMipBias);
                 }
@@ -2353,9 +2342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (xr.enabled
                 && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter
                 && !IsSTPEnabled()
-#if ENABLE_UPSCALER_FRAMEWORK
                 && !IsIUpscalerEnabled()
-#endif
                 )
             {
                 taaJitter = Vector4.zero;
@@ -2375,7 +2362,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 jitterX = stpJit.x;
                 jitterY = stpJit.y;
             }
-#if ENABLE_UPSCALER_FRAMEWORK
             else if (IsIUpscalerEnabled())
             {
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
@@ -2393,7 +2379,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 jitterX = -jitter.x;
                 jitterY = -jitter.y;
             }
-#endif
             else
             {
                 // The variance between 0 and the actual halton sequence values reveals noticeable

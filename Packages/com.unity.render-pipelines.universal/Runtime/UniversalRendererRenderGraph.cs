@@ -1633,15 +1633,12 @@ namespace UnityEngine.Rendering.Universal
             // There's at least a camera in the camera stack that applies post-processing
             bool anyPostProcessing = postProcessingData.isEnabled && this.postProcessEnabled;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // A standalone (non-embedded) spatial upscaler resolves through the FinalPost pass:
             // FSR1 and any spatial upscaler qualify.
             IUpscaler activeUpscaler = postProcessingData.activeUpscaler;
             bool requiresFinalPostUpscale = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1
                             || (activeUpscaler != null && !activeUpscaler.isTemporal && !postProcessingData.activeUpscalerIsEmbedded);
-#else
-            bool requiresFinalPostUpscale = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
-#endif
+			
             // When FXAA or scaling is active, we must perform an additional pass at the end of the frame for the following reasons:
             // 1. FXAA expects to be the last shader running on the image before it's presented to the screen. Since users are allowed
             //    to add additional render passes after post processing occurs, we can't run FXAA until all of those passes complete as well.

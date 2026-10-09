@@ -1,4 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using System;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -58,15 +57,19 @@ namespace UnityEngine.Rendering
     /// Used by pipelines to configure Dynamic Resolution Scaling bounds or display resolution info in UI.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The <see cref="constraint"/> tells the pipeline how to select the render resolution:
+    /// </para>
+    /// <para>
     /// <list type="bullet">
-    /// <item><see cref="UpscalerResolutionConstraint.Fixed"/> — render exactly at <see cref="qualityModeResolution"/>;
-    /// the pipeline does not drive the resolution. [<see cref="Fixed"/>]</item>
-    /// <item><see cref="UpscalerResolutionConstraint.Range"/> — the pipeline drives the render resolution
+    /// <item><description><see cref="UpscalerResolutionConstraint.Fixed"/> — render exactly at <see cref="qualityModeResolution"/>;
+    /// the pipeline does not drive the resolution.</description></item>
+    /// <item><description><see cref="UpscalerResolutionConstraint.Range"/> — the pipeline drives the render resolution
     /// (render scale / dynamic resolution / forced) and must clamp it to <see cref="minResolution"/>..<see cref="maxResolution"/>
-    /// (the upscaler's hard limits). [<see cref="Range"/>]</item>
-    /// <item><see cref="UpscalerResolutionConstraint.None"/> — the pipeline drives the render resolution, unconstrained.</item>
+    /// (the upscaler's hard limits).</description></item>
+    /// <item><description><see cref="UpscalerResolutionConstraint.None"/> — the pipeline drives the render resolution, unconstrained.</description></item>
     /// </list>
+    /// </para>
     /// </remarks>
     public struct UpscalerResolutionInfo
     {
@@ -273,14 +276,16 @@ namespace UnityEngine.Rendering
         /// Used by pipelines to configure DRS bounds or display resolution info in UI.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// DLSS and XeSS provide per-quality-mode min/max ranges via their SDK APIs.
         /// FSR2 provides only optimal resolution (no per-quality range).
         /// Spatial upscalers return the display resolution unchanged.
-        ///
+        /// </para>
+        /// <para>
         /// The options parameter is provided by the framework (Upscaling.GetGlobalOptions) and enables future per-camera
         /// quality settings; pipelines pass the framework-resolved options (asset default today; per-camera later).
-        ///
-        /// Example usage:
+        /// </para>
+        /// <para>Example usage:</para>
         /// <code>
         /// var info = upscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(upscaler));
         /// if (info.constraint == UpscalerResolutionConstraint.Range)
@@ -967,16 +972,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// <para>
         /// The active Dynamic Resolution Scaling state for this frame, or <c>null</c> when DRS is inactive.
+        /// </para>
+        /// <para>
         /// <list type="bullet">
-        /// <item><c>null</c> — no DRS; the render resolution is fixed this frame (fixed-ratio upscaling).</item>
-        /// <item><see cref="DynamicResolutionType.Hardware"/> — render targets are allocated at display resolution
-        /// and scaled via hardware memory aliasing; history/RTHandles should be sized at <see cref="postUpscaleResolution"/>.</item>
-        /// <item><see cref="DynamicResolutionType.Software"/> — the render resolution may vary frame-to-frame with the
-        /// target allocated at the render resolution.</item>
+        /// <item><description><c>null</c> — no DRS; the render resolution is fixed this frame (fixed-ratio upscaling).</description></item>
+        /// <item><description><see cref="DynamicResolutionType.Hardware"/> — render targets are allocated at display resolution
+        /// and scaled via hardware memory aliasing; history/RTHandles should be sized at <see cref="postUpscaleResolution"/>.</description></item>
+        /// <item><description><see cref="DynamicResolutionType.Software"/> — the render resolution may vary frame-to-frame with the
+        /// target allocated at the render resolution.</description></item>
         /// </list>
+        /// </para>
+        /// <para>
         /// Convenience: <c>dynamicResolution.HasValue</c> means DRS is active; <c>dynamicResolution == DynamicResolutionType.Hardware</c>
         /// gates display-resolution history allocation. Upscalers using native plugin-managed history (DLSS, FSR2) can ignore the distinction.
+        /// </para>
         /// </summary>
         public DynamicResolutionType? dynamicResolution
         {
@@ -1087,4 +1098,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-#endif

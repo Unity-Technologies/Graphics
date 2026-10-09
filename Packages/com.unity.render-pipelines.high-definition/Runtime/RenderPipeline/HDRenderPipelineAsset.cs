@@ -291,10 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 return m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("STP")
-  #if ENABLE_UPSCALER_FRAMEWORK
-              || m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains(STPIUpscaler.registeredId)
-  #endif
-              ;
+                    || m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains(STPIUpscaler.registeredId);
             }
         }
     }

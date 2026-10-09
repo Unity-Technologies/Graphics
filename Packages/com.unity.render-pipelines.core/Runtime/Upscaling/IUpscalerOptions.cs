@@ -1,4 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -272,4 +271,3 @@ namespace UnityEngine.Rendering
 
 #nullable disable
 }
-#endif // ENABLE_UPSCALER_FRAMEWORK

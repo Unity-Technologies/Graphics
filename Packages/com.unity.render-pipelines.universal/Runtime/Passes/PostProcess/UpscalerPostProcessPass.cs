@@ -14,12 +14,10 @@ namespace UnityEngine.Rendering.Universal
         Material m_UpscalerReactiveMaskMaterial;
         bool m_IsValid;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         bool m_WarnedHardwareDrsTemporalUnsupported;
         bool m_WarnedMissingMotionData;
         bool m_WarnedMissingOpaqueTexture;
         bool m_WarnedOpaqueDownsamplingNotCompatible;
-#endif
 
         public UpscalerPostProcessPass(Shader reactiveMaskShader, Texture2D[] blueNoise16LTex)
         {
@@ -42,7 +40,6 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             if (!m_IsValid)
                 return;
 
@@ -249,7 +246,6 @@ namespace UnityEngine.Rendering.Universal
                     io.preUpscaleResolution, io.postUpscaleResolution, -io.subpixelJitter,
                     io.reactiveMask, upscaler.reactiveMaskSource == ReactiveMaskSource.Stencil);
             }
-#endif
         }
 
         private class UpdateCameraResolutionPassData
@@ -305,7 +301,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         static internal bool RequiresReactiveMaskPass(IUpscaler upscaler)
         {
             UpscalerOptions upscalerOptions = UniversalRenderPipeline.upscaling.GetGlobalOptions(upscaler);
@@ -360,7 +355,7 @@ namespace UnityEngine.Rendering.Universal
                     output = renderGraph.CreateTexture(
                         new TextureDesc(io.preUpscaleResolution.x, io.preUpscaleResolution.y, xrReady: enableTexArray)
                         {
-                            format = GraphicsFormatUtility.GetDepthStencilFormat(0, 8),
+                            format = GraphicsFormatUtility.GetDepthStencilFormat(1, 8), // Vulkan: Can't use stencil-only format for depth attachment
                             clearBuffer = true,
                             clearColor = Color.black,
                             name = "Upscaler Reactive Mask"
@@ -411,6 +406,5 @@ namespace UnityEngine.Rendering.Universal
 
             return output;
         }
-#endif
     }
 }

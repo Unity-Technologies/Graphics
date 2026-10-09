@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent hdrColorBufferPrecisionText = L10n.TextContent("HDR Precision", "Controls the precision of the camera color buffer in HDR rendering. 32-bits is the default. 64-bits can reduce banding artifacts at the cost of memory and performance.", null, null);
             public static GUIContent msaaText = L10n.TextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.", null, null);
             public static GUIContent renderScaleText = L10n.TextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.", null, null);
-            public static GUIContent upscalingFilterText = L10n.TextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.", null, null);
             public static GUIContent fsrOverrideSharpness = L10n.TextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.", null, null);
             public static GUIContent fsrSharpnessText = L10n.TextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by FidelityFX Super Resolution.", null, null);
             public static GUIContent enableLODCrossFadeText = L10n.TextContent("LOD Cross Fade", "Controls whether LOD Cross Fade enabled or disabled.", null, null);
@@ -45,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string xrUpscalingInfo = L10n.Tr("When targeting an XR device, the XR runtime or compositor may provide anti-aliasing and upscaling. In that case this URP upscaler can be redundant or ignored - review your XR provider settings to configure anti-aliasing and upscaling.", null);
             public static readonly string xrUpscalingInfoButton = L10n.Tr("Open Project Validation", null);
             public static readonly string stpMobilePlatformWarning = L10n.Tr("STP is selected for use on a mobile platform. STP is only supported on modern compute-capable hardware and its performance overhead may make it impractical on lower-end devices.", null);
-#if ENABLE_UPSCALER_FRAMEWORK
+
             public static GUIContent scalingModeText = L10n.TextContent("Scaling Mode", "Whether the camera renders below, at, or above the display resolution. This sets the available Render Scale range.", null, null);
             public static readonly string renderScaleQualityModeInfo = L10n.Tr("Render Scale is ignored because this upscaler's Resolution Mode is set to Quality Mode, which controls the render resolution. Set it to Custom Scaling to drive the render resolution from Render Scale.", null);
             public static readonly string upscalingNoUpscalersWarning = L10n.Tr("Scaling is set to Upscaling but the priority list is empty. No upscaling will be performed.", null);
@@ -57,7 +56,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent upscalerGraphicsAPIBadge = L10n.IconContent("console.warnicon.sml", null, null);
             public static readonly string supportedGraphicsAPIs = L10n.Tr("Supported: {0}", null);
             public static readonly string unsupportedGraphicsAPIs = L10n.Tr("Unsupported: {0}", null);
-#endif
 
             // Main light
             public static GUIContent mainLightRenderingModeText = L10n.TextContent("Main Light", "Main light is the brightest directional light.", null, null);

@@ -323,7 +323,6 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
-#if ENABLE_UPSCALER_FRAMEWORK
     // Which type of resolution scaling in UI order.
     internal enum ScalingMode
     {
@@ -331,14 +330,11 @@ namespace UnityEngine.Rendering.Universal
         Upscaling,
         Supersampling,
     }
-#endif
 
     /// <summary>
     /// Defines the upscaling filter selected by the user the universal render pipeline asset.
     /// </summary>
-#if ENABLE_UPSCALER_FRAMEWORK
     [Obsolete("UpscalingFilterSelection is obsolete. #from(6000.3)", false)]
-#endif
     public enum UpscalingFilterSelection
     {
         /// <summary>
@@ -448,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
 
-        private const int k_LastVersion = 14;
+        private const int k_LastVersion = 15;
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] internal int k_AssetVersion = k_LastVersion;
         [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
@@ -474,14 +470,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
-#if ENABLE_UPSCALER_FRAMEWORK
+
         [Obsolete("m_UpscalingFilter is replaced by m_SelectedUpscalerName #from(6000.3)")]
-#endif
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
-        // The upscaler name is null if the upscaling filter is coming from a built-in upscaler. It will be non-null if
-        // the upscaling filter is coming from an IUpscaler, which can be a separate package, or part of Unity code.
-#if ENABLE_UPSCALER_FRAMEWORK
-        // Which type of resolution scaling.
+
+        // Determines which type of resolution scaling is used.
         [SerializeField] ScalingMode m_ScalingMode = ScalingMode.None;
 
         // Superseded by m_UpscalerPriority, kept only so assets authored before the list can be upgraded. Empty by
@@ -508,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         [SerializeReference]
         List<UpscalerOptions> m_UpscalerOptions = new List<UpscalerOptions>();
-#endif
+
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
@@ -751,13 +744,11 @@ namespace UnityEngine.Rendering.Universal
             // Only enable for new URP assets by default
             instance.m_ConservativeEnclosingSphere = true;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             instance.m_UpscalerPriority = new List<UpscalerPriorityEntry>
             {
                 new UpscalerPriorityEntry(STPIUpscaler.registeredId, STPIUpscaler.registeredName),
                 new UpscalerPriorityEntry(UniversalRenderPipeline.k_UpscalerId_Auto, UniversalRenderPipeline.k_UpscalerName_Auto)
             };
-#endif
 
             ResourceReloader.ReloadAllNullIn(instance, packagePath);
 
@@ -1192,9 +1183,7 @@ namespace UnityEngine.Rendering.Universal
         ///       "Automatic" which resolve to an actual filter at a later time.
         /// </summary>
 
-#if ENABLE_UPSCALER_FRAMEWORK
         [Obsolete("upscalingFilter is replaced by upscalerName #from(6000.3)", false)]
-#endif
         public UpscalingFilterSelection upscalingFilter
         {
             get => m_UpscalingFilter;
@@ -1208,14 +1197,9 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("upscalerName is replaced by the upscaler priority list. #from(6000.7)", false)]
         public string upscalerName
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             get => m_UpscalerPriority.Count > 0 ? m_UpscalerPriority[0].upscalerName : string.Empty;
-#else
-            get => string.Empty;
-#endif
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
         /// Controls whether upscaling is enabled.
         /// </summary>
@@ -1282,7 +1266,6 @@ namespace UnityEngine.Rendering.Universal
             }
             return null;
         }
-#endif
 
         /// <summary>
         /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
@@ -2042,13 +2025,13 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 13;
             }
 
-            if (k_AssetVersion < 14)
+            // Skip version 14; UpgradeToUpscalerPriority() had a bug when version 14 was introduced. Jump to version 15 with the same logic.
+            if (k_AssetVersion < 15)
             {
-#if ENABLE_UPSCALER_FRAMEWORK
                 UpgradeToUpscalerPriority();
-#endif
+
                 k_AssetPreviousVersion = k_AssetVersion;
-                k_AssetVersion = 14;
+                k_AssetVersion = 15;
             }
 
 #if UNITY_EDITOR
@@ -2059,7 +2042,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
 #pragma warning disable 618 // Obsolete warning
         // Populates the priority list with the single upscaler this asset selected from a previous asset version.
         void UpgradeToUpscalerPriority()
@@ -2081,13 +2063,21 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    foreach (var registered in UpscalerRegistry.s_RegisteredUpscalers)
+                    (string, string)[] upscalerRegistry = {
+                        (UniversalRenderPipeline.k_UpscalerId_Auto, UniversalRenderPipeline.k_UpscalerName_Auto),
+                        (UniversalRenderPipeline.k_UpscalerId_Linear, UniversalRenderPipeline.k_UpscalerName_Linear),
+                        (UniversalRenderPipeline.k_UpscalerId_Point, UniversalRenderPipeline.k_UpscalerName_Point),
+                        (UniversalRenderPipeline.k_UpscalerId_FSR1, UniversalRenderPipeline.k_UpscalerName_FSR1),
+                        (STPIUpscaler.registeredId, STPIUpscaler.registeredName)
+                    };
+
+                    foreach (var registered in upscalerRegistry)
                     {
-                        if (registered.Value.DisplayName != m_SelectedUpscalerName)
+                        if (registered.Item2 != m_SelectedUpscalerName)
                             continue;
 
-                        m_UpscalerPriority.Add(new UpscalerPriorityEntry(registered.Key, registered.Value.DisplayName));
-                        foundUpscalerId = registered.Key;
+                        m_UpscalerPriority.Add(new UpscalerPriorityEntry(registered.Item1, registered.Item2));
+                        foundUpscalerId = registered.Item1;
 
                         break;
                     }
@@ -2137,9 +2127,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 m_ScalingMode = ScalingMode.Upscaling; // STP, FSR and DLSS can have a valid RenderScale of 1.0
         }
-
 #pragma warning restore 618 // Obsolete warning
-#endif
 
 #if UNITY_EDITOR
         static void UpgradeAsset(EntityId assetInstanceID)
@@ -2205,6 +2193,11 @@ namespace UnityEngine.Rendering.Universal
             if (asset.k_AssetPreviousVersion < 14)
             {
                 asset.k_AssetPreviousVersion = 14;
+            }
+
+            if (asset.k_AssetPreviousVersion < 15)
+            {
+                asset.k_AssetPreviousVersion = 15;
             }
 
             ResourceReloader.ReloadAllNullIn(asset, packagePath);
@@ -2289,11 +2282,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-#if ENABLE_UPSCALER_FRAMEWORK
                 return IsUpscalerUsed(STPIUpscaler.registeredId);
-#else
-                return m_UpscalingFilter == UpscalingFilterSelection.STP;
-#endif
             }
         }
 

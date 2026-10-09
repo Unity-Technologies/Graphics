@@ -66,7 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     ((UnityEngine.NVIDIA.DLSSQuality)dynResSettings.DLSSPerfQualitySetting).ToString());
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK
             if (!string.IsNullOrEmpty(advancedUpscaler) && dynResSettings.upscalerOptions != null)
             {
                 foreach (var options in dynResSettings.upscalerOptions)
@@ -79,7 +78,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-#endif
 
             // auto DRS min/max
             return UpscalerQualityInfo.FromString("-1");

@@ -19,11 +19,11 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
-#if ENABLE_UPSCALER_FRAMEWORK
+
         public SerializedProperty scalingMode { get; }
         public SerializedProperty upscalerPriority { get; }
         public SerializedProperty upscalerOptions { get; }
-#endif
+		
         public SerializedProperty fsrOverrideSharpness { get; }
         public SerializedProperty fsrSharpness { get; }
 
@@ -121,11 +121,11 @@ namespace UnityEditor.Rendering.Universal
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
-#if ENABLE_UPSCALER_FRAMEWORK
+			
             scalingMode = serializedObject.FindProperty("m_ScalingMode");
             upscalerPriority = serializedObject.FindProperty("m_UpscalerPriority");
             upscalerOptions = serializedObject.FindProperty("m_UpscalerOptions");
-#endif
+			
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
             fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
@@ -201,16 +201,14 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_ADAPTIVE_PERFORMANCE
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 #endif
-#if ENABLE_UPSCALER_FRAMEWORK
+
             UpdateUpscalerOptions();
-#endif
 
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
 
-#if ENABLE_UPSCALER_FRAMEWORK
         internal void UpdateUpscalerOptions()
         {
             if (!UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, upscalerOptions, asset.GetUpscalerPriorityIds()))
@@ -219,7 +217,6 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.ApplyModifiedProperties();
             EditorUtility.SetDirty(asset);
         }
-#endif
 
         /// <summary>
         /// Refreshes the serialized object

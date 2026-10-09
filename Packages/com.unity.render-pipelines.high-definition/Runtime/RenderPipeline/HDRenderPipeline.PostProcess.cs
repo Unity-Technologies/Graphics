@@ -398,9 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnabledAdvancedUpscalerPassMask |= m_DLSSPass != null && camera.IsDLSSEnabled() ? (1 << (int)AdvancedUpscalers.DLSS): 0;
             m_EnabledAdvancedUpscalerPassMask |= m_FSR2Pass != null && camera.IsFSR2Enabled() ? (1 << (int)AdvancedUpscalers.FSR2): 0;
             m_EnabledAdvancedUpscalerPassMask |= camera.IsSTPEnabled() ? (1 << (int)AdvancedUpscalers.STP): 0;
-#if ENABLE_UPSCALER_FRAMEWORK
             m_EnabledAdvancedUpscalerPassMask |= camera.IsIUpscalerEnabled() ? (1 << (int)AdvancedUpscalers.IUpscaler): 0;
-#endif
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -527,7 +525,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         CurrentUpsamplerData? GetCurrentUpsamplerData(HDCamera hdCamera)
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             if (hdCamera.IsIUpscalerEnabled())
             {
                 return new CurrentUpsamplerData
@@ -537,7 +534,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
                 };
             }
-#endif
 
             // Check if DLSS or FSR can run:
             int dlssMask = (1 << (int)AdvancedUpscalers.DLSS);
@@ -666,7 +662,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return AlphaUpscaler.Execute(renderGraph, ref config);
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         static bool RequiresReactiveMaskPass(HDCamera camera, IUpscaler upscaler, UpscalerOptions upscalerOptions)
         {
             return camera.IsIUpscalerEnabled() && upscaler != null && upscaler.reactiveMaskSource != ReactiveMaskSource.None && upscalerOptions != null && upscalerOptions.enableReactiveMaskPass;
@@ -701,7 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     output = renderGraph.CreateTexture(
                         new TextureDesc(preUpscaleResolution.x, preUpscaleResolution.y, xrReady: enableTexArray)
                         {
-                            format = GraphicsFormatUtility.GetDepthStencilFormat(0, 8),
+                            format = GraphicsFormatUtility.GetDepthStencilFormat(1, 8), // Vulkan: Can't use stencil-only format for depth attachment
                             clearBuffer = true,
                             clearColor = Color.black,
                             name = "Upscaler Reactive Mask"
@@ -753,7 +748,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return output;
         }
-#endif
 
         TextureHandle DoUpscalingAndAntiAliasing(RenderGraph renderGraph, HDCamera hdCamera, CurrentUpsamplerData upsamplerDataData,
             TextureHandle source, in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, in TextureHandle depthBufferMipChain)
@@ -764,10 +758,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             source = upsamplerDataData switch
             {
-#if ENABLE_UPSCALER_FRAMEWORK
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.IUpscaler }
                     => DoIUpscalerPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
-#endif
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
                     => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.DLSS}
@@ -789,13 +781,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool supportsAlphaUpscaling = false;
                 bool isTemporalUpscaler = true;
-#if ENABLE_UPSCALER_FRAMEWORK
                 if (upsamplerDataData.advancedUpsampler == AdvancedUpscalers.IUpscaler)
                 {
                     supportsAlphaUpscaling = upscaling.activeUpscaler.supportsAlphaUpscaling;
                     isTemporalUpscaler = upscaling.activeUpscaler.isTemporal;
                 }
-#endif
                 if (!supportsAlphaUpscaling)
                     source = DoAlphaUpscaling(renderGraph, hdCamera, preUpscaleColor, source, depthBuffer, motionVectors, stencilBuffer, isTemporalUpscaler);
             }
@@ -857,7 +847,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
-#if ENABLE_UPSCALER_FRAMEWORK
                 {
                     var io = hdCamera.contextContainer.Get<UpscalingIO>();
                     var upscaler = upscaling.activeUpscaler;
@@ -873,7 +862,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         io.reactiveMask = TextureHandle.nullHandle;
                 }
-#endif
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
@@ -1225,7 +1213,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region IUpscaler
-#if ENABLE_UPSCALER_FRAMEWORK
         TextureHandle DoIUpscalerPasses(
             RenderGraph renderGraph,
             HDCamera hdCamera,
@@ -1357,7 +1344,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return io.cameraColor;
         }
-#endif
         #endregion
 
         #region Copy Alpha

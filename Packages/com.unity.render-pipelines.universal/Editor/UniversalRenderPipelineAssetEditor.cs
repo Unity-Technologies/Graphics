@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.Universal
 
         private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         internal UpscalerOptionsEditorCache upscalerOptionsEditorCache => m_UpscalerOptionsEditorCache;
         UpscalerOptionsEditorCache m_UpscalerOptionsEditorCache;
 
@@ -45,7 +44,6 @@ namespace UnityEditor.Rendering.Universal
 
         // Foldout state per upscaler ID, so each upscaler's options can be expanded independently.
         internal readonly Dictionary<string, bool> m_UpscalerOptionsFoldoutStates = new();
-#endif
 
         /// <inheritdoc/>
         public override void OnInspectorGUI()
@@ -58,24 +56,20 @@ namespace UnityEditor.Rendering.Universal
         void OnEnable()
         {
             m_SerializedURPAsset = new SerializedUniversalRenderPipelineAsset(serializedObject);
-
-#if ENABLE_UPSCALER_FRAMEWORK
+			
             RefreshUpscalerNames();
             m_UpscalerOptionsEditorCache = new UpscalerOptionsEditorCache();
             CacheUpscalerPlatforms();
             CreateUpscalerPriorityReorderableList();
             Undo.undoRedoPerformed += OnUndoRedoUpscalerPriority;
-#endif
 
             CreateRendererReorderableList();
         }
 
         private void OnDisable()
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             Undo.undoRedoPerformed -= OnUndoRedoUpscalerPriority;
             m_UpscalerOptionsEditorCache?.Cleanup();
-#endif
         }
 
         void CreateRendererReorderableList()
@@ -92,7 +86,6 @@ namespace UnityEditor.Rendering.Universal
             };
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         void RefreshUpscalerNames()
         {
             // Every target shares one array here, so a refresh would write the first asset's names into all of them.
@@ -355,8 +348,6 @@ namespace UnityEditor.Rendering.Universal
 
             return installedPlatforms;
         }
-
-#endif
 
         void OnRemoveElement(ReorderableList reorderableList)
         {
