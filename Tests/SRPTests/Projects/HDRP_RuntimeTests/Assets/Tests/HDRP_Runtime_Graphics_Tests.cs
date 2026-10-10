@@ -30,7 +30,7 @@ public class HDRP_Runtime_Graphics_Tests
     }
 
     [UnityOneTimeSetUp]
-    public IEnumerable UnityOneTimeSetUp()
+    public IEnumerator UnityOneTimeSetUp()
     {
         // Required because of resolution inconsistencies on some platforms                     
         yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
