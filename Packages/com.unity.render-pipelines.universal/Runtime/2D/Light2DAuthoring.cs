@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     public sealed partial class Light2D
     {
 #if UNITY_EDITOR
-        private const string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/Resources/SceneViewIcons/";
+        private const string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/SceneViewIcons/";
         private static readonly string[] s_LightIconFileNames = new[]
         {
             "ParametricLight.png",

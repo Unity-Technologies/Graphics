@@ -6,6 +6,8 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {
+        internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
+
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
