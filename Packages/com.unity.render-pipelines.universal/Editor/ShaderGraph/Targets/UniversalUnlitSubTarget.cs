@@ -186,10 +186,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
 
-            // Always emit _Cull so the engine can detect two-pass rendering (BackToFront/FrontToBack)
-            if (!target.allowMaterialOverride)
-                collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);
-
             collector.AddFloatProperty(Property.WritesColor, writesColor ? 1.0f : 0.0f);
 
             // Marker for the material UI: this shader bakes stencil writes into the ShadowCaster pass.

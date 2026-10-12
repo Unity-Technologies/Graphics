@@ -99,9 +99,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         Front = 2,          // = CullMode.Back -- render front face only
         Back = 1,           // = CullMode.Front -- render back face only
-        Both = 0,           // = CullMode.Off -- render both faces
-        BackToFront = 3,    // = Two-pass -- back faces first (CullMode.Front), then front faces (CullMode.Back)
-        FrontToBack = 4     // = Two-pass -- front faces first (CullMode.Back), then back faces (CullMode.Front)
+        Both = 0            // = CullMode.Off -- render both faces
     }
 
     internal enum AdditionalMotionVectorMode
@@ -345,7 +343,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public RenderFace renderFace
         {
-            get => m_RenderFace;
+            get => (RenderFace)Mathf.Clamp((int)m_RenderFace, (int)RenderFace.Both, (int)RenderFace.Front);
             set => m_RenderFace = value;
         }
 
@@ -775,7 +773,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 });
             }
 
-            context.AddProperty("Render Face", "Which faces of the geometry are rendered. Two-pass options render back faces first, then front (or vice versa).", 0, new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            context.AddProperty("Render Face", "Which faces of the geometry are rendered.", 0, new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
             {
                 if (Equals(renderFace, evt.newValue))
                     return;
@@ -1894,20 +1892,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
-        public static bool IsTwoPassRendering(RenderFace renderFace)
-        {
-            return renderFace == RenderFace.BackToFront || renderFace == RenderFace.FrontToBack;
-        }
-
-        // Two-pass renderFace has no Cull enum literal, so cull must stay bound to [_Cull] even without override.
-        public static bool CullStateBoundToProperty(bool allowMaterialOverride, RenderFace renderFace)
-        {
-            return allowMaterialOverride || IsTwoPassRendering(renderFace);
-        }
-
         public static bool RendersBothFaces(RenderFace renderFace)
         {
-            return renderFace == RenderFace.Both || IsTwoPassRendering(renderFace);
+            return renderFace == RenderFace.Both;
         }
 
         public static Cull RenderFaceToCull(RenderFace renderFace)
@@ -2122,7 +2109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static RenderStateDescriptor UberSwitchedCullRenderState(UniversalTarget target)
         {
-            if (CullStateBoundToProperty(target.allowMaterialOverride, target.renderFace))
+            if (target.allowMaterialOverride)
                 return RenderState.Cull(Uniforms.cullMode);
             return RenderState.Cull(RenderFaceToCull(target.renderFace));
         }
