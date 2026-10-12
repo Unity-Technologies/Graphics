@@ -320,7 +320,9 @@ namespace UnityEngine.Rendering.Universal
 
 #if USING_2DCOMMON
             int tessOutEdgeCount = 0;
-            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
+            // runPlanarGraph must stay true: the user can drag a Freeform shape until its edges cross,
+            // and the tessellator overruns its edge buffer unless crossing edges are split first.
+            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, true);
 #endif
 
             // Create falloff geometry with random noise to account for collinear points
