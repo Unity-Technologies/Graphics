@@ -21,11 +21,11 @@ The Gather Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Limitations
 
-The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
+The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]
 
 ## Inputs
 
-The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 | **Name**     | **Type**      | **Binding** | **Description**  |
 | :---         | :------       |  :------    |   :----------    |
@@ -37,7 +37,7 @@ The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- 
 
 ## Outputs
 
-The Gather Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)] <!-- MULTIPLE OUTPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)]
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |

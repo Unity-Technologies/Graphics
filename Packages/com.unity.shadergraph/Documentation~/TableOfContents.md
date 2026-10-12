@@ -101,6 +101,8 @@
         * [Slice Index / Cubemap Face](Slice-Index-Cubemap-Face-Node.md)
     * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
+        * 2D
+            * [Light Texture](light-texture-node.md)
         * Basic
             * [Boolean](Boolean-Node.md)
             * [Color](Color-Node.md)

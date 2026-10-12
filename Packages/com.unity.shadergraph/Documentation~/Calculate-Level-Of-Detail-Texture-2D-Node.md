@@ -21,7 +21,7 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 ## Limitations
 
-The Calculate Level of Detail Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
+The Calculate Level of Detail Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]
 
 ## Inputs
 
@@ -44,7 +44,7 @@ The Calculate Level of Detail Texture 2D [!include[nodes-single-control](./snipp
 
 ## Outputs
 
-The Calculate Level of Detail Texture 2D [!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
+The Calculate Level of Detail Texture 2D [!include[nodes-single-output](./snippets/nodes-single-output.md)]
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
@@ -58,8 +58,6 @@ In the following example, a Calculate Level of Detail Texture 2D node calculates
 
 
 ## Related nodes
-
-<!-- OPTIONAL. Any nodes that may be related to this node in some way that's worth mentioning -->
 
 [!include[nodes-related](./snippets/nodes-related.md)] Calculate Level of Detail Texture 2D node:
 
