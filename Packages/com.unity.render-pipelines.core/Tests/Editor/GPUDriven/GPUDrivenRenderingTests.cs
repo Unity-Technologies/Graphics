@@ -270,7 +270,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
-        [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-71039")]
         public void TestSceneViewHiddenRenderersCullingTier0()
         {
             var callbackCounter = new BoxedCounter();
@@ -317,6 +316,9 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(callbackCounter.Value, 1);
 
             m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            mainCamera = null;
+            GameObject.DestroyImmediate(cameraObject);
 
             instanceIDs.Dispose();
 
