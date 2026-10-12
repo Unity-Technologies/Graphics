@@ -7,6 +7,7 @@ uid: urp-changelog
 ## [Unreleased]
 
 ### Fixed
+- Fixed 2D lights being drawn in the wrong position and orientation on Android when the device was rotated, in projects built with Vulkan and "Apply display rotation during rendering" enabled. The 2D lit passes now undo the swapchain pre-transform rotation before sampling the shape light textures.
 - Fixed a Render Graph execution error ("Adding the final blit pass when Tile-Only Mode is on") when Tile-Only Mode was enabled on displays with a non-sRGB backbuffer (for example OpenGL ES in Linear color space); Tile-Only Mode now falls back to regular rendering on those displays.
 - Update references of XR Plugin Management's XRGeneralSettings.AssignedSettings to XRGeneralSettings.Manager.
 
