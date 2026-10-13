@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         // Identity world-to-view; tiling negates view Z, so view (x, y, z) is world (x, y, -z).
-        static bool SpotLightCoversTile(float fovYDeg, float aspect, float near, float3 posVS, float3 dirVS, float range, float spotAngle, int2 tile)
+        static bool SpotLightCoversTile(float fovYDeg, float aspect, float near, float3 posVS, float3 dirVS, float range, float spotAngle, int2 tile, int2? screenSize = null)
         {
             var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
             lights[0] = new VisibleLight()
@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal.Tests
                 new float4(0, 0, -(2f * far * near) / (far - near), 0)
             );
             var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = new(64, 64);
+            int2 screenResolution = screenSize ?? new int2(64, 64);
 
             JobHandle handle = ForwardLights.ScheduleClusteringJobs(
                 false, true, lights, probes, zBins, tileMasks,
@@ -268,6 +268,22 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.IsTrue(
                 SpotLightCoversTile(58.880f, 1.3333f, 0.461f, new float3(0.4470f, 1.0636f, 1.4462f), new float3(0.0110f, -0.1210f, 0.9926f), 2.017f, 112.675f, new int2(4, 6)),
                 "Spot cone covers tile (4,6) but it is missing from the tile mask.");
+        }
+
+        [Description("A spot light whose vertex lies in the camera plane covers the tiles along both sides of its cone.")]
+        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
+        [Test]
+        public void LightClustering_SpotVertexInCameraPlane_CoversConeSideTiles()
+        {
+            var posVS = new float3(-4.8e-7f, -0.2f, 0f);
+            var dirVS = new float3(3.7e-9f, 0f, 1f);
+            var screenSize = new int2(480, 270);
+            Assert.IsTrue(
+                SpotLightCoversTile(60f, 16f / 9f, 0.3f, posVS, dirVS, 50f, 55f, new int2(16, 6), screenSize),
+                "Spot cone covers tile (16,6) but it is missing from the tile mask.");
+            Assert.IsTrue(
+                SpotLightCoversTile(60f, 16f / 9f, 0.3f, posVS, dirVS, 50f, 55f, new int2(43, 6), screenSize),
+                "Spot cone covers tile (43,6) but it is missing from the tile mask.");
         }
 
         [Description("A spot light whose silhouette leaves the screen does not cover the edge column.")]

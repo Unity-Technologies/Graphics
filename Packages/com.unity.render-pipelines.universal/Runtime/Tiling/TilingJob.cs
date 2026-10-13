@@ -907,41 +907,30 @@ namespace UnityEngine.Rendering.Universal
         {
             l1 = l2 = 0;
 
-            if (math.dot(math.normalize(-vertex), axis) >= cosHalfAngle)
+            var toCamera = -vertex;
+            if (math.dot(math.normalize(toCamera), axis) >= cosHalfAngle)
             {
                 return;
             }
 
-            var d = -math.dot(vertex, axis);
-            // If d is zero, this leads to a numerical instability in the code later on. This is why we make the value
-            // an epsilon if it is zero.
-            if (d == 0f) d = 1e-6f;
-            var sign = d < 0 ? -1f : 1f;
-            // sign *= vertex.z < 0 ? -1f : 1f;
-            // `origin` is the center of the circular slice we're about to calculate at distance `d` from the `vertex`.
-            var origin = vertex + axis * d;
-            // Get the radius of the circular slice of the cone at the `origin`.
-            var radius = math.abs(d) * circleRadius / coneHeight;
-            // `circleU` and `circleV` are the two vectors perpendicular to the cone's axis. `cameraUV` is thus the
-            // position of the camera projected onto the plane of the circular slice. This basically creates a new
-            // 2D coordinate space, with (0, 0) located at the center of the circular slice, which why this variable
-            // is called `origin`.
-            var cameraUV = math.float2(math.dot(circleU, -origin), math.dot(circleV, -origin));
-            // Use homogeneous coordinates to find the tangents.
-            var polar = math.float3(cameraUV, -square(radius));
-            var p1 = math.float2(-1, -polar.x / polar.y * (-1) - polar.z / polar.y);
-            var p2 = math.float2(1, -polar.x / polar.y * 1 - polar.z / polar.y);
-            var lineDirection = math.normalize(p2 - p1);
-            var lineNormal = math.float2(lineDirection.y, -lineDirection.x);
-            var distToLine = math.dot(p1, lineNormal);
-            var lineCenter = lineNormal * distToLine;
-            var l = math.sqrt(radius * radius - distToLine * distToLine);
-            var x1UV = lineCenter + l * lineDirection;
-            var x2UV = lineCenter - l * lineDirection;
-            var dir1 = math.normalize((origin + x1UV.x * circleU + x1UV.y * circleV) - vertex) * sign;
-            var dir2 = math.normalize((origin + x2UV.x * circleU + x2UV.y * circleV) - vertex) * sign;
-            l1 = dir1 * range;
-            l2 = dir2 * range;
+            // Silhouette generators satisfy dot(e, w.xy) = tan * w.z for unit e in the u/v plane, w = toCamera in the cone frame.
+            // Solved directly so it stays stable when the camera lies near the plane through the vertex.
+            var w = math.float3(math.dot(toCamera, circleU), math.dot(toCamera, circleV), math.dot(toCamera, axis));
+            var distToAxisSq = math.lengthsq(w.xy);
+            if (distToAxisSq == 0f)
+            {
+                return;
+            }
+
+            var invDistToAxis = math.rsqrt(distToAxisSq);
+            var n = w.xy * invDistToAxis;
+            var c = math.clamp(circleRadius / coneHeight * w.z * invDistToAxis, -1f, 1f);
+            var s = math.sqrt(1f - c * c);
+            var e1 = c * n + s * math.float2(-n.y, n.x);
+            var e2 = c * n - s * math.float2(-n.y, n.x);
+            var sinHalfAngle = circleRadius / range;
+            l1 = (cosHalfAngle * axis + sinHalfAngle * (e1.x * circleU + e1.y * circleV)) * range;
+            l2 = (cosHalfAngle * axis + sinHalfAngle * (e2.x * circleU + e2.y * circleV)) * range;
         }
 
         static float3 EvaluateNearConic(float near, float3 o, float3 d, float r, float3 u, float3 v, float theta)
