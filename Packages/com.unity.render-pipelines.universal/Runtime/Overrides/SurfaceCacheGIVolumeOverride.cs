@@ -72,6 +72,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ClampedIntParameter lightTransportWarmupSampleMultiplier = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportWarmUpSampleMultiplier, 1, 16); // TODO(rasmusn): Add to presets?
 
+        /// <summary>
+        /// Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.")]
+        public ClampedIntParameter lightTransportPunctualLightCandidateCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportPunctualLightCandidateCount, 1, 32);
+
         // ============================
         // Patch Filtering Parameters
         // ============================
@@ -195,6 +202,7 @@ namespace UnityEngine.Rendering.Universal
             public bool lightTransportMultiBounce;
             public int lightTransportSampleCount;
             public int lightTransportWarmUpSampleMultiplier;
+            public int lightTransportPunctualLightCandidateCount;
             public int lightTransportDefragCount;
             public float patchFilteringTemporalSmoothing;
             public bool patchFilteringSpatialEnabled;
@@ -212,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
             new Preset
             {
                 lightTransportMultiBounce = false, lightTransportSampleCount = 1,
-                lightTransportWarmUpSampleMultiplier = 1, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.9f,
+                lightTransportWarmUpSampleMultiplier = 1, lightTransportPunctualLightCandidateCount = 2, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.9f,
                 patchFilteringSpatialEnabled = false, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f,
                 volumeResolution = 16, screenFilteringLookupSampleCount = 2,
                 screenFilteringDenoisingPassCount = 1, lightTransportDefragCount = 2
@@ -221,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportSampleCount = 2,
-                lightTransportWarmUpSampleMultiplier = 2, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.8f,
+                lightTransportWarmUpSampleMultiplier = 2, lightTransportPunctualLightCandidateCount = 4, volumeDistanceFallback = false, patchFilteringTemporalSmoothing = 0.8f,
                 patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 4, patchFilteringSpatialRadius = 1.0f,
                 volumeResolution = 32, screenFilteringLookupSampleCount = 4,
                 screenFilteringDenoisingPassCount = 2, lightTransportDefragCount = 4
@@ -230,7 +238,7 @@ namespace UnityEngine.Rendering.Universal
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportSampleCount = 4,
-                lightTransportWarmUpSampleMultiplier = 4, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.7f,
+                lightTransportWarmUpSampleMultiplier = 4, lightTransportPunctualLightCandidateCount = 8, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.7f,
                 patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 6, patchFilteringSpatialRadius = 1.0f,
                 volumeResolution = 48, screenFilteringLookupSampleCount = 8,
                 screenFilteringDenoisingPassCount = 3, lightTransportDefragCount = 8
@@ -239,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
             new Preset
             {
                 lightTransportMultiBounce = true, lightTransportSampleCount = 8,
-                lightTransportWarmUpSampleMultiplier = 8, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.6f,
+                lightTransportWarmUpSampleMultiplier = 8, lightTransportPunctualLightCandidateCount = 16, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.6f,
                 patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 8, patchFilteringSpatialRadius = 1.0f,
                 volumeResolution = 64, screenFilteringLookupSampleCount = 16,
                 screenFilteringDenoisingPassCount = 3, lightTransportDefragCount = 16
@@ -263,6 +271,8 @@ namespace UnityEngine.Rendering.Universal
             lightTransportSampleCount.overrideState = true;
             lightTransportWarmupSampleMultiplier.value = settings.lightTransportWarmUpSampleMultiplier;
             lightTransportWarmupSampleMultiplier.overrideState = true;
+            lightTransportPunctualLightCandidateCount.value = settings.lightTransportPunctualLightCandidateCount;
+            lightTransportPunctualLightCandidateCount.overrideState = true;
             volumeDistanceFallback.value = settings.volumeDistanceFallback;
             volumeDistanceFallback.overrideState = true;
             patchFilteringTemporalSmoothing.value = settings.patchFilteringTemporalSmoothing;
@@ -309,6 +319,7 @@ namespace UnityEngine.Rendering.Universal
             return lightTransportMultiBounce.overrideState
                 && lightTransportSampleCount.overrideState
                 && lightTransportWarmupSampleMultiplier.overrideState
+                && lightTransportPunctualLightCandidateCount.overrideState
                 && lightTransportDefragCount.overrideState
                 && volumeDistanceFallback.overrideState
                 && patchFilteringTemporalSmoothing.overrideState
@@ -333,6 +344,7 @@ namespace UnityEngine.Rendering.Universal
             return lightTransportMultiBounce.value == preset.lightTransportMultiBounce
                 && lightTransportSampleCount.value == preset.lightTransportSampleCount
                 && lightTransportWarmupSampleMultiplier.value == preset.lightTransportWarmUpSampleMultiplier
+                && lightTransportPunctualLightCandidateCount.value == preset.lightTransportPunctualLightCandidateCount
                 && lightTransportDefragCount.value == preset.lightTransportDefragCount
                 && volumeDistanceFallback.value == preset.volumeDistanceFallback
                 && volumeResolution.value == preset.volumeResolution
@@ -342,6 +354,37 @@ namespace UnityEngine.Rendering.Universal
                 && patchFilteringSpatialRadius.value == preset.patchFilteringSpatialRadius
                 && screenFilteringLookupSampleCount.value == preset.screenFilteringLookupSampleCount
                 && screenFilteringDenoisingPassCount.value == preset.screenFilteringDenoisingPassCount;
+        }
+
+        const int k_LatestSerializedVersion = 1;
+
+        [SerializeField]
+        int m_SerializedVersion;
+
+        void Awake()
+        {
+            // 09/10/2026 - Added RIS for punctual lights, which exposes a candidate count setting.
+            if (m_SerializedVersion < 1)
+                MigratePunctualLightCandidateCount();
+
+            m_SerializedVersion = k_LatestSerializedVersion;
+        }
+
+        void MigratePunctualLightCandidateCount()
+        {
+            int oldValue = lightTransportPunctualLightCandidateCount.value;
+            bool oldOverrideState = lightTransportPunctualLightCandidateCount.overrideState;
+
+            for (var quality = PresetQuality.Low; quality <= PresetQuality.Ultra; quality++)
+            {
+                lightTransportPunctualLightCandidateCount.value = k_Presets[(int)quality].lightTransportPunctualLightCandidateCount;
+                lightTransportPunctualLightCandidateCount.overrideState = true;
+                if (GetPresetQuality() == quality)
+                    return;
+            }
+
+            lightTransportPunctualLightCandidateCount.value = oldValue;
+            lightTransportPunctualLightCandidateCount.overrideState = oldOverrideState;
         }
 
 #if UNITY_EDITOR

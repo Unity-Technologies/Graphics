@@ -31,7 +31,9 @@
 
 #include "Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/PseudoRandom.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "PathTracing.hlsl"
 #include "PatchAllocationRequest.hlsl"
 #include "RingBuffer.hlsl"
@@ -68,6 +70,7 @@ float _VolumeVoxelMinSize;
 uint _MultiBounce;
 uint _SampleCount;
 uint _WarmUpSampleMultiplier;
+uint _PunctualLightCandidateCount;
 float _ShortHysteresis;
 uint _RingConfigOffset;
 float3 _VolumeTargetPos;
@@ -167,7 +170,7 @@ float GetAdditionalRayOffset(float volumeVoxelMinSize)
     return volumeVoxelMinSize * 0.001;
 }
 
-void SamplePunctualLightBounceRadiance(
+void SamplePunctualLightBounceRadianceUniform(
     inout QrngKronecker2D rng,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     uint dispatchThreadIndex,
@@ -175,39 +178,173 @@ void SamplePunctualLightBounceRadiance(
     uint sampleCount,
     MaterialPoolParamSet matPoolParams,
     StructuredBuffer<PunctualLight> lights,
-    StructuredBuffer<PunctualLightSample> punctualLightSamples,
-    uint punctualLightSampleCount,
+    StructuredBuffer<PunctualLightSample> lightSamples,
+    uint lightSamplesLength,
     float volumeVoxelMinSize,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
 
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
     {
-        // Using `sample` as a variable name causes compilation errors on PS5.
-        RadianceSample sample_ = SamplePunctualLightBounceRadiance(
+        PunctualLightSample lightSample = lightSamples[min(rng.GetSample(0).x * lightSamplesLength, lightSamplesLength - 1)];
+        rng.NextSample();
+
+        if (!lightSample.HasHit())
+        {
+            validSampleCount++;
+            continue;
+        }
+
+        bool discardSample;
+        if (RejectPunctualLightSample(
             dispatchThreadIndex,
             groupThreadIndex,
             accelStruct,
             matPoolParams,
+            lightSample.hitPos,
+            lightSample.hitInstanceId,
+            lightSample.hitPrimitiveIndex,
+            patchGeo.position,
+            reconnectionRayOrigin,
+            discardSample))
+        {
+            if (!discardSample)
+                validSampleCount++;
+
+            continue;
+        }
+
+        RadianceSample radianceSample = EvaluateUnshadowedPunctualLightSampleBounceRadiance(
             lights,
-            punctualLightSamples,
-            punctualLightSampleCount,
-            rng.GetSample(0).x,
+            lightSample,
             patchGeo.position,
             patchGeo.normal,
-            GetAdditionalRayOffset(volumeVoxelMinSize));
-
-        if (!sample_.IsValid())
-            continue;
+            reconnectionRayOrigin);
 
         validSampleCount++;
-        ProjectAndAccumulate(radianceAccumulator, sample_.radianceOverDensity, sample_.direction);
+        ProjectAndAccumulate(radianceAccumulator, radianceSample.radianceOverDensity, radianceSample.direction);
+    }
 
-        rng.NextSample();
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+struct PunctualLightReservoirSample
+{
+    float3 hitPos;
+    uint hitInstanceId;
+    uint hitPrimitiveIndex;
+    RadianceSample radianceSample;
+};
+
+struct PunctualLightReservoir
+{
+    float weightSum;
+    PunctualLightReservoirSample lightSample;
+
+    void ProcessSample(PunctualLightReservoirSample candidate, float candidateWeight, float uniformRand)
+    {
+        weightSum += candidateWeight;
+        if (uniformRand * weightSum < candidateWeight)
+            lightSample = candidate;
+    }
+};
+
+void SamplePunctualLightBounceRadianceRIS(
+    inout QrngPcg4D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    uint sampleCount,
+    MaterialPoolParamSet matPoolParams,
+    StructuredBuffer<PunctualLight> lights,
+    StructuredBuffer<PunctualLightSample> lightSamples,
+    uint lightSamplesLength,
+    uint candidateCount,
+    float volumeVoxelMinSize,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        PunctualLightReservoir reservoir = (PunctualLightReservoir)0;
+        for (uint candidateIdx = 0; candidateIdx < candidateCount; ++candidateIdx)
+        {
+            float indexPickingNoise = rng.GetSample();
+            PunctualLightSample punctualLightSample = lightSamples[min(indexPickingNoise * lightSamplesLength, lightSamplesLength - 1)];
+
+            float resamplingNoise = rng.GetSample();
+            if (punctualLightSample.HasHit())
+            {
+                PunctualLightReservoirSample candidate;
+                candidate.hitPos = punctualLightSample.hitPos;
+                candidate.hitInstanceId = punctualLightSample.hitInstanceId;
+                candidate.hitPrimitiveIndex = punctualLightSample.hitPrimitiveIndex;
+                candidate.radianceSample = EvaluateUnshadowedPunctualLightSampleBounceRadiance(
+                    lights,
+                    punctualLightSample,
+                    patchGeo.position,
+                    patchGeo.normal,
+                    reconnectionRayOrigin);
+
+                // weight = targetVal / sourceDensity, and targetVal = Luminance(radiance), so
+                // weight = Luminance(radiance / sourceDensity) = Luminance(radiance) / sourceDensity.
+                float candidateWeight = Luminance(candidate.radianceSample.radianceOverDensity);
+                reservoir.ProcessSample(candidate, candidateWeight, resamplingNoise);
+            }
+
+            rng.NextSample();
+        }
+
+        if (reservoir.weightSum <= 0.0f)
+        {
+            validSampleCount++;
+            continue;
+        }
+
+        bool discardSample;
+        if (RejectPunctualLightSample(
+            dispatchThreadIndex,
+            groupThreadIndex,
+            accelStruct,
+            matPoolParams,
+            reservoir.lightSample.hitPos,
+            reservoir.lightSample.hitInstanceId,
+            reservoir.lightSample.hitPrimitiveIndex,
+            patchGeo.position,
+            reconnectionRayOrigin,
+            discardSample))
+        {
+            // We discard samples whose reconnection rays hit backfaces from the average (see IsValidSample()).
+            // This adds bias, because such samples still contribute weight to reservoir.weightSum. To avoid this,
+            // we would either need to shoot a reconnection ray for every RIS candidate (too expensive), or not discard
+            // these samples. Instead, we choose to accept the bias, as it is negligible in most cases.
+            if (!discardSample)
+                validSampleCount++;
+
+            continue;
+        }
+
+        float winnerWeight = Luminance(reservoir.lightSample.radianceSample.radianceOverDensity); // targetVal / sourceDensity
+        float unbiasedContributionWeightTimesDensity = reservoir.weightSum * rcp(float(candidateCount) * winnerWeight); // UCW * sourceDensity
+        float3 radianceEstimate = reservoir.lightSample.radianceSample.radianceOverDensity * unbiasedContributionWeightTimesDensity; // (radiance / sourceDensity) * (UCW * sourceDensity) = radiance * UCW
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, radianceEstimate, reservoir.lightSample.radianceSample.direction);
     }
 
     if (validSampleCount != 0)
@@ -412,9 +549,10 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
 
     if (_PunctualLightCount != 0)
     {
-        rng.Init(patchIdxHash, sampleOffset);
-        SamplePunctualLightBounceRadiance(
-            rng,
+        QrngPcg4D pcg;
+        pcg.Init(patchIdxHash, sampleOffset);
+        SamplePunctualLightBounceRadianceRIS(
+            pcg,
             accelStruct,
             patchIdx,
             groupThreadIndex,
@@ -423,6 +561,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
             _PunctualLights,
             _PunctualLightSamples,
             _PunctualLightSampleCount,
+            _PunctualLightCandidateCount,
             _VolumeVoxelMinSize,
             patchGeo,
             radianceEstimate,

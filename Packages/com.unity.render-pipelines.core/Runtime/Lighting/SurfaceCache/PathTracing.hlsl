@@ -158,103 +158,111 @@ UnifiedRT::Hit TraceRayClosestHit(
     return hitResult;
 }
 
-RadianceSample SamplePunctualLightBounceRadiance(
+RadianceSample EvaluateUnshadowedPunctualLightSampleBounceRadiance(
+    StructuredBuffer<PunctualLight> lights,
+    PunctualLightSample punctualLightSample,
+    float3 position,
+    float3 normal,
+    float3 reconnectionRayOrigin)
+{
+    RadianceSample result = (RadianceSample)0;
+
+    const float epsilon = 0.01f;
+    const float planeDistance = dot(normal, punctualLightSample.hitPos - position);
+    if (epsilon < planeDistance) // Light sample hit point must be "in front" of the patch.
+    {
+        const float reconnectionDistance = distance(reconnectionRayOrigin, punctualLightSample.hitPos);
+        const float reciprocalReconnectionDistance = rcp(reconnectionDistance);
+
+        const PunctualLight light = lights[punctualLightSample.lightIndex];
+        result.direction = normalize(punctualLightSample.hitPos - position);
+        #if 0 // readable version
+        const float distanceSquared = Square(punctualLightSample.distance);
+        const float rangeWindow = SmoothPunctualLightRangeWindow(light.range, distanceSquared);
+        float angularAttenuation = 1.0f;
+        if (IsSpotLight(light.cosOuterAngle))
+            angularAttenuation = SmoothSpotLightAngleAttenuation(light.direction, punctualLightSample.rayDirection, light.angleAttenuationValue1, light.angleAttenuationValue2);
+
+        const float bounceCosTerm = dot(-punctualLightSample.rayDirection, punctualLightSample.hitNormal);
+        const float bounceSolidAngleToAreaJacobian = 1.0f / distanceSquared; // To integrate over punctual light we must switch to area measure.
+        const float3 brdf = punctualLightSample.hitAlbedo * INV_PI;
+        const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * light.intensity * brdf;
+
+        // We transform from patch solid angle measure to (common) surface area measure to punctual light solid angle measure.
+        const float patchSolidAngleToBounceAreaJacobian = max(0.0f, dot(-result.direction, punctualLightSample.hitNormal)) / (reconnectionDistance * reconnectionDistance);
+        const float bounceAreaToLightSolidAngleJacobian = distanceSquared / dot(-punctualLightSample.rayDirection, punctualLightSample.hitNormal);
+        const float patchSolidAngleToLightSolidAngleJacobian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
+
+        if (isfinite(bounceSolidAngleToAreaJacobian) && isfinite(patchSolidAngleToBounceAreaJacobian))
+            result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacobian * punctualLightSample.reciprocalDensity * rangeWindow * angularAttenuation;
+        #else // optimized version
+        if (isfinite(reciprocalReconnectionDistance))
+        {
+            const float distanceSquared = Square(punctualLightSample.distance);
+            const float rangeWindow = SharpPunctualLightRangeWindow(light.range, distanceSquared);
+
+            float angularAttenuation = 1.0f;
+            if (IsSpotLight(light.cosOuterAngle))
+                angularAttenuation = SharpSpotLightAngleAttenuation(light.direction, punctualLightSample.rayDirection, light.angleAttenuationValue1, light.angleAttenuationValue2);
+
+            result.radianceOverDensity =
+                INV_PI * max(0.0f, dot(-result.direction, punctualLightSample.hitNormal)) *
+                punctualLightSample.reciprocalDensity *
+                light.intensity * punctualLightSample.hitAlbedo *
+                Square(reciprocalReconnectionDistance * rangeWindow * angularAttenuation);
+        }
+        #endif
+    }
+
+    return result;
+}
+
+bool RejectPunctualLightSample(
     uint dispatchThreadIndex,
     uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
     MaterialPoolParamSet matPoolParams,
-    StructuredBuffer<PunctualLight> lights,
-    StructuredBuffer<PunctualLightSample> punctualLightSamples,
-    uint punctualLightSampleCount,
-    float uniformRand,
+    float3 hitPos,
+    uint hitInstanceId,
+    uint hitPrimitiveIndex,
     float3 position,
-    float3 normal,
-    float additionalRayOffset)
+    float3 reconnectionRayOrigin,
+    out bool discardSample)
 {
-    RadianceSample result = (RadianceSample)0;
+    discardSample = false;
 
-    PunctualLightSample punctualLightSample = punctualLightSamples[min(uniformRand * punctualLightSampleCount, punctualLightSampleCount - 1)];
-    if (punctualLightSample.HasHit())
+    UnifiedRT::Ray reconnectionRay;
+    reconnectionRay.origin = reconnectionRayOrigin;
+    reconnectionRay.direction = normalize(hitPos - position);
+    reconnectionRay.tMin = 0;
+    reconnectionRay.tMax = FLT_MAX;
+    UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
+
+    // Did the reconnection ray hit something?
+    if (!reconnectionResult.IsValid())
     {
-        const float epsilon = 0.01f;
-        const float planeDistance = dot(normal, punctualLightSample.hitPos - position);
-        if (epsilon < planeDistance) // Light sample hit point must be "in front" of the patch.
-        {
-            UnifiedRT::Ray reconnectionRay;
-            reconnectionRay.origin = OffsetRayOrigin(position, normal, additionalRayOffset);
-            reconnectionRay.direction = normalize(punctualLightSample.hitPos - position);
-            reconnectionRay.tMin = 0;
-            reconnectionRay.tMax = FLT_MAX;
-            UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
-
-            if (!reconnectionResult.IsValid())
-            {
-                result.MarkInvalid();
-            }
-            else
-            {
-                const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(reconnectionResult.instanceID);
-                const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
-                const bool materialUsesDoubleSidedGI = MaterialPool::UsesDoubleSidedGI(matEntry.flags);
-
-                if (!IsValidSample(reconnectionResult.isFrontFace, materialUsesDoubleSidedGI))
-                {
-                    result.MarkInvalid();
-                }
-                else if (reconnectionResult.instanceID == punctualLightSample.hitInstanceId &&
-                    reconnectionResult.primitiveIndex == punctualLightSample.hitPrimitiveIndex)
-                {
-                    const PunctualLight light = lights[punctualLightSample.lightIndex];
-                    result.direction = reconnectionRay.direction;
-                    #if 0 // readable version
-                    const float distanceSquared = Square(punctualLightSample.distance);
-                    const float rangeWindow = SmoothPunctualLightRangeWindow(light.range, distanceSquared);
-                    float angularAttenuation = 1.0f;
-                    if (IsSpotLight(light.cosOuterAngle))
-                        angularAttenuation = SmoothSpotLightAngleAttenuation(light.direction, punctualLightSample.rayDirection, light.angleAttenuationValue1, light.angleAttenuationValue2);
-
-                    const float bounceCosTerm = dot(-punctualLightSample.rayDirection, punctualLightSample.hitNormal);
-                    const float bounceSolidAngleToAreaJacobian = 1.0f / distanceSquared; // To integrate over punctual light we must switch to area measure.
-                    const float3 brdf = punctualLightSample.hitAlbedo * INV_PI;
-                    const float3 punctualLightBouncedRadiance = bounceCosTerm * bounceSolidAngleToAreaJacobian * light.intensity * brdf;
-
-                    // We transform from patch solid angle measure to (common) surface area measure to punctual light solid angle measure.
-                    const float patchSolidAngleToBounceAreaJacobian = max(0.0f, dot(-reconnectionRay.direction, punctualLightSample.hitNormal)) / (reconnectionResult.hitDistance * reconnectionResult.hitDistance);
-                    const float bounceAreaToLightSolidAngleJacobian = distanceSquared / dot(-punctualLightSample.rayDirection, punctualLightSample.hitNormal);
-                    const float patchSolidAngleToLightSolidAngleJacobian = patchSolidAngleToBounceAreaJacobian * bounceAreaToLightSolidAngleJacobian;
-
-                    if (isfinite(bounceSolidAngleToAreaJacobian) && isfinite(patchSolidAngleToBounceAreaJacobian))
-                        result.radianceOverDensity = punctualLightBouncedRadiance * patchSolidAngleToLightSolidAngleJacobian * punctualLightSample.reciprocalDensity * rangeWindow * angularAttenuation;
-                    else
-                        result.MarkInvalid();
-                    #else // optimized version
-                    const float reciprocalReconnectionDistance = rcp(reconnectionResult.hitDistance);
-                    if (isfinite(reciprocalReconnectionDistance))
-                    {
-                        const float distanceSquared = Square(punctualLightSample.distance);
-                        const float rangeWindow = SharpPunctualLightRangeWindow(light.range, distanceSquared);
-
-                        float angularAttenuation = 1.0f;
-                        if (IsSpotLight(light.cosOuterAngle))
-                            angularAttenuation = SharpSpotLightAngleAttenuation(light.direction, punctualLightSample.rayDirection, light.angleAttenuationValue1, light.angleAttenuationValue2);
-
-                        result.radianceOverDensity =
-                            INV_PI * max(0.0f, dot(-reconnectionRay.direction, punctualLightSample.hitNormal)) *
-                            punctualLightSample.reciprocalDensity *
-                            light.intensity * punctualLightSample.hitAlbedo *
-                            Square(reciprocalReconnectionDistance * rangeWindow * angularAttenuation);
-                    }
-                    else
-                    {
-                        result.MarkInvalid();
-                    }
-                    #endif
-                }
-            }
-        }
+        discardSample = true;
+        return true;
     }
 
-    return result;
+    // Did the reconnection hit a valid face, taking double-sided GI into account?
+    const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(reconnectionResult.instanceID);
+    const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+    const bool materialUsesDoubleSidedGI = MaterialPool::UsesDoubleSidedGI(matEntry.flags);
+    if (!IsValidSample(reconnectionResult.isFrontFace, materialUsesDoubleSidedGI))
+    {
+        discardSample = true;
+        return true;
+    }
+
+    // Was the reconnection ray unoccluded?
+    if (reconnectionResult.instanceID != hitInstanceId ||
+        reconnectionResult.primitiveIndex != hitPrimitiveIndex)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 // Represents a specific sample on an emissive triangle.

@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_LightTransportDefragCount;
         protected SerializedDataParameter m_LightTransportRenderingLayerMask;
         protected SerializedDataParameter m_LightTransportWarmUpSampleMultiplier;
+        protected SerializedDataParameter m_LightTransportPunctualLightCandidateCount;
 
         protected SerializedDataParameter m_PatchFilteringTemporalSmoothing;
         protected SerializedDataParameter m_PatchFilteringSpatialEnabled;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
         static GUIContent s_LightTransportSampleCount = L10n.TextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.", null, null);
         static GUIContent s_LightTransportWarmUpSampleMultiplier = L10n.TextContent("Warm-up Sample Multiplier", "Boosts the initial sample count on newly revealed surfaces if needed. This stabilizes the image faster when geometry or camera is moving.", null, null);
+        static GUIContent s_LightTransportPunctualLightCandidateCount = L10n.TextContent("Punctual Light Candidate Count", "Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.", null, null);
         static GUIContent s_PatchFilteringTemporalSmoothing = L10n.TextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.", null, null);
         static GUIContent s_PatchFilteringSpatialEnabled = L10n.TextContent("Spatial Filtering", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
         static GUIContent s_PatchFilteringSpatialSampleCount = L10n.TextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.", null, null);
@@ -87,6 +89,7 @@ namespace UnityEditor.Rendering.Universal
             m_LightTransportRenderingLayerMask = Unpack(o.Find(obj => obj.lightTransportRenderingLayerMask));
             m_LightTransportSampleCount = Unpack(o.Find(obj => obj.lightTransportSampleCount));
             m_LightTransportWarmUpSampleMultiplier = Unpack(o.Find(obj => obj.lightTransportWarmupSampleMultiplier));
+            m_LightTransportPunctualLightCandidateCount = Unpack(o.Find(obj => obj.lightTransportPunctualLightCandidateCount));
             m_PatchFilteringTemporalSmoothing = Unpack(o.Find(obj => obj.patchFilteringTemporalSmoothing));
             m_PatchFilteringSpatialEnabled = Unpack(o.Find(obj => obj.patchFilteringSpatialEnabled));
             m_PatchFilteringSpatialSampleCount = Unpack(o.Find(obj => obj.patchFilteringSpatialSampleCount));
@@ -161,6 +164,7 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_LightTransportBouncePatchAllocation, s_LightTransportBouncePatchAllocation);
             if (showAdditionalProperties)
             {
+                PropertyField(m_LightTransportPunctualLightCandidateCount, s_LightTransportPunctualLightCandidateCount);
                 PropertyField(m_LightTransportRenderingLayerMask, s_RenderingLayerMask);
                 PropertyField(m_LightTransportDefragCount, s_DefragCount);
             }
