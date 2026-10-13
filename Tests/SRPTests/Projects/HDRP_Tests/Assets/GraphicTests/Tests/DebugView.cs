@@ -32,8 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "3006_TileCluster_Cluster$",
-            "Outdated ref-images. Bug: https://jira.unity3d.com/browse/UUM-155393",
-            GraphicsDeviceType.Metal
+            "(Intel Mac) Missing ref-image. Bug: https://jira.unity3d.com/browse/UUM-155393",
+            GraphicsDeviceType.Metal,
+            Architecture.X64
         )]
         [IgnoreGraphicsTest(
             "3006_TileCluster_Cluster$",
