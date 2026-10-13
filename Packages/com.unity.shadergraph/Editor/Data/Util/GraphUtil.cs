@@ -11,7 +11,6 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using UnityEditor.ProjectWindowCallback;
 #if UNITY_6000_5_OR_NEWER
 using UnityEngine.Assemblies;
