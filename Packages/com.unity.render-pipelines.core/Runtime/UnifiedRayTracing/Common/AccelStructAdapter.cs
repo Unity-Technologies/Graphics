@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             public int IdOfInstance;
             public int AccelStructID;
+            public Mesh OwnedMesh;
         }
 
         private readonly Dictionary<UInt64, IdsOfInstances[]> _objectHandleToInstances = new();
@@ -101,6 +102,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             _instances = null;
             _accelStruct?.Dispose();
             _accelStruct = null;
+
+            foreach (var instances in _objectHandleToInstances.Values)
+                foreach (var instance in instances)
+                    CoreUtils.Destroy(instance.OwnedMesh);
             _objectHandleToInstances.Clear();
             _freeInstanceArrays.Clear();
 
@@ -170,8 +175,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             List<IdsOfInstances> instanceHandles = new List<IdsOfInstances>();
 
-            AddHeightmap(terrainDesc, ref instanceHandles);
-            AddTrees(terrainDesc, ref instanceHandles);
+            try
+            {
+                AddHeightmap(terrainDesc, ref instanceHandles);
+                AddTrees(terrainDesc, ref instanceHandles);
+            }
+            catch
+            {
+                foreach (var instance in instanceHandles)
+                    CoreUtils.Destroy(instance.OwnedMesh);
+                throw;
+            }
 
             _objectHandleToInstances.Add(objectHandle, instanceHandles.ToArray());
 
@@ -186,8 +200,19 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             instanceDesc.enableTriangleCulling = terrainDesc.enableTriangleCulling;
             instanceDesc.frontTriangleCounterClockwise = terrainDesc.frontTriangleCounterClockwise;
 
-            instanceHandles.Add(AddInstance(instanceDesc, terrainDesc.materialID, terrainDesc.renderingLayerMask));
+            IdsOfInstances ids;
+            try
+            {
+                ids = AddInstance(instanceDesc, terrainDesc.materialID, terrainDesc.renderingLayerMask);
+            }
+            catch
+            {
+                CoreUtils.Destroy(terrainMesh);
+                throw;
+            }
 
+            ids.OwnedMesh = terrainMesh;
+            instanceHandles.Add(ids);
         }
 
         void AddTrees(TerrainDesc terrainDesc, ref List<IdsOfInstances> instanceHandles)
@@ -409,6 +434,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 _instances.RemoveInstance(instance.IdOfInstance);
                 _accelStruct.RemoveInstance(instance.AccelStructID);
+                CoreUtils.Destroy(instance.OwnedMesh);
             }
 
             _objectHandleToInstances.Remove(objectHandle);
