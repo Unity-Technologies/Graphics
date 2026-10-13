@@ -1,4 +1,5 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "dependencies": {
     "com.unity.collections": "1.4.0",

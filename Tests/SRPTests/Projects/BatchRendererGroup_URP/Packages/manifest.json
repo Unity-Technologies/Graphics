@@ -29,7 +29,7 @@
     "com.unity.yamato": "1.0.1"
   },
   "useSatSolver": true,
-  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+  "registry": "https://invalid.invalid",
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",

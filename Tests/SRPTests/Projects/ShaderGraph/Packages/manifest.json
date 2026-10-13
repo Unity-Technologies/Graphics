@@ -1,4 +1,5 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "dependencies": {
     "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",

@@ -1,4 +1,5 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "disableProjectUpdate": true,
   "dependencies": {
