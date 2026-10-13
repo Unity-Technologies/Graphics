@@ -9,7 +9,7 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    
+
     /// <summary>
     /// Identifies the XR rendering layout for the current frame.
     /// The layout is inferred from the XR display subsystem configuration
@@ -43,6 +43,11 @@ namespace UnityEngine.Experimental.Rendering
         /// second pass renders foveal (inner) views.
         /// </summary>
         TwoPassQuadViews,
+
+        /// <summary>
+        /// One-pass rendering. One render pass with one view.
+        /// </summary>
+        OnePassOneView
     }
 
     /// <summary>
@@ -528,7 +533,7 @@ namespace UnityEngine.Experimental.Rendering
             // early return when there's no render pass.
             if (s_Display.GetRenderPassCount() == 0)
                 return;
-            
+
             // infer XRLayout from number of render passes and number of views in each pass
             XRLayoutType layoutType = XRLayoutType.Unknown;
             switch (s_Display.GetRenderPassCount())
@@ -543,6 +548,10 @@ namespace UnityEngine.Experimental.Rendering
                         layoutType = CanUseSinglePass(camera, renderPass)
                             ? XRLayoutType.SinglePassStereo
                             : XRLayoutType.TwoPassStereo;
+                    }
+                    else if (renderPass.GetRenderParameterCount() == 1)
+                    {
+                        layoutType = XRLayoutType.OnePassOneView;
                     }
                     break;
                 case 2:
