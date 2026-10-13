@@ -54,11 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
-            "9920_WaterSurface",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-141715",
-            RuntimePlatform.WindowsEditor
-        )]
-        [IgnoreGraphicsTest(
             "9921_UnderWater$",
             "Unstable - see https://jira.unity3d.com/browse/UUM-134223",
             RuntimePlatform.WindowsEditor
