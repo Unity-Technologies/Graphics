@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal
         // Into the buffer this record was drained with, so valid only until that buffer is reused.
         public int MaterialsStart;
         public int MaterialsCount;
+        // Pending transforms below this index were pushed before this record.
+        public int TransformsBefore;
         public Matrix4x4 LocalToWorld;
         public uint RenderingLayerMask;
         public bool Visible;

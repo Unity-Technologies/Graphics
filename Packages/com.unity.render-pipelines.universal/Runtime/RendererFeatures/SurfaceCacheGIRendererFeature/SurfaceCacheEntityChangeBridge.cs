@@ -1,7 +1,9 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
@@ -18,9 +20,12 @@ namespace UnityEngine.Rendering.Universal
 
         static bool s_ConsumerRegistered;
         static bool s_DrainInProgress;
+        // Records and transforms share a key only across producer passes or after an aborted drain, so only then
+        // is there anything to fold.
+        static bool s_ProducerPassActive;
+        static bool s_FoldNeeded;
         static uint s_ConsumerVersion;
-        // Transforms below this index were retained by an aborted drain and predate any later push.
-        static int s_RetainedTransformCount;
+        static JobHandle s_TransformJob;
 
         public static bool IsConsumerPresent => s_ConsumerRegistered;
 
@@ -47,6 +52,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Debug.Assert(s_ConsumerRegistered);
 
+            CompleteTransformJob();
             s_ConsumerRegistered = false;
             s_DrainInProgress = false;
 
@@ -60,14 +66,45 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Appended to by producer jobs. The caller must complete its jobs before returning. The assert
-        // below catches acquiring across a drain, which is an ordering mistake rather than a race: this
-        // bridge is main thread only, so there is nothing to lock against.
+        // Appended to by producer jobs. The assert below catches acquiring across a drain, which is an ordering
+        // mistake rather than a race: this bridge is main thread only, so there is nothing to lock against.
         public static NativeList<SurfaceCacheEntityTransformRecord> AcquireTransformChangedList()
         {
             Debug.Assert(s_ConsumerRegistered, "AcquireTransformChangedList without a consumer.");
             Debug.Assert(!s_DrainInProgress, "AcquireTransformChangedList during a drain.");
+            CompleteTransformJob();
+            MarkPushOutsideProducerPass();
             return s_PendingTransforms;
+        }
+
+        public static void SetTransformJob(JobHandle handle)
+        {
+            s_TransformJob = JobHandle.CombineDependencies(s_TransformJob, handle);
+        }
+
+        public static void CompleteTransformJob()
+        {
+            s_TransformJob.Complete();
+            s_TransformJob = default;
+        }
+
+        public static void BeginProducerPass()
+        {
+            if (s_PendingChanged.Length != 0 || s_PendingDestroyed.Length != 0 || s_PendingTransforms.Length != 0)
+                s_FoldNeeded = true;
+
+            s_ProducerPassActive = true;
+        }
+
+        public static void EndProducerPass()
+        {
+            s_ProducerPassActive = false;
+        }
+
+        static void MarkPushOutsideProducerPass()
+        {
+            if (!s_ProducerPassActive)
+                s_FoldNeeded = true;
         }
 
         public static void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials)
@@ -75,45 +112,32 @@ namespace UnityEngine.Rendering.Universal
             if (!IsConsumerPresent)
                 return;
 
-            DropRetainedTransforms(record.Key);
-
-            var stored = record;
-            stored.MaterialsCount = materials.Length;
-
-            // Avoids re-appending when a key's assignment count does not grow.
-            if (s_PendingChangedIndex.TryGetValue(record.Key, out int at))
-            {
-                var previous = s_PendingChanged[at];
-                if (previous.MaterialsCount >= materials.Length)
-                {
-                    for (int i = 0; i < materials.Length; i++)
-                        s_PendingMaterials[previous.MaterialsStart + i] = materials[i];
-
-                    stored.MaterialsStart = previous.MaterialsStart;
-                }
-                else
-                {
-                    stored.MaterialsStart = s_PendingMaterials.Length;
-                    foreach (var material in materials)
-                        s_PendingMaterials.Add(material);
-                }
-
-                s_PendingChanged[at] = stored;
-                return;
-            }
-
-            stored.MaterialsStart = s_PendingMaterials.Length;
-            foreach (var material in materials)
-                s_PendingMaterials.Add(material);
-
-            s_PendingChangedIndex.Add(record.Key, s_PendingChanged.Length);
-            s_PendingChanged.Add(stored);
+            MarkPushOutsideProducerPass();
+            Writer.PushChanged(record, materials);
         }
+
+        // For jobs that push records. Unavailable without a consumer or during a drain, whose views a push would invalidate.
+        public static bool TryAcquireChangeWriter(out SurfaceCacheEntityChangeWriter writer)
+        {
+            writer = Writer;
+            MarkPushOutsideProducerPass();
+            return s_ConsumerRegistered && !s_DrainInProgress;
+        }
+
+        static SurfaceCacheEntityChangeWriter Writer => new()
+        {
+            Changed = s_PendingChanged,
+            Index = s_PendingChangedIndex,
+            Materials = s_PendingMaterials,
+            Transforms = s_PendingTransforms,
+        };
 
         public static void PushDestroyed(in EntityId key)
         {
             if (!IsConsumerPresent)
                 return;
+
+            MarkPushOutsideProducerPass();
 
             if (s_PendingChangedIndex.TryGetValue(key, out int at))
             {
@@ -135,9 +159,10 @@ namespace UnityEngine.Rendering.Universal
             out NativeArray<SurfaceCacheEntityTransformRecord> transformChanged)
         {
             Debug.Assert(!s_DrainInProgress, "BeginDrain without a matching EndDrain.");
+            CompleteTransformJob();
             s_DrainInProgress = true;
 
-            if (s_PendingChanged.Length != 0 || s_PendingDestroyed.Length != 0)
+            if (s_FoldNeeded && (s_PendingChanged.Length != 0 || s_PendingDestroyed.Length != 0))
                 FoldSupersededTransforms();
 
             changed = s_PendingChanged.AsArray();
@@ -157,59 +182,72 @@ namespace UnityEngine.Rendering.Universal
         {
             Debug.Assert(s_DrainInProgress, "AbortDrain without a matching BeginDrain.");
             s_DrainInProgress = false;
-            s_RetainedTransformCount = s_PendingTransforms.Length;
+            s_FoldNeeded = true;
         }
 
-        // A record push supersedes the retained transforms for its key: they are older, and the fold must not apply them over it.
-        static void DropRetainedTransforms(in EntityId key)
-        {
-            if (s_RetainedTransformCount == 0)
-                return;
-
-            int kept = 0;
-            int retained = s_RetainedTransformCount;
-            for (int i = 0; i < s_PendingTransforms.Length; i++)
-            {
-                if (i < s_RetainedTransformCount && s_PendingTransforms[i].Key == key)
-                {
-                    retained--;
-                    continue;
-                }
-
-                s_PendingTransforms[kept++] = s_PendingTransforms[i];
-            }
-
-            s_PendingTransforms.Length = kept;
-            s_RetainedTransformCount = retained;
-        }
-
-        // A record retained by an aborted drain may predate a transform push, so fold the transform in rather than drop it.
+        // A transform pushed before its key's record is older than the record and is dropped; one pushed after is folded in.
         static void FoldSupersededTransforms()
         {
-            var destroyed = new NativeHashSet<EntityId>(math.max(1, s_PendingDestroyed.Length), Allocator.Temp);
-            for (int i = 0; i < s_PendingDestroyed.Length; i++)
-                destroyed.Add(s_PendingDestroyed[i]);
-
-            int kept = 0;
-            for (int i = 0; i < s_PendingTransforms.Length; i++)
+            new FoldSupersededTransformsJob
             {
-                var key = s_PendingTransforms[i].Key;
-                if (destroyed.Contains(key))
-                    continue;
+                Transforms = s_PendingTransforms,
+                Changed = s_PendingChanged,
+                ChangedIndex = s_PendingChangedIndex,
+                Destroyed = s_PendingDestroyed,
+            }.Run();
+        }
 
-                if (s_PendingChangedIndex.TryGetValue(key, out int at))
+        [BurstCompile]
+        struct FoldSupersededTransformsJob : IJob
+        {
+            public NativeList<SurfaceCacheEntityTransformRecord> Transforms;
+            public NativeList<SurfaceCacheEntityInstanceRecord> Changed;
+            [ReadOnly] public NativeHashMap<EntityId, int> ChangedIndex;
+            [ReadOnly] public NativeList<EntityId> Destroyed;
+
+            public void Execute()
+            {
+                var destroyed = new NativeHashSet<EntityId>(math.max(1, Destroyed.Length), Allocator.Temp);
+                for (int i = 0; i < Destroyed.Length; i++)
+                    destroyed.Add(Destroyed[i]);
+
+                int kept = 0;
+                for (int i = 0; i < Transforms.Length; i++)
                 {
-                    var record = s_PendingChanged[at];
-                    record.LocalToWorld = s_PendingTransforms[i].LocalToWorld;
-                    s_PendingChanged[at] = record;
-                    continue;
+                    var transform = Transforms[i];
+                    if (ChangedIndex.TryGetValue(transform.Key, out int at))
+                    {
+                        var record = Changed[at];
+                        if (i >= record.TransformsBefore)
+                        {
+                            record.LocalToWorld = transform.LocalToWorld;
+                            Changed[at] = record;
+                        }
+
+                        continue;
+                    }
+
+                    if (destroyed.Contains(transform.Key))
+                        continue;
+
+                    if (kept != i)
+                        Transforms[kept] = transform;
+                    kept++;
                 }
 
-                s_PendingTransforms[kept++] = s_PendingTransforms[i];
-            }
+                Transforms.Length = kept;
 
-            s_PendingTransforms.Length = kept;
-            destroyed.Dispose();
+                // No kept transform belongs to a pending record, so this only keeps later transforms from looking older.
+                for (int r = 0; r < Changed.Length; r++)
+                {
+                    var record = Changed[r];
+                    if (record.TransformsBefore > kept)
+                    {
+                        record.TransformsBefore = kept;
+                        Changed[r] = record;
+                    }
+                }
+            }
         }
 
         static void ClearPending()
@@ -220,10 +258,54 @@ namespace UnityEngine.Rendering.Universal
             s_PendingChanged.Clear();
             s_PendingMaterials.Clear();
             s_PendingDestroyed.Clear();
-            s_RetainedTransformCount = 0;
+            s_FoldNeeded = false;
 
             if (s_PendingTransforms.IsCreated)
                 s_PendingTransforms.Clear();
+        }
+    }
+
+    struct SurfaceCacheEntityChangeWriter
+    {
+        public NativeList<SurfaceCacheEntityInstanceRecord> Changed;
+        public NativeHashMap<EntityId, int> Index;
+        public NativeList<SurfaceCacheSubMeshMaterial> Materials;
+        public NativeList<SurfaceCacheEntityTransformRecord> Transforms;
+
+        public void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials)
+        {
+            var stored = record;
+            stored.MaterialsCount = materials.Length;
+            stored.TransformsBefore = Transforms.Length;
+
+            // Avoids re-appending when a key's assignment count does not grow.
+            if (Index.TryGetValue(record.Key, out int at))
+            {
+                var previous = Changed[at];
+                if (previous.MaterialsCount >= materials.Length)
+                {
+                    for (int i = 0; i < materials.Length; i++)
+                        Materials[previous.MaterialsStart + i] = materials[i];
+
+                    stored.MaterialsStart = previous.MaterialsStart;
+                }
+                else
+                {
+                    stored.MaterialsStart = Materials.Length;
+                    for (int i = 0; i < materials.Length; i++)
+                        Materials.Add(materials[i]);
+                }
+
+                Changed[at] = stored;
+                return;
+            }
+
+            stored.MaterialsStart = Materials.Length;
+            for (int i = 0; i < materials.Length; i++)
+                Materials.Add(materials[i]);
+
+            Index.Add(record.Key, Changed.Length);
+            Changed.Add(stored);
         }
     }
 
