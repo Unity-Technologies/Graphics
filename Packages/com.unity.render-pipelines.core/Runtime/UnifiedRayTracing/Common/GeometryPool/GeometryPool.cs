@@ -16,12 +16,23 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public int indexPoolByteSize;
         public int meshChunkTablesByteSize;
 
+        // The pool grows on demand, so keep the initial allocation small enough for low-end devices.
         public static GeometryPoolDesc NewDefault()
         {
             return new GeometryPoolDesc()
             {
-                vertexPoolByteSize = 256 * 1024 * 1024, //256 mb
-                indexPoolByteSize = 32 * 1024 * 1024, //32 mb
+                vertexPoolByteSize = 32 * 1024 * 1024,
+                indexPoolByteSize = 8 * 1024 * 1024,
+                meshChunkTablesByteSize = 1024 * 1024
+            };
+        }
+
+        public static GeometryPoolDesc NewForBaking()
+        {
+            return new GeometryPoolDesc()
+            {
+                vertexPoolByteSize = 256 * 1024 * 1024,
+                indexPoolByteSize = 32 * 1024 * 1024,
                 meshChunkTablesByteSize = 4 * 1024 * 1024
             };
         }
@@ -276,9 +287,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_MustClearCmdBuffer = false;
             m_PendingCmds = 0;
 
-            m_MaxVertCounts = CalcVertexCount(desc.vertexPoolByteSize);
-            m_MaxIndexCounts = CalcIndexCount(desc.indexPoolByteSize);
-            m_MaxMeshChunkTableEntriesCount = CalcMeshChunkTablesCount(desc.meshChunkTablesByteSize);
+            m_MaxVertCounts = Math.Min(CalcVertexCount(desc.vertexPoolByteSize), GraphicsHelpers.MaxElementCount(GetVertexByteSize()));
+            m_MaxIndexCounts = Math.Min(CalcIndexCount(desc.indexPoolByteSize), GraphicsHelpers.MaxElementCount(GetIndexByteSize()));
+            m_MaxMeshChunkTableEntriesCount = Math.Min(CalcMeshChunkTablesCount(desc.meshChunkTablesByteSize), GraphicsHelpers.MaxElementCount(GetMeshChunkTableEntryByteSize()));
 
             m_GlobalVertexBuffer = new GraphicsBuffer(VertexBufferTarget, DivUp(m_MaxVertCounts * GetVertexByteSize(), 4), 4);
             m_GlobalIndexBuffer = new GraphicsBuffer(IndexBufferTarget, m_MaxIndexCounts, 4);
@@ -394,6 +405,30 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_GeoSlots[geoSlotHandle] = geoSlot;
         }
 
+        // The table has a struct stride, so it can't go through the uint copy kernel. Rebuild it from the CPU-side slots instead.
+        private void ReallocateMeshChunkTableBuffer(int newCapacity)
+        {
+            var newBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newCapacity, GetMeshChunkTableEntryByteSize());
+            if (!newBuffer.IsValid())
+                throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+
+            var table = new NativeArray<GeoPoolMeshChunk>(newCapacity, Allocator.Temp);
+            foreach (var geoSlot in m_GeoSlots)
+            {
+                if (!geoSlot.valid || !geoSlot.hasGPUData)
+                    continue;
+
+                for (int i = 0; i < geoSlot.meshChunks.Length; ++i)
+                    table[geoSlot.meshChunkTableAlloc.block.offset + i] = geoSlot.meshChunks[i].EncodeGPUEntry();
+            }
+            newBuffer.SetData(table);
+            table.Dispose();
+
+            m_GlobalMeshChunkTableEntryBuffer.Dispose();
+            m_GlobalMeshChunkTableEntryBuffer = newBuffer;
+            m_MaxMeshChunkTableEntriesCount = newCapacity;
+        }
+
         private bool AllocateGeo(Mesh mesh, out int allocationHandle)
         {
             uint meshHash = (uint)mesh.GetHashCode();
@@ -427,12 +462,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.Allocate(mesh.subMeshCount);
                 if (!newSlot.meshChunkTableAlloc.valid)
                 {
-                    newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.GrowAndAllocate(mesh.subMeshCount, GraphicsHelpers.MaxElementCount(GetMeshChunkTableEntryByteSize()), out int oldCapacity, out int newCapacity);
+                    newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.GrowAndAllocate(mesh.subMeshCount, GraphicsHelpers.MaxElementCount(GetMeshChunkTableEntryByteSize()), out _, out int newCapacity);
                     if (!newSlot.meshChunkTableAlloc.valid)
                         throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                    GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetMeshChunkTableEntryByteSize(), ref m_GlobalMeshChunkTableEntryBuffer);
-                    m_MaxMeshChunkTableEntriesCount = newCapacity;
+                    ReallocateMeshChunkTableBuffer(newCapacity);
                 }
 
                 newSlot.meshChunks = new NativeArray<MeshChunk>(mesh.subMeshCount, Allocator.Persistent);
@@ -448,7 +482,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                         if (!newMeshChunk.vertexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                        GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetVertexByteSize(), ref m_GlobalVertexBuffer);
+                        if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetVertexByteSize(), ref m_GlobalVertexBuffer))
+                            throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
                         m_MaxVertCounts = newCapacity;
                     }
 
@@ -459,7 +494,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                         if (!newMeshChunk.indexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                        GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, sizeof(int), ref m_GlobalIndexBuffer);
+                        if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, sizeof(int), ref m_GlobalIndexBuffer))
+                            throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
                         m_MaxIndexCounts = newCapacity;
                     }
 
