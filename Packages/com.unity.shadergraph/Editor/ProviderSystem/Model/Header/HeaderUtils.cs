@@ -3,11 +3,36 @@ using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System;
 using Unity.GraphAuthoring.Editor.ProviderSystem;
-using Hints = Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
-using static Unity.GraphAuthoring.Editor.ProviderSystem.HintUtils;
+using static Unity.GraphAuthoring.Editor.ProviderSystem.ShaderValueUtils;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
+    // Reads a definition for a provider node, and keeps the provider's messages about it.
+    internal abstract class HeaderBase<T> where T : IDefinition
+    {
+        internal bool isValid { get; private set; }
+
+        List<(string message, MessageType severity)> m_msgs;
+        internal IEnumerable<(string message, MessageType severity)> Messages => m_msgs;
+
+        protected abstract void OnProcess(T obj, IProvider provider);
+
+        internal void Process(T obj, IProvider provider)
+        {
+            isValid = obj != null && obj.IsValid && provider != null && provider.IsValid;
+            if (!isValid)
+                return;
+
+            m_msgs = new();
+            var subject = obj is IShaderField field ? field.Name : null;
+            foreach (var message in provider.Messages)
+                if (message.Subject == subject)
+                    m_msgs.Add((message.Text, (MessageType)message.Severity));
+
+            OnProcess(obj, provider);
+        }
+    }
+
     internal static class HeaderUtils
     {
         internal static string ToShaderType(this MaterialSlot slot)
@@ -28,7 +53,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             Enum.TryParse<ScreenSpaceType>(header.defaultString, true, out var defaultScreenSpaceType);
 
             // absolute world only works for position.
-            if (defaultCoordinateSpace == Internal.CoordinateSpace.AbsoluteWorld && header.Referable != Hints.Param.Ref.kPosition)
+            if (defaultCoordinateSpace == Internal.CoordinateSpace.AbsoluteWorld && header.Referable != StandardReferables.kPosition)
                 defaultCoordinateSpace = Internal.CoordinateSpace.Object;
 
             // Screen doesn't work for any of the Space Slots-- _why do they use this enum?_
@@ -39,28 +64,28 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             {
                 switch(header.Referable)
                 {
-                    case Hints.Param.Ref.kUV:
+                    case StandardReferables.kUV:
                         slot = new UVMaterialSlot(slotId, header.displayName, header.referenceName, defaultUVChannel);
                         break;
-                    case Hints.Param.Ref.kPosition:
+                    case StandardReferables.kPosition:
                         slot = new PositionMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
                         break;
-                    case Hints.Param.Ref.kNormal:
+                    case StandardReferables.kNormal:
                         slot = new NormalMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
                         break;
-                    case Hints.Param.Ref.kTangent:
+                    case StandardReferables.kTangent:
                         slot = new TangentMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
                         break;
-                    case Hints.Param.Ref.kBitangent:
+                    case StandardReferables.kBitangent:
                         slot = new BitangentMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
                         break;
-                    case Hints.Param.Ref.kVertexColor:
+                    case StandardReferables.kVertexColor:
                         slot = new VertexColorMaterialSlot(slotId, header.displayName, header.referenceName);
                         break;
-                    case Hints.Param.Ref.kViewDirection:
+                    case StandardReferables.kViewDirection:
                         slot = new ViewDirectionMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
                         break;
-                    case Hints.Param.Ref.kScreenPosition:
+                    case StandardReferables.kScreenPosition:
                         slot = new ScreenPositionMaterialSlot(slotId, header.displayName, header.referenceName, defaultScreenSpaceType);
                         break;
                 }
@@ -182,7 +207,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (precisionToken != null)
                 newType = newType.Replace("float", precisionToken).Replace("half", precisionToken);
 
-            return new ShaderType(type.Name.Replace(baseType, newType));
+            return new ShaderType(type.Name.Replace(baseType, newType), type.Namespace);
         }
 
         internal static bool TryApplyLegacy(IShaderFunction func, FunctionHeader funcHeader, IReadOnlyDictionary<string, ParameterHeader> paramHeaders, string precisionToken, int dynamicLength, out IShaderFunction result)
@@ -202,7 +227,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
                 var legacyType = ApplyLegacy(param.ShaderType, applyPrecision ? precisionToken : null, applyDynamics ? dynamicLength : 0);
 
-                var field = new ShaderField(param.Name, param.IsInput, param.IsOutput, legacyType, param.Hints);
+                var field = new ShaderField(param.Name, param.IsInput, param.IsOutput, legacyType, param.Production, param.Presentation);
 
                 fields.Add(field);
             }
@@ -222,7 +247,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             // Dynamic typing isn't supported on return values.
             IShaderType returnType = ApplyLegacy(func.ReturnType, applyPrecision ? precisionToken : null, 0);
-            result = new ShaderFunction(funcName, namespaces, fields, returnType, func.FunctionBody, func.Hints, false, func.Dependencies);
+            result = new ShaderFunction(funcName, namespaces, fields, returnType, func.FunctionBody, false, func.Dependencies,
+                production: func.Production, presentation: func.Presentation);
             return true;
         }
     }

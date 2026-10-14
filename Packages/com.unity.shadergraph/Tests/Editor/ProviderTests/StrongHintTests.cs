@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         {
             ProviderKey = testName;
             AssetID = path == null ? default : AssetDatabase.GUIDFromAssetPath(path);
-            Definition = new ShaderFunction(testName, namespaces, null, new ShaderType("void"), null, null);
+            Definition = new ShaderFunction(testName, namespaces, null, new ShaderType("void"), null);
         }
 
         public IProvider Clone() => throw new NotImplementedException();
@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
     {
         public string Name { get; }
         public bool IsValid => true;
+        public string DedupeKey => Name;
         internal TestObject(string name) { Name = name; }
     }
 
@@ -95,9 +96,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 return ResolveOne(new Hints.Range(), hints, field);
             }
 
-            var floatField = new ShaderField("f", true, false, floatType, null);
-            var halfField  = new ShaderField("h", true, false, halfType, null);
-            var vec2Field  = new ShaderField("v", true, false, float2Type, null);
+            var floatField = new ShaderField("f", true, false, floatType);
+            var halfField  = new ShaderField("h", true, false, halfType);
+            var vec2Field  = new ShaderField("v", true, false, float2Type);
 
             // Valid cases.
             AssertRange(Resolve(floatField, null),      true,  0, 1,  false);
@@ -133,19 +134,19 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
             // Explicit category string used directly.
             var withCategory = new Dictionary<string, string> { { Func.kSearchCategory, "This/Is/A/Category" } };
-            var func = new ShaderFunction("base", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("base", null, null, new ShaderType("void"), null);
             var result = ResolveOne(prototype, withCategory, func);
             Assert.IsTrue(result.IsResolved);
             Assert.AreEqual("This/Is/A/Category", result.Value);
 
             // Namespace used as fallback when no category hint.
-            var namespaced = new ShaderFunction("ns", new[] { "NamespaceA", "NamespaceB" }, null, new ShaderType("void"), null, null);
+            var namespaced = new ShaderFunction("ns", new[] { "NamespaceA", "NamespaceB" }, null, new ShaderType("void"), null);
             result = ResolveOne(prototype, Empty, namespaced);
             Assert.IsTrue(result.IsResolved);
             Assert.AreEqual("Reflected by Namespace/NamespaceA/NamespaceB", result.Value);
 
             // No namespace or path — uncategorized.
-            var bare = new ShaderFunction("nocategory", null, null, new ShaderType("void"), null, null);
+            var bare = new ShaderFunction("nocategory", null, null, new ShaderType("void"), null);
             result = ResolveOne(prototype, Empty, bare);
             Assert.IsTrue(result.IsResolved);
             Assert.AreEqual("Uncategorized", result.Value);
@@ -156,7 +157,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Version_ResolvedWithValue()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Version(),
                 new Dictionary<string, string> { { Func.kVersion, "1.2.3" } }, func);
             Assert.IsTrue(result.IsResolved);
@@ -167,7 +168,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Version_NotFound_NotResolved()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Version(), Empty, func);
             Assert.IsFalse(result.IsResolved);
         }
@@ -175,7 +176,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Version_EmptyValue_ProducesMessage()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Version(),
                 new Dictionary<string, string> { { Func.kVersion, "" } }, func);
             Assert.IsFalse(result.IsResolved);
@@ -187,7 +188,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Deprecated_ResolvedWithMessage()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Deprecated(),
                 new Dictionary<string, string> { { Func.kDeprecated, "Use NewFunc() instead." } }, func);
             Assert.IsTrue(result.IsResolved);
@@ -201,7 +202,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Deprecated_BareFlag_ResolvedWithNullValue()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Deprecated(),
                 new Dictionary<string, string> { { Func.kDeprecated, null } }, func);
             Assert.IsTrue(result.IsResolved);
@@ -211,7 +212,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Deprecated_NotFound_NotResolved()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Deprecated(), Empty, func);
             Assert.IsFalse(result.IsResolved);
         }
@@ -221,7 +222,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Obsolete_ResolvedWithMessage()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Obsolete(),
                 new Dictionary<string, string> { { Func.kObsolete, "Will be removed in 2.0." } }, func);
             Assert.IsTrue(result.IsResolved);
@@ -233,7 +234,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void Obsolete_NotFound_NotResolved()
         {
-            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null, null);
+            var func = new ShaderFunction("F", null, null, new ShaderType("void"), null);
             var result = ResolveOne(new Hints.Obsolete(), Empty, func);
             Assert.IsFalse(result.IsResolved);
         }
@@ -261,8 +262,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         [Test]
         public void LegacyPrecisionAndDynamics()
         {
-            var DynamicHint  = new IStrongHint[] { new Hints.Dynamic(true) };
-            var PrecisionHint = new IStrongHint[] { new Hints.Precision(true) };
+            var dynamic = new FieldProductionData(isDynamicVector: true);
+            var precision = new FunctionProductionData(supportsPrecision: true);
             var generated = new List<string> { "unity_sg_generated" };
 
             ShaderType f  = new("float");  ShaderType h  = new("half");
@@ -271,11 +272,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
             ShaderFunction testFunc = new("TestFunc", null, new IShaderField[]
             {
-                new ShaderField("A", true, true, f,  DynamicHint),
-                new ShaderField("B", true, true, h3, DynamicHint),
-                new ShaderField("C", true, true, h2, null),
-                new ShaderField("D", true, true, f2, null),
-            }, f, "", PrecisionHint);
+                new ShaderField("A", true, true, f, dynamic),
+                new ShaderField("B", true, true, h3, dynamic),
+                new ShaderField("C", true, true, h2),
+                new ShaderField("D", true, true, f2),
+            }, f, "", production: precision);
 
             var provider = new TestProvider("TestProvider", testFunc);
             var funcHeader = new FunctionHeader();
@@ -287,22 +288,22 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
             ShaderFunction expected = new("TestFunc_half4", generated, new IShaderField[]
             {
-                new ShaderField("A", true, true, new ShaderType("half4"), DynamicHint),
-                new ShaderField("B", true, true, new ShaderType("half4"), DynamicHint),
-                new ShaderField("C", true, true, h2, null),
-                new ShaderField("D", true, true, h2, null),
-            }, h, "", PrecisionHint);
+                new ShaderField("A", true, true, new ShaderType("half4")),
+                new ShaderField("B", true, true, new ShaderType("half4")),
+                new ShaderField("C", true, true, h2),
+                new ShaderField("D", true, true, h2),
+            }, h, "", production: precision);
 
             HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "half", 4, out var result);
             Assert.IsTrue(TestUtils.CompareFunction(expected, result));
 
             expected = new("TestFunc_float1", generated, new IShaderField[]
             {
-                new ShaderField("A", true, true, f,  DynamicHint),
-                new ShaderField("B", true, true, f,  DynamicHint),
-                new ShaderField("C", true, true, f2, null),
-                new ShaderField("D", true, true, f2, null),
-            }, f, "", PrecisionHint);
+                new ShaderField("A", true, true, f),
+                new ShaderField("B", true, true, f),
+                new ShaderField("C", true, true, f2),
+                new ShaderField("D", true, true, f2),
+            }, f, "", production: precision);
 
             HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "float", 1, out result);
             Assert.IsTrue(TestUtils.CompareFunction(expected, result));
@@ -319,7 +320,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             var hint = new Hints.HelpURL();
             var raw = new Dictionary<string, string> { { Func.kDocumentationLink, rawValue } };
             raw.TryGetValue(hint.Key, out var value);
-            hint.Initialize(true, value, new ShaderFunction("F", null, null, new ShaderType("void"), null, null), null, hint.Key, raw);
+            hint.Initialize(true, value, new ShaderFunction("F", null, null, new ShaderType("void"), null), null, hint.Key, raw);
             return hint;
         }
 
@@ -329,7 +330,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         public void HelpURL_NotFound_NotResolved()
         {
             var hint = new Hints.HelpURL();
-            hint.Initialize(false, null, new ShaderFunction("F", null, null, new ShaderType("void"), null, null), null, hint.Key, Empty);
+            hint.Initialize(false, null, new ShaderFunction("F", null, null, new ShaderType("void"), null), null, hint.Key, Empty);
             Assert.IsFalse(hint.IsResolved);
             Assert.IsNull(hint.Message);
         }

@@ -18,19 +18,29 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
         static readonly ShaderKeywordFilter s_keywordFilter = new();
 
+        // Expressions author no return name, so the construction fallback applies.
+        [Test]
+        public void ReturnSlot_IsNamedOut()
+        {
+            Assert.AreEqual("Out", new ExpressionProvider().Definition.Presentation.ReturnDisplayName);
+
+            var node = new ExpressionNode();
+            node.InitializeFromProvider(new ExpressionProvider());
+            Assert.AreEqual("Out", node.FindOutputSlot<MaterialSlot>(0).RawDisplayName());
+        }
+
         private static void DoTest(string expression, string[] expectedParamNames, string expectedExpression = null)
         {
             List<IShaderField> fields = new();
             var type = new ShaderType("float");
             if (expectedParamNames != null)
                 foreach (var name in expectedParamNames)
-                    fields.Add(new ShaderField(name, true, false, type, null));
+                    fields.Add(new ShaderField(name, true, false, type));
 
             if (string.IsNullOrEmpty(expectedExpression))
                 expectedExpression = expression;
 
-            // Hints not compared here — generateHints:false excludes them from the code comparison.
-            var expected = new ShaderFunction("Test", null, fields, type, $"return {expectedExpression};", null);
+            var expected = new ShaderFunction("Test", null, fields, type, $"return {expectedExpression};");
 
             // this operation produces a 'cleaned' expression; for now, we're just stripping comments
             // For now, we allow keywords and illegal characters (even semicolons), though they ought to
@@ -40,8 +50,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             Assert.AreEqual(expectedExpression, actualExpression);
 
             // the code generated from the actual/expected shader functions should be identical.
-            string expectedCode = ShaderObjectUtils.GenerateCode(expected, false, false, false);
-            string actualCode = ShaderObjectUtils.GenerateCode(actual, false, false, false);
+            string expectedCode = ShaderObjectUtils.GenerateCode(expected, false, false);
+            string actualCode = ShaderObjectUtils.GenerateCode(actual, false, false);
 
             Assert.AreEqual(expectedCode, actualCode);
 

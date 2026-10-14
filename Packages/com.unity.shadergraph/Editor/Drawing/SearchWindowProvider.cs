@@ -12,7 +12,6 @@ using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 using UnityEditor.ShaderGraph.ProviderSystem;
 using Unity.GraphAuthoring.Editor.ProviderSystem;
-using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

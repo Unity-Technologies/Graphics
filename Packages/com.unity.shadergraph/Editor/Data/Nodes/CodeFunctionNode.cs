@@ -56,9 +56,9 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!slotTypes.TryGetValue(param.Name, out var slotType))
                     throw new InvalidOperationException($"'{param.Name}' of '{source.Name}' has no matching slot on '{name}'.");
-                parameters.Add(new ShaderField(param.Name, param.IsInput, param.IsOutput, new ShaderType(slotType), null));
+                parameters.Add(new ShaderField(param.Name, param.IsInput, param.IsOutput, new ShaderType(slotType)));
             }
-            return new ShaderFunction(GetFunctionName(), null, parameters, source.ReturnType, body, null);
+            return new ShaderFunction(GetFunctionName(), null, parameters, source.ReturnType, body);
         }
 
         public override bool hasPreview

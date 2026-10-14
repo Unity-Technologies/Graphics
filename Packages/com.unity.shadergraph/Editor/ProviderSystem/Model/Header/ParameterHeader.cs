@@ -1,10 +1,10 @@
 using Unity.GraphAuthoring.Editor.ProviderSystem;
-using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
-using static Unity.GraphAuthoring.Editor.ProviderSystem.HintUtils;
+using static Unity.GraphAuthoring.Editor.ProviderSystem.ShaderValueUtils;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    internal class ParameterHeader : StrongHeader<IShaderField>
+    // TODO: Headers copy what the definition already carries; read it directly and remove the headers.
+    internal class ParameterHeader : HeaderBase<IShaderField>
     {
         internal string referenceName { get; private set; }
         internal IShaderType shaderType { get; private set; }
@@ -33,8 +33,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal string externalQualifiedTypeName { get; private set; }
 
-        internal bool isLiteral { get; private set; }
-
         internal bool isDynamic { get; private set; }
 
         internal bool isBareResource { get; private set; }
@@ -61,56 +59,57 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             bool isTexture = typeTest.Contains("texture");
             isBareResource = !typeTest.Contains("unity") && (isSampler || isTexture);
 
-            displayName = param.Hints.GetHint<DisplayName>()?.Value as string;
-            tooltip     = param.Hints.GetHint<Tooltip>()?.Value as string;
+            var presentation = param.Presentation;
+            var production = param.Production;
+            displayName = presentation.DisplayName;
+            tooltip     = presentation.Tooltip;
 
-            isStatic = param.Hints.GetHint<Static>()?.IsResolved ?? false;
-            isLocal  = param.Hints.GetHint<Local>()?.IsResolved ?? false;
+            isStatic = production.Access == FieldAccess.Static;
+            isLocal  = production.Access == FieldAccess.Local;
 
-            var dropdown = param.Hints.GetHint<Dropdown>();
-            if (isDropdown = dropdown?.IsResolved ?? false)
-                options = dropdown.Value as string[];
+            var editor = presentation.Editor;
+            isDropdown = editor is DropdownEditorData;
+            if (editor is DropdownEditorData dropdown)
+                options = new System.Collections.Generic.List<string>(dropdown.Options).ToArray();
 
-            isColor = param.Hints.GetHint<Color>()?.IsResolved ?? false;
+            isColor = editor is ColorEditorData;
 
-            var range = param.Hints.GetHint<Range>();
-            if (isSlider = range?.IsResolved ?? false)
+            isSlider = editor is RangeEditorData;
+            if (editor is RangeEditorData range)
             {
-                var r = range.Value as float[];
-                sliderMin = r[0];
-                sliderMax = r[1];
+                sliderMin = range.Min;
+                sliderMax = range.Max;
             }
 
-            var defaultHint = param.Hints.GetHint<Default>();
-            if (defaultHint?.IsResolved ?? false)
+            var defaultText = production.Default switch
             {
-                defaultString = defaultHint.Value as string;
+                LiteralDefault literal => literal.Text,
+                ReferableDefault referable => referable.Option,
+                _ => null,
+            };
+            if (defaultText != null)
+            {
+                defaultString = defaultText;
                 defaultValue  = LazyTokenFloat(defaultString);
             }
 
-            externalQualifiedTypeName = typeName;
-            var externalNamespace = param.Hints.GetHint<External>()?.Value as string;
-            if (!string.IsNullOrWhiteSpace(externalNamespace))
-                externalQualifiedTypeName = $"{externalNamespace}::{typeName}";
+            externalQualifiedTypeName = ShaderObjectUtils.QualifyName(shaderType);
 
-            isLiteral = param.Hints.GetHint<Literal>()?.IsResolved ?? false;
+            isReferable = production.Default is ReferableDefault;
+            if (production.Default is ReferableDefault referableDefault)
+                Referable = referableDefault.Referable;
 
-            var referableHint = param.Hints.GetHint<Referable>();
-            if (isReferable = referableHint?.IsResolved ?? false)
-                Referable = referableHint.Value as string;
+            isDynamic = production.IsDynamicVector;
 
-            isDynamic = param.Hints.GetHint<Dynamic>()?.IsResolved ?? false;
-
-            var linkage = param.Hints.GetHint<Linkage>();
-            if (isLinkage = linkage?.IsResolved ?? false)
+            if (isLinkage = production.Access == FieldAccess.Linkage)
             {
-                linkTarget = linkage.Value as string;
+                linkTarget = production.LinkTarget;
                 isLocal    = true;
             }
 
-            var customBindingHint = param.Hints.GetHint<CustomBinding>();
-            if (hasCustomBinding = customBindingHint?.IsResolved ?? false)
-                customBinding = customBindingHint.Value as string;
+            hasCustomBinding = editor is CustomBindingEditorData;
+            if (editor is CustomBindingEditorData binding)
+                customBinding = binding.Label;
         }
 
         internal ParameterHeader(IShaderField param, IProvider provider)
@@ -121,13 +120,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         // For returns.
         internal ParameterHeader(string displayName, IShaderType shaderType, string tooltip, IProvider provider)
         {
-            var hints = new IStrongHint[]
-            {
-                new DisplayName(Common.kDisplayName, displayName, true),
-                new Tooltip(Common.kTooltip, tooltip, true),
-            };
-
-            var field = new ShaderField("__UNITY_SHADERGRAPH_UNUSED", false, true, shaderType, hints);
+            var field = new ShaderField("__UNITY_SHADERGRAPH_UNUSED", false, true, shaderType, presentation: new FieldPresentationData(displayName, tooltip));
 
             Process(field, provider);
         }

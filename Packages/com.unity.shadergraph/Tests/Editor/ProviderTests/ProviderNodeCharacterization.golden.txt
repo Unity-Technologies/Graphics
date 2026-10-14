@@ -1,0 +1,453 @@
+=== Plain
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+slot Vector1MaterialSlot 1 Input "a" default=$precision(0)
+slot Vector3MaterialSlot 2 Output "b"
+slot Vector2MaterialSlot 3 Input "c" default=$precision2 (0, 0)
+slot Vector2MaterialSlot 4 Output "c"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+float Func(float a, out float3 b, inout float2 c)
+{
+    return 0;
+}
+call
+$precision3 _Func_<id>_b_2_Vector3;
+$precision2 _Func_<id>_c_4_Vector2 = $precision2 (0, 0);
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func($precision(0), _Func_<id>_b_2_Vector3, _Func_<id>_c_4_Vector2);
+=== Void
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector4MaterialSlot 1 Input "a" default=$precision4 (0, 0, 0, 0)
+slot Vector4MaterialSlot 2 Output "b"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float4 a, out float4 b)
+{
+    return 0;
+}
+call
+$precision4 _Func_<id>_b_2_Vector4;
+Func($precision4 (0, 0, 0, 0), _Func_<id>_b_2_Vector4);
+=== Presentation
+name Nice
+synonyms x, y
+precision False
+help https://example.com/page
+slot Vector1MaterialSlot 0 Output "Result"
+slot Vector1MaterialSlot 1 Input "Alpha" default=$precision(0)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+float Func(float a)
+{
+    return 0;
+}
+call
+$precision _Nice_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func($precision(0));
+=== Return_InheritsLabel
+name From Label
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/From-Label-Node.html
+slot Vector1MaterialSlot 0 Output "From Label"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+float Func()
+{
+    return 0;
+}
+call
+$precision _FromLabel_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func();
+=== Lifecycle_Deprecated
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+message function Warning: sg:Deprecated: 'Func' is deprecated: Use Other
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+float Func()
+{
+    return 0;
+}
+call
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func();
+=== Lifecycle_Obsolete
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+message function Error: sg:Obsolete: 'Func' is obsolete and will be removed: Gone
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+float Func()
+{
+    return 0;
+}
+call
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func();
+=== Precision
+name Func
+synonyms Func
+precision True
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+slot Vector3MaterialSlot 1 Input "a" default=$precision3 (0, 0, 0)
+slot Vector1MaterialSlot 2 Output "b"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+namespace unity_sg_generated {
+float Func_float(float3 a, out float b)
+{
+    return 0;
+}
+} /*unity_sg_generated*/
+call
+$precision _Func_<id>_b_2_Float;
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = unity_sg_generated::Func_$precision($precision3 (0, 0, 0), _Func_<id>_b_2_Float);
+=== Dynamic
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+slot DynamicVectorMaterialSlot 1 Input "a" default=$precision(0)
+slot DynamicVectorMaterialSlot 2 Input "b" default=$precision(0)
+slot DynamicVectorMaterialSlot 3 Output "c"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+namespace unity_sg_generated {
+float Func1(float a, float b, out float c)
+{
+    return 0;
+}
+} /*unity_sg_generated*/
+call
+$precision _Func_<id>_c_3_Float;
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = unity_sg_generated::Func1($precision(0), $precision(0), _Func_<id>_c_3_Float);
+=== PrecisionAndDynamic
+name Func
+synonyms Func
+precision True
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+slot DynamicVectorMaterialSlot 1 Input "a" default=$precision(0)
+slot DynamicVectorMaterialSlot 2 Output "c"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+namespace unity_sg_generated {
+float Func_float1(float a, out float c)
+{
+    return 0;
+}
+} /*unity_sg_generated*/
+call
+$precision _Func_<id>_c_2_Float;
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = unity_sg_generated::Func_$precision1($precision(0), _Func_<id>_c_2_Float);
+=== Scalars
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialIntegerSlot 1 Input "i" default=$precision(0)
+slot Vector1MaterialIntegerSlot 2 Input "u" default=$precision(0)
+slot Vector1MaterialSlot 3 Input "f" default=$precision(0)
+slot Vector1MaterialSlot 4 Input "h" default=$precision(0)
+slot BooleanMaterialSlot 5 Input "b" default=0
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(int i, uint u, float f, half h, bool b)
+{
+    return 0;
+}
+call
+Func($precision(0), $precision(0), $precision(0), $precision(0), 0);
+=== Vectors
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector2MaterialSlot 1 Input "v2" default=$precision2 (0, 0)
+slot Vector3MaterialSlot 2 Input "v3" default=$precision3 (0, 0, 0)
+slot Vector4MaterialSlot 3 Input "v4" default=$precision4 (0, 0, 0, 0)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float2 v2, half3 v3, float4 v4)
+{
+    return 0;
+}
+call
+Func($precision2 (0, 0), $precision3 (0, 0, 0), $precision4 (0, 0, 0, 0));
+=== Matrices
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Matrix2MaterialSlot 1 Input "m2" default=$precision2x2 (1,0,0,1)
+slot Matrix3MaterialSlot 2 Input "m3" default=$precision3x3 (1,0,0,0,1,0,0,0,1)
+slot Matrix4MaterialSlot 3 Input "m4" default=$precision4x4 (1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float2x2 m2, float3x3 m3, float4x4 m4)
+{
+    return 0;
+}
+call
+Func($precision2x2 (1,0,0,1), $precision3x3 (1,0,0,0,1,0,0,0,1), $precision4x4 (1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1));
+=== Resources
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Texture2DInputMaterialSlot 1 Input "t" default=UnityBuildTexture2DStructNoScale(_Func_<id>_t_1_Texture2D)
+slot Texture2DInputMaterialSlot 2 Input "ut" default=UnityBuildTexture2DStructNoScale(_Func_<id>_ut_2_Texture2D)
+slot SamplerStateMaterialSlot 3 Input "s" default=UnityBuildSamplerStateStruct(SamplerState_Linear_Repeat)
+slot Texture2DArrayInputMaterialSlot 4 Input "ta" default=UnityBuildTexture2DArrayStruct(_Func_<id>_ta_4_Texture2DArray)
+slot CubemapInputMaterialSlot 5 Input "tc" default=UnityBuildTextureCubeStruct(_Func_<id>_tc_5_Cubemap)
+slot Texture3DInputMaterialSlot 6 Input "t3" default=UnityBuildTexture3DStruct(_Func_<id>_t3_6_Texture3D)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(Texture2D t, UnityTexture2D ut, SamplerState s, Texture2DArray ta, TextureCube tc, Texture3D t3)
+{
+    return 0;
+}
+call
+Func(UnityBuildTexture2DStructNoScale(_Func_<id>_t_1_Texture2D).tex, UnityBuildTexture2DStructNoScale(_Func_<id>_ut_2_Texture2D), UnityBuildSamplerStateStruct(SamplerState_Linear_Repeat).samplerstate, UnityBuildTexture2DArrayStruct(_Func_<id>_ta_4_Texture2DArray).tex, UnityBuildTextureCubeStruct(_Func_<id>_tc_5_Cubemap).tex, UnityBuildTexture3DStruct(_Func_<id>_t3_6_Texture3D).tex);
+=== Resources_Out
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Texture2DMaterialSlot 1 Output "t"
+slot SamplerStateMaterialSlot 2 Output "s"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(out Texture2D t, out SamplerState s)
+{
+    return 0;
+}
+call
+UnityTexture2D _Func_<id>_t_1_Texture2D;
+UnitySamplerState _Func_<id>_s_2_SamplerState;
+Func(_Func_<id>_t_1_Texture2D, _Func_<id>_s_2_SamplerState);
+=== External
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot ExternalMaterialSlot 1 Input "a" default=(MyNamespace::MyStruct)(0)
+slot ExternalMaterialSlot 2 Input "b" default=(OtherStruct)(0)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(MyStruct a, OtherStruct b)
+{
+    return 0;
+}
+call
+Func((MyNamespace::MyStruct)(0), (OtherStruct)(0));
+=== Defaults
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 1 Input "f" default=$precision(0.5)
+slot Vector3MaterialSlot 2 Input "v" default=$precision3 (1, 2, 3)
+slot BooleanMaterialSlot 3 Input "b" default=0
+slot Vector1MaterialIntegerSlot 4 Input "i" default=$precision(2)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float f, float3 v, bool b, int i)
+{
+    return 0;
+}
+call
+Func($precision(0.5), $precision3 (1, 2, 3), 0, $precision(2));
+=== Static_Local
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 1 Input "s" hideConnector default=$precision(0)
+slot Vector1MaterialSlot 2 Input "l" hidden default=$precision(3)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float s, float l)
+{
+    return 0;
+}
+call
+Func($precision(0), $precision(3));
+=== Range
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialRangeSlot 1 Input "r" default=$precision(0.5)
+slot Vector1MaterialRangeSlot 2 Input "s" default=$precision(0)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float r, half s)
+{
+    return 0;
+}
+call
+Func($precision(0.5), $precision(0));
+=== Dropdown
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialEnumSlot 1 Input "d" default=$precision(1)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(int d)
+{
+    return 0;
+}
+call
+Func($precision(1));
+=== Color
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot ColorRGBMaterialSlot 1 Input "c3" default=IsGammaSpace() ? $precision3(1, 0, 0) : SRGBToLinear($precision3(1, 0, 0))
+slot ColorRGBAMaterialSlot 2 Input "c4" default=IsGammaSpace() ? $precision4(0, 0, 0, 1) : $precision4 (SRGBToLinear($precision3(0, 0, 0)), 1)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float3 c3, half4 c4)
+{
+    return 0;
+}
+call
+Func(IsGammaSpace() ? $precision3(1, 0, 0) : SRGBToLinear($precision3(1, 0, 0)), IsGammaSpace() ? $precision4(0, 0, 0, 1) : $precision4 (SRGBToLinear($precision3(0, 0, 0)), 1));
+=== Color_Static
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot ColorRGBAMaterialSlot 1 Input "c" hideConnector default=IsGammaSpace() ? $precision4(0, 0, 0, 1) : $precision4 (SRGBToLinear($precision3(0, 0, 0)), 1)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float4 c)
+{
+    return 0;
+}
+call
+Func(IsGammaSpace() ? $precision4(0, 0, 0, 1) : $precision4 (SRGBToLinear($precision3(0, 0, 0)), 1));
+=== CustomBinding
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector4MaterialSlot 1 Input "a" binding="Bound" default=$precision4 (0, 0, 0, 0)
+slot Vector3MaterialSlot 2 Input "b" binding="Both" default=$precision3 (0, 0, 0)
+slot Vector3MaterialSlot 3 Output "b" binding="Both"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float4 a, inout float3 b)
+{
+    return 0;
+}
+call
+$precision3 _Func_<id>_b_3_Vector3 = $precision3 (0, 0, 0);
+Func($precision4 (0, 0, 0, 0), _Func_<id>_b_3_Vector3);
+=== Referables
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot UVMaterialSlot 1 Input "uv" default=IN.uv0.xy
+slot UVMaterialSlot 2 Input "uv1" default=IN.uv1.xy
+slot PositionMaterialSlot 3 Input "pos" default=IN.WorldSpacePosition
+slot PositionMaterialSlot 4 Input "posAbs" default=IN.AbsoluteWorldSpacePosition
+slot NormalMaterialSlot 5 Input "n" default=IN.TangentSpaceNormal
+slot NormalMaterialSlot 6 Input "nAbs" default=IN.ObjectSpaceNormal
+slot TangentMaterialSlot 7 Input "t" default=IN.ObjectSpaceTangent
+slot BitangentMaterialSlot 8 Input "bt" default=IN.ObjectSpaceBiTangent
+slot ViewDirectionMaterialSlot 9 Input "vd" default=IN.ViewSpaceViewDirection
+slot VertexColorMaterialSlot 10 Input "vc" default=IN.VertexColor
+slot ScreenPositionMaterialSlot 11 Input "sp" default=IN.ScreenPosition
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float2 uv, float2 uv1, float3 pos, float3 posAbs, float3 n, float3 nAbs, float3 t, float3 bt, float3 vd, float4 vc, float4 sp)
+{
+    return 0;
+}
+call
+Func(IN.uv0.xy, IN.uv1.xy, IN.WorldSpacePosition, IN.AbsoluteWorldSpacePosition, IN.TangentSpaceNormal, IN.ObjectSpaceNormal, IN.ObjectSpaceTangent, IN.ObjectSpaceBiTangent, IN.ViewSpaceViewDirection, IN.VertexColor, IN.ScreenPosition);
+=== Referable_Unknown
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector3MaterialSlot 1 Input "x" default=$precision3 (0, 0, 0)
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+message x Warning: sg:Referable: 'Foo' is not a supported referable key.
+functions
+void Func(float3 x)
+{
+    return 0;
+}
+call
+Func($precision3 (0, 0, 0));
+=== Linkage
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot BooleanMaterialSlot 1 Input "enabled" hidden default=0
+slot Vector3MaterialSlot 2 Input "color" default=$precision3 (0, 0, 0)
+slot Vector3MaterialSlot 3 Output "result"
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(bool enabled, float3 color, out float3 result)
+{
+    return 0;
+}
+call
+$precision3 _Func_<id>_result_3_Vector3;
+Func(false, $precision3 (0, 0, 0), _Func_<id>_result_3_Vector3);
+=== Conflict
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector3MaterialSlot 1 Input "a" default=$precision3 (0, 0, 0)
+message a Warning: CustomEditor: Conflicting hints of class 'CustomEditor' found, ignoring: 'sg:Range', 'sg:Color'
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+functions
+void Func(float3 a)
+{
+    return 0;
+}
+call
+Func($precision3 (0, 0, 0));
+=== Messages
+name Func
+synonyms Func
+precision False
+help https://docs.unity3d.com/Packages/com.unity.shadergraph@<version>/manual/Func-Node.html
+slot Vector1MaterialSlot 0 Output "Out"
+slot Vector3MaterialSlot 1 Input "a" default=$precision3 (0, 0, 0)
+slot Vector1MaterialSlot 2 Output "b"
+message a Warning: sg:Range: Expected floating point scalar, but found 'float3'.
+message b Warning: sg:Default: Expected input parameter.
+message function Warning: sg:GroupKey: Expected an integer priority as the second token, but found 'x'.
+message function Warning: sg:ProviderKey: Expected; but none found for 'Func'.
+message function Warning: sg:Version: Expected a version string.
+functions
+float Func(float3 a, out float b)
+{
+    return 0;
+}
+call
+$precision _Func_<id>_b_2_Float;
+$precision _Func_<id>_UNITYSHADERGRAPHUNUSED_0_Float = Func($precision3 (0, 0, 0), _Func_<id>_b_2_Float);

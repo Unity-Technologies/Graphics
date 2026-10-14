@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             {
                 var slotId = CodeFunctionNode.GetSlotId(param)
                     ?? throw new InvalidOperationException($"'{param.Name}' of '{m_method.Name}' has no slot attribute.");
-                parameters.Add((slotId, new ShaderField(param.Name, !param.IsOut, param.IsOut, new ShaderType(TypeName(param)), null)));
+                parameters.Add((slotId, new ShaderField(param.Name, !param.IsOut, param.IsOut, new ShaderType(TypeName(param)))));
             }
             parameters.Sort((a, b) => a.order.CompareTo(b.order));
 
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             foreach (var (_, field) in parameters)
                 fields.Add(field);
 
-            Definition = new ShaderFunction(m_method.Name, null, fields, new ShaderType(ShaderObjectUtils.kVoidTypeName), StripBraces(m_body), null);
+            Definition = new ShaderFunction(m_method.Name, null, fields, new ShaderType(ShaderObjectUtils.kVoidTypeName), StripBraces(m_body));
         }
 
         // Coerce the parameter's type into HLSL.

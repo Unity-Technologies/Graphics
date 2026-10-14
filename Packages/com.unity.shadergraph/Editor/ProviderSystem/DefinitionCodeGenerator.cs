@@ -8,13 +8,14 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
     internal static class DefinitionCodeGenerator
     {
         internal static IShaderField OutputVariable(string variableName, string typeName)
-            => new ShaderField(variableName, false, true, new ShaderType(typeName), null);
+            => new ShaderField(variableName, false, true, new ShaderType(typeName));
 
         // For IGeneratesBodyCode: the node's call, writing its outputs to the node's slot variables.
         internal static void GenerateCall(IShaderFunction function, string nameHint, IReadOnlyDictionary<string, ShaderArgument> arguments,
             IReadOnlyDictionary<string, IShaderField> outputVariables, ShaderStringBuilder sb)
         {
-            var callSite = new CallProducer().Produce(function, new ProducerContext(nameHint, arguments));
+            // Arguments are values here, so no upstream calls are merged that could conflict.
+            var callSite = new CallProducer().Produce(function, new ProducerContext(nameHint, arguments), out _);
             var code = ShaderWriter.WriteCallSites(new[] { callSite }, (_, output) => outputVariables.TryGetValue(output, out var variable) ? variable : null);
             foreach (var line in code.Split('\n'))
                 sb.AppendLine(line);

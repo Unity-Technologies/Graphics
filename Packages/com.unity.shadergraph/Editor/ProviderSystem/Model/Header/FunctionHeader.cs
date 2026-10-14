@@ -1,11 +1,10 @@
 using Unity.GraphAuthoring.Editor.ProviderSystem;
-using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
-using static Unity.GraphAuthoring.Editor.ProviderSystem.HintUtils;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    internal class FunctionHeader : StrongHeader<IShaderFunction>
+    // TODO: Headers copy what the definition and provider already carry; read those directly and remove the headers.
+    internal class FunctionHeader : HeaderBase<IShaderFunction>
     {
         internal string referenceName { get; private set; }
 
@@ -53,27 +52,27 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             returnType    = func.ReturnType;
             version       = provider.Version;
 
-            displayName = func.Hints.GetHint<DisplayName>()?.Value as string;
-            tooltip     = func.Hints.GetHint<Tooltip>()?.Value as string;
+            var presentation = func.Presentation;
+            displayName = presentation.DisplayName;
+            tooltip     = presentation.Tooltip;
 
-            returnDisplayName = func.Hints.GetHint<ReturnDisplayName>()?.Value as string;
-            returnTooltip     = func.Hints.GetHint<ReturnTooltip>()?.Value as string;
+            returnDisplayName = presentation.ReturnDisplayName;
+            returnTooltip     = presentation.ReturnTooltip;
 
-            searchName     = func.Hints.GetHint<SearchName>()?.Value as string;
-            searchTerms    = func.Hints.GetHint<SearchTerms>()?.Value as string[];
-            searchCategory = func.Hints.GetHint<SearchCategory>()?.Value as string;
+            searchName     = presentation.SearchName;
+            searchTerms    = presentation.SearchTerms != null ? new List<string>(presentation.SearchTerms).ToArray() : null;
+            searchCategory = presentation.SearchCategory;
 
-            allowPrecision = func.Hints.GetHint<Precision>()?.IsResolved ?? false;
+            allowPrecision = func.Production.SupportsPrecision;
 
-            helpUrl = func.Hints.GetHint<HelpURL>()?.Value as string;
+            helpUrl = presentation.HelpUrl;
 
             if (provider.Group != null)
             {
-                var groupKeyHint = func.Hints.GetHint<GroupKey>();
                 groupDropdownEntryName = displayName;
-                displayName = groupKeyHint?.DisplayName ?? provider.Group;
+                displayName = presentation.GroupDisplayName ?? provider.Group;
                 searchName = displayName;
-                groupLabel = groupKeyHint?.Label ?? "Variant";
+                groupLabel = presentation.GroupLabel ?? "Variant";
 
                 List<string> searchTerms = new();
                 List<(IProvider<IShaderFunction> provider, string label)> groupEntries = new();
