@@ -18,6 +18,8 @@
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.testing.common-graphics": "file:../../../Packages/com.unity.testing.common-graphics",
+    "com.unity.testing.surface-cache.core": "file:../../../Packages/com.unity.testing.surface-cache.core",
+    "com.unity.testing.surface-cache.urp": "file:../../../Packages/com.unity.testing.surface-cache.urp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.ai": "1.0.0",
@@ -53,6 +55,10 @@
     "com.unity.test-profiler": "0.1.0-exp.6",
     "com.unity.yamato": "1.0.1"
   },
+  "testables": [
+    "com.unity.testing.surface-cache.core",
+    "com.unity.testing.surface-cache.urp"
+  ],
   "scopedRegistries": [
     {
       "name": "Unity Internal Candidates",
