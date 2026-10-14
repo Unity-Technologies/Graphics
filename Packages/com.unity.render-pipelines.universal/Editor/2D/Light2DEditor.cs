@@ -753,12 +753,14 @@ namespace UnityEditor.Rendering.Universal
         {
             bool meshChanged = false;
 
-            EditorGUI.BeginChangeCheck();
-
-            // Use shared utility method for Light Type dropdown
+            // Use shared utility method for Light Type dropdown. It is drawn outside the change check
+            // because ApplyLightTypeSelection already reports a duplicate global light, and
+            // CheckForExistingGlobalLight below would report it again for every global light.
             Light2DEditorUtility.DrawLightTypePopup(default(Rect), Styles.generalLightType, serializedObject, layoutMode: true);
 
             serializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
 
             // Color and intensity
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
