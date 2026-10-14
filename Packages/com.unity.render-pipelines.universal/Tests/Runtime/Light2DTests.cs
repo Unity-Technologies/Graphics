@@ -153,6 +153,19 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.AreNotEqual(triangleCount, light.lightMesh.vertices.Length);
         }
 
+        // UUM-154810: a Freeform light created from script, with no SetShapePath call,
+        // must start with the default square instead of a null path.
+        [Test]
+        public void FreeformLightCreatedFromScriptHasDefaultShape()
+        {
+            var light = m_TestObjectCached.AddComponent<Light2D>();
+            light.lightType = Light2D.LightType.Freeform;
+
+            Assert.DoesNotThrow(() => light.UpdateMesh(true));
+            Assert.AreEqual(new[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) }, light.shapePath);
+            Assert.Greater(light.lightMesh.vertexCount, 0);
+        }
+
         [Test]
         public void EnsureShapeMeshGenerationDoesNotOverflowAllocation()
         {
