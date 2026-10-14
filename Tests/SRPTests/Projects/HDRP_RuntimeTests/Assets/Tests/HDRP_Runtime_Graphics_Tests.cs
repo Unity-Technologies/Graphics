@@ -45,7 +45,7 @@ public class HDRP_Runtime_Graphics_Tests
     }
 
     [UnityTest]
-    [SceneGraphicsTest(@"Assets/Scenes/^(?!002-HDMaterials\.unity$)[0-9]+")]
+    [SceneGraphicsTest(@"Assets/Scenes/^[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     [IgnoreGraphicsTest("005", "Was excluded from the build settings")]
     [IgnoreGraphicsTest("007", "Temporary ignore due to light baking")]
@@ -82,7 +82,8 @@ public class HDRP_Runtime_Graphics_Tests
     )]
     [IgnoreGraphicsTest(
         "002-HDMaterials$",
-        "CoreCLR renders transparent/refraction content differently from Mono. https://jira.unity3d.com/browse/UUM-151806"
+        "UGK does not support tessellation shaders. https://jira.unity3d.com/browse/UUM-154386",
+        UnityGraphicsKernelMode.UgkOn
     )]
     [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
@@ -117,21 +118,6 @@ public class HDRP_Runtime_Graphics_Tests
         Architecture.X64
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
-    {
-        yield return HDRP_GraphicTestRunner.Run(testCase);
-    }
-
-    [UnityTest]
-#pragma warning disable CS0618 // UnityCoreClrExplicitDisabled is obsolete-marked, intended for internal use during CoreCLR bring-up
-    [UnityCoreClrExplicitDisabled(
-        "https://jira.unity3d.com/browse/UUM-151806",
-        "CoreCLR renders transparent and refraction materials differently from Mono in the raw RenderTexture"
-    )]
-#pragma warning restore CS0618
-    [SceneGraphicsTest("Assets/Scenes/002-HDMaterials.unity")]
-    [Timeout(450 * 1000)]
-    [IgnoreGraphicsTest("002-HDMaterials$", "", GraphicsDeviceType.Metal)]
-    public IEnumerator RunHdMaterials(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);
     }
