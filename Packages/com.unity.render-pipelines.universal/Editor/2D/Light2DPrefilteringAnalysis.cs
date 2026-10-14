@@ -25,7 +25,8 @@ namespace UnityEditor.Rendering.Universal
 
         // Global multi_compile keywords from Include/ShapeLightShared.hlsl, toggled per draw by
         // RendererLighting.EnableBlendStyle. For Hidden/Light2D, runtime usage is bounded:
-        //   - Non-volumetric draws enable exactly one USE_SHAPE_LIGHT_TYPE_<blendStyleIndex>.
+        //   - Non-volumetric draws enable exactly one USE_SHAPE_LIGHT_TYPE_<N>, where N is the
+        //     light's rank among the blend styles in use in its layer batch.
         //   - Volumetric draws enable none (the USE_DEFAULT_LIGHT_TYPE shader fallback handles it).
         //   - On GLES3 (Renderer2D.supportsMRT == false) the index is forced to 0 regardless.
         // The 11 multi-keyword combinations multi_compile generates are unreachable for this shader.
@@ -43,8 +44,6 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         internal const string kEmptyComboSentinel = "<none>";
 
-        internal static List<int> blendStylesIndices = new List<int>();
-
         /// <summary>
         /// Walks every enabled build scene and returns the set of comma-joined keyword combos
         /// that <see cref="RendererLighting.CreateLightMaterial"/> could legitimately request at
@@ -54,6 +53,12 @@ namespace UnityEditor.Rendering.Universal
         internal static string[] AnalyzeBuildScenes()
         {
             HashSet<string> combos = new HashSet<string>();
+
+            // Keyword sets of non-volumetric draws, indexed by blend style. Their
+            // USE_SHAPE_LIGHT_TYPE_N slot depends on the blend styles of every light that can share
+            // a layer batch, including lights from scenes loaded additively or kept with
+            // DontDestroyOnLoad. So the slots are added once all build scenes have been scanned.
+            var shapeLightDraws = new HashSet<string>[kShapeLightTypeKeywords.Length];
 
             EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
             foreach (var sceneSettings in scenes)
@@ -83,7 +88,7 @@ namespace UnityEditor.Rendering.Universal
 
                 try
                 {
-                    AnalyzeSceneForLights(scene, combos);
+                    AnalyzeSceneForLights(scene, combos, shapeLightDraws);
                 }
                 finally
                 {
@@ -95,38 +100,58 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
+            AddShapeLightCombos(shapeLightDraws, combos);
+
             string[] result = new string[combos.Count];
             combos.CopyTo(result);
             return result;
         }
 
-        static void AnalyzeSceneForLights(Scene scene, HashSet<string> combos)
+        static void AnalyzeSceneForLights(Scene scene, HashSet<string> combos, HashSet<string>[] shapeLightDraws)
         {
-            GameObject[] rootObjects = scene.GetRootGameObjects();
-            List<Light2D> lights = new List<Light2D>();
-
-            foreach (var rootObject in rootObjects)
-                lights.AddRange(rootObject.GetComponentsInChildren<Light2D>(true));
-
-            blendStylesIndices.Clear();
-
-            // Populate used blend style indices
-            // Eg. If blend styles 0 and 3 are used, we only need to know indices 0 and 1 will be used for MRT and strip accordingly
-            foreach (var light in lights)
+            foreach (var rootObject in scene.GetRootGameObjects())
             {
-                if (!blendStylesIndices.Contains(light.blendStyleIndex))
-                    blendStylesIndices.Add(light.blendStyleIndex);
+                foreach (var light in rootObject.GetComponentsInChildren<Light2D>(true))
+                    AnalyzeLight(light, combos, shapeLightDraws);
             }
-
-            blendStylesIndices.Sort();
-
-            foreach (var light in lights)
-                AnalyzeLight(light, combos);
         }
 
-        static void AnalyzeLight(Light2D light, HashSet<string> combos)
+        // Mirrors the per-draw USE_SHAPE_LIGHT_TYPE_N selection in DrawLight2DPass.Execute. The slot
+        // is the light's rank among the blend styles used in its layer batch, as set by
+        // LayerUtility.SetupActiveBlendStyles. For example, if only blend styles 0 and 3 are used,
+        // the slots are 0 and 1. A batch only holds visible lights from the loaded scenes. Its
+        // blend styles are a subset of those across all build scenes. So a light can land in any
+        // slot from 0 up to its rank across all build scenes, but never higher. Keep all of them.
+        // This bound assumes every light lives in a build scene. A light spawned at runtime from a
+        // prefab or asset bundle isn't scanned, so it can raise other lights' slots past the bound.
+        // Slot 0 also covers GLES3, where Renderer2D.supportsMRT is false and indicesIndex is
+        // forced to 0.
+        static void AddShapeLightCombos(HashSet<string>[] shapeLightDraws, HashSet<string> combos)
+        {
+            int blendStyleRank = 0;
+            foreach (var keywordCombos in shapeLightDraws)
+            {
+                if (keywordCombos == null)
+                    continue;
+
+                for (int slot = 0; slot <= blendStyleRank; slot++)
+                {
+                    foreach (var keywordCombo in keywordCombos)
+                        combos.Add(keywordCombo.Length > 0 ? keywordCombo + "," + kShapeLightTypeKeywords[slot] : kShapeLightTypeKeywords[slot]);
+                }
+
+                blendStyleRank++;
+            }
+        }
+
+        static void AnalyzeLight(Light2D light, HashSet<string> combos, HashSet<string>[] shapeLightDraws)
         {
             if (light == null)
+                return;
+
+            // The runtime only draws blend styles 0-3 (LayerUtility.SetupActiveBlendStyles), so a
+            // light outside that range is never drawn. Skip it so it can't raise other lights' ranks.
+            if (light.blendStyleIndex < 0 || light.blendStyleIndex >= kShapeLightTypeKeywords.Length)
                 return;
 
             // The runtime resolves useShadows per draw from layer-batch state, not from
@@ -135,21 +160,21 @@ namespace UnityEditor.Rendering.Universal
             //   - Non-volumetric: no-shadow is always reachable; with-shadow only if shadowsEnabled.
             //   - Volumetric:     no-shadow is reachable when volumetricEnabled; with-shadow
             //                     additionally requires renderVolumetricShadows.
-            RecordVariant(light, isVolume: false, useShadows: false, combos);
+            RecordVariant(light, isVolume: false, useShadows: false, combos, shapeLightDraws);
             if (light.shadowsEnabled)
-                RecordVariant(light, isVolume: false, useShadows: true, combos);
+                RecordVariant(light, isVolume: false, useShadows: true, combos, shapeLightDraws);
 
             if (light.volumetricEnabled)
             {
-                RecordVariant(light, isVolume: true, useShadows: false, combos);
+                RecordVariant(light, isVolume: true, useShadows: false, combos, shapeLightDraws);
                 if (light.renderVolumetricShadows)
-                    RecordVariant(light, isVolume: true, useShadows: true, combos);
+                    RecordVariant(light, isVolume: true, useShadows: true, combos, shapeLightDraws);
             }
         }
 
-        // Mirrors the keyword logic in RendererLighting.CreateLightMaterial plus the per-draw
-        // USE_SHAPE_LIGHT_TYPE_N selection in DrawLight2DPass.Execute.
-        static void RecordVariant(Light2D light, bool isVolume, bool useShadows, HashSet<string> combos)
+        // Mirrors the keyword logic in RendererLighting.CreateLightMaterial. The keyword order
+        // matches BuildComboString, so the recorded combos compare equal to the variant's.
+        static void RecordVariant(Light2D light, bool isVolume, bool useShadows, HashSet<string> combos, HashSet<string>[] shapeLightDraws)
         {
             bool isPoint = light.lightType == Light2D.LightType.Point;
 
@@ -175,41 +200,19 @@ namespace UnityEditor.Rendering.Universal
             else if (light.overlapOperation == Light2D.OverlapOperation.Additive)
                 keywords.Add(kUseAdditiveBlendingKeyword);
 
-            // Per-draw USE_SHAPE_LIGHT_TYPE_N selection. Volumetric draws don't set any (the shader
-            // falls back to USE_DEFAULT_LIGHT_TYPE). Non-volumetric draws set exactly one — the
-            // light's blendStyleIndex, plus USE_SHAPE_LIGHT_TYPE_0 as a GLES3 safety net (where
-            // Renderer2D.supportsMRT is false and indicesIndex is forced to 0).
+            string keywordCombo = string.Join(",", keywords);
+
+            // Volumetric draws don't set any USE_SHAPE_LIGHT_TYPE_N (the shader falls back to
+            // USE_DEFAULT_LIGHT_TYPE). Non-volumetric draws set exactly one, which
+            // AddShapeLightCombos appends once every build scene has been scanned.
             if (isVolume)
             {
-                AddCombo(combos, keywords, shapeLightKeyword: null);
-            }
-            else
-            {
-                int blendStyleIndex = blendStylesIndices.IndexOf(light.blendStyleIndex);
-                if (blendStyleIndex >= 0 && blendStyleIndex < kShapeLightTypeKeywords.Length)
-                    AddCombo(combos, keywords, kShapeLightTypeKeywords[blendStyleIndex]);
-                if (blendStyleIndex != 0)
-                    AddCombo(combos, keywords, kShapeLightTypeKeywords[0]);
-            }
-        }
-
-        static void AddCombo(HashSet<string> combos, List<string> baseKeywords, string shapeLightKeyword)
-        {
-            if (shapeLightKeyword == null)
-            {
-                string combo = baseKeywords.Count > 0 ? string.Join(",", baseKeywords) : kEmptyComboSentinel;
-                combos.Add(combo);
+                combos.Add(keywordCombo.Length > 0 ? keywordCombo : kEmptyComboSentinel);
                 return;
             }
 
-            if (baseKeywords.Count == 0)
-            {
-                combos.Add(shapeLightKeyword);
-                return;
-            }
-
-            // Append shape-light keyword to maintain a stable ordering that matches BuildComboString.
-            combos.Add(string.Join(",", baseKeywords) + "," + shapeLightKeyword);
+            var keywordCombos = shapeLightDraws[light.blendStyleIndex] ??= new HashSet<string>();
+            keywordCombos.Add(keywordCombo);
         }
 
         /// <summary>
