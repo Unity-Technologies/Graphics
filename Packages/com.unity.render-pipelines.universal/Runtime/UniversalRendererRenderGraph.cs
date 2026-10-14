@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
                 CreateOffscreenUITexture(renderGraph, cameraDescriptor);
         }
 
-        internal readonly struct ClearCameraParams
+        private readonly struct ClearCameraParams
         {
             internal readonly bool mustClearColor;
             internal readonly bool mustClearDepth;
@@ -515,14 +515,18 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearCameraTargets(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, bool isCameraTargetOffscreenDepth)
         {
-            var clearParams = GetClearCameraParams(cameraData);
-
-            // Offscreen depth cameras have no color target and always clear depth, matching the unconditional
-            // clearOnFirstUse that ImportBackBuffers sets on their backbuffer depth.
+            // Offscreen depth cameras have no color target, and always clear depth through the unconditional
+            // clearOnFirstUse parameter that ImportBackBuffers sets on their backbuffer depth.
             if (isCameraTargetOffscreenDepth)
-                ClearTargetsPass.Render(renderGraph, TextureHandle.nullHandle, resourceData.backBufferDepth, RTClearFlags.DepthStencil, clearParams.clearValue);
-            else
-                ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearParams);
+            {
+                InitializeCameraTargetsPass.Render(renderGraph, TextureHandle.nullHandle, resourceData.backBufferDepth);
+                return;
+            }
+
+            // The clear pass is only required if either color or depth needs clearing.
+            var clearParams = GetClearCameraParams(cameraData);
+            if (clearParams.mustClearColor || clearParams.mustClearDepth)
+                InitializeCameraTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture);
         }
 
         void SetupTargetHandles(UniversalCameraData cameraData)
@@ -927,9 +931,9 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler.Setup(renderGraph, cameraData.isPreviewCamera);
 
             // Color/depth clears are normally implemented through the first use load actions of the camera targets,
-            // and the opaque pass is normally the first use that triggers them. When it is skipped, record an explicit
-            // clear to still honor the camera clear flags. It has to be recorded before any pass that draws into the
-            // camera targets, otherwise it would discard what they drew.
+            // and the opaque pass is normally the first use that triggers them. When it is skipped, record a pass that
+            // uses the targets to still honor the camera clear flags. It has to be recorded before any pass that draws
+            // into the camera targets, otherwise the clear would discard what they drew.
             if (!renderStages.drawOpaquePass)
                 ClearCameraTargets(renderGraph, resourceData, cameraData, isCameraTargetOffscreenDepth);
 
@@ -2234,43 +2238,29 @@ namespace UnityEngine.Rendering.Universal
             }
         }
     }
-    class ClearTargetsPass
+
+    // Uses the camera targets without drawing anything, so that their clearOnFirstUse load actions are triggered.
+    // NOTE: We are intentionally not calling ClearRenderTarget, because it would be redundant with the load action,
+    // and it's implemented as a full screen quad draw on many platforms.
+    class InitializeCameraTargetsPass
     {
-        static private readonly ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
+        static private readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Initialize Camera Targets");
 
-        private class PassData
+        private class PassData { }
+
+        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle)
         {
-            internal RTClearFlags clearFlags;
-            internal Color clearColor;
-        }
-
-        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle, in UniversalRenderer.ClearCameraParams clearParams)
-        {
-            RTClearFlags clearFlags = (clearParams.mustClearColor ? RTClearFlags.Color : RTClearFlags.None)
-                                    | (clearParams.mustClearDepth ? RTClearFlags.DepthStencil : RTClearFlags.None);
-
-            if (clearFlags != RTClearFlags.None)
-                Render(graph, colorHandle, depthHandle, clearFlags, clearParams.clearValue);
-        }
-
-        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle, RTClearFlags clearFlags, Color clearColor)
-        {
-            using (var builder = graph.AddRasterRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Initialize Camera Targets", out _, s_ProfilingSampler))
             {
                 if (colorHandle.IsValid())
                     builder.SetRenderAttachment(colorHandle, 0, AccessFlags.Write);
                 if (depthHandle.IsValid())
                     builder.SetRenderAttachmentDepth(depthHandle, AccessFlags.Write);
 
-                passData.clearFlags = clearFlags;
-                passData.clearColor = clearColor;
-
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
-                {
-                    context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
-                });
+                // Empty render func. We are only marking the textures as used which triggers a clear.
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => { });
             }
         }
     }
