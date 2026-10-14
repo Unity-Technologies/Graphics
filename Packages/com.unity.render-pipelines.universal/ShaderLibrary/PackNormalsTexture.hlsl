@@ -6,7 +6,7 @@
 
 #if !defined(_GBUFFER_NORMALS_OCT_KEYWORD_DECLARED)
     #if !defined(_GBUFFER_NORMALS_OCT)
-        #define _GBUFFER_NORMALS_OCT 0
+        static const bool _GBUFFER_NORMALS_OCT = 0;
     #elif DEFINED_NONZERO(_GBUFFER_NORMALS_OCT)
         #undef _GBUFFER_NORMALS_OCT
         #define _GBUFFER_NORMALS_OCT 1
