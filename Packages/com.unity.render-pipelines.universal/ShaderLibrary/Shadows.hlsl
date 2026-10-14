@@ -471,61 +471,70 @@ real SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sample
                 + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
 }
 
-// Single-body soft filter for runtime-selected quality (per-light, and dynamic-keyword builds).
-half SampleShadowmapFilteredUnified(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half quality)
+// Separable tent kernel, one axis: 4 fetch columns cover the 7x7 (HIGH) tent; the 5x5 (MEDIUM) tent uses three of
+// them (column 2 gets weight 0). Weights are unnormalized; the caller applies the 1/area factor.
+void SampleShadow_TentAxis(float o, bool high, out float4 weights, out float4 offsets)
 {
-    // Up to 16 taps for the active quality, accumulated in fixed 4-tap chunks gated by quality.
-    // All indexing is compile-time constant for better codegen.
-    float fetchesWeights[16];
-    float2 fetchesUV[16];
+    float mn2 = min(o, 0.0) * min(o, 0.0);
+    float mx2 = max(o, 0.0) * max(o, 0.0);
+    float wOuterL = (0.5 * o - 1.5) * o + 1.125;
+    float wOuterR = (0.5 * o + 1.5) * o + 1.125;
+    float nOuterR = (0.5 * o + 0.5) * o + 0.125;
+    float wInnerL = high ? 5.0 - 2.0 * o - mn2 : 4.0 - o * o;
+    float nInnerL = high ? 3.0 - o - mn2 : 2.0 + o - mx2;
+    float wInnerR = 5.0 + 2.0 * o - mx2;
+    offsets = float4(1.0 - o, nInnerL, 2.0 + o, nOuterR) / float4(wOuterL, wInnerL, wInnerR, wOuterR)
+            + (high ? float4(-3.5, -1.5, 0.5, 2.5) : float4(-2.5, -0.5, 0.5, 1.5));
+    weights = float4(wOuterL, wInnerL, high ? wInnerR : 0.0, wOuterR);
+}
 
-    // Zero-init so unused taps contribute nothing even if the hardware flattens the quality gates below.
-    UNITY_UNROLL for (int z = 0; z < 16; z++) { fetchesWeights[z] = 0.0; fetchesUV[z] = shadowCoord.xy; }
+// Soft filter for runtime-selected quality (per-light value, and dynamic-keyword builds).
+half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half quality)
+{
+    if (quality < SOFT_SHADOW_QUALITY_MEDIUM)
+        return half(SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData));
 
+    float4 texelSize = samplingData.shadowmapSize;
+    float2 tentCenter = shadowCoord.xy * texelSize.zw;
+    float2 fetchCenter = floor(tentCenter + 0.5);
+    float2 o = tentCenter - fetchCenter;
+
+    float4 wU, wV, u, v;
+    UNITY_BRANCH
     if (quality >= SOFT_SHADOW_QUALITY_HIGH)
     {
-        SampleShadow_ComputeSamples_Tent_Filter_7x7(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
-    }
-    else if (quality >= SOFT_SHADOW_QUALITY_MEDIUM)
-    {
-        SampleShadow_ComputeSamples_Tent_Filter_5x5(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
+        SampleShadow_TentAxis(o.x, true, wU, u);
+        SampleShadow_TentAxis(o.y, true, wV, v);
+        wV *= 0.081632 * 0.081632;
+        u = fetchCenter.x * texelSize.x + u * texelSize.x;
+        v = fetchCenter.y * texelSize.y + v * texelSize.y;
     }
     else
     {
-        fetchesWeights[0] = 0.25; fetchesUV[0] = shadowCoord.xy + samplingData.shadowOffset0.xy;
-        fetchesWeights[1] = 0.25; fetchesUV[1] = shadowCoord.xy + samplingData.shadowOffset0.zw;
-        fetchesWeights[2] = 0.25; fetchesUV[2] = shadowCoord.xy + samplingData.shadowOffset1.xy;
-        fetchesWeights[3] = 0.25; fetchesUV[3] = shadowCoord.xy + samplingData.shadowOffset1.zw;
+        SampleShadow_TentAxis(o.x, false, wU, u);
+        SampleShadow_TentAxis(o.y, false, wV, v);
+        wV *= 0.16 * 0.16;
+        u = fetchCenter.x * texelSize.x + u * texelSize.x;
+        v = fetchCenter.y * texelSize.y + v * texelSize.y;
     }
+    half4 hwU = half4(wU);
 
-    #define SHADOW_TAP(i) half(fetchesWeights[i]) * half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[i].xy, shadowCoord.z)))
-
-    // chunk 0: 4 taps (LOW and up)
-    half attenuation = SHADOW_TAP(0) + SHADOW_TAP(1) + SHADOW_TAP(2) + SHADOW_TAP(3);
-
-    UNITY_BRANCH
-    if (quality >= SOFT_SHADOW_QUALITY_MEDIUM)
+    half attenuation = 0.0;
+    UNITY_UNROLL for (int j = 0; j < 4; j++)
     {
-        // chunk 1: taps 4..8 (MEDIUM is 9 taps; pad with the zeroed 9th)
-        attenuation += SHADOW_TAP(4) + SHADOW_TAP(5) + SHADOW_TAP(6) + SHADOW_TAP(7) + SHADOW_TAP(8);
-
-        UNITY_BRANCH
-        if (quality >= SOFT_SHADOW_QUALITY_HIGH)
-        {
-            // chunk 2: taps 9..15 (HIGH is 16 taps)
-            attenuation += SHADOW_TAP(9) + SHADOW_TAP(10) + SHADOW_TAP(11) + SHADOW_TAP(12)
-                         + SHADOW_TAP(13) + SHADOW_TAP(14) + SHADOW_TAP(15);
-        }
+        half4 s;
+        s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
+        s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
+        s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
+        s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
+        attenuation += half(wV[j]) * dot(s, hwU);
     }
-
-    #undef SHADOW_TAP
     return attenuation;
 }
 
 half SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
 {
-    // Per-light soft-shadow quality is a runtime value, so always use the single-body filter.
-    return SampleShadowmapFilteredUnified(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowQuality);
+    return SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowQuality);
 }
 
 real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
@@ -546,7 +555,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 
     if (quality > SOFT_SHADOW_QUALITY_OFF)
     {
-        attenuation = SampleShadowmapFilteredUnified(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, quality);
+        attenuation = SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, quality);
     }
     else
     {
