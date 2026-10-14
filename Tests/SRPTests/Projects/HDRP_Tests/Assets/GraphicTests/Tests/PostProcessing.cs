@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
@@ -125,12 +124,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor
         )]
         [TestNotSupportedOn(
-            "4011|4013|4014|4038|4060|4061|4099|4100|4112",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112",
             "Not XR compatible",
             StereoRenderingContext.StereoEnabled
         )]
         [TestNotSupportedOn(
-            "4011|4013|4014|4038|4060|4061|4099|4100|4112",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112",
             "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
