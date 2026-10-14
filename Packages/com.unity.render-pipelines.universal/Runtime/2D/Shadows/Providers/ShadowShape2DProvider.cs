@@ -66,6 +66,14 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
         public virtual void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
 
+        // World bounds of the whole source shape, independent of any camera's culling. When this returns
+        // true, the ShadowCaster2D sizes its bounding sphere from them instead of from the (culled) shadow mesh.
+        internal virtual bool TryGetWorldBounds(Component sourceComponent, out Bounds worldBounds)
+        {
+            worldBounds = default;
+            return false;
+        }
+
         /// <summary>
         /// Called for each component on a <c>ShadowCaster2D's</c> <c>GameObject</c>. Returns true if the provided component is the data source of the <c>ShadowShapeProvider</c>.
         /// </summary>

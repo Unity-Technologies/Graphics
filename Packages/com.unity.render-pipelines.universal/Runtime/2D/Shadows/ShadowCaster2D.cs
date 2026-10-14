@@ -537,7 +537,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if(m_ShadowMesh != null)
-                m_ShadowMesh.UpdateBoundingSphere(transform);
+            {
+                // The shadow mesh is culled to the last camera that rendered, so a provider that knows the
+                // whole shape's bounds sizes the sphere instead. Then IsLit does not depend on the camera.
+                if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider &&
+                    m_ShadowShape2DProvider != null && m_ShadowShape2DComponent != null &&
+                    m_ShadowShape2DProvider.TryGetWorldBounds(m_ShadowShape2DComponent, out var worldBounds))
+                    m_ShadowMesh.SetBoundingSphere(worldBounds, transform.position.z);
+                else
+                    m_ShadowMesh.UpdateBoundingSphere(transform);
+            }
         }
 
 
