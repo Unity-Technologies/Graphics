@@ -905,6 +905,8 @@ namespace UnityEngine.Rendering
                 Lightmapping.bakeCancelled += OnBakeCancelled;
                 Lightmapping.inputExtraction += OnInputExtraction;
                 AssemblyReloadEvents.beforeAssemblyReload += CleanUp;
+                // Without a domain reload on entering play mode the context can outlive every reload, so also release it before the graphics device shuts down.
+                EditorApplication.quitting += CleanUp;
             }
         }
 
