@@ -6,19 +6,6 @@ uid: urp-changelog
 
 ## [Unreleased]
 
-### Added
-- Surface Cache Global Illumination is now publicly available in URP through the Surface Cache Global Illumination Renderer Feature and the Surface Cache Global Illumination Volume Override.
-- Added a project-wide Depth Bias Mode option under Project Settings > Graphics > URP (`URPShadowBiasSettings.depthBiasMode`). In the new Slope-Scale Depth Bias mode, shadow rendering applies a per-light slope-scaled depth bias driven by the bias value, reinterpreted as a normalized [0..1] multiplier; the Depth Bias (Legacy) mode keeps the previous behavior. New projects default to Slope-Scale Depth Bias; pre-existing projects keep Depth Bias (Legacy).
-- Added `ShadowUtils.GetSlopeScaleDepthBias` and `ShadowUtils.RenderShadowSlice` overloads taking a slope-scale depth bias, so custom shadow passes can respect the Depth Bias Mode.
-
-### Deprecated
-- Deprecated the `ShadowUtils.RenderShadowSlice` overloads without a slopeScaleDepthBias parameter; they apply the legacy fixed slope-scale depth bias regardless of the Depth Bias Mode.
-
-### Fixed
-- Fixed 2D lights being drawn in the wrong position and orientation on Android when the device was rotated, in projects built with Vulkan and "Apply display rotation during rendering" enabled. The 2D lit passes now undo the swapchain pre-transform rotation before sampling the shape light textures.
-- Fixed a Render Graph execution error ("Adding the final blit pass when Tile-Only Mode is on") when Tile-Only Mode was enabled on displays with a non-sRGB backbuffer (for example OpenGL ES in Linear color space); Tile-Only Mode now falls back to regular rendering on those displays.
-- Fixed Surface Cache Global Illumination silently falling back to baked lighting when disabled through its Volume Override; opaque surfaces now correctly receive no indirect lighting from it.
-
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
@@ -29,9 +16,6 @@ For the release notes, refer to the [Unity download archive](https://unity.com/r
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
-
-### Added
-- Screen Space Reflections (SSR) is now publicly available in URP through the Screen Space Reflection Renderer Feature and the Screen Space Reflection volume override.
 
 ## [17.5.0] - 2026-02-18
 
