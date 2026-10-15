@@ -274,21 +274,15 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2(offsetX * k_InvScale, offsetY * k_InvScale);
         }
 
-        internal static Vector4 CalculateBlueNoiseParams(UniversalCameraData cameraData, Texture2D noiseTexture)
+        internal static Vector4 CalculateBlueNoiseParams(ScreenSpaceAmbientOcclusionSettings settings, in TextureDesc cameraColorDesc, Texture2D noiseTexture)
         {
+            Vector2Int aoSize = CalculateAOViewportResolution(cameraColorDesc, settings);
+            Vector2 noiseScale = new Vector2(aoSize.x / (float)noiseTexture.width, aoSize.y / (float)noiseTexture.height);
 #if UNITY_INCLUDE_TESTS
-            return new Vector4(
-                cameraData.pixelWidth / (float)noiseTexture.width,
-                cameraData.pixelHeight / (float)noiseTexture.height,
-                1.0f,
-                1.0f);
+            return new Vector4(noiseScale.x, noiseScale.y, 1.0f, 1.0f);
 #else
             Vector2 blueNoiseOffset = GetR2Offset();
-            return new Vector4(
-                cameraData.pixelWidth / (float)noiseTexture.width,
-                cameraData.pixelHeight / (float)noiseTexture.height,
-                blueNoiseOffset.x,
-                blueNoiseOffset.y);
+            return new Vector4(noiseScale.x, noiseScale.y, blueNoiseOffset.x, blueNoiseOffset.y);
 #endif
         }
 
@@ -407,7 +401,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Texture2D noiseTexture = GetBlueNoiseTexture(blueNoiseTextures, blueNoiseTextureIndex);
                 Debug.Assert(noiseTexture != null, "Blue noise texture is null. Blue noise mode requires a valid blue noise texture.");
-                Vector4 blueNoiseParams = CalculateBlueNoiseParams(cameraData, noiseTexture);
+                Vector4 blueNoiseParams = CalculateBlueNoiseParams(settings, cameraColorDesc, noiseTexture);
 
                 material.SetTexture(ShaderConstants._BlueNoiseTexture, noiseTexture);
                 material.SetVector(ShaderConstants._SSAOBlueNoiseParams, blueNoiseParams);

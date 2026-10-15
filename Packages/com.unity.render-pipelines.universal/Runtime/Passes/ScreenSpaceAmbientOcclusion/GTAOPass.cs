@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
             computeParams.projectionParams2 = SSAOUtils.CalculateProjectionParams2(cameraData);
 
             if (settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise && blueNoiseTexture != null)
-                computeParams.blueNoiseParams = SSAOUtils.CalculateBlueNoiseParams(cameraData, blueNoiseTexture);
+                computeParams.blueNoiseParams = SSAOUtils.CalculateBlueNoiseParams(settings, cameraColorDesc, blueNoiseTexture);
 
             computeParams.historyLength = settings.GTAOHistoryLength;
             computeParams.ghostingMitigation = settings.GTAOGhostingMitigation;

@@ -125,12 +125,16 @@ void SetGTAODepthPyramidConfig(inout GTAOConfig config, float4 pyramidSize, floa
 
 #ifndef GTAO_COMPUTE_PATH
 // For Downsampled SSAO we need to adjust the UV coordinates
-// so it hits the center of the pixel inside the depth texture.
+// so it hits the center of the pixel inside the depth and normals textures.
 // The texelSize multiplier is 1.0 when DOWNSAMPLE is enabled, otherwise 0.0
-#define ADJUSTED_DEPTH_UV(uv, downsample) uv.xy + ((_CameraDepthTexture_TexelSize.xy * 0.5) * (1.0 - (downsample - 0.5) * 2.0))
+float2 GetSceneTexelCenterUV(float2 uv, half downsample)
+{
+    return uv + ((_CameraDepthTexture_TexelSize.xy * 0.5) * (1.0 - (downsample - 0.5) * 2.0));
+}
+
 float SampleDepth(float2 uv, half downsample)
 {
-    return SampleSceneDepth(ADJUSTED_DEPTH_UV(uv.xy, downsample));
+    return SampleSceneDepth(GetSceneTexelCenterUV(uv, downsample));
 }
 #endif
 

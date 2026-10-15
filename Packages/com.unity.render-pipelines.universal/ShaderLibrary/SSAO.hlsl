@@ -282,7 +282,7 @@ half3 ReconstructNormal(float2 uv, float eyeDepth, float3 vpos, float2 pixelDens
 half3 SampleNormal(float2 uv, float eyeDepth, float2 pixelDensity)
 {
     #if defined(_SOURCE_DEPTH_NORMALS)
-        return half3(SampleSceneNormals(uv));
+        return half3(SampleSceneNormals(GetSceneTexelCenterUV(uv, DOWNSAMPLE)));
     #else
         float3 vpos = ReconstructViewPos(uv, eyeDepth);
         return ReconstructNormal(uv, eyeDepth, vpos, pixelDensity);
