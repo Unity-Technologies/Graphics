@@ -5,6 +5,9 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
+    "com.unity.collections": "file:../../../../../Packages/com.unity.collections",
+    "com.unity.entities": "file:../../../../../Packages/com.unity.entities",
+    "com.unity.entities.graphics": "file:../../../../../Packages/com.unity.entities.graphics",
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
     "com.unity.ide.rider": "3.0.7",
@@ -56,6 +59,7 @@
     "com.unity.yamato": "1.0.1"
   },
   "testables": [
+    "com.unity.entities.graphics",
     "com.unity.testing.surface-cache.core",
     "com.unity.testing.surface-cache.urp"
   ]

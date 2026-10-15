@@ -100,7 +100,7 @@ GraphicsSettings:
     m_Automatic: 1
   m_LightmapStripping: 0
   m_FogStripping: 1
-  m_InstancingStripping: 0
+  m_InstancingStripping: 1
   m_BrgStripping: 1
   m_DefaultMeshBufferTarget: 1
   m_LightmapKeepPlain: 1
