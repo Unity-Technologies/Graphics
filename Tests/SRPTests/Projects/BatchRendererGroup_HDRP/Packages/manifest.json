@@ -32,15 +32,5 @@
     "com.unity.yamato": "1.0.1"
   },
   "useSatSolver": true,
-  "registry": "https://invalid.invalid",
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal Candidates",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.yamato",
-        "com.unity.test-profiler"
-      ]
-    }
-  ]
+  "registry": "https://invalid.invalid"
 }

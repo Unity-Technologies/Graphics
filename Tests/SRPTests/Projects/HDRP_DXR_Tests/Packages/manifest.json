@@ -63,15 +63,5 @@
     "com.unity.testing.hdrp-dxr.scenes2",
     "com.unity.testing.hdrp-dxr.scenes3",
     "com.unity.testing.hdrp-dxr.shadergraph"
-  ],
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal Candidates",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.yamato",
-        "com.unity.test-profiler"
-      ]
-    }
   ]
 }

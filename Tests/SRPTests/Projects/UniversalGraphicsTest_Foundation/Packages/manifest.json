@@ -57,15 +57,5 @@
   "testables": [
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal"
-  ],
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal Candidates",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.yamato",
-        "com.unity.test-profiler"
-      ]
-    }
   ]
 }

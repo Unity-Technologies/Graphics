@@ -30,15 +30,5 @@
     "com.unity.render-pipelines.high-definition",
     "com.unity.shadergraph",
     "com.unity.visualeffectgraph"
-  ],
-  "scopedRegistries": [
-    {
-      "name": "Unity Internal Candidates",
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
-      "scopes": [
-        "com.unity.yamato",
-        "com.unity.test-profiler"
-      ]
-    }
   ]
 }
