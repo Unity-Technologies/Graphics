@@ -920,10 +920,13 @@ namespace UnityEngine.Rendering.Universal
             if (m_ComponentVersion < ComponentVersions.Version_4)
             {
 #pragma warning disable CS0618
-                if (m_LightType == LightType.Point && (object)m_DeprecatedPointLightCookieSprite != null)
+                // Version_3 data from the 6000.0 and 6000.3 ports is already migrated, so only a set deprecated cookie is applied (UUM-156931)
+                if (m_LightType == LightType.Point &&
+                    (m_ComponentVersion < ComponentVersions.Version_3 || m_DeprecatedPointLightCookieSprite != null))
                 {
                     m_LightCookieSprite = m_DeprecatedPointLightCookieSprite;
                 }
+                m_DeprecatedPointLightCookieSprite = null;
 #pragma warning restore CS0618
             }
         }
