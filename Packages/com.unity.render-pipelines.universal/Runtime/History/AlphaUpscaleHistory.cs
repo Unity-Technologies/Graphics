@@ -40,6 +40,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Update(UniversalCameraData cameraData, bool xrMultipassEnabled)
         {
+            if (cameraData.pixelWidth <= 0 || cameraData.pixelHeight <= 0)
+            {
+                validHistory = false;
+                return;
+            }
+
             // The history lives at the post-upscale resolution. Base the descriptor on the camera
             // target so the XR texture dimension carries over.
             var desc = cameraData.cameraTargetDescriptor;
