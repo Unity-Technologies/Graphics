@@ -13,6 +13,7 @@
 // Textures & Samplers
 TEXTURE2D_X(_CameraColorTexture);
 SAMPLER(sampler_CameraColorTexture);
+float4 _CameraColorTexture_TexelSize;
 
 TEXTURE2D_X(_SmoothnessTexture);
 SAMPLER(sampler_SmoothnessTexture);
@@ -21,6 +22,7 @@ TEXTURE2D_X(_MotionVectorColorTexture);
 SAMPLER(sampler_MotionVectorColorTexture);
 
 TEXTURE2D_X(_LastFrameCameraDepthTexture);
+float4 _LastFrameCameraDepthTexture_TexelSize;
 
 SAMPLER(sampler_BlitTexture);
 
@@ -32,6 +34,25 @@ float4x4 _CameraInverseProjections[2];
 float4x4 _CameraViews[2];
 float4 _CameraDeltaJitterOffset;
 float4 _SourceSize;
+
+// xy: the current frame's scale.
+// zw: scale of the history the pass samples. (color history in main pass, SSR history in temporal pass)
+float4 _ResolutionScales;
+
+float2 GetCurrentResolutionScale()
+{
+    return _ResolutionScales.xy;
+}
+
+float2 GetHistoryResolutionScale()
+{
+    return _ResolutionScales.zw;
+}
+
+float2 GetCurrentValidSize(float2 unscaledSize)
+{
+    return ceil(unscaledSize * GetCurrentResolutionScale());
+}
 
 TYPED_TEXTURE2D_X(float, _DepthPyramid);
 float4 _DepthPyramidMipLevelOffsets[15];
@@ -408,7 +429,7 @@ float4 ComputeSSR(Varyings input
         // If the pixel is showing an object, output 1 alpha ->
         //   avoids bleeding 0 alpha into reflections when blurring, which would cause peter-panning.
         float alpha = deviceDepth != UNITY_RAW_FAR_CLIP_VALUE;
-        return float4(ClampAndSanitizeColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb) * alpha, alpha);
+        return float4(ClampAndSanitizeColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC * GetHistoryResolutionScale(), 0).rgb) * alpha, alpha);
     }
 
     // Calculate ray origin and direction in world space
@@ -448,7 +469,8 @@ float4 ComputeSSR(Varyings input
     endPosNDC = startPosNDC + rayDirNDC * min(rayLengthNDC, min(maxDistanceNDC.x, min(maxDistanceNDC.y, maxDistanceNDC.z)));
     #endif
 
-    float4 screenSizeWithInverse = _BlitTexture_TexelSize;
+    float2 traceScreenSize = GetCurrentValidSize(_BlitTexture_TexelSize.zw);
+    float4 screenSizeWithInverse = float4(rcp(traceScreenSize), traceScreenSize);
     float2 endPosSS = endPosNDC.xy * screenSizeWithInverse.zw;
 
     float3 rayHitPosNDC;
@@ -470,8 +492,14 @@ float4 ComputeSSR(Varyings input
         // Compensate for jittering
         rayHitPosNDC.xy -= _CameraDeltaJitterOffset.xy;
 
-        const float2 downsampledScreenSize = screenSizeWithInverse.zw * _Downsample;
-        const int2 topLeftReprojectedPixelPos = int2(rayHitPosNDC.xy * downsampledScreenSize - 0.5);
+        // Map the hit into the color history's occupied region.
+        const float2 validHistorySize = ceil(_CameraColorTexture_TexelSize.zw * GetHistoryResolutionScale());
+        const float2 scaledHitPixelPos = rayHitPosNDC.xy * validHistorySize;
+        const int2 topLeftReprojectedPixelPos = int2(scaledHitPixelPos - 0.5);
+
+        // The depth history is allocated independently of the color history, so derive its
+        // texel from its own size.
+        const float2 validDepthHistorySize = ceil(_LastFrameCameraDepthTexture_TexelSize.zw * GetHistoryResolutionScale());
 
         // Manually apply bilinear filter at the reprojected position
         float3 hitColor = 0;
@@ -484,20 +512,22 @@ float4 ComputeSSR(Varyings input
                 const float2 samplePixelCenter = float2(samplePixelPos) + 0.5;
 
                 // Reject samples that are off-screen
-                const bool isInView = all(0 <= samplePixelPos && samplePixelPos < downsampledScreenSize);
+                const bool isInView = all(0 <= samplePixelPos && samplePixelPos < validHistorySize);
                 if (!isInView)
                     continue;
 
                 // We are either reflecting the sky or not, never mix sky and non-sky hits.
-                const float sampleDeviceDepth = LOAD_TEXTURE2D_X_LOD(_LastFrameCameraDepthTexture, samplePixelPos, 0).x;
+                const float2 sampleNDC = samplePixelCenter / validHistorySize;
+                const int2 depthHistoryPixelPos = int2(sampleNDC * validDepthHistorySize);
+                const float sampleDeviceDepth = LOAD_TEXTURE2D_X_LOD(_LastFrameCameraDepthTexture, depthHistoryPixelPos, 0).x;
                 const bool sampleIsSky = sampleDeviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
                 if (sampleIsSky != hitIsSky)
                     continue;
 
                 // Calculate bilinear weight and accumulate
                 const float weight =
-                    (1.0f - abs(rayHitPosNDC.x * downsampledScreenSize.x - samplePixelCenter.x)) *
-                    (1.0f - abs(rayHitPosNDC.y * downsampledScreenSize.y - samplePixelCenter.y));
+                    (1.0f - abs(scaledHitPixelPos.x - samplePixelCenter.x)) *
+                    (1.0f - abs(scaledHitPixelPos.y - samplePixelCenter.y));
                 const float3 sampleColor = LOAD_TEXTURE2D_X_LOD(_CameraColorTexture, samplePixelPos, 0).rgb;
                 hitColor += weight * sampleColor;
                 weightSum += weight;
@@ -513,7 +543,7 @@ float4 ComputeSSR(Varyings input
         else
             hitColor /= weightSum;
         #else
-        float3 hitColor = SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, rayHitPosNDC.xy, 0).rgb;
+        float3 hitColor = SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, rayHitPosNDC.xy * GetHistoryResolutionScale(), 0).rgb;
         #endif
 
         // Fade rays pointing toward camera.
@@ -612,9 +642,10 @@ float4 BilateralUpscale(Varyings input) : SV_Target
 
     float4 texelSize = _BlitTexture_TexelSize;
     float2 uv = input.texcoord;
-    // Position of texel, [0; LowResTextureSize]
-    float2 texelPos = uv * texelSize.zw - 0.5;
-    // Position of top-left texel center in bilinear neighborhood, [0; LowResTextureSize]
+    float2 lowResSize = GetCurrentValidSize(texelSize.zw);
+    // Position of texel, from 0 to lowResSize
+    float2 texelPos = uv * lowResSize - 0.5;
+    // Position of the first texel center in the bilinear neighborhood, from 0 to lowResSize
     float2 topLeftTexelPos = floor(texelPos) + 0.5;
     // Offset in texel, [0; 1]
     float2 offsetInTexel = frac(texelPos);
@@ -629,12 +660,12 @@ float4 BilateralUpscale(Varyings input) : SV_Target
         {
             // Reject off-screen samples.
             float2 sampleTexelPos = topLeftTexelPos + float2(dx, dy);
-            const bool isInView = all(0 <= sampleTexelPos && sampleTexelPos < texelSize.zw);
+            const bool isInView = all(0 <= sampleTexelPos && sampleTexelPos < lowResSize);
             if (!isInView)
                 continue;
 
             // Sample color and normal from bilinear neighborhood.
-            float2 sampleUvPos = sampleTexelPos * texelSize.xy;
+            float2 sampleUvPos = sampleTexelPos / lowResSize;
             float4 sampleColor = LOAD_TEXTURE2D_X(_BlitTexture, sampleTexelPos);
             float3 sampleNormal = SampleSceneNormals(sampleUvPos);
 
@@ -665,17 +696,18 @@ float4 SSRTemporalFiltering(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    // Reproject pixel position, get current and last frame color
-    int2 pixelCoord = input.positionCS.xy;
-    float2 reprojectedUv = input.texcoord - SampleMotionVector(input.texcoord);
+    const int2 maxValidCoord = int2(GetCurrentValidSize(_BlitTexture_TexelSize.zw)) - 1;
+    int2 pixelCoord = min(int2(input.positionCS.xy), maxValidCoord);
+    float2 currentUv = input.texcoord;
+    float2 reprojectedUv = currentUv - SampleMotionVector(currentUv);
     float4 current = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord);
-    float4 history = SAMPLE_TEXTURE2D_X(_ReflectionHistoryTexture, sampler_LinearClamp, reprojectedUv);
+    float4 history = SAMPLE_TEXTURE2D_X(_ReflectionHistoryTexture, sampler_LinearClamp, reprojectedUv * GetHistoryResolutionScale());
 
     // Take 4 taps around center in a cross pattern
-    float4 nb0 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 0,  1));
-    float4 nb1 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 0, -1));
-    float4 nb2 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2( 1,  0));
-    float4 nb3 = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord + int2(-1,  0));
+    float4 nb0 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 0,  1), 0, maxValidCoord));
+    float4 nb1 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 0, -1), 0, maxValidCoord));
+    float4 nb2 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 1,  0), 0, maxValidCoord));
+    float4 nb3 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2(-1,  0), 0, maxValidCoord));
 
     // Neighborhood clamping
     float4 boxMin = min(min(min(min(current, nb0), nb1), nb2), nb3);

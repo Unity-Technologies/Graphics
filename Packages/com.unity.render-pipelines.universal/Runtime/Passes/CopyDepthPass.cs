@@ -194,9 +194,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyToDepth = dstHasDepthFormat;
                 passData.setViewport = CopyToDepthXR;
 
+                Vector2 sourceScale = sourceDesc.useDynamicScale || sourceDesc.useDynamicScaleExplicit
+                    ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                    : Vector2.one;
                 passData.sourceUsedSize = new Vector2(
-                    srcInfo.width  * ScalableBufferManager.widthScaleFactor,
-                    srcInfo.height * ScalableBufferManager.heightScaleFactor);
+                    srcInfo.width  * sourceScale.x,
+                    srcInfo.height * sourceScale.y);
 
                 if (cameraData.xr.enabled)
                 {

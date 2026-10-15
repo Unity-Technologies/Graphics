@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly int _CameraDeltaJitterOffset = Shader.PropertyToID("_CameraDeltaJitterOffset");
             internal static readonly int _ReflectionHistoryTexture = Shader.PropertyToID("_ReflectionHistoryTexture");
             internal static readonly int _BaseBlendFactor = Shader.PropertyToID("_BaseBlendFactor");
+            internal static readonly int _ResolutionScales = Shader.PropertyToID("_ResolutionScales");
         }
 
         // Private Variables
@@ -201,6 +202,10 @@ namespace UnityEngine.Rendering.Universal
             internal bool linearMarching;
             internal float contactHardeningScale;
             internal float contactDistanceBias;
+
+            internal Vector2 currentResolutionScale;
+            // The scale applied to the sampled camera color: one for AfterOpaque, the previous frame's scale for BeforeOpaque.
+            internal Vector2 cameraColorResolutionScale;
         }
 
         private class TemporalFilteringPassData
@@ -210,6 +215,16 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle reflectionHistory;
             internal TextureHandle motionVectors;
             internal float baseBlendFactor;
+            internal Vector2 currentResolutionScale;
+            internal Vector2 previousResolutionScale;
+            internal Vector2Int viewportSize;
+        }
+
+        private class DepthCopyPassData
+        {
+            internal Material blitMaterial;
+            internal TextureHandle source;
+            internal Vector2Int viewportSize;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -244,15 +259,25 @@ namespace UnityEngine.Rendering.Universal
                 cameraNormalsTexture = ssrData.normalTransparentTexture;
             }
 
+            Vector2 cameraTargetScale = ColorHistory.GetCurrentDynamicResolutionScale(cameraData);
+            Vector2 depthTextureScale = cameraDepthTexture.GetDescriptor(renderGraph).useDynamicScale
+                ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                : Vector2.one;
+
             using (new RenderGraphProfilingScope(renderGraph, m_ProfilingSampler))
             {
                 if (!settings.ShouldUseLinearMarching())
                 {
                     using (new RenderGraphProfilingScope(renderGraph, m_DepthPyramidSampler))
                     {
-                        var blitParam = new BlitMaterialParameters(cameraDepthTexture, depthPyramidTexture, new(1f, 2f), Vector2.zero, m_BlitMaterial, 0);
-                        renderGraph.AddBlitPass(blitParam, passName: "Copy depth to mip 0");
-                        m_PackedMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(cameraData.cameraTargetDescriptor.width / (int)settings.resolution.value, cameraData.cameraTargetDescriptor.height / (int)settings.resolution.value), 0);
+                        int downsample = (int)settings.resolution.value;
+                        var mip0Size = new Vector2Int(
+                            Mathf.CeilToInt(cameraData.cameraTargetDescriptor.width / downsample * depthTextureScale.x),
+                            Mathf.CeilToInt(cameraData.cameraTargetDescriptor.height / downsample * depthTextureScale.y));
+                        m_PackedMipChainInfo.ComputePackedMipChainInfo(mip0Size, 0);
+
+                        AddDepthCopyPass(renderGraph, cameraDepthTexture, depthPyramidTexture, mip0Size, m_BlitMaterial, "Copy depth to mip 0");
+
                         m_MipGenerator.RenderMinDepthPyramid(renderGraph, depthPyramidTexture, ref m_PackedMipChainInfo);
                     }
                 }
@@ -266,6 +291,8 @@ namespace UnityEngine.Rendering.Universal
                     passData.cameraData = cameraData;
                     passData.previousJitter = Vector2.zero;
                     passData.afterOpaque = m_AfterOpaque;
+                    passData.currentResolutionScale = cameraTargetScale;
+                    passData.cameraColorResolutionScale = Vector2.one;
                     passData.linearMarching = settings.ShouldUseLinearMarching();
                     passData.contactHardeningScale = settings.ShouldUseContactHardening() ? settings.contactHardeningScale.value : 0f;
                     passData.contactDistanceBias = settings.contactDistanceBias.value;
@@ -333,22 +360,25 @@ namespace UnityEngine.Rendering.Universal
 
                         // If we are rendering transparents in SSR, we want the last frame color to include transparents.
                         // Otherwise, we want last frame color before rendering transparents.
-                        RTHandle historyTexture;
+                        ColorHistory colorHistory;
                         if (settings.ShouldRenderTransparents())
                         {
                             cameraData.historyManager.RequestAccess<RawColorHistory>();
-                            RawColorHistory history = cameraData.historyManager.GetHistoryForRead<RawColorHistory>();
-                            historyTexture = history?.GetPreviousTexture(multipassId);
+                            colorHistory = cameraData.historyManager.GetHistoryForRead<RawColorHistory>();
                         }
                         else
                         {
                             cameraData.historyManager.RequestAccess<BeforeTransparentsColorHistory>();
-                            BeforeTransparentsColorHistory history = cameraData.historyManager.GetHistoryForRead<BeforeTransparentsColorHistory>();
-                            historyTexture = history?.GetPreviousTexture(multipassId);
+                            colorHistory = cameraData.historyManager.GetHistoryForRead<BeforeTransparentsColorHistory>();
                         }
 
+                        RTHandle historyTexture = colorHistory?.GetPreviousTexture(multipassId);
                         if (historyTexture != null)
                         {
+                            // The recorded dynamic resolution scale does not apply with MSAA
+                            passData.cameraColorResolutionScale = cameraData.cameraTargetDescriptor.msaaSamples > 1
+                                ? Vector2.one
+                                : colorHistory.GetPreviousDynamicResolutionScale(multipassId);
                             passData.lastFrameCameraColor = renderGraph.ImportTexture(historyTexture);
                             builder.UseTexture(passData.lastFrameCameraColor);
                         }
@@ -403,6 +433,9 @@ namespace UnityEngine.Rendering.Universal
                         ssrData.material.SetTexture(ShaderConstants._CameraNormalsTexture, ssrData.cameraNormalsTexture);
                         ssrData.material.SetTexture(ShaderConstants._SmoothnessTexture, ssrData.smoothnessTexture);
                         ssrData.material.SetTexture(ShaderConstants._MotionVectorColorTexture, ssrData.motionVectorColor);
+                        ssrData.material.SetVector(ShaderConstants._ResolutionScales, new Vector4(
+                            ssrData.currentResolutionScale.x, ssrData.currentResolutionScale.y,
+                            ssrData.cameraColorResolutionScale.x, ssrData.cameraColorResolutionScale.y));
 
                         // Main SSR Pass
                         Blitter.BlitTexture(cmd, ssrData.ssrTexture, new Vector4(1, 1, 0, 0), ssrData.material, (int)ShaderPasses.Reflection);
@@ -446,6 +479,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Temporal filtering pass.
+                bool ssrTextureIsHistory = false;
                 if (settings.temporalFiltering.value &&
                     cameraData.historyManager != null &&
                     (input & ScriptableRenderPassInput.Motion) != 0)
@@ -488,6 +522,11 @@ namespace UnityEngine.Rendering.Universal
                                 passData.reflectionHistory = historyTexture;
                                 passData.motionVectors = motionVectorColorTexture;
                                 passData.baseBlendFactor = isNewAlloc ? 0.0f : settings.baseBlendFactor.value;
+                                passData.currentResolutionScale = cameraTargetScale;
+                                passData.previousResolutionScale = ssrHistory.GetPreviousDynamicResolutionScale(multipassId);
+                                passData.viewportSize = new Vector2Int(
+                                    Mathf.CeilToInt(ssrHistoryDesc.width * cameraTargetScale.x),
+                                    Mathf.CeilToInt(ssrHistoryDesc.height * cameraTargetScale.y));
 
                                 builder.SetRenderAttachment(currentHistoryTexture, 0);
                                 builder.UseTexture(ssrTexture);
@@ -499,10 +538,23 @@ namespace UnityEngine.Rendering.Universal
                                     data.material.SetTexture(ShaderConstants._ReflectionHistoryTexture, data.reflectionHistory);
                                     data.material.SetTexture(ShaderConstants._MotionVectorColorTexture, data.motionVectors);
                                     data.material.SetFloat(ShaderConstants._BaseBlendFactor, data.baseBlendFactor);
+                                    data.material.SetVector(ShaderConstants._ResolutionScales, new Vector4(
+                                        data.currentResolutionScale.x, data.currentResolutionScale.y,
+                                        data.previousResolutionScale.x, data.previousResolutionScale.y));
+                                    ctx.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
                                     Blitter.BlitTexture(ctx.cmd, data.ssrTexture, Vector2.one, data.material, (int)ShaderPasses.TemporalFiltering);
                                 });
                             }
-                            ssrTexture = currentHistoryTexture;
+                            if (settings.resolution == ScreenSpaceReflectionVolumeSettings.Resolution.Full && cameraTargetScale != Vector2.one)
+                            {
+                                // No upscale pass follows, so unpack the history's scaled region back into the full resolution SSR texture.
+                                renderGraph.AddBlitPass(currentHistoryTexture, ssrTexture, cameraTargetScale, Vector2.zero, filterMode: BlitFilterMode.ClampNearest, passName: "SSR - Unpack temporal history");
+                            }
+                            else
+                            {
+                                ssrTexture = currentHistoryTexture;
+                                ssrTextureIsHistory = true;
+                            }
                         }
                     }
                 }
@@ -517,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
 
                         if (settings.upscalingMethod == UpscalingMethod.Bilinear)
                         {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilinearUpscale);
+                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, ssrTextureIsHistory ? cameraTargetScale : Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilinearUpscale);
                             renderGraph.AddBlitPass(blitParam, passName: "BilinearUpscale");
                         }
                         else if (settings.upscalingMethod == UpscalingMethod.Bilateral)
@@ -780,6 +832,8 @@ namespace UnityEngine.Rendering.Universal
                 depthPyramidDesc.useMipMap = false;
                 depthPyramidDesc.autoGenerateMips = false;
                 depthPyramidDesc.enableRandomWrite = true;
+                depthPyramidDesc.useDynamicScale = false;
+                depthPyramidDesc.useDynamicScaleExplicit = true;
                 depthPyramidDesc.width /= (int)settings.resolution.value;
                 depthPyramidDesc.height /= (int)settings.resolution.value;
                 depthPyramidTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthPyramidDesc, "_SSR_DepthPyramid", false, Color.clear, FilterMode.Point);
@@ -814,10 +868,40 @@ namespace UnityEngine.Rendering.Universal
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
-                            renderGraph.AddBlitPass(cameraDepthTexture, depthHistoryTarget, Vector2.one, Vector2.zero, filterMode: BlitFilterMode.ClampNearest);
+
+                            // Pack the depth into the same region the color history uses.
+                            // Using a plain AddBlitPass would not guarantee this layout.
+                            Vector2 contentScale = cameraData.cameraTargetDescriptor.msaaSamples > 1
+                                ? Vector2.one
+                                : ColorHistory.GetCurrentDynamicResolutionScale(cameraData);
+                            var viewportSize = new Vector2Int(
+                                Mathf.CeilToInt(cameraData.cameraTargetDescriptor.width * contentScale.x),
+                                Mathf.CeilToInt(cameraData.cameraTargetDescriptor.height * contentScale.y));
+                            AddDepthCopyPass(renderGraph, cameraDepthTexture, depthHistoryTarget, viewportSize, null, "SSR - Copy depth history");
                         }
                     }
                 }
+            }
+        }
+        
+        // Copies the potentially dynamically scaled depth into a viewport of a fixed size target.
+        static void AddDepthCopyPass(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, Vector2Int viewportSize, Material blitMaterial, string passName)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<DepthCopyPassData>(passName, out var passData))
+            {
+                passData.blitMaterial = blitMaterial;
+                passData.source = source;
+                passData.viewportSize = viewportSize;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                builder.UseTexture(source);
+                builder.SetRenderFunc<DepthCopyPassData>(static (data, context) =>
+                {
+                    context.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
+                    if (data.blitMaterial != null)
+                        Blitter.BlitTexture(context.cmd, data.source, new Vector4(1f, 1f, 0f, 0f), data.blitMaterial, 0);
+                    else
+                        Blitter.BlitTexture(context.cmd, data.source, new Vector4(1f, 1f, 0f, 0f), 0, false);
+                });
             }
         }
     }

@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal
         // is the same for both eyes, but first of all this could change, but mostly
         // it's because eye jitters could be updated at different times.
         private Vector2[] m_JitterOffsets = new Vector2[2*2];
+        private Vector2[] m_DynamicResolutionScales = new Vector2[2*2];
 
         /// <inheritdoc />
         public override void OnCreate(BufferedRTHandleSystem owner, uint typeId)
@@ -37,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
             m_Ids[0] = MakeId(0);
             m_Ids[1] = MakeId(1);
             Array.Fill(m_JitterOffsets, Vector2.zero);
+            Array.Fill(m_DynamicResolutionScales, Vector2.one);
         }
 
         /// <summary>
@@ -102,6 +104,27 @@ namespace UnityEngine.Rendering.Universal
             return m_JitterOffsets[stableIndex + 2 * eyeIndex];
         }
 
+        /// <summary>
+        /// Get the dynamic resolution scale used to produce the previous history texture.
+        /// </summary>
+        internal Vector2 GetPreviousDynamicResolutionScale(int eyeIndex = 0)
+        {
+            if ((uint)eyeIndex >= m_Ids.Length)
+                return Vector2.one;
+
+            int stableIndex = GetPreviousFrameRTStableIndex(m_Ids[eyeIndex]);
+            return stableIndex >= 0 ? m_DynamicResolutionScales[stableIndex + 2 * eyeIndex] : Vector2.one;
+        }
+
+        // URP can force useDynamicScale off regardless of Camera.allowDynamicResolution, so
+        // the descriptor decides whether the frame's content is scaled.
+        internal static Vector2 GetCurrentDynamicResolutionScale(UniversalCameraData cameraData)
+        {
+            return cameraData.cameraTargetDescriptor.useDynamicScale
+                ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                : Vector2.one;
+        }
+
         private bool IsAllocated()
         {
             return GetCurrentTexture() != null;
@@ -132,6 +155,7 @@ namespace UnityEngine.Rendering.Universal
         {
             for(int i = 0; i < m_Ids.Length; i++)
                 ReleaseHistoryFrameRT(m_Ids[i]);
+            Array.Fill(m_DynamicResolutionScales, Vector2.one);
         }
 
         internal RenderTextureDescriptor GetHistoryDescriptor(ref RenderTextureDescriptor cameraDesc)
@@ -162,6 +186,8 @@ namespace UnityEngine.Rendering.Universal
                 m_JitterOffsets[stableIndex + 2 * eyeIndex] = cameraData.jitter;
             }
 
+            bool reallocated = false;
+
             RenderTextureDescriptor cameraDesc;
             if (cameraDescOverride.HasValue)
             {
@@ -185,11 +211,16 @@ namespace UnityEngine.Rendering.Universal
                 if (!IsAllocated())
                 {
                     Alloc(ref historyDesc, xrMultipassEnabled);
-                    return true;
+                    reallocated = true;
                 }
             }
 
-            return false;
+            // Record after any reallocation so a fresh allocation's slots are covered too.
+            stableIndex = GetCurrentFrameRTStableIndex(m_Ids[eyeIndex]);
+            if (stableIndex >= 0)
+                m_DynamicResolutionScales[stableIndex + 2 * eyeIndex] = GetCurrentDynamicResolutionScale(cameraData);
+
+            return reallocated;
         }
     }
 }
