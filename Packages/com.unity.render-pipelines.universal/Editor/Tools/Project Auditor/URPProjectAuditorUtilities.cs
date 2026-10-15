@@ -21,6 +21,29 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             return found;
         }
 
+        public static bool UsesQuadraticFalloff(out bool lightCookiesDisabled)
+        {
+            lightCookiesDisabled = false;
+
+            if (!IsURPActiveInProject() ||
+                !EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<URPLightFalloffSettings, UniversalRenderPipeline>(out var falloffSettings) ||
+                falloffSettings.lightFalloffMode != LightFalloffMode.Quadratic)
+                return false;
+
+            bool cookiesDisabled = false;
+            if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset urpAsset)
+                cookiesDisabled = !urpAsset.supportsLightCookies;
+
+            QualitySettings.ForEach(() =>
+            {
+                if (QualitySettings.renderPipeline is UniversalRenderPipelineAsset qualityUrpAsset)
+                    cookiesDisabled |= !qualityUrpAsset.supportsLightCookies;
+            });
+
+            lightCookiesDisabled = cookiesDisabled;
+            return true;
+        }
+
         public static List<ScriptableRendererData> GetAllRendererDataAssets()
         {
             var assets = new List<ScriptableRendererData>();

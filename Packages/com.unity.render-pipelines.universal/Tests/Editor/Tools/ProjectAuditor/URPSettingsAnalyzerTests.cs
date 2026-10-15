@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
         private int m_PreviousQualityLevel;
         private ColorSpace m_PreviousColorSpace;
         private bool m_PreviousStaticBatching;
+        private URPLightFalloffSettings m_LightFalloffSettings;
+        private LightFalloffMode m_PreviousLightFalloffMode;
 
         [SetUp]
         public void SetUp()
@@ -31,6 +33,8 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
             m_PreviousDefaultRenderPipeline = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
             m_PreviousColorSpace = PlayerSettings.colorSpace;
             m_PreviousStaticBatching = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+            if (EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<URPLightFalloffSettings, UniversalRenderPipeline>(out m_LightFalloffSettings))
+                m_PreviousLightFalloffMode = m_LightFalloffSettings.lightFalloffMode;
 
             // Save quality settings
             m_PreviousQualitySettings = new RenderPipelineAsset[QualitySettings.names.Length];
@@ -50,6 +54,8 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
             GraphicsSettings.defaultRenderPipeline = m_PreviousDefaultRenderPipeline;
             PlayerSettings.colorSpace = m_PreviousColorSpace;
             PlayerSettings.SetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget, m_PreviousStaticBatching);
+            if (m_LightFalloffSettings != null)
+                m_LightFalloffSettings.lightFalloffMode = m_PreviousLightFalloffMode;
 
             // Restore quality settings
             for (int i = 0; i < QualitySettings.names.Length && i < m_PreviousQualitySettings.Length; i++)
@@ -692,6 +698,130 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
             Assert.IsNotNull(analyzer.Descriptor);
             Assert.AreEqual("URP0402", analyzer.Descriptor.Id);
             Assert.IsTrue(analyzer.Descriptor.Title.Contains("Materials"));
+        }
+
+        [Test]
+        public void URP0403_SpotWithoutCookie_DetectsIssue()
+        {
+            // Arrange
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            SetupSpotCookieTest(urpAsset, LightFalloffMode.Quadratic);
+
+            var go = new GameObject("SpotLight");
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Spot;
+
+            // Act
+            bool quadraticFalloff = URPProjectAuditorUtilities.UsesQuadraticFalloff(out bool lightCookiesDisabled);
+
+            // Assert
+            Assert.IsTrue(quadraticFalloff, "Should detect Quadratic falloff mode");
+            Assert.IsFalse(lightCookiesDisabled, "Should detect enabled Light Cookies");
+            Assert.IsTrue(SpotCookieAnalyzer.NeedsConeFalloffCookie(light, lightCookiesDisabled), "Should detect Spot Light with no cookie");
+            Assert.AreEqual("URP0403", SpotCookieAnalyzer.k_Descriptor.Id);
+            Assert.IsTrue(SpotCookieAnalyzer.k_Descriptor.Title.Contains("Spot Light"));
+
+            // Cleanup
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        [Test]
+        public void URP0403_LightCookiesDisabled_DetectsIssue()
+        {
+            // Arrange
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            var serializedAsset = new SerializedObject(urpAsset);
+            serializedAsset.FindProperty("m_SupportsLightCookies").boolValue = false;
+            serializedAsset.ApplyModifiedPropertiesWithoutUndo();
+            SetupSpotCookieTest(urpAsset, LightFalloffMode.Quadratic);
+
+            var cookie = new Texture2D(4, 4);
+            var go = new GameObject("SpotLight");
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.cookie = cookie;
+
+            // Act
+            bool quadraticFalloff = URPProjectAuditorUtilities.UsesQuadraticFalloff(out bool lightCookiesDisabled);
+
+            // Assert
+            Assert.IsTrue(quadraticFalloff, "Should detect Quadratic falloff mode");
+            Assert.IsTrue(lightCookiesDisabled, "Should detect disabled Light Cookies");
+            Assert.IsTrue(SpotCookieAnalyzer.NeedsConeFalloffCookie(light, lightCookiesDisabled), "Should detect Spot Light with no usable cookie");
+
+            // Cleanup
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(cookie);
+            UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        [Test]
+        public void URP0403_SpotWithCookie_NoIssue()
+        {
+            // Arrange
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            SetupSpotCookieTest(urpAsset, LightFalloffMode.Quadratic);
+
+            var cookie = new Texture2D(4, 4);
+            var go = new GameObject("SpotLight");
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.cookie = cookie;
+
+            // Act
+            var issues = RunSpotCookieAnalyzer(go);
+
+            // Assert
+            Assert.AreEqual(0, issues.Count, "Should not detect issue when Spot Light has a cookie");
+
+            // Cleanup
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(cookie);
+            UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        [Test]
+        public void URP0403_InverseSquaredMode_NoIssue()
+        {
+            // Arrange
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            SetupSpotCookieTest(urpAsset, LightFalloffMode.InverseSquared);
+
+            var go = new GameObject("SpotLight");
+            var light = go.AddComponent<Light>();
+            light.type = LightType.Spot;
+
+            // Act
+            var issues = RunSpotCookieAnalyzer(go);
+
+            // Assert
+            Assert.AreEqual(0, issues.Count, "Should not detect issue when falloff mode is InverseSquared");
+
+            // Cleanup
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        private void SetupSpotCookieTest(UniversalRenderPipelineAsset urpAsset, LightFalloffMode falloffMode)
+        {
+            GraphicsSettings.defaultRenderPipeline = urpAsset;
+            for (int i = 0; i < QualitySettings.names.Length && i < m_PreviousQualitySettings.Length; i++)
+            {
+                QualitySettings.SetQualityLevel(i);
+                QualitySettings.renderPipeline = urpAsset;
+            }
+            QualitySettings.SetQualityLevel(m_PreviousQualityLevel);
+
+            m_LightFalloffSettings.lightFalloffMode = falloffMode;
+        }
+
+        private List<ReportItemBuilder> RunSpotCookieAnalyzer(GameObject go)
+        {
+            var analyzer = new SpotCookieAnalyzer();
+            analyzer.OnAnalysisStarted();
+            var context = new GameObjectAnalysisContext { GameObject = go };
+            return analyzer.Analyze(context).ToList();
         }
 
         #endregion
