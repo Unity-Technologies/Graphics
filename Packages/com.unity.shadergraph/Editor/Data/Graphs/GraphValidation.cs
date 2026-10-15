@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             {
                 Type t = node.GetType();
                 node.ValidateNode();
-                if (!(node is BlockNode))
+                if (!(node is BlockNode) && !node.owner.isShaderInterfaceMode)
                 {
                     bool disallowedByAnyTargets = false;
                     bool disallowedByAllTargets = true;

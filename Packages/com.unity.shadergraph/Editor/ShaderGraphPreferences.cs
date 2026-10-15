@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph
             internal const string graphTemplateWorkflow = "UnityEditor.ShaderGraph.GraphTemplateWorkflow";
             internal const string openNewGraphOnCreation = "UnityEditor.ShaderGraph.OpenNewGraphOnCreation";
             internal const string newNodesPreview = "UnityEditor.ShaderGraph.NewNodesPreview";
+            internal const string allowShaderInterfaceMode = "UnityEditor.ShaderGraph.AllowShaderInterfaceMode";
         }
 
         // Note that GUIContent in this class is used to generate search keywords for the preferences window
@@ -87,6 +88,17 @@ namespace UnityEditor.ShaderGraph
                     onAllowDeprecatedChanged();
                 }
             }
+        }
+
+        // Kept out of Labels so it isn't a search keyword; the option is only drawn in Internal Mode.
+        static readonly GUIContent k_AllowShaderInterfaceModeLabel = new GUIContent("Allow Experimental Shader Interface Mode",
+            "Lets a Shader Graph be switched into Shader Interface mode from the Shader Graph window.");
+
+        static bool m_AllowShaderInterfaceMode = false;
+        internal static bool allowShaderInterfaceMode
+        {
+            get => m_AllowShaderInterfaceMode && GraphData.isInternalMode();
+            set => TrySave(ref m_AllowShaderInterfaceMode, value, Keys.allowShaderInterfaceMode);
         }
 
         internal static PreferenceChangedDelegate onZoomStepSizeChanged;
@@ -201,6 +213,16 @@ namespace UnityEditor.ShaderGraph
                     allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
                 }
 
+                if (GraphData.isInternalMode())
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var allowShaderInterfaceModeValue = EditorGUILayout.Toggle(k_AllowShaderInterfaceModeLabel, allowShaderInterfaceMode);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        allowShaderInterfaceMode = allowShaderInterfaceModeValue;
+                    }
+                }
+
                 EditorGUI.BeginChangeCheck();
                 var zoomStepSizeValue = EditorGUILayout.Slider(Labels.zoomStepSize, zoomStepSize, 0.0f, 1f);
                 if (EditorGUI.EndChangeCheck())
@@ -236,6 +258,7 @@ namespace UnityEditor.ShaderGraph
             m_PreviewVariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
             m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
+            m_AllowShaderInterfaceMode = EditorPrefs.GetBool(Keys.allowShaderInterfaceMode, false);
             m_ZoomStepSize = EditorPrefs.GetFloat(Keys.zoomStepSize, defaultZoomStepSize);
             m_GraphTemplateWorkflow = (GraphTemplateWorkflow)EditorPrefs.GetInt(Keys.graphTemplateWorkflow, (int)defaultGraphTemplateWorkflow);
             m_OpenNewGraphOnCreation = EditorPrefs.GetBool(Keys.openNewGraphOnCreation, true);

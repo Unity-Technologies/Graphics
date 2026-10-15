@@ -195,6 +195,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             m_MasterRenderData.shaderData = shaderData;
 
+            // Shader interface mode has no master preview yet.
+            if (m_Graph.isShaderInterfaceMode)
+                return;
+
             m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
             m_PreviewsToDraw.Add(m_MasterRenderData);
             m_TopologyDirty = true;
@@ -202,6 +206,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateMasterPreview(ModificationScope scope)
         {
+            if (m_Graph.isShaderInterfaceMode)
+                return;
+
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
@@ -1511,6 +1518,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
+                node.UnregisterCallback(OnNodeModified);
+
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
 

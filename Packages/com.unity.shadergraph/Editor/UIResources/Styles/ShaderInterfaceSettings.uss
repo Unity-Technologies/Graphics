@@ -1,0 +1,45 @@
+.sg-shader-interface__title {
+    -unity-font-style: bold;
+}
+
+.sg-shader-interface__picker-line {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.sg-shader-interface__picker {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.sg-shader-interface__picker-text {
+    flex-grow: 1;
+}
+
+.sg-shader-interface__placeholder {
+    color: var(--unity-colors-input_field_placeholder-text);
+}
+
+.sg-shader-interface__show-in-project {
+    flex-shrink: 0;
+    align-self: center;
+    width: 20px;
+    height: 18px;
+    margin-right: 0;
+    padding: 1px;
+}
+
+.sg-shader-interface__entry {
+    white-space: normal;
+    margin-left: 16px;
+}
+
+.sg-shader-interface__detail {
+    color: var(--unity-colors-label-text-disabled);
+}
+
+.sg-shader-interface__field {
+    margin-left: 32px;
+}

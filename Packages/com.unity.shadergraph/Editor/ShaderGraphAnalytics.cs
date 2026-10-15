@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var subData in graph.SubDatas)
                     {
-                        if (subData == null || subData is MultiJsonInternal.UnknownGraphDataExtension || subData.objectIdIsEmpty || string.IsNullOrEmpty(subData.displayName))
+                        if (subData == null || subData is MultiJsonInternal.UnknownGraphDataExtension || subData is ShaderInterfaceGraphData || subData.objectIdIsEmpty || string.IsNullOrEmpty(subData.displayName))
                             continue;
                         additional_terms.Add(subData.displayName);
                     }

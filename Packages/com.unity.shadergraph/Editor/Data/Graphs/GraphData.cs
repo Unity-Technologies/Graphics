@@ -441,6 +441,15 @@ namespace UnityEditor.ShaderGraph
         internal List<JsonData<AbstractShaderGraphDataExtension>> m_SubDatas = new List<JsonData<AbstractShaderGraphDataExtension>>();
         public DataValueEnumerable<AbstractShaderGraphDataExtension> SubDatas => m_SubDatas.SelectValue();
 
+        internal bool ReloadDataExtensions(HashSet<string> changedAssetGuids)
+        {
+            bool reloaded = false;
+            foreach (var subData in SubDatas)
+                if (subData is IHasAssetDependencies dependent)
+                    reloaded |= dependent.Reload(changedAssetGuids);
+            return reloaded;
+        }
+
         #endregion
 
         #region Targets

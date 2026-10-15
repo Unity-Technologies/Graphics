@@ -294,6 +294,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (materialGraph == null)
                     return;
 
+                if (graphEditorView != null && graphEditorView.isOutOfDateForMode)
+                    graphEditorView = null;
+
                 if (graphEditorView == null)
                 {
                     messageManager.ClearAll();
@@ -331,6 +334,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var reloaded = node.Reload(m_ChangedFileDependencyGUIDs);
                         reloadedSomething |= reloaded;
                     }
+
+                    reloadedSomething |= materialGraph.ReloadDataExtensions(m_ChangedFileDependencyGUIDs);
 
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     if (subGraphNodes.Count() > 0)
@@ -373,6 +378,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     updateTitle = true;
                     graphObject.isDirty = false;
                     hasUnsavedChanges = false;
+                }
+
+                if (graphEditorView.isOutOfDateForMode)
+                {
+                    graphObject.graph.ClearChanges();
+                    graphEditorView = null;
+                    return;
                 }
 
                 // Called again to handle changes from deserialization in case an undo/redo was performed

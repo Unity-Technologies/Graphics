@@ -264,9 +264,12 @@ Shader ""Hidden/GraphErrorShader2""
             graph.ValidateGraph();
 
             UnityEngine.Object mainObject = null;
+            // Shader interface mode has no code generation yet, so it imports as the error shader.
+            if (!graph.hasShaderInterfaceData
 #if VFX_GRAPH_10_0_0_OR_NEWER
-            if (!graph.isOnlyVFXTarget)
+                && !graph.isOnlyVFXTarget
 #endif
+            )
             {
                 // build shaders
                 mainObject = BuildAllShaders(ctx, importLog, assetCollection, graph);
@@ -274,7 +277,7 @@ Shader ""Hidden/GraphErrorShader2""
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
             ShaderGraphVfxAsset vfxAsset = null;
-            if (graph.hasVFXTarget)
+            if (graph.hasVFXTarget && !graph.hasShaderInterfaceData)
             {
                 vfxAsset = GenerateVfxShaderGraphAsset(graph);
                 if (mainObject == null)
