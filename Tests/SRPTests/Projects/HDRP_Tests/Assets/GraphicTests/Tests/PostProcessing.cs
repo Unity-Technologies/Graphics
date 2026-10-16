@@ -100,17 +100,33 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer,
             GraphicsVendor.Nvidia
         )]
+        [TestOnlySupportedOn(
+            "4113_DRS-MetalFXTemporal-Hardware|4114_DRS-MetalFXSpatial-Hardware",
+            "Platform not supported", // MetalFX is Metal on Apple platforms only
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "4113_DRS-MetalFXTemporal-Hardware",
+            "MetalFX Temporal is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXTemporalSupport.TemporalUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4114_DRS-MetalFXSpatial-Hardware",
+            "MetalFX Spatial is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXSpatialSupport.SpatialUnsupported
+        )]
         [IgnoreGraphicsTest(
             "4014_PrecomputedVelocityAlembic",
             "https://jira.unity3d.com/browse/UUM-136889"
         )]
         [TestNotSupportedOn(
-            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
             "Not XR compatible",
             StereoRenderingContext.StereoEnabled
         )]
         [TestNotSupportedOn(
-            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
             "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)

@@ -1255,15 +1255,20 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(numActiveViews <= STP.perViewConfigs.Length);
 
             io.numActiveViews = numActiveViews;
-            io.worldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.previousWorldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.previousPreviousWorldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.projectionMatrices = new Matrix4x4[numActiveViews];
-            io.previousProjectionMatrices = new Matrix4x4[numActiveViews];
-            io.previousPreviousProjectionMatrices = new Matrix4x4[numActiveViews];
-            io.viewMatrices = new Matrix4x4[numActiveViews];
-            io.previousViewMatrices = new Matrix4x4[numActiveViews];
-            io.previousPreviousViewMatrices = new Matrix4x4[numActiveViews];
+
+            if (io.worldSpaceCameraPositions == null || io.worldSpaceCameraPositions.Length != numActiveViews)
+            {
+                io.worldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.previousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.previousPreviousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.projectionMatrices = new Matrix4x4[numActiveViews];
+                io.previousProjectionMatrices = new Matrix4x4[numActiveViews];
+                io.previousPreviousProjectionMatrices = new Matrix4x4[numActiveViews];
+                io.viewMatrices = new Matrix4x4[numActiveViews];
+                io.previousViewMatrices = new Matrix4x4[numActiveViews];
+                io.previousPreviousViewMatrices = new Matrix4x4[numActiveViews];
+            }
+            
             for (int i = 0; i < numActiveViews; i++)
             {
                 // NOTE: STP assumes the view matrices also contain the camera position. However, HDRP may be configured to perform camera relative rendering which

@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.MetalFX
         public override bool supportsSharpening => false;
         /// <inheritdoc/>
         public override bool isSupportedOnDevice => Supported;
+        public override bool supportsAlphaUpscaling => true;
 
         // MetalFX Spatial is a single-frame upscaler with no temporal reprojection, so it reports zero jitter.
         public override void CalculateJitter(int frameIndex, float upscaleRatio, out Vector2 jitter, out bool allowScaling)

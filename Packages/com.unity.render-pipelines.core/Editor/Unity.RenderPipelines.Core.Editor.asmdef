@@ -53,6 +53,11 @@
             "define": "ENABLE_AMD_MODULE"
         },
         {
+            "name": "com.unity.modules.metalfx",
+            "expression": "1.0.0",
+            "define": "ENABLE_METALFX_MODULE"
+        },
+        {
             "name": "com.unity.modules.terrain",
             "expression": "1.0.0",
             "define": "ENABLE_TERRAIN_MODULE"
