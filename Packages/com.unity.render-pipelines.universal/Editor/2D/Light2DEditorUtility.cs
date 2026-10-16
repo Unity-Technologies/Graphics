@@ -11,6 +11,9 @@ namespace UnityEditor.Rendering.Universal
     {
         internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
 
+        // The Undo entry for a pick in the Light Type dropdown, shared by every place that applies one.
+        internal const string k_ChangeLightTypeUndoName = "Change Light Type";
+
         private static class Styles
         {
             static GUIContent s_LightTypeFreeform;
@@ -225,9 +228,7 @@ namespace UnityEditor.Rendering.Universal
                     if (targetNames[j].text != chosen.text)
                         continue;
 
-                    Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(targetSources, j);
-                    targetSelectionSources.boxedValue = targetSources;
-                    Light2DProviderSources.SetSourceType(targetSelectionSources);
+                    Light2DProviderSources.ApplySelectionFromIndex(targetSelectionSources, j, k_ChangeLightTypeUndoName);
 
                     // Only a light that just became Global reports; ErrorIfDuplicateGlobalLight skips other types.
                     // Lights that were already Global stay quiet, so the clash is not logged once per global light.
