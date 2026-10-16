@@ -10,7 +10,7 @@ CBUFFER_START(InstanceData)
 CBUFFER_END
 #endif
 
-RWTexture3D<float>  _Output : register(u4);
+RWTexture3D<float4> _Output : register(u4);
 float               _OutputSize;
 float3              _VolumeWorldOffset;
 float3              _VolumeSize;
