@@ -441,7 +441,22 @@ namespace UnityEditor.Rendering.Universal
         // Some converters scan asynchronously, so the scan may still be running when this returns. onScanFinished is
         // invoked with "Completed", "Failed" if nothing could be scanned or the results could not be written, or
         // "Cancelled" if CancelScan was called before the converters finished.
-        internal static string ScanToFile(List<Type> converterTypes, string fileName, Action<string> onScanFinished = null)
+        // With synchronous set, the caller blocks the Editor, so converters must finish scanning before this returns.
+        internal static string ScanToFile(List<Type> converterTypes, string fileName, Action<string> onScanFinished = null, bool synchronous = false)
+        {
+            var previousSynchronous = SearchServiceUtils.synchronous;
+            SearchServiceUtils.synchronous = synchronous;
+            try
+            {
+                return ScanToFileImpl(converterTypes, fileName, onScanFinished);
+            }
+            finally
+            {
+                SearchServiceUtils.synchronous = previousSynchronous;
+            }
+        }
+
+        static string ScanToFileImpl(List<Type> converterTypes, string fileName, Action<string> onScanFinished)
         {
             if (s_CurrentScan != null)
                 throw new InvalidOperationException("A converter scan is already in progress.");
