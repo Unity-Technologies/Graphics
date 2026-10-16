@@ -45,11 +45,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         internal FunctionHeader Header { get; private set; }
 
-        internal Dictionary<string, ParameterHeader> ParamHeaders { get; private set; }
-
         internal IProvider<IShaderFunction> Provider => m_provider;
 
-        const int kReservedOutputSlot = 0;
+        const int kReservedOutputSlot = ProviderSlotUtils.kReturnSlotId;
 
         public override bool hasPreview => true;
 
@@ -64,7 +62,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         public ProviderNode()
         {
             name = "Provider Based Node";
-            Header = new();
         }
 
         internal void InitializeFromProvider(IProvider<IShaderFunction> provider)
@@ -109,85 +106,13 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (Provider == null || Provider.Definition == null || !Provider.IsValid)
                 return;
 
-            Header.Process(Provider.Definition, Provider);
+            Header = new FunctionHeader(Provider.Definition, Provider);
 
             var header = Header;
             this.name = header.displayName;
             this.synonyms = header.searchTerms;
-            var parameters = Provider.Definition.Parameters;
 
-            List<MaterialSlot> previousSlots = new();
-            GetSlots(previousSlots);
-
-            Dictionary<string, (int inputId, int outputId)> oldSlotMap = new();
-            HashSet<int> usedSlotIds = new();
-
-            // build a map of parameter names to old slot ids (tuple is to support inout params).
-            foreach (var oldSlot in previousSlots)
-            {
-                if (!oldSlotMap.TryGetValue(oldSlot.shaderOutputName, out var idTuple))
-                    idTuple = (-1, -1);
-
-                if (oldSlot.isInputSlot) idTuple.inputId = oldSlot.id;
-                if (oldSlot.isOutputSlot) idTuple.outputId = oldSlot.id;
-
-                oldSlotMap[oldSlot.shaderOutputName] = idTuple;
-            }
-
-            ParamHeaders = new();
-            List<ParameterHeader> paramOrder = new();
-            List<int> desiredSlotOrder = new();
-
-            // return type is a special case, because it has no parameter but still needs a slot
-            // we reserve the 0 slotId for this and always make sure it's added first/at the top.
-            if (header.hasReturnValueType)
-            {
-                usedSlotIds.Add(kReservedOutputSlot);
-                desiredSlotOrder.Add(kReservedOutputSlot);
-                AddSlotFromParameter(header.returnHeader, kReservedOutputSlot, SlotType.Output);
-            }
-
-            // build the header data for our parameters and mark which slot ids are being reused.
-            foreach(var param in parameters)
-            {
-                var paramHeader = new ParameterHeader(param, Provider);
-                ParamHeaders.TryAdd(param.Name, paramHeader);
-                paramOrder.Add(paramHeader);
-                if (oldSlotMap.TryGetValue(param.Name, out var idTuple))
-                {
-                    if (idTuple.inputId > -1 && param.IsInput)
-                        usedSlotIds.Add(idTuple.inputId);
-                    if (idTuple.outputId > -1 && param.IsOutput)
-                        usedSlotIds.Add(idTuple.outputId);
-                }
-            }
-
-            // walk through our header data and build the actual slots.
-            int nextSlot = kReservedOutputSlot;
-            foreach (var paramHeader in paramOrder)
-            {
-                if (!oldSlotMap.TryGetValue(paramHeader.referenceName, out var idTuple))
-                    idTuple = (-1, -1);
-
-                void DoSlot(int slotId, SlotType dir)
-                {
-                    if (slotId == -1)
-                    {
-                        while (usedSlotIds.Contains(++nextSlot));
-                        usedSlotIds.Add(nextSlot);
-                        slotId = nextSlot;
-                    }
-                    AddSlotFromParameter(paramHeader, slotId, dir);
-                    desiredSlotOrder.Add(slotId);
-                }
-
-                if (paramHeader.isInput)
-                    DoSlot(idTuple.inputId, SlotType.Input);
-                if (paramHeader.isOutput)
-                    DoSlot(idTuple.outputId, SlotType.Output);
-            }
-            RemoveSlotsNameNotMatching(usedSlotIds, true);
-            SetSlotOrder(desiredSlotOrder);
+            ProviderSlotUtils.Rebuild(this, Provider.Definition);
         }
 
         static Rendering.ShaderCompilerMessageSeverity ToCompilerSeverity(MessageType severity) => severity switch
@@ -196,24 +121,13 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             _                  => Rendering.ShaderCompilerMessageSeverity.Warning,
         };
 
-        void AddSlotFromParameter(ParameterHeader header, int slotId, SlotType dir)
-        {
-            var slot = HeaderUtils.MakeSlotFromParameter(header, slotId, dir);
-            if (slot != null)
-                // Slots that use label control have no indication in the Model that they use them.
-                // However, the only _existing_ case where they'd meaningfully change are SpaceMaterialSlots,
-                // which also don't handle default values well either. In this case, we go nuclear and completely
-                // rebuild the slot.
-                AddSlot(slot, slot is not SpaceMaterialSlot, slot is not SpaceMaterialSlot);
-        }
-
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (this.Provider == null || this.Provider.Definition == null)
                 return;
 
             // Apply legacy precision/dynamic only before code generation/usage.
-            HeaderUtils.TryApplyLegacy(Provider.Definition, this.Header, this.ParamHeaders, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
+            HeaderUtils.TryApplyLegacyPrecisionTokens(Provider.Definition, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
 
             using (UnityEngine.Pool.ListPool<MaterialSlot>.Get(out var slots))
             {
@@ -257,12 +171,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                         valueString += inputSlot is SamplerStateMaterialSlot ? ".samplerstate" : ".tex";
 
                     // apply linkage override
-                    if (ParamHeaders.TryGetValue(param.Name, out var ph) && ph.isLinkage)
+                    if (param.Production.Access == FieldAccess.Linkage)
                     {
-                        var targetSlots = paramSlotMap[ph.linkTarget];
+                        var targetSlots = paramSlotMap[param.Production.LinkTarget];
 
-                        // this concept is awkward for inout slots, but that could be improved in the future.
-                        // ie. add support for int and set it to 0 = none, 1 = in, 2 = out, 3 = both.
                         bool linked = targetSlots.input != null && targetSlots.input.isConnected
                             || targetSlots.output != null && targetSlots.output.isConnected;
                         valueString = linked ? "true" : "false";
@@ -283,7 +195,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             if (Provider == null || !Provider.IsValid || Provider.Definition == null)
                 return;
 
-            HeaderUtils.TryApplyLegacy(Provider.Definition, Header, ParamHeaders, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
+            HeaderUtils.TryApplyLegacyPrecisionTokens(Provider.Definition, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
             DefinitionCodeGenerator.CollectFunctions(func, registry);
         }
 
@@ -301,14 +213,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 owner?.AddSetupError(this.objectId, $"Data for '{Provider.ProviderKey}' expected in '{path}'.");
                 return;
             }
-            else
+            else if (Header != null)
             {
-                foreach (var (msg, severity) in Header.Messages)
-                    owner?.AddValidationError(this.objectId, msg, ToCompilerSeverity(severity));
-
-                foreach (var param in ParamHeaders.Values)
-                    foreach (var (msg, severity) in param.Messages)
-                        owner?.AddValidationError(this.objectId, msg, ToCompilerSeverity(severity));
+                foreach (var (_, text, severity) in Header.messages)
+                    owner?.AddValidationError(this.objectId, text, ToCompilerSeverity(severity));
             }
         }
     }

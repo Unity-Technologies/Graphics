@@ -210,11 +210,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 sb.Append("slot ").Append(SlotLine(slot)).Append('\n');
 
             List<string> messages = new();
-            foreach (var (message, severity) in node.Header.Messages ?? Enumerable.Empty<(string, MessageType)>())
-                messages.Add($"function {severity}: {message}");
-            foreach (var param in node.ParamHeaders?.Values ?? Enumerable.Empty<ParameterHeader>())
-                foreach (var (message, severity) in param.Messages ?? Enumerable.Empty<(string, MessageType)>())
-                    messages.Add($"{param.referenceName} {severity}: {message}");
+            foreach (var (subject, message, severity) in node.Header.messages)
+                messages.Add($"{subject ?? "function"} {severity}: {message}");
             messages.Sort(StringComparer.Ordinal);
             foreach (var message in messages)
                 sb.Append("message ").Append(message).Append('\n');

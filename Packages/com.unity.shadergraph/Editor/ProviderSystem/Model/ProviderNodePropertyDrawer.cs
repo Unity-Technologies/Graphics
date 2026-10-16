@@ -31,9 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return;
             }
 
-            // Version selector — shown whenever versioned registrations exist for this key (even a single
-            // version), so users can always see which version is active and switch when more become available.
-            var versionCandidates = node.Header.versionCandidates;
+            var versionCandidates = node.Header?.versionCandidates;
             if (versionCandidates != null && versionCandidates.Length >= 1)
             {
                 string currentVersion = node.Header.version;
@@ -81,40 +79,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 parentElement.Add(new HelpBoxRow(code, MessageType.None));
             }
 
+            var messages = node.Header?.messages;
             StringBuilder sb = new();
-            bool hasMsg = false;
-            var worstSeverity = MessageType.Warning;
-
-            // Function
-            foreach (var (msg, severity) in node.Header.Messages)
+            for (int i = 0; messages != null && i < messages.Count;)
             {
-                hasMsg = true;
-                sb.AppendLine(msg);
-                if (severity > worstSeverity) worstSeverity = severity;
-            }
-            if (hasMsg)
-            {
-                parentElement.Add(new Label("Function Hint Messages"));
-                parentElement.Add(new HelpBoxRow(sb.ToString(), worstSeverity));
-            }
-
-            // Parameters
-            foreach (var paramHeader in node.ParamHeaders.Values)
-            {
-                hasMsg = false;
-                worstSeverity = MessageType.Warning;
+                var subject = messages[i].subject;
+                var worstSeverity = MessageType.Warning;
                 sb.Clear();
-                foreach (var (msg, severity) in paramHeader.Messages)
+                for (; i < messages.Count && messages[i].subject == subject; i++)
                 {
-                    hasMsg = true;
-                    sb.AppendLine(msg);
-                    if (severity > worstSeverity) worstSeverity = severity;
+                    sb.AppendLine(messages[i].text);
+                    if (messages[i].severity > worstSeverity) worstSeverity = messages[i].severity;
                 }
-                if (hasMsg)
-                {
-                    parentElement.Add(new Label($"Parameter '{paramHeader.referenceName}' Hint Messages"));
-                    parentElement.Add(new HelpBoxRow(sb.ToString(), worstSeverity));
-                }
+                parentElement.Add(new Label(subject == null ? "Function Hint Messages" : $"Parameter '{subject}' Hint Messages"));
+                parentElement.Add(new HelpBoxRow(sb.ToString(), worstSeverity));
             }
         }
     }

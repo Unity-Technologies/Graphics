@@ -7,32 +7,6 @@ using static Unity.GraphAuthoring.Editor.ProviderSystem.ShaderValueUtils;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    // Reads a definition for a provider node, and keeps the provider's messages about it.
-    internal abstract class HeaderBase<T> where T : IDefinition
-    {
-        internal bool isValid { get; private set; }
-
-        List<(string message, MessageType severity)> m_msgs;
-        internal IEnumerable<(string message, MessageType severity)> Messages => m_msgs;
-
-        protected abstract void OnProcess(T obj, IProvider provider);
-
-        internal void Process(T obj, IProvider provider)
-        {
-            isValid = obj != null && obj.IsValid && provider != null && provider.IsValid;
-            if (!isValid)
-                return;
-
-            m_msgs = new();
-            var subject = obj is IShaderField field ? field.Name : null;
-            foreach (var message in provider.Messages)
-                if (message.Subject == subject)
-                    m_msgs.Add((message.Text, (MessageType)message.Severity));
-
-            OnProcess(obj, provider);
-        }
-    }
-
     internal static class HeaderUtils
     {
         internal static string ToShaderType(this MaterialSlot slot)
@@ -43,148 +17,171 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             return slot.concreteValueType.ToShaderString();
         }
 
-        internal static MaterialSlot MakeSlotFromParameter(ParameterHeader header, int slotId, SlotType dir)
+        // The reference name of the return value's slot.
+        internal const string kReturnSlotName = "__UNITY_SHADERGRAPH_UNUSED";
+
+        internal static MaterialSlot MakeSlotFromField(IShaderField field, int slotId, SlotType dir)
         {
             MaterialSlot slot = null;
 
-            Enum.TryParse<Internal.UVChannel>(header.defaultString, true, out var defaultUVChannel);
-            if (!Enum.TryParse<Internal.CoordinateSpace>(header.defaultString, true, out var defaultCoordinateSpace))
+            var presentation = field.Presentation;
+            var production = field.Production;
+            var editor = presentation.Editor;
+            string referenceName = field.Name;
+            string displayName = presentation.DisplayName;
+            string typeName = field.ShaderType.Name;
+
+            string typeTest = typeName.ToLowerInvariant();
+            bool isBareResource = !typeTest.Contains("unity") && (typeTest.Contains("sampler") || typeTest.Contains("texture"));
+            bool isColor = editor is ColorEditorData;
+            string referable = production.Default is ReferableDefault referableValue ? referableValue.Referable : null;
+
+            string defaultString = production.Default switch
+            {
+                LiteralDefault literal => literal.Text,
+                ReferableDefault referableDefault => referableDefault.Option,
+                _ => null,
+            };
+            float[] defaultValue = defaultString != null ? LazyTokenFloat(defaultString) : null;
+
+            Enum.TryParse<Internal.UVChannel>(defaultString, true, out var defaultUVChannel);
+            if (!Enum.TryParse<Internal.CoordinateSpace>(defaultString, true, out var defaultCoordinateSpace))
                 defaultCoordinateSpace = Internal.CoordinateSpace.Object;
-            Enum.TryParse<ScreenSpaceType>(header.defaultString, true, out var defaultScreenSpaceType);
+            Enum.TryParse<ScreenSpaceType>(defaultString, true, out var defaultScreenSpaceType);
 
             // absolute world only works for position.
-            if (defaultCoordinateSpace == Internal.CoordinateSpace.AbsoluteWorld && header.Referable != StandardReferables.kPosition)
+            if (defaultCoordinateSpace == Internal.CoordinateSpace.AbsoluteWorld && referable != StandardReferables.kPosition)
                 defaultCoordinateSpace = Internal.CoordinateSpace.Object;
 
             // Screen doesn't work for any of the Space Slots-- _why do they use this enum?_
             if (defaultCoordinateSpace == Internal.CoordinateSpace.Screen)
                 defaultCoordinateSpace = Internal.CoordinateSpace.Object;
 
-            if (header.isReferable && dir == SlotType.Input)
+            if (referable != null && dir == SlotType.Input)
             {
-                switch(header.Referable)
+                switch(referable)
                 {
                     case StandardReferables.kUV:
-                        slot = new UVMaterialSlot(slotId, header.displayName, header.referenceName, defaultUVChannel);
+                        slot = new UVMaterialSlot(slotId, displayName, referenceName, defaultUVChannel);
                         break;
                     case StandardReferables.kPosition:
-                        slot = new PositionMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
+                        slot = new PositionMaterialSlot(slotId, displayName, referenceName, defaultCoordinateSpace);
                         break;
                     case StandardReferables.kNormal:
-                        slot = new NormalMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
+                        slot = new NormalMaterialSlot(slotId, displayName, referenceName, defaultCoordinateSpace);
                         break;
                     case StandardReferables.kTangent:
-                        slot = new TangentMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
+                        slot = new TangentMaterialSlot(slotId, displayName, referenceName, defaultCoordinateSpace);
                         break;
                     case StandardReferables.kBitangent:
-                        slot = new BitangentMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
+                        slot = new BitangentMaterialSlot(slotId, displayName, referenceName, defaultCoordinateSpace);
                         break;
                     case StandardReferables.kVertexColor:
-                        slot = new VertexColorMaterialSlot(slotId, header.displayName, header.referenceName);
+                        slot = new VertexColorMaterialSlot(slotId, displayName, referenceName);
                         break;
                     case StandardReferables.kViewDirection:
-                        slot = new ViewDirectionMaterialSlot(slotId, header.displayName, header.referenceName, defaultCoordinateSpace);
+                        slot = new ViewDirectionMaterialSlot(slotId, displayName, referenceName, defaultCoordinateSpace);
                         break;
                     case StandardReferables.kScreenPosition:
-                        slot = new ScreenPositionMaterialSlot(slotId, header.displayName, header.referenceName, defaultScreenSpaceType);
+                        slot = new ScreenPositionMaterialSlot(slotId, displayName, referenceName, defaultScreenSpaceType);
                         break;
                 }
             }
             if (slot == null)
             {
-                if (header.isDynamic)
+                if (production.IsDynamicVector)
                 {
-                    TryCast<Vector4>(header.typeName, header.defaultValue, out var v4, Vector4.zero);
-                    slot = new DynamicVectorMaterialSlot(slotId, header.displayName, header.referenceName, dir, v4);
+                    TryCast<Vector4>(typeName, defaultValue, out var v4, Vector4.zero);
+                    slot = new DynamicVectorMaterialSlot(slotId, displayName, referenceName, dir, v4);
                 }
-                else if (header.isDropdown && dir == SlotType.Input)
+                else if (editor is DropdownEditorData dropdown && dir == SlotType.Input)
                 {
-                    TryCast<float>(header.typeName, header.defaultValue, out var asIdx, 0.0f);
-                    slot = new Vector1MaterialEnumSlot(slotId, header.displayName, header.referenceName, dir, header.options, asIdx);
+                    TryCast<float>(typeName, defaultValue, out var asIdx, 0.0f);
+                    slot = new Vector1MaterialEnumSlot(slotId, displayName, referenceName, dir, new List<string>(dropdown.Options).ToArray(), asIdx);
                 }
-                else if (header.isSlider && dir == SlotType.Input)
+                else if (editor is RangeEditorData range && dir == SlotType.Input)
                 {
-                    TryCast<float>(header.typeName, header.defaultValue, out var asRng, 0);
-                    slot = new Vector1MaterialRangeSlot(slotId, header.displayName, header.referenceName, dir, asRng, new Vector2(header.sliderMin, header.sliderMax));
+                    TryCast<float>(typeName, defaultValue, out var asRng, 0);
+                    slot = new Vector1MaterialRangeSlot(slotId, displayName, referenceName, dir, asRng, new Vector2(range.Min, range.Max));
                 }
-                else switch (header.typeName)
+                else switch (typeName)
                     {
                         case "uint1":
                         case "uint":
-                            TryCast<float>(header.typeName, header.defaultValue, out var asUint, 0u);
-                            slot = new Vector1MaterialIntegerSlot(slotId, header.displayName, header.referenceName, dir, asUint, unsigned: true); break;
+                            TryCast<float>(typeName, defaultValue, out var asUint, 0u);
+                            slot = new Vector1MaterialIntegerSlot(slotId, displayName, referenceName, dir, asUint, unsigned: true); break;
                         case "int1":
                         case "int":
-                            TryCast<float>(header.typeName, header.defaultValue, out var asInt, 0);
-                            slot = new Vector1MaterialIntegerSlot(slotId, header.displayName, header.referenceName, dir, asInt); break;
+                            TryCast<float>(typeName, defaultValue, out var asInt, 0);
+                            slot = new Vector1MaterialIntegerSlot(slotId, displayName, referenceName, dir, asInt); break;
                         case "half":
                         case "half1":
                         case "float1":
                         case "float":
-                            TryCast<float>(header.typeName, header.defaultValue, out var asFloat, 0.0f);
-                            slot = new Vector1MaterialSlot(slotId, header.displayName, header.referenceName, dir, asFloat); break;
+                            TryCast<float>(typeName, defaultValue, out var asFloat, 0.0f);
+                            slot = new Vector1MaterialSlot(slotId, displayName, referenceName, dir, asFloat); break;
                         case "bool1":
                         case "bool":
-                            TryCast<bool>(header.typeName, header.defaultValue, out var asBool, false);
-                            slot = new BooleanMaterialSlot(slotId, header.displayName, header.referenceName, dir, asBool); break;
+                            TryCast<bool>(typeName, defaultValue, out var asBool, false);
+                            slot = new BooleanMaterialSlot(slotId, displayName, referenceName, dir, asBool); break;
                         case "half2":
                         case "float2":
-                            TryCast<Vector2>(header.typeName, header.defaultValue, out var asV2, Vector2.zero);
-                            slot = new Vector2MaterialSlot(slotId, header.displayName, header.referenceName, dir, asV2); break;
+                            TryCast<Vector2>(typeName, defaultValue, out var asV2, Vector2.zero);
+                            slot = new Vector2MaterialSlot(slotId, displayName, referenceName, dir, asV2); break;
                         case "half3":
                         case "float3":
-                            TryCast<Vector3>(header.typeName, header.defaultValue, out var asV3, Vector3.zero);
-                            slot = !header.isColor
-                                ? new Vector3MaterialSlot(slotId, header.displayName, header.referenceName, dir, asV3)
-                                : new ColorRGBMaterialSlot(slotId, header.displayName, header.referenceName, dir, new Vector4(asV3.x, asV3.y, asV3.z, 1), Internal.ColorMode.Default);
+                            TryCast<Vector3>(typeName, defaultValue, out var asV3, Vector3.zero);
+                            slot = !isColor
+                                ? new Vector3MaterialSlot(slotId, displayName, referenceName, dir, asV3)
+                                : new ColorRGBMaterialSlot(slotId, displayName, referenceName, dir, new Vector4(asV3.x, asV3.y, asV3.z, 1), Internal.ColorMode.Default);
                             break;
                         case "half4":
                         case "float4":
-                            TryCast<Vector4>(header.typeName, header.defaultValue, out var asV4, header.isColor ? new Vector4(0, 0, 0, 1) : Vector4.zero);
-                            slot = header.isColor
-                                ? new ColorRGBAMaterialSlot(slotId, header.displayName, header.referenceName, dir, asV4)
-                                : new Vector4MaterialSlot(slotId, header.displayName, header.referenceName, dir, asV4);
+                            TryCast<Vector4>(typeName, defaultValue, out var asV4, isColor ? new Vector4(0, 0, 0, 1) : Vector4.zero);
+                            slot = isColor
+                                ? new ColorRGBAMaterialSlot(slotId, displayName, referenceName, dir, asV4)
+                                : new Vector4MaterialSlot(slotId, displayName, referenceName, dir, asV4);
                             break;
                         case "half2x2":
-                        case "float2x2": slot = new Matrix2MaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                        case "float2x2": slot = new Matrix2MaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "half3x3":
-                        case "float3x3": slot = new Matrix3MaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                        case "float3x3": slot = new Matrix3MaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "half4x4":
-                        case "float4x4": slot = new Matrix4MaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                        case "float4x4": slot = new Matrix4MaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "SamplerState":
-                        case "UnitySamplerState": slot = new SamplerStateMaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                        case "UnitySamplerState": slot = new SamplerStateMaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "Texture2D":
                         case "UnityTexture2D":
                             slot = dir == SlotType.Input
-                                    ? new Texture2DInputMaterialSlot(slotId, header.displayName, header.referenceName)
-                                    : new Texture2DMaterialSlot(slotId, header.displayName, header.referenceName, dir);
+                                    ? new Texture2DInputMaterialSlot(slotId, displayName, referenceName)
+                                    : new Texture2DMaterialSlot(slotId, displayName, referenceName, dir);
                             break;
                         case "Texture2DArray":
                         case "UnityTexture2DArray":
                             slot = dir == SlotType.Input
-                                    ? new Texture2DArrayInputMaterialSlot(slotId, header.displayName, header.referenceName)
-                                    : new Texture2DArrayMaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                                    ? new Texture2DArrayInputMaterialSlot(slotId, displayName, referenceName)
+                                    : new Texture2DArrayMaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "TextureCube":
                         case "UnityTextureCube":
                             slot = dir == SlotType.Input
-                                    ? new CubemapInputMaterialSlot(slotId, header.displayName, header.referenceName)
-                                    : new CubemapMaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                                    ? new CubemapInputMaterialSlot(slotId, displayName, referenceName)
+                                    : new CubemapMaterialSlot(slotId, displayName, referenceName, dir); break;
                         case "Texture3D":
                         case "UnityTexture3D":
                             slot = dir == SlotType.Input
-                                    ? new Texture3DInputMaterialSlot(slotId, header.displayName, header.referenceName)
-                                    : new Texture3DMaterialSlot(slotId, header.displayName, header.referenceName, dir); break;
+                                    ? new Texture3DInputMaterialSlot(slotId, displayName, referenceName)
+                                    : new Texture3DMaterialSlot(slotId, displayName, referenceName, dir); break;
                         default:
-                            slot = new ExternalMaterialSlot(slotId, header.displayName, header.referenceName, header.externalQualifiedTypeName, dir, header.defaultString);
+                            slot = new ExternalMaterialSlot(slotId, displayName, referenceName, ShaderObjectUtils.QualifyName(field.ShaderType), dir, defaultString);
                             break;
                     }
             }
-            slot.hideConnector = header.isStatic && dir == SlotType.Input;
-            slot.hidden = header.isLocal;
-            slot.bareResource = header.isBareResource;
+            slot.hideConnector = production.Access == FieldAccess.Static && dir == SlotType.Input;
+            slot.hidden = production.Access == FieldAccess.Local || production.Access == FieldAccess.Linkage;
+            slot.bareResource = isBareResource;
 
-            if (header.hasCustomBinding)
-                slot.CustomBinding = header.customBinding;
+            if (editor is CustomBindingEditorData binding)
+                slot.CustomBinding = binding.Label;
 
             return slot;
         }
@@ -210,19 +207,19 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             return new ShaderType(type.Name.Replace(baseType, newType), type.Namespace);
         }
 
-        internal static bool TryApplyLegacy(IShaderFunction func, FunctionHeader funcHeader, IReadOnlyDictionary<string, ParameterHeader> paramHeaders, string precisionToken, int dynamicLength, out IShaderFunction result)
+        internal static bool TryApplyLegacyPrecisionTokens(IShaderFunction func, string precisionToken, int dynamicLength, out IShaderFunction result)
         {
             List<IShaderField> fields = new();
             result = null;
 
-            bool applyPrecision = funcHeader.allowPrecision;
+            bool applyPrecision = func.Production.SupportsPrecision;
             bool anyDynamics = false;
 
             Debug.Assert(dynamicLength >= 0);
 
             foreach(var param in func.Parameters)
             {
-                bool applyDynamics = paramHeaders.TryGetValue(param.Name, out var paramHeader) && paramHeader.isDynamic;
+                bool applyDynamics = param.Production.IsDynamicVector;
                 anyDynamics |= applyDynamics;
 
                 var legacyType = ApplyLegacy(param.ShaderType, applyPrecision ? precisionToken : null, applyDynamics ? dynamicLength : 0);

@@ -3,24 +3,17 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    // TODO: Headers copy what the definition and provider already carry; read those directly and remove the headers.
-    internal class FunctionHeader : HeaderBase<IShaderFunction>
+    // Formats information from the Definition for easier use by the Node.
+    internal class FunctionHeader
     {
         internal string referenceName { get; private set; }
 
         internal string displayName { get; private set; }
         internal string tooltip { get; private set; }
 
-        internal string returnDisplayName { get; private set; }
-        internal string returnTooltip { get; private set; }
-        internal IShaderType returnType { get; private set; }
-        internal bool hasReturnValueType => returnType.Name != "void";
-
         internal string searchName { get; private set; }
         internal string[] searchTerms { get; private set; }
         internal string searchCategory { get; private set; }
-
-        internal ParameterHeader returnHeader { get; private set; }
 
         internal bool allowPrecision { get; private set; }
 
@@ -37,27 +30,18 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         internal (IProvider<IShaderFunction> provider, string label)[] groupCandidates { get; private set; }
         internal (IProvider<IShaderFunction> provider, string version)[] versionCandidates { get; private set; }
 
+        internal IReadOnlyList<(string subject, string text, MessageType severity)> messages { get; private set; }
 
-        bool skipGroup = false;
-        private void OnProcessNoGroup(IShaderFunction func, IProvider provider)
-        {
-            skipGroup = true;
-            OnProcess(func, provider);
-            skipGroup = false;
-        }
+        internal FunctionHeader(IShaderFunction func, IProvider provider) : this(func, provider, false) { }
 
-        protected override void OnProcess(IShaderFunction func, IProvider provider)
+        FunctionHeader(IShaderFunction func, IProvider provider, bool skipGroup)
         {
             referenceName = func.Name;
-            returnType    = func.ReturnType;
             version       = provider.Version;
 
             var presentation = func.Presentation;
             displayName = presentation.DisplayName;
             tooltip     = presentation.Tooltip;
-
-            returnDisplayName = presentation.ReturnDisplayName;
-            returnTooltip     = presentation.ReturnTooltip;
 
             searchName     = presentation.SearchName;
             searchTerms    = presentation.SearchTerms != null ? new List<string>(presentation.SearchTerms).ToArray() : null;
@@ -79,11 +63,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
                 if (!skipGroup && ProviderLibrary.TryGetInstance(out var lib))
                 {
-                    var groupHeader = new FunctionHeader();
                     bool first = true;
                     foreach (var groupProvider in lib.ProvidersByGroup<IShaderFunction>(provider.Group))
                     {
-                        groupHeader.OnProcessNoGroup(groupProvider.Definition, groupProvider);
+                        var groupHeader = new FunctionHeader(groupProvider.Definition, groupProvider, true);
                         if (first) // Main provider's information wins.
                         {
                             displayName = groupHeader.displayName;
@@ -106,6 +89,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 }
             }
 
+            if (skipGroup)
+                return;
+
             // Version:
             List<(IProvider<IShaderFunction> provider, string version)> rawVersions = new();
             if (ProviderLibrary.TryGetInstance(out var versionLib))
@@ -119,8 +105,25 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             }
             versionCandidates = rawVersions.ToArray();
 
-            // Return:
-            returnHeader = new ParameterHeader(returnDisplayName, func.ReturnType, returnTooltip, provider);
+            messages = CollectMessages(func, provider);
+        }
+
+        static List<(string, string, MessageType)> CollectMessages(IShaderFunction func, IProvider provider)
+        {
+            List<(string, string, MessageType)> messages = new();
+            if (provider.Messages == null)
+                return messages;
+
+            List<string> subjects = new() { null };
+            foreach (var param in func.Parameters)
+                if (!subjects.Contains(param.Name))
+                    subjects.Add(param.Name);
+
+            foreach (var subject in subjects)
+                foreach (var message in provider.Messages)
+                    if (message.Subject == subject)
+                        messages.Add((subject, message.Text, (MessageType)message.Severity));
+            return messages;
         }
     }
 }

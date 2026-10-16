@@ -279,12 +279,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             }, f, "", production: precision);
 
             var provider = new TestProvider("TestProvider", testFunc);
-            var funcHeader = new FunctionHeader();
-            var paramHeaders = new Dictionary<string, ParameterHeader>();
-
-            funcHeader.Process(provider.Definition, provider);
-            foreach (var param in provider.Definition.Parameters)
-                paramHeaders.Add(param.Name, new ParameterHeader(param, provider));
 
             ShaderFunction expected = new("TestFunc_half4", generated, new IShaderField[]
             {
@@ -294,7 +288,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 new ShaderField("D", true, true, h2),
             }, h, "", production: precision);
 
-            HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "half", 4, out var result);
+            HeaderUtils.TryApplyLegacyPrecisionTokens(provider.Definition, "half", 4, out var result);
             Assert.IsTrue(TestUtils.CompareFunction(expected, result));
 
             expected = new("TestFunc_float1", generated, new IShaderField[]
@@ -305,7 +299,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 new ShaderField("D", true, true, f2),
             }, f, "", production: precision);
 
-            HeaderUtils.TryApplyLegacy(provider.Definition, funcHeader, paramHeaders, "float", 1, out result);
+            HeaderUtils.TryApplyLegacyPrecisionTokens(provider.Definition, "float", 1, out result);
             Assert.IsTrue(TestUtils.CompareFunction(expected, result));
         }
     }
