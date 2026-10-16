@@ -19,6 +19,12 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 0
+  directionalOnly:
+    m_OverrideState: 0
+    m_Value: 0
+  halfResolution:
+    m_OverrideState: 0
+    m_Value: 0
   length:
     m_OverrideState: 0
     m_Value: 0.15

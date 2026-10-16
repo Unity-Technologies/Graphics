@@ -6,10 +6,12 @@ MemorySettings:
   m_EditorMemorySettings:
     m_MainAllocatorBlockSize: -1
     m_ThreadAllocatorBlockSize: -1
+    m_MainAllocatorMimallocEnabled: -1
     m_MainGfxBlockSize: -1
     m_ThreadGfxBlockSize: -1
     m_CacheBlockSize: -1
     m_TypetreeBlockSize: -1
+    m_RemapperInitialCapacity: -1
     m_ProfilerBlockSize: -1
     m_ProfilerEditorBlockSize: -1
     m_BucketAllocatorGranularity: -1
@@ -32,4 +34,6 @@ MemorySettings:
     m_TempAllocatorSizeJobWorker: -1
     m_TempAllocatorSizeBackgroundWorker: -1
     m_TempAllocatorSizePreloadManager: -1
-  m_PlatformMemorySettings: {}
+    m_EntitiesArchetypeAllocatorBudget: -1
+    m_EntitiesQueryAllocatorBudget: -1
+  m_PlatformMemorySettings: []

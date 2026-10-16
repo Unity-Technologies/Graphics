@@ -50,3 +50,4 @@ EditorSettings:
   m_ForceAssetUnloadAndGCOnSceneLoad: 1
   m_HideBuildProfileClassicPlatforms: 1
   m_UseLegacyHierarchy: 0
+  m_EnableLegacyUmbraCulling: 1

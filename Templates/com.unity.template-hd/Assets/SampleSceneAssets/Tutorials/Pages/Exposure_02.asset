@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Exposure_02
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Fixed Exposure
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 6912e347d75a02745b99e9fa6b736295, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 6912e347d75a02745b99e9fa6b736295, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,59 +49,56 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Fixed Exposure
+        m_Untranslated: 
       Text:
         m_Untranslated: 'In this example, let''s override the exposure globally.
 
 
-          1.
-          Right click in the <i>Hierarchy,</i> and create a <b>Volume</b> > <b>Global
-          Volume.</b>
+          1. Right click in the <i>Hierarchy,</i> and create a <b>Volume</b> > <b>Global Volume.</b>
 
 
-          2. Create a <b>New</b> Profile using the dedicated
-          button.
+          2. Create a <b>New</b> Profile using the dedicated button.
 
 
-          3. In the Volume component''s <i>Inspector,</i> set
-          the <b>Priority</b> to 1000, to ensure this volume can override all the
-          other volumes in the Scene.
+          3. In the Volume component''s <i>Inspector,</i> set the <b>Priority</b> to 1000, to ensure this volume can override all the other volumes in the Scene.
 
 
-          4. Add an <b>Exposure</b> override,
-          set its <b>Mode</b> to <b>Fixed</b> and its <b>Fixed Exposure</b> value
-          to 3.
+          4. Add an <b>Exposure</b> override, set its <b>Mode</b> to <b>Fixed</b> and its <b>Fixed Exposure</b> value to 3.
 
 
-          5. Head to the other rooms which receive a larger amount
-          of light, and notice how much brighter they appear, almost solid white.
+          5. Head to the other rooms which receive a larger amount of light, and notice how much brighter they appear, almost solid white.
 
 
-          6.
-          Using the <b>Fixed Exposure</b> slider, increase the Exposure value between
-          8 and 13 in order to accommodate these brighter rooms.
+          6. Using the <b>Fixed Exposure</b> slider, increase the Exposure value between 8 and 13 in order to accommodate these brighter rooms.
 
 
-          As
-          you can see, the <b>Fixed</b> Exposure Mode requires the exposure to be
-          manually tuned for every lighting scenario. This might not be an acceptable
-          solution for dynamic scenarios displaying a wide range of lighting intensities
-          like the ones found in this Scene, from a relatively dark and artificially
-          lit interior, to a bright outdoor area lit by the sun.'
+          As you can see, the <b>Fixed</b> Exposure Mode requires the exposure to be manually tuned for every lighting scenario. This might not be an acceptable solution for dynamic scenarios displaying a wide range of lighting intensities like the ones found in this Scene, from a relatively dark and artificially lit interior, to a bright outdoor area lit by the sun.'
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -109,6 +120,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

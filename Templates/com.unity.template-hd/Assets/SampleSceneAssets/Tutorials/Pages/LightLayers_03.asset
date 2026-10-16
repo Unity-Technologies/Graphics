@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: LightLayers_03
   m_EditorClassIdentifier: 
+  <IndexInTutorial>k__BackingField: 0
   Title:
     m_Untranslated: Set up Light Layers
-  m_Paragraphs:
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 87f93a0fcd40e6246801c025db6d5df8, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 87f93a0fcd40e6246801c025db6d5df8, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -39,65 +51,58 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'Let''s see how you can assign Light Layers to objects and
-          Lights.
+        m_Untranslated: 'Let''s see how you can assign Light Layers to objects and Lights.
 
 
-          1. In the <i>Hierarchy,</i> select <b>Props</b> > <b>Room3</b>
-          > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>
+          1. In the <i>Hierarchy,</i> select <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>
 
 
-          2.
-          In its <i>Inspector,</i> notice that the <b>Rendering Layer Mask</b> parameter
-          is set to <b>LampsOnly.</b>
+          2. In its <i>Inspector,</i> notice that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly.</b>
 
 
-          3. Select <b>Props</b> > <b>Room3</b>
-          > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm.</b>
+          3. Select <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm.</b>
 
 
-          Notice
-          that the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> and once
-          the dropdown is expanded, see that the <b>Lamp Only</b> layer is disabled.
-          If the property is not visible, enable Show Additional Properties using
-          the 3 dots in the General section.
+          Notice that the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> and once the dropdown is expanded, see that the <b>Lamp Only</b> layer is disabled. If the property is not visible, enable Show Additional Properties using the 3 dots in the General section.
 
 
-          Because the spotlights in
-          the light fixture are unable to affect the <b>Lamp Only</b> layer, the
-          pieces of glass placed on the <b>Lamps Only</b> layer cannot receive lighting
-          nor shadowing from said spotlights. Thus, no unwanted shadows are produced.
+          Because the spotlights in the light fixture are unable to affect the <b>Lamp Only</b> layer, the pieces of glass placed on the <b>Lamps Only</b> layer cannot receive lighting nor shadowing from said spotlights. Thus, no unwanted shadows are produced.
 
 
 
-          <b>Expert
-          Tips</b>
+          <b>Expert Tips</b>
 
 
-          Obviously, Light layers are not physically correct,
-          because light cannot be blocked this way in real-life. However, in practice,
-          this feature is extremely useful to avoid unwanted illumination, shadowing
-          and light leaking in more difficult lighting scenarios.
+          Obviously, Light layers are not physically correct, because light cannot be blocked this way in real-life. However, in practice, this feature is extremely useful to avoid unwanted illumination, shadowing and light leaking in more difficult lighting scenarios.
 
 
-          Light
-          layers can be used to fix indoor and outdoor light leaking, and selectively
-          light a character in a cutscene without affecting the rest of the environment
-          or other characters.'
+          Light layers can be used to fix indoor and outdoor light leaking, and selectively light a character in a cutscene without affecting the rest of the environment or other characters.'
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -119,6 +124,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

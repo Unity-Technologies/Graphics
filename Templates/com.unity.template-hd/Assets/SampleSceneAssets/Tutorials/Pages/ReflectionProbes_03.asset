@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: ReflectionProbes_03
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Proxy Volume
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: b645607a722d7204eb332630d707cab8, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: b645607a722d7204eb332630d707cab8, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,32 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Proxy Volume
+        m_Untranslated: 
       Text:
-        m_Untranslated: "You can enable the  <b>Use Influence Volume as a Proxy Volume</b>
-          checkbox to ensure that a reflection map captured by a Reflection Probe
-          is warped based on the camera position and the shape of the Reflection
-          Probe. This will provide a better approximation of the reflections and
-          attempt to ground them with the surroundings.\r\n\r\n1. In the <i>Hierarchy,</i>
-          under <b>Lighting</b> > <b>Reflection Probes</b> > <b>Room 3,</b> select
-          <b>ReflectionProbe Room 3 Ceiling.</b>\r\n\r\n2. In the <i>Inspector,</i>
-          toggle the <b>Use Influence Volume as a Proxy Volume</b> checkbox.\r\n\r\nWith
-          the checkbox enabled, the reflective surfaces can receive more accurate
-          reflections.\r"
+        m_Untranslated: "You can enable the  <b>Use Influence Volume as a Proxy Volume</b> checkbox to ensure that a reflection map captured by a Reflection Probe is warped based on the camera position and the shape of the Reflection Probe. This will provide a better approximation of the reflections and attempt to ground them with the surroundings.\r\n\r\n1. In the <i>Hierarchy,</i> under <b>Lighting</b> > <b>Reflection Probes</b> > <b>Room 3,</b> select <b>ReflectionProbe Room 3 Ceiling.</b>\r\n\r\n2. In the <i>Inspector,</i> toggle the <b>Use Influence Volume as a Proxy Volume</b> checkbox.\r\n\r\nWith the checkbox enabled, the reflective surfaces can receive more accurate reflections.\r"
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -82,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

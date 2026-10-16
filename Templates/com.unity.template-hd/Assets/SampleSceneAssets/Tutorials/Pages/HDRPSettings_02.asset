@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: HDRPSettings_02
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: HDRP Asset configuration
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 84dc168bb2ad3da4597621439ca7d4d7, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 84dc168bb2ad3da4597621439ca7d4d7, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,29 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: HDRP Asset configuration
+        m_Untranslated: 
       Text:
-        m_Untranslated: "It is highly recommended to turn off unused features in
-          your project to reduce the impact on performance, memory consumption and
-          build time.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> 
-          > <b>HDRP.</b>\n\n2. Select the <i>2HDRPMediumQuality</i> asset. \n\n3.
-          In the <b>Lighting</b> foldout, disable the <b>Screen Space Ambient Occlusion.</b>\n\n4.
-          Notice the darkening effect on the plant, among others, disappears.\n\n5.
-          Re-enable the <b>Screen Space Ambient Occlusion.</b>"
+        m_Untranslated: "It is highly recommended to turn off unused features in your project to reduce the impact on performance, memory consumption and build time.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b>  > <b>HDRP.</b>\n\n2. Select the <i>2HDRPMediumQuality</i> asset. \n\n3. In the <b>Lighting</b> foldout, disable the <b>Screen Space Ambient Occlusion.</b>\n\n4. Notice the darkening effect on the plant, among others, disappears.\n\n5. Re-enable the <b>Screen Space Ambient Occlusion.</b>"
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -79,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

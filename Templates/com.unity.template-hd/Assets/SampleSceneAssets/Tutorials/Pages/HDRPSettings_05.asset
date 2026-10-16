@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: HDRPSettings_05
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Frame Settings
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: da7e71977534a894e967ad6546baec62, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: da7e71977534a894e967ad6546baec62, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,39 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Frame Settings
+        m_Untranslated: 
       Text:
-        m_Untranslated: "You can control exactly which HDRP features the cameras
-          and reflection probes can render, such as Rendering features, Post-Processing,
-          Lighting, LODs, etc.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Graphics</b> > <b>HDRP Global Settings.</b>\n\n2. Scroll down to the
-          <b>Frame Settings (Default Values)</b> section.\n\n3. Under  <b>Camera</b>
-          > <b>Rendering,</b> disable the <b>Decals.</b>\n\nNote that the water puddles
-          and other dirt decals have disappeared, now that the feature has been disabled
-          for all cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert
-          Tips</b>\n\nEach Camera and Reflection Probe component will let you override
-          these default settings, via their <b>Custom Frame Settings</b> checkbox.\n\nFor
-          instance, if a specific Reflection Probe in a Scene doesn't need to render
-          Shadow Maps, Decals, or Volumetric Clouds, make sure you disable these
-          features to maximize performance. \n\nYou may also tune the <b>Maximum
-          LOD Level</b> to prevent Realtime Reflections from rendering unnecessarily
-          complex objects, and recoup precious rendering time.\n\nMastering <b>Frame
-          Settings</b> and per-object <b>Custom Frame Settings</b> is crucial to
-          reach an optimal framerate."
+        m_Untranslated: "You can control exactly which HDRP features the cameras and reflection probes can render, such as Rendering features, Post-Processing, Lighting, LODs, etc.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP Global Settings.</b>\n\n2. Scroll down to the <b>Frame Settings (Default Values)</b> section.\n\n3. Under  <b>Camera</b> > <b>Rendering,</b> disable the <b>Decals.</b>\n\nNote that the water puddles and other dirt decals have disappeared, now that the feature has been disabled for all cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert Tips</b>\n\nEach Camera and Reflection Probe component will let you override these default settings, via their <b>Custom Frame Settings</b> checkbox.\n\nFor instance, if a specific Reflection Probe in a Scene doesn't need to render Shadow Maps, Decals, or Volumetric Clouds, make sure you disable these features to maximize performance. \n\nYou may also tune the <b>Maximum LOD Level</b> to prevent Realtime Reflections from rendering unnecessarily complex objects, and recoup precious rendering time.\n\nMastering <b>Frame Settings</b> and per-object <b>Custom Frame Settings</b> is crucial to reach an optimal framerate."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -89,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

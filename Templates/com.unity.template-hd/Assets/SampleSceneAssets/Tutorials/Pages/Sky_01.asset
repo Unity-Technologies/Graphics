@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Sky_01
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Set up the Sky
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 8d2b462398d6d8d43be9ae973c781087, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 8d2b462398d6d8d43be9ae973c781087, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,42 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Set up the Sky
+        m_Untranslated: 
       Text:
-        m_Untranslated: "In HDRP, the following Volume overrides are required to
-          set up the <b>Sky:</b>\r\n\r\n\u2022 A <b>Visual Environment</b> override
-          which defines the type of sky to render, such as <b>HDRI Sky,</b> <b>Physically
-          Based Sky</b> or <b>Gradient Sky.</b>\n\n\u2022 A dedicated Sky override
-          that matches the type of Sky set in the <b>Visual Environment.</b>\n\n\n<b>Important</b>\r\n\nIn
-          typical scenarios, the objects in the Scene rely on nearby Light Probes
-          and Lightmaps for their indirect lighting. However, in case these two do
-          not exist, HDRP will fall back on the Global Ambient Probe based on the
-          Sky.\n\nFor this reason, in the <b>Visual Environment</b> override, it
-          is important to select the <b>Ambient Mode</b> to control how the Global
-          Ambient Probe's lighting is generated. Two modes are available:\n\n1. <b>Dynamic:</b>
-          Its ambient lighting is automatically refreshed based on the currently
-          rendered Sky. \n\nThis mode is very straightforward as it will ensure the
-          ambient lighting in the scene always matches the rendered Sky seen by the
-          camera.\n\n2. <b>Static:</b> Its ambient lighting will be generated based
-          on the <b>Volume Profile</b> and the <b>Static Lighting Sky</b> assigned
-          in the <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b>
-          tab. \n\nThis mode is useful for Scenes whose Sky never varies, or in situations
-          when the indirect lighting from the Global Ambient Probe needs to be generated
-          from another Sky than the one rendered by the camera itself."
+        m_Untranslated: "In HDRP, the following Volume overrides are required to set up the <b>Sky:</b>\r\n\r\n\u2022 A <b>Visual Environment</b> override which defines the type of sky to render, such as <b>HDRI Sky,</b> <b>Physically Based Sky</b> or <b>Gradient Sky.</b>\n\n\u2022 A dedicated Sky override that matches the type of Sky set in the <b>Visual Environment.</b>\n\n\n<b>Important</b>\r\n\nIn typical scenarios, the objects in the Scene rely on nearby Light Probes and Lightmaps for their indirect lighting. However, in case these two do not exist, HDRP will fall back on the Global Ambient Probe based on the Sky.\n\nFor this reason, in the <b>Visual Environment</b> override, it is important to select the <b>Ambient Mode</b> to control how the Global Ambient Probe's lighting is generated. Two modes are available:\n\n1. <b>Dynamic:</b> Its ambient lighting is automatically refreshed based on the currently rendered Sky. \n\nThis mode is very straightforward as it will ensure the ambient lighting in the scene always matches the rendered Sky seen by the camera.\n\n2. <b>Static:</b> Its ambient lighting will be generated based on the <b>Volume Profile</b> and the <b>Static Lighting Sky</b> assigned in the <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b> tab. \n\nThis mode is useful for Scenes whose Sky never varies, or in situations when the indirect lighting from the Global Ambient Probe needs to be generated from another Sky than the one rendered by the camera itself."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -92,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

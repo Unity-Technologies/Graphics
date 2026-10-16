@@ -208,6 +208,7 @@ MonoBehaviour:
   m_PrefilterUseLegacyLightmaps: 0
   m_PrefilterUseLightmapBicubicSampling: 0
   m_ShouldUseConservativeEnclosingSphere: 0
+  m_NumIterationsEnclosingSphere: 64
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 0
@@ -217,11 +218,11 @@ MonoBehaviour:
     supportSubsurfaceScattering: 1
     subsurfaceScatteringAttenuation: 1
     sssSampleBudget:
-      m_Values: 140000002800000050000000
+      m_Values: 140000002800000050000000i
       m_SchemaId:
         m_Id: With3Levels
     sssDownsampleSteps:
-      m_Values: 000000000000000000000000
+      m_Values: 000000000000000000000000i
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
@@ -254,11 +255,11 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 2
     planarReflectionResolution:
-      m_Values: 000100000004000000080000
+      m_Values: 000100000004000000080000i
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000100000002000000040000
+      m_Values: 000100000002000000040000i
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -333,15 +334,15 @@ MonoBehaviour:
       cachedAreaLightShadowAtlas: 1024
       allowDirectionalMixedCachedShadows: 0
       shadowResolutionDirectional:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000080000i
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000080000i
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000080000i
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 2048
@@ -356,7 +357,7 @@ MonoBehaviour:
       atlasWidth: 4096
       atlasHeight: 4096
       transparentTextureResolution:
-        m_Values: 000100000002000000040000
+        m_Values: 000100000002000000040000i
         m_SchemaId:
           m_Id: With3Levels
       perChannelMask: 0
@@ -388,6 +389,7 @@ MonoBehaviour:
       FSR2InjectionPoint: 0
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
+      upscalerOptions: []
       maxPercentage: 100
       minPercentage: 100
       dynResType: 1
@@ -409,36 +411,36 @@ MonoBehaviour:
       cameraJitter: 0
       allowMotionBlur: 0
     postProcessQualitySettings:
-      NearBlurSampleCount: 030000000500000008000000
+      NearBlurSampleCount: 030000000500000008000000i
       NearBlurMaxRadius:
       - 2
       - 4
       - 7
-      FarBlurSampleCount: 04000000070000000e000000
+      FarBlurSampleCount: 04000000070000000e000000i
       FarBlurMaxRadius:
       - 5
       - 8
       - 13
-      DoFResolution: 040000000200000001000000
-      DoFHighQualityFiltering: 000101
-      DoFPhysicallyBased: 000000
+      DoFResolution: 040000000200000001000000i
+      DoFHighQualityFiltering: 000101y
+      DoFPhysicallyBased: 000000y
       AdaptiveSamplingWeight:
       - 0.5
       - 0.75
       - 2
-      LimitManualRangeNearBlur: 000000
-      MotionBlurSampleCount: 04000000080000000c000000
-      BloomRes: 040000000200000002000000
-      BloomHighQualityFiltering: 000101
-      BloomHighQualityPrefiltering: 000001
-      ChromaticAberrationMaxSamples: 03000000060000000c000000
+      LimitManualRangeNearBlur: 000000y
+      MotionBlurSampleCount: 04000000080000000c000000i
+      BloomRes: 040000000200000002000000i
+      BloomHighQualityFiltering: 000101y
+      BloomHighQualityPrefiltering: 000001y
+      ChromaticAberrationMaxSamples: 03000000060000000c000000i
     lightSettings:
       useContactShadow:
-        m_Values: 000001
+        m_Values: 000001y
         m_SchemaId:
           m_Id: With3Levels
     maximumLODLevel:
-      m_Values: 000000000000000000000000
+      m_Values: 000000000000000000000000i
       m_SchemaId:
         m_Id: With3Levels
     lodBias:
@@ -449,27 +451,27 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 040000000600000010000000
-      AOFullRes: 000001
-      AOMaximumRadiusPixels: 200000002800000050000000
-      AOBilateralUpsample: 000101
-      AODirectionCount: 010000000200000004000000
-      ContactShadowSampleCount: 060000000a00000010000000
-      SSRMaxRaySteps: 100000002000000040000000
-      SSGIRaySteps: 200000004000000080000000
-      SSGIDenoise: 010101
-      SSGIHalfResDenoise: 010000
+      AOStepCount: 040000000600000010000000i
+      AOFullRes: 000001y
+      AOMaximumRadiusPixels: 200000002800000050000000i
+      AOBilateralUpsample: 000101y
+      AODirectionCount: 010000000200000004000000i
+      ContactShadowSampleCount: 060000000a00000010000000i
+      SSRMaxRaySteps: 100000002000000040000000i
+      SSGIRaySteps: 200000004000000080000000i
+      SSGIDenoise: 010101y
+      SSGIHalfResDenoise: 010000y
       SSGIDenoiserRadius:
       - 0.75
       - 0.5
       - 0.5
-      SSGISecondDenoise: 010101
+      SSGISecondDenoise: 010101y
       RTAORayLength:
       - 0.5
       - 3
       - 20
-      RTAOSampleCount: 010000000200000008000000
-      RTAODenoise: 010101
+      RTAOSampleCount: 010000000200000008000000i
+      RTAODenoise: 010101y
       RTAODenoiserRadius:
       - 0.25
       - 0.5
@@ -478,15 +480,15 @@ MonoBehaviour:
       - 50
       - 50
       - 50
-      RTGIFullResolution: 000001
-      RTGIRaySteps: 200000003000000040000000
-      RTGIDenoise: 010101
-      RTGIHalfResDenoise: 010000
+      RTGIFullResolution: 000001y
+      RTGIRaySteps: 200000003000000040000000i
+      RTGIDenoise: 010101y
+      RTGIHalfResDenoise: 010000y
       RTGIDenoiserRadius:
       - 0.75
       - 0.5
       - 0.25
-      RTGISecondDenoise: 010101
+      RTGISecondDenoise: 010101y
       RTRMinSmoothness:
       - 0.6
       - 0.4
@@ -499,9 +501,9 @@ MonoBehaviour:
       - 50
       - 50
       - 50
-      RTRFullResolution: 000001
-      RTRRayMaxIterations: 200000003000000040000000
-      RTRDenoise: 010101
+      RTRFullResolution: 000001y
+      RTRRayMaxIterations: 200000003000000040000000i
+      RTRDenoise: 010101y
       RTRDenoiserRadiusDimmer:
       - 0.75
       - 0.75
@@ -510,7 +512,7 @@ MonoBehaviour:
       - 1
       - 1
       - 1
-      Fog_ControlMode: 000000000000000000000000
+      Fog_ControlMode: 000000000000000000000000i
       Fog_Budget:
       - 0.166
       - 0.33
@@ -524,6 +526,7 @@ MonoBehaviour:
       smallMeshScreenPercentage: 0
       enableOcclusionCullingInCameras: 0
       useDepthPrepassForOccluders: 1
+      shadowSmallMeshScreenPercentages: {x: 0, y: 0, z: 0, w: 0}
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 

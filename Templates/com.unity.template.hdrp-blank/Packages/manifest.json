@@ -5,6 +5,6 @@
     "com.unity.ide.visualstudio": "2.0.28",
     "com.unity.inputsystem": "6.7.0",
     "com.unity.render-pipelines.high-definition": "17.7.0",
-    "com.unity.ugui": "2.7.0"
+    "com.unity.ugui": "7.0.0"
   }
 }

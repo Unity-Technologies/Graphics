@@ -199,6 +199,8 @@ MonoBehaviour:
       - rid: 6588237625476251652
       - rid: 6588237625476251653
       - rid: 5029281976493539338
+      - rid: 1694311474834964482
+      - rid: 1694311474834964483
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -244,6 +246,15 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 1694311474834964482
+      type: {class: AlphaUpscaler/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_AlphaUpscaleCS: {fileID: 7200000, guid: f10c23179af641eea368ee165b2e97cf, type: 3}
+    - rid: 1694311474834964483
+      type: {class: UpscalerReactiveMaskResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 0
+        m_reactiveMaskPS: {fileID: 4800000, guid: a32e79e9a0e86a14894684c864a169a3, type: 3}
     - rid: 5029281976493539338
       type: {class: SurfaceCacheRenderPipelineResourceSet, ns: UnityEngine.Rendering, asm: Unity.SurfaceCache.Runtime}
       data:

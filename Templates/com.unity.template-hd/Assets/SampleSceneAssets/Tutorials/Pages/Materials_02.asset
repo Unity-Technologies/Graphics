@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Materials_02
   m_EditorClassIdentifier: 
+  <IndexInTutorial>k__BackingField: 0
   Title:
     m_Untranslated: Mask Map, Metalness and Smoothness
-  m_Paragraphs:
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: c81ec954de18358428e78a7ccfff0c70, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: c81ec954de18358428e78a7ccfff0c70, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -39,49 +51,51 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'The materials in HDRP can optionally use an RGBA <b>Mask
-          Map</b> to define different texture properties, such as metalness (R),
-          ambient occlusion (G), detail mask (B), and smoothness (A).
+        m_Untranslated: 'The materials in HDRP can optionally use an RGBA <b>Mask Map</b> to define different texture properties, such as metalness (R), ambient occlusion (G), detail mask (B), and smoothness (A).
 
 
-          1.
-          In the <i>Hierarchy,</i> expand the <b>Structure</b> > <b>Room3</b> > <b>UnityMaterialBallSmall</b>
-          > <b>Ball</b> GameObject.
+          1. In the <i>Hierarchy,</i> expand the <b>Structure</b> > <b>Room3</b> > <b>UnityMaterialBallSmall</b> > <b>Ball</b> GameObject.
 
 
           2. Select the <b>Ball_Part</b> GameObject.
 
 
-          3.
-          In its <i>Inspector,</i> expand the <i>Brass_Mat</i> Material.
+          3. In its <i>Inspector,</i> expand the <i>Brass_Mat</i> Material.
 
 
-          4.
-          Remove the <b>Mask Map</b> or set it to None, and see that the ball becomes
-          uniformly smooth as the smoothness variations from the Mask Map texture
-          are removed.
+          4. Remove the <b>Mask Map</b> or set it to None, and see that the ball becomes uniformly smooth as the smoothness variations from the Mask Map texture are removed.
 
 
-          5. Experiment with the <b>Metalness</b> and <b>Smoothness</b>
-          sliders, to change the behavior of the surface.
+          5. Experiment with the <b>Metalness</b> and <b>Smoothness</b> sliders, to change the behavior of the surface.
 
 
-          6. Undo your
-          changes.'
+          6. Undo your changes.'
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -103,6 +117,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

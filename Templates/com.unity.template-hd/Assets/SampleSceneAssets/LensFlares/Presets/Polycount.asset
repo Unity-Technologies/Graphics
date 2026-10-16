@@ -13,11 +13,19 @@ MonoBehaviour:
   m_Name: Polycount
   m_EditorClassIdentifier: 
   elements:
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.06
     lensFlareTexture: {fileID: 0}
     uniformScale: 26.63
@@ -26,7 +34,42 @@ MonoBehaviour:
     m_Count: 5
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -110,6 +153,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -173,11 +217,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 1
     lensFlareTexture: {fileID: 2800000, guid: df2034d9b8cbd4b4f87e2f8da75edeb6, type: 3}
     uniformScale: 6.38
@@ -186,7 +238,42 @@ MonoBehaviour:
     m_Count: 5
     preserveAspectRatio: 0
     rotation: 16.36
+    tintColorType: 0
     tint: {r: 1, g: 0.8941177, b: 0.7137255, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 0
@@ -270,6 +357,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -333,11 +421,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.18
     lensFlareTexture: {fileID: 2800000, guid: 62bb1123d19cf634b8795e456d1fe37f, type: 3}
     uniformScale: 6
@@ -346,7 +442,42 @@ MonoBehaviour:
     m_Count: 8
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 0
@@ -430,6 +561,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 6
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -493,11 +625,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: -0.15
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.04
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
@@ -506,7 +646,42 @@ MonoBehaviour:
     m_Count: 11
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 0.023529414, b: 0.7803922, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -617,6 +792,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -680,11 +856,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: -0.16
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.11
     lensFlareTexture: {fileID: 0}
     uniformScale: 0.27
@@ -693,7 +877,42 @@ MonoBehaviour:
     m_Count: 17
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -777,6 +996,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 6
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -840,11 +1060,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: -0.13
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.01
     lensFlareTexture: {fileID: 0}
     uniformScale: 4.3
@@ -853,7 +1081,42 @@ MonoBehaviour:
     m_Count: 11
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 0.011764707, g: 0.07058824, b: 0.48235297, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -937,6 +1200,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -1000,11 +1264,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: -0.13
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.003
     lensFlareTexture: {fileID: 0}
     uniformScale: 4.3
@@ -1013,7 +1285,42 @@ MonoBehaviour:
     m_Count: 11
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 0.58431375, g: 0.37254903, b: 0.85098046, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -1097,6 +1404,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -1160,11 +1468,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: 1.1
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.05
     lensFlareTexture: {fileID: 0}
     uniformScale: 1.1
@@ -1173,7 +1489,42 @@ MonoBehaviour:
     m_Count: 9
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -1257,6 +1608,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 6
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0
@@ -1320,11 +1672,19 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - visible: 1
+  - lensFlareDataSRP: {fileID: 0}
+    visible: 1
     position: -0.15
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
+    ringThickness: 0.25
+    hoopFactor: 1
+    noiseAmplitude: 1
+    noiseFrequency: 1
+    noiseSpeed: 0
+    shapeCutOffSpeed: 0
+    shapeCutOffRadius: 10
     m_LocalIntensity: 0.01
     lensFlareTexture: {fileID: 0}
     uniformScale: 1.4
@@ -1333,7 +1693,42 @@ MonoBehaviour:
     m_Count: 5
     preserveAspectRatio: 0
     rotation: 0
+    tintColorType: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tintGradient:
+      <textureSize>k__BackingField: 4
+      m_Gradient:
+        serializedVersion: 2
+        key0: {r: 0, g: 0, b: 0, a: 0}
+        key1: {r: 1, g: 1, b: 1, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0}
+        key3: {r: 0, g: 0, b: 0, a: 0}
+        key4: {r: 0, g: 0, b: 0, a: 0}
+        key5: {r: 0, g: 0, b: 0, a: 0}
+        key6: {r: 0, g: 0, b: 0, a: 0}
+        key7: {r: 0, g: 0, b: 0, a: 0}
+        ctime0: 0
+        ctime1: 65535
+        ctime2: 0
+        ctime3: 0
+        ctime4: 0
+        ctime5: 0
+        ctime6: 0
+        ctime7: 0
+        atime0: 0
+        atime1: 65535
+        atime2: 0
+        atime3: 0
+        atime4: 0
+        atime5: 0
+        atime6: 0
+        atime7: 0
+        m_Mode: 2
+        m_ColorSpace: -1
+        m_NumColorKeys: 2
+        m_NumAlphaKeys: 2
+      mode: 2
+      colorSpace: -1
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -1417,6 +1812,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     m_IntensityVariation: 0

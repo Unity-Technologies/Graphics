@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Exposure_03
   m_EditorClassIdentifier: 
+  <IndexInTutorial>k__BackingField: 0
   Title:
     m_Untranslated: Automatic Histogram Exposure
-  m_Paragraphs:
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 058437c7e1c18774aa2ba060ec5bc322, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 058437c7e1c18774aa2ba060ec5bc322, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -39,35 +51,33 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Let's now switch the Exposure Mode to another one that can
-          automatically adapt to the Scene's lighting.\n\n1. In the <i>Hierarchy,</i>
-          select the <b>Global Volume</b> created at the previous step.\n\n2. In
-          its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\n\nExplore
-          the Scene and notice how the camera now imitates the human eye adaptation
-          or the automatic exposure system of a camera. Dark areas may become brighter,
-          and bright ones may turn darker, automatically.\n\n\n<b>Expert tips</b>\n\n\u2022
-          Use the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how
-          much the Automatic Exposure can fluctuate within a fixed range of values,
-          to prevent it from displaying too dark or too bright images.\n\n\u2022
-          Use the <b>Compensation</b> override to slightly nudge the exposure up or
-          down in case you aren't exactly satisfied with the exposure value selected
-          by the system.\n\n\u2022 HDRP offers a wide range of mid grey targets,
-          from 12.5% to 18% grey, to simulate the exposure system from most camera
-          manufacturers."
+        m_Untranslated: "Let's now switch the Exposure Mode to another one that can automatically adapt to the Scene's lighting.\n\n1. In the <i>Hierarchy,</i> select the <b>Global Volume</b> created at the previous step.\n\n2. In its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\n\nExplore the Scene and notice how the camera now imitates the human eye adaptation or the automatic exposure system of a camera. Dark areas may become brighter, and bright ones may turn darker, automatically.\n\n\n<b>Expert tips</b>\n\n\u2022 Use the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how much the Automatic Exposure can fluctuate within a fixed range of values, to prevent it from displaying too dark or too bright images.\n\n\u2022 Use the <b>Compensation</b> override to slightly nudge the exposure up or down in case you aren't exactly satisfied with the exposure value selected by the system.\n\n\u2022 HDRP offers a wide range of mid grey targets, from 12.5% to 18% grey, to simulate the exposure system from most camera manufacturers."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -89,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

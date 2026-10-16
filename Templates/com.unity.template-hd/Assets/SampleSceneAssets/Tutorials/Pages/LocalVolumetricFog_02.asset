@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: LocalVolumetricFog_02
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Tune the Local Volumetric Fog
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 75d134b85680cf54f828ee9da966f7b2, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 75d134b85680cf54f828ee9da966f7b2, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,29 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Tune the Local Volumetric Fog
+        m_Untranslated: 
       Text:
-        m_Untranslated: "1. In the <i>Hierarchy</i> under <b>Lighting,</b> select
-          <b>Local Volumetric Fog.</b> \r\n\n2. Toggle the object off and on.\n\r\nNotice
-          how disabling the <b>Local Volumetric Fog</b> reduces the local fog density,
-          and how the sunlight reacts to it once it has been re-enabled.\n\n3. In
-          its <i>Inspector,</i> experiment with the <b>Single Scattering Albedo</b>
-          tint as well as the <b>Fog Distance</b> to change the look and feel of
-          the local fog.\n\n4. Undo your changes."
+        m_Untranslated: "1. In the <i>Hierarchy</i> under <b>Lighting,</b> select <b>Local Volumetric Fog.</b> \r\n\n2. Toggle the object off and on.\n\r\nNotice how disabling the <b>Local Volumetric Fog</b> reduces the local fog density, and how the sunlight reacts to it once it has been re-enabled.\n\n3. In its <i>Inspector,</i> experiment with the <b>Single Scattering Albedo</b> tint as well as the <b>Fog Distance</b> to change the look and feel of the local fog.\n\n4. Undo your changes."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -79,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

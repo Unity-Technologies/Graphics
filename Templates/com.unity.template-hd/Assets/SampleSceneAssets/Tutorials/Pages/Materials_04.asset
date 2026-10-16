@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Materials_04
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Subsurface Scattering
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: b7657e44793deeb4ea14e136dfe1a6a0, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: b7657e44793deeb4ea14e136dfe1a6a0, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,33 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Subsurface Scattering
+        m_Untranslated: 
       Text:
-        m_Untranslated: "<b>Subsurface Scattering</b> simulates light that is able
-          to penetrate material and escape in multiple directions. \r\n\r\nYou can
-          use it to make organic and translucent materials, like skin and vegetation.
-          HDRP implements subsurface scattering using a screen-space blur technique.\r\n\n1.
-          In the <i>Project</i> Window, select the <b>Bamboo_Leaf_A</b> material.\n\n2.
-          In its <i>Inspector,</i> in the <b>Surface Options</b> section, switch
-          the <b>Material Type</b> from <b>Subsurface Scattering</b> to <b>Standard.</b>\n\n3.
-          Notice that the light cannot penetrate anymore through the leaves, as the
-          material is now fully opaque.\n\n4. Undo your change.\n\n5. In the <b>Surface
-          Inputs</b> section, experiment with the <b>Thickness Remapping</b> slider
-          to alter the transmission of the light defined by the <b>Thickness map.</b>"
+        m_Untranslated: "<b>Subsurface Scattering</b> simulates light that is able to penetrate material and escape in multiple directions. \r\n\r\nYou can use it to make organic and translucent materials, like skin and vegetation. HDRP implements subsurface scattering using a screen-space blur technique.\r\n\n1. In the <i>Project</i> Window, select the <b>Bamboo_Leaf_A</b> material.\n\n2. In its <i>Inspector,</i> in the <b>Surface Options</b> section, switch the <b>Material Type</b> from <b>Subsurface Scattering</b> to <b>Standard.</b>\n\n3. Notice that the light cannot penetrate anymore through the leaves, as the material is now fully opaque.\n\n4. Undo your change.\n\n5. In the <b>Surface Inputs</b> section, experiment with the <b>Thickness Remapping</b> slider to alter the transmission of the light defined by the <b>Thickness map.</b>"
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -83,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

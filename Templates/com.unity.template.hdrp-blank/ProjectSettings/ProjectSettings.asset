@@ -76,6 +76,9 @@ PlayerSettings:
   androidUseSwappy: 0
   androidRequestedVisibleInsets: 0
   m_AndroidWindowInsets:
+    4:
+      overlapping: 0
+      appearance: 0
     2:
       overlapping: 0
       appearance: 0
@@ -206,10 +209,8 @@ PlayerSettings:
   strictShaderVariantMatching: 0
   VertexChannelCompressionMask: 4054
   iPhoneSdkVersion: 988
-  iOSSimulatorArchitecture: 0
   iOSTargetOSVersionString: 16.0
   tvOSSdkVersion: 0
-  tvOSSimulatorArchitecture: 0
   tvOSRequireExtendedGameController: 0
   tvOSTargetOSVersionString: 16.0
   VisionOSSdkVersion: 0
@@ -1043,6 +1044,7 @@ PlayerSettings:
   androidVulkanDenyFilterList: []
   androidVulkanAllowFilterList: []
   androidVulkanDeviceFilterListAsset: {fileID: 0}
+  d3d12CollectStateObjectDatabase: 0
   d3d12DeviceFilterListAsset: {fileID: 0}
   webGPUDeviceFilterListAsset: {fileID: 0}
   allowedHttpConnections: 3
