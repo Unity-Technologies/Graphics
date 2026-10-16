@@ -13,8 +13,7 @@ namespace UnityEditor
 
         MaterialProperty[] properties;
 
-        // ShaderGraph materials use the SG-internal RenderFace enum, which adds the BackToFront /
-        // FrontToBack two-pass values not exposed in the public BaseShaderGUI.RenderFace.
+        // Hidden when the material exposes no surface options.
         protected override void DrawRenderFaceDropdown()
             => DoEnumPopup<UnityEditor.Rendering.Universal.ShaderGraph.RenderFace>(Styles.cullingText, cullingProp);
 

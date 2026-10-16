@@ -666,25 +666,14 @@ namespace UnityEditor
         /// </summary>
         protected virtual uint materialFilter => uint.MaxValue;
 
-        // ShaderGraph-derived material GUIs override this to draw the Render Face dropdown using
-        // the SG-internal RenderFace enum (which adds the two-pass BackToFront / FrontToBack values).
-        // The standalone material inspector keeps the public 3-value enum because two-pass cull is
-        // SG-only at the UI layer and isn't part of the BaseShaderGUI public API surface.
         /// <summary>
         /// Draws the Render Face dropdown for the cull mode property.
         /// </summary>
         protected virtual void DrawRenderFaceDropdown() => DoEnumPopup<RenderFace>(Styles.cullingText, cullingProp);
 
-        // True if the _Cull value renders both faces, including the SG-only two-pass values 3/4
-        // (BackToFront/FrontToBack). Magic numbers avoid a dependency on the SG-internal RenderFace enum.
         internal static bool CullValueRendersBothFaces(float cullValue)
         {
-            const int kCullOffOrBoth = 0;            // RenderFace.Both / CullMode.Off
-            const int kRenderFaceBackToFront = 3;    // SG-only two-pass
-            const int kRenderFaceFrontToBack = 4;    // SG-only two-pass
-
-            int v = (int)cullValue;
-            return v == kCullOffOrBoth || v == kRenderFaceBackToFront || v == kRenderFaceFrontToBack;
+            return (int)cullValue == 0;    // RenderFace.Both / CullMode.Off
         }
 
         internal uint m_StencilFoldoutState = 0;
@@ -991,8 +980,6 @@ namespace UnityEditor
             DrawClampedStencilProperty(Styles.stencilWriteMask, stencilWriteMaskProp);
 
             var renderFace = (RenderFace)cullingProp.floatValue;
-            // SG-derived materials may have a two-pass _Cull value (3 or 4) that's not in the
-            // public RenderFace enum but still logically renders both faces.
             bool rendersBothFaces = CullValueRendersBothFaces(cullingProp.floatValue);
 
             if (renderFace != RenderFace.Back)
@@ -1288,6 +1275,15 @@ namespace UnityEditor
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+
+            // Render Face: the engine clamps out-of-range cull values when rendering; mirror that so the inspector agrees.
+            if (material.HasProperty(Property.CullMode))
+            {
+                float cull = material.GetFloat(Property.CullMode);
+                float clampedCull = Mathf.Clamp(cull, (float)RenderFace.Both, (float)RenderFace.Front);
+                if (cull != clampedCull)
+                    material.SetFloat(Property.CullMode, clampedCull);
+            }
         }
 
         internal static void UpdateMotionVectorKeywordsAndPass(Material material)
