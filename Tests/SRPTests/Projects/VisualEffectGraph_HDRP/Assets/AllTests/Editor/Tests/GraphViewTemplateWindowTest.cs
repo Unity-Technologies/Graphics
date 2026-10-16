@@ -324,6 +324,9 @@ namespace UnityEditor.VFX.Test
         [Timeout(30 * 60 * 1000)]
         public IEnumerator Soak_Filter_Selection_Cycle()
         {
+            if (Environment.GetEnvironmentVariable("VFX_SOAK_TESTS") != "1")
+                Assert.Ignore("Set VFX_SOAK_TESTS=1 to run this soak test.");
+
             const int k_Iterations = 1000;
 
             var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
