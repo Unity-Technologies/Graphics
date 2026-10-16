@@ -119,18 +119,26 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="requirements">The pass input requirements.</param>
         /// <param name="renderPassEvent">The event at which the pass runs. When only Depth (or Motion) is requested without Normal, a pass before or at BeforeRenderingOpaques gets a prepass instead of a depth copy, so it remains compatible.</param>
+        /// <param name="usesDeferredLighting">True when the renderer actually runs the Deferred (or Deferred+) path this frame (UniversalRenderer.usesDeferredLighting, not the requested mode).</param>
         /// <remarks>
         /// This method mirrors how the render pipeline fulfills pass input requirements. Keep it in sync with pipeline behavior:
         /// <list type="bullet">
         /// <item><b>Color:</b> The pipeline adds a copy color pass and exposes the result as a global texture. That store/load cannot stay on tile and triggers Tile-Only validation.</item>
         /// <item><b>Depth without Normal:</b> The pipeline fulfills depth-only by adding a depth copy pass when the pass runs after opaque. When the pass runs at or before BeforeRenderingOpaques, the pipeline adds a prepass instead, which is compatible.</item>
         /// <item><b>Motion without Normal:</b> Motion implies depth; same as Depth without Normal with respect to prepass vs copy and renderPassEvent.</item>
+        /// <item><b>Deferred:</b> The prepass always renders into the camera depth attachment (so the GBuffer pass can reuse it), never directly into the camera depth texture.
+        /// Any Depth, Normal or Motion requirement therefore results in a depth copy that samples the on-tile depth attachment, which triggers Tile-Only validation.</item>
         /// </list>
         /// When adding or changing requirements or pipeline behavior, update this method and the corresponding editor validation (e.g. FullScreenPassRendererFeatureEditor) so they stay consistent.
         /// </remarks>
-        internal static bool IsCompatibleWithTileOnlyMode(ScriptableRenderPassInput requirements, RenderPassEvent renderPassEvent)
+        internal static bool IsCompatibleWithTileOnlyMode(ScriptableRenderPassInput requirements, RenderPassEvent renderPassEvent, bool usesDeferredLighting)
         {
             if ((requirements & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None)
+                return false;
+            // Deferred: the camera depth texture can only be produced by copying the depth attachment (see UniversalRenderer CalculateDepthCopySchedules),
+            // regardless of renderPassEvent or whether Normal is requested.
+            const ScriptableRenderPassInput k_DepthDependentInputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal | ScriptableRenderPassInput.Motion;
+            if (usesDeferredLighting && (requirements & k_DepthDependentInputs) != ScriptableRenderPassInput.None)
                 return false;
             // Depth without Normal: pipeline uses a depth copy when the pass runs after opaque; when pass is before or at opaque, pipeline adds a prepass instead (compatible).
             if ((requirements & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None
