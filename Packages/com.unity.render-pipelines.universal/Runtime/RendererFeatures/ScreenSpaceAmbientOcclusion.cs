@@ -173,6 +173,10 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_RasterizationShader;
         private Texture2D[] m_BlueNoise256Textures;
 
+        // AddRenderPasses runs every frame for every camera, and one feature instance is shared by all of them.
+        // Log the Tile-Only incompatibility only once per feature lifetime (reset on (re)create) instead of spamming the Console.
+        private bool m_TileOnlyIncompatibilityLogged;
+
         // Internal
         [Obsolete("Configuring SSAO via the renderer feature settings is deprecated. Use the ScreenSpaceAmbientOcclusionVolumeOverride volume component instead.", false)]
         internal ref ScreenSpaceAmbientOcclusionSettings settings => ref m_Settings;
@@ -188,6 +192,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Create()
         {
+            m_TileOnlyIncompatibilityLogged = false;
+
             if (TryPrepareResources())
             {
                 m_AAOPass = new AAOPass(m_RasterizationShader, m_BlueNoise256Textures);
@@ -244,11 +250,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer is UniversalRenderer universalRenderer && universalRenderer.useTileOnlyMode)
             {
-                if (!RenderingUtils.IsCompatibleWithTileOnlyMode(resolvedSettings.requirements, resolvedSettings.passEvent))
+                if (!RenderingUtils.IsCompatibleWithTileOnlyMode(resolvedSettings.requirements, resolvedSettings.passEvent, usesDeferred))
                 {
-                    Debug.LogErrorFormat(
-                        "Screen Space Ambient Occlusion \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
-                        name, renderer.name);
+                    LogTileOnlyIncompatibilityOnce(renderer);
                     return;
                 }
 
@@ -261,9 +265,7 @@ namespace UnityEngine.Rendering.Universal
                 // Depth Normals in Tile-Only Mode.
                 if (resolvedSettings.afterOpaque && resolvedSettings.isDepthNormalsSource)
                 {
-                    Debug.LogErrorFormat(
-                        "Screen Space Ambient Occlusion \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
-                        name, renderer.name);
+                    LogTileOnlyIncompatibilityOnce(renderer);
                     return;
                 }
             }
@@ -271,6 +273,17 @@ namespace UnityEngine.Rendering.Universal
             activePass.renderPassEvent = resolvedSettings.passEvent;
             activePass.ConfigureInput(resolvedSettings.requirements);
             renderer.EnqueuePass(activePass);
+        }
+
+        private void LogTileOnlyIncompatibilityOnce(ScriptableRenderer renderer)
+        {
+            if (m_TileOnlyIncompatibilityLogged)
+                return;
+
+            m_TileOnlyIncompatibilityLogged = true;
+            Debug.LogWarningFormat(
+                "Screen Space Ambient Occlusion \"{0}\" is skipped: the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",
+                name, renderer.name);
         }
 
         private static FeatureSettings ResolveFeatureSettings(ScreenSpaceAmbientOcclusionVolumeOverride volume, bool usesDeferred)
