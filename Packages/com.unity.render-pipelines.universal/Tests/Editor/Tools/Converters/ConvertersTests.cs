@@ -143,6 +143,24 @@ namespace UnityEditor.Rendering.Universal.Tools
             protected override List<MaterialUpgrader> upgraders => new();
         }
 
+        // Records whether searches have to complete synchronously while it scans
+        class SynchronousFlagConverter : IRenderPipelineConverter
+        {
+            public static bool synchronousDuringScan;
+
+            public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+            {
+                synchronousDuringScan = SearchServiceUtils.synchronous;
+                onScanFinish(new List<IRenderPipelineConverterItem>());
+            }
+
+            public Status Convert(IRenderPipelineConverterItem item, out string message)
+            {
+                message = null;
+                return Status.Success;
+            }
+        }
+
         class ThrowingScanConverter : IRenderPipelineConverter
         {
             public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
@@ -217,6 +235,37 @@ namespace UnityEditor.Rendering.Universal.Tools
             Assert.AreEqual("Completed", scanFile.status);
             Assert.AreEqual(1, scanFile.convertersCompleted);
             CollectionAssert.AreEqual(new[] { "DeferredItem" }, scanFile.converters[0].items.ConvertAll(item => item.name));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ScanToFile_SynchronousFlagIsOnlySetWhileScanning(bool synchronous)
+        {
+            SynchronousFlagConverter.synchronousDuringScan = !synchronous;
+
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(SynchronousFlagConverter) },
+                "ConverterScanSynchronousTest.json", null, synchronous);
+            File.Delete(filePath);
+
+            Assert.AreEqual(synchronous, SynchronousFlagConverter.synchronousDuringScan);
+            Assert.IsFalse(SearchServiceUtils.synchronous, "The synchronous flag must not outlive the scan.");
+        }
+
+        [Test]
+        public void ScanToFile_ScanAlreadyInProgress_DoesNotLeaveSynchronousFlagSet()
+        {
+            Converters.ScanToFile(new List<Type> { typeof(DeferredScanConverter) }, "ConverterScanBusyTest.json");
+
+            try
+            {
+                Assert.Throws<InvalidOperationException>(() => Converters.ScanToFile(
+                    new List<Type> { typeof(ScanOnlyConverter) }, "ConverterScanBusyTest2.json", null, true));
+                Assert.IsFalse(SearchServiceUtils.synchronous, "A scan which could not start must not leave the flag set.");
+            }
+            finally
+            {
+                Converters.CancelScan();
+            }
         }
 
         [Test]
