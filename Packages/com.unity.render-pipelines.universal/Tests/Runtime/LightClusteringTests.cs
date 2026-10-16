@@ -507,6 +507,8 @@ namespace UnityEngine.Rendering.Universal.Tests
             const float halfSize = 4f;
             var coverage = ComputePointLightTileCoverage(new float3(x, y, 5f), range, true, halfSize);
 
+            // A tile the disk only touches (zero-area overlap) may go either way, depending on float rounding.
+            const float tangentTolerance = 1e-4f;
             var tileSize = 2f * halfSize / coverage.GetLength(0);
             var missing = new List<int2>();
             var extra = new List<int2>();
@@ -516,9 +518,9 @@ namespace UnityEngine.Rendering.Universal.Tests
                 {
                     var tileMin = -halfSize + tileSize * new float2(tx, ty);
                     var closest = math.clamp(new float2(x, y), tileMin, tileMin + tileSize);
-                    var overlaps = math.distancesq(closest, new float2(x, y)) < range * range;
-                    if (overlaps && !coverage[tx, ty]) missing.Add(new int2(tx, ty));
-                    if (!overlaps && coverage[tx, ty]) extra.Add(new int2(tx, ty));
+                    var distance = math.distance(closest, new float2(x, y));
+                    if (distance < range - tangentTolerance && !coverage[tx, ty]) missing.Add(new int2(tx, ty));
+                    if (distance > range + tangentTolerance && coverage[tx, ty]) extra.Add(new int2(tx, ty));
                 }
             }
 
