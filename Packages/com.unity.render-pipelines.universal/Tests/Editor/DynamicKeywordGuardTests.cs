@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor.Shaders;
@@ -223,6 +224,64 @@ namespace UnityEditor.Rendering.Universal.Tests
                 $"Shader '{shader.name}' is dynamic-branch convertible again for: " +
                 string.Join(", ", unusedExpected) + ". Remove the pair(s) from k_ExpectedRestrictions " +
                 "so the improvement stays locked in.");
+        }
+
+        static IEnumerable<string> ShaderLibraryHeaders()
+        {
+            string root = Path.GetFullPath(k_PackageRoot + "/ShaderLibrary");
+            var names = new List<string>();
+            foreach (string file in Directory.EnumerateFiles(root, "*.hlsl", SearchOption.AllDirectories))
+            {
+                if (!file.Contains(".deprecated."))
+                    names.Add(file.Substring(root.Length + 1).Replace('\\', '/'));
+            }
+            names.Sort();
+            return names;
+        }
+
+        // A keyword fallback that leaves a macro behind makes `#if defined(KW)` true in shaders
+        // that never declare KW.
+        [Test]
+        public void ShaderLibraryHeadersDoNotDefineUndeclaredConvertibleKeywords(
+            [ValueSource(nameof(ShaderLibraryHeaders))] string header)
+        {
+            var source = new StringBuilder();
+            source.AppendLine("Shader \"Hidden/Test/KeywordLeak\" { SubShader { Pass { HLSLPROGRAM");
+            source.AppendLine("#pragma vertex vert");
+            source.AppendLine("#pragma fragment frag");
+            source.AppendLine($"#include \"{k_PackageRoot}/ShaderLibrary/Core.hlsl\"");
+            source.AppendLine($"#include \"{k_PackageRoot}/ShaderLibrary/{header}\"");
+            foreach (string keyword in k_ConvertibleKeywords)
+            {
+                source.AppendLine($"#if defined({keyword})");
+                source.AppendLine($"#error {keyword}");
+                source.AppendLine("#endif");
+            }
+            source.AppendLine("float4 vert() : SV_POSITION { return 0; }");
+            source.AppendLine("half4 frag() : SV_Target { return 0; }");
+            source.AppendLine("ENDHLSL } } }");
+
+            var shader = ShaderUtil.CreateShaderAsset(source.ToString(), false);
+            try
+            {
+                var result = ShaderUtil.GetShaderData(shader).GetSubshader(0).GetPass(0).PreprocessVariant(
+                    ShaderType.Fragment, new string[0], ShaderCompilerPlatform.D3D, BuildTarget.StandaloneWindows64, true);
+                var errors = new List<string>();
+                foreach (var message in result.Messages)
+                {
+                    if (message.severity == ShaderCompilerMessageSeverity.Error)
+                        errors.Add(message.message);
+                }
+                Assert.IsEmpty(errors,
+                    $"Including ShaderLibrary/{header} without declaring these keywords leaves them " +
+                    "defined: " + string.Join(", ", errors) + ". Use `static const bool KW = 0;` for " +
+                    "the disabled fallback, or #undef a locally defined fallback at the end of the file.");
+                Assert.IsTrue(result.Success, $"Failed to preprocess a shader including ShaderLibrary/{header}.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(shader);
+            }
         }
 
         [Test]
