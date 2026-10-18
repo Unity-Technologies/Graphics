@@ -272,7 +272,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
             architectures: new[] { Architecture.X64 }
         )]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
         [IgnoreGraphicsTest(
