@@ -784,9 +784,19 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return result;
 }
 
+float3 GetShadowFadeCameraPositionWS()
+{
+#if defined(USING_STEREO_MATRICES)
+    // Using unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex] directly trips a bug in FXC (X8000 or a stale index).
+    return unity_StereoEyeIndex == 0 ? unity_StereoWorldSpaceCameraPos[0] : unity_StereoWorldSpaceCameraPos[1];
+#else
+    return _WorldSpaceCameraPos;
+#endif
+}
+
 half GetMainLightShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
@@ -798,7 +808,7 @@ half GetAdditionalLightShadowFade(float3 positionWS)
     half shadowFade = half(1.0);
     if (AdditionalLightShadowsAvailable())
     {
-        float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+        float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
         float fade = saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y));
@@ -831,13 +841,19 @@ half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels, half4 shadowPar
 half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent, half cascadeIndex, float2 positionSS, bool usePCSS)
 {
     half4 shadowParams = GetMainLightShadowParams();
+
     // receiveShadows only disables the realtime contribution; the baked shadowmask below still
     // applies (the material Receive Shadows toggle never affected baked shadows).
-    half realtimeShadow = receiveShadows ? SampleMainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, cascadeIndex, positionSS, usePCSS) : half(1.0);
-
     half bakedShadow = BakedShadowsAvailable() ? BakedShadow(shadowMask, occlusionProbeChannels, shadowParams) : half(1.0);
 
-    half shadowFade = (MainLightShadowsAvailable() && receiveShadows) ? GetMainLightShadowFade(positionWS) : half(1.0);
+    half realtimeShadow = 1;
+    half shadowFade = 1;
+
+    if (MainLightShadowsAvailable() && receiveShadows)
+    {
+        realtimeShadow = SampleMainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, cascadeIndex, positionSS, usePCSS);
+        shadowFade = GetMainLightShadowFade(positionWS);
+    }
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
@@ -858,8 +874,6 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     ShadowSamplingData samplingData = GetAdditionalLightShadowSamplingData(lightIndex);
     // receiveShadows only disables the realtime contribution; the baked shadowmask below still
     // applies (the material Receive Shadows toggle never affected baked shadows).
-    half realtimeShadow = receiveShadows ? SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS, positionSS, usePCSS) : half(1.0);
-
     half bakedShadow = half(1.0);
     if (BakedShadowsAvailable())
     {
@@ -872,7 +886,14 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
         bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels, shadowParams);
     }
 
-    half shadowFade = (AdditionalLightShadowsAvailable() && receiveShadows) ? GetAdditionalLightShadowFade(positionWS) : half(1.0);
+    half realtimeShadow = 1;
+    half shadowFade = 1;
+
+    if (AdditionalLightShadowsAvailable() && receiveShadows)
+    {
+        realtimeShadow = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS, positionSS, usePCSS);
+        shadowFade = GetAdditionalLightShadowFade(positionWS);
+    }
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
@@ -937,7 +958,7 @@ float4 ApplyShadowClamping(float4 positionCS)
 // Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
 float GetShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));

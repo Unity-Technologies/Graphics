@@ -38,10 +38,17 @@ GraphicsSettings:
   - {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
   m_PreloadedShaders: []
   m_PreloadShadersBatchTimeLimit: -1
-  m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000,
-    type: 0}
-  m_CustomRenderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26,
-    type: 2}
+  m_GraphicsStateCollection: {fileID: 0}
+  m_CollectionStartupAction: 0
+  m_TraceSavePath: TracedCollection
+  m_TraceSendToEditor: 1
+  m_AdditionalWarmupCollections: []
+  m_WarmupAsync: 1
+  m_EnableCacheMissTracing: 0
+  m_WarmupProgressivelyLimit: -1
+  m_CacheMissCollectionPath: CacheMissCollection
+  m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_CustomRenderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   m_TransparencySortMode: 0
   m_TransparencySortAxis: {x: 0, y: 0, z: 1}
   m_DefaultRenderingPath: 1
@@ -102,6 +109,7 @@ GraphicsSettings:
   m_FogStripping: 1
   m_InstancingStripping: 0
   m_BrgStripping: 1
+  m_DefaultLightBaker: 0
   m_LightmapKeepPlain: 0
   m_LightmapKeepDirCombined: 0
   m_LightmapKeepDynamicPlain: 0
@@ -113,13 +121,155 @@ GraphicsSettings:
   m_FogKeepExp2: 1
   m_AlbedoSwatchInfos: []
   m_RenderPipelineGlobalSettingsMap:
-    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: de1a81e4609b24005835e55be8897384,
-      type: 2}
-    UnityEditor.Rendering.DummyRenderPipeline: {fileID: 11400000, guid: c5514e40928c24e568cf97df2b3610dd,
-      type: 2}
+    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: de1a81e4609b24005835e55be8897384, type: 2}
+    UnityEditor.Rendering.DummyRenderPipeline: {fileID: 11400000, guid: c5514e40928c24e568cf97df2b3610dd, type: 2}
     UnityEngine.Rendering.Tests.RenderGraphTests+RenderGraphTestPipelineInstance: {fileID: 0}
   m_ShaderBuildSettings:
-    keywordDeclarationOverrides: []
+    keywordDeclarationOverrides:
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _MAIN_LIGHT_SHADOWS
+        keepInBuild: 1
+      - name: _MAIN_LIGHT_SHADOWS_CASCADE
+        keepInBuild: 1
+      - name: _MAIN_LIGHT_SHADOWS_SCREEN
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _ADDITIONAL_LIGHT_SHADOWS
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SHADOWS_SOFT
+        keepInBuild: 1
+      - name: _SHADOWS_SOFT_LOW
+        keepInBuild: 1
+      - name: _SHADOWS_SOFT_MEDIUM
+        keepInBuild: 1
+      - name: _SHADOWS_SOFT_HIGH
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SCREEN_SPACE_OCCLUSION
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: LOD_FADE_CROSSFADE
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _GBUFFER_NORMALS_OCT
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SURFACE_TYPE_TRANSPARENT
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _RECEIVE_SHADOWS_OFF
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _ALPHAPREMULTIPLY_ON
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _ALPHAPREMULTIPLY_ON
+        keepInBuild: 1
+      - name: _ALPHAMODULATE_ON
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _NORMALMAP
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _EMISSION
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _METALLICSPECGLOSSMAP
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _OCCLUSIONMAP
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SPECULARHIGHLIGHTS_OFF
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _ENVIRONMENTREFLECTIONS_OFF
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _SPECGLOSSMAP
+        keepInBuild: 1
+      - name: _SPECULAR_COLOR
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _GLOSSINESS_FROM_BASE_ALPHA
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _PARALLAXMAP
+        keepInBuild: 1
+      variantGenerationMode: 3
+    - keywords:
+      - name: _
+        keepInBuild: 1
+      - name: _CLEARCOAT
+        keepInBuild: 1
+      - name: _CLEARCOATMAP
+        keepInBuild: 1
+      variantGenerationMode: 3
+    numInternalDefines: 0
+    defines: []
   m_LightsUseLinearIntensity: 1
   m_LightsUseColorTemperature: 1
   m_LogWhenShaderIsCompiled: 0
