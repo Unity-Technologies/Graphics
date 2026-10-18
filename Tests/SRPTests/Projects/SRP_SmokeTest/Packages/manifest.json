@@ -4,7 +4,7 @@
   "disableProjectUpdate": true,
   "dependencies": {
     "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
-    "com.unity.ide.rider": "3.0.17",
+    "com.unity.ide.rider": "file:../../../../../ShadowPackages/com.unity.ide.rider",
     "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",
     "com.unity.inputsystem": "1.19.0",
     "com.unity.postprocessing": "file:../../../../../ShadowPackages/com.unity.postprocessing",
@@ -22,8 +22,8 @@
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.xr.management": "4.5.3",
     "com.unity.modules.uielements": "1.0.0",
-    "com.unity.test-profiler": "0.1.0-exp.6",
-    "com.unity.yamato": "1.0.1"
+    "com.unity.test-profiler": "file:../../../../../ShadowPackages/com.unity.test-profiler",
+    "com.unity.yamato": "file:../../../../../ShadowPackages/com.unity.yamato"
   },
   "testables": [
     "com.unity.render-pipelines.core",

@@ -28,8 +28,8 @@
     "com.unity.modules.physics2d": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
-    "com.unity.test-profiler": "0.1.0-exp.6",
-    "com.unity.yamato": "1.0.1"
+    "com.unity.test-profiler": "file:../../../../../ShadowPackages/com.unity.test-profiler",
+    "com.unity.yamato": "file:../../../../../ShadowPackages/com.unity.yamato"
   },
   "useSatSolver": true,
   "registry": "https://invalid.invalid"
