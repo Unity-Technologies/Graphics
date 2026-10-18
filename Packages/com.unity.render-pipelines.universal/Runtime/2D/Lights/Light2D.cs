@@ -747,6 +747,19 @@ namespace UnityEngine.Rendering.Universal
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        // OnAfterDeserialize can run off the main thread, where the Unity null check throws.
+        // The Editor reads an unassigned reference as a fake null object, which has no entity ID.
+        static bool IsAssigned(UnityEngine.Object reference)
+        {
+            if ((object)reference == null)
+                return false;
+#if UNITY_EDITOR
+            return reference.GetEntityIdForSerializationUnchecked() != EntityId.None;
+#else
+            return true;
+#endif
+        }
+
         /// <summary>
         /// OnAfterSerialize implementation.
         /// </summary>
@@ -779,10 +792,13 @@ namespace UnityEngine.Rendering.Universal
             if (m_ComponentVersion < ComponentVersions.Version_4)
             {
 #pragma warning disable CS0618
-                if (m_LightType == LightType.Point && (object)m_DeprecatedPointLightCookieSprite != null)
+                // Version_3 data from the 6000.0 and 6000.3 ports is already migrated, so only a set deprecated cookie is applied (UUM-156931)
+                if (m_LightType == LightType.Point &&
+                    (m_ComponentVersion < ComponentVersions.Version_3 || IsAssigned(m_DeprecatedPointLightCookieSprite)))
                 {
                     m_LightCookieSprite = m_DeprecatedPointLightCookieSprite;
                 }
+                m_DeprecatedPointLightCookieSprite = null;
 #pragma warning restore CS0618
             }
         }
