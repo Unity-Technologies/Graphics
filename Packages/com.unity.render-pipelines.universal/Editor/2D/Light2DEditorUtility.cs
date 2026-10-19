@@ -320,8 +320,102 @@ namespace UnityEditor.Rendering.Universal
         static internal void DrawFilteredMaterialField(SerializedProperty property, GUIContent label, Func<Material, bool> isCompatible)
         {
             Rect position = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(property, label, true));
+            AcceptShaderGraphDrag(GetObjectFieldDropRect(position, label), property, isCompatible);
             RejectIncompatibleMaterialDrag(position, isCompatible);
             EditorGUI.PropertyField(position, property, label, true);
+        }
+
+        // The part of `position` where the object field takes a drop: the rect EditorGUI.PrefixLabel
+        // leaves for the field. A drop on the label does not assign a Material, so it should not
+        // assign a Shader Graph either.
+        static Rect GetObjectFieldDropRect(Rect position, GUIContent label)
+        {
+            const float k_PrefixPaddingRight = 2f;
+
+            if (label != null && string.IsNullOrEmpty(label.text) && label.image == null)
+                return EditorGUI.IndentedRect(position);
+
+            float labelWidth = EditorGUIUtility.labelWidth + k_PrefixPaddingRight;
+            return new Rect(position.x + labelWidth, position.y, position.width - labelWidth, position.height);
+        }
+
+        // Returns the current event when it is a drag over `position` that an enabled field may handle.
+        static Event GetDragOver(Rect position)
+        {
+            Event evt = Event.current;
+            if (evt == null || (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform))
+                return null;
+
+            if (!GUI.enabled || !position.Contains(evt.mousePosition))
+                return null;
+
+            return evt;
+        }
+
+        // Handles a drag over `position` that carries a Shader Graph asset rather than a Material.
+        // A Project-window drag of a .shadergraph carries its main asset, which is a Shader.
+        // The object field rejects a Shader on type. The picker, though, lists the Material sub-asset
+        // the importer adds beside it, so a drop assigns that Material instead.
+        // The drag payload itself is left as it is.
+        static void AcceptShaderGraphDrag(Rect position, SerializedProperty property, Func<Material, bool> isCompatible)
+        {
+            Event evt = GetDragOver(position);
+            if (evt == null)
+                return;
+
+            Material material = GetShaderGraphMaterial(DragAndDrop.objectReferences);
+            if (material == null)
+                return;
+
+            if (!isCompatible(material))
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                evt.Use();
+                return;
+            }
+
+            if (evt.type == EventType.DragPerform)
+            {
+                DragAndDrop.AcceptDrag();
+                property.objectReferenceValue = material;
+                GUI.changed = true;
+            }
+            else
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+            }
+
+            evt.Use();
+        }
+
+        /// <summary>
+        /// Returns the Material sub-asset of the first Shader main asset in a drag that has one.
+        /// Returns null when the payload holds a Material, or holds no Shader with a Material beside it.
+        /// </summary>
+        /// <remarks>
+        /// A payload with any Material in it is left to the usual path, so this only changes drops the
+        /// object field would reject anyway.
+        /// </remarks>
+        static internal Material GetShaderGraphMaterial(UnityEngine.Object[] draggedObjects)
+        {
+            if (draggedObjects == null)
+                return null;
+
+            Material found = null;
+            for (int i = 0; i < draggedObjects.Length; i++)
+            {
+                if (draggedObjects[i] is Material)
+                    return null;
+
+                if (found != null)
+                    continue;
+
+                Shader shader = draggedObjects[i] as Shader;
+                if (shader != null && AssetDatabase.IsMainAsset(shader))
+                    found = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(shader));
+            }
+
+            return found;
         }
 
         // Consumes a drag over `position` whose payload holds a Material this field cannot take.
@@ -330,11 +424,8 @@ namespace UnityEditor.Rendering.Universal
         // pointer is over the field.
         static void RejectIncompatibleMaterialDrag(Rect position, Func<Material, bool> isCompatible)
         {
-            Event evt = Event.current;
-            if (evt == null || (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform))
-                return;
-
-            if (!GUI.enabled || !position.Contains(evt.mousePosition))
+            Event evt = GetDragOver(position);
+            if (evt == null)
                 return;
 
             if (IsMaterialDragAcceptable(DragAndDrop.objectReferences, isCompatible))
