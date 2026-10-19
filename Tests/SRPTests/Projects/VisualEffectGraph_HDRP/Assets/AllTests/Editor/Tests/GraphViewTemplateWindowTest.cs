@@ -319,6 +319,30 @@ namespace UnityEditor.VFX.Test
                 "Selection should return to the chosen template once a search that filtered it out is cleared.");
         }
 
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Restored_After_Search_Showing_Other_Templates_Is_Cleared()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Head & Trail");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+
+            m_SearchField.value = "*adbonly* Simple";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            m_SearchField.value = string.Empty;
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem);
+            Assert.AreEqual("Head & Trail", ((GraphViewTemplateDescriptor)treeView.selectedItem).header,
+                "Selection should not move to the template that took its place in the filtered list.");
+        }
+
         [UnityTest, Explicit("Soak test: run explicitly by name, not in regular suites")]
         [Description("Cycles select -> filter -> clear to shake out selection/scroll timing issues")]
         [Timeout(30 * 60 * 1000)]
