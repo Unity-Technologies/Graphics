@@ -55,6 +55,13 @@ public class HDRP_Runtime_Graphics_Tests
         UnityGraphicsKernelMode.UgkOn
     )]
     [IgnoreGraphicsTest(
+        "011-HighQualityLines$",
+        "https://jira.unity3d.com/browse/UGK-3099",
+        GraphicsDeviceType.Direct3D12,
+        UnityGraphicsKernelMode.UgkOn,
+        GraphicsApiValidationMode.Enabled
+    )]
+    [IgnoreGraphicsTest(
         "001-HDTemplate$",
         "https://jira.unity3d.com/browse/UUM-48116",
         GraphicsDeviceType.Metal
