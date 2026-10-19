@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.Universal
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
 
-            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, ref m_SSAOParamsPrev);
-            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc);
+            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, useDepthPyramid: false, ref m_SSAOParamsPrev);
+            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc, depthPyramid: default);
             SSAOUtils.RecordBlurChain(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, cameraData, aoTexture, blurTexture, finalTexture);
 
             if (!m_CurrentSettings.AfterOpaque)

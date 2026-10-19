@@ -1,0 +1,172 @@
+// Builds the depth pyramid the GTAO horizon search samples, so distant taps read a coarser MIP.
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore gles3 webgpu
+
+#pragma kernel PrefilterDepths
+
+#pragma multi_compile_local _ _ORTHOGRAPHIC
+#pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
+
+TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+
+// One packed surface for every MIP, so a single UAV reaches all of them and both XR slices.
+RW_TEXTURE2D_X(float, _GTAODepthPyramid);
+
+float4 _ZBufferParams;           // the engine's per camera global, declared here because URP's headers are not included
+float4 _GTAOPrefilterSize;       // xy = MIP 0 viewport size, zw = max source depth coordinate
+float4 _GTAOPrefilterSourceSize; // xy = source depth allocation size, zw = its reciprocal
+float4 _GTAOPrefilterFalloff;    // x = falloff multiplier, y = falloff addend, z = max storable depth, w = unused
+float4 _GTAOPrefilterOrthoRemap; // xy = orthographic eye depth remap, x + y * rawDepth
+int _GTAOPrefilterDownsample;    // source texels per MIP 0 texel along each axis, 1 or 2
+int _GTAOPrefilterMipCount;      // levels the pyramid has, 1 to 4
+
+float4 _GTAODepthPyramidMipLevelOffsets[4]; // xy = where each MIP sits in the packed pyramid
+
+// A group covers a 16x16 tile of MIP 0, reducing to 8x8, 4x4 and 2x2.
+groupshared float gs_depth[64];
+#define LDS_AT(x, y) gs_depth[(y) * 8u + (x)]
+
+struct PrefilterConfig
+{
+    int2 maxSourceCoord;
+    float2 sourceTexelSize;
+    float2 falloffRamp;     // weight = saturate(depthGap * x + y)
+    float maxStorableDepth;
+    float4 zBufferParams;
+    float2 orthoRemap;      // eye depth = x + y * rawDepth
+};
+
+PrefilterConfig CreatePrefilterConfig(float4 prefilterSize, float4 prefilterSourceSize, float4 prefilterFalloff, float4 orthoRemap, float4 zBufferParams)
+{
+    PrefilterConfig config;
+    config.maxSourceCoord = (int2)prefilterSize.zw - 1;
+    config.sourceTexelSize = prefilterSourceSize.zw;
+    config.falloffRamp = prefilterFalloff.xy;
+    config.maxStorableDepth = prefilterFalloff.z;
+    config.zBufferParams = zBufferParams;
+    config.orthoRemap = orthoRemap.xy;
+    return config;
+}
+
+float FilterDepthQuad(PrefilterConfig config, float depth0, float depth1, float depth2, float depth3)
+{
+    // Samples far in front of the farthest are weighted out.
+    float maxDepth = max(max(depth0, depth1), max(depth2, depth3));
+
+    float weight0 = saturate((maxDepth - depth0) * config.falloffRamp.x + config.falloffRamp.y);
+    float weight1 = saturate((maxDepth - depth1) * config.falloffRamp.x + config.falloffRamp.y);
+    float weight2 = saturate((maxDepth - depth2) * config.falloffRamp.x + config.falloffRamp.y);
+    float weight3 = saturate((maxDepth - depth3) * config.falloffRamp.x + config.falloffRamp.y);
+
+    float weightSum = weight0 + weight1 + weight2 + weight3;
+    return (weight0 * depth0 + weight1 * depth1 + weight2 * depth2 + weight3 * depth3) * rcp(weightSum);
+}
+
+float FilterDepthQuad(PrefilterConfig config, float4 quad)
+{
+    return FilterDepthQuad(config, quad.x, quad.y, quad.z, quad.w);
+}
+
+float ResolveSourceDepth(PrefilterConfig config, float rawDepth)
+{
+#if defined(_ORTHOGRAPHIC)
+    float eyeDepth = config.orthoRemap.x + config.orthoRemap.y * rawDepth;
+#else
+    float eyeDepth = LinearEyeDepth(rawDepth, config.zBufferParams);
+#endif
+
+    // Clamped so a half pyramid stores a finite depth.
+    return min(eyeDepth, config.maxStorableDepth);
+}
+
+float4 GatherSourceDepths(PrefilterConfig config, int2 sourceCoord)
+{
+    sourceCoord = min(sourceCoord, config.maxSourceCoord);
+    float2 uv = (float2(sourceCoord) + 1.0) * config.sourceTexelSize;
+    float4 rawDepths = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv); // read in place since textures cannot be passed portably
+
+    return float4(ResolveSourceDepth(config, rawDepths.w), ResolveSourceDepth(config, rawDepths.z),
+                  ResolveSourceDepth(config, rawDepths.x), ResolveSourceDepth(config, rawDepths.y));
+}
+
+[numthreads(8, 8, 1)]
+void PrefilterDepths(uint3 dispatchThreadId : SV_DispatchThreadID, uint3 groupThreadId : SV_GroupThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    PrefilterConfig config = CreatePrefilterConfig(_GTAOPrefilterSize, _GTAOPrefilterSourceSize, _GTAOPrefilterFalloff, _GTAOPrefilterOrthoRemap, _ZBufferParams);
+
+    int2 mip0Size = (int2)_GTAOPrefilterSize.xy;
+    int2 mip0Base = int2(dispatchThreadId.xy) << 1;
+
+    // Without downsampling one gathered block is exactly the four MIP 0 texels this thread owns.
+    // With it, each of those texels is a filtered block of its own.
+    float4 mip0Depths;
+
+    UNITY_BRANCH
+    if (_GTAOPrefilterDownsample == 1)
+        mip0Depths = GatherSourceDepths(config, mip0Base);
+    else
+        mip0Depths = float4(
+            FilterDepthQuad(config, GatherSourceDepths(config, (mip0Base + int2(0, 0)) * _GTAOPrefilterDownsample)),
+            FilterDepthQuad(config, GatherSourceDepths(config, (mip0Base + int2(1, 0)) * _GTAOPrefilterDownsample)),
+            FilterDepthQuad(config, GatherSourceDepths(config, (mip0Base + int2(0, 1)) * _GTAOPrefilterDownsample)),
+            FilterDepthQuad(config, GatherSourceDepths(config, (mip0Base + int2(1, 1)) * _GTAOPrefilterDownsample)));
+
+    // MIP sizes floor, so a thread can land past a level's edge.
+    // MIP 0 always exists, the deeper levels may not.
+    int2 mip0Offset = int2(_GTAODepthPyramidMipLevelOffsets[0].xy);
+    if (all(mip0Base + int2(0, 0) < mip0Size))
+        _GTAODepthPyramid[COORD_TEXTURE2D_X(mip0Offset + mip0Base + int2(0, 0))] = mip0Depths.x;
+    if (all(mip0Base + int2(1, 0) < mip0Size))
+        _GTAODepthPyramid[COORD_TEXTURE2D_X(mip0Offset + mip0Base + int2(1, 0))] = mip0Depths.y;
+    if (all(mip0Base + int2(0, 1) < mip0Size))
+        _GTAODepthPyramid[COORD_TEXTURE2D_X(mip0Offset + mip0Base + int2(0, 1))] = mip0Depths.z;
+    if (all(mip0Base + int2(1, 1) < mip0Size))
+        _GTAODepthPyramid[COORD_TEXTURE2D_X(mip0Offset + mip0Base + int2(1, 1))] = mip0Depths.w;
+
+    // The 2x2 block a thread holds is exactly one MIP 1 texel, so no group memory needed.
+    float mip1Depth = FilterDepthQuad(config, mip0Depths);
+    int2 mip1Coord = int2(dispatchThreadId.xy);
+    if (_GTAOPrefilterMipCount >= 2 && all(mip1Coord < max(1, mip0Size >> 1)))
+        _GTAODepthPyramid[COORD_TEXTURE2D_X(int2(_GTAODepthPyramidMipLevelOffsets[1].xy) + mip1Coord)] = mip1Depth;
+
+    LDS_AT(groupThreadId.x, groupThreadId.y) = mip1Depth;
+
+    // Reducing threads write back to the slot they read, so one barrier per level suffices.
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all((groupThreadId.xy & 1u) == 0u))
+    {
+        float mip2Depth = FilterDepthQuad(config,
+            LDS_AT(groupThreadId.x + 0u, groupThreadId.y + 0u),
+            LDS_AT(groupThreadId.x + 1u, groupThreadId.y + 0u),
+            LDS_AT(groupThreadId.x + 0u, groupThreadId.y + 1u),
+            LDS_AT(groupThreadId.x + 1u, groupThreadId.y + 1u));
+
+        LDS_AT(groupThreadId.x, groupThreadId.y) = mip2Depth;
+
+        int2 mip2Coord = int2(dispatchThreadId.xy) >> 1;
+        if (_GTAOPrefilterMipCount >= 3 && all(mip2Coord < max(1, mip0Size >> 2)))
+            _GTAODepthPyramid[COORD_TEXTURE2D_X(int2(_GTAODepthPyramidMipLevelOffsets[2].xy) + mip2Coord)] = mip2Depth;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all((groupThreadId.xy & 3u) == 0u))
+    {
+        float mip3Depth = FilterDepthQuad(config,
+            LDS_AT(groupThreadId.x + 0u, groupThreadId.y + 0u),
+            LDS_AT(groupThreadId.x + 2u, groupThreadId.y + 0u),
+            LDS_AT(groupThreadId.x + 0u, groupThreadId.y + 2u),
+            LDS_AT(groupThreadId.x + 2u, groupThreadId.y + 2u));
+
+        int2 mip3Coord = int2(dispatchThreadId.xy) >> 2;
+        if (_GTAOPrefilterMipCount >= 4 && all(mip3Coord < max(1, mip0Size >> 3)))
+            _GTAODepthPyramid[COORD_TEXTURE2D_X(int2(_GTAODepthPyramidMipLevelOffsets[3].xy) + mip3Coord)] = mip3Depth;
+    }
+}

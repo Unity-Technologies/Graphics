@@ -8,6 +8,10 @@
 //   SSAO_COMMON_SAMPLE_BLUE_NOISE(uv)                   - sample the blue noise texture
 //   SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, ds)  - fetch scene depth at a sample position
 //
+// Under _GTAO_DEPTH_PYRAMID, callers also define:
+//   SSAO_COMMON_LOAD_PYRAMID_DEPTH(coord)               - load the prefiltered depth pyramid at a packed coordinate
+//   SSAO_COMMON_PYRAMID_MIP_OFFSET(mipLevel)            - where a MIP level sits in the packed pyramid (int2)
+//
 // The compute path (GTAO.compute) additionally defines:
 //   GTAO_COMPUTE_PATH        - guards fragment-only code (SampleDepth, UNITY_UNROLL)
 //   GTAO_STEP_COUNT          - runtime uniform (vs compile-time constant in fragment path)
@@ -85,11 +89,17 @@ struct GTAOConfig
     half2 blueNoiseOffset;
     half temporalRotation;
     uint temporalOffset;
+
+    // Depth pyramid, filled under _GTAO_DEPTH_PYRAMID and zero otherwise.
+    int2 pyramidMip0Size;
+    float pyramidMipSamplingOffset;
+    int pyramidHighestMipLevel;
+    float pyramidMaxMipFootprintFraction;
 };
 
 GTAOConfig CreateGTAOConfig(half4 ssaoParams, half4 ssaoParams2, float4 depthToViewParams, half2 blueNoiseScale, half2 blueNoiseOffset, half temporalRotation, uint temporalOffset)
 {
-    GTAOConfig config;
+    GTAOConfig config = (GTAOConfig)0;
     config.intensity = ssaoParams.x;
     config.radius = ssaoParams.y;
     config.downsample = ssaoParams.z;
@@ -103,6 +113,14 @@ GTAOConfig CreateGTAOConfig(half4 ssaoParams, half4 ssaoParams2, float4 depthToV
     config.temporalRotation = temporalRotation;
     config.temporalOffset = temporalOffset;
     return config;
+}
+
+void SetGTAODepthPyramidConfig(inout GTAOConfig config, float4 pyramidSize, float4 pyramidParams)
+{
+    config.pyramidMip0Size = (int2)pyramidSize.xy;
+    config.pyramidMipSamplingOffset = pyramidParams.x;
+    config.pyramidHighestMipLevel = (int)pyramidParams.y;
+    config.pyramidMaxMipFootprintFraction = pyramidParams.z;
 }
 
 #ifndef GTAO_COMPUTE_PATH
@@ -155,7 +173,7 @@ float GetLinearEyeDepth(float rawDepth)
 #endif
 }
 
-float3 GetPositionVS(float2 positionSS, float depth, float4 depthToViewParams)
+float3 GetPositionVSFromEyeDepth(float2 positionSS, float eyeDepth, float4 depthToViewParams)
 {
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -164,12 +182,16 @@ float3 GetPositionVS(float2 positionSS, float depth, float4 depthToViewParams)
     }
 #endif
 
-    float linearDepth = GetLinearEyeDepth(depth);
 #if defined(_ORTHOGRAPHIC)
-    return float3(positionSS * depthToViewParams.xy - depthToViewParams.zw, linearDepth);
+    return float3(positionSS * depthToViewParams.xy - depthToViewParams.zw, eyeDepth);
 #else
-    return float3((positionSS * depthToViewParams.xy - depthToViewParams.zw) * linearDepth, linearDepth);
+    return float3((positionSS * depthToViewParams.xy - depthToViewParams.zw) * eyeDepth, eyeDepth);
 #endif
+}
+
+float3 GetPositionVS(float2 positionSS, float depth, float4 depthToViewParams)
+{
+    return GetPositionVSFromEyeDepth(positionSS, GetLinearEyeDepth(depth), depthToViewParams);
 }
 
 // View vector in view space. Orthographic cameras have a constant view direction along -Z.
@@ -183,9 +205,9 @@ half3 GetViewVectorVS(float3 positionVS)
 }
 
 // Checks if the fragment should skip AO (sky or beyond falloff).
-inline bool ShouldSkipAO(float rawDepth, half halfLinearDepth, half falloff)
+inline bool ShouldSkipAO(float rawDepth, half halfEyeDepth, half falloff)
 {
-    return rawDepth == UNITY_RAW_FAR_CLIP_VALUE || rawDepth < SKY_DEPTH_VALUE || halfLinearDepth > falloff;
+    return rawDepth == UNITY_RAW_FAR_CLIP_VALUE || rawDepth < SKY_DEPTH_VALUE || halfEyeDepth > falloff;
 }
 
 // Packing.hlsl uses `real`, which can resolve to min16float in this compute path.
@@ -283,9 +305,62 @@ float GetHorizonAngle(float maxH, float candidateH, float distSq, half invRadius
     return max(maxH, lerp(maxH, candidateH, falloff));
 }
 
-void UpdateHorizon(inout float maxHorizon, float2 samplePos, float3 V, float3 positionVS, float sampleDepth, float4 depthToViewParams, half invRadiusSq)
+float LoadGTAODepthPyramid(GTAOConfig config, float2 positionSS, int mipLevel)
 {
-    float3 samplePosVS = GetPositionVS(samplePos, sampleDepth, depthToViewParams);
+#if defined(_GTAO_DEPTH_PYRAMID)
+    // Clamped to the level's own rectangle, otherwise an out of range tap reads a neighbouring level.
+    int2 mipSize = max(1, config.pyramidMip0Size >> mipLevel);
+    int2 loadCoord = clamp(int2(floor(positionSS)) >> mipLevel, int2(0, 0), mipSize - 1);
+    int2 mipOffset = SSAO_COMMON_PYRAMID_MIP_OFFSET(mipLevel);
+
+    return SSAO_COMMON_LOAD_PYRAMID_DEPTH(mipOffset + loadCoord);
+#else
+    return 0.0;
+#endif
+}
+
+int SelectGTAODepthPyramidMip(GTAOConfig config, float offsetLength, int highestMipLevel)
+{
+#if defined(_GTAO_DEPTH_PYRAMID)
+    float mipLevel = log2(max(offsetLength, 1.0)) - config.pyramidMipSamplingOffset;
+    return (int)clamp(floor(mipLevel + 0.5), 0.0, (float)highestMipLevel);
+#else
+    return 0;
+#endif
+}
+
+int SelectGTAODepthPyramidMipCeiling(GTAOConfig config, float unclampedRadiusSS)
+{
+#if defined(_GTAO_DEPTH_PYRAMID)
+    float ceilingLevel = log2(max(config.pyramidMaxMipFootprintFraction * unclampedRadiusSS, 1.0));
+    return (int)clamp(floor(ceilingLevel), 0.0, (float)config.pyramidHighestMipLevel);
+#else
+    return 0;
+#endif
+}
+
+float FetchSampleEyeDepth(GTAOConfig config, float2 samplePos, int mipLevel)
+{
+#if defined(_GTAO_DEPTH_PYRAMID)
+    return LoadGTAODepthPyramid(config, samplePos, mipLevel);
+#else
+    return GetLinearEyeDepth(SSAO_COMMON_FETCH_DEPTH(samplePos, config.screenSizeDownsampled, config.downsample));
+#endif
+}
+
+float GetGTAOCenterEyeDepth(GTAOConfig config, float2 positionSS, float centerRawDepth)
+{
+#if defined(_GTAO_DEPTH_PYRAMID)
+    // Same source as the taps, or every horizon is biased against a point no tap can see.
+    return LoadGTAODepthPyramid(config, positionSS, 0);
+#else
+    return GetLinearEyeDepth(centerRawDepth);
+#endif
+}
+
+void UpdateHorizon(inout float maxHorizon, float2 samplePos, float3 V, float3 positionVS, float sampleEyeDepth, float4 depthToViewParams, half invRadiusSq)
+{
+    float3 samplePosVS = GetPositionVSFromEyeDepth(samplePos, sampleEyeDepth, depthToViewParams);
     float3 deltaPos = samplePosVS - positionVS;
     float deltaLenSq = dot(deltaPos, deltaPos);
     float currHorizon = dot(deltaPos, V) * rsqrt(deltaLenSq);
@@ -302,7 +377,7 @@ half IntegrateArcCosWeighted(float2 horizonAngles, float n, float sinN, float co
     return 0.25 * ((-cos(doubledHorizon0 - n) + cosN + doubledHorizon0 * sinN) + (-cos(doubledHorizon1 - n) + cosN + doubledHorizon1 * sinN));
 }
 
-float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 positionSS, float3 positionVS, half3 V, float3 normalVS, float fovCorrectedRadiusSS, half invRadiusSq, half rayOffset, half rcpDirectionCount)
+float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 positionSS, float3 positionVS, half3 V, float3 normalVS, float fovCorrectedRadiusSS, half invRadiusSq, half rayOffset, half rcpDirectionCount, int highestMipLevel)
 {
 #if defined(_BLUE_NOISE)
     float2 dir = GetDirectionGTAO_BlueNoise(uv, dirIdx, rcpDirectionCount, config.blueNoiseOffset, config.blueNoiseScale, config.temporalRotation);
@@ -322,7 +397,6 @@ float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 
     float sinN = sin(N);
     float2 maxHorizons = float2(sinN, -sinN);
 
-    const half2 screenSize              = config.screenSizeDownsampled;
     const float pixelTooCloseThreshold  = 1.3;
     const float minStepFraction         = pixelTooCloseThreshold / fovCorrectedRadiusSS;
     const float rcpStepCount            = rcp(GTAO_STEP_COUNT);
@@ -339,17 +413,20 @@ float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 
         float stepNoise = frac(rayOffset + UintToFloat01(stepSeed));
         float rayStep   = (float(stepIdx) + stepNoise) * rcpStepCount;
         rayStep         = rayStep * rayStep + minStepFraction;
-        float2 stepVec  = round(rayStep * fovCorrectedRadiusSS * dir);
+        float offsetLength = rayStep * fovCorrectedRadiusSS;
+        float2 stepVec  = round(offsetLength * dir);
+
+        int mipLevel = SelectGTAODepthPyramidMip(config, offsetLength, highestMipLevel);
 
         // positive direction
         float2 samplePos = positionSS + stepVec;
-        float sampleDepth = SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, config.downsample);
-        UpdateHorizon(maxHorizons.x, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, invRadiusSq);
+        float sampleEyeDepth = FetchSampleEyeDepth(config, samplePos, mipLevel);
+        UpdateHorizon(maxHorizons.x, samplePos, V, positionVS, sampleEyeDepth, config.depthToViewParams, invRadiusSq);
 
         // negative direction
         samplePos = positionSS - stepVec;
-        sampleDepth = SSAO_COMMON_FETCH_DEPTH(samplePos, screenSize, config.downsample);
-        UpdateHorizon(maxHorizons.y, samplePos, V, positionVS, sampleDepth, config.depthToViewParams, invRadiusSq);
+        sampleEyeDepth = FetchSampleEyeDepth(config, samplePos, mipLevel);
+        UpdateHorizon(maxHorizons.y, samplePos, V, positionVS, sampleEyeDepth, config.depthToViewParams, invRadiusSq);
     }
 
     // Convert horizon cosines to signed angles relative to slice normal N.
@@ -362,7 +439,7 @@ float2 EstimateSliceVisibility(GTAOConfig config, int dirIdx, float2 uv, float2 
     return float2(projNLen * IntegrateArcCosWeighted(maxHorizons, N, sinN, cosN), projNLen * (N * sinN + cosN));
 }
 
-half EvaluateGTAOValue(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float linearDepth)
+half EvaluateGTAOValue(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float eyeDepth)
 {
     float3 normalVS = TransformWorldToViewNormal(normal);
     normalVS = float3(normalVS.xy, -normalVS.z);
@@ -370,14 +447,19 @@ half EvaluateGTAOValue(GTAOConfig config, float2 uv, float2 positionSS, float3 p
     // Shrink origin toward camera at grazing angles to avoid the surface itself being a horizon.
     positionVS *= lerp(0.997, 1.0, abs(dot(normalVS, V)));
 
+    // The world space radius projected to screen, before gtaoMinimumRadiusInPixels raises it.
 #if defined(_ORTHOGRAPHIC)
-    float fovCorrectedRadiusSS = max(config.radius * config.gtaoFOVCorrection, config.gtaoMinimumRadiusInPixels);
+    float unclampedRadiusSS    = config.radius * config.gtaoFOVCorrection;
+    float fovCorrectedRadiusSS = max(unclampedRadiusSS, config.gtaoMinimumRadiusInPixels);
     float invEffectiveRadius   = config.gtaoFOVCorrection / fovCorrectedRadiusSS;
 #else
-    float fovCorrectedRadiusSS = max(config.radius * config.gtaoFOVCorrection * rcp(linearDepth), config.gtaoMinimumRadiusInPixels);
-    float invEffectiveRadius   = config.gtaoFOVCorrection / (fovCorrectedRadiusSS * linearDepth);
+    float unclampedRadiusSS    = config.radius * config.gtaoFOVCorrection * rcp(eyeDepth);
+    float fovCorrectedRadiusSS = max(unclampedRadiusSS, config.gtaoMinimumRadiusInPixels);
+    float invEffectiveRadius   = config.gtaoFOVCorrection / (fovCorrectedRadiusSS * eyeDepth);
 #endif
     half invRadiusSq = invEffectiveRadius * invEffectiveRadius;
+
+    int highestMipLevel = SelectGTAODepthPyramidMipCeiling(config, unclampedRadiusSS);
 
 #if defined(_BLUE_NOISE)
         half rayOffset = GetOffsetGTAO_BlueNoise(uv, config.blueNoiseOffset, config.blueNoiseScale, config.temporalOffset);
@@ -394,21 +476,21 @@ half EvaluateGTAOValue(GTAOConfig config, float2 uv, float2 positionSS, float3 p
 #endif
     for (int dirIdx = 0; dirIdx < GTAO_DIRECTION_COUNT; dirIdx++)
     {
-        acc += EstimateSliceVisibility(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, invRadiusSq, rayOffset, rcpDirectionCount);
+        acc += EstimateSliceVisibility(config, dirIdx, uv, positionSS, positionVS, V, normalVS, fovCorrectedRadiusSS, invRadiusSq, rayOffset, rcpDirectionCount, highestMipLevel);
     }
 
     half integral = acc.y > half(1e-5) ? saturate(acc.x / acc.y) : HALF_ONE;
     half ao = HALF_ONE - PositivePow(integral, config.intensity);
 
-    half fadeFactor = smoothstep(config.falloff * kFalloffFadeStartScale, config.falloff, linearDepth);
+    half fadeFactor = smoothstep(config.falloff * kFalloffFadeStartScale, config.falloff, eyeDepth);
     ao *= (HALF_ONE - fadeFactor);
 
     return ao;
 }
 
-half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float linearDepth)
+half4 EvaluateGTAO(GTAOConfig config, float2 uv, float2 positionSS, float3 positionVS, half3 V, half3 normal, float eyeDepth)
 {
-    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, normal, linearDepth);
+    half ao = EvaluateGTAOValue(config, uv, positionSS, positionVS, V, normal, eyeDepth);
     // Return the packed ao + normals
     return PackAOAndNormal(ao, normal);
 }

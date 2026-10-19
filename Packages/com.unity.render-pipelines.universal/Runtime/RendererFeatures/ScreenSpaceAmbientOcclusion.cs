@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
     internal static class ScreenSpaceAmbientOcclusionKeywords
     {
         internal const string k_GTAOModeKeyword = "_GTAO_MODE";
+        internal const string k_GTAODepthPyramidKeyword = "_GTAO_DEPTH_PYRAMID";
         internal const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
         internal const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         internal const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
@@ -55,8 +56,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int GTAODirectionCount = 2;
         [SerializeField] internal int GTAOStepCount = 4;
         [SerializeField] internal ScreenSpaceAmbientOcclusionSpatialFilter GTAOSpatialFilter = ScreenSpaceAmbientOcclusionSpatialFilter.Bilateral;
+        [SerializeField] internal ScreenSpaceAmbientOcclusionDepthSampling GTAODepthSampling = ScreenSpaceAmbientOcclusionDepthSampling.CameraDepth;
 
         internal bool NeedsComputeShader => Mode == ScreenSpaceAmbientOcclusionMode.GTAO && UseComputeShader;
+        internal bool NeedsDepthPyramid => Mode == ScreenSpaceAmbientOcclusionMode.GTAO && GTAODepthSampling == ScreenSpaceAmbientOcclusionDepthSampling.DepthPyramid;
         internal bool IsTemporalFilterActive => NeedsComputeShader && GTAOTemporalFilterEnabled;
 
         // Enums
@@ -119,6 +122,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_GTAOComputeShader;
             set => this.SetValueAndNotify(ref m_GTAOComputeShader, value);
+        }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Utils/GTAODepthPrefilter.compute")]
+        ComputeShader m_GTAODepthPrefilterComputeShader;
+
+        public ComputeShader GTAODepthPrefilterComputeShader
+        {
+            get => m_GTAODepthPrefilterComputeShader;
+            set => this.SetValueAndNotify(ref m_GTAODepthPrefilterComputeShader, value);
         }
 
         public bool isAvailableInPlayerBuild => true;

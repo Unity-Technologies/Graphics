@@ -18,16 +18,25 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSAO;
         private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
         private bool m_WarnedMissingTextures;
+        private bool m_WarnedDepthPyramidUnavailable;
 
         // Raster path state
         private SSAOUtils.SSAOMaterialParams m_SSAOParamsPrev = new SSAOUtils.SSAOMaterialParams();
 
         // Compute path state
         private ComputePathState m_ComputePathState;
+        private DepthPrefilterState m_DepthPrefilterState;
 
         // Constants
-        private const float k_DegreesPerRotation = 360.0f;
-        private const int k_TemporalOffsetCount = 4;
+        private const float k_DegreesPerRotation              = 360.0f;
+        private const int   k_TemporalOffsetCount             = 4;
+        private const int   k_DepthPrefilterTileSize          = 16;
+        private const float k_DepthFilterRadiusScale          = 0.75f;    // XeGTAO
+        private const float k_DepthFilterFalloffRange         = 0.615f;   // XeGTAO
+        private const float k_DepthMipSamplingOffset          = 3.3f;     // XeGTAO
+        private const float k_MaxMipFootprintFractionOfRadius = 0.25f;    // keeps the pyramid from averaging over the kernel
+        private const float k_HalfMaxDepth                    = 65504.0f;
+        private const float k_DepthFilterMinFalloffRange      = 1.0e-6f;
 
         // GTAO-only Shader Property IDs
         internal static class ShaderIDs
@@ -53,6 +62,14 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _GTAOStepCount = Shader.PropertyToID("_GTAOStepCount");
             public static readonly int _GTAOSpatialFilter = Shader.PropertyToID("_GTAOSpatialFilter");
             public static readonly int _GTAOBoxFilterStep = Shader.PropertyToID("_GTAOBoxFilterStep");
+
+            // Depth Pyramid
+            public static readonly int _GTAOPrefilterSize = Shader.PropertyToID("_GTAOPrefilterSize");
+            public static readonly int _GTAOPrefilterSourceSize = Shader.PropertyToID("_GTAOPrefilterSourceSize");
+            public static readonly int _GTAOPrefilterFalloff = Shader.PropertyToID("_GTAOPrefilterFalloff");
+            public static readonly int _GTAOPrefilterOrthoRemap = Shader.PropertyToID("_GTAOPrefilterOrthoRemap");
+            public static readonly int _GTAOPrefilterDownsample = Shader.PropertyToID("_GTAOPrefilterDownsample");
+            public static readonly int _GTAOPrefilterMipCount = Shader.PropertyToID("_GTAOPrefilterMipCount");
         }
 
         // Temporal rotation/offset arrays for GTAO temporal filtering
@@ -79,6 +96,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public ComputeShader shader;
             public int gtaoKernel;
+            public int gtaoDepthPyramidKernel;
             public int blurHKernel;
             public int blurVKernel;
             public int boxSpatialFilterKernel;
@@ -99,6 +117,7 @@ namespace UnityEngine.Rendering.Universal
 
                 Debug.Assert(
                     shader.HasKernel("ComputeAO") &&
+                    shader.HasKernel("ComputeAODepthPyramid") &&
                     shader.HasKernel("BilateralBlurH") &&
                     shader.HasKernel("BilateralBlurV") &&
                     shader.HasKernel("BoxSpatialFilter") &&
@@ -108,6 +127,7 @@ namespace UnityEngine.Rendering.Universal
                     "The GTAO compute shader does not have the expected kernels.");
 
                 gtaoKernel = shader.FindKernel("ComputeAO");
+                gtaoDepthPyramidKernel = shader.FindKernel("ComputeAODepthPyramid");
                 blurHKernel = shader.FindKernel("BilateralBlurH");
                 blurVKernel = shader.FindKernel("BilateralBlurV");
                 boxSpatialFilterKernel = shader.FindKernel("BoxSpatialFilter");
@@ -121,6 +141,42 @@ namespace UnityEngine.Rendering.Universal
             {
                 blueNoiseRTHandle?.Release();
                 blueNoiseRTHandle = null;
+            }
+        }
+
+        private struct DepthPrefilterState
+        {
+            public ComputeShader shader;
+            public int kernel;
+            public LocalKeyword orthographic;
+            public LocalKeyword disableTexture2DArray;
+
+            public readonly bool IsValid => shader != null && kernel >= 0;
+
+            public void Init(ComputeShader cs)
+            {
+                shader = null;
+                kernel = -1;
+
+                if (cs == null)
+                    return;
+
+                // A shader that failed to compile has no kernels. Stay invalid so the pass falls back instead of throwing.
+                if (!cs.HasKernel("PrefilterDepths"))
+                    return;
+
+                int prefilterKernel = cs.FindKernel("PrefilterDepths");
+                if (!cs.IsSupported(prefilterKernel))
+                    return;
+
+                shader = cs;
+                kernel = prefilterKernel;
+
+                shader.GetKernelThreadGroupSizes(kernel, out uint groupSizeX, out uint groupSizeY, out _);
+                Debug.Assert(groupSizeX * 2 == k_DepthPrefilterTileSize && groupSizeY * 2 == k_DepthPrefilterTileSize, "The tile size must match the group size times the 2x2 block each thread owns.");
+
+                orthographic = new(shader, ScreenSpaceAmbientOcclusionKeywords.k_OrthographicCameraKeyword);
+                disableTexture2DArray = new(shader, ShaderKeywordStrings.DisableTexture2DXArray);
             }
         }
 
@@ -149,6 +205,27 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Pass Data Classes
+        private class GTAODepthPrefilterPassData
+        {
+            public ComputeShader cs;
+            public int kernel;
+            public LocalKeyword orthographicKeyword;
+            public bool orthographicCamera;
+            public LocalKeyword disableTexture2DArrayKeyword;
+            public bool pyramidIsArray;
+            public Vector2Int dispatchSize;
+            public int sliceCount;
+            public Vector4 prefilterSize;    // xy = MIP 0 viewport size, zw = max source depth coordinate
+            public Vector4 prefilterSourceSize; // xy = source depth allocation size, zw = its reciprocal
+            public Vector4 prefilterFalloff; // x = falloff multiplier, y = falloff addend, z = max storable depth
+            public Vector4 orthoRemap;       // xy = orthographic eye depth remap, x + y * rawDepth
+            public Vector4[] depthPyramidMipLevelOffsets = new Vector4[SSAOUtils.k_GTAODepthPyramidMipCount]; // xy = where each MIP sits in the packed pyramid
+            public int downsample;
+            public int mipCount;
+            public TextureHandle depthTexture;
+            public TextureHandle depthPyramidTexture;
+        }
+
         private class GTAOComputePassData
         {
             public ComputeShader cs;
@@ -170,6 +247,8 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle normalsTexture;
             public TextureHandle blueNoiseTexture;
             public TextureHandle aoTexture;
+            public SSAOUtils.GTAODepthPyramidBinding depthPyramid;
+            public Vector4[] depthPyramidMipLevelOffsets = new Vector4[SSAOUtils.k_GTAODepthPyramidMipCount];
         }
 
         private class GTAOSingleDispatchPassData
@@ -235,7 +314,10 @@ namespace UnityEngine.Rendering.Universal
             m_BlueNoiseTextures = blueNoiseTextures;
 
             if (m_SupportsComputeShader && GraphicsSettings.TryGetRenderPipelineSettings<ScreenSpaceAmbientOcclusionCoreResources>(out var ssaoCoreResources))
+            {
                 m_ComputePathState.Init(ssaoCoreResources.GTAOComputeShader);
+                m_DepthPrefilterState.Init(ssaoCoreResources.GTAODepthPrefilterComputeShader);
+            }
         }
 
         // Sets up GTAO pass using active volume. Returns false if SSAO should be skipped.
@@ -270,6 +352,8 @@ namespace UnityEngine.Rendering.Universal
             settings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
             settings.BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High;
             settings.NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
+
+            settings.GTAODepthSampling = volume.depthSampling;
 
             if (volume.useComputeShader)
             {
@@ -317,9 +401,16 @@ namespace UnityEngine.Rendering.Universal
             if (!settings.IsTemporalFilterActive)
                 return;
 
+            uint frameIndex = (uint)GetTemporalFrameIndex();
             uint temporalRotationCount = (uint)s_TemporalRotations.Length;
-            temporalRotation = s_TemporalRotations[(uint)Time.frameCount % temporalRotationCount] / k_DegreesPerRotation;
-            temporalOffset = (int)(((uint)Time.frameCount / temporalRotationCount) % k_TemporalOffsetCount);
+            temporalRotation = s_TemporalRotations[frameIndex % temporalRotationCount] / k_DegreesPerRotation;
+            temporalOffset = (int)((frameIndex / temporalRotationCount) % k_TemporalOffsetCount);
+        }
+
+        private static int GetTemporalFrameIndex()
+        {
+            // Time.frameCount does not advance on Scene View repaints.
+            return Unity.RenderPipelines.Core.Runtime.Shared.RendererUpdateManagerBridge.GetMotionVectorFrameIndex();
         }
 
         private static Vector2Int CalculateDispatchSize(Vector2Int textureSize, ComputeShader cs, int kernelIndex)
@@ -381,7 +472,7 @@ namespace UnityEngine.Rendering.Universal
             int accumulationVersion = state.ssaoHistory.GetAccumulationVersion(multipassId);
             bool isPreview = cameraData.camera.cameraType == CameraType.Preview;
             bool isRenderRequest = cameraData.camera.isProcessingRenderRequest;
-            state.isNewFrame = !isPreview && !isRenderRequest && accumulationVersion != Time.frameCount;
+            state.isNewFrame = !isPreview && !isRenderRequest && accumulationVersion != GetTemporalFrameIndex();
             RTHandle historyWrite = state.ssaoHistory.GetCurrentTexture(multipassId);
             RTHandle historyRead = state.ssaoHistory.GetPreviousTexture(multipassId);
             Debug.Assert(historyWrite != null && historyRead != null, "SSAO temporal history textures should be allocated here.");
@@ -441,9 +532,11 @@ namespace UnityEngine.Rendering.Universal
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
 
+            RecordDepthPyramid(renderGraph, cameraData, resourceData, cameraColorDesc, out SSAOUtils.GTAODepthPyramidBinding depthPyramid);
+
             if (useComputeShader)
             {
-                RecordGTAOComputePass(renderGraph, aoTexture, blurTexture, temporalTexture, finalTexture, temporalHistory, cameraData, resourceData, cameraColorDesc);
+                RecordGTAOComputePass(renderGraph, aoTexture, blurTexture, temporalTexture, finalTexture, temporalHistory, cameraData, resourceData, cameraColorDesc, in depthPyramid);
             }
             else
             {
@@ -451,8 +544,8 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
-                SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, ref m_SSAOParamsPrev);
-                SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc);
+                SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, depthPyramid.enabled, ref m_SSAOParamsPrev);
+                SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc, in depthPyramid);
                 SSAOUtils.RecordBlurChain(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, cameraData, aoTexture, blurTexture, finalTexture);
 
                 if (!m_CurrentSettings.AfterOpaque)
@@ -460,10 +553,81 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private void RecordDepthPyramid(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalResourceData resourceData, in TextureDesc cameraColorDesc, out SSAOUtils.GTAODepthPyramidBinding depthPyramid)
+        {
+            depthPyramid = default;
+
+            if (!m_CurrentSettings.NeedsDepthPyramid)
+                return;
+
+            if (!m_DepthPrefilterState.IsValid)
+            {
+                if (Debug.isDebugBuild && !m_WarnedDepthPyramidUnavailable)
+                {
+                    m_WarnedDepthPyramidUnavailable = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: Depth Sampling is set to Depth Pyramid, but the compute shaders it needs are unavailable on this platform. Falling back to Camera Depth.");
+                }
+                return;
+            }
+
+            // Half's relative error is too coarse for orthographic, where the radius does not shrink with depth.
+            bool orthographicCamera = cameraData.camera.orthographic;
+            bool halfSupported = !orthographicCamera && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.LoadStore);
+            GraphicsFormat pyramidFormat = halfSupported ? GraphicsFormat.R16_SFloat : GraphicsFormat.R32_SFloat;
+            bool pyramidFormatSupported = halfSupported || SystemInfo.IsFormatSupported(pyramidFormat, GraphicsFormatUsage.LoadStore);
+
+            if (!pyramidFormatSupported)
+            {
+                if (Debug.isDebugBuild && !m_WarnedDepthPyramidUnavailable)
+                {
+                    m_WarnedDepthPyramidUnavailable = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: Depth Sampling is set to Depth Pyramid, but this platform cannot write the single channel 32-bit float format it needs. Falling back to Camera Depth.");
+                }
+                return;
+            }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // The prefilter reduces on a flat grid, so coarse MIPs would average across the foveation warp.
+            if (cameraData.xr.supportsFoveatedRendering && (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) != 0)
+            {
+                if (Debug.isDebugBuild && !m_WarnedDepthPyramidUnavailable)
+                {
+                    m_WarnedDepthPyramidUnavailable = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: Depth Sampling is set to Depth Pyramid, but it is not supported with non-uniform foveated rendering. Falling back to Camera Depth.");
+                }
+                return;
+            }
+#endif
+
+            Vector2Int pyramidAllocationSize = SSAOUtils.CalculateAOAllocationResolution(cameraColorDesc, m_CurrentSettings);
+            Vector2Int pyramidViewportSize = SSAOUtils.CalculateAOViewportResolution(cameraColorDesc, m_CurrentSettings);
+            int mipCount = Mathf.Clamp(CoreUtils.GetMipCount(Mathf.Max(pyramidViewportSize.x, pyramidViewportSize.y)), 1, SSAOUtils.k_GTAODepthPyramidMipCount);
+
+            SSAOUtils.GTAODepthPyramidLayout allocationLayout = SSAOUtils.CalculateGTAODepthPyramidLayout(pyramidAllocationSize);
+            SSAOUtils.GTAODepthPyramidLayout viewportLayout = SSAOUtils.CalculateGTAODepthPyramidLayout(pyramidViewportSize);
+            Debug.Assert(viewportLayout.packedSize.x <= allocationLayout.packedSize.x && viewportLayout.packedSize.y <= allocationLayout.packedSize.y,
+                "The packed layout must grow with its MIP 0 size, so that the allocation holds the layout of any viewport that fits in it.");
+
+            TextureDesc pyramidDesc = PostProcessUtils.GetCompatibleDescriptor(cameraColorDesc, allocationLayout.packedSize.x, allocationLayout.packedSize.y, pyramidFormat);
+            pyramidDesc.enableRandomWrite = true;
+
+            // The packed layout cannot be scaled uniformly.
+            // The allocation stays full size and a downscaled frame uses the smaller layout inside it.
+            pyramidDesc.useDynamicScale = false;
+
+            depthPyramid.texture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pyramidDesc, "_GTAO_DepthPyramid", false, Color.clear, FilterMode.Point);
+            depthPyramid.size = new Vector4(pyramidViewportSize.x, pyramidViewportSize.y, 0.0f, 0.0f);
+            depthPyramid.parameters = new Vector4(k_DepthMipSamplingOffset, mipCount - 1, k_MaxMipFootprintFractionOfRadius, 0.0f);
+            depthPyramid.layout = viewportLayout;
+            depthPyramid.enabled = true;
+
+            RecordDepthPrefilterPass(renderGraph, resourceData.cameraDepthTexture, in depthPyramid, cameraData, cameraColorDesc, pyramidViewportSize, mipCount, pyramidFormat, pyramidDesc.slices, pyramidDesc.dimension == TextureDimension.Tex2DArray);
+        }
+
         // ---- Compute Pass Recording ----
 
         private void RecordGTAOComputePass(RenderGraph renderGraph, TextureHandle aoTexture, TextureHandle blurTexture, TextureHandle temporalTexture, TextureHandle finalTexture,
-            in TemporalHistoryState temporalHistory, UniversalCameraData cameraData, UniversalResourceData resourceData, in TextureDesc cameraColorDesc)
+            in TemporalHistoryState temporalHistory, UniversalCameraData cameraData, UniversalResourceData resourceData, in TextureDesc cameraColorDesc, in SSAOUtils.GTAODepthPyramidBinding depthPyramid)
         {
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
             TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
@@ -478,7 +642,8 @@ namespace UnityEngine.Rendering.Universal
 
             TextureDesc aoDesc = aoTexture.GetDescriptor(renderGraph);
             Vector2Int aoSize = new Vector2Int(aoDesc.width, aoDesc.height);
-            Vector2Int aoDispatchSize = CalculateDispatchSize(aoSize, m_ComputePathState.shader, m_ComputePathState.gtaoKernel);
+            int traceKernel = depthPyramid.enabled ? m_ComputePathState.gtaoDepthPyramidKernel : m_ComputePathState.gtaoKernel;
+            Vector2Int aoDispatchSize = CalculateDispatchSize(aoSize, m_ComputePathState.shader, traceKernel);
 
             Texture2D blueNoiseTexture = SSAOUtils.GetBlueNoiseTexture(m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
             if (m_CurrentSettings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise)
@@ -488,7 +653,7 @@ namespace UnityEngine.Rendering.Universal
             var computeParams = CreateGTAOComputeParams(m_CurrentSettings, cameraData, cameraColorDesc, blueNoiseTexture);
 
             // GTAO
-            RecordGTAOMainPass(renderGraph, cameraData, computeParams, blueNoiseHandle, cameraDepthTexture, cameraNormalsTexture, aoTexture, aoDispatchSize, willRunTemporalFilter);
+            RecordGTAOMainPass(renderGraph, cameraData, computeParams, blueNoiseHandle, cameraDepthTexture, cameraNormalsTexture, aoTexture, aoDispatchSize, willRunTemporalFilter, in depthPyramid, traceKernel);
 
             // Spatial filter
             TextureHandle spatialFilteredTexture = aoTexture;
@@ -514,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
                 if (shouldSeedHistory)
                     RecordCopyHistoryPass(renderGraph, "GTAO SeedHistory", aoDispatchSize, spatialFilteredTexture, cameraDepthTexture, temporalHistory.historyReadTexture);
 
-                // Scene View and editor redraws can render the same frame again after history has been advanced.
+                // Duplicate renders of the same frame can come after history has been advanced.
                 // Keep resolving against history, but stop reprojection motion for those redraws.
                 TextureHandle activeMotionVectorTexture = temporalHistory.isNewFrame ? motionVectorTexture : renderGraph.defaultResources.blackTexture;
                 RecordTemporalFilterPass(renderGraph, aoDispatchSize, spatialFilteredTexture, cameraDepthTexture, temporalHistory.historyReadTexture, temporalHistory.historyWriteTexture, activeMotionVectorTexture, temporalTexture);
@@ -546,17 +711,88 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 multipassId = cameraData.xr.multipassId;
 #endif
-                temporalHistory.ssaoHistory.SetAccumulationVersion(multipassId, Time.frameCount);
+                temporalHistory.ssaoHistory.SetAccumulationVersion(multipassId, GetTemporalFrameIndex());
+            }
+        }
+
+        private void RecordDepthPrefilterPass(RenderGraph renderGraph, TextureHandle depthTexture, in SSAOUtils.GTAODepthPyramidBinding depthPyramid, UniversalCameraData cameraData,
+            in TextureDesc cameraColorDesc, Vector2Int pyramidViewportSize, int mipCount, GraphicsFormat pyramidFormat, int pyramidSliceCount, bool pyramidIsArray)
+        {
+            using (var builder = renderGraph.AddComputePass<GTAODepthPrefilterPassData>("GTAO Depth Prefilter", out var passData, m_ProfilingSampler))
+            {
+                Vector4 sourceSize = PostProcessUtils.CalcShaderSourceSize(cameraColorDesc.width, cameraColorDesc.height, cameraColorDesc.useDynamicScale);
+
+                // Depth filter weight ramp
+                float effectRadius = k_DepthFilterRadiusScale * SSAOUtils.CalculateRadius(m_CurrentSettings);
+                float falloffRange = Mathf.Max(k_DepthFilterFalloffRange * effectRadius, k_DepthFilterMinFalloffRange);
+                float falloffFrom = effectRadius * (1.0f - k_DepthFilterFalloffRange);
+
+                float maxStorableDepth = pyramidFormat == GraphicsFormat.R16_SFloat ? k_HalfMaxDepth : float.MaxValue;
+
+                passData.cs = m_DepthPrefilterState.shader;
+                passData.kernel = m_DepthPrefilterState.kernel;
+                passData.orthographicKeyword = m_DepthPrefilterState.orthographic;
+                passData.orthographicCamera = cameraData.camera.orthographic;
+
+                // The prefilter has no access to URP's depth helpers, so the orthographic conversion comes from here.
+                float nearPlane = cameraData.camera.nearClipPlane;
+                float farPlane = cameraData.camera.farClipPlane;
+                passData.orthoRemap = SystemInfo.usesReversedZBuffer ? new Vector4(farPlane, nearPlane - farPlane, 0.0f, 0.0f) : new Vector4(nearPlane, farPlane - nearPlane, 0.0f, 0.0f);
+
+                passData.disableTexture2DArrayKeyword = m_DepthPrefilterState.disableTexture2DArray;
+                passData.pyramidIsArray = pyramidIsArray;
+                passData.downsample = m_CurrentSettings.Downsample ? 2 : 1;
+                passData.prefilterSize = new Vector4(pyramidViewportSize.x, pyramidViewportSize.y, sourceSize.x - 1.0f, sourceSize.y - 1.0f);
+
+                // The gather addresses the allocation, not the dynamic resolution viewport.
+                passData.prefilterSourceSize = PostProcessUtils.CalcShaderSourceSize(cameraColorDesc.width, cameraColorDesc.height, false);
+                passData.prefilterFalloff = new Vector4(-1.0f / falloffRange, falloffFrom / falloffRange + 1.0f, maxStorableDepth, 0.0f);
+
+                // One group per k_DepthPrefilterTileSize tile of MIP 0.
+                passData.dispatchSize = new Vector2Int(CoreUtils.DivRoundUp(pyramidViewportSize.x, k_DepthPrefilterTileSize), CoreUtils.DivRoundUp(pyramidViewportSize.y, k_DepthPrefilterTileSize));
+
+                passData.sliceCount = pyramidSliceCount;
+
+                depthPyramid.layout.WriteMipLevelOffsets(passData.depthPyramidMipLevelOffsets);
+                passData.mipCount = mipCount;
+                passData.depthTexture = depthTexture;
+                passData.depthPyramidTexture = depthPyramid.texture;
+
+                builder.UseTexture(depthTexture, AccessFlags.Read);
+                builder.UseTexture(depthPyramid.texture, AccessFlags.Write);
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (GTAODepthPrefilterPassData data, ComputeGraphContext ctx) =>
+                {
+                    var cmd = ctx.cmd;
+                    var cs = data.cs;
+
+                    cmd.SetKeyword(cs, data.orthographicKeyword, data.orthographicCamera);
+                    cmd.SetKeyword(cs, data.disableTexture2DArrayKeyword, !data.pyramidIsArray);
+
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterSize, data.prefilterSize);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterSourceSize, data.prefilterSourceSize);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterFalloff, data.prefilterFalloff);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterOrthoRemap, data.orthoRemap);
+                    cmd.SetComputeVectorArrayParam(cs, SSAOUtils.ShaderConstants._GTAODepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsets);
+                    cmd.SetComputeIntParam(cs, ShaderIDs._GTAOPrefilterDownsample, data.downsample);
+                    cmd.SetComputeIntParam(cs, ShaderIDs._GTAOPrefilterMipCount, data.mipCount);
+                    cmd.SetComputeTextureParam(cs, data.kernel, ShaderIDs._CameraDepthTexture, data.depthTexture);
+                    cmd.SetComputeTextureParam(cs, data.kernel, SSAOUtils.ShaderConstants._GTAODepthPyramid, data.depthPyramidTexture);
+
+                    cmd.DispatchCompute(cs, data.kernel, data.dispatchSize.x, data.dispatchSize.y, data.sliceCount);
+                });
             }
         }
 
         private void RecordGTAOMainPass(RenderGraph renderGraph, UniversalCameraData cameraData, GTAOComputeParams computeParams,
-            TextureHandle blueNoiseTexture, TextureHandle depthTexture, TextureHandle normalsTexture, TextureHandle aoTexture, Vector2Int dispatchSize, bool willRunTemporalFilter)
+            TextureHandle blueNoiseTexture, TextureHandle depthTexture, TextureHandle normalsTexture, TextureHandle aoTexture, Vector2Int dispatchSize, bool willRunTemporalFilter,
+            in SSAOUtils.GTAODepthPyramidBinding depthPyramid, int traceKernel)
         {
             using (var builder = renderGraph.AddComputePass<GTAOComputePassData>("GTAO Compute", out var passData, m_ProfilingSampler))
             {
                 passData.cs = m_ComputePathState.shader;
-                passData.kernel = m_ComputePathState.gtaoKernel;
+                passData.kernel = traceKernel;
                 passData.dispatchSize = dispatchSize;
                 passData.computeParams = computeParams;
                 passData.useBlueNoise = m_CurrentSettings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
@@ -588,6 +824,13 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.blueNoiseTexture = blueNoiseTexture;
                 builder.UseTexture(blueNoiseTexture, AccessFlags.Read);
+
+                passData.depthPyramid = depthPyramid;
+                if (depthPyramid.enabled)
+                {
+                    depthPyramid.layout.WriteMipLevelOffsets(passData.depthPyramidMipLevelOffsets);
+                    builder.UseTexture(depthPyramid.texture, AccessFlags.Read);
+                }
 
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(static (GTAOComputePassData data, ComputeGraphContext ctx) =>
@@ -628,6 +871,13 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetComputeTextureParam(cs, data.kernel, ShaderIDs._CameraDepthTexture, data.depthTexture);
                     cmd.SetComputeTextureParam(cs, data.kernel, SSAOUtils.ShaderConstants._CameraNormalsTexture, data.normalsTexture);
+                    if (data.depthPyramid.enabled)
+                    {
+                        cmd.SetComputeTextureParam(cs, data.kernel, SSAOUtils.ShaderConstants._GTAODepthPyramid, data.depthPyramid.texture);
+                        cmd.SetComputeVectorParam(cs, SSAOUtils.ShaderConstants._GTAODepthPyramidSize, data.depthPyramid.size);
+                        cmd.SetComputeVectorParam(cs, SSAOUtils.ShaderConstants._GTAODepthPyramidParams, data.depthPyramid.parameters);
+                        cmd.SetComputeVectorArrayParam(cs, SSAOUtils.ShaderConstants._GTAODepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsets);
+                    }
                     cmd.SetComputeTextureParam(cs, data.kernel, ShaderIDs._AOOutput, data.aoTexture);
                     cmd.DispatchCompute(cs, data.kernel, data.dispatchSize.x, data.dispatchSize.y, 1);
                 });
