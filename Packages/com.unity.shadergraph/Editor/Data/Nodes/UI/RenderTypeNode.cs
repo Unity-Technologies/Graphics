@@ -53,8 +53,8 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_SOLID || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSolid;", GetVariableNameForSlot(k_OutputSlotIdSolid));
             sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_TEXTURE || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeTexture;", GetVariableNameForSlot(k_OutputSlotIdTexture));
-            sb.AppendLine("bool {0} = (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeText && (GetTextureInfo(IN.typeTexSettings.y).sdfScale > 0.0);", GetVariableNameForSlot(k_OutputSlotIdSDFText));
-            sb.AppendLine("bool {0} = (_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeText && (!(GetTextureInfo(IN.typeTexSettings.y).sdfScale > 0.0));", GetVariableNameForSlot(k_OutputSlotIdBitmapText));
+            sb.AppendLine("bool {0} = uie_is_sdf_text_fragment(IN.typeTexSettings);", GetVariableNameForSlot(k_OutputSlotIdSDFText));
+            sb.AppendLine("bool {0} = uie_is_bitmap_text_fragment(IN.typeTexSettings);", GetVariableNameForSlot(k_OutputSlotIdBitmapText));
             sb.AppendLine("bool {0} = _UIE_RENDER_TYPE_GRADIENT || _UIE_RENDER_TYPE_ANY && round(IN.typeTexSettings.x) == k_FragTypeSvgGradient;", GetVariableNameForSlot(k_OutputSlotIdGradient));
         }
 

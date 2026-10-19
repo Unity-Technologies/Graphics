@@ -52,6 +52,11 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     output.typeTexSettings.x = uie_element_frag_type(input.uv4);
     output.typeTexSettings.y = uie_element_texture_slot(input.uv4);
 
+    // Text-settings location and extra dilate (static fields) so the SDF Text Parameters node works in
+    // the vertex stage; uie_std_vert resolves the same values for text vertices.
+    output.textCoreLoc = uie_element_textcore_loc(input.uv4);
+    output.circle = input.uv5;
+
     $VertexDescriptionInputs.ObjectSpaceNormal:                         output.ObjectSpaceNormal =                          input.normalOS;
     $VertexDescriptionInputs.WorldSpaceNormal:                          output.WorldSpaceNormal =                           TransformObjectToWorldNormal(input.normalOS);
     $VertexDescriptionInputs.ViewSpaceNormal:                           output.ViewSpaceNormal =                            TransformWorldToViewDir(output.WorldSpaceNormal);
