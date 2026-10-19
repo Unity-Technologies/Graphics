@@ -153,6 +153,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent buttonText = L10n.TextContent("Install 2D Common Package", null, null, null);
             public static readonly GUIContent helpBox = L10n.TextContent("2D Common Package is required to edit Light 2D Shape. Please install it by clicking button above", null, null, null);
+            public static readonly GUIContent freeformRequires2DCommon = L10n.TextContent("Freeform lights need the 2D Common package to render their inner area. Without it, only the falloff edge is lit. Install or update com.unity.2d.common (13.0.0 or newer) to fix this.", null, null, null);
         }
 
         const float k_GlobalLightGizmoSize = 1.2f;
@@ -760,6 +761,16 @@ namespace UnityEditor.Rendering.Universal
 
             serializedObject.Update();
 
+            // The editor's USING_2DCOMMON uses a lower version threshold than the runtime's, so this
+            // button must not sit behind it: an installed but too-old 2D Common needs it too.
+            if (!LightUtility.canTessellateFreeformInterior &&
+                targets.Any(t => t is Light2D selected && Light2DEditorUtility.ShouldShowMissing2DCommonError(selected.lightType)))
+            {
+                EditorGUILayout.HelpBox(Styles.freeformRequires2DCommon.text, MessageType.Error);
+                if (GUILayout.Button(Styles.buttonText))
+                    URP2DConverterUtility.InstallPackage("com.unity.2d.common");
+            }
+
             EditorGUI.BeginChangeCheck();
 
             // Color and intensity
@@ -838,11 +849,8 @@ namespace UnityEditor.Rendering.Universal
                     DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
                     DoPathInspector<FreeformShapeTool>();
 #else
-                    var clicked = GUILayout.Button(Styles.buttonText);
-                    if (clicked)
-                        URP2DConverterUtility.InstallPackage("com.unity.2d.common");
-                    else
-                        EditorGUILayout.HelpBox(Styles.helpBox.text, MessageType.Info);
+                    // The install button is drawn with the missing-2D-Common error at the top of the inspector.
+                    EditorGUILayout.HelpBox(Styles.helpBox.text, MessageType.Info);
 #endif
                 }
             }
