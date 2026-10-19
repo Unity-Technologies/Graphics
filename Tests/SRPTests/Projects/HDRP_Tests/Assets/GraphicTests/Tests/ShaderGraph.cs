@@ -67,6 +67,30 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "8101_Opaque$",
             "https://jira.unity3d.com/browse/UUM-153642"
         )]
+        [IgnoreGraphicsTest(
+            "8207_InstancingMaterials",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157557",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "8207_Instancing",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157557",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "8208_Displacement",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157557",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "8217_TerrainPropertiesNode",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157557",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan
+        )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
