@@ -51,6 +51,20 @@ namespace UnityEngine.VFX.Test
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
             RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
         )]
+        [IgnoreGraphicsTest(
+            "HDRP_Debug",
+            "https://jira.unity3d.com/browse/UUM-157588",
+            GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn
+        )]
+        [IgnoreGraphicsTest(
+            "027_RWTexture",
+            "https://jira.unity3d.com/browse/UGK-2500",
+            GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn
+        )]
 
         [TestNotSupportedOn(
             "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
