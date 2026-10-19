@@ -1446,6 +1446,9 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var node in GetNodes<SubGraphNode>())
                 {
+                    if (node.asset == null)
+                        continue;
+
                     foreach (var keyword in node.asset.keywords)
                     {
                         if (keyword.promoteToFinalShader)
@@ -1462,6 +1465,9 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var subnode in GetNodes<SubGraphNode>())
             {
+                if (subnode.asset == null)
+                    continue;
+
                 foreach (var prop in subnode.asset.nodeProperties)
                 {
                     if (!prop.promoteToFinalShader)

@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
         List<string> m_DropdownSelectedEntries = new List<string>();
 
         public override string documentationURL =>
-            Documentation.GetPageLink(string.IsNullOrEmpty(m_SubGraph.documentationPath)? "Sub-graph-Node" : m_SubGraph.documentationPath);
+            Documentation.GetPageLink(asset == null || string.IsNullOrEmpty(asset.documentationPath) ? "Sub-graph-Node" : asset.documentationPath);
 
         public string subGraphGuid
         {
@@ -688,6 +688,9 @@ namespace UnityEditor.ShaderGraph
         internal HashSet<string> UsedReferenceNames()
         {
             HashSet<string> usedNames = new();
+
+            if (asset == null)
+                return usedNames;
 
             foreach (var property in this.asset.nodeProperties)
                 if (property.promoteToFinalShader)

@@ -1489,6 +1489,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
             foreach (SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())
             {
+                if (subGraphNode.asset == null)
+                {
+                    continue;
+                }
+
                 if (subGraphNode.asset.keywords.Any())
                 {
                     keywordsDirty = true;
