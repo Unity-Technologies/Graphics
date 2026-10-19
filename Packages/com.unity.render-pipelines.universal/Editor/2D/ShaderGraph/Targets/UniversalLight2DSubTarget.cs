@@ -46,18 +46,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(UniversalFields.SurfaceTransparent);
         }
 
+        // The blocks this SubTarget registers. The Create menu seeds the same list (UUM-153138).
+        //
+        // Only Position is exposed on the vertex stage. Light2D's pass reads
+        // positionWS + screen-space normal map (_NormalMap) at the fragment stage,
+        // so per-vertex Normal/Tangent ports would be unused sink pins.
+        //
+        // Light2DColor is registered on UniversalBlockFields.SurfaceDescription, which has
+        // [GenerateBlocks], with a white default and a unique name. So it survives the tag+name
+        // remap in GraphData deserialization. It stays reference-identical to the block in the
+        // Fragment mask, which is what lets user edits to its color swatch reach codegen.
+        //
+        // Light2DVolumetricColor is the volumetric-pass counterpart. Registering it makes the
+        // port visible in the master node; the per-pass validPixelBlocks masks below decide
+        // which pass actually consumes it.
+        internal static readonly BlockFieldDescriptor[] kActiveBlocks =
+        {
+            BlockFields.VertexDescription.Position,
+            UniversalBlockFields.SurfaceDescription.Light2DColor,
+            UniversalBlockFields.SurfaceDescription.Light2DShadowColor,
+            UniversalBlockFields.SurfaceDescription.Light2DVolumetricColor,
+        };
+
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Only Position is exposed on the vertex stage. Light2D's pass reads
-            // positionWS + screen-space normal map (_NormalMap) at the fragment stage,
-            // so per-vertex Normal/Tangent ports would be unused sink pins.
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.Light2DColor);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.Light2DShadowColor);
-            // Volumetric-pass counterpart. Registering it here makes the port visible
-            // in the master node; the per-pass validPixelBlocks masks below decide which
-            // pass actually consumes it.
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.Light2DVolumetricColor);
+            foreach (var block in kActiveBlocks)
+                context.AddBlock(block);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo) { }
