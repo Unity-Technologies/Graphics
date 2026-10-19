@@ -489,7 +489,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
             bool isStencilDeferred = universalRenderer != null && universalRenderer.renderingModeActual == RenderingMode.Deferred;
-            m_NeedExtraForwardShadowParamsCopy = isStencilDeferred && universalRenderer.shadowTransparentReceive;
+            m_NeedExtraForwardShadowParamsCopy = isStencilDeferred;
 
             // Lazy init: ensure buffers exist (may have been destroyed by domain reload or graphics device reset)
             EnsureBuffersCreated();
