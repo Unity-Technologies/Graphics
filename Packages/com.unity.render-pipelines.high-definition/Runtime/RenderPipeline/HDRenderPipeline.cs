@@ -1055,6 +1055,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             CleanupPostProcess();
+            if (upscaling != null)
+            {
+                var upscalerCmd = CommandBufferPool.Get("Upscaler Dispose");
+                upscaling.Dispose(upscalerCmd);
+                Graphics.ExecuteCommandBuffer(upscalerCmd);
+                CommandBufferPool.Release(upscalerCmd);
+            }
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
