@@ -389,5 +389,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsTrue(shaderCodeString.Contains("Dependency \"TestDep1\" = \"Name-blah\""));
             Assert.IsTrue(shaderCodeString.Contains("Dependency \"TestDep2\" = \"MyTestShader-blah\""));
         }
+
+        [Test]
+        public void BuiltInMaterialPostprocessor_MissingMaterial_DoesNotThrow()
+        {
+            var imported = new[] { "Assets/DoesNotExist.mat" };
+            var none = new string[0];
+
+            Assert.DoesNotThrow(() => UnityEditor.Rendering.BuiltIn.MaterialPostprocessor.OnPostprocessAllAssets(imported, none, none, none));
+        }
     }
 }
