@@ -2491,6 +2491,27 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void CompiledGraphPreservesLongPassAndResourceNames()
+        {
+            var g = AllocateRenderGraph();
+            var longPassName = new string('P', 100);
+            var longTextureName = new string('T', 100);
+            var texture = g.CreateTexture(SimpleTextureDesc(longTextureName, 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>(longPassName, out var passData))
+            {
+                builder.SetRenderAttachment(texture, 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            Assert.AreEqual(longPassName, result.contextData.GetPassName(0));
+            Assert.AreEqual(longTextureName, result.contextData.GetResourceName(texture.handle));
+        }
+
+        [Test]
         public void CompileOnFreshCompilationCacheEntry_DoesNotAllocateGCMemory()
         {
             RenderGraph.s_EnableCompilationCachingForTests = true;

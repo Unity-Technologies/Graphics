@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ctxPass.ResetAndInitialize(inputPass, passId);
 
 #if UNITY_ENABLE_CHECKS
-                    ctx.passNames.AddTruncated(inputPass.name);
+                    ctx.passNames.Add(new Name(inputPass.name, true));
 #endif
 
                     if (ctxPass.hasSideEffects)
@@ -1980,11 +1980,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_ENABLE_CHECKS
                 if (RenderGraph.enableValidityChecks)
                 {
-                    // Names are stored pre-encoded as UTF8, so building the debug label is plain byte copies.
+                    // Debug label: UTF8 pass names separated by '/', null-terminated.
                     int utf8CStrDebugNameLength = 0;
                     foreach (ref readonly var graphPass in nativePass.GraphPasses(contextData))
                     {
-                        utf8CStrDebugNameLength += contextData.passNames.ElementAt(graphPass.passId).Length + 1; // +1 to add '/' between passes or the null terminator at the end
+                        utf8CStrDebugNameLength += contextData.passNames[graphPass.passId].utf8ByteCount + 1; // +1 to add '/' between passes or the null terminator at the end
                     }
 
                     var nameBytes = stackalloc byte[utf8CStrDebugNameLength];
@@ -1993,9 +1993,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         int startStr = 0;
                         foreach (ref readonly var graphPass in nativePass.GraphPasses(contextData))
                         {
-                            var utf8Name = contextData.passNames[graphPass.passId];
-                            new ReadOnlySpan<byte>(utf8Name.GetUnsafePtr(), utf8Name.Length).CopyTo(new Span<byte>(nameBytes + startStr, utf8Name.Length));
-                            startStr += utf8Name.Length;
+                            ref readonly var passName = ref contextData.passNames[graphPass.passId];
+                            System.Text.Encoding.UTF8.GetBytes(passName.name.AsSpan(), new Span<byte>(nameBytes + startStr, passName.utf8ByteCount));
+                            startStr += passName.utf8ByteCount;
                             // Adding '/' in UTF8
                             nameBytes[startStr++] = (byte)(0x2F);
                         }
