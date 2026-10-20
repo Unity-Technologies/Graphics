@@ -25,13 +25,15 @@ float4 ComputeScreenPos (float4 pos, float projectionSign)
   return o;
 }
 
+#define SG_GRADIENT_MAX_KEYS 8
+
 struct Gradient
 {
     int type;
     int colorsLength;
     int alphasLength;
-    float4 colors[8];
-    float2 alphas[8];
+    float4 colors[SG_GRADIENT_MAX_KEYS];
+    float2 alphas[SG_GRADIENT_MAX_KEYS];
 };
 
 Gradient NewGradient(int type, int colorsLength, int alphasLength,
