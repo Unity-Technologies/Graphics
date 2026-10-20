@@ -153,6 +153,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool fragmentInfoValid;
         public bool fragmentInfoHasDepth;
         public bool fragmentInfoHasShadingRateImage => shadingRateImageIndex > 0;
+        public bool fragmentInfoHasDepthInputAttachment => extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) && numFragmentInputs > 0;
         public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
         public bool hasShadingRateStates;
 
@@ -644,7 +645,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The next pass uses a texture sampled in this pass as a render target.",
             "The next pass is not a raster render pass.",
             "The next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
-            $"The limit of {FixedAttachmentArray<PassFragmentData>.MaxAttachments} native pass attachments would be exceeded when merging with the next pass.",
+            $"The limit of {RenderGraph.kMaxMRTCount} native pass colour attachments would be exceeded when merging with the next pass.",
             $"The limit of {NativePassCompiler.k_MaxSubpass} native subpasses would be exceeded when merging with the next pass.",
             "This is the last pass in the graph, there are no other passes to merge.",
             "The next pass uses a different foveated rendering state",
@@ -748,8 +749,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // Depth input attachment needs special handling if the native pass doesn't have depth but has depth input attachment
             // Backend require depth input attachment to be set as depth attachment.
             // Jira work tracking the depth input attachment only use case investigation (not set as depth attachment): https://jira.unity3d.com/projects/GXR/issues/GXR-214
-            bool fragmentInfoHasDepthInputAttachment = extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) && pass.numFragmentInputs > 0;
-            if (!hasDepth && fragmentInfoHasDepthInputAttachment)
+            if (!hasDepth && pass.fragmentInfoHasDepthInputAttachment)
             {
                 AddDepthAttachmentFromDepthInputAttachment(ctx, ctx.fragmentData[pass.firstFragmentInput]);
             }
@@ -950,7 +950,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             var attachmentsToTryAdding = new FixedAttachmentArray<PassFragmentData>();
 
             // We can't have more than the maximum amount of attachments in a given native renderpass
-            int currAvailableAttachmentSlots = FixedAttachmentArray<PassFragmentData>.MaxAttachments - nativePass.fragments.size;
+            bool mergedPassHasDepth = nativePass.hasDepth || passToMerge.fragmentInfoHasDepth || passToMerge.fragmentInfoHasDepthInputAttachment;
+            int maxFragments = RenderGraph.kMaxMRTCount + (mergedPassHasDepth ? 1 : 0) + (nativePass.hasShadingRateImage ? 1 : 0);
+            int currAvailableAttachmentSlots = maxFragments - nativePass.fragments.size;
 
             // Early exit: only build the HashSet and check if we actually have fragments to check against it
             if (passToMerge.numFragments > 0)
@@ -1004,7 +1006,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         {
                             // We already reached the maximum amount of attachments in this renderpass
                             // We can't add any new attachment, just start a new renderpass
-                            if (currAvailableAttachmentSlots == 0)
+                            if (currAvailableAttachmentSlots <= 0)
                             {
                                 return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
                             }
@@ -1042,7 +1044,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     // We already reached the maximum amount of attachments in this native renderpass
                     // We can't add any new attachment, just start a new renderpass
-                    if (currAvailableAttachmentSlots == 0)
+                    if (currAvailableAttachmentSlots <= 0)
                     {
                         return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
                     }
@@ -1590,8 +1592,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // Depth input attachment needs special handling if the native pass doesn't have depth and merges with a graph pass that has depth input attachment
             // Backend require depth input attachment to be set as depth attachment.
             // Jira work tracking the depth input attachment only use case investigation (not set as depth attachment): https://jira.unity3d.com/projects/GXR/issues/GXR-214
-            bool fragmentInfoHasDepthInputAttachment = passToMerge.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment) && passToMerge.numFragmentInputs > 0;
-            if (!nativePass.hasDepth && fragmentInfoHasDepthInputAttachment)
+            if (!nativePass.hasDepth && passToMerge.fragmentInfoHasDepthInputAttachment)
             {
                 nativePass.AddDepthAttachmentFromDepthInputAttachment(contextData, contextData.fragmentData[passToMerge.firstFragmentInput]);
             }

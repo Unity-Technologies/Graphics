@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     message += $"{prevPassName} uses a different depth buffer than {passName}.";
                     break;
                 case PassBreakReason.AttachmentLimitReached:
-                    message += $"Merging the passes would use more than {FixedAttachmentArray<PassFragmentData>.MaxAttachments} attachments.";
+                    message += $"Merging the passes would use more than {RenderGraph.kMaxMRTCount} colour attachments.";
                     break;
                 case PassBreakReason.SubPassLimitReached:
                     message += $"Merging the passes would use more than {k_MaxSubpass} native subpasses.";

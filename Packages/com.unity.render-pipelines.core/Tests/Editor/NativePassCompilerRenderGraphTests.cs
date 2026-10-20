@@ -732,6 +732,154 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void EightColorAttachmentsPlusDepthFitInOneNativePass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(9, passes[0].attachments.size);
+        }
+
+        [Test]
+        public void NineColorAttachmentsWithoutDepthBreakPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i + 5], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.AttachmentLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void EightColorAttachmentsDepthAndShadingRateImageFitInOneNativePass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(ShadingRateInfo.supportsPerImageTile ? 10 : 9, passes[0].attachments.size);
+        }
+
+        [Test]
+        public void EightColorAttachmentsAndShadingRateImageWithoutDepthBreakPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[9], 0, AccessFlags.Write);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.AttachmentLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void EightColorAttachmentsMergeWithDepthInputAttachmentPass()
+        {
+            if (!SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                Assert.Ignore("Depth attachment as input attachment is not supported on this device.");
+
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
+                builder.SetInputAttachment(renderTargets.depthBuffer, 0, AccessFlags.Read);
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(9, passes[0].attachments.size);
+        }
+
+        [Test]
         public void NativeSubPassesLimitNotExceeded()
         {
             var g = AllocateRenderGraph();
