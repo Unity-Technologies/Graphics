@@ -180,6 +180,7 @@ namespace UnityEngine.Rendering
         public bool BouncePatchAllocation;
         public uint SampleCount;
         public uint WarmUpSampleMultiplier;
+        public uint PunctualLightCandidateCount;
         public bool DistanceFallback;
     }
 
@@ -298,8 +299,11 @@ namespace UnityEngine.Rendering
     internal class SurfaceCache : IDisposable
     {
         public const uint CascadeMax = 8;
+        public const uint SamplesPerPunctualLight = 16;
+        public const int PunctualLightSampleSize = sizeof(float) * 17;
 
-        private readonly GraphicsBuffer _punctualLightSamples;
+        private GraphicsBuffer _punctualLightSamples;
+        private uint _punctualLightSampleCount;
         private readonly SurfaceCachePatchList _patches;
         private readonly SurfaceCachePatchAllocationRequestList _patchAllocationRequests;
         private readonly SurfaceCacheVolume _volume;
@@ -322,6 +326,7 @@ namespace UnityEngine.Rendering
         float _globalProbeEnvIntensity = -1.0f;
 
         public GraphicsBuffer PunctualLightSamples => _punctualLightSamples;
+        public uint PunctualLightSampleCount => _punctualLightSampleCount;
         public SurfaceCachePatchList Patches => _patches;
         public SurfaceCacheVolume Volume => _volume;
         public SurfaceCacheRingConfig RingConfig => _ringConfig;
@@ -415,6 +420,7 @@ namespace UnityEngine.Rendering
             internal uint RingConfigOffset;
             internal uint SampleCount;
             internal uint WarmUpSampleMultiplier;
+            internal uint PunctualLightCandidateCount;
             internal uint VolumeSpatialResolution;
             internal float VolumeVoxelMinSize;
             internal bool PatchWarpingEnabled;
@@ -499,6 +505,7 @@ namespace UnityEngine.Rendering
             public static readonly int _DirectionalLightIntensity = Shader.PropertyToID("_DirectionalLightIntensity");
             public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
             public static readonly int _PunctualLightCount = Shader.PropertyToID("_PunctualLightCount");
+            public static readonly int _SamplesPerPunctualLight = Shader.PropertyToID("_SamplesPerPunctualLight");
             public static readonly int _GlobalProbe = Shader.PropertyToID("_GlobalProbe");
             public static readonly int _EmissionTextures = Shader.PropertyToID("_EmissionTextures");
             public static readonly int _VolumeTargetPos = Shader.PropertyToID("_VolumeTargetPos");
@@ -509,6 +516,7 @@ namespace UnityEngine.Rendering
             public static readonly int _VolumeCascadeCount = Shader.PropertyToID("_VolumeCascadeCount");
             public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
             public static readonly int _WarmUpSampleMultiplier = Shader.PropertyToID("_WarmUpSampleMultiplier");
+            public static readonly int _PunctualLightCandidateCount = Shader.PropertyToID("_PunctualLightCandidateCount");
             public static readonly int _MultiBounce = Shader.PropertyToID("_MultiBounce");
             public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
             public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
@@ -551,7 +559,6 @@ namespace UnityEngine.Rendering
             Debug.Assert(volParams.CascadeCount != 0);
             Debug.Assert(volParams.CascadeCount <= CascadeMax);
 
-            const uint punctualLightSampleCount = 128;
             const uint patchCapacity = 65536; // Must match HLSL side constant.
             Debug.Assert((UInt64)4294967296 % (UInt64)patchCapacity == 0, "Patch Capacity must be a divisor of 2^32."); // This property is required by the HLSL side ring buffer allocation logic.
 
@@ -560,7 +567,8 @@ namespace UnityEngine.Rendering
             _ringConfig = new SurfaceCacheRingConfig();
             _patches = new SurfaceCachePatchList(patchCapacity);
             _patchAllocationRequests = new SurfaceCachePatchAllocationRequestList();
-            _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)punctualLightSampleCount, sizeof(float) * 17);
+            _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, PunctualLightSampleSize);
+            _punctualLightSampleCount = 0;
 
             {
                 // When the global probe is turned off we theoretically do not need this buffer.
@@ -604,6 +612,19 @@ namespace UnityEngine.Rendering
         public void SetPatchWarpingEnabled(bool enabled)
         {
             _volume.PatchWarpingEnabled = enabled;
+        }
+
+        public void EnsurePunctualLightSampleBufferCapacity(uint lightCount)
+        {
+            _punctualLightSampleCount = lightCount * SamplesPerPunctualLight;
+            bool grow = _punctualLightSampleCount > _punctualLightSamples.count;
+            bool shrink = _punctualLightSampleCount * 4 < _punctualLightSamples.count;
+            if (grow || shrink)
+            {
+                int newCapacity = Mathf.NextPowerOfTwo((int)Math.Max(_punctualLightSampleCount, 1u));
+                _punctualLightSamples.Dispose();
+                _punctualLightSamples = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newCapacity, PunctualLightSampleSize);
+            }
         }
 
         public void RecordPreparation(RenderGraph renderGraph, uint frameIdx)
@@ -739,6 +760,8 @@ namespace UnityEngine.Rendering
 
         private void RecordEstimation(RenderGraph renderGraph, uint frameIdx, SurfaceCacheWorld world)
         {
+            EnsurePunctualLightSampleBufferCapacity(world.GetPunctualLightCount());
+
             using (var builder = renderGraph.AddUnsafePass("Surface Cache Estimation", out EstimationPassData passData))
             {
                 passData.PatchCapacity = Patches.Capacity;
@@ -755,7 +778,7 @@ namespace UnityEngine.Rendering
                 passData.PatchGeometries = Patches.Geometries;
                 passData.PatchStatistics = Patches.Statistics;
                 passData.PunctualLightSamples = PunctualLightSamples;
-                passData.PunctualLightSampleCount = (uint)PunctualLightSamples.count;
+                passData.PunctualLightSampleCount = PunctualLightSampleCount;
                 passData.World = world;
                 passData.CellPatchIndices = Volume.CellPatchIndices;
                 passData.VolumeTargetPos = Volume.TargetPos;
@@ -783,6 +806,7 @@ namespace UnityEngine.Rendering
                 passData.RingConfigOffset = RingConfig.OffsetA;
                 passData.SampleCount = _estimationParams.SampleCount;
                 passData.WarmUpSampleMultiplier = _estimationParams.WarmUpSampleMultiplier;
+                passData.PunctualLightCandidateCount = _estimationParams.PunctualLightCandidateCount;
                 passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
                 passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                 passData.Zero = _zero;
@@ -922,6 +946,7 @@ namespace UnityEngine.Rendering
                 var kernelIdx = data.PunctualLightSamplingKernelIndex;
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PunctualLights, punctualLightBuffer);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightCount, punctualLightCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._SamplesPerPunctualLight, (int)SamplesPerPunctualLight);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._FrameIdx, data.FrameIdx);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._Samples, data.PunctualLightSamples);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
@@ -956,6 +981,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.CascadeCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._WarmUpSampleMultiplier, (int)data.WarmUpSampleMultiplier);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightCandidateCount, (int)data.PunctualLightCandidateCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._MultiBounce, data.MultiBounce ? 1 : 0);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);

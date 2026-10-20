@@ -17,6 +17,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/PseudoRandom.hlsl"
 #include "PathTracing.hlsl"
 #include "PunctualLights.hlsl"
 
@@ -32,10 +33,14 @@ float _MaterialAtlasTexelSize;
 float _AlbedoBoost;
 uint _FrameIdx;
 uint _PunctualLightCount;
+uint _SamplesPerPunctualLight;
 
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)
 {
+    if (dispatchThreadIdx >= _PunctualLightCount * _SamplesPerPunctualLight)
+        return;
+
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
     MaterialPoolParamSet matPoolParams;
@@ -45,10 +50,7 @@ void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint gro
     matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
     matPoolParams.albedoBoost = _AlbedoBoost;
 
-    QrngKronecker2D rng;
-    rng.Init(dispatchThreadIdx, _FrameIdx);
-
-    const uint punctualLightIndex = min(rng.GetSample(0).x * _PunctualLightCount, _PunctualLightCount - 1);
+    const uint punctualLightIndex = dispatchThreadIdx / _SamplesPerPunctualLight;
     const PunctualLight light = _PunctualLights[punctualLightIndex];
 
     UnifiedRT::Ray ray;
@@ -56,7 +58,10 @@ void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint gro
     ray.tMax = light.range;
     ray.origin = light.position;
     {
-        float2 coneSample = rng.GetSample(1);
+        QrngKronecker2D rng;
+        rng.Init(0, _FrameIdx * _SamplesPerPunctualLight + dispatchThreadIdx % _SamplesPerPunctualLight);
+
+        float2 coneSample = rng.GetSample(punctualLightIndex);
         float3 localDir = SampleConeUniform((real)coneSample.x, (real)coneSample.y, (real)light.cosOuterAngle);
         float3x3 spotBasis = OrthoBasisFromVector(light.direction);
         ray.direction = mul(spotBasis, localDir);

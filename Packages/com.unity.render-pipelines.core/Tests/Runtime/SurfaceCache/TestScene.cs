@@ -36,6 +36,19 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
+        public void AddSpotLight(Vector3 position, Vector3 direction, Vector3 linearColor, float range, float outerSpotAngle, float innerSpotAngle)
+        {
+            m_World.AddLight(new SurfaceCacheWorld.LightDescriptor
+            {
+                Type = LightType.Spot,
+                LinearLightColor = linearColor,
+                Transform = Matrix4x4.TRS(position, Quaternion.LookRotation(direction), Vector3.one),
+                Range = range,
+                OuterSpotAngle = outerSpotAngle,
+                InnerSpotAngle = innerSpotAngle,
+            });
+        }
+
         public void AddPlane(Vector3 albedo, float halfSize, Vector3 center, Vector3 normal, bool doubleSidedGI = false)
         {
             var descriptor = CreateUniformAlbedoDescriptor(albedo);
