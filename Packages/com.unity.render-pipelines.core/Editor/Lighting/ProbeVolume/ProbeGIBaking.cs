@@ -1983,11 +1983,25 @@ namespace UnityEngine.Rendering
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking(BakeType.ApvOnly, DoProbePlacement, AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests))
                 return false;
 
-            SetAsyncBakeTaskId(Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous));
-            Progress.RegisterCancelCallback(s_AsyncBakeTaskId, () =>
+            int taskId = Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous);
+            SetAsyncBakeTaskId(taskId);
+            Progress.RegisterCancelCallback(taskId, () =>
             {
+                // Cancelling the item of a bake that already ended must not touch the current bake
+                if (taskId != s_AsyncBakeTaskId)
+                    return true;
+
                 OnBakeCancelled();
                 EditorApplication.update -= AsyncBakeCallback;
+
+                // The canceled item keeps this callback alive until it is removed, and a synchronous item
+                // cannot be removed from inside its own cancel callback.
+                EditorApplication.delayCall += () =>
+                {
+                    if (Progress.Exists(taskId))
+                        Progress.Remove(taskId);
+                };
+
                 SetAsyncBakeTaskId(-1);
                 return true;
             });
