@@ -614,10 +614,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // geometry generator's payload (role, fanParam, prev.xy) rather than a tangent at all -- so
             // a Normal or Tangent port there is not merely unused, it invites a silently wrong shadow.
             // It registers the blocks it does want in its own GetActiveBlocks.
-            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UniversalShadowCaster2DSubTarget);
+            //
+            // Light2D opts out too, since its passes never read a normal, a tangent or a base colour.
+            // Any block reported active here is added to the graph when the Material changes (UUM-153138).
+            // It also registers its own blocks in its GetActiveBlocks.
+            bool useCoreBlocks = m_ActiveSubTarget.value is not (UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
+                or UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
+                or UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>
+                or UniversalShadowCaster2DSubTarget
+                or UniversalLight2DSubTarget);
 
             // Core blocks
             if (useCoreBlocks)

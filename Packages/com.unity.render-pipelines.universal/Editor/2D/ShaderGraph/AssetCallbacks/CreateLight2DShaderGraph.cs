@@ -18,20 +18,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
             target.TrySetActiveSubTarget(typeof(UniversalLight2DSubTarget));
 
-            // Light2DColor is registered on UniversalBlockFields.SurfaceDescription (which
-            // has [GenerateBlocks]) with a white default and a unique name — so it survives
-            // GraphData deserialization's tag+name remap and stays reference-identical to
-            // what the SubTarget's Fragment mask and GetActiveBlocks return. That's what
-            // makes user edits to the block's color swatch actually reach codegen.
-            var blockDescriptors = new[]
-            {
-                BlockFields.VertexDescription.Position,
-                UniversalBlockFields.SurfaceDescription.Light2DColor,
-                UniversalBlockFields.SurfaceDescription.Light2DShadowColor,
-                UniversalBlockFields.SurfaceDescription.Light2DVolumetricColor,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
+            // Seed exactly the blocks the SubTarget registers (UUM-153138).
+            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, UniversalLight2DSubTarget.kActiveBlocks);
         }
     }
 }
