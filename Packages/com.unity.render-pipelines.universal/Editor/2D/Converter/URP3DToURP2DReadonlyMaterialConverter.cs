@@ -71,6 +71,12 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        protected override IEnumerable<Material> GetSourceMaterials()
+        {
+            var urpMaterials = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorMaterials>();
+            return new[] { urpMaterials.defaultMaterial, urpMaterials.simpleLitMaterial };
+        }
+
         protected override Dictionary<string, Func<Material>> materialMappings
         {
             get

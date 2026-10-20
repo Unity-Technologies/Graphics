@@ -160,6 +160,41 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
+        public void BuiltInToURP3D_ProjectMaterialWithBuiltInName_IsIgnored()
+        {
+            const string materialName = "Default-Particle";
+            var builtInMaterial = AssetDatabase.GetBuiltinExtraResource<Material>(materialName + ".mat");
+            Assume.That(builtInMaterial, Is.Not.Null);
+
+            var materialPath = k_BasePrefabPath + materialName + ".mat";
+            CoreUtils.EnsureFolderTreeInAssetFilePath(materialPath);
+            var projectMaterial = new Material(builtInMaterial);
+            AssetDatabase.CreateAsset(projectMaterial, materialPath);
+
+            try
+            {
+                Assume.That(projectMaterial.name, Is.EqualTo(materialName));
+
+                var converter = new BuiltInToURP3DReadonlyMaterialConverter();
+                var builtInMaterials = converter.mappings.GetBuiltInMaterials();
+
+                CollectionAssert.Contains(builtInMaterials, builtInMaterial,
+                    "The built-in material must be searched for, not the project material sharing its name");
+                CollectionAssert.DoesNotContain(builtInMaterials, projectMaterial);
+
+                Assert.IsTrue(converter.mappings.TryGetMappingMaterial(projectMaterial, out var mappedProjectMaterial));
+                Assert.AreSame(projectMaterial, mappedProjectMaterial, "A project material must not be replaced");
+
+                Assert.IsTrue(converter.mappings.TryGetMappingMaterial(builtInMaterial, out var mappedBuiltInMaterial));
+                Assert.AreNotSame(builtInMaterial, mappedBuiltInMaterial, "The built-in material must be replaced");
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(materialPath);
+            }
+        }
+
+        [Test]
         public void URP3DToURP2D_ReassignMaterials_Succeeds()
         {
             var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
