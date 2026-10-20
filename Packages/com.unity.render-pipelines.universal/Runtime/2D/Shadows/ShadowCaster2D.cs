@@ -450,6 +450,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This function is called when the MonoBehaviour is destroyed.
+        /// </summary>
+        protected void OnDestroy()
+        {
+            // The shadow mesh is built at runtime and never serialized, so this caster is its only
+            // owner -- see ShadowMesh2D.DestroyMesh for why nothing else frees it.
+            m_ShadowMesh?.DestroyMesh();
+        }
+
+        /// <summary>
         /// Update is called every frame, if the MonoBehaviour is enabled.
         /// </summary>
         public void Update()

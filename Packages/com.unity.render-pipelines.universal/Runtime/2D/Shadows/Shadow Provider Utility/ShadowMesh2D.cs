@@ -45,6 +45,34 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Releases the <c>Mesh</c> this instance built.
+        /// </summary>
+        /// <remarks>
+        /// The mesh is created at runtime and is not serialized, so nothing else owns it and nothing
+        /// else will free it: destroying the managed wrapper is not enough, because a
+        /// <c>UnityEngine.Object</c> wrapper being collected does not destroy the native object
+        /// behind it. Left alone, one mesh per caster outlives the caster.
+        ///
+        /// Called from <c>ShadowCaster2D.OnDestroy</c> rather than from the finalizer below, because
+        /// <c>Object.Destroy</c> is not legal off the main thread.
+        ///
+        /// The geometry buffers are deliberately left alone. They are released by the finalizer, and
+        /// dropping them here would leave a caster that Undo brings back with no geometry until
+        /// something happened to rebuild it.
+        /// </remarks>
+        internal void DestroyMesh()
+        {
+            if (m_Mesh == null)
+                return;
+
+            CoreUtils.Destroy(m_Mesh);
+            m_Mesh = null;
+
+            // So a later access rebuilds from the buffers instead of handing out null.
+            m_IsDirty = true;
+        }
+
         public void Clear()
         {
             m_Vertices = null;
