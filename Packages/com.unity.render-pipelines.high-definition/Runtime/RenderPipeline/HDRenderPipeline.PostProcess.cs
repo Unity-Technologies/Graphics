@@ -318,6 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
             m_DLSSPass = null;
+            m_FSR2Pass?.Cleanup();
             m_FSR2Pass = null;
         }
 
