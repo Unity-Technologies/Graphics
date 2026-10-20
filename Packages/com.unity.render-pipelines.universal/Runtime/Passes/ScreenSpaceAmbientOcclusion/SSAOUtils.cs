@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // ---- Texture Creation ----
-        internal static TextureDesc GetCameraColorDescriptor(RenderGraph renderGraph, in TextureHandle source, bool useDynamicScale)
+        internal static TextureDesc GetCameraColorDescriptor(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source)
         {
             var info = renderGraph.GetRenderTargetInfo(source);
             return new TextureDesc(info.width, info.height)
@@ -633,7 +633,8 @@ namespace UnityEngine.Rendering.Universal
                 slices = info.volumeDepth,
                 dimension = info.volumeDepth > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
                 bindTextureMS = info.bindMS,
-                useDynamicScale = useDynamicScale,
+                useDynamicScale = cameraData.camera.allowDynamicResolution,
+                vrUsage = cameraData.cameraTargetDescriptor.vrUsage,
             };
         }
 
