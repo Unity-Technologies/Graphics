@@ -166,6 +166,8 @@
             * [Texture 2D Asset](Texture-2D-Asset-Node.md)
             * [Texture 3D Asset](Texture-3D-Asset-Node.md)
             * [Texture Size](Texture-Size-Node.md)
+        * Universal Render Pipeline
+            * [URP Sample Buffer](URP-Sample-Buffer-Node.md)
     * [Keyword](Keyword-Node.md)
         * [Material Quality](Material-Quality-Keyword-Node.md)
         * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
@@ -284,6 +286,8 @@
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
             * Fabric
               * [ThreadMapDetail](ThreadMapDetail-Node.md)
+            * Surface Gradient
+              * [Surface Gradient Resolve Normal](Surface-Gradient-Resolve-Normal-Node.md)
         * Logic
             * [All](All-Node.md)
             * [And](And-Node.md)
