@@ -42,19 +42,25 @@ namespace UnityEngine.Rendering.MetalFX
         GraphicsFormat m_ColorFormat;
         GraphicsFormat m_DepthFormat;
         GraphicsFormat m_MotionFormat;
+        GraphicsFormat m_ReactiveMaskFormat;
         GraphicsFormat m_OutputFormat;
         Vector2Int m_MaxRenderSize;
         Vector2Int m_OutputSize;
         bool m_DynamicResolution;
+        bool m_ReactiveMaskEnabled;
 
-        public MetalFXTemporalNative GetOrCreateNativeContext(CommandBuffer cmd, IntPtr color, IntPtr depth, IntPtr motion, IntPtr output,
+        public MetalFXTemporalNative GetOrCreateNativeContext(CommandBuffer cmd, IntPtr color, IntPtr depth, IntPtr motion, IntPtr reactiveMask, IntPtr output,
             bool dynamicResolution, GraphicsFormat colorFormat, GraphicsFormat depthFormat,
-            GraphicsFormat motionFormat, GraphicsFormat outputFormat, Vector2Int maxRenderSize, Vector2Int outputSize)
+            GraphicsFormat motionFormat, GraphicsFormat reactiveMaskFormat, GraphicsFormat outputFormat, Vector2Int maxRenderSize, Vector2Int outputSize)
         {
+            bool reactiveMaskEnabled = reactiveMask != IntPtr.Zero;
+
             if (m_NativeContext != null && (colorFormat != m_ColorFormat || depthFormat != m_DepthFormat ||
                                             motionFormat != m_MotionFormat || outputFormat != m_OutputFormat ||
                                             maxRenderSize != m_MaxRenderSize || outputSize != m_OutputSize ||
-                                            dynamicResolution != m_DynamicResolution))
+                                            dynamicResolution != m_DynamicResolution ||
+                                            reactiveMaskEnabled != m_ReactiveMaskEnabled ||
+                                            (reactiveMaskEnabled && reactiveMaskFormat != m_ReactiveMaskFormat)))
             {
                 DestroyNativeContext(cmd, m_NativeContext);
                 m_NativeContext = null;
@@ -62,7 +68,7 @@ namespace UnityEngine.Rendering.MetalFX
 
             if (m_NativeContext == null)
             {
-                IntPtr scaler = MetalFXDevice.CreateTemporalContext(color, depth, motion, output, dynamicResolution,
+                IntPtr scaler = MetalFXDevice.CreateTemporalContext(color, depth, motion, reactiveMask, output, dynamicResolution,
                                                                     maxRenderSize.x, maxRenderSize.y, outputSize.x, outputSize.y);
                 if (scaler != IntPtr.Zero)
                 {
@@ -73,10 +79,12 @@ namespace UnityEngine.Rendering.MetalFX
                     m_ColorFormat = colorFormat;
                     m_DepthFormat = depthFormat;
                     m_MotionFormat = motionFormat;
+                    m_ReactiveMaskFormat = reactiveMaskFormat;
                     m_OutputFormat = outputFormat;
                     m_MaxRenderSize = maxRenderSize;
                     m_OutputSize = outputSize;
                     m_DynamicResolution = dynamicResolution;
+                    m_ReactiveMaskEnabled = reactiveMaskEnabled;
                 }
             }
             return m_NativeContext;
@@ -117,6 +125,7 @@ namespace UnityEngine.Rendering.MetalFX
         public override bool supportsSharpening => false;
         /// <inheritdoc/>
         public override bool isSupportedOnDevice => Supported;
+        public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSupported ? ReactiveMaskSource.Color : ReactiveMaskSource.None;
 
         uint m_WarnCounter;
         const int k_WarningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
@@ -125,6 +134,23 @@ namespace UnityEngine.Rendering.MetalFX
         // disable MetalFX for the whole session. Re-query until it reports supported, then latch.
         bool m_Supported;
         bool Supported => m_Supported || (m_Supported = MetalFXDevice.IsTemporalSupported());
+
+        bool? m_ReactiveMaskSupported;
+        bool ReactiveMaskSupported
+        {
+            get
+            {
+                if (m_ReactiveMaskSupported == null)
+                {
+                    bool value = MetalFXDevice.IsTemporalReactiveMaskSupported();
+                    if (value || Supported)
+                        m_ReactiveMaskSupported = value;
+                    return value;
+                }
+                return m_ReactiveMaskSupported.Value;
+            }
+        }
+
         // Scale range is device-fixed and only read after Supported is true, so caching once is safe.
         float? m_MaxScale;
         float MaxScale => m_MaxScale ??= MetalFXDevice.GetTemporalMaxScale();
@@ -144,6 +170,7 @@ namespace UnityEngine.Rendering.MetalFX
             public TextureHandle color;
             public TextureHandle depth;
             public TextureHandle motion;
+            public TextureHandle reactiveMask;
             public TextureHandle output;
             public Vector2 jitter;
             public Vector2 motionVectorScale;
@@ -265,6 +292,7 @@ namespace UnityEngine.Rendering.MetalFX
                 passData.color = io.cameraColor;
                 passData.depth = io.cameraDepth;
                 passData.motion = io.motionVectorColor;
+                passData.reactiveMask = io.reactiveMask;
                 passData.output = outputColor;
                 passData.jitter = io.subpixelJitter;
                 passData.motionVectorScale = new Vector2(motionVectorScaleX, motionVectorScaleY);
@@ -281,6 +309,8 @@ namespace UnityEngine.Rendering.MetalFX
                 builder.UseTexture(io.cameraColor);
                 builder.UseTexture(io.cameraDepth);
                 builder.UseTexture(io.motionVectorColor);
+                if (io.reactiveMask.IsValid())
+                    builder.UseTexture(io.reactiveMask);
                 builder.UseTexture(outputColor, AccessFlags.Write);
 
                 builder.SetRenderFunc((PassData data, UnsafeGraphContext ctx) =>
@@ -292,17 +322,22 @@ namespace UnityEngine.Rendering.MetalFX
                     if (color == null || depth == null || motion == null || output == null)
                         return;
 
+                    // The reactive mask is optional; an invalid handle converts to null.
+                    Texture reactiveMask = data.reactiveMask;
+
                     IntPtr colorPtr = color.GetNativeTexturePtr();
                     IntPtr depthPtr = depth.GetNativeTexturePtr();
                     IntPtr motionPtr = motion.GetNativeTexturePtr();
+                    IntPtr reactiveMaskPtr = reactiveMask != null ? reactiveMask.GetNativeTexturePtr() : IntPtr.Zero;
                     IntPtr outputPtr = output.GetNativeTexturePtr();
 
                     CommandBuffer cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
 
                     MetalFXTemporalNative native = data.context.GetOrCreateNativeContext(
-                        cmd, colorPtr, depthPtr, motionPtr, outputPtr, data.dynamicResolution,
-                        color.graphicsFormat, depth.graphicsFormat, motion.graphicsFormat, output.graphicsFormat,
-                        data.maxRenderSize, data.outputSize);
+                        cmd, colorPtr, depthPtr, motionPtr, reactiveMaskPtr, outputPtr, data.dynamicResolution,
+                        color.graphicsFormat, depth.graphicsFormat, motion.graphicsFormat,
+                        reactiveMask != null ? reactiveMask.graphicsFormat : GraphicsFormat.None,
+                        output.graphicsFormat, data.maxRenderSize, data.outputSize);
                     if (native == null)
                         return;
 
@@ -312,6 +347,7 @@ namespace UnityEngine.Rendering.MetalFX
                         color = colorPtr,
                         depth = depthPtr,
                         motion = motionPtr,
+                        reactiveMask = reactiveMaskPtr,
                         destination = outputPtr,
                         jitterX = data.jitter.x,
                         jitterY = data.jitter.y,
