@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEditor.EditorTools;
 using UnityEngine.Assertions;
@@ -27,7 +26,6 @@ namespace UnityEditor
         bool m_EnableClickCatcher = false;
         bool m_FoldoutPreset = true;
 
-        VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
 
         SerializedProperty m_DistanceProperty;
@@ -325,23 +323,14 @@ namespace UnityEditor
             // Setup event to keep track of EditorTool state
             ToolManager.activeToolChanged += EditorToolsOnactiveToolChanged;
 
-            // Get a reference to the GameView
-            // TODO: This currently only works with a single Game View
-            var gameViews = Resources.FindObjectsOfTypeAll<EditorWindow>()
-                .Where(w => w.GetType().FullName == "UnityEditor.GameView")
-                .ToArray();
-            var gameView = gameViews.First();
-
             // We create an invisible VisualElement that gets overlayed onto the Game View to intercept mouse clicks
             // when the editor tool is active
-            m_GameViewRootElement = gameView.rootVisualElement;
             m_ClickCatcher = new VisualElement();
             m_ClickCatcher.style.flexGrow = 1;
 
             // Determine if the editor tool is already active (this helps keep our state when swapping between
             // different light objects directly, or after an assembly reload)
-            var anchorTools = Resources.FindObjectsOfTypeAll<LightAnchorEditorTool>()
-                .ToArray();
+            var anchorTools = Resources.FindObjectsOfTypeAll<LightAnchorEditorTool>();
             if (anchorTools.Length > 0)
             {
                 var anchorTool = anchorTools[0];
@@ -366,10 +355,24 @@ namespace UnityEditor
         void OnDisable()
         {
             // cleanup our click catcher element
+            EditorApplication.update -= AttachClickCatcher;
             m_ClickCatcher?.RemoveFromHierarchy();
 
             // unsubscribe from EditorTool event
             ToolManager.activeToolChanged -= EditorToolsOnactiveToolChanged;
+        }
+
+        // A Game View can be opened or closed at any time, so its root element is resolved on demand
+        // TODO: This currently only works with a single Game View
+        static VisualElement FindGameViewRootElement()
+        {
+            foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+            {
+                if (window != null && window.GetType().FullName == "UnityEditor.GameView")
+                    return window.rootVisualElement;
+            }
+
+            return null;
         }
 
         void EnableClickCatcher(bool enable)
@@ -377,15 +380,31 @@ namespace UnityEditor
             // adds or removes the click catcher element to the Game View as needed
             if (enable)
             {
-                m_GameViewRootElement.Add(m_ClickCatcher);
+                AttachClickCatcher();
             }
             else
             {
+                EditorApplication.update -= AttachClickCatcher;
                 if (m_ClickCatcher != null)
                 {
                     m_ClickCatcher.RemoveFromHierarchy();
                 }
             }
+        }
+
+        // Opening a Game View raises no tool event, so when none exists yet keep trying until one does
+        void AttachClickCatcher()
+        {
+            EditorApplication.update -= AttachClickCatcher;
+
+            var gameViewRootElement = FindGameViewRootElement();
+            if (gameViewRootElement == null)
+            {
+                EditorApplication.update += AttachClickCatcher;
+                return;
+            }
+
+            gameViewRootElement.Add(m_ClickCatcher);
         }
 
         void UpdateCache()
