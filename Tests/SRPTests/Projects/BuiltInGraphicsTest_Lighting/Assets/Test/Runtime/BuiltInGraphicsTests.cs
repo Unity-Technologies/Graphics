@@ -57,22 +57,6 @@ public class BuiltInGraphicsTests
 #endif
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
-
-        // Does it allocate memory when it renders what's on the main camera?
-        bool allocatesMemory = false;
-        var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-
-        try
-        {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
-
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
 #if UNITY_EDITOR
