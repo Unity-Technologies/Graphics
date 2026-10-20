@@ -703,9 +703,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!stripShadowsOffVariants)
                 return false;
 
-            shadowData.isKeywordAdditionalLightShadowsEnabled = true;
             m_CreateEmptyShadowmap = true;
             m_SetKeywordForEmptyShadowmap = shadowsEnabled;
+            shadowData.isKeywordAdditionalLightShadowsEnabled = m_SetKeywordForEmptyShadowmap;
 
             // Even though there are not real-time shadows, the lights might be using shadowmasks,
             // which is why we need to update the shadow parameters, for example so shadow strength can be used.
