@@ -566,10 +566,10 @@ namespace UnityEditor.VFX.UI
             return picked.OfType<VFXGroupNode>().FirstOrDefault();
         }
 
-        internal VFXNodeController AddOperator(Type type)
+        internal VFXNodeController AddOperator(Type type, Vector2 mousePosition)
         {
             var desc = VFXLibrary.GetOperators().FirstOrDefault(x => x.modelType == type);
-            return AddNode(desc.variant, Event.current.mousePosition);
+            return AddNode(desc.variant, mousePosition);
         }
 
         public VFXNodeController AddNode(Variant variant, Vector2 mPos)
