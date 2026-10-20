@@ -475,6 +475,17 @@ namespace UnityEngine.Rendering.Universal
             m_BoundingSphere = new BoundingSphere(center, radius);
         }
 
+        // Sets the bounding sphere from world bounds. Only the x and y extents size it, so the bounds'
+        // z depth cannot inflate it. The center's z is given by the caller.
+        internal void SetBoundingSphere(Bounds worldBounds, float z)
+        {
+            var center = new Vector3(worldBounds.center.x, worldBounds.center.y, z);
+            var extents = worldBounds.extents;
+            var radius = new Vector2(extents.x, extents.y).magnitude;
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
+        }
+
         ~ShadowMesh2D()
         {
             if(m_NativeIndices.IsCreated)

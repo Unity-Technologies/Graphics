@@ -33,6 +33,11 @@
             "name": "com.unity.postprocessing",
             "expression": "0.0.1",
             "define": "PPV2_EXISTS"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "0.0.0",
+            "define": "USING_PHYSICS2D"
         }
     ],
     "noEngineReferences": false
