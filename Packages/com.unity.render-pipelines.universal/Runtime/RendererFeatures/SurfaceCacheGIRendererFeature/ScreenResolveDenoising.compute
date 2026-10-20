@@ -23,11 +23,10 @@ RW_TEXTURE2D_X(float3, _ResultL11);
 RW_TEXTURE2D_X(float3, _ResultL12);
 
 float4x4 _ClipToWorldTransforms[2];
-#if defined(USE_TEXTURE2D_X_AS_ARRAY)
-float4x4 _NoiseWorldToClipTransform;
-#endif
 float3 _CameraWorldPos;
 int _PassIndex;
+
+static const uint kKernelStrides[4] = { 1, 2, 2, 3 };
 
 void Denoise(uint2 pixelLowResPos)
 {
@@ -60,23 +59,8 @@ void Denoise(uint2 pixelLowResPos)
     const float3 centerWorldPos = ComputeWorldSpacePosition(centerUv, centerDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
     const float3 centerWorldNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(fullResPixelPos)];
 
-    // Atrous can cause ringing artifacts due to under-sampling, especially towards the later passes.
-    // We add some noise to convert these structured artifacts to a dither.
-    int2 jitter = 0;
-    if (_PassIndex > 1)
-    {
-#if defined(USE_TEXTURE2D_X_AS_ARRAY)
-        // Reproject the jitter pattern using the left eye's camera. For stereo rendering, this
-        // causes the noise pattern to appear 'attached' to surfaces, rather than at a fixed depth.
-        const float4 jitterClipPos = mul(_NoiseWorldToClipTransform, float4(centerWorldPos, 1.0f));
-        const float2 jitterPixelPos = floor((jitterClipPos.xy / jitterClipPos.w * 0.5f + 0.5f) * float2(lowResSize));
-#else
-        const float2 jitterPixelPos = float2(pixelLowResPos);
-#endif
-        float ditherX = InterleavedGradientNoise(jitterPixelPos, _PassIndex);
-        float ditherY = InterleavedGradientNoise(jitterPixelPos, _PassIndex * 4);
-        jitter = int2(round((float2(ditherX, ditherY) - 0.5) * (0.5 * (1 << _PassIndex))));
-    }
+    // Hand-picked kernel strides to avoid ringing.
+    const uint kernelStride = kKernelStrides[_PassIndex];
 
     // -log(0.5) / 0.01^2, chosen empirically. Geometric interpretation:
     // At a distance of N from the camera, the falloff rate of the plane distance
@@ -94,7 +78,7 @@ void Denoise(uint2 pixelLowResPos)
         if (dx == 0 && dy == 0)
             continue;
 
-        const int2 deltaPixel = jitter + (int2(dx, dy) << _PassIndex);
+        const int2 deltaPixel = (int2(dx, dy) * kernelStride);
         const int2 neighborLowResPos = int2(pixelLowResPos) + deltaPixel;
         if (any(neighborLowResPos < 0) || any(uint2(neighborLowResPos) >= lowResSize))
             continue;

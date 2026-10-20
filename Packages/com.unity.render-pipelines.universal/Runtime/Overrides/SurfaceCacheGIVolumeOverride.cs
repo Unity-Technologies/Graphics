@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
                 lightTransportWarmUpSampleMultiplier = 8, volumeDistanceFallback = true, patchFilteringTemporalSmoothing = 0.6f,
                 patchFilteringSpatialEnabled = true, patchFilteringSpatialSampleCount = 8, patchFilteringSpatialRadius = 1.0f,
                 volumeResolution = 64, screenFilteringLookupSampleCount = 16,
-                screenFilteringDenoisingPassCount = 4, lightTransportDefragCount = 16
+                screenFilteringDenoisingPassCount = 3, lightTransportDefragCount = 16
             },
         };
 
