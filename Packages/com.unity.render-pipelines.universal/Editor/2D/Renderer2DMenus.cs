@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("GameObject/Light/Freeform Light 2D/Square", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 4)]
         static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateSquare());
+            CreateLight(menuCommand, Light2D.LightType.Freeform);
         }
 
         [MenuItem("GameObject/Light/Freeform Light 2D/Circle", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.gameObjectMenuPriority + 5)]
