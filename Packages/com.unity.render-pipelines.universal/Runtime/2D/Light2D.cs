@@ -662,10 +662,9 @@ namespace UnityEngine.Rendering.Universal
             if (m_ComponentVersion < ComponentVersions.Version_3)
             {
 #pragma warning disable CS0618
-                if (m_LightType == LightType.Point && (object)m_DeprecatedPointLightCookieSprite != null)
-                {
+                if (m_LightType == LightType.Point)
                     m_LightCookieSprite = m_DeprecatedPointLightCookieSprite;
-                }
+                m_DeprecatedPointLightCookieSprite = null;
 #pragma warning restore CS0618
             }
         }
