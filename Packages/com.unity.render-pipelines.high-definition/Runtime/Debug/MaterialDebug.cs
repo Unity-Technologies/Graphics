@@ -194,6 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // className include the additional "/"
         static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className = "")
         {
+            if (type == null)
+                return;
+
             var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
@@ -303,8 +306,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     bsdfDataType = materialType.GetNestedType("BSDFData")
 
                 };
-                numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
-                numBSDFDataFields += item.bsdfDataType.GetFields().Length;
+
+                if (item.surfaceDataType != null)
+                    numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
+                if (item.bsdfDataType != null)
+                    numBSDFDataFields += item.bsdfDataType.GetFields().Length;
                 materialItems.Add(item);
             }
 
@@ -404,6 +410,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // specific shader parameters
                 foreach (MaterialItem materialItem in materialItems)
                 {
+                    if (materialItem.surfaceDataType == null)
+                        continue;
+
                     generateHLSLAttribute = materialItem.surfaceDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 

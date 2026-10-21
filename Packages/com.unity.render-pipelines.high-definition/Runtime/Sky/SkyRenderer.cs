@@ -1,8 +1,12 @@
+using UnityEngine.Scripting;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Base class for sky rendering.
     /// </summary>
+    [Preserve]
+    [RequireDerived]
     public abstract class SkyRenderer
     {
         int m_LastFrameUpdate = -1;

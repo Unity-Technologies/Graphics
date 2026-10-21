@@ -3,6 +3,7 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Scripting;
 
 namespace UnityEditor.VFX.HDRP
 {
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX.HDRP
 
         // Main structure that store the user data (i.e user input of master node in material graph)
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1700)]
+        [Preserve]
         public struct SurfaceData
         {
             public float absorptionRange;
@@ -61,6 +63,7 @@ namespace UnityEditor.VFX.HDRP
         //-----------------------------------------------------------------------------
 
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1750)]
+        [Preserve]
         public struct BSDFData
         {
             public float absorptionRange;

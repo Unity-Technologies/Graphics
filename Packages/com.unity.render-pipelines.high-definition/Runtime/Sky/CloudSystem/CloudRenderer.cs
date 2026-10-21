@@ -1,3 +1,5 @@
+using UnityEngine.Scripting;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -16,6 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Base class for cloud rendering.
     /// </summary>
+    [Preserve]
+    [RequireDerived]
     public abstract class CloudRenderer
     {
         int m_LastFrameUpdate = -1;
