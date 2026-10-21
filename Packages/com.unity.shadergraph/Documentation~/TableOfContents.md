@@ -175,6 +175,8 @@
             * [Element Layout UV](element-layout-uv-node.md)
             * [Element Texture Size](element-texture-size-node.md)
             * [Element Texture UV](element-texture-uv-node.md)
+        * Universal Render Pipeline
+            * [URP Sample Buffer](URP-Sample-Buffer-Node.md)
     * [Keyword](Keyword-Node.md)
         * [Material Quality](Material-Quality-Keyword-Node.md)
         * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
@@ -282,6 +284,7 @@
         * [Default SDF Text](default-sdf-text-node.md)
         * [Default Solid](default-solid-node.md)
         * [Default Texture](default-texture-node.md)
+        * [Is Forced Gamma](is-forced-gamma-node.md)
         * [Render Type](render-type-node.md)
         * [Render Type Branch](render-type-branch-node.md)
         * [Sample Element Texture](sample-element-texture-node.md)
@@ -303,6 +306,8 @@
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
             * Fabric
               * [ThreadMapDetail](ThreadMapDetail-Node.md)
+            * Surface Gradient
+              * [Surface Gradient Resolve Normal](Surface-Gradient-Resolve-Normal-Node.md)
         * Logic
             * [All](All-Node.md)
             * [And](And-Node.md)
