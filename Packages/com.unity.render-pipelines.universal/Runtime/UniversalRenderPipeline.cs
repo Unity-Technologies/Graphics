@@ -1592,9 +1592,10 @@ namespace UnityEngine.Rendering.Universal
             ApplyTemporalPixelSynthesisOverrides(baseCameraData);
         }
 
-        // Frame-keyed rather than bools: this runs once per XR pass and once per stacked overlay camera, and
+        [AutoStaticsCleanup] static bool s_TemporalPixelSynthesisSuppressedTAAWarned;
+
+        // Frame-keyed rather than a bool: this runs once per XR pass and once per stacked overlay camera, and
         // any one of those can see TPS inactive, so a bool reset on "inactive" would spam every frame.
-        [AutoStaticsCleanup] static int s_LastTemporalPixelSynthesisSuppressedTAAFrame = -1;
         [AutoStaticsCleanup] static int s_LastTemporalPixelSynthesisSuppressedUpscalerFrame = -1;
 
         /// <summary>
@@ -1609,9 +1610,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.IsTemporalAARequested()
                 && !cameraData.IsSTPRequested()
-                && s_LastTemporalPixelSynthesisSuppressedTAAFrame != Time.frameCount)
+                && !s_TemporalPixelSynthesisSuppressedTAAWarned)
             {
-                s_LastTemporalPixelSynthesisSuppressedTAAFrame = Time.frameCount;
+                s_TemporalPixelSynthesisSuppressedTAAWarned = true;
                 Debug.LogWarning("URP Temporal Anti-aliasing is disabled: Meta Temporal Pixel Synthesis is the active resolver on this XR device. " +
                     "The compositor performs the temporal resolve, and URP must not apply its own jitter. Set Anti-aliasing to None on the camera to silence this message.");
             }
