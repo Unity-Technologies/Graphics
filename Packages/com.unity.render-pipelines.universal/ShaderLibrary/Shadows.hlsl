@@ -294,14 +294,11 @@ float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light da
 float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
 float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
 float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 float4      _AdditionalLightsPCSSScalars;                        // (xy: shadow atlas size in texels, z: TAA frame index, w: unused)
-
-// Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode).
-// Lives outside CBUFFER(AdditionalLightShadows) so the persistent constant buffer layout stays unchanged.
-float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4];
 
 // x: depth bias,
 // y: normal bias,
@@ -389,14 +386,17 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
     return results;
 }
 
-float GetMainLightShadowReceiverNormalBias(half cascadeIndex)
+float GetMainLightShadowReceiverNormalBias(half4 cascadeWeights)
 {
-    return _MainLightShadowReceiverNormalBias[min(cascadeIndex, half(MAX_SHADOW_CASCADES - 1))];
+    // One-hot cascade weights instead of a dynamic vector component index, which is slow on some mobile GPUs (e.g. PowerVR)
+    return dot(_MainLightShadowReceiverNormalBias, cascadeWeights);
 }
 
 float GetAdditionalLightShadowReceiverNormalBias(int lightIndex)
 {
-    return AdditionalLightShadowsAvailable() ? _AdditionalShadowReceiverNormalBias[lightIndex >> 2][lightIndex & 3] : 0.0;
+    // One-hot light slot weights instead of a dynamic vector component index, which is slow on some mobile GPUs (e.g. PowerVR)
+    float4 lightSlotWeights = float4((uint(lightIndex) & 3u) == uint4(0, 1, 2, 3));
+    return AdditionalLightShadowsAvailable() ? dot(_AdditionalShadowReceiverNormalBias[lightIndex >> 2], lightSlotWeights) : 0.0;
 }
 
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
@@ -603,7 +603,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 }
 
-half ComputeCascadeIndex(float3 positionWS)
+half ComputeCascadeIndexAndWeights(float3 positionWS, out half4 cascadeWeights)
 {
     float3 fromCenter0 = positionWS - _CascadeShadowSplitSpheres0.xyz;
     float3 fromCenter1 = positionWS - _CascadeShadowSplitSpheres1.xyz;
@@ -614,7 +614,14 @@ half ComputeCascadeIndex(float3 positionWS)
     half4 weights = half4(distances2 < _CascadeShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
 
+    cascadeWeights = weights;
     return half(4.0) - dot(weights, half4(4, 3, 2, 1));
+}
+
+half ComputeCascadeIndex(float3 positionWS)
+{
+    half4 cascadeWeights;
+    return ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
 }
 
 half GetMainLightCascadeIndex(float3 positionWS)
@@ -632,8 +639,11 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
     }
     else
     {
-        half cascadeIndex = GetMainLightCascadeIndex(positionWS);
-        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeIndex);
+        half4 cascadeWeights = half4(1.0, 0.0, 0.0, 0.0);
+        half cascadeIndex = 0;
+        if (_MAIN_LIGHT_SHADOWS_CASCADE)
+            cascadeIndex = ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
+        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
         shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
     }
 

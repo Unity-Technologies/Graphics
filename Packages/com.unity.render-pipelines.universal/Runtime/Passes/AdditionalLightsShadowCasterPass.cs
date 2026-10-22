@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private Vector4[] m_ExtraForwardAdditionalLightIndexToShadowParams;            // same as m_AdditionalLightIndexToShadowParams, but always indexed by visible light index. m_AdditionalLightIndexToShadowParams is indexed by shadowcasting light index when using deferred rendering.
         private bool m_NeedExtraForwardShadowParamsCopy;                               // do we need to populate m_ExtraForwardAdditionalLightIndexToShadowParams?
         private Vector4[] m_AdditionalLightReceiverNormalBiases;                       // per-additional-light world-space receiver normal bias, four lights packed per Vector4 to keep the uniform budget low (all zero in caster mode)
+        private Vector4[] m_ExtraForwardAdditionalLightReceiverNormalBiases;           // same as m_AdditionalLightReceiverNormalBiases, but indexed like m_ExtraForwardAdditionalLightIndexToShadowParams
+        private bool m_ReceiverNormalBiasesCleared;                                    // lets caster mode clear the arrays once instead of every frame
         private Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix;     // per-shadow-slice info passed to the lighting shader
         private ShadowSliceData[] m_AdditionalLightsShadowSlices;
         private readonly List<byte> m_GlobalShadowSliceIndexToPerLightShadowSliceIndex = new(); // For each shadow slice, store its "per-light shadow slice index" in the punctual light that casts it (can be up to 5 for point lights)
@@ -74,6 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const int k_ShadowParamsChannel = 4;
         private const int k_PCSSChannel = 5;
         private const int k_AdditionalLightShadowsChannelCount = k_PCSSChannel + 3; // 4 (matrix) + 1 (shadow params) + 3 (PCSS)
+        private const int k_ReceiverNormalBiasesPerVector = 4;
+        private readonly int m_ReceiverNormalBiasOffset;
+        private readonly int m_AdditionalLightShadowsBufferLength;
         private const string k_AdditionalLightShadowsCBName = "Additional Light Shadows Buffer";
         private const string k_EmptyAdditionalLightShadowsCBName = "Empty Additional Light Shadows Buffer";
         private const string k_ExtraForwardAdditionalLightShadowsCBName = "Extra Forward Additional Light Shadows Buffer";
@@ -87,6 +92,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
         private static readonly Vector4 c_DefaultShadowParams = new (0, 0, 0, -1);
         private static Vector4 s_EmptyAdditionalShadowFadeParams;
+        private static bool s_ReceiverNormalBiasGlobalCleared;
         private static Vector4[] s_EmptyAdditionalLightIndexToShadowParams;
         private static bool isAdditionalShadowParamsDirty;
 
@@ -126,6 +132,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_UsePersistentConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
+            m_ReceiverNormalBiasOffset = m_MaxVisibleAdditionalLights * k_AdditionalLightShadowsChannelCount;
+            m_AdditionalLightShadowsBufferLength = m_ReceiverNormalBiasOffset + GetReceiverNormalBiasVectorCount(m_MaxVisibleAdditionalLights);
 
             // Pre-allocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
             const int maxMainLights = 1;
@@ -139,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_VisibleLightIndexToAdditionalLightIndex = new short[maxVisibleLights];
             m_VisibleLightIndexToIsCastingShadows = new bool[maxVisibleLights];
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
-            m_AdditionalLightReceiverNormalBiases = new Vector4[(maxAdditionalLightShadowParams + 3) / 4];
+            m_AdditionalLightReceiverNormalBiases = new Vector4[GetReceiverNormalBiasVectorCount(maxAdditionalLightShadowParams)];
 
             s_EmptyAdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
             for (int i = 0; i < s_EmptyAdditionalLightIndexToShadowParams.Length; i++)
@@ -159,7 +167,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_UsePersistentConstantBuffer)
                 return;
 
-            int length = m_MaxVisibleAdditionalLights * k_AdditionalLightShadowsChannelCount;
+            int length = m_AdditionalLightShadowsBufferLength;
             if (length <= 0)
                 return;
 
@@ -480,6 +488,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool bindExtraForwardShadowParams = m_NeedExtraForwardShadowParamsCopy && m_ShadowPassMode != ShadowPassMode.Empty;
             shadowData.extraForwardAdditionalLightShadowsBuffer = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightShadowsBuffer : null;
             shadowData.extraForwardAdditionalLightShadowParams = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightIndexToShadowParams : null;
+            shadowData.extraForwardAdditionalLightReceiverNormalBiases = bindExtraForwardShadowParams && shadowData.normalBiasMode == ShadowNormalBiasMode.Receiver ? m_ExtraForwardAdditionalLightReceiverNormalBiases : null;
 
             return willRenderShadowGeometry;
         }
@@ -571,7 +580,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_AdditionalLightIndexToVisibleLightIndex = new short[maxAdditionalLightShadowParams];
                 m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
-                m_AdditionalLightReceiverNormalBiases = new Vector4[(maxAdditionalLightShadowParams + 3) / 4];
+                m_AdditionalLightReceiverNormalBiases = new Vector4[GetReceiverNormalBiasVectorCount(maxAdditionalLightShadowParams)];
             }
 
             int totalShadowSlicesCount = atlasLayout.GetTotalShadowSlicesCount();
@@ -616,13 +625,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Match length of m_AdditionalLightIndexToShadowParams, so the array can be copied into the constant buffer as-is.
                 if (m_ExtraForwardAdditionalLightIndexToShadowParams == null || m_ExtraForwardAdditionalLightIndexToShadowParams.Length < m_AdditionalLightIndexToShadowParams.Length)
+                {
                     m_ExtraForwardAdditionalLightIndexToShadowParams = new Vector4[m_AdditionalLightIndexToShadowParams.Length];
+                    m_ExtraForwardAdditionalLightReceiverNormalBiases = new Vector4[GetReceiverNormalBiasVectorCount(m_AdditionalLightIndexToShadowParams.Length)];
+                }
 
                 Array.Copy(m_AdditionalLightIndexToShadowParams, m_ExtraForwardAdditionalLightIndexToShadowParams, maxAdditionalLightShadowParams);
             }
-            for (int i = 0; i < m_AdditionalLightReceiverNormalBiases.Length; ++i)
-                m_AdditionalLightReceiverNormalBiases[i] = Vector4.zero;
-
             for (int i = 0; i < m_VisibleLightIndexToAdditionalLightIndex.Length; ++i)
             {
                 m_VisibleLightIndexToAdditionalLightIndex[i] = -1;
@@ -985,8 +994,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             GraphicsBuffer constantBuffer = shadowData.extraForwardAdditionalLightShadowsBuffer;
             if (constantBuffer != null)
                 cmd.SetGlobalConstantBuffer(constantBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, constantBuffer.count * constantBuffer.stride);
-            else if (shadowData.extraForwardAdditionalLightShadowParams != null)
-                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, shadowData.extraForwardAdditionalLightShadowParams);
+            else
+            {
+                if (shadowData.extraForwardAdditionalLightShadowParams != null)
+                    cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, shadowData.extraForwardAdditionalLightShadowParams);
+                if (shadowData.extraForwardAdditionalLightReceiverNormalBiases != null)
+                    cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowReceiverNormalBias, shadowData.extraForwardAdditionalLightReceiverNormalBiases);
+            }
         }
 
         internal static void SetShadowParamsForEmptyShadowmap(IBaseCommandBuffer cmd, GraphicsBuffer emptyShadowsBuffer)
@@ -1127,8 +1141,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupAdditionalLightsShadowReceiverConstants(cmd, ref data);
         }
 
+        private static int GetReceiverNormalBiasVectorCount(int lightCount) => CoreUtils.DivRoundUp(lightCount, k_ReceiverNormalBiasesPerVector);
+
         // Fills a graphics buffer with the data corresponding to the CBUFFER(AdditionalLightShadows) layout.
-        private void PackShadowsConstantBuffer(GraphicsBuffer constantBuffer, Matrix4x4[] worldToShadowMatrices, Vector4[] shadowParams)
+        private void PackShadowsConstantBuffer(GraphicsBuffer constantBuffer, Matrix4x4[] worldToShadowMatrices, Vector4[] shadowParams, Vector4[] receiverNormalBiases)
         {
             int worldToShadowOffset = m_MaxVisibleAdditionalLights * k_WorldToShadowChannel;
             int shadowParamsOffset = m_MaxVisibleAdditionalLights * k_ShadowParamsChannel;
@@ -1139,24 +1155,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (shadowParams != null && shadowParams.Length > 0)
                 m_AdditionalLightShadowsScratch.GetSubArray(shadowParamsOffset, m_MaxVisibleAdditionalLights).CopyFrom(shadowParams);
 
+            if (receiverNormalBiases != null)
+            {
+                int receiverNormalBiasCount = Math.Min(receiverNormalBiases.Length, GetReceiverNormalBiasVectorCount(m_MaxVisibleAdditionalLights));
+                NativeArray<Vector4>.Copy(receiverNormalBiases, 0, m_AdditionalLightShadowsScratch, m_ReceiverNormalBiasOffset, receiverNormalBiasCount);
+            }
+
             constantBuffer.SetData(m_AdditionalLightShadowsScratch);
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
         private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, ref PassData data)
         {
-            NativeArray<VisibleLight> visibleLights = data.lightData.visibleLights;
-            for (int additionalLightIndex = 0; additionalLightIndex < m_AdditionalLightIndexToShadowParams.Length; ++additionalLightIndex)
+            bool useReceiverNormalBias = data.shadowData.normalBiasMode == ShadowNormalBiasMode.Receiver;
+            if (useReceiverNormalBias)
             {
-                Vector4 shadowParams = m_AdditionalLightIndexToShadowParams[additionalLightIndex];
-                if (ShadowUtils.FastApproximately(shadowParams.x, 0.0f) || ShadowUtils.FastApproximately(shadowParams.w, -1.0f))
-                    continue;
-
-                ShadowSliceData firstSliceData = m_AdditionalLightsShadowSlices[(int)shadowParams.w];
-                int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
-                ref VisibleLight shadowLight = ref visibleLights.UnsafeElementAt(visibleLightIndex);
-                m_AdditionalLightReceiverNormalBiases[additionalLightIndex >> 2][additionalLightIndex & 3] =
-                    ShadowUtils.GetReceiverNormalBias(ref shadowLight, visibleLightIndex, data.shadowData, firstSliceData.projectionMatrix, firstSliceData.resolution);
+                // No clear here, the shader only reads the bias of lights with a shadow slice this frame, and this fills all of them
+                FillAdditionalLightReceiverNormalBiases(data.lightData.visibleLights, data.lightData.mainLightIndex, data.shadowData,
+                    m_AdditionalLightIndexToShadowParams, m_AdditionalLightIndexToVisibleLightIndex, m_AdditionalLightsShadowSlices,
+                    m_AdditionalLightReceiverNormalBiases, m_NeedExtraForwardShadowParamsCopy ? m_ExtraForwardAdditionalLightReceiverNormalBiases : null);
+                m_ReceiverNormalBiasesCleared = false;
+            }
+            else if (!m_ReceiverNormalBiasesCleared)
+            {
+                Array.Clear(m_AdditionalLightReceiverNormalBiases, 0, m_AdditionalLightReceiverNormalBiases.Length);
+                if (m_ExtraForwardAdditionalLightReceiverNormalBiases != null)
+                    Array.Clear(m_ExtraForwardAdditionalLightReceiverNormalBiases, 0, m_ExtraForwardAdditionalLightReceiverNormalBiases.Length);
+                m_ReceiverNormalBiasesCleared = true;
             }
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
@@ -1166,13 +1191,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (m_AdditionalLightShadowsScratch.IsCreated && m_AdditionalLightShadowsBuffer != null)
                 {
-                    PackShadowsConstantBuffer(m_AdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_AdditionalLightIndexToShadowParams);
+                    PackShadowsConstantBuffer(m_AdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_AdditionalLightIndexToShadowParams, m_AdditionalLightReceiverNormalBiases);
                     cmd.SetGlobalConstantBuffer(m_AdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, m_AdditionalLightShadowsScratch.Length * UnsafeUtility.SizeOf<Vector4>());
 
                     if (m_NeedExtraForwardShadowParamsCopy && m_ExtraForwardAdditionalLightShadowsBuffer != null)
                     {
                         // Will be bound later in the frame, in BindAdditionalShadowParamsForForwardRendering
-                        PackShadowsConstantBuffer(m_ExtraForwardAdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_ExtraForwardAdditionalLightIndexToShadowParams);
+                        PackShadowsConstantBuffer(m_ExtraForwardAdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_ExtraForwardAdditionalLightIndexToShadowParams, m_ExtraForwardAdditionalLightReceiverNormalBiases);
                     }
                 }
             }
@@ -1180,9 +1205,34 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);
                 cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix);
+                if (useReceiverNormalBias || !s_ReceiverNormalBiasGlobalCleared)
+                {
+                    cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowReceiverNormalBias, m_AdditionalLightReceiverNormalBiases);
+                    s_ReceiverNormalBiasGlobalCleared = !useReceiverNormalBias;
+                }
             }
+        }
 
-            cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowReceiverNormalBias, m_AdditionalLightReceiverNormalBiases);
+        private static void FillAdditionalLightReceiverNormalBiases(NativeArray<VisibleLight> visibleLights, int mainLightIndex, UniversalShadowData shadowData,
+            Vector4[] additionalLightIndexToShadowParams, short[] additionalLightIndexToVisibleLightIndex, ShadowSliceData[] shadowSlices,
+            Vector4[] receiverNormalBiases, Vector4[] extraForwardReceiverNormalBiases)
+        {
+            for (int additionalLightIndex = 0; additionalLightIndex < additionalLightIndexToShadowParams.Length; ++additionalLightIndex)
+            {
+                Vector4 shadowParams = additionalLightIndexToShadowParams[additionalLightIndex];
+                if (ShadowUtils.FastApproximately(shadowParams.x, 0.0f) || ShadowUtils.FastApproximately(shadowParams.w, -1.0f))
+                    continue;
+
+                ShadowSliceData firstSliceData = shadowSlices[(int)shadowParams.w];
+                int visibleLightIndex = additionalLightIndexToVisibleLightIndex[additionalLightIndex];
+                ref VisibleLight shadowLight = ref visibleLights.UnsafeElementAt(visibleLightIndex);
+                float receiverNormalBias = ShadowUtils.GetReceiverNormalBias(ref shadowLight, visibleLightIndex, shadowData, firstSliceData.projectionMatrix, firstSliceData.resolution);
+                receiverNormalBiases[additionalLightIndex >> 2][additionalLightIndex & 3] = receiverNormalBias;
+
+                int forwardLightIndex = mainLightIndex >= 0 && mainLightIndex < visibleLightIndex ? visibleLightIndex - 1 : visibleLightIndex;
+                if (extraForwardReceiverNormalBiases != null && forwardLightIndex < extraForwardReceiverNormalBiases.Length * k_ReceiverNormalBiasesPerVector)
+                    extraForwardReceiverNormalBiases[forwardLightIndex >> 2][forwardLightIndex & 3] = receiverNormalBias;
+            }
         }
 
         private void InitPassData(ref PassData passData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)

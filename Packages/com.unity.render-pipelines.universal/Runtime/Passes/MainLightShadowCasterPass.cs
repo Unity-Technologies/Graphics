@@ -457,8 +457,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
 
             Vector4 receiverNormalBias = Vector4.zero;
-            for (int i = 0; i < m_ShadowCasterCascadesCount; ++i)
-                receiverNormalBias[i] = ShadowUtils.GetReceiverNormalBias(ref shadowLight, shadowLightIndex, shadowData, m_CascadeSlices[i].projectionMatrix, m_CascadeSlices[i].resolution);
+            if (shadowData.normalBiasMode == ShadowNormalBiasMode.Receiver)
+            {
+                for (int i = 0; i < m_ShadowCasterCascadesCount; ++i)
+                    receiverNormalBias[i] = ShadowUtils.GetReceiverNormalBias(ref shadowLight, shadowLightIndex, shadowData, m_CascadeSlices[i].projectionMatrix, m_CascadeSlices[i].resolution);
+            }
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, receiverNormalBias);
         }
 

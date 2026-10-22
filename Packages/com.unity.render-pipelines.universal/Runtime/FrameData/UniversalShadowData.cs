@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
         internal GraphicsBuffer extraForwardAdditionalLightShadowsBuffer;
         internal Vector4[] extraForwardAdditionalLightShadowParams;
+        internal Vector4[] extraForwardAdditionalLightReceiverNormalBiases;
         internal short[] visibleLightIndexToAdditionalLightIndex;
         internal bool[] visibleLightIndexToIsCastingShadows;
 
@@ -147,6 +148,7 @@ namespace UnityEngine.Rendering.Universal
             emptyAdditionalLightShadowsBuffer = null;
             extraForwardAdditionalLightShadowsBuffer = null;
             extraForwardAdditionalLightShadowParams = null;
+            extraForwardAdditionalLightReceiverNormalBiases = null;
 
             useCachedShadowMap = false;
             shadowMapCachingEnabled = false;
