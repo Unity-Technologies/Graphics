@@ -399,7 +399,7 @@ float3 ClampAndSanitizeColor(float3 color)
     float3 clamped = scale * color;
     if (AnyIsNaN(clamped) || AnyIsInf(clamped))
         return 0;
-    return color;
+    return clamped;
 }
 
 float4 ComputeSSR(Varyings input
@@ -420,7 +420,7 @@ float4 ComputeSSR(Varyings input
 
     // If the smoothness is below our minimum, don't do any raymarching
     float perceptualSmoothness = SampleSmoothness(positionNDC);
-    UNITY_BRANCH if (perceptualSmoothness <= GetMinimumSmoothness())
+    UNITY_BRANCH if (perceptualSmoothness < GetMinimumSmoothness())
     {
         // Output the framebuffer color ->
         //   avoids bleeding black/uninitialized texels into reflections when blurring.
