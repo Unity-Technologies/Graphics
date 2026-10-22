@@ -229,8 +229,6 @@ bool RejectPunctualLightSample(
     float3 reconnectionRayOrigin,
     out bool discardSample)
 {
-    discardSample = false;
-
     UnifiedRT::Ray reconnectionRay;
     reconnectionRay.origin = reconnectionRayOrigin;
     reconnectionRay.direction = normalize(hitPos - position);
@@ -238,31 +236,21 @@ bool RejectPunctualLightSample(
     reconnectionRay.tMax = FLT_MAX;
     UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
 
-    // Did the reconnection ray hit something?
-    if (!reconnectionResult.IsValid())
+    bool reconnectionOccluded = false;
+    discardSample = !reconnectionResult.IsValid();
+    if (!discardSample)
     {
-        discardSample = true;
-        return true;
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(reconnectionResult.instanceID);
+        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+        const bool materialUsesDoubleSidedGI = MaterialPool::UsesDoubleSidedGI(matEntry.flags);
+        discardSample = !IsValidSample(reconnectionResult.isFrontFace, materialUsesDoubleSidedGI);
+
+        reconnectionOccluded =
+            reconnectionResult.instanceID != hitInstanceId ||
+            reconnectionResult.primitiveIndex != hitPrimitiveIndex;
     }
 
-    // Did the reconnection hit a valid face, taking double-sided GI into account?
-    const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(reconnectionResult.instanceID);
-    const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
-    const bool materialUsesDoubleSidedGI = MaterialPool::UsesDoubleSidedGI(matEntry.flags);
-    if (!IsValidSample(reconnectionResult.isFrontFace, materialUsesDoubleSidedGI))
-    {
-        discardSample = true;
-        return true;
-    }
-
-    // Was the reconnection ray unoccluded?
-    if (reconnectionResult.instanceID != hitInstanceId ||
-        reconnectionResult.primitiveIndex != hitPrimitiveIndex)
-    {
-        return true;
-    }
-
-    return false;
+    return discardSample || reconnectionOccluded;
 }
 
 // Represents a specific sample on an emissive triangle.
