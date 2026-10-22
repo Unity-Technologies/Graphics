@@ -103,8 +103,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.xr.enabled)
                 isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
 #endif            
-            var pixelRect = data.useFullScreenViewport ? new Rect(0f, 0f, Screen.width, Screen.height) : cameraData.pixelRect;
-            RenderingUtils.SetupOffscreenUIViewportParams(data.blitMaterialData.material, ref pixelRect, isRenderToBackBufferTarget);
+            var pixelRect = data.useFullScreenViewport ? new Rect(0f, 0f, cameraData.backbufferWidth, cameraData.backbufferHeight) : cameraData.pixelRect;
+            RenderingUtils.SetupOffscreenUIViewportParams(cameraData, data.blitMaterialData.material, ref pixelRect, isRenderToBackBufferTarget);
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(pixelRect);
 
