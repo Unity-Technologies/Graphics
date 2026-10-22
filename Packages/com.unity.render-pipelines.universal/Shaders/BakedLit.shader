@@ -108,7 +108,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitForwardPass.hlsl"
             ENDHLSL
         }
-        
+
         // Fill GBuffer data to prevent "holes", just in case someone wants to reuse GBuffer for non-lighting effects.
         // Deferred lighting is stenciled out.
         Pass
@@ -130,7 +130,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Shader Stages
             #pragma vertex BakedLitGBufferPassVertex
             #pragma fragment BakedLitGBufferPassFragment
-            
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _ _NORMALMAP
@@ -149,7 +149,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
-            
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing

@@ -4,4 +4,8 @@
 #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 #pragma target 4.5 _WRITE_RENDERING_LAYERS
 
+#if (defined(_WRITE_RENDERING_LAYERS) && !defined(GBUFFER_FEATURE_RENDERING_LAYERS))
+#pragma rendertarget_format_hint MRT1 R8_UInt, R16_UInt, R32_UInt
+#endif
+
 #endif // UNIVERSAL_WRITE_RENDERING_LAYERS_PRAGMAS_INCLUDED

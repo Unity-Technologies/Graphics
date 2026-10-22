@@ -147,7 +147,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
             #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile_fragment _ _CLUSTER_LIGHT_LOOP
-			#pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #pragma multi_compile _ _EXPOSURE
 #if defined(UNITY_PLATFORM_META_QUEST)
@@ -381,6 +381,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
             // Includes

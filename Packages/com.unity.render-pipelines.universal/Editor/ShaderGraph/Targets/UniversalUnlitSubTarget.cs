@@ -744,7 +744,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
-                { CoreIncludes.WriteRenderLayersPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
