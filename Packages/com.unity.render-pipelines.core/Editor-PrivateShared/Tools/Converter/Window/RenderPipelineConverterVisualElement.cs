@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.Converter
                 m_IsEnabled = value;
                 m_HeaderFoldout.tooltip = (m_IsEnabled) ? description : converter.isDisabledMessage;
                 m_HeaderFoldout.SetEnabled(m_IsEnabled);
+                converterSelected?.Invoke();
             }
         }
 

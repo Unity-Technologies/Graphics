@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEditor.Categorization;
 using UnityEditor.Rendering.Converter;
@@ -231,6 +233,69 @@ namespace UnityEditor.Rendering.Tests
 
                 Assert.IsFalse(filteredTree[1].data.isFolder);
                 Assert.AreEqual("Zebra", filteredTree[1].data.displayName);
+            }
+        }
+
+        [TestFixture]
+        internal class ConverterVisualElementEnabledPollTests
+        {
+            private class TogglableConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled { get; set; } = true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(System.Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    onScanFinish(new List<IRenderPipelineConverterItem>());
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private const double k_PollWaitSeconds = 5.0;
+
+            private EditorWindow m_Window;
+            private RenderPipelineConverterVisualElement m_Element;
+            private TogglableConverter m_Converter;
+            private int m_SelectedCallCount;
+
+            [SetUp]
+            public void SetUp()
+            {
+                m_Converter = new TogglableConverter();
+                var state = new ConverterState { converter = m_Converter, isSelected = true };
+                var nodes = new List<ConverterInfo> { new ConverterInfo(m_Converter, state) }.SortByCategory();
+                m_Element = new RenderPipelineConverterVisualElement(nodes[0].children[0]);
+                m_Window = EditorWindow.CreateInstance<EditorWindow>();
+                m_Window.Show();
+                m_Window.rootVisualElement.Add(m_Element);
+                m_SelectedCallCount = 0;
+                m_Element.converterSelected += () => m_SelectedCallCount++;
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                UnityEngine.Object.DestroyImmediate(m_Window);
+            }
+
+            [UnityTest]
+            public IEnumerator PollingEnabledChange_RaisesConverterSelected()
+            {
+                var foldout = m_Element.Q<HeaderFoldout>();
+                Assert.AreEqual(0, m_SelectedCallCount);
+                Assert.IsTrue(foldout.enabledSelf);
+
+                m_Converter.isEnabled = false;
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                while (m_SelectedCallCount == 0 && stopwatch.Elapsed.TotalSeconds < k_PollWaitSeconds)
+                    yield return null;
+
+                Assert.IsFalse(foldout.enabledSelf, "The poll should have disabled the foldout");
+                Assert.Greater(m_SelectedCallCount, 0, "converterSelected should be raised when isEnabled changes");
             }
         }
 
