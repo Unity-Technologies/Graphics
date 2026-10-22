@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph
 
             ApplyRevertGUI();
 
-            if (materialEditor)
+            if (materialEditor && materialEditor.target != null)
             {
                 EditorGUILayout.Space();
                 materialEditor.DrawHeader();
