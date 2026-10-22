@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.Universal
             helpMessage.AppendLine($"\t{k_ContainerCommand} <name of container> \t \t \t The name of the container which will be batched (required).");
             helpMessage.AppendLine($"\t{k_TypesFilterCommand} <types to include or exclude> \t The list of converters types that will be either included or excluded from batching. These converters need to be part of the passed in container for them to run.");
             helpMessage.AppendLine($"\t{k_InclusiveFlag}|{k_ExclusiveFlag} \t \t \t Whether the list of converters specified with {k_TypesFilterCommand} will be included or excluded when batching.");
-            helpMessage.AppendLine($"\t{k_ScanToFileCommand} <file name> \t \t \t Only scan the selected converters and write the results as json to <file name> in the project's temporary folder. Nothing is converted.");
+            helpMessage.AppendLine($"\t{k_ScanToFileCommand} <file name> \t \t \t Only scan the selected converters and write the results as json to <file name>. A relative <file name> is resolved against the project folder. Nothing is converted.");
             helpMessage.AppendLine("\n");
 
             helpMessage.AppendLine("Notes");
@@ -325,12 +325,13 @@ namespace UnityEditor.Rendering.Universal
 
                     string scanStatus = null;
                     var scanFilePath = ScanToFile(FilterConverters(converter[0], filteredTypes, hasInclusive),
-                        scanFileName[0], status => scanStatus = status);
+                        GetCmdLineScanFilePath(scanFileName[0]), status => scanStatus = status);
 
                     ExitWhenDone(() => scanStatus != null, () =>
                     {
                         if (scanStatus == "Completed")
                         {
+                            Debug.Log($"ConverterCli: The scan results were written to {scanFilePath}");
                             EditorApplication.Exit(0);
                         }
                         else
@@ -549,6 +550,13 @@ namespace UnityEditor.Rendering.Universal
                 CompleteScan(scan);
 
             return filePath;
+        }
+
+        // ScanToFile writes relative file names to Temp/, which Unity deletes when it exits, so from the command
+        // line they are resolved against the project root instead.
+        internal static string GetCmdLineScanFilePath(string fileName)
+        {
+            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Application.dataPath), fileName));
         }
 
         internal static void CancelScan()

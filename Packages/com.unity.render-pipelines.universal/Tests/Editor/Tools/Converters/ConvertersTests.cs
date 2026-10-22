@@ -208,6 +208,25 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
+        public void ScanToFile_CmdLineRelativeFileName_IsWrittenToProjectRootInsteadOfTemp()
+        {
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(ScanOnlyConverter) },
+                Converters.GetCmdLineScanFilePath("ConverterCmdLineScanTest.json"));
+
+            try
+            {
+                // Unity deletes Temp/ when it exits, so command-line results must be written elsewhere
+                var projectRoot = Path.GetDirectoryName(Application.dataPath);
+                Assert.AreEqual(Path.GetFullPath(Path.Combine(projectRoot, "ConverterCmdLineScanTest.json")), Path.GetFullPath(filePath));
+                FileAssert.Exists(filePath);
+            }
+            finally
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        [Test]
         public void ScanToFile_ReportsScanInProgressUntilConvertersFinish()
         {
             string finishedStatus = null;
