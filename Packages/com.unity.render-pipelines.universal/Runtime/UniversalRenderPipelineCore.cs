@@ -1630,6 +1630,7 @@ namespace UnityEngine.Rendering.Universal
             desc.msaaSamples = msaaSamples;
             desc.enableRandomWrite = false;
             desc.bindMS = false;
+            desc.shadowSamplingMode = ShadowSamplingMode.None;
             desc.useDynamicScale = camera.allowDynamicResolution;
 
             // Check that the requested MSAA samples count is supported by the current platform. If it's not supported,
