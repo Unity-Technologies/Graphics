@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Converter
 {
@@ -57,22 +60,11 @@ namespace UnityEditor.Rendering.Converter
                     searchQueries,
                     (item, description) =>
                     {
-                        var unityObject = item.ToObject();
-
-                        if (unityObject == null)
+                        var newAssetItem = CreateAssetItem(item);
+                        if (newAssetItem == null)
                             return;
 
-                        GameObject go = null;
-
-                        if (unityObject is GameObject gameObject)
-                            go = gameObject;
-                        else if (unityObject is Component component)
-                            go = component.gameObject;
-                        else
-                            return;
-
-                        var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
-                        var gidString = gid.ToString();
+                        var gidString = newAssetItem.GlobalObjectId;
 
                         string groupName = GetGroupNameFromDescription(description);
 
@@ -89,14 +81,7 @@ namespace UnityEditor.Rendering.Converter
                         bool isNewAsset = processedIds.Add(gidString);
                         if (isNewAsset)
                         {
-                            int type = gid.identifierType;
-
-                            assetItem = new RenderPipelineConverterAssetItem(gidString)
-                            {
-                                name = $"{unityObject.name} ({(type == GlobalObjectIdentifierType.ImportedAsset ? "Prefab" : "SceneObject")})",
-                                info = type == GlobalObjectIdentifierType.ImportedAsset ? AssetDatabase.GetAssetPath(unityObject) : go.scene.path,
-                            };
-
+                            assetItem = newAssetItem;
                             assets.Add(assetItem);
                             assetLookup[gidString] = assetItem;
                         }
@@ -123,6 +108,77 @@ namespace UnityEditor.Rendering.Converter
                 }
                 throw;
             }
+        }
+
+        internal static RenderPipelineConverterAssetItem CreateAssetItem(SearchItem item)
+        {
+            var unityObject = item.ToObject();
+
+            if (unityObject == null)
+                return CreateUnloadedSceneObjectItem(item);
+
+            GameObject go = null;
+
+            if (unityObject is GameObject gameObject)
+                go = gameObject;
+            else if (unityObject is Component component)
+                go = component.gameObject;
+            else
+                return null;
+
+            var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+
+            if (gid.identifierType == GlobalObjectIdentifierType.ImportedAsset)
+            {
+                return new RenderPipelineConverterAssetItem(gid.ToString())
+                {
+                    name = $"{unityObject.name} (Prefab)",
+                    info = AssetDatabase.GetAssetPath(unityObject),
+                };
+            }
+
+            return new RenderPipelineConverterAssetItem(gid.ToString())
+            {
+                name = GetSceneObjectName(UnityEditor.Search.SearchUtils.GetTransformPath(go.transform)),
+                info = go.scene.path,
+            };
+        }
+
+        // Named with the path in the hierarchy, the only name Search has for objects in closed scenes. GameObject
+        // names can contain '/', so the object's own name can't be taken from it.
+        static string GetSceneObjectName(string transformPath)
+        {
+            var path = transformPath.StartsWith('/') ? transformPath.Substring(1) : transformPath;
+            return $"{path} (SceneObject)";
+        }
+
+        // Returns null unless the id is of an object in a scene that is not loaded
+        static string GetUnloadedScenePath(string globalObjectId)
+        {
+            if (!GlobalObjectId.TryParse(globalObjectId, out var gid) || gid.identifierType != GlobalObjectIdentifierType.SceneObject)
+                return null;
+
+            var scenePath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+            if (string.IsNullOrEmpty(scenePath) || SceneManager.GetSceneByPath(scenePath).isLoaded)
+                return null;
+
+            return scenePath;
+        }
+
+        // A scene object only loads while its scene is open, so build the item from the search result and let
+        // LoadObject open the scene at Convert time
+        static RenderPipelineConverterAssetItem CreateUnloadedSceneObjectItem(SearchItem item)
+        {
+            var scenePath = GetUnloadedScenePath(item.id);
+            if (scenePath == null)
+                return null;
+
+            // Search labels scene objects with their path in the hierarchy
+            return new RenderPipelineConverterAssetItem(item.id)
+            {
+                name = GetSceneObjectName(item.GetLabel(item.context, true) ?? string.Empty),
+                info = scenePath,
+            };
         }
 
         /// <summary>
@@ -159,7 +215,10 @@ namespace UnityEditor.Rendering.Converter
             return description.Replace(" is being referenced", "");
         }
 
-        public virtual void BeforeConvert() { }
+        public virtual void BeforeConvert()
+        {
+            m_ScenesOpenedForConversion?.Clear();
+        }
 
         protected abstract Status ConvertObject(UnityEngine.Object obj, StringBuilder message);
 
@@ -173,6 +232,10 @@ namespace UnityEditor.Rendering.Converter
                 return Status.Error;
             }
 
+            var scenePath = GetUnloadedScenePath(assetItem.GlobalObjectId);
+            if (scenePath != null)
+                (m_ScenesOpenedForConversion ??= new HashSet<string>()).Add(scenePath);
+
             var obj = assetItem.LoadObject();
 
             if (obj == null)
@@ -184,10 +247,33 @@ namespace UnityEditor.Rendering.Converter
             var errorString = new StringBuilder();
 
             var status = ConvertObject(obj, errorString);
+            SaveSceneOpenedForConversion(obj);
             message = errorString.ToString();
             return status;
         }
 
-        public virtual void AfterConvert() { }
+        // Scenes opened to convert their objects are closed again without saving when the next one opens, or when
+        // the conversion returns to the scene it started from. Only tracked for the current conversion, so that a
+        // later one leaves saving them to the user.
+        [NonSerialized]
+        HashSet<string> m_ScenesOpenedForConversion;
+
+        void SaveSceneOpenedForConversion(UnityEngine.Object obj)
+        {
+            var scene = obj switch
+            {
+                GameObject go => go.scene,
+                Component component => component.gameObject.scene,
+                _ => default
+            };
+
+            if (scene.IsValid() && scene.isDirty && m_ScenesOpenedForConversion != null && m_ScenesOpenedForConversion.Contains(scene.path))
+                EditorSceneManager.SaveScene(scene);
+        }
+
+        public virtual void AfterConvert()
+        {
+            m_ScenesOpenedForConversion?.Clear();
+        }
     }
 }
