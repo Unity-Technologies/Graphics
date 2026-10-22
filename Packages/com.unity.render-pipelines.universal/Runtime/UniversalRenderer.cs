@@ -147,7 +147,9 @@ namespace UnityEngine.Rendering.Universal
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MotionVectorRenderPass m_MotionVectorPass;
-        ShadowPassGroup m_ShadowPassGroup;
+        // Shadow passes per stack camera (0 is the base camera, i + 1 is overlay i), only used with Quad Views shadow map caching in XR.
+        // Otherwise, every camera uses index 0.
+        readonly List<ShadowPassGroup> m_ShadowPassGroups = new List<ShadowPassGroup>();
         GBufferPass m_GBufferPass;
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
@@ -368,7 +370,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_ExposurePass = new ExposurePass();
-            m_ShadowPassGroup = new ShadowPassGroup();
+            m_ShadowPassGroups.Add(new ShadowPassGroup());
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass
@@ -515,7 +517,8 @@ namespace UnityEngine.Rendering.Universal
             m_OffscreenUICoverPrepass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
-            m_ShadowPassGroup.Dispose();
+            foreach (var shadowPassGroup in m_ShadowPassGroups)
+                shadowPassGroup.Dispose();
             m_CopyDepthPass?.Dispose();
 #if UNITY_EDITOR
             m_FinalDepthCopyPass?.Dispose();
@@ -559,7 +562,17 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            m_ShadowPassGroup.ReleaseRenderTargets();
+            foreach (var shadowPassGroup in m_ShadowPassGroups)
+                shadowPassGroup.ReleaseRenderTargets();
+        }
+
+        ShadowPassGroup GetShadowPassGroup(UniversalCameraData cameraData, UniversalShadowData shadowData)
+        {
+            int stackCameraIndex = shadowData.shadowMapCachingEnabled ? cameraData.xrUniversal.stackCameraIndex : 0;
+            while (m_ShadowPassGroups.Count <= stackCameraIndex)
+                m_ShadowPassGroups.Add(new ShadowPassGroup());
+
+            return m_ShadowPassGroups[stackCameraIndex];
         }
 
         /// <summary>
