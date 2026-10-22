@@ -179,6 +179,70 @@ namespace UnityEditor.Rendering.Tests
         }
 
         [TestFixture]
+        internal class ConverterVisualElementExpandStateTests
+        {
+            private class SingleItemConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled => true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    onScanFinish(new List<IRenderPipelineConverterItem> { new MockConverterItem { name = "Item" } });
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private EditorWindow m_Window;
+            private RenderPipelineConverterVisualElement m_Element;
+
+            [SetUp]
+            public void SetUp()
+            {
+                var converter = new SingleItemConverter();
+                var state = new ConverterState { converter = converter, isSelected = true };
+                var nodes = new List<ConverterInfo> { new ConverterInfo(converter, state) }.SortByCategory();
+                m_Element = new RenderPipelineConverterVisualElement(nodes[0].children[0]);
+                m_Window = EditorWindow.CreateInstance<EditorWindow>();
+                m_Window.Show();
+                m_Window.rootVisualElement.Add(m_Element);
+                m_Element.Scan(null);
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                UnityEngine.Object.DestroyImmediate(m_Window);
+            }
+
+            [Test]
+            public void ItemToggleChange_KeepsConverterExpanded()
+            {
+                var foldout = m_Element.Q<HeaderFoldout>();
+                var column = m_Element.Q<MultiColumnTreeView>("converterItemsTreeView").columns["name"];
+                var cell = column.makeCell();
+                foldout.Add(cell);
+                column.bindCell(cell, 0);
+
+                cell.Q<Toggle>("item-toggle").value = false;
+
+                Assert.IsTrue(foldout.value);
+                Assert.IsTrue(m_Element.state.isExpanded);
+            }
+
+            [Test]
+            public void FoldoutCollapse_StoresCollapsedState()
+            {
+                m_Element.Q<HeaderFoldout>().value = false;
+
+                Assert.IsFalse(m_Element.state.isExpanded);
+            }
+        }
+
+        [TestFixture]
         internal class CompareToTests
         {
             [Test]

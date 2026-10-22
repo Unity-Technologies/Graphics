@@ -78,7 +78,8 @@ namespace UnityEditor.Rendering.Converter
             m_HeaderFoldout.value = state.isExpanded;
             m_HeaderFoldout.RegisterCallback<ChangeEvent<bool>>((evt) =>
             {
-                state.isExpanded = evt.newValue;
+                if (evt.target == m_HeaderFoldout)
+                    state.isExpanded = evt.newValue;
             });
             m_HeaderFoldout.showEnableCheckbox = true;
             m_HeaderFoldout.documentationURL = converterInfo.helpUrl;
