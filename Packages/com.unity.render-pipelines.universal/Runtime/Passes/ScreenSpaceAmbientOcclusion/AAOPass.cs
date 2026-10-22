@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal
                 m_WarnedMissingTextures = false;
 
             // Builds a TextureDesc compatible with the active camera color target, safe for both intermediate render textures and imported back-buffer handles.
-            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, resourceData.activeColorTexture, cameraData.camera.allowDynamicResolution);
+            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, cameraData, resourceData.activeColorTexture);
 
             SSAOUtils.CreateRenderTextureHandles(renderGraph, resourceData, cameraColorDesc,
                 m_CurrentSettings, m_SupportsR8RenderTextureFormat, m_BlurType, enableRandomWrite: false,
