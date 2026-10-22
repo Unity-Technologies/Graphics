@@ -162,6 +162,9 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
     #ifdef SPEEDTREE_ALPHATEST
         diffuse.a = AlphaDiscard(diffuse.a, _Cutoff);
+    #elif !defined(GBUFFER)
+        // UUM-155486: PowerVR Vulkan drops depth for alpha-to-coverage draws without a discard; this clip never fires
+        clip(diffuse.a);
     #endif
 
     LODFadeCrossFade(input.clipPos);
