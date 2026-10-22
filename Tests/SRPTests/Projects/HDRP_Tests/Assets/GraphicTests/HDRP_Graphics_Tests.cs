@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest("4075_PhysicalCamera-gateFit", "Instability https://jira.unity3d.com/browse/UUM-100651", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D11 })]
         [IgnoreGraphicsTest("4075_PhysicalCamera-gateFit", "Unstable: https://jira.unity3d.com/browse/UUM-100651")]
         [IgnoreGraphicsTest(
-            "4060_CustomPostProcess|8207_InstancingAPIs|8212_Fullscreen|9700_CustomPass_FullScreen|9702_CustomPass_API|9703_SampleColorBuffer_InjectionPoints_Scaling|9931-ScreenCoordOverrideCustomPostProcess|1104_Unlit_Distortion_Compose|1206_Lit_Transparent_Distortion|1805_Depth_Pre_Post_Unlit|4038_Bloom|5014_VolumetricCloudsBanding|9006_StencilUsage|9304_MotionVectorsPrecomputedAndCustomVelocity|9601_SkinnedMeshBatching-Off|9602_SkinnedMeshBatching-On",
+            "4060_CustomPostProcess|8207_InstancingAPIs|8212_Fullscreen|9700_CustomPass_FullScreen|9702_CustomPass_API|9703_SampleColorBuffer_InjectionPoints_Scaling|9931-ScreenCoordOverrideCustomPostProcess|1104_Unlit_Distortion_Compose|1206_Lit_Transparent_Distortion|1805_Depth_Pre_Post_Unlit|4038_Bloom|5014_VolumetricCloudsBanding|9304_MotionVectorsPrecomputedAndCustomVelocity|9601_SkinnedMeshBatching-Off|9602_SkinnedMeshBatching-On",
             "Image difference when updating from GTF8 to GTF9",
             runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor })]
         [IgnoreGraphicsTest(
