@@ -227,6 +227,7 @@ namespace UnityEditor.Rendering.Universal
 
                 RefreshLightSources(light, targetSources);
 
+                bool wasGlobal = light.lightType == Light2D.LightType.Global;
                 GUIContent[] targetNames = targetSources.GetSourceNames();
                 for (int j = 0; j < targetNames.Length; j++)
                 {
@@ -234,6 +235,11 @@ namespace UnityEditor.Rendering.Universal
                         continue;
 
                     Light2DProviderSources.ApplySelectionFromIndex(targetSelectionSources, j, k_ChangeLightTypeUndoName);
+
+                    // Only a light that just became Global reports; ErrorIfDuplicateGlobalLight skips other types.
+                    // Lights that were already Global stay quiet, so the clash is not logged once per global light.
+                    if (!wasGlobal && light.isActiveAndEnabled)
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
                     break;
                 }
             }
