@@ -29,6 +29,12 @@ namespace UnityEditor.Rendering.Universal
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
 
+        // Without the runtime's 2D Common tessellator, a Freeform light renders only its falloff edge.
+        internal static bool ShouldShowMissing2DCommonError(Light2D.LightType type)
+        {
+            return type == Light2D.LightType.Freeform && !LightUtility.canTessellateFreeformInterior;
+        }
+
         /// <summary>
         /// Draws the Light Type dropdown for a Light2D component using the provider system.
         /// </summary>

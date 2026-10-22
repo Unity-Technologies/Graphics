@@ -28,6 +28,19 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class LightUtility
     {
+        // GenerateShapeMesh fills a Freeform light's interior only when this assembly has the 2D Common tessellator.
+        // Editor code must read this instead of its own USING_2DCOMMON, because the asmdefs use different version thresholds.
+        internal static bool canTessellateFreeformInterior
+        {
+            get
+            {
+#if USING_2DCOMMON
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
 
         public static int ProviderToHash(Provider2D provider, Component component)
         {
