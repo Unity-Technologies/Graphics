@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Tests;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -182,15 +183,11 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
         }
 
         // Compute output buffer reads back all zeros under UGK on D3D12; Vulkan UGK is unaffected.
-        if (IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+        if (UnityGraphicsKernelTestUtils.IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
         {
             Assert.Ignore("Compute buffer readback returns all zeros under UGK on D3D12 - https://jira.unity3d.com/browse/UGK-2877");
         }
     }
-
-    private static bool IsForcedUGK() =>
-        System.Array.Exists(System.Environment.GetCommandLineArgs(),
-            arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
 
     private const int kMicrosoftVendorId = 0x1414;
     private const int kBasicRenderDriverDeviceId = 0x8c;

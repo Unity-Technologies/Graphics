@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Tests
                 yield break;
 
             // UGK-2993
-            if (IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
                 IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch.");
 
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSampleWithObject_GpuSamples_ReturnsNonZeroCount));
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Tests
                 yield break;
 
             // UGK-2993
-            if (IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
                 IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch.");
 
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSample_GpuSamples_ReturnsNonZeroCount));
@@ -156,9 +156,5 @@ namespace UnityEngine.Rendering.Tests
             Debug.Log($"[ProfilingSamplerWithCommandBufferTests] Skipping: {reason}");
             Assert.Ignore(reason);
         }
-
-        static bool IsForcedUGK() =>
-            System.Array.Exists(System.Environment.GetCommandLineArgs(),
-                arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
     }
 }

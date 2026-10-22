@@ -65,13 +65,13 @@ namespace UnityEngine.Rendering.Tests
                 supportsGpuFrameTime = false; // XR
 #endif
             // UGK-3010: zero on every UGK graphics API, not just Android/Metal.
-            if (IsForcedUGK())
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK())
                 supportsGpuFrameTime = false;
 
             bool supportsMainThreadCpuFrameTime = true;
 
             // UGK-2992
-            if (IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.Switch2))
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.Switch2))
                 supportsMainThreadCpuFrameTime = false;
 
             yield return Warmup();
@@ -116,9 +116,5 @@ namespace UnityEngine.Rendering.Tests
                 $"GPUFrameTime={avg.GPUFrameTime} (asserted={supportsGpuFrameTime}), " +
                 $"MainThreadCPUPresentWaitTime={avg.MainThreadCPUPresentWaitTime}.");
         }
-
-        static bool IsForcedUGK() =>
-            System.Array.Exists(System.Environment.GetCommandLineArgs(),
-                arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase));
     }
 }
