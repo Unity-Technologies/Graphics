@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine.TestTools;
 using UnityEngine;
 
@@ -341,6 +343,19 @@ namespace UnityEditor.Rendering.Universal.Tools
             }
         }
 
+        // Renames each object it converts, the way material converters edit the objects they load
+        class RenamingAssetsConverter : NoQueriesAssetsConverter
+        {
+            public const string convertedName = "Converted";
+
+            protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
+            {
+                obj.name = convertedName;
+                EditorUtility.SetDirty(obj);
+                return Status.Success;
+            }
+        }
+
         // A converter with nothing to scan for must not leave the scan waiting for it.
         [TestCase(typeof(NoQueriesAssetsConverter), TestName = "{m}(Assets converter with no search queries)")]
         [TestCase(typeof(EmptyQueriesAssetsConverter), TestName = "{m}(Assets converter with empty search queries)")]
@@ -440,6 +455,155 @@ namespace UnityEditor.Rendering.Universal.Tools
             Assert.AreEqual(1, scanFile.convertersCompleted);
             Assert.AreEqual(1, scanFile.convertersFailed);
             Assert.AreEqual(1, scanFile.converters.Count);
+        }
+
+        // Search finds objects in scenes that are not open, and they are only loaded when converted
+        [Test]
+        public void CreateAssetItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/ConverterClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                // Replacing the scene closes it
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                // Search labels a scene object with its path in the hierarchy
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+
+                Assert.IsNotNull(assetItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, assetItem.GlobalObjectId);
+                Assert.AreEqual("Cube (SceneObject)", assetItem.name);
+                Assert.AreEqual(scenePath, assetItem.info);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        // Loads the object of a search result while its scene is open, like the asset provider
+        static readonly SearchProvider k_LoadingSearchProvider = new("converterTestLoading", "Converter Test Loading")
+        {
+            toObject = (item, type) => GlobalObjectId.TryParse(item.id, out var gid) ? GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid) : null
+        };
+
+        // GameObject names can contain '/', so the name of a nested object can't be told apart from its parents' in
+        // the hierarchy path that Search labels it with
+        [Test]
+        public void CreateAssetItem_NestedObjectWithSlashInName_HasSameNameWhetherSceneIsOpenOrClosed()
+        {
+            const string scenePath = "Assets/ConverterSlashNameTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var root = new GameObject("Root");
+                var go = new GameObject("Slash/Name");
+                go.transform.SetParent(root.transform);
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var label = UnityEditor.Search.SearchUtils.GetTransformPath(go.transform);
+
+                var openSceneItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var closedSceneItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                Assert.AreEqual("Root/Slash/Name (SceneObject)", openSceneItem.name);
+                Assert.AreEqual(openSceneItem.name, closedSceneItem.name);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void Convert_ObjectInClosedScene_SavesTheConvertedScene()
+        {
+            const string scenePath = "Assets/ConverterClosedSceneConvertTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+                Assert.AreEqual(Status.Success, new RenamingAssetsConverter().Convert(assetItem, out _));
+
+                // Leaving the scene discards anything that was not saved
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+                Assert.IsTrue(GlobalObjectId.TryParse(gidString, out var gid));
+                var convertedObject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                Assert.IsNotNull(convertedObject);
+                Assert.AreEqual(RenamingAssetsConverter.convertedName, convertedObject.name,
+                    "The conversion of an object in a closed scene must be saved to that scene.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void Convert_SceneOpenedByEarlierConversion_DoesNotSaveUnrelatedEdits()
+        {
+            const string scenePath = "Assets/ConverterEarlierConversionTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                var other = new GameObject("Other");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var otherGidString = GlobalObjectId.GetGlobalObjectIdSlow(other).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                // The first conversion opens the closed scene
+                var converter = new RenamingAssetsConverter();
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+                converter.BeforeConvert();
+                Assert.AreEqual(Status.Success, converter.Convert(assetItem, out _));
+                converter.AfterConvert();
+
+                // The user then edits another object in the scene, which is still open
+                Assert.IsTrue(GlobalObjectId.TryParse(otherGidString, out var otherGid));
+                var otherObject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(otherGid);
+                otherObject.name = "Edited";
+                EditorUtility.SetDirty(otherObject);
+
+                // A later conversion of an object in the open scene must leave saving it to the user
+                converter.BeforeConvert();
+                Assert.AreEqual(Status.Success, converter.Convert(assetItem, out _));
+                converter.AfterConvert();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+                Assert.AreEqual("Other", GlobalObjectId.GlobalObjectIdentifierToObjectSlow(otherGid).name,
+                    "A scene opened by an earlier conversion must not be saved by a later one.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
         }
 
         [Test]

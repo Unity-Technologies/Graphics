@@ -156,6 +156,7 @@ namespace UnityEditor.Rendering.Converter
 
         public override void BeforeConvert()
         {
+            base.BeforeConvert();
             m_MaterialReferenceChanger = new MaterialReferenceChanger(mappings);
         }
 
@@ -163,6 +164,7 @@ namespace UnityEditor.Rendering.Converter
         {
             m_MaterialReferenceChanger?.Dispose();
             m_MaterialReferenceChanger = null;
+            base.AfterConvert();
         }
 
         protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)

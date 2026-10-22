@@ -51,6 +51,8 @@ namespace UnityEditor.Rendering.Universal
         };
         public override void BeforeConvert()
         {
+            base.BeforeConvert();
+
             // Converters should already be set to null on domain reload,
             // but we're doing it here just in case anything somehow lingers.
             effectConverters = null;
@@ -140,6 +142,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             postConversionDestroyables.Clear();
+            base.AfterConvert();
         }
 
 #region Conversion_Entry_Points
