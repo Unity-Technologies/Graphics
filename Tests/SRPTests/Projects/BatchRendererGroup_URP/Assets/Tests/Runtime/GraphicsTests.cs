@@ -27,6 +27,14 @@ public class GraphicsTests
         RuntimePlatform.WindowsPlayer,
         UnityGraphicsKernelMode.UgkOn
     )]
+    // Likely the same root cause as UUM-157510 (DX12); UGK-3317 re-enables it once that fix lands.
+    [IgnoreGraphicsTest(
+        "DifferentDrawCommandTypes",
+        "https://jira.unity3d.com/browse/UGK-3317",
+        GraphicsDeviceType.Metal,
+        RuntimePlatform.OSXPlayer,
+        UnityGraphicsKernelMode.UgkOn
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (testCase.ScenePath.Contains("ErrorMaterial"))

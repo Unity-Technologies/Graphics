@@ -5,6 +5,8 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 // Regression test for per-bucket draw-call stats attribution.
 //
@@ -92,6 +94,9 @@ public class DrawCallStatsAttributionTests
     [UnityTest]
     public IEnumerator BrgDrawCalls_AreAttributedToBrgBucket_WhenGpuResidentDrawerEnabled()
     {
+        if (GraphicsTestPlatform.Current.GetValue<UnityGraphicsKernelMode>() == UnityGraphicsKernelMode.UgkOn)
+            Assert.Ignore("https://jira.unity3d.com/browse/UUM-157140");
+
         if (!m_HasPipeline)
             Assert.Ignore("Active render pipeline does not support the GPU Resident Drawer.");
 
@@ -114,6 +119,9 @@ public class DrawCallStatsAttributionTests
     [UnityTest]
     public IEnumerator SrpBatcherDrawCalls_AreAttributedToSrpBatcherBucket_WhenSrpBatchingEnabled()
     {
+        if (GraphicsTestPlatform.Current.GetValue<UnityGraphicsKernelMode>() == UnityGraphicsKernelMode.UgkOn)
+            Assert.Ignore("https://jira.unity3d.com/browse/UUM-157140");
+
         // Force the static-batch / SRP Batcher path: switch to the GRD-disabled quality level + SRP Batcher on.
         int grdDisabledLevel = FindQualityLevel(k_GRDDisabledQualityLevel);
         Assert.GreaterOrEqual(grdDisabledLevel, 0, $"Quality level '{k_GRDDisabledQualityLevel}' not found in QualitySettings.");
