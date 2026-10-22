@@ -1,7 +1,11 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEditor.Categorization;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.SceneManagement;
 
 namespace UnityEditor.Rendering.Tests
 {
@@ -322,6 +326,157 @@ namespace UnityEditor.Rendering.Tests
                 child1.isSelected = true;
 
                 Assert.IsNull(folder.isSelected, "Parent should be indeterminate (null) when children have mixed selection");
+            }
+        }
+
+        [TestFixture]
+        internal class ConverterVisualElementKeyboardTests
+        {
+            private class SingleItemConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled => true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    onScanFinish(new List<IRenderPipelineConverterItem> { new MockConverterItem { name = "Item" } });
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private EditorWindow m_Window;
+            private RenderPipelineConverterVisualElement m_Element;
+            private ConverterItemState m_Item;
+
+            [SetUp]
+            public void SetUp()
+            {
+                var converter = new SingleItemConverter();
+                var state = new ConverterState { converter = converter, isSelected = true };
+                var nodes = new List<ConverterInfo> { new ConverterInfo(converter, state) }.SortByCategory();
+                m_Element = new RenderPipelineConverterVisualElement(nodes[0].children[0]);
+                m_Window = EditorWindow.CreateInstance<EditorWindow>();
+                m_Window.Show();
+                m_Window.rootVisualElement.Add(m_Element);
+                m_Element.Scan(null);
+                m_Item = new List<ConverterItemState>(state.GetAllLeafItems())[0];
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                UnityEngine.Object.DestroyImmediate(m_Window);
+            }
+
+            private Toggle BindItemToggle()
+            {
+                var column = m_Element.Q<MultiColumnTreeView>("converterItemsTreeView").columns["name"];
+                var cell = column.makeCell();
+                m_Window.rootVisualElement.Add(cell);
+                column.bindCell(cell, 0);
+                return cell.Q<Toggle>("item-toggle");
+            }
+
+            private static void Submit(VisualElement target)
+            {
+                using (var submitEvent = NavigationSubmitEvent.GetPooled())
+                {
+                    submitEvent.target = target;
+                    target.SendEvent(submitEvent);
+                }
+            }
+
+            [Test]
+            public void ItemToggleSubmit_DeselectsItem()
+            {
+                var toggle = BindItemToggle();
+
+                Submit(toggle);
+
+                Assert.IsFalse(toggle.value);
+                Assert.IsFalse(m_Item.isSelected);
+            }
+
+            [Test]
+            public void HeaderToggleSubmit_DeselectsConverter()
+            {
+                var enableToggle = m_Element.Q<HeaderFoldout>().enableToggle;
+
+                Submit(enableToggle);
+
+                Assert.IsFalse(enableToggle.value);
+                Assert.IsFalse(m_Element.state.isSelected);
+            }
+
+            [Test]
+            public void FilterButtonSubmit_TogglesFilter()
+            {
+                var filterBefore = m_Element.state.currentFilter;
+
+                Submit(m_Element.Q<Button>("pendingToggle"));
+
+                Assert.AreEqual(filterBefore ^ DisplayFilter.Pending, m_Element.state.currentFilter);
+            }
+        }
+
+        [TestFixture]
+        internal class ConvertersEditorKeyboardTests
+        {
+            [PipelineConverter("Keyboard Test Source", "Keyboard Test Destination")]
+            private class KeyboardTestConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled => true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    onScanFinish(new List<IRenderPipelineConverterItem>());
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private ConverterState m_State;
+            private RenderPipelineConvertersEditor m_Window;
+
+            [SetUp]
+            public void SetUp()
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+                m_State = RenderPipelineConverterManager.instance.converterStates.Find(s => s.converter is KeyboardTestConverter);
+                m_State.isSelected = true;
+
+                m_Window = EditorWindow.CreateInstance<RenderPipelineConvertersEditor>();
+                m_Window.Show();
+                m_Window.rootVisualElement.Q<DropdownField>("sourcePipelineDropDown").value = "Keyboard Test Source";
+                m_Window.rootVisualElement.Q<DropdownField>("targetPipelineDropDown").value = "Keyboard Test Destination";
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                m_State.Clear();
+                m_State.isSelected = false;
+                m_Window.Close();
+            }
+
+            [Test]
+            public void InitializeButtonSubmit_ScansSelectedConverter()
+            {
+                var initializeButton = m_Window.rootVisualElement.Q<Button>("initializeButton");
+
+                using (var submitEvent = NavigationSubmitEvent.GetPooled())
+                {
+                    submitEvent.target = initializeButton;
+                    initializeButton.SendEvent(submitEvent);
+                }
+
+                Assert.IsTrue(m_State.isInitialized);
             }
         }
     }

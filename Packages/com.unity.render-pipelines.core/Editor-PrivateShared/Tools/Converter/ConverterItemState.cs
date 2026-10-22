@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Converter
         bool hasConverted { get; }
         Action<bool> onIsSelectedChanged { get; set; }
 
-        void OnSelectionChanged(ClickEvent _);
+        void OnSelectionChanged(ChangeEvent<bool> evt);
         void OnClicked(ClickEvent _);
         void SetSelectedWithoutNotify(bool value);
         void SetSelectionChangedHandler(Action<bool> handler);
@@ -133,9 +133,9 @@ namespace UnityEditor.Rendering.Converter
         }
         public bool hasConverted => m_ConversionStatus != Status.Pending;
 
-        public void OnSelectionChanged(ClickEvent _)
+        public void OnSelectionChanged(ChangeEvent<bool> evt)
         {
-            isSelected = !isSelected;
+            isSelected = evt.newValue;
         }
 
         public void OnClicked(ClickEvent _)
@@ -274,9 +274,9 @@ namespace UnityEditor.Rendering.Converter
         [SerializeReference]
         public List<IConverterItemState> children = new List<IConverterItemState>();
 
-        public void OnSelectionChanged(ClickEvent _)
+        public void OnSelectionChanged(ChangeEvent<bool> evt)
         {
-            isSelected = !(m_IsSelected ?? false);
+            isSelected = evt.newValue;
         }
 
         public void OnClicked(ClickEvent _)

@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Converter
 
         void Bind(DisplayFilter displayFilter, Button toggle)
         {
-            toggle.RegisterCallback<ClickEvent>(evt => OnTogglePressed(displayFilter, toggle));
+            toggle.clicked += () => OnTogglePressed(displayFilter, toggle);
 
             UpdateToggleVisualState(toggle, (m_State.currentFilter & displayFilter) != 0);
         }

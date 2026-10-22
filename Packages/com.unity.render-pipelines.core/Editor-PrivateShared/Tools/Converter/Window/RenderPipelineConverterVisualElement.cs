@@ -93,9 +93,9 @@ namespace UnityEditor.Rendering.Converter
             };
 
             m_HeaderFoldout.enableToggle.SetValueWithoutNotify(state.isSelected);
-            m_HeaderFoldout.enableToggle.RegisterCallback<ClickEvent>((evt) =>
+            m_HeaderFoldout.enableToggle.RegisterValueChangedCallback((evt) =>
             {
-                state.isSelected = !state.isSelected;
+                state.isSelected = evt.newValue;
                 converterSelected?.Invoke();
                 UpdateConversionInfo();
             });
@@ -662,8 +662,8 @@ namespace UnityEditor.Rendering.Converter
                     // Store nodeData for cleanup
                     toggle.userData = nodeData;
 
-                    // Register click to toggle selection - root event handler will refresh UI
-                    toggle.RegisterCallback<ClickEvent>(nodeData.itemState.OnSelectionChanged);
+                    // Register value change to toggle selection - root event handler will refresh UI
+                    toggle.RegisterValueChangedCallback(nodeData.itemState.OnSelectionChanged);
 
                     // Register click for label
                     label.RegisterCallback<ClickEvent>(nodeData.itemState.OnClicked);
@@ -701,12 +701,12 @@ namespace UnityEditor.Rendering.Converter
                 toggle.UnregisterValueChangedCallback(folderData.callback);
                 toggle.userData = null;
             }
-            // Or if it's a leaf item with click callback
+            // Or if it's a leaf item with value changed callback
             else if (toggle.userData is TreeNodeData leafNode)
             {
                 if (leafNode.itemState != null)
                 {
-                    toggle.UnregisterCallback<ClickEvent>(leafNode.itemState.OnSelectionChanged);
+                    toggle.UnregisterValueChangedCallback(leafNode.itemState.OnSelectionChanged);
                 }
                 toggle.userData = null;
             }

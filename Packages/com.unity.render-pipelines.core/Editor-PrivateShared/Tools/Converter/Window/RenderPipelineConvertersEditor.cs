@@ -176,10 +176,10 @@ namespace UnityEditor.Rendering.Converter
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
 
             m_ConvertButton = rootVisualElement.Q<Button>("convertButton");
-            m_ConvertButton.RegisterCallback<ClickEvent>(Convert);
+            m_ConvertButton.clicked += Convert;
 
             m_InitButton = rootVisualElement.Q<Button>("initializeButton");
-            m_InitButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
+            m_InitButton.clicked += InitializeAllActiveConverters;
 
             m_ConvertersVisualElements.Clear();
 
@@ -346,7 +346,7 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
-        void InitializeAllActiveConverters(ClickEvent evt)
+        void InitializeAllActiveConverters()
         {
             if (EditorApplication.isPlaying) return;
             if (!SaveCurrentSceneAndContinue()) return;
@@ -471,7 +471,7 @@ namespace UnityEditor.Rendering.Converter
             public int items_count;
         }
 
-        void Convert(ClickEvent evt)
+        void Convert()
         {
             if (EditorApplication.isPlaying) return;
 
