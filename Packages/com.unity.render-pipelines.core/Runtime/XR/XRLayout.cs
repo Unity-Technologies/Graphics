@@ -42,6 +42,10 @@ namespace UnityEngine.Experimental.Rendering
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null && enableXR;
 
+            // Sync the native camera's stereo target eye with the pipeline's XR toggle
+            if (isGameCamera)
+                SyncStereoTargetEye(camera, enableXR);
+
             if (XRSystem.displayActive && xrSupported)
             {
                 XRSystem.SetDisplayZRange(camera.nearClipPlane, camera.farClipPlane);
@@ -51,6 +55,22 @@ namespace UnityEngine.Experimental.Rendering
             {
                 AddPass(camera, XRSystem.emptyPass);
             }
+        }
+
+        static void SyncStereoTargetEye(Camera camera, bool enableXR)
+        {
+            StereoTargetEyeMask current = camera.stereoTargetEyeInternal;
+            StereoTargetEyeMask target;
+
+            if (!enableXR)
+                target = StereoTargetEyeMask.None;
+            else if (current == StereoTargetEyeMask.None)
+                target = StereoTargetEyeMask.Both;
+            else
+                target = current; // Preserve an explicit Left/Right/Both choice when XR is allowed.
+
+            if (target != current)
+                camera.stereoTargetEyeInternal = target;
         }
 
         /// <summary>
