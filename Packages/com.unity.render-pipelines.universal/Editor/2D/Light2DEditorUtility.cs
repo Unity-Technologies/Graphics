@@ -10,6 +10,9 @@ namespace UnityEditor.Rendering.Universal
     {
         internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
 
+        // The Undo entry for a pick in the Light Type dropdown, shared by every place that applies one.
+        internal const string k_ChangeLightTypeUndoName = "Change Light Type";
+
         private static class Styles
         {
             static GUIContent s_LightTypeFreeform;
@@ -72,29 +75,7 @@ namespace UnityEditor.Rendering.Universal
             if (sources == null)
                 return;
 
-            // Set up the built-in light types
-            List<SelectionSource> additionalSources = new List<SelectionSource>
-            {
-                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
-            };
-
-            // Refresh sources to scan for custom providers on the GameObject
-            int selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
-
-            // Add built-in types
-            var additionalSourcesList = sources.GetAdditionalSources();
-            if (additionalSourcesList != null)
-            {
-                additionalSourcesList.Clear();
-                foreach (var source in additionalSources)
-                    additionalSourcesList.Add(source);
-            }
-
-            // Refresh again to include the built-in types
-            selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+            int selectedIndex = RefreshLightSources(light2D, sources);
 
             // Sync m_SelectionSources with the actual m_LightType value
             // This is needed because Light Explorer may have changed m_LightType directly
@@ -124,10 +105,39 @@ namespace UnityEditor.Rendering.Universal
             // Only apply changes if the user actually changed the value
             if (EditorGUI.EndChangeCheck())
             {
-                Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(sources, newSelectedIndex);
-                selectionSources.boxedValue = sources;
-                Light2DProviderSources.SetSourceType(selectionSources);
+                Light2DProviderSources.ApplySelectionFromIndex(selectionSources, newSelectedIndex, k_ChangeLightTypeUndoName);
             }
+        }
+
+        /// <summary>
+        /// Scans <paramref name="light2D"/> for custom providers, adds the built-in light types, and returns
+        /// the index of the currently selected source, or -1 when the stored selection matches none of them.
+        /// </summary>
+        static internal int RefreshLightSources(Light2D light2D, Light2DProviderSources sources)
+        {
+            // Set up the built-in light types
+            List<SelectionSource> additionalSources = new List<SelectionSource>
+            {
+                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
+            };
+
+            // Refresh sources to scan for custom providers on the GameObject
+            Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+
+            // Add built-in types
+            var additionalSourcesList = sources.GetAdditionalSources();
+            if (additionalSourcesList != null)
+            {
+                additionalSourcesList.Clear();
+                foreach (var source in additionalSources)
+                    additionalSourcesList.Add(source);
+            }
+
+            // Refresh again to include the built-in types
+            return Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
         }
 
         static internal bool ContainsVisibleInspectorProperites(Provider2D provider)

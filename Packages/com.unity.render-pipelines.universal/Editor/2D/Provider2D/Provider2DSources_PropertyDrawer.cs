@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
     {
         public abstract int GetProviderType();
 
+        public abstract string GetUndoName();
+
         public int DrawDropdown(Rect popupRect, GUIContent label, int selectedIndex, GUIContent[] menuOptions)
         {
             if (menuOptions == null || menuOptions.Length == 0)
@@ -44,21 +46,20 @@ namespace UnityEditor.Rendering.Universal
             commonContent = returnContent;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        /// <summary>
+        /// Refreshes the sources of every selected object and returns, per object, the entries it can offer.
+        /// </summary>
+        /// <param name="targets">The selected objects.</param>
+        /// <param name="guiContent">Filled with one entry list per object, in target order.</param>
+        /// <param name="selectedContent">The entry the first selected object is currently on.</param>
+        /// <param name="showMixedContent">True when the objects are not all on the same entry.</param>
+        /// <returns>The entries every object can offer.</returns>
+        internal List<GUIContent> CollectTargetSources(UnityEngine.Object[] targets, List<GUIContent[]> guiContent, out GUIContent selectedContent, out bool showMixedContent)
         {
-            EditorGUI.BeginProperty(position, label, property);
-            position.height = EditorGUIUtility.singleLineHeight;
-
-            property.serializedObject.Update();
-
-
-            // I need 2 lists. First a list of content for each ShadowCaster2D. Second a list of common menu items 
-            List<GUIContent[]> guiContent = new List<GUIContent[]>();
             List<GUIContent> commonContent = null;
-            GUIContent selectedContent = null;
-            bool showMixedContent = false;
+            selectedContent = null;
+            showMixedContent = false;
 
-            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
             for(int i=0;i<targets.Length;i++)
             {
                 Component targetComponent = targets[i] as Component;
@@ -79,11 +80,60 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (content[targetSelIndex < 0 ? 0 : targetSelIndex].text.GetHashCode() != selectedContent.text.GetHashCode())
                         showMixedContent = true;
-                    
+
                 }
                 guiContent.Add(content);
                 UpdateCommonContent(ref content, ref commonContent);
             }
+
+            return commonContent;
+        }
+
+        /// <summary>
+        /// Applies the entry the user picked to every selected object.
+        /// </summary>
+        /// <remarks>
+        /// Each object is matched against its own entry list and written through its own SerializedObject,
+        /// so each one is recorded for Undo on its own. Writing through the shared one instead reaches only
+        /// the first object for the [SerializeReference] selection the dropdown reads back.
+        /// </remarks>
+        /// <param name="targets">The selected objects.</param>
+        /// <param name="guiContent">The per-object entry lists that <see cref="CollectTargetSources"/> returned.</param>
+        /// <param name="newSelectedContent">The entry the user picked.</param>
+        internal void ApplySelection(UnityEngine.Object[] targets, List<GUIContent[]> guiContent, GUIContent newSelectedContent)
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                // Now we need to find the selected item index for each of the providers
+                Component targetComponent = targets[i] as Component;
+                SerializedObject serializedTarget = new SerializedObject(targetComponent);
+                SerializedProperty targetProperty = serializedTarget.FindProperty("m_SelectionSources");
+
+                GUIContent[] savedGuiContent = guiContent[i];
+                for (int j=0; j < savedGuiContent.Length; j++)
+                {
+                    GUIContent content = savedGuiContent[j];
+                    if(content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
+                    {
+                        Provider2DSources<T, U>.ApplySelectionFromIndex(targetProperty, j, GetUndoName());
+                    }
+                }
+            }
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+            position.height = EditorGUIUtility.singleLineHeight;
+
+            property.serializedObject.Update();
+
+
+            // I need 2 lists. First a list of content for each ShadowCaster2D. Second a list of common menu items
+            List<GUIContent[]> guiContent = new List<GUIContent[]>();
+
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
+            List<GUIContent> commonContent = CollectTargetSources(targets, guiContent, out GUIContent selectedContent, out bool showMixedContent);
 
             if (!property.serializedObject.isEditingMultipleObjects)
                 showMixedContent = false;
@@ -108,28 +158,7 @@ namespace UnityEditor.Rendering.Universal
 
             if(EditorGUI.EndChangeCheck())
             {
-                GUIContent newSelectedContent = commonContent[newSelectedIndex];
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    // Now we need to find the selected item index for each of the providers
-                    Component targetComponent = targets[i] as Component;
-                    SerializedObject serializedTarget = new SerializedObject(targetComponent);
-                    SerializedProperty targetProperty = serializedTarget.FindProperty("m_SelectionSources");
-                    Provider2DSources<T, U> targetSources = targetProperty.boxedValue as Provider2DSources<T, U>;
-
-                    GUIContent[] savedGuiContent = guiContent[i];
-                    for (int j=0; j < savedGuiContent.Length; j++)
-                    {
-                        GUIContent content = savedGuiContent[j];
-                        if(content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
-                        {
-                            Provider2DSources<T, U>.UpdateSelectionFromIndex(targetSources, j);
-                            // Persist the selection change by updating both the provider selection and m_LightType
-                            targetProperty.boxedValue = targetSources;
-                            Provider2DSources<T, U>.SetSourceType(targetProperty);
-                        }
-                    }
-                }
+                ApplySelection(targets, guiContent, commonContent[newSelectedIndex]);
 
                 // Force all Inspector windows to repaint so the Light Type dropdown updates
                 InspectorWindow.RepaintAllInspectors();
