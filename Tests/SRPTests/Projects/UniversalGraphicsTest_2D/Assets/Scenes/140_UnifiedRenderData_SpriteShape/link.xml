@@ -1,0 +1,9 @@
+<linker>
+       <assembly fullname="UnityEngine.CoreModule">
+               <type fullname="UnityEngine.U2D.UnifiedRenderData" preserve="all"/>
+               <type fullname="UnityEngine.Graphics" preserve="all"/>
+       </assembly>
+       <assembly fullname="UnityEngine.SpriteShapeModule">
+               <type fullname="UnityEngine.U2D.SpriteShapeRenderer" preserve="all"/>
+       </assembly>
+</linker>
