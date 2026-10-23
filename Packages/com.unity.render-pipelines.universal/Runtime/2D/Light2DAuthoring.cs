@@ -21,11 +21,6 @@ namespace UnityEngine.Rendering.Universal
             Gizmos.DrawIcon(transform.position, s_IconsPath + s_LightIconFileNames[(int)m_LightType], true);
         }
 
-        void Reset()
-        {
-            m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
-        }
-
         internal List<Vector2> GetFalloffShape()
         {
             return LightUtility.GetOutlinePath(m_ShapePath, m_ShapeLightFalloffSize);
