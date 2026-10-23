@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             Assert.IsTrue(ProviderLibrary.TryGetInstance(out var lib), "Provider library must be available in the main editor.");
             foreach (var provider in lib.ProvidersByVersion<IShaderFunction>(providerKey))
             {
-                if (version != null && provider.Version != version)
+                if (version != null && provider.Info.Version != version)
                     continue;
                 var node = new ProviderNode();
                 new GraphData().AddNode(node);
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             var header = node.Header;
             List<string> candidates = new();
             foreach (var (provider, label) in header.groupCandidates ?? new (IProvider<IShaderFunction>, string)[0])
-                candidates.Add($"{provider.ProviderKey}={label}");
+                candidates.Add($"{provider.Info.ProviderKey}={label}");
             List<string> versions = new();
             foreach (var (provider, version) in header.versionCandidates ?? new (IProvider<IShaderFunction>, string)[0])
                 versions.Add($"{provider.Definition.Name}={version}");

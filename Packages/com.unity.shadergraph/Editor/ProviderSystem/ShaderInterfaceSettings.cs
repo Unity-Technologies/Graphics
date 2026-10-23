@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             var provider = m_Graph.shaderInterface;
             var pickerLine = new VisualElement();
             pickerLine.AddToClassList($"{k_Class}__picker-line");
-            pickerLine.Add(CreatePicker(provider?.ProviderKey));
+            pickerLine.Add(CreatePicker(provider != null ? provider.Info.ProviderKey ?? DescribeAsset(provider) : null));
             Add(CreateRow("Interface", pickerLine));
 
             if (provider == null)
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             if (!provider.IsValid)
             {
-                Add(new HelpBoxRow($"Shader interface '{provider.ProviderKey}' can't be found or failed to load. Select another interface or restore its source file.", MessageType.Warning));
+                Add(new HelpBoxRow($"Shader interface '{DescribeAsset(provider)}' can't be found or failed to load. Select another interface or restore its source file.", MessageType.Warning));
                 return;
             }
 
@@ -88,8 +88,8 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         void AddDefinition(IShaderInterface definition)
         {
-            if (definition.BaseShaderID != default)
-                Add(CreateRow("Base Shader", CreateReadOnlyAssetField(AssetDatabase.GUIDToAssetPath(definition.BaseShaderID))));
+            if (definition.BaseShaderAssetID != default)
+                Add(CreateRow("Base Shader", CreateReadOnlyAssetField(AssetDatabase.GUIDToAssetPath(definition.BaseShaderAssetID))));
 
             AddProperties(definition.Fields);
 
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         bool AddFunctions(VisualElement parent, Scope scope)
         {
-            var functions = m_Functions.FindAll(f => scope.Contains(f.Scopes));
+            var functions = m_Functions.FindAll(f => scope.Contains(f.Passes));
             if (functions.Count == 0)
                 return false;
 
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             foreach (var partialStruct in m_Structs)
             {
                 var fields = FieldsIn(partialStruct, scope);
-                if (fields.Count > 0 || scope.Contains(partialStruct.Scopes))
+                if (fields.Count > 0 || scope.Contains(partialStruct.Passes))
                     structs.Add((partialStruct, fields));
             }
 
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             List<IShaderStructField> fields = new();
             foreach (var field in partialStruct.Fields)
-                if (field is IShaderStructField structField && scope.Contains(structField.Scopes))
+                if (field is IShaderStructField structField && scope.Contains(structField.Passes))
                     fields.Add(structField);
             return fields;
         }
@@ -195,13 +195,13 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             AddAll(m_Passes);
             foreach (var function in m_Functions)
-                AddAll(function.Scopes);
+                AddAll(function.Passes);
             foreach (var partialStruct in m_Structs)
             {
-                AddAll(partialStruct.Scopes);
+                AddAll(partialStruct.Passes);
                 foreach (var field in partialStruct.Fields)
                     if (field is IShaderStructField structField)
-                        AddAll(structField.Scopes);
+                        AddAll(structField.Passes);
             }
             return indices;
         }
@@ -281,6 +281,12 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             EditorGUIUtility.PingObject(asset);
         }
 
+        static string DescribeAsset(IProvider provider)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(provider.AssetID);
+            return string.IsNullOrEmpty(path) ? provider.AssetID.ToString() : path;
+        }
+
         Button CreatePicker(string interfaceName)
         {
             var picker = new Button();
@@ -310,7 +316,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             List<SearcherItem> items = new();
             foreach (var provider in library.MainProviders<IShaderInterface>())
-                items.Add(new SearcherItem(provider.ProviderKey, AssetDatabase.GUIDToAssetPath(provider.AssetID), userData: provider));
+                items.Add(new SearcherItem(provider.Info.ProviderKey, AssetDatabase.GUIDToAssetPath(provider.AssetID), userData: provider));
 
             var searcher = new Searcher.Searcher(SearcherDatabase.Create(items, string.Empty, false), new SearchWindowAdapter("Select Shader Interface"));
             SearcherWindow.Show(host, searcher, item => SelectInterface(item?.UserData as IProvider<IShaderInterface>), picker.worldBound.center, null);

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.GraphAuthoring.Editor.ProviderSystem;
+using Unity.GraphAuthoring.Editor.ProviderSystem.Reflection;
 using UnityEditor.ShaderApiReflection;
 using UnityEngine;
 
@@ -20,15 +21,15 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 
         sealed class SourceProvider : IProvider<IShaderFunction>
         {
-            public string ProviderKey { get; }
+            public ProviderInfo Info { get; }
             public IShaderFunction Definition { get; }
             public IReadOnlyList<Message> Messages { get; }
 
             internal SourceProvider(string providerKey, ReflectedFunction source)
             {
-                ProviderKey = providerKey;
+                Info = new ProviderInfo(providerKey);
                 List<Message> messages = new();
-                Definition = ShaderReflectionUtils.ToShaderFunction(source, default, null, messages, out _);
+                Definition = ShaderReflectionUtils.ToShaderFunction(source, default, messages, out _);
                 Messages = messages;
             }
 

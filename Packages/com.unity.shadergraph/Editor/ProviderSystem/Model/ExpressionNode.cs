@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         [EnumControl("Type")]
         SupportedTypes SelectedType {
-            get => FromTypeName(TypedProvider.ShaderType);
+            get => FromTypeName(TypedProvider.TypeName);
             set
             {
                 TypedProvider.UpdateExpression(hlslFunctionName, Expression, ToTypeName(value), s_keywordFilter);
@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             {
                 if (value == null) // Text control can misbehave in undo redo scenarios; we'll need to visit that separately.
                     return;
-                TypedProvider.UpdateExpression(hlslFunctionName, value, TypedProvider.ShaderType, s_keywordFilter);
+                TypedProvider.UpdateExpression(hlslFunctionName, value, TypedProvider.TypeName, s_keywordFilter);
                 Refresh();
             }
         }
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             // Ensure the keyword filter is in place before base calls Refresh() → Provider.Reload().
             // Handles fresh nodes and graphs saved before [SerializeReference] was introduced.
-            TypedProvider?.UpdateExpression(hlslFunctionName, TypedProvider.Expression, TypedProvider.ShaderType, s_keywordFilter);
+            TypedProvider?.UpdateExpression(hlslFunctionName, TypedProvider.Expression, TypedProvider.TypeName, s_keywordFilter);
             base.UpdateNodeAfterDeserialization();
         }
 

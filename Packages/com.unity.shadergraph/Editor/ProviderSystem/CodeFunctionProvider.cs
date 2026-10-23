@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         readonly MethodInfo m_method;
         readonly string m_body;
 
-        public string ProviderKey => $"{m_method.DeclaringType.FullName}.{m_method.Name}";
+        public ProviderInfo Info => new($"{m_method.DeclaringType.FullName}.{m_method.Name}");
         public IShaderFunction Definition { get; private set; }
 
         internal CodeFunctionProvider(MethodInfo method, string body)

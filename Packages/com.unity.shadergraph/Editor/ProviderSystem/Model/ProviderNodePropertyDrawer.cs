@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var provider = node.Provider;
             bool hasAssetSource = provider.AssetID != default;
             string sourcePath  = hasAssetSource ? AssetDatabase.GUIDToAssetPath(provider.AssetID) : null;
-            string providerKey = provider.ProviderKey;
+            string providerKey = provider.Info.ProviderKey;
 
             if (!provider.IsValid)
             {

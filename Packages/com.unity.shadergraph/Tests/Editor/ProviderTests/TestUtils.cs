@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             foreach (var param in node.Provider.Definition.Parameters)
                 count += (param.IsInput ? 1 : 0) + (param.IsOutput ? 1 : 0);
 
-            Assert.AreEqual(slots.Count, count, $"{provider.ProviderKey} has an unexpected number of slots.");
+            Assert.AreEqual(slots.Count, count, $"{provider.Info.ProviderKey} has an unexpected number of slots.");
         }
     }
 }

@@ -214,7 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (!provider.IsValid)
                         continue;
 
-                    if (!ProviderTypeCache.TryCreateModel(provider.ProviderKey, out var model) || model is not ProviderNode node)
+                    if (!ProviderModels.TryCreate(provider.Info, out var model) || model is not ProviderNode node)
                         node = new ProviderNode();
 
                     node.InitializeFromProvider(provider);

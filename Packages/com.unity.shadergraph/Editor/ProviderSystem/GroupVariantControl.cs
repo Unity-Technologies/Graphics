@@ -59,9 +59,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             var candidates = m_Node.Header?.groupCandidates;
             if (candidates == null) return 0;
-            var key = m_Node.Provider?.ProviderKey;
+            var key = m_Node.Provider?.Info.ProviderKey;
             for (int i = 0; i < candidates.Length; i++)
-                if (candidates[i].provider.ProviderKey == key)
+                if (candidates[i].provider.Info.ProviderKey == key)
                     return i;
             return 0;
         }
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             var candidates = m_Node.Header?.groupCandidates;
             if (candidates == null) return;
             int newIdx = m_Dropdown.index;
-            if (candidates[newIdx].provider.ProviderKey == m_Node.Provider?.ProviderKey)
+            if (candidates[newIdx].provider.Info.ProviderKey == m_Node.Provider?.Info.ProviderKey)
                 return;
 
             m_Node.owner.owner.RegisterCompleteObjectUndo($"Change {m_Node.name} Variant");

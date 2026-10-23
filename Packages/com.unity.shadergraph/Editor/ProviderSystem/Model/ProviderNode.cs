@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
             else if (Provider.AssetID != default && (Provider.Definition == null || !Provider.Definition.IsValid))
             {
                 var path = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
-                owner?.AddSetupError(this.objectId, $"Data for '{Provider.ProviderKey}' expected in '{path}'.");
+                owner?.AddSetupError(this.objectId, $"Data for '{Provider.Info.ProviderKey}' expected in '{path}'.");
                 return;
             }
             else if (Header != null)
