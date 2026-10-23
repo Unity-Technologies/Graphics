@@ -96,14 +96,6 @@ namespace Preview
         [TestCaseSource(nameof(s_TestCaseDataAssetPreviewUpdater))]
         public IEnumerator CreatePreview(AssetFactory objectFactory, Type renderPipelineAssetType)
         {
-            var threadingMode = SystemInfo.renderingThreadingMode;
-            bool nativeGfxJobs = threadingMode == RenderingThreadingMode.NativeGraphicsJobs
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading;
-            bool isD3D12 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
-            if (renderPipelineAssetType == typeof(HDRenderPipelineAsset) && isD3D12 && nativeGfxJobs)
-                Assert.Ignore("HDRP material preview renders blank under native/split graphics jobs on D3D12. Tracking: UUM-147205");
-            
             using (new RenderPipelineScope(renderPipelineAssetType))
             {
                 yield return null;
@@ -143,14 +135,6 @@ namespace Preview
         /// </description>
         public IEnumerator CreatePreviewAssetImportWorker(AssetFactory objectFactory, Type renderPipelineAssetType)
         {
-            var threadingMode = SystemInfo.renderingThreadingMode;
-            bool nativeGfxJobs = threadingMode == RenderingThreadingMode.NativeGraphicsJobs
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading;
-            bool isD3D12 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
-            if (renderPipelineAssetType == typeof(HDRenderPipelineAsset) && isD3D12 && nativeGfxJobs)
-                Assert.Ignore("HDRP material preview renders blank under native/split graphics jobs on D3D12. Tracking: UUM-147205");
-
             // Configure the worker to dump preview images to disk for debugging purposes
             using (var diagnosticSwitchGuard = new Diagnostics.DiagnosticSwitchGuard(Diagnostics.DiagnosticSwitches.ExportPreviewPNGs, true))
             {
