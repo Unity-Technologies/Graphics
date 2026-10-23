@@ -33,10 +33,8 @@ namespace UnityEngine.VFX.Utility
         [Tooltip("Whether to use the lifetime attribute to determine how long the prefab will be enabled")]
         public bool useLifetime = true;
 
-        static readonly GameObject[] k_EmptyGameObjects = new GameObject[0];
-        static readonly float[] k_EmptyTimeToLive = new float[0];
-        GameObject[] m_Instances = k_EmptyGameObjects;
-        float[] m_TimesToLive = k_EmptyTimeToLive;
+        GameObject[] m_Instances = Array.Empty<GameObject>();
+        float[] m_TimesToLive = Array.Empty<float>();
 
         protected override void OnDisable()
         {
@@ -70,8 +68,8 @@ namespace UnityEngine.VFX.Utility
                         DestroyImmediate(instance);
                 }
             }
-            m_Instances = k_EmptyGameObjects;
-            m_TimesToLive = k_EmptyTimeToLive;
+            m_Instances = Array.Empty<GameObject>();
+            m_TimesToLive = Array.Empty<float>();
         }
 
         static readonly int k_PositionID = Shader.PropertyToID("position");
