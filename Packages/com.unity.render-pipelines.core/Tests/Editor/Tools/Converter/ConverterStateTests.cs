@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
+using UnityEditor.Categorization;
 using UnityEditor.Rendering.Converter;
 
 namespace UnityEditor.Rendering.Tests
@@ -386,6 +387,165 @@ namespace UnityEditor.Rendering.Tests
                 Assert.IsNotNull(deserializedItem.assetType, "Asset type should survive serialization");
                 Assert.AreEqual(typeof(Material), deserializedItem.assetType, "Asset type should be Material");
                 Assert.AreEqual("Materials", deserializedItem.name, "Name should survive serialization");
+            }
+        }
+
+        [TestFixture]
+        internal class ConverterVisualElementSelectionTests
+        {
+            private class ScanningConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled => true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(System.Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    onScanFinish(new List<IRenderPipelineConverterItem>
+                    {
+                        new MockConverterItem { name = "Item1" },
+                        new MockConverterItem { name = "Item2" }
+                    });
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private class FolderScanningConverter : IRenderPipelineConverter
+            {
+                public bool isEnabled => true;
+                public string isDisabledMessage => string.Empty;
+                public void Scan(System.Action<List<IRenderPipelineConverterItem>> onScanFinish)
+                {
+                    var folder = new MockFolderItem { name = "Folder" };
+                    folder.children.Add(new MockConverterItem { name = "Item1" });
+                    folder.children.Add(new MockConverterItem { name = "Item2" });
+                    onScanFinish(new List<IRenderPipelineConverterItem> { folder });
+                }
+                public Status Convert(IRenderPipelineConverterItem item, out string message)
+                {
+                    message = string.Empty;
+                    return Status.Success;
+                }
+            }
+
+            private EditorWindow m_Window;
+            private RenderPipelineConverterVisualElement m_Element;
+            private int m_SelectedCallCount;
+
+            [SetUp]
+            public void SetUp()
+            {
+                CreateElement(new ScanningConverter());
+            }
+
+            private void CreateElement(IRenderPipelineConverter converter)
+            {
+                var state = new ConverterState { converter = converter, isSelected = true };
+                var info = new ConverterInfo(converter, state);
+                var nodes = new List<ConverterInfo> { info }.SortByCategory();
+                m_Element = new RenderPipelineConverterVisualElement(nodes[0].children[0]);
+                m_Window = EditorWindow.CreateInstance<EditorWindow>();
+                m_Window.Show();
+                m_Window.rootVisualElement.Add(m_Element);
+                m_Element.converterSelected += () => m_SelectedCallCount++;
+                m_Element.Scan(null);
+                m_SelectedCallCount = 0;
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                UnityEngine.Object.DestroyImmediate(m_Window);
+            }
+
+            [Test]
+            public void FolderToggleChange_NotifiesConverterSelected()
+            {
+                TearDown();
+                CreateElement(new FolderScanningConverter());
+                var column = m_Element.Q<MultiColumnTreeView>("converterItemsTreeView").columns["name"];
+                var cell = column.makeCell();
+                m_Window.rootVisualElement.Add(cell);
+                column.bindCell(cell, 0);
+
+                var toggle = cell.Q<Toggle>("item-toggle");
+                toggle.value = !toggle.value;
+
+                Assert.AreEqual(1, m_SelectedCallCount);
+            }
+
+            [Test]
+            public void ItemSelectionChange_NotifiesConverterSelected()
+            {
+                var item = new List<ConverterItemState>(m_Element.state.GetAllLeafItems())[0];
+
+                item.isSelected = !item.isSelected;
+
+                Assert.AreEqual(1, m_SelectedCallCount);
+            }
+
+            [TestCase("all")]
+            [TestCase("none")]
+            public void AllNoneLabelClick_NotifiesConverterSelected(string labelName)
+            {
+                var label = m_Element.Q<Label>(labelName);
+
+                using (var clickEvent = ClickEvent.GetPooled())
+                {
+                    clickEvent.target = label;
+                    label.SendEvent(clickEvent);
+                }
+
+                Assert.AreEqual(1, m_SelectedCallCount);
+            }
+        }
+
+        [TestFixture]
+        internal class ConvertersEditorConvertButtonTests
+        {
+            [PipelineConverter("Test Source A", "Test Destination")]
+            private class SourceAConverter : MockConverter
+            {
+            }
+
+            private ConverterState m_SourceAState;
+            private RenderPipelineConvertersEditor m_Window;
+
+            [SetUp]
+            public void SetUp()
+            {
+                m_SourceAState = RenderPipelineConverterManager.instance.converterStates.Find(s => s.converter is SourceAConverter);
+                m_SourceAState.isSelected = true;
+                m_SourceAState.isInitialized = true;
+                m_SourceAState.AddItem(new MockConverterItem { name = "Item" });
+
+                m_Window = EditorWindow.CreateInstance<RenderPipelineConvertersEditor>();
+                m_Window.Show();
+            }
+
+            [TearDown]
+            public void TearDown()
+            {
+                m_SourceAState.Clear();
+                m_SourceAState.isSelected = false;
+                m_Window.Close();
+            }
+
+            [Test]
+            public void ConvertButton_IgnoresConvertersHiddenBySourceDropdown()
+            {
+                var root = m_Window.rootVisualElement;
+                var sourceDropdown = root.Q<DropdownField>("sourcePipelineDropDown");
+                var convertButton = root.Q<Button>("convertButton");
+                root.Q<DropdownField>("targetPipelineDropDown").value = "Test Destination";
+
+                sourceDropdown.value = "Test Source A";
+                Assert.IsTrue(convertButton.enabledSelf);
+
+                sourceDropdown.value = "Other Source";
+                Assert.IsFalse(convertButton.enabledSelf);
             }
         }
     }
