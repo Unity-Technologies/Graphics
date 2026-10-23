@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     internal struct ResourceVersionedData
     {
         public bool written; // This version of the resource is written by a pass (external resources may never be written by the graph for example)
+        public bool countedAsUnused;
         public int writePassId; // Index in the pass array of the pass writing this specific version. If any, there is always a single index as the version differs when a resource is written several times.
         public int numReaders; // Number of other passes reading this version
 

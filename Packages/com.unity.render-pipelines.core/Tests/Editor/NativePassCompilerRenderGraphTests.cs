@@ -2225,6 +2225,49 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 2);
         }
 
+        [Test]
+        public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead_AndItsImplicitReaderIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Producer", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("ProducerReader", out var passData))
+            {
+                builder.UseTexture(renderTargets.extraTextures[0], AccessFlags.Read);
+                builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Intermediate", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NotCullable", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            Assert.IsFalse(result.contextData.passData[0].culled, "Producer");
+            Assert.IsFalse(result.contextData.passData[1].culled, "ProducerReader");
+            Assert.IsTrue(result.contextData.passData[2].culled, "Intermediate");
+            Assert.IsFalse(result.contextData.passData[3].culled, "NotCullable");
+        }
+
         // Test using a texture as both a texture and render attachment, one will require topleft and one bottom left so this should throw.
         [Test]
         public void TextureUVOrigin_CheckInvalidMixedUVOriginUseTextureCompiler()
