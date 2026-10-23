@@ -574,6 +574,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var producerData = ref ctx.passData.ElementAt(unusedVersionedDataRes.writePassId);
                     if (producerData.culled) continue; // Producer has been culled already
 
+                    if (unusedVersionedDataRes.countedAsUnused) continue;
+
+                    // Each unused version decrements its producer's tag exactly once. Skip versions already counted
+                    unusedVersionedDataRes.countedAsUnused = true;
+
                     // Decrement the number of written resources that are used for this pass
                     producerData.tag--;
 
