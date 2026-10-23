@@ -68,12 +68,6 @@ namespace UnityEngine.Rendering.Tests
             if (UnityGraphicsKernelTestUtils.IsForcedUGK())
                 supportsGpuFrameTime = false;
 
-            bool supportsMainThreadCpuFrameTime = true;
-
-            // UGK-2992
-            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.Switch2))
-                supportsMainThreadCpuFrameTime = false;
-
             yield return Warmup();
 
             m_ToCleanup = new GameObject();
@@ -96,15 +90,15 @@ namespace UnityEngine.Rendering.Tests
             // After k_NumFramesToRender frames, we should have a valid average for every headline counter.
             // A failure means the counter was zero on every captured frame. RenderThreadCPUFrameTime and
             // MainThreadCPUPresentWaitTime are excluded because they can legitimately be zero (modes without
-            // a separate render thread; no vsync / no frame rate cap). GPUFrameTime and
-            // MainThreadCPUFrameTime are only asserted where the platform reports them (see flags above).
+            // a separate render thread; no vsync / no frame rate cap). GPUFrameTime is only asserted where
+            // the platform reports it (see flag above).
             var avg = m_DebugFrameTiming.m_FrameHistory.SampleAverage;
             var zeroAvg = new System.Collections.Generic.List<string>();
             if (avg.FramesPerSecond <= 0f)
                 zeroAvg.Add(nameof(avg.FramesPerSecond));
             if (avg.FullFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.FullFrameTime));
-            if (supportsMainThreadCpuFrameTime && avg.MainThreadCPUFrameTime <= 0f)
+            if (avg.MainThreadCPUFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.MainThreadCPUFrameTime));
             if (supportsGpuFrameTime && avg.GPUFrameTime <= 0f)
                 zeroAvg.Add(nameof(avg.GPUFrameTime));
