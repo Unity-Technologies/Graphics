@@ -794,19 +794,9 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return result;
 }
 
-float3 GetShadowFadeCameraPositionWS()
-{
-#if defined(USING_STEREO_MATRICES)
-    // Using unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex] directly trips a bug in FXC (X8000 or a stale index).
-    return unity_StereoEyeIndex == 0 ? unity_StereoWorldSpaceCameraPos[0] : unity_StereoWorldSpaceCameraPos[1];
-#else
-    return _WorldSpaceCameraPos;
-#endif
-}
-
 half GetMainLightShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
@@ -818,7 +808,7 @@ half GetAdditionalLightShadowFade(float3 positionWS)
     half shadowFade = half(1.0);
     if (AdditionalLightShadowsAvailable())
     {
-        float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+        float3 camToPixel = positionWS - _WorldSpaceCameraPos;
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
         float fade = saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y));
@@ -968,7 +958,7 @@ float4 ApplyShadowClamping(float4 positionCS)
 // Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
 float GetShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));

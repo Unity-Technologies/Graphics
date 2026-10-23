@@ -34,7 +34,12 @@
 #define unity_CameraInvProjection     unity_StereoCameraInvProjection[unity_StereoEyeIndex]
 #define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex] // Should be unity_StereoWorldToCamera but no use-case in XR pass
 #define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex] // Should be unity_StereoCameraToWorld but no use-case in XR pass
+#if defined(UNITY_COMPILER_DXC)
 #define _WorldSpaceCameraPos          unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+#else
+// FXC can index this with a stale or uninitialized eye index when the read ends up inside a branch; blend instead of indexing.
+#define _WorldSpaceCameraPos          (unity_StereoWorldSpaceCameraPos[0] * (1.0 - (float)unity_StereoEyeIndex) + unity_StereoWorldSpaceCameraPos[1] * (float)unity_StereoEyeIndex)
+#endif
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
