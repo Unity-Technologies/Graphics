@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = Universal2DSubTargetDescriptors.RenderStateCollections.RenderingLayerMask,
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
-                    keywords = SpriteLitKeywords.Lit,
+                    keywords = SpriteLitKeywords.Normal,
                     includes = SpriteLitIncludes.RenderingLayerMask,
 
                     // Custom Interpolator Support
