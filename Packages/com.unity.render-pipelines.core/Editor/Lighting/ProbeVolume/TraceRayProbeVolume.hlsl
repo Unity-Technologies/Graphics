@@ -29,7 +29,7 @@ struct RayPayload
 
 struct ProceduralIntersectionAttribs
 {
-    bool isFrontFace;
+    uint isFrontFace;
 };
 
 #define UNIFIED_RT_PAYLOAD RayPayload
@@ -52,7 +52,7 @@ void ClosestHitExecute(UnifiedRT::HitContext hitContext, inout RayPayload payloa
     hit.primitiveIndex = hitContext.PrimitiveIndex();
     hit.uvBarycentrics = hitContext.UvBarycentrics();
     hit.hitDistance = hitContext.RayTCurrent();
-    hit.isFrontFace = hitContext.PrimitiveType() == UnifiedRT::kCommittedProceduralHit ? additionalAttribs.isFrontFace : hitContext.IsFrontFace();
+    hit.isFrontFace = hitContext.PrimitiveType() == UnifiedRT::kCommittedProceduralHit ? additionalAttribs.isFrontFace != 0 : hitContext.IsFrontFace();
     payload.SetHit(hit);
 }
 
@@ -77,7 +77,7 @@ bool IntersectionExecute(UnifiedRT::HitContext hitContext, out float hitT,
     if (hit && hitT < hitContext.RayTCurrent() && hitT >= hitContext.RayTMin())
     {
         uvAttributes = uv;
-        additionalAttribs.isFrontFace = frontFace;
+        additionalAttribs.isFrontFace = frontFace ? 1u : 0u;
         return true;
     }
     return false;
