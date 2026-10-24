@@ -1156,10 +1156,13 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                 {
                     var xrPassUniversal = cameraData.xr as XRPassUniversal;
-                    data.reuseCullingResult = cameraData.xr.isQuadViewInnerPass;
+                    data.reuseCullingResult = cameraData.xr.isQuadViewInnerPass && xrPassUniversal.TryGetStackCullingResults(out data.cullResults);
                     if (!data.reuseCullingResult)
-                        xrPassUniversal.cullingResults = context.Cull(ref cullingParameters);
-                    data.cullResults = xrPassUniversal.cullingResults;
+                    {
+                        data.cullResults = context.Cull(ref cullingParameters);
+                        if (cameraData.xr.xrLayoutType == XRLayoutType.TwoPassQuadViews)
+                            xrPassUniversal.SetStackCullingResults(data.cullResults);
+                    }
                 }
                 else
 #endif
@@ -1331,12 +1334,16 @@ namespace UnityEngine.Rendering.Universal
             foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
             {
                 var xrPassUniversal = xrPass as XRPassUniversal;
-                // For inner QuadView pass: copy cached culling results from the outer pass so RenderSingleCamera
-                // can reuse them without issuing a second context.Cull() call.
-                if (prevXRPassUniversal != null && xrPassUniversal != null && xrPass.isQuadViewInnerPass)
-                    xrPassUniversal.cullingResults = prevXRPassUniversal.cullingResults;
                 if (xrPass.enabled)
                 {
+                    // For inner QuadView pass: copy each stack camera's culling results from the outer pass so RenderSingleCamera
+                    // can reuse them without issuing a second context.Cull() call.
+                    if (prevXRPassUniversal != null && xrPass.isQuadViewInnerPass)
+                    {
+                        xrPassUniversal.stackCullingResults.Clear();
+                        xrPassUniversal.stackCullingResults.AddRange(prevXRPassUniversal.stackCullingResults);
+                    }
+
                     xrActive = true;
                     UpdateCameraStereoMatrices(baseCamera, xrPass);
 
@@ -1411,6 +1418,9 @@ namespace UnityEngine.Rendering.Universal
                     // Render the HDR offscreen overlay UI only in the first base camera if it renders overlay UI.
                     UpdateOffscreenUIRendering(baseCameraData, finalOutputHDR);
 
+                    if (xrPassUniversal != null)
+                        xrPassUniversal.stackCameraIndex = 0;
+
                     RenderSingleCamera(context, baseCameraData);
                 }
 
@@ -1466,6 +1476,9 @@ namespace UnityEngine.Rendering.Universal
                                     UpdateOffscreenUIRendering(overlayCameraData, finalOutputHDR);
 
                                 xrLayout.ReconfigurePass(overlayCameraData.xr, overlayCamera);
+
+                                if (xrPassUniversal != null)
+                                    xrPassUniversal.stackCameraIndex = i + 1;
 
                                 RenderSingleCamera(context, overlayCameraData);
                             }

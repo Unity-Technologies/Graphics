@@ -732,8 +732,9 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.UpdateGlobalShaderVariables(uploader, cameraData, lightData);
 
             // Shadows
-            m_ShadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
-            m_ShadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
+            shadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
         }
 
         private class InitPassData
@@ -758,7 +759,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cameraData = frameData.Get<UniversalCameraData>();
                 passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
-                passData.shadowPassGroup = m_ShadowPassGroup;
+                passData.shadowPassGroup = GetShadowPassGroup(passData.cameraData, frameData.Get<UniversalShadowData>());
 
                 builder.AllowGlobalStateModification(true);
 
@@ -1023,10 +1024,11 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            shadowData.shadowPassGroup = m_ShadowPassGroup;
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowData.shadowPassGroup = shadowPassGroup;
 
-            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
-            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            bool willRenderShadowGeometry = shadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            willRenderShadowGeometry |= shadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
 
             // Both shadow passes force the empty path for Depth-format targets, so calling SetupRenderGraphCameraProperties() is not needed
             Debug.Assert(!willRenderShadowGeometry, "Offscreen Depth Texture rendering should not be rendering shadow geometry, as that would invalidate camera parameters that are not being re-setup here.");
@@ -1055,12 +1057,13 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
 
-            shadowData.shadowPassGroup = m_ShadowPassGroup;
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowData.shadowPassGroup = shadowPassGroup;
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
-            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
-            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            bool willRenderShadowGeometry = shadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            willRenderShadowGeometry |= shadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
 
             // The camera needs to be set up again if actual shadow geometry was rendered, because it overwrites camera properties.
             if (willRenderShadowGeometry)
