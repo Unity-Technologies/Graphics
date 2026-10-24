@@ -1902,8 +1902,8 @@ namespace UnityEngine.Rendering.Universal
             if (renderPassInputs.requiresDepthTexture && !CanCopyDepth(cameraData))
                 return false;
 
-            // Depth Priming causes rendering errors with WebGL and WebGPU on Apple Arm64 GPUs.
-            bool isNotWebGL = !IsWebGL();
+            // Depth Priming causes rendering errors with WebGL2 on Apple Arm64 GPUs.
+            bool isNotWebGL = !(IsWebGL() && IsGLDevice());
             bool depthPrimingRequested = (depthPrimingRecommended && depthPrimingMode == DepthPrimingMode.Auto) || depthPrimingMode == DepthPrimingMode.Forced;
             bool isNotMSAA = cameraData.cameraTargetDescriptor.msaaSamples == 1;
 
