@@ -91,8 +91,7 @@ namespace UnityEditor.ShaderGraph
                 // Type node reads IN.typeTexSettings.x (the render type) and the Element Texture Size node
                 // reads IN.typeTexSettings.y (the texture slot) in the vertex stage.
                 new FieldDescriptor("VertexDescriptionInputs", "typeTexSettings", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static),
-                // Text-settings location, mirrors SurfaceDescriptionInputs.textCoreLoc so the SDF Text
-                // Parameters node reads IN.textCoreLoc in the vertex stage.
+                // Read by the SDF Text Parameters node in the vertex stage.
                 new FieldDescriptor("VertexDescriptionInputs", "textCoreLoc", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Static),
 
                 // optionals

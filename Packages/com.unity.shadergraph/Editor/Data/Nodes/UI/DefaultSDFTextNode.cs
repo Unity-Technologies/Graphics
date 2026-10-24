@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Rendering.UITK.ShaderGraph;
 using UnityEngine;
 
@@ -44,7 +44,11 @@ namespace UnityEditor.ShaderGraph
             k_InputSlotIdShadowColor, k_InputSlotIdShadowOffset, k_InputSlotIdShadowSoftness
         };
 
-        static readonly int[] k_SlotOrder = new[] { k_InputSlotIdTint }.Concat(k_OverrideSlotIds).Append(k_OutputSlotId).ToArray();
+        static readonly int[] k_SlotOrder =
+        {
+            k_InputSlotIdTint, k_InputSlotIdDilate, k_InputSlotIdSharpness, k_InputSlotIdOutlineColor, k_InputSlotIdOutlineDilate,
+            k_InputSlotIdShadowColor, k_InputSlotIdShadowOffset, k_InputSlotIdShadowSoftness, k_OutputSlotId
+        };
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -58,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(k_InputSlotIdShadowSoftness, k_InputSlotNameShadowSoftness, k_InputSlotNameShadowSoftness, SlotType.Input, 0.0f) { CustomBinding = k_DefaultBinding });
             AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.one, ShaderStageCapability.Fragment));
             RemoveSlotsNameNotMatching(k_SlotOrder);
-            SetSlotOrder(k_SlotOrder.ToList());
+            SetSlotOrder(new List<int>(k_SlotOrder));
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -91,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = round(IN.textCoreLoc);");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.opacity = 1.0;");
 
-                if (!k_OverrideSlotIds.Any(id => GetInputNodeFromSlot(id) != null))
+                if (!HasAnyOverride())
                 {
                     sb.AppendLine("CommonFragOutput Unity_UIE_EvaluateSdfTextNode_Output = uie_std_frag_sdf_text(Unity_UIE_EvaluateSdfTextNode_Input);");
                     sb.AppendLine("{0} = Unity_UIE_EvaluateSdfTextNode_Output.color;", outputVarName);
@@ -112,6 +116,16 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("CommonFragOutput Unity_UIE_EvaluateSdfTextNode_Output = uie_std_frag_sdf_text(Unity_UIE_EvaluateSdfTextNode_Input, Unity_UIE_EvaluateSdfTextNode_Params);");
                 sb.AppendLine("{0} = Unity_UIE_EvaluateSdfTextNode_Output.color;", outputVarName);
             }
+        }
+
+        bool HasAnyOverride()
+        {
+            foreach (int slotId in k_OverrideSlotIds)
+            {
+                if (GetInputNodeFromSlot(slotId) != null)
+                    return true;
+            }
+            return false;
         }
 
         void AppendParamOverride(ShaderStringBuilder sb, GenerationMode generationMode, int slotId, string fieldName, string transform = null)
