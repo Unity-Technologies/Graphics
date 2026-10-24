@@ -1,4 +1,3 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections;
 using System.IO;
@@ -20,6 +19,9 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     class CustomHLSLBlockTest
     {
+        // Generated code ends its lines with the platform newline, unlike the HLSL provided by the tests
+        static readonly string NL = Environment.NewLine;
+
         const string defaultHlslCode =
             "void TestFunction(inout VFXAttributes attributes, in float3 offset, in float speed)\n" +
             "{\n" +
@@ -55,21 +57,21 @@ namespace UnityEditor.VFX.Test
             // Assert
             var function = GetFunction(hlslBlock);
 
-            var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
-                                      "att.position = position;\r\n" +
-                                      "att.velocity = velocity;\r\n" +
-                                     $"{function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);\r\n" +
-                                      "position = att.position;\r\n" +
+            var expectedSource = "VFXAttributes att = (VFXAttributes)0;" + NL +
+                                      "att.position = position;" + NL +
+                                      "att.velocity = velocity;" + NL +
+                                     $"{function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);" + NL +
+                                      "position = att.position;" + NL +
                                       "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
             Assert.IsEmpty(hlslBlock.includes);
             Assert.AreEqual(blockName, hlslBlock.name);
 
-            var expectedCustomCode = $"void {function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(inout VFXAttributes attributes, in float3 offset, in float speed)\r\n" +
+            var expectedCustomCode = $"void {function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(inout VFXAttributes attributes, in float3 offset, in float speed)" + NL +
                                            "{\n" +
                                            "  attributes.position += offset;\n" +
                                            "  attributes.velocity = float3(0, 0, speed);\n" +
-                                           "}\r\n";
+                                           "}" + NL;
             Assert.AreEqual(expectedCustomCode, hlslBlock.customCode);
 
             var expectedAttributes = new[] { "position", "velocity" };
@@ -90,11 +92,11 @@ namespace UnityEditor.VFX.Test
             hlslBlock.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
 
             // Assert
-            var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
-                                 "att.position = position;\r\n" +
-                                 "att.velocity = velocity;\r\n" +
-                                 $"TestFunction(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);\r\n" +
-                                 "position = att.position;\r\n" +
+            var expectedSource = "VFXAttributes att = (VFXAttributes)0;" + NL +
+                                 "att.position = position;" + NL +
+                                 "att.velocity = velocity;" + NL +
+                                 $"TestFunction(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);" + NL +
+                                 "position = att.position;" + NL +
                                  "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
             var includes = hlslBlock.includes.ToArray();
@@ -251,6 +253,9 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Check_CustomHLSL_Block_Buffer([ValueSource(nameof(kSampleBufferCase))] CustomHLSLOperatorTest.BufferCase bufferCase)
         {
+            if (bufferCase.declaration == "RWTexture2D<uint>" && UnityEngine.SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal)
+                Assert.Ignore("Texture atomics are not supported in Metal");
+
             var hlslCode = new StringBuilder();
             hlslCode.AppendLine($"void Check_Sample_Buffer(inout VFXAttributes attributes, in {bufferCase.declaration} inputBuffer)");
             hlslCode.AppendLine("{");
@@ -841,4 +846,3 @@ void CustomHLSL(inout VFXAttributes attributes)
         }
     }
 }
-#endif

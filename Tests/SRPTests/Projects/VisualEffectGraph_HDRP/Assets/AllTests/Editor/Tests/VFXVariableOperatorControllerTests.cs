@@ -1,4 +1,3 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -199,4 +198,3 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
-#endif

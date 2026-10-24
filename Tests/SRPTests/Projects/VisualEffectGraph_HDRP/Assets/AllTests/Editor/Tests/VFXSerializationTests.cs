@@ -1186,12 +1186,16 @@ namespace UnityEditor.VFX.Test
             Directory.CreateDirectory(folderEndingWithVFX);
 // See this PR https://github.com/Unity-Technologies/Graphics/pull/6890
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            AssetDatabase.Refresh();
             Assert.False(VisualEffectAssetModificationProcessor.HasVFXExtension(folderEndingWithVFX));
 #else
             Assert.True(VisualEffectAssetModificationProcessor.HasVFXExtension(folderEndingWithVFX));
 #endif
 
             Directory.Delete(folderEndingWithVFX);
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            AssetDatabase.Refresh();
+#endif
         }
 
         [Test]

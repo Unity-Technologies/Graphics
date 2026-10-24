@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Moq;
 using NUnit.Framework;
 
+using UnityEditor.Compilation;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.Search;
@@ -471,9 +472,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        // Sign your package to re-enable this test. (UUM-144949)
         [UnityTest, Description("Covers UUM-121936")]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
             var installButton = window.rootVisualElement.Q<Button>("InstallButton");
@@ -492,6 +491,10 @@ namespace UnityEditor.VFX.Test
             Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
 
             AssetDatabase.DeleteAsset(k_SampleExpectedPath);
+
+            // The sample scripts queue a compilation and a domain reload that the runner holds back until the next Play Mode entry
+            CompilationPipeline.RequestScriptCompilation();
+            yield return new WaitForDomainReload();
         }
 
         internal static IEnumerator CheckNewVFXIsCreated(int templateIndex = 3)

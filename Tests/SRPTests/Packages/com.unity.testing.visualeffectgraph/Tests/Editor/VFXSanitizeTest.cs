@@ -44,6 +44,8 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(graph);
         }
 
+        // Runs git diff, but the tree is copied without its git repository to the Mac mini
+        [UnityPlatform(RuntimePlatform.WindowsEditor)]
         [UnityTest,
 #if VFX_TESTS_HAS_URP
     Ignore("See UUM-66527")

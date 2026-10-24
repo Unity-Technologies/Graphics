@@ -1,4 +1,3 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Reflection;
 using System.Linq;
@@ -455,4 +454,3 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
-#endif

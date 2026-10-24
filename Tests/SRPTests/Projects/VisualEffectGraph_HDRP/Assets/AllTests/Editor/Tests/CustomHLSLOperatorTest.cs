@@ -1,4 +1,3 @@
-#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,6 +27,9 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class CustomHLSLOperatorTest
     {
+        // Generated code ends its lines with the platform newline, unlike the HLSL provided by the tests
+        static readonly string NL = Environment.NewLine;
+
         private const string defaultHlslCode =
             "float3 Transform(in float4x4 mat, in float3 vec)" + "\n" +
             "{" + "\n" +
@@ -69,15 +71,15 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
 
             var function = CustomHLSLBlockTest.GetFunction(hlslOperator);
-            var expectedCode = $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}(in float4x4 mat, in float3 vec)\r\n" +
+            var expectedCode = $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}(in float4x4 mat, in float3 vec)" + NL +
                                "{\n" +
                                "    return mat * vec;\n" +
-                               "}\r\n" +
-                               $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}_Wrapper(float4x4 mat, float3 vec)\r\n" +
-                               "{\r\n" +
-                               $"\tfloat3 var_2 = 	Transform_234976C1_{CustomHLSL.ReturnFunctionSuffix}(mat, vec);\r\n" +
-                               "\treturn var_2;\r\n" +
-                               "}\r\n";
+                               "}" + NL +
+                               $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}_Wrapper(float4x4 mat, float3 vec)" + NL +
+                               "{" + NL +
+                               $"\tfloat3 var_2 = 	Transform_234976C1_{CustomHLSL.ReturnFunctionSuffix}(mat, vec);" + NL +
+                               "\treturn var_2;" + NL +
+                               "}" + NL;
             Assert.AreEqual(expectedCode, hlslExpression.customCode);
         }
 
@@ -107,11 +109,11 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(VFXExpressionOperation.None, hlslExpression.operation);
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
-            var expectedGeneratedCode = "float3 Transform_Return_Wrapper(float4x4 mat, float3 vec)\r\n" +
-                                        "{\r\n" +
-                                        "\tfloat3 var_2 = \tTransform(mat, vec);\r\n" +
-                                        "\treturn var_2;\r\n" +
-                                        "}\r\n";
+            var expectedGeneratedCode = "float3 Transform_Return_Wrapper(float4x4 mat, float3 vec)" + NL +
+                                        "{" + NL +
+                                        "\tfloat3 var_2 = \tTransform(mat, vec);" + NL +
+                                        "\treturn var_2;" + NL +
+                                        "}" + NL;
             Assert.AreEqual(expectedGeneratedCode, hlslExpression.customCode);
         }
 
@@ -734,6 +736,9 @@ float3 DummyFunction()
         [UnityTest]
         public IEnumerator Check_CustomHLSL_Operator_Buffer([ValueSource(nameof(kSampleBufferCase))] BufferCase bufferCase)
         {
+            if (bufferCase.declaration == "RWTexture2D<uint>" && UnityEngine.SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal)
+                Assert.Ignore("Texture atomics are not supported in Metal");
+
             var hlslCode = new StringBuilder();
             hlslCode.AppendLine($"float3 Check_Sample_Buffer(in {bufferCase.declaration} inputBuffer)");
             hlslCode.AppendLine("{");
@@ -992,4 +997,3 @@ float3 DummyFunction()
         }
     }
 }
-#endif
