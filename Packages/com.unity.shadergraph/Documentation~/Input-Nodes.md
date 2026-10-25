@@ -116,3 +116,4 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | [Element Texture Size](element-texture-size-node.md) | Provides the size of the texture assigned to a UI element. |
 | [Element Tint](element-tint-node.md) | Provides the tint color (vertex color combined with the dynamic color) of a UI element. |
 | [Element Opacity](element-opacity-node.md) | Provides the opacity of a UI element. |
+| [SDF Text Parameters](sdf-text-parameters-node.md) | Provides the outline, shadow, dilate, and sharpness parameters of the current SDF text element. |

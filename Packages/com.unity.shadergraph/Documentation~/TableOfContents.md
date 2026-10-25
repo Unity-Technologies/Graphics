@@ -186,6 +186,7 @@
             * [Element Texture Size](element-texture-size-node.md)
             * [Element Texture UV](element-texture-uv-node.md)
             * [Element Tint](element-tint-node.md)
+            * [SDF Text Parameters](sdf-text-parameters-node.md)
         * Universal Render Pipeline
             * [URP Sample Buffer](URP-Sample-Buffer-Node.md)
     * [Keyword](Keyword-Node.md)

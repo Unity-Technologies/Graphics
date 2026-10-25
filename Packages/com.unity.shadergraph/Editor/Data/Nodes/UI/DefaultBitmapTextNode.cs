@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
-            sb.AppendLine("[branch] if ((_UIE_RENDER_TYPE_TEXT || _UIE_RENDER_TYPE_ANY) && round(IN.typeTexSettings.x) == k_FragTypeText && (!(GetTextureInfo(IN.typeTexSettings.y).sdfScale > 0.0)))");
+            sb.AppendLine("[branch] if (uie_is_bitmap_text_fragment(IN.typeTexSettings))");
             using (sb.BlockScope())
             {
                 bool hasTint = GetInputNodeFromSlot(k_InputSlotIdTint) != null;

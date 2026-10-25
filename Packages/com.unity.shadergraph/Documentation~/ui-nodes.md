@@ -8,7 +8,7 @@ uid: ui-nodes
 |-------------|------------------|  
 | [Default Solid](default-solid-node.md) | Outputs the solid color specified for your UI elements. |
 | [Default Texture](default-texture-node.md) | Provides a pre-defined texture for your UI elements. |
-| [Default SDF Text](default-sdf-text-node.md) | Provides the text color set for SDF text rendering and includes a tint input to modify the color of the text. |
+| [Default SDF Text](default-sdf-text-node.md) | Provides the text color set for SDF text rendering and includes inputs to override the tint, outline, shadow, and dilate parameters of the text. |
 | [Default Bitmap Text](default-bitmap-text-node.md) | Provides the text color set for bitmap text rendering and includes a tint input to modify the color of the text. |
 | [Default Gradient](default-gradient-node.md) | Outputs the gradient specified for your UI elements. |
 | [Is Forced Gamma](is-forced-gamma-node.md) | Outputs whether Force Gamma Rendering is enabled for the UI element. |
