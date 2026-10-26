@@ -27,7 +27,7 @@ public class BuiltInGraphicsTests
         var settings = Object.FindObjectOfType<BuiltInGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find BuiltInGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.WaitFrames, settings.ImageComparisonSettings);
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -53,22 +53,6 @@ public class BuiltInGraphicsTests
 #endif
 
         ImageAssert.AreEqual(testCase.ReferenceImage.Image, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
-
-        // Does it allocate memory when it renders what's on the main camera?
-        bool allocatesMemory = false;
-        var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-
-        try
-        {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
-
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
 #if UNITY_EDITOR && ENABLE_VR

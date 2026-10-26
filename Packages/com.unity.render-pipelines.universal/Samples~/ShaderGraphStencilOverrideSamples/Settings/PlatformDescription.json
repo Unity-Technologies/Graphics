@@ -1,0 +1,33 @@
+{
+    "introduction": 
+	"""Welcome to the collection of Stencil Shader Graph Samples.
+	This scene shows how the Stencil feature using Shader Graph can be used in a platformer. iterate by getting more and more advanced
+    You can go through each version of the prefab by using the << and >> button below.  """,
+    "samples": [
+        {
+            "title": "1. Cube Overlay Full White",
+            "prefabName": "1. Cube Overlay Full White",
+            "description": 
+	"""Cube Overlay Full White"""
+        },
+        {
+            "title": "2. Cube Overlay Outline White",
+            "prefabName": "2. Cube Overlay Outline White",
+            "description": 
+	"""Cube Overlay Outline White"""
+        },
+        {
+            "title": "3. Cube Overlay Outline RGB",
+            "prefabName": "3. Cube Overlay Outline RGB",
+            "description": 
+	"""Cube Overlay Outline RGB"""
+        },
+        {
+            "title": "4. Cube Overlay Outline RGB - Visibility",
+            "prefabName": "4. Cube Parent",
+            "description": 
+	"""Cube Overlay Outline RGB - Visibility"""
+        }
+    ]	
+}
+

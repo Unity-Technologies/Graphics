@@ -11,38 +11,54 @@ struct Varyings
     float4 color : COLOR;
 };
 
-Varyings vert(uint id : SV_VertexID, VertexInput vs_input)
+Varyings vert(ThreadData threadData, uint vertexId, VertexInput vs_input)
 {
     Varyings o = (Varyings)0;
 
-    uint index = (id >> 2) + vs_input.instanceID * 2048;
+    if (threadData.index >= ContextData.maxParticleCount)
+    {
+        return o;
+    }
+
+    uint particleIndex;
+    if (!RenderingDataBinding.GetRenderingIndex(threadData.index, particleIndex))
+        return o;
 
     Attributes particleAttributes;
     particleAttributes.Init();
-    ParticleDataBinding.particleAttributeBuffer.LoadData(particleAttributes, index);
+    ParticleDataBinding.particleAttributeBuffer.LoadData(particleAttributes, particleIndex);
 
     if (particleAttributes.alive)
     {
-        VFXProcessBlocks(particleAttributes);
+        VFXProcessSubtasks(particleAttributes);
 
-        float3 position = particleAttributes.position;
-        float size = particleAttributes.size;
-        float2 varyingUV;
-        varyingUV.x = float(id & 1);
-        varyingUV.y = (id & 2) * 0.5f;
-        const float2 vOffsets = varyingUV.xy - 0.5f;
-        float3 inputVertexPosition = float3(vOffsets, 0.0f);
-        float3 vPos = position + inputVertexPosition * size ;
+        if (particleAttributes.alive)
+        {
+            float4x4 elementToVFXMatrix = GetElementToVFXMatrix(
+                particleAttributes.axisX,
+                particleAttributes.axisY,
+                particleAttributes.axisZ,
+                float3(particleAttributes.angleX, particleAttributes.angleY, particleAttributes.angleZ),
+                float3(particleAttributes.pivotX, particleAttributes.pivotY, particleAttributes.pivotZ),
+                float3(particleAttributes.scaleX, particleAttributes.scaleY, particleAttributes.scaleZ) * particleAttributes.size,
+                particleAttributes.position);
 
+            float2 varyingUV;
+            varyingUV.x = float(vertexId & 1);
+            varyingUV.y = (vertexId & 2) * 0.5f;
 
-        o.pos = TransformPositionVFXToClip(vPos);
-        o.uv = varyingUV;
-        o.color = float4(particleAttributes.color, particleAttributes.alpha);
+            const float2 offsets = varyingUV.xy - 0.5f;
+            float3 posVFX = mul(elementToVFXMatrix, float4(offsets, 0.0f, 1.0f)).xyz;
+
+            o.pos = TransformPositionVFXToClip(posVFX);
+            o.uv = varyingUV;
+            o.color = float4(particleAttributes.color, particleAttributes.alpha);
+        }
     }
     return o;
 }
 
 float4 frag(Varyings i) : SV_Target
 {
-    return mainTexture.Sample(default_sampler_Linear_Repeat, i.uv) * i.color;
+    return SampleTexture(VFX_SAMPLER(mainTexture), i.uv) * i.color;
 }

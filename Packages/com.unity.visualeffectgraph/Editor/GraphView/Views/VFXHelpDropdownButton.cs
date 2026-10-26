@@ -71,8 +71,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                var packageInfo = PackageManager.PackageInfo.FindForAssetPath(VisualEffectGraphPackageInfo.assetPackagePath);
-                VFXTemplateHelperInternal.ImportSampleDependencies(packageInfo, sample);
                 sample.Import(importMode);
             }
             else

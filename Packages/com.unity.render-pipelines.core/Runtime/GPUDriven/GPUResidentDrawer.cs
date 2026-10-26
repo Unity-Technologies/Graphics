@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Profiling;
 using UnityEngine.Assertions;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
@@ -73,6 +74,9 @@ namespace UnityEngine.Rendering
         [NoAutoStaticsCleanup]  // Manually cleaned up with [OnCodeUnloading] Cleanup()
         private static GPUResidentDrawer s_Instance = null;
 
+        [NoAutoStaticsCleanup]
+        private static readonly Action k_CleanupDelegate = Cleanup;
+
         ////////////////////////////////////////
         // Public API for rendering pipelines //
         ////////////////////////////////////////
@@ -131,6 +135,7 @@ namespace UnityEngine.Rendering
         {
             if (s_Instance == null || !s_Instance.m_InstanceDataSystem.hasBoundingSpheres)
                 return;
+
             s_Instance.m_Culler.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests, s_Instance.m_GRDContext);
         }
 
@@ -194,6 +199,37 @@ namespace UnityEngine.Rendering
             s_Instance?.m_OcclusionCullingCommon.RenderDebugOccluderOverlay(renderGraph, debugSettings, screenPos, maxHeight, colorBuffer);
         }
 
+        /// <summary>
+        /// Enables or disables the Batching Type debug view for the active GPU Resident Drawer(GRD).
+        /// </summary>
+        /// <remarks>
+        /// While enabled, each tracked <see cref="MeshRenderer"/> is tagged with a shader user value that
+        /// encodes how it is batched — GRD, SRP Batcher, or unbatched — so a debug shader can color it accordingly.
+        /// The renderers' original shader user values are saved on enable and restored on disable.
+        /// </remarks>
+        /// <param name="enabled">
+        /// <c>true</c> to enable the debug view; <c>false</c> to disable it and restore the renderers' original shader user values.
+        /// </param>
+        public static void SetBatchingTypeDebugView(bool enabled)
+        {
+#if ENABLE_PROFILER
+            var stats = s_Instance?.m_GRDContext.advancedDebugStats;
+            if (stats == null)
+            {
+                return;
+            }
+
+            if (enabled)
+            {
+                stats.ApplyBatchingTypeUserValues();
+            }
+            else
+            {
+                stats.RestoreBatchingTypeUserValues();
+            }
+#endif
+        }
+
         #endregion
 
         internal static bool IsEnabledFromSettings() => GetGlobalSettingsFromRPAsset().mode != GPUResidentDrawerMode.Disabled;
@@ -219,6 +255,11 @@ namespace UnityEngine.Rendering
         internal static void PushMeshRendererDeletionBatches(NativeArray<NativeArray<EntityId>> batches) => s_Instance.m_WorldProcessor.PushMeshRendererDeletionBatch(batches);
 
         internal static void PushLODGroupDeletionBatches(NativeArray<NativeArray<EntityId>> batches) => s_Instance.m_WorldProcessor.PushLODGroupDeletionBatch(batches);
+
+#if ENABLE_PROFILER
+        internal static void RecordRenderers(NativeArray<EntityId> accepted, NativeArray<EntityId> excluded, NativeArray<byte> excludedReasons)
+            => s_Instance?.m_GRDContext.advancedDebugStats?.RecordRenderers(accepted, excluded, excludedReasons);
+#endif
 
         internal static DebugDisplayGPUResidentDrawer debugDisplaySettings => s_Instance?.m_DebugDisplaySettings;
 
@@ -364,6 +405,8 @@ namespace UnityEngine.Rendering
             if (s_Instance == null)
                 return;
 
+            RenderPipelineManager.activeRenderPipelineDisposed -= k_CleanupDelegate;
+
             s_Instance.Dispose();
             s_Instance = null;
             ++s_InstanceVersion;
@@ -378,6 +421,7 @@ namespace UnityEngine.Rendering
             if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
                 s_Instance = new GPUResidentDrawer(settings);
+                RenderPipelineManager.activeRenderPipelineDisposed += k_CleanupDelegate;
                 ++s_InstanceVersion;
             }
             else
@@ -475,6 +519,12 @@ namespace UnityEngine.Rendering
                 m_Batcher,
                 resources);
             m_WorldProcessor = new WorldProcessor();
+#if ENABLE_PROFILER
+            // Register Profiler counters eagerly so they show up in the Profiler's Module
+            // Editor regardless of whether recording is active. Pipeline recorders are
+            // lazily allocated on first observation (see EnsurePipelineRecordersRunning).
+            GRDProfilerCounters.EnsureRegistered();
+#endif
 
             m_ObjectDispatcher.EnableTypeTracking<Mesh>();
             m_ObjectDispatcher.EnableTypeTracking<Material>();
@@ -485,6 +535,9 @@ namespace UnityEngine.Rendering
             m_ObjectDispatcher.EnableTransformTracking<LODGroup>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
 
             m_Culler.Initialize(resources, m_GRDContext.debugStats);
+#if ENABLE_PROFILER
+            m_Culler.InitializeAdvancedDebugStats(m_GRDContext.advancedDebugStats);
+#endif
             m_OcclusionCullingCommon.Initialize(resources);
             m_Batcher.Initialize(m_GRDContext, settings, OnFinishedCulling, internalSettings.onCompleteCallback);
 #if ENABLE_TERRAIN_MODULE
@@ -510,7 +563,7 @@ namespace UnityEngine.Rendering
                 InsertIntoPlayerLoop();
 
             string extraText = IsForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
-            extraText = MaintainContext ? " (forced on via MaintainContext)" : extraText;
+            extraText = MaintainContext ? " (project-level checks skipped via MaintainContext)" : extraText;
             if (settings.enableOcclusionCulling)
             {
                 string occlusionText = IsOcclusionForcedOnViaCommandLine() ? " (forced on via commandline)" : "";
@@ -546,6 +599,10 @@ namespace UnityEngine.Rendering
 
             m_WorldProcessor.Dispose();
             m_WorldProcessor = null;
+#if ENABLE_PROFILER
+            DisposePipelineRecorders();
+            GRDProfilerCounters.ResetCounters();
+#endif
 #if ENABLE_TERRAIN_MODULE
             m_SpeedTreeWindGPUDataUpdater.Dispose();
             m_SpeedTreeWindGPUDataUpdater = null;
@@ -681,7 +738,52 @@ namespace UnityEngine.Rendering
             m_OcclusionCullingCommon.UpdateFrame();
             if (m_GRDContext.debugStats != null)
                 m_OcclusionCullingCommon.UpdateOccluderStats(m_GRDContext.debugStats);
+
+#if UNITY_EDITOR && ENABLE_PROFILER
+            // Emit on the render path (edit + play mode), not the player-loop-only PostPostLateUpdate,
+            // so editor panels update live — and outside the IsCategoryEnabled gate so they work
+            // without Profiler recording.
+            GRDProfilerCounters.EmitActive();
+            m_Culler.MoveBatchStatsToDebugStatsAndClear(m_Batcher.GetDrawInstanceData().drawBatches, m_GRDContext.advancedDebugStats);
+            GRDProfilerCounters.EmitBatchStats(m_GRDContext.advancedDebugStats);
+#endif
         }
+
+#if ENABLE_PROFILER
+        // Count GRD-path renderers whose renderingEnabled bit is currently false (toggled
+        // disabled at runtime, after registration). Combined with the registration-snapshot
+        // inactive count for the Coverage card's footer. Cheap: popcnt over a packed bit array.
+        private void UpdateLiveDisabledGRDCount()
+        {
+            var advStats = m_GRDContext?.advancedDebugStats;
+            if (advStats == null)
+                return;
+
+            ref var renderWorld = ref m_InstanceDataSystem.renderWorld;
+            int instanceCount = renderWorld.instanceCount;
+            if (instanceCount <= 0)
+            {
+                advStats.liveDisabledGRDCount = 0;
+                return;
+            }
+
+            var bits = renderWorld.renderingEnabled;
+            int chunkCount = bits.ChunkCount();
+            int activeBits = 0;
+            int fullChunks = instanceCount / 64;
+            for (int i = 0; i < fullChunks; i++)
+                activeBits += Unity.Mathematics.math.countbits((long)bits.GetChunk(i));
+
+            int tailBits = instanceCount & 63;
+            if (tailBits > 0 && fullChunks < chunkCount)
+            {
+                ulong tailMask = (1ul << tailBits) - 1ul;
+                activeBits += Unity.Mathematics.math.countbits((long)(bits.GetChunk(fullChunks) & tailMask));
+            }
+
+            advStats.liveDisabledGRDCount = Math.Max(0, instanceCount - activeBits);
+        }
+#endif
 
         private void PostPostLateUpdate()
         {
@@ -689,10 +791,129 @@ namespace UnityEngine.Rendering
             m_WorldProcessor.Update();
             CullerUpdateFrame();
 
+#if ENABLE_PROFILER
+            // Skip the per-frame counter flush when nothing observes it. ProfilerCounterValue setters
+            // are cheap individually but we have ~30+ of them; this matters for shipping/development
+            // builds where Profiler is rarely live. The category gate avoids emitting when the GRD
+            // Profiler module is hidden even though Profiler.enabled is true. Pipeline recorders
+            // follow the same gate — allocated and started lazily on first observation, stopped (but
+            // kept allocated) when observation ceases, fully disposed only on shutdown.
+            if (UnityEngine.Profiling.Profiler.enabled
+                && UnityEngine.Profiling.Profiler.IsCategoryEnabled(GRDProfilerCounters.k_Category))
+            {
+                EnsurePipelineRecordersRunning();
+                UpdateLiveDisabledGRDCount();
+                GRDPipelineStats pipelineStats = ReadPipelineStatsFromRecorders();
+                GRDProfilerCounters.EmitAll(m_GRDContext.advancedDebugStats, pipelineStats);
+            }
+            else
+            {
+                StopPipelineRecordersIfRunning();
+            }
+#endif
+
 #if UNITY_EDITOR
             m_FrameUpdateNeeded = false;
 #endif
         }
+
+#if ENABLE_PROFILER
+        // Pipeline timing reads existing ProfilerMarkers around the dispatch helpers — single
+        // source of truth with the Profiler trace.
+        //
+        // Culling Schedule covers only the CreateCullJobTree dispatch call; worker-thread job
+        // execution is not included.
+        ProfilerRecorder m_RecProbeDispatch;
+        ProfilerRecorder m_RecMotionDispatch;
+        ProfilerRecorder m_RecTransformDispatch;
+        ProfilerRecorder m_RecComponentOverride;
+        ProfilerRecorder m_RecBuildBatches;
+        ProfilerRecorder m_RecRegisterMaterialsAndMeshes;
+        ProfilerRecorder m_RecCreateCullJobTree;
+        ProfilerRecorder m_RecWorldProcessorUpdate;
+        bool m_PipelineRecordersRunning;
+
+        // Pattern mirrors ProfilingSampler.enableRecording: allocate the recorder lazily on first
+        // start, then Stop/Start for subsequent toggles to keep the native sampling slot reserved
+        // without re-allocating. Avoids holding sampling capacity when nobody is observing.
+        static void StartOrResume(ref ProfilerRecorder rec, ProfilerMarker marker)
+        {
+            if (!rec.Valid)
+                rec = ProfilerRecorder.StartNew(marker, 1, ProfilerRecorderOptions.Default);
+            else
+                rec.Start();
+        }
+
+        void EnsurePipelineRecordersRunning()
+        {
+            if (m_PipelineRecordersRunning)
+                return;
+            StartOrResume(ref m_RecProbeDispatch,              InstanceDataSystem.k_DispatchProbeUpdateCommand);
+            StartOrResume(ref m_RecMotionDispatch,             InstanceDataSystem.k_DispatchMotionUpdateCommand);
+            StartOrResume(ref m_RecTransformDispatch,          InstanceDataSystem.k_DispatchTransformUpdateCommand);
+            StartOrResume(ref m_RecComponentOverride,          MeshRendererProcessor.k_UploadGPUComponentOverrides);
+            StartOrResume(ref m_RecBuildBatches,               InstanceCullingBatcher.k_BuildBatches);
+            StartOrResume(ref m_RecRegisterMaterialsAndMeshes, InstanceCullingBatcher.k_RegisterMaterialsAndMeshes);
+            StartOrResume(ref m_RecCreateCullJobTree,          InstanceCullingBatcher.k_CreateCullJobTree);
+            StartOrResume(ref m_RecWorldProcessorUpdate,       WorldProcessor.k_Update);
+            m_PipelineRecordersRunning = true;
+        }
+
+        void StopPipelineRecordersIfRunning()
+        {
+            if (!m_PipelineRecordersRunning)
+                return;
+            if (m_RecProbeDispatch.Valid)              m_RecProbeDispatch.Stop();
+            if (m_RecMotionDispatch.Valid)             m_RecMotionDispatch.Stop();
+            if (m_RecTransformDispatch.Valid)          m_RecTransformDispatch.Stop();
+            if (m_RecComponentOverride.Valid)          m_RecComponentOverride.Stop();
+            if (m_RecBuildBatches.Valid)               m_RecBuildBatches.Stop();
+            if (m_RecRegisterMaterialsAndMeshes.Valid) m_RecRegisterMaterialsAndMeshes.Stop();
+            if (m_RecCreateCullJobTree.Valid)          m_RecCreateCullJobTree.Stop();
+            if (m_RecWorldProcessorUpdate.Valid)       m_RecWorldProcessorUpdate.Stop();
+            m_PipelineRecordersRunning = false;
+        }
+
+        void DisposePipelineRecorders()
+        {
+            m_RecProbeDispatch.Dispose();
+            m_RecMotionDispatch.Dispose();
+            m_RecTransformDispatch.Dispose();
+            m_RecComponentOverride.Dispose();
+            m_RecBuildBatches.Dispose();
+            m_RecRegisterMaterialsAndMeshes.Dispose();
+            m_RecCreateCullJobTree.Dispose();
+            m_RecWorldProcessorUpdate.Dispose();
+            m_PipelineRecordersRunning = false;
+        }
+
+        GRDPipelineStats ReadPipelineStatsFromRecorders()
+        {
+            long probe          = m_RecProbeDispatch.LastValue;
+            long motion         = m_RecMotionDispatch.LastValue;
+            long transform      = m_RecTransformDispatch.LastValue;
+            long compOverride   = m_RecComponentOverride.LastValue;
+            long batchBuild     = m_RecBuildBatches.LastValue + m_RecRegisterMaterialsAndMeshes.LastValue;
+            long worldProcessor = m_RecWorldProcessorUpdate.LastValue;
+            long upload         = probe + motion + transform + compOverride;
+
+            var stats = new GRDPipelineStats();
+            stats.uploadDetail.probeDispatchTime     = NsToMs(probe);
+            stats.uploadDetail.motionDispatchTime    = NsToMs(motion);
+            stats.uploadDetail.transformDispatchTime = NsToMs(transform);
+            stats.uploadDetail.componentOverrideTime = NsToMs(compOverride);
+            stats.batchBuildingTime    = NsToMs(batchBuild);
+            stats.cullingScheduleTime  = NsToMs(m_RecCreateCullJobTree.LastValue);
+            stats.cpuToGpuUploadTime   = NsToMs(upload);
+            // Residual: WorldProcessor.Update minus the sub-stages that run inside it.
+            // Clamp at zero — sample boundaries between nested markers can drive the diff slightly
+            // negative on cheap frames.
+            stats.dataCollectionTime = NsToMs(Math.Max(0L, worldProcessor - batchBuild - upload));
+            return stats;
+        }
+
+        static float NsToMs(long ns) => ns * 1e-6f;
+#endif // ENABLE_PROFILER
 #else
         // Public API stubs
         public static bool IsInstanceOcclusionCullingEnabled() => false;
@@ -703,6 +924,7 @@ namespace UnityEngine.Rendering
         public static void ReinitializeIfNeeded() {}
         public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, EntityId viewID, TextureHandle colorBuffer) {}
         public static void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, TextureHandle colorBuffer) {}
+        public static void SetBatchingTypeDebugView(bool enabled) {}
 
         // Internal stubs (for e.g. IGPUResidentRenderPipeline)
         internal static bool IsInitialized() => false;

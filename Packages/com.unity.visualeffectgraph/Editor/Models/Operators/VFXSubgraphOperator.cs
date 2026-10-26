@@ -284,7 +284,21 @@ namespace UnityEditor.VFX
             if (ownedOnly || m_Subgraph == null)
                 return;
 
-            m_Subgraph.GetResource().GetGraph().CollectDependencies(objs, false);
+            var resourceCopy = GetOrCreateResourceCopy();
+            if (resourceCopy == null)
+            {
+                Debug.LogWarning("Unexpected null resource copy");
+                return;
+            }
+
+            var graph = resourceCopy.GetGraph();
+            if (graph == null)
+            {
+                Debug.LogWarning("Unexpected null graph in resource copy");
+                return;
+            }
+
+            graph.CollectDependencies(objs, false);
         }
 
         public override void ResyncDependencies()

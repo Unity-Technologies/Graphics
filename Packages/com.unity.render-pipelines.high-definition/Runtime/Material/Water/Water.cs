@@ -1,4 +1,5 @@
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Scripting;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -20,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Main structure that store the user data (i.e user input of master node in material graph)
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1600)]
+        [Preserve]
         public struct SurfaceData
         {
             // Base color on the water
@@ -61,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //-----------------------------------------------------------------------------
 
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1650)]
+        [Preserve]
         public struct BSDFData
         {
             // Base color on the water

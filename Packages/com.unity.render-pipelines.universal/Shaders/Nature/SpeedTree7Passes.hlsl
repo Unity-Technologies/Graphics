@@ -1,7 +1,9 @@
 #ifndef UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+// Legacy keyword, behavior is determined dynamically
+#define LOD_FADE_PERCENTAGE 1
+
 #include "SpeedTree7CommonPasses.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
@@ -130,21 +132,21 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
 
     half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = normalWS;
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;
@@ -155,8 +157,8 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
         output.viewDirWS = viewDirWS;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        output.shadowCoord = GetShadowCoord(vertexInput);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     output.positionWS = vertexInput.positionWS;
@@ -217,11 +219,14 @@ SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput 
         output.detail.z = input.color.a == 0 ? input.texcoord2.z : 2.5; // stay out of Blend's .z range
     #endif
 
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = normalWS;
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;

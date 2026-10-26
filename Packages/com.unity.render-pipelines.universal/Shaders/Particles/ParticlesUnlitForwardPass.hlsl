@@ -3,32 +3,42 @@
 
 #include "ParticlesUnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
-#include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VolumetricFog.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitFeatures.hlsl"
 
 void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(surfaceData.normalTS, inputData.tangentToWorld);
+    if (UseNormalMap())
+    {
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(surfaceData.normalTS, inputData.tangentToWorld);
+    }
+    else
+    {
+        inputData.normalWS = input.normalWS.xyz;
+    }
 #else
     half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
 
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     inputData.vertexLighting = 0;
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -55,18 +65,16 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)
 {
     surfaceData = (SurfaceData)0;
-    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
-    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams, UseAlphaPremultiply(), UseAlphaModulate());
+    half3 normalTS = half3(0.0, 0.0, 1.0);
+    if (UseNormalMap())
+        normalTS = SampleParticleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), half(1.0));
 
     #if defined (_DISTORTION_ON)
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
     #endif
 
-    #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-    #else
-    const half3 emission = 0;
-    #endif
+    half3 emission = UseEmission() ? BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb : half3(0, 0, 0);
 
     surfaceData.albedo = albedo.rgb;
     surfaceData.specular = 0;
@@ -94,13 +102,10 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half fogFactor = 0.0;
-#if !defined(_FOG_FRAGMENT)
-    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
 
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
@@ -110,7 +115,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -152,13 +157,18 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (ScreenSpaceOcclusionAvailable() && !IsSurfaceTypeTransparent())
+    {
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV, IsSurfaceTypeTransparent());
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
-    #endif
+    }
 
-    finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
+    finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.clipPos, inputData.preExposureMultiplier));
+    #if defined(_TRANSPARENT_RECEIVE_FOG)
+        if (IsSurfaceTypeTransparent())
+            finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, UseAlphaPremultiply(), input.clipPos);
+    #endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     return finalColor;

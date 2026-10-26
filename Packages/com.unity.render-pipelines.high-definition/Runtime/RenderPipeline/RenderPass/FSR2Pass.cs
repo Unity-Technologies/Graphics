@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -58,6 +56,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        public void Cleanup()
+        {
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            foreach (var cameraState in m_CameraStates.cameras.Values)
+                m_CameraStates.InvalidateState(cameraState);
+            CleanupCameraStates();
+            m_CommandBuffer.Release();
+#endif
+        }
+
         public void SetupDRSScaling(bool enableAutomaticSettings, Camera camera, in HDAdditionalCameraData hdCam, XRPass xrPass, ref GlobalDynamicResolutionSettings dynamicResolutionSettings)
         {
 #if ENABLE_AMD && ENABLE_AMD_MODULE
@@ -88,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Device = device;
         }
 
-        private static uint s_ExpectedDeviceVersion = 0x00;
+        private static uint s_ExpectedDeviceVersion = 0x01;
 
         private struct Fsr2ViewData
         {
@@ -154,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     settings.maxRenderSizeHeight  = viewData.outputRes.height;
                     settings.displaySizeWidth     = viewData.outputRes.width;;
                     settings.displaySizeHeight    = viewData.outputRes.height;;
-                    m_Fsr2Context = m_Device.CreateFeature(cmdBuffer, settings);
+                    m_Fsr2Context = m_Device.CreateFSRUpscale2(cmdBuffer, settings);
                 }
 
                 m_Data = viewData;
@@ -196,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     biasColorMask = biasColorMask
                 };
 
-                m_Device.ExecuteFSR2(cmdBuffer, m_Fsr2Context, textureTable);
+                m_Device.ExecuteFSRUpscale2(cmdBuffer, m_Fsr2Context, textureTable);
             }
 
             public void Cleanup(CommandBuffer cmdBuffer)
@@ -268,10 +276,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_Views != null)
                         Cleanup(cmdBuffer);
 
-                    m_Views = ListPool<ViewState>.Get();
+                    m_Views = UnityEngine.Pool.ListPool<ViewState>.Get();
                     for (int viewId = 0; viewId < cameraViewCount; ++viewId)
                     {
-                        var newView = GenericPool<ViewState>.Get();
+                        var newView = UnityEngine.Pool.GenericPool<ViewState>.Get();
                         newView.Init(m_Device);
                         m_Views.Add(newView);
                     }
@@ -328,10 +336,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var v in m_Views)
                 {
                     v.Cleanup(cmdBuffer);
-                    GenericPool<ViewState>.Release(v);
+                    UnityEngine.Pool.GenericPool<ViewState>.Release(v);
                 }
 
-                ListPool<ViewState>.Release(m_Views);
+                UnityEngine.Pool.ListPool<ViewState>.Release(m_Views);
                 m_Views = null;
                 m_Device = null;
             }
@@ -351,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (fsr2Camera == null && fsr2Active)
             {
-                fsr2Camera = GenericPool<FSR2Camera>.Get();
+                fsr2Camera = UnityEngine.Pool.GenericPool<FSR2Camera>.Get();
                 fsr2Camera.Init(m_Device);
                 cameraState = m_CameraStates.CreateState(hdCamera.camera);
                 cameraState.data = fsr2Camera;
@@ -380,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var fsr2Camera = cameraState.data as FSR2Camera;
                 fsr2Camera.Cleanup(m_CommandBuffer);
-                GenericPool<FSR2Camera>.Release(fsr2Camera);
+                UnityEngine.Pool.GenericPool<FSR2Camera>.Release(fsr2Camera);
                 cameraState.data = null;
             }
             Graphics.ExecuteCommandBuffer(m_CommandBuffer);

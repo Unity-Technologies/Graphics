@@ -2,6 +2,7 @@
 #define SG_TERRAIN_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "TerrainVert.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 void frag(PackedVaryings packedInput,
     out half4 color : SV_Target0
@@ -32,15 +33,7 @@ void frag(PackedVaryings packedInput,
 #endif
 
     half3 normalWS = GetTerrainNormalWS(unpacked, surfaceDescription);
-#if defined(_GBUFFER_NORMALS_OCT)
-    normalWS = normalize(normalWS);
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    color = half4(packedNormalWS, 0.0);
-#else
-    color = half4(NormalizeNormalPerPixel(normalWS), 0.0);
-#endif
+    color = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), 0.0);
 
 #if defined(_WRITE_SMOOTHNESS)
     color.a = surfaceDescription.Smoothness;

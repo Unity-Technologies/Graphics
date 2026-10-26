@@ -180,7 +180,52 @@ namespace UnityEngine.Rendering
         /// <param name="filter">If you want to filter the parameters</param>
         internal static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter = null)
         {
-            if (o == null)
+            // Each active call on this thread takes its own set, so a nested call (e.g. from the filter) never shares
+            // the outer call's set. Sets go back to the pool, so this only allocates the first time a nesting depth is reached.
+            var pool = s_VisitedSetPool ??= new Stack<HashSet<object>>();
+            var visited = pool.Count > 0 ? pool.Pop() : new HashSet<object>(ReferenceComparer.instance);
+            try
+            {
+                FindParameters(o, parameters, filter, visited);
+            }
+            finally
+            {
+                visited.Clear();
+                pool.Push(visited);
+            }
+        }
+
+        // Per-thread pool of reference-equality visited sets, one per active (possibly nested) FindParameters call.
+        [ThreadStatic]
+        static Stack<HashSet<object>> s_VisitedSetPool;
+
+        /// <summary>
+        /// Compares objects by reference, ignoring any Equals/GetHashCode override.
+        /// </summary>
+        internal sealed class ReferenceComparer : IEqualityComparer<object>
+        {
+            public static readonly ReferenceComparer instance = new();
+            bool IEqualityComparer<object>.Equals(object x, object y) => ReferenceEquals(x, y);
+            int IEqualityComparer<object>.GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+        }
+
+        /// <summary>
+        /// Whether a field of this type can contain nested <see cref="VolumeParameter"/>s that the parameter
+        /// discovery walk should visit. Delegates (e.g. event backing fields) are not part of the component's own
+        /// data and can lead to unbounded or cyclic walks.
+        /// </summary>
+        internal static bool ShouldSearchForNestedParameters(Type fieldType)
+            => fieldType.IsClass
+               && !fieldType.IsArray
+               && fieldType != typeof(string)
+               && !typeof(Delegate).IsAssignableFrom(fieldType);
+
+        static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter, HashSet<object> visited)
+        {
+            // There is a recursive call below. The visited set holds the objects on the current recursion path only, so an
+            // early return here prevents an infinite loop, while an object reachable through several fields is still
+            // visited once per field.
+            if (o == null || !visited.Add(o))
                 return;
 
             var fields = o.GetType()
@@ -201,9 +246,14 @@ namespace UnityEngine.Rendering
                         parameters.Add(volumeParameter);
                     }
                 }
-                else if (!fieldType.IsArray && fieldType.IsClass)
-                    FindParameters(field.GetValue(o), parameters, filter);
+                else if (ShouldSearchForNestedParameters(fieldType))
+                {
+                    // Recursive call
+                    FindParameters(field.GetValue(o), parameters, filter, visited);
+                }
             }
+
+            visited.Remove(o);
         }
 
         /// <summary>
@@ -215,10 +265,10 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
-            ListPool<VolumeParameter>.Get(out var tempList);
+            UnityEngine.Pool.ListPool<VolumeParameter>.Get(out var tempList);
             FindParameters(this, tempList);
             parameterList = tempList.ToArray();
-            ListPool<VolumeParameter>.Release(tempList);
+            UnityEngine.Pool.ListPool<VolumeParameter>.Release(tempList);
 
             foreach (var parameter in parameterList)
             {
@@ -340,6 +390,26 @@ namespace UnityEngine.Rendering
                     return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Computes a hash of the current state of every parameter on this component
+        /// (values and override flags). Intended for change detection — for example,
+        /// invalidating a cached render target when any parameter changes.
+        /// </summary>
+        /// <remarks>
+        /// This value mutates as parameters change, so it must not be used as a key in
+        /// a <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>,
+        /// <see cref="System.Collections.Generic.HashSet{T}"/>, or any other structure
+        /// that assumes a stable hash. Use <see cref="object.GetHashCode"/> for that.
+        /// </remarks>
+        /// <returns>A hash that changes whenever any parameter's value or override state changes.</returns>
+        public int GetStateHash()
+        {
+            var hash = HashFNV1A32.Create();
+            for (int i = 0; i < parameterList.Length; i++)
+                hash.Append(parameterList[i].GetHashCode());
+            return hash.value;
         }
 
         /// <summary>

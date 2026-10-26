@@ -61,17 +61,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
             }
 
-#if URP_SCREEN_SPACE_REFLECTION
-            if (litProperties.screenSpaceReflections != null)
-                materialEditor.ShaderProperty(litProperties.screenSpaceReflections, LitGUI.Styles.screenSpaceReflectionsText);
+            bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
 
-            if (litProperties.screenSpaceReflectionsContributeTransparent != null)
+            if (litProperties.screenSpaceReflections != null)
             {
-                bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
-                if (isTransparent)
-                    materialEditor.ShaderProperty(litProperties.screenSpaceReflectionsContributeTransparent, LitGUI.Styles.screenSpaceReflectionsContributeTransparentText);
+                using (new EditorGUI.DisabledScope(BaseShaderGUI.ShouldForceReceiveSsrOff(material)))
+                    materialEditor.ShaderProperty(litProperties.screenSpaceReflections, LitGUI.Styles.screenSpaceReflectionsText);
             }
-#endif
+
+            if (litProperties.screenSpaceReflectionsContributeTransparent != null && isTransparent)
+                materialEditor.ShaderProperty(litProperties.screenSpaceReflectionsContributeTransparent, LitGUI.Styles.screenSpaceReflectionsContributeTransparentText);
 
             base.DrawAdvancedOptions(material);
         }

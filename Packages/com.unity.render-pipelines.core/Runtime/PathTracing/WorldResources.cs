@@ -41,6 +41,9 @@ namespace UnityEngine.PathTracing.Core
         [SerializeField, ResourcePath("Runtime/PathTracing/Shaders/BuildLightGrid.compute")]
         ComputeShader _buildLightGridShader;
 
+        [SerializeField, ResourcePath("Runtime/PathTracing/Environment/SolidColor.shader")]
+        Shader _solidColorShader;
+
 
         public ComputeShader BlitCubemap
         {
@@ -83,6 +86,12 @@ namespace UnityEngine.PathTracing.Core
             get => _buildLightGridShader;
             set => this.SetValueAndNotify(ref _buildLightGridShader, value, nameof(_buildLightGridShader));
         }
+
+        public Shader SolidColorShader
+        {
+            get => _solidColorShader;
+            set => this.SetValueAndNotify(ref _solidColorShader, value, nameof(_solidColorShader));
+        }
     }
 
     internal class WorldResourceSet
@@ -94,6 +103,7 @@ namespace UnityEngine.PathTracing.Core
         public Mesh SkyBoxMesh;
         public Mesh SixFaceSkyBoxMesh;
         public ComputeShader BuildLightGridShader;
+        public Shader SolidColorShader;
 
 #if UNITY_EDITOR
         public void LoadFromAssetDatabase()
@@ -107,6 +117,7 @@ namespace UnityEngine.PathTracing.Core
             SkyBoxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(packageFolder + "Meshes/SkyboxMesh.mesh");
             SixFaceSkyBoxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(packageFolder + "Meshes/6FaceSkyboxMesh.mesh");
             BuildLightGridShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(packageFolder + "Shaders/BuildLightGrid.compute");
+            SolidColorShader = AssetDatabase.LoadAssetAtPath<Shader>(packageFolder + "Environment/SolidColor.shader");
         }
 #endif
 
@@ -121,6 +132,7 @@ namespace UnityEngine.PathTracing.Core
                 Debug.Assert(rpResources.SkyBoxMesh != null);
                 Debug.Assert(rpResources.SixFaceSkyBoxMesh != null);
                 Debug.Assert(rpResources.BuildLightGridShader != null);
+                Debug.Assert(rpResources.SolidColorShader != null);
 
                 BlitCubemap = rpResources.BlitCubemap;
                 BlitGrayScaleCookie = rpResources.BlitGrayScaleCookie;
@@ -129,6 +141,7 @@ namespace UnityEngine.PathTracing.Core
                 SkyBoxMesh = rpResources.SkyBoxMesh;
                 SixFaceSkyBoxMesh = rpResources.SixFaceSkyBoxMesh;
                 BuildLightGridShader = rpResources.BuildLightGridShader;
+                SolidColorShader = rpResources.SolidColorShader;
 
                 return true;
             }

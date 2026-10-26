@@ -18,14 +18,11 @@ void main(ThreadData threadData)
 
     if (particleAttributes.alive)
     {
-        VFXProcessBlocks(particleAttributes);
+        VFXProcessSubtasks(particleAttributes);
 
         ParticleDataBinding.particleAttributeBuffer.StoreData(particleAttributes, particleIndex);
 
-        if (particleAttributes.alive)
-        {
-        }
-        else
+        if (!particleAttributes.alive)
         {
             ParticleDataBinding.DeleteParticle(particleIndex);
         }

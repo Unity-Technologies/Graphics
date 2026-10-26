@@ -88,9 +88,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [OneTimeTearDown]
         public void Cleanup()
         {
-            // Don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
-            m_Window.Close();
+            if (m_Window != null)
+            {
+                m_Window.DiscardChanges();
+                m_Window.Close();
+            }
+            m_Window = null;
+            m_GraphEditorView = null;
         }
 
         [UnityTest]
@@ -99,7 +103,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
             CreateBlackboardCategory(m_BlackboardTestController);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var newCategory = m_BlackboardTestController.blackboard.Q<SGBlackboardCategory>();
             if(newCategory == null)
@@ -114,7 +118,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
             CreateBlackboardCategory(m_BlackboardTestController);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var categories = m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToList();
             if (categories != null)
@@ -126,12 +130,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // Select the new category
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseDown, positionOffset: new Vector2(40, 10));
                 // Wait a frame
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseUp, positionOffset:new Vector2(40, 10));
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 // Then send delete command
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, newCategory);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 Assert.IsTrue(m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToEnumerable().Count() == 1, "Failed to delete blackboard category view");
             }
@@ -145,7 +149,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
             CreateBlackboardCategory(m_BlackboardTestController);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var categories = m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToList();
             if (categories != null)
@@ -157,12 +161,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var categoryClickOffset = new Vector2(40, 10);
                 // Select the new category
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseDown, positionOffset: categoryClickOffset);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseUp, positionOffset: categoryClickOffset);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 // Then send duplicate command
                 ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 var categoryViewsList = m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToList();
                 Assert.IsTrue(categoryViewsList.Count() == 3, "Failed to duplicate blackboard category view");
                 Assert.IsTrue(categoryViewsList[1].title == categoryViewsList[2].title, "Failed to duplicate blackboard category");
@@ -177,7 +181,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
             CreateBlackboardCategory(m_BlackboardTestController);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var categories = m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToList();
             if (categories != null)
@@ -192,7 +196,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 changeCategoryNameAction.categoryGuid = newCategory.viewModel.associatedCategoryGuid;
                 newCategory.viewModel.requestModelChangeAction(changeCategoryNameAction);
 
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 Assert.IsTrue(newCategory.title == "Test", "Failed to rename blackboard category");
             }
@@ -206,7 +210,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
             CreateBlackboardCategory(m_BlackboardTestController);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var categories = m_BlackboardTestController.blackboard.Query<SGBlackboardCategory>().ToList();
             if (categories != null)
@@ -218,13 +222,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var categoryClickOffset = new Vector2(10, 10);
                 // Trigger category collapse
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseDown, positionOffset: categoryClickOffset);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseUp, positionOffset: categoryClickOffset);
                 Assert.IsTrue(newCategory.viewModel.isExpanded == false, "Failed to collapse blackboard category");
 
                 // Trigger category expand
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseDown, positionOffset: categoryClickOffset);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseUp, positionOffset: categoryClickOffset);
                 Assert.IsTrue(newCategory.viewModel.isExpanded, "Failed to collapse blackboard category");
             }

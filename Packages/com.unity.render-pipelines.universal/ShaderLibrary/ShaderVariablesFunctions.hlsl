@@ -3,7 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
-
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
@@ -247,9 +248,9 @@ real AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
     return alpha;
 }
 
-half OutputAlpha(half alpha, bool isTransparent)
+half OutputAlpha(half alpha, bool isSurfaceTypeTransparent)
 {
-    if (isTransparent)
+    if (isSurfaceTypeTransparent)
     {
         return alpha;
     }
@@ -264,29 +265,22 @@ half OutputAlpha(half alpha, bool isTransparent)
     }
 }
 
-half3 AlphaModulate(half3 albedo, half alpha)
+half3 ApplyAlphaModulate(half3 albedo, half alpha)
 {
     // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.
     // Manual adjustment for "lighter" multiply effect (similar to "premultiplied alpha")
     // would be painting whiter pixels in the texture.
     // This emulates that procedure in shader, so it should be applied to the base/source color.
-#if defined(_ALPHAMODULATE_ON)
     return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
-#else
-    return albedo;
-#endif
 }
 
-half3 AlphaPremultiply(half3 albedo, half alpha)
+half3 ApplyAlphaPremultiply(half3 albedo, half alpha)
 {
     // Multiply alpha into albedo only for Preserve Specular material diffuse part.
     // Preserve Specular material (glass like) has different alpha for diffuse and specular lighting.
     // Logically this is "variable" Alpha blending.
     // (HW blend mode is premultiply, but with alpha multiply in shader.)
-#if defined(_ALPHAPREMULTIPLY_ON)
     return albedo * alpha;
-#endif
-    return albedo;
 }
 
 // Normalization used to depend on SHADER_QUALITY
@@ -302,234 +296,37 @@ float3 NormalizeNormalPerVertex(float3 normalWS)
     return normalize(normalWS);
 }
 
-half3 NormalizeNormalPerPixel(half3 normalWS)
+half3 NormalizeNormalPerPixel(half3 normalWS, bool useNormalMap)
 {
+    half3 result;
 // With XYZ normal map encoding we sporadically sample normals with near-zero-length causing Inf/NaN
-#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
-    return SafeNormalize(normalWS);
+#if defined(UNITY_NO_DXT5nm)
+    if (useNormalMap)
+        result = SafeNormalize(normalWS);
+    else
+        result = normalize(normalWS);
 #else
-    return normalize(normalWS);
+    result = normalize(normalWS);
 #endif
+    return result;
 }
 
-float3 NormalizeNormalPerPixel(float3 normalWS)
+float3 NormalizeNormalPerPixel(float3 normalWS, bool useNormalMap)
 {
-#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
-    return SafeNormalize(normalWS);
+    float3 result;
+#if defined(UNITY_NO_DXT5nm)
+    if (useNormalMap)
+        result = SafeNormalize(normalWS);
+    else
+        result = normalize(normalWS);
 #else
-    return normalize(normalWS);
+    result = normalize(normalWS);
 #endif
+    return result;
 }
 
 
-
-real ComputeFogFactorZ0ToFar(float z)
-{
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-    {
-        // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
-        float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
-        return real(fogFactor);
-    }
-    #endif
-
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-    {
-        // factor = exp(-(density*z)^2)
-        // -density * z computed at vertex
-        return real(unity_FogParams.x * z);
-    }
-    #endif
-
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-    {
-        // factor = exp(-(density*z)^2)
-        // -density * z computed at vertex
-        return real(unity_FogParams.x * z);
-    }
-    #endif
-
-    // This process is necessary to avoid errors in iOS graphics tests
-    // when using the dynamic branching of fog keywords.
-    return real(0.0);
-}
-
-real ComputeFogFactor(float zPositionCS)
-{
-    float clipZ_0Far = UNITY_Z_0_FAR_FROM_CLIPSPACE(zPositionCS);
-    return ComputeFogFactorZ0ToFar(clipZ_0Far);
-}
-
-half ComputeFogIntensity(half fogFactor)
-{
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-    {
-        // factor = exp(-density*z)
-        // fogFactor = density*z compute at vertex
-        return saturate(exp2(-fogFactor));
-    }
-    #endif
-
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-    {
-        // factor = exp(-(density*z)^2)
-        // fogFactor = density*z compute at vertex
-        return saturate(exp2(-fogFactor * fogFactor));
-    }
-    #endif
-
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-    {
-        return fogFactor;
-    }
-    #endif
-
-    return 0.0;
-}
-
-// Force enable fog fragment shader evaluation
-#define _FOG_FRAGMENT 1
-real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
-{
-    real fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
-    {
-        // Compiler eliminates unused math --> matrix.column_z * vec
-        float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
-        // View Z is 0 at camera pos, remap 0 to near plane.
-        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    }
-#else // #if defined(_FOG_FRAGMENT)
-    fogFactor = vertFogFactor;
-#endif // #if defined(_FOG_FRAGMENT)
-    return fogFactor;
-}
-
-float ComputeFogIntensity(float fogFactor)
-{
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-    {
-        // factor = exp(-density*z)
-        // fogFactor = density*z compute at vertex
-        return saturate(exp2(-fogFactor));
-    }
-    #endif
-
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-    {
-        // factor = exp(-(density*z)^2)
-        // fogFactor = density*z compute at vertex
-        return saturate(exp2(-fogFactor * fogFactor));
-    }
-    #endif
-
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-    {
-        return fogFactor;
-    }
-    #endif
-
-    return 0.0;
-}
-
-half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
-{
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
-    {
-        if (IsFogEnabled())
-        {
-            half fogIntensity = ComputeFogIntensity(fogFactor);
-            // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
-            fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);
-        }
-    }
-    return fragColor;
-}
-
-float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
-{
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
-    {
-        if (IsFogEnabled())
-        {
-            float fogIntensity = ComputeFogIntensity(fogFactor);
-            fragColor = lerp(fogColor, fragColor, fogIntensity);
-        }
-    }
-    return fragColor;
-} 
-
-half3 MixFog(half3 fragColor, half fogFactor)
-{
-    return MixFogColor(fragColor, half3(unity_FogColor.rgb), fogFactor);
-}
-
-float3 MixFog(float3 fragColor, float fogFactor)
-{
-    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
-}
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.deprecated.hlsl"
 
 // Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
 half LinearDepthToEyeDepth(half rawDepth)
@@ -571,22 +368,9 @@ void TransformNormalizedScreenUV(inout float2 uv)
     #endif
 }
 
-void TransformNormalizedScreenUVPreTransform(inout float2 uv)
-{
-    #if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
-        if(UNITY_DISPLAY_ORIENTATION_PRETRANSFORM % 2 > 0)
-        {
-            uv = uv.yx;
-        }
-    #endif
-}
-
 float2 GetNormalizedScreenSpaceUV(float2 positionCS)
-{ 
-    float2 screenParamUV = GetScaledScreenParams().xy;
-    TransformNormalizedScreenUVPreTransform(screenParamUV);
-
-    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(screenParamUV);
+{
+    float2 normalizedScreenSpaceUV = positionCS.xy * (GetScaledScreenParams().zw - 1.0);
     TransformNormalizedScreenUV(normalizedScreenSpaceUV);
     return normalizedScreenSpaceUV;
 }
@@ -615,17 +399,6 @@ uint Select4(uint4 v, uint i)
         (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
 }
 
-#if SHADER_TARGET < 45 && !defined UNITY_COMPILER_DXC
-// Workaround is only technically required for GL Core <4.0 and GLES <3.1
-uint URP_FirstBitLow(uint m)
-{
-    // http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightFloatCast
-    return (asuint((float)(m & asuint(-asint(m)))) >> 23) - 0x7F;
-}
-#define FIRST_BIT_LOW URP_FirstBitLow
-#else
-#define FIRST_BIT_LOW firstbitlow
-#endif
 
 #define UnityStereoTransformScreenSpaceTex(uv) uv
 

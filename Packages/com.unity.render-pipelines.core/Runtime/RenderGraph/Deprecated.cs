@@ -123,8 +123,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
 #if !CORE_PACKAGE_DOCTOOLS
             ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             passData = null;
             return new RenderGraphBuilder(null, m_Resources, this);
@@ -146,8 +147,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData
 #if !CORE_PACKAGE_DOCTOOLS
             ,[CallerFilePath] string file = "",
-            [CallerLineNumber] int line = 0) where PassData : class, new()
+            [CallerLineNumber] int line = 0
 #endif
+            ) where PassData : class, new()
         {
             return AddRenderPass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }

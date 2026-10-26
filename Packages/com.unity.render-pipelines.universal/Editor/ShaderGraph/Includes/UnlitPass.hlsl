@@ -1,5 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/VolumetricFogBlendMode.hlsl"
 
 void InitializeInputData(Varyings input, out InputData inputData)
 {
@@ -45,9 +47,9 @@ void frag(
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #if defined(_SURFACE_TYPE_TRANSPARENT)
-    bool isTransparent = true;
+    bool isSurfaceTypeTransparent = true;
 #else
-    bool isTransparent = false;
+    bool isSurfaceTypeTransparent = false;
 #endif
 
 #if defined(_ALPHATEST_ON)
@@ -58,15 +60,11 @@ void frag(
     half alpha = half(1.0);
 #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
-#if defined(_ALPHAMODULATE_ON)
     surfaceDescription.BaseColor = AlphaModulate(surfaceDescription.BaseColor, alpha);
-#endif
 
-#if defined(_DBUFFER) && defined(UNLIT_DEFAULT_DECAL_BLENDING)
+#if defined(_DBUFFER) && defined(UNLIT_DEFAULT_DECAL_BLENDING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);
 #endif
 
@@ -79,12 +77,19 @@ void frag(
     #endif
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
-    finalColor.a = OutputAlpha(finalColor.a, isTransparent);
+    finalColor.a = OutputAlpha(finalColor.a, isSurfaceTypeTransparent);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT) && defined(UNLIT_DEFAULT_SSAO)
+    #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(UNLIT_DEFAULT_SSAO)
+    if (ScreenSpaceOcclusionAvailable())
+    {
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(unpacked.positionCS);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
+    }
+    #endif
+
+    #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+        finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, VolumetricFogBlendModeFromDefines(), false, unpacked.positionCS);
     #endif
 
     outColor = finalColor;

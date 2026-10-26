@@ -186,6 +186,9 @@ namespace UnityEditor.Rendering.HighDefinition
             bool removeInput = true;
             foreach (var hdAsset in HDRPBuildData.instance.renderPipelineAssets)
             {
+                // Setup SupportedRenderingFeatures for the current HDRenderPipelineAsset
+                HDRenderPipeline.InitializeSupportedRenderingFeatures(hdAsset);
+
                 if (!StripShader(hdAsset, shader, shaderVariant, shaderCompilerData))
                 {
                     removeInput = false;

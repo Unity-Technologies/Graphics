@@ -311,7 +311,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (!serialized.settings.isCompletelyBaked)
                             EditorGUILayout.HelpBox("Disc Area Lights are baked only.", MessageType.Error);
                         // Disc lights are not supported in Enlighten
+#pragma warning disable 618
                         if (!Lightmapping.bakedGI && Lightmapping.realtimeGI)
+#pragma warning restore 618
                             EditorGUILayout.HelpBox("Disc Area Lights are not supported with realtime GI.",
                                 MessageType.Error);
                         break;
@@ -403,11 +405,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.IndentLevelScope())
                 {
                     // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+#pragma warning disable 618
                     if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
                     {
                         if (lightType == LightType.Box || lightType == LightType.Pyramid)
                             EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
                     }
+#pragma warning restore 618
 
                     if (serialized.HasMultipleLightTypes(owner))
                     {
@@ -684,10 +688,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             serialized.settings.areaSizeY.floatValue = HDAdditionalLightData.k_MinLightSize;
                         }
                         // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+#pragma warning disable 618
                         if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
                         {
                             EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
                         }
+#pragma warning restore 618
                     }
                     else
                     {

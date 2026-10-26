@@ -153,9 +153,6 @@ BRDFData GBufferDataToBRDFData(GBufferData gBufferData)
     uint materialFlags = gBufferData.materialFlags;
     half smoothness = gBufferData.smoothness;
 
-    BRDFData brdfData = (BRDFData)0;
-    half alpha = half(1.0); // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
-
     half3 brdfDiffuse;
     half3 brdfSpecular;
     half reflectivity;
@@ -179,9 +176,7 @@ BRDFData GBufferDataToBRDFData(GBufferData gBufferData)
         brdfSpecular = lerp(kDielectricSpec.rgb, albedo, metallic);
     }
 
-    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
-
-    return brdfData;
+    return InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, half(1.0), false);
 }
 
 #ifdef GBUFFER_TEX2D_NAME

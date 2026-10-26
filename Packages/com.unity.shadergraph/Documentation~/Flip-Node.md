@@ -32,3 +32,7 @@ void Unity_Flip_float4(float4 In, float4 Flip, out float4 Out)
     Out = (Flip * -2 + 1) * In;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

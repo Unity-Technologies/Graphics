@@ -6,31 +6,45 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Converter
 {
+    /// <summary>
+    /// Represents the target for render pipeline configuration
+    /// </summary>
+    internal static class RenderPipelineTarget
+    {
+        /// <summary>
+        /// Indicates the default render pipeline in Graphics Settings (not tied to a specific quality level)
+        /// </summary>
+        public const int DefaultGraphicsSettings = -1;
+    }
+
     [Serializable]
     internal class RenderSettingsConverterItem : IRenderPipelineConverterItem
     {
-        public int qualityLevelIndex { get; set; }
+        [field:SerializeField] public int qualityLevelIndex { get; set; }
+        [field:SerializeField] public string name { get; set; }
+        [field:SerializeField] public string info { get; set; }
+        [field:SerializeField] public bool isEnabled { get; set; } = true;
+        [field:SerializeField] public string isDisabledMessage { get; set; }
+        [field:SerializeField] public string settingsPath { get; set; }  = "Project/Quality"; // Settings path to open when clicked (e.g., "Project/Quality" or "Project/Graphics")
 
-        public string name { get; set; }
-
-        public string info { get; set; }
-
-        public bool isEnabled { get; set; }
-        public string isDisabledMessage { get; set; }
+        private static Texture2D s_CachedIcon;
 
         public Texture2D icon
         {
             get
             {
-                var iconAttribute = typeof(RenderPipelineAsset).GetCustomAttribute<IconAttribute>();
-                if (iconAttribute == null || string.IsNullOrEmpty(iconAttribute.path))
-                    return null;
-                return EditorGUIUtility.IconContent(iconAttribute.path)?.image as Texture2D;
+                if (s_CachedIcon == null)
+                {
+                    var iconAttribute = typeof(RenderPipelineAsset).GetCustomAttribute<IconAttribute>();
+                    if (iconAttribute != null && !string.IsNullOrEmpty(iconAttribute.path))
+                        s_CachedIcon = EditorGUIUtility.IconContent(iconAttribute.path)?.image as Texture2D;
+                }
+                return s_CachedIcon;
             }
         }
         public void OnClicked()
         {
-            SettingsService.OpenProjectSettings("Project/Quality");
+            SettingsService.OpenProjectSettings(settingsPath);
         }
     }
 
@@ -39,7 +53,30 @@ namespace UnityEditor.Rendering.Converter
     {
         public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
         {
-            List<IRenderPipelineConverterItem> renderPipelineConverterItems = new ();
+            List<IRenderPipelineConverterItem> renderPipelineConverterItems = new();
+
+            var graphicsItems = new List<IRenderPipelineConverterItem>();
+            var defaultRPItem = new RenderSettingsConverterItem
+            {
+                qualityLevelIndex = RenderPipelineTarget.DefaultGraphicsSettings,
+                name = "Default Render Pipeline",
+                settingsPath = "Project/Graphics"
+            };
+
+            if (GraphicsSettings.defaultRenderPipeline is not RenderPipelineAsset)
+            {
+                defaultRPItem.isEnabled = true;
+                defaultRPItem.info = "Create a default Render Pipeline Asset for Graphics Settings";
+            }
+            else
+            {
+                defaultRPItem.info = "Graphics Settings already reference a default Render Pipeline Asset.";
+                defaultRPItem.isEnabled = false;
+                defaultRPItem.isDisabledMessage = defaultRPItem.info;
+            }
+            graphicsItems.Add(defaultRPItem);
+
+            var qualityItems = new List<IRenderPipelineConverterItem>();
             QualitySettings.ForEach((index, name) =>
             {
                 var item = new RenderSettingsConverterItem
@@ -59,8 +96,27 @@ namespace UnityEditor.Rendering.Converter
                     item.isEnabled = false;
                     item.isDisabledMessage = item.info;
                 }
-                renderPipelineConverterItems.Add(item);
+                qualityItems.Add(item);
             });
+
+            var graphicsFolder = new RenderPipelineConverterUtility.AssetGroupItem
+            {
+                name = "Graphics",
+                info = "Default Render Pipeline in Graphics Settings",
+                assetType = typeof(RenderPipelineAsset),
+                children = graphicsItems
+            };
+
+            var qualityFolder = new RenderPipelineConverterUtility.AssetGroupItem
+            {
+                name = "Quality",
+                info = "Render Pipeline Assets per Quality Level",
+                assetType = typeof(RenderPipelineAsset),
+                children = qualityItems
+            };
+
+            renderPipelineConverterItems.Add(graphicsFolder);
+            renderPipelineConverterItems.Add(qualityFolder);
 
             onScanFinish?.Invoke(renderPipelineConverterItems);
         }
@@ -72,57 +128,74 @@ namespace UnityEditor.Rendering.Converter
         {
             message = string.Empty;
 
-            if (item is RenderSettingsConverterItem qualityLevelItem)
+            if (item is not RenderSettingsConverterItem qualityLevelItem)
             {
-                if (CreateRPAssetForQualityLevel(qualityLevelItem.qualityLevelIndex, out message))
-                {
-                    message = "Each Quality Level now has a new, unique RP asset, but all share identical settings. Modify each asset to restore your performance/quality tiers.";
-                    return Status.Warning;
-                }
+                message = $"Item is not a {nameof(RenderSettingsConverterItem)}.";
+                return Status.Error;
             }
 
-            return Status.Error;
+            return CreateRPAssetForQualityLevel(qualityLevelItem.qualityLevelIndex, out message);
         }
 
-        private bool CreateRPAssetForQualityLevel(int qualityIndex, out string message)
+        private Status CreateRPAssetForQualityLevel(int qualityIndex, out string message)
         {
-            bool ok = false;
             message = string.Empty;
 
-            var currentQualityLevel = QualitySettings.GetQualityLevel();
+            if (qualityIndex == RenderPipelineTarget.DefaultGraphicsSettings)
+            {
+                if (GraphicsSettings.defaultRenderPipeline is RenderPipelineAsset rpAsset)
+                {
+                    message = $"Graphics Settings already references a Render Pipeline Asset: {rpAsset.name}.";
+                    return Status.Warning;
+                }
 
+                var asset = CreateAsset("DefaultRenderPipeline");
+                if (asset == null)
+                {
+                    message = "Failed to create Render Pipeline Asset for Graphics Settings.";
+                    return Status.Error;
+                }
+
+                SetPipelineSettings(asset);
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssetIfDirty(asset);
+                GraphicsSettings.defaultRenderPipeline = asset;
+
+                message = "Default Render Pipeline Asset created and assigned to Graphics Settings.";
+                return Status.Warning;
+            }
+
+            var currentQualityLevel = QualitySettings.GetQualityLevel();
             QualitySettings.SetQualityLevel(qualityIndex);
 
-            if (QualitySettings.renderPipeline is RenderPipelineAsset rpAsset)
+            try
             {
-                message = $"Quality Level {qualityIndex} already references a Render Pipeline Asset: {rpAsset.name}.";
-            }
-            else
-            {
+                if (QualitySettings.renderPipeline is RenderPipelineAsset qualityRPAsset)
+                {
+                    message = $"Quality Level {qualityIndex} already references a Render Pipeline Asset: {qualityRPAsset.name}.";
+                    return Status.Warning;
+                }
+
                 var asset = CreateAsset($"{QualitySettings.names[qualityIndex]}");
-
-                if (asset != null)
+                if (asset == null)
                 {
-                    // Map built-in data to the URP asset data
-                    SetPipelineSettings(asset);
-
-                    // Set the asset dirty to make sure that the renderer data is saved
-                    EditorUtility.SetDirty(asset);
-                    AssetDatabase.SaveAssetIfDirty(asset);
-
-                    QualitySettings.renderPipeline = asset;
-                    ok = true;
+                    message = "Failed to create Render Pipeline Asset.";
+                    return Status.Error;
                 }
-                else
-                {
-                    message = "Failed to create Universal Render Pipeline Asset.";
-                }
+
+                SetPipelineSettings(asset);
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssetIfDirty(asset);
+                QualitySettings.renderPipeline = asset;
+
+                message = "Render Pipeline Asset created. Modify each asset to restore your performance/quality tiers.";
+                return Status.Warning;
             }
-
-            // Restore back the quality level
-            QualitySettings.SetQualityLevel(currentQualityLevel);
-
-            return ok;
+            finally
+            {
+                // Restore back the quality level
+                QualitySettings.SetQualityLevel(currentQualityLevel);
+            }
         }
 
         protected abstract RenderPipelineAsset CreateAsset(string name);

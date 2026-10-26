@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _CameraDepthAttachment = Shader.PropertyToID("_CameraDepthAttachment");
             public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static readonly int _ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+            public static readonly int _CopyDepthSourceUsedSize = Shader.PropertyToID("_CopyDepthSourceUsedSize");
+            public static readonly int _CopyDepthYFlip = Shader.PropertyToID("_CopyDepthYFlip");
         }
 
         /// <summary>
@@ -73,6 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
             internal bool setViewport;
+            internal Vector2 sourceUsedSize;
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, Vector4 scaleBias)
@@ -178,6 +181,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             Debug.Assert(!hasMSAA || canUseResolvedDepth || canSampleMSAADepth || !dstHasDepthFormat
                 , "Can't copy depth to destination with depth format due to MSAA and platform/API limitations: no resolved depth resource (bindMS), depth resolve unsupported, and MSAA depth sampling unsupported.");
 
+            var srcInfo = renderGraph.GetRenderTargetInfo(source);
+
             // Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -189,10 +194,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyToDepth = dstHasDepthFormat;
                 passData.setViewport = CopyToDepthXR;
 
+                Vector2 sourceScale = sourceDesc.useDynamicScale || sourceDesc.useDynamicScaleExplicit
+                    ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                    : Vector2.one;
+                passData.sourceUsedSize = new Vector2(
+                    srcInfo.width  * sourceScale.x,
+                    srcInfo.height * sourceScale.y);
+
                 if (cameraData.xr.enabled)
                 {
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -285,7 +297,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
+                    context.cmd.SetGlobalVector(ShaderConstants._CopyDepthSourceUsedSize, data.sourceUsedSize);
                     Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, data.source, data.destination);
+                    context.cmd.SetGlobalFloat(ShaderConstants._CopyDepthYFlip, scaleBias.y < 0.0f ? 1.0f : 0.0f);
                     ExecutePass(context.cmd, data, data.source, scaleBias);
                 });
             }

@@ -6,6 +6,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
     class IncludeFileShaderWriter : ShaderWriter
     {
         private string m_GuardName;
+        private int m_BodyStart;
 
         public override void Begin(string name)
         {
@@ -18,13 +19,27 @@ namespace Unity.GraphCommon.LowLevel.Editor
             WriteLine($"#ifndef {m_GuardName}");
             WriteLine($"#define {m_GuardName}");
             NewLine();
+
+            m_BodyStart = ShaderBuilder.Length;
         }
 
+        /// <summary>
+        /// The guarded include file, or null when nothing was written into it: an include file with no body
+        /// is no include file, and callers skip it rather than emitting an empty guard.
+        /// </summary>
         public override string End()
         {
-            NewLine();
-            WriteLine($"#endif // {m_GuardName}");
+            var guardName = m_GuardName;
             m_GuardName = null;
+
+            if (ShaderBuilder.Length == m_BodyStart)
+            {
+                base.End();
+                return null;
+            }
+
+            NewLine();
+            WriteLine($"#endif // {guardName}");
             return base.End();
         }
 

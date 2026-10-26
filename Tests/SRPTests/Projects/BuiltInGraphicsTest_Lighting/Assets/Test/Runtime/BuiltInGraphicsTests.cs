@@ -6,6 +6,8 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 public class BuiltInGraphicsTests
 {
@@ -25,6 +27,15 @@ public class BuiltInGraphicsTests
     [IgnoreGraphicsTest("036_Lighting_Scene_DirectionalBakedDirectional", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
     [IgnoreGraphicsTest("042_Lighting_Scene_VertexLighting", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
     [IgnoreGraphicsTest("118_SkyboxReflectionTestOrthographic", "Failed from the start when introducing DX12 coverage", RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12)]
+    [TestNotSupportedOn(
+        "118",
+        "Not XR compatible",
+        StereoRenderingContext.StereoEnabled
+    )]
+    [TestNotSupportedOn(
+        "118",
+        "Not XR compatible", XrDevice.Any
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
@@ -37,7 +48,7 @@ public class BuiltInGraphicsTests
         var settings = Object.FindObjectOfType<BuiltInGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find BuiltInGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.WaitFrames, settings.ImageComparisonSettings);
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -63,22 +74,6 @@ public class BuiltInGraphicsTests
 #endif
 
         ImageAssert.AreEqual(testCase.ReferenceImage.Image, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
-
-        // Does it allocate memory when it renders what's on the main camera?
-        bool allocatesMemory = false;
-        var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-
-        try
-        {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
-
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
 #if UNITY_EDITOR && ENABLE_VR

@@ -170,7 +170,7 @@ namespace UnityEditor.ShaderGraph
                 suffix = "_ON";
             }
 
-            return $"{keywordType.ToString()}_{objectId}{suffix}".ToUpper();
+            return $"{keywordType.ToString()}_{objectId}{suffix}".ToUpperInvariant();
         }
 
         public void AppendPropertyBlockStrings(ShaderStringBuilder builder)

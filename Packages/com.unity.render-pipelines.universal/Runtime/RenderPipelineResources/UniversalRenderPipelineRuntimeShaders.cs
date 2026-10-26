@@ -95,6 +95,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
+        [ResourcePath("Shaders/Utils/UIBackdropFilterComposite.shader")]
+        internal Shader m_UIBackdropFilterCompositePS;
+
+        internal Shader uiBackdropFilterCompositePS
+        {
+            get => m_UIBackdropFilterCompositePS;
+            set => this.SetValueAndNotify(ref m_UIBackdropFilterCompositePS, value, nameof(m_UIBackdropFilterCompositePS));
+        }
+
+        [SerializeField]
         [ResourcePath("Shaders/Utils/Sampling.shader")]
         private Shader m_SamplingPS;
 

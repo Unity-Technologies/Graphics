@@ -5,6 +5,7 @@ using UnityEngine.PlayerLoop;
 using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -13,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Allocate graphics buffers by chunk to avoid reallocating them too often
         private const int k_IndirectBufferChunkSize = 50;
 
+        [NoAutoStaticsCleanup] // Owned by the surviving HDRenderPipeline; InitializeGraphicsBuffers/CleanupGraphicsBuffers run only from pipeline construction/disposal.
         static LocalVolumetricFogManager s_Manager;
         public static LocalVolumetricFogManager manager => s_Manager ??= new LocalVolumetricFogManager();
 
@@ -30,7 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Volumes = new List<LocalVolumetricFog>();
         }
-
 
         public void RegisterVolume(LocalVolumetricFog volume)
         {
@@ -128,28 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public bool IsInitialized() => globalIndirectBuffer != null && globalIndirectBuffer.IsValid();
-
-        void Cleanup()
-        {
-            m_Volumes.Clear();
-            m_Volumes = null;
-
-            CleanupGraphicsBuffers();
-
-            globalIndirectBuffer = null;
-            globalIndirectionBuffer = null;
-            volumetricMaterialIndexBuffer = null;
-            volumetricMaterialDataBuffer = null;
-        }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Manager?.Cleanup();
-            s_Manager = null;
-        }
-#endif
 
         public static class RegisterLocalVolumetricFogEarlyUpdate
         {

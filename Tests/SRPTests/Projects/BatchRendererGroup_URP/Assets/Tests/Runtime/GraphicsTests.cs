@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.SceneManagement;
 
 public class GraphicsTests
@@ -19,6 +20,21 @@ public class GraphicsTests
     [UnityTest, Category("GraphicsTest")]
     [SceneGraphicsTest("Assets/SampleScenes")]
     [IgnoreGraphicsTest("ErrorMaterial", "Ignoring this specially designed test that fails to build the build", true, RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
+    [IgnoreGraphicsTest(
+        "DifferentDrawCommandTypes",
+        "Procedural and indirect draw commands render nothing under DX12 UGK (CreateRenderState result 3). https://jira.unity3d.com/browse/UGK-2956",
+        GraphicsDeviceType.Direct3D12,
+        RuntimePlatform.WindowsPlayer,
+        UnityGraphicsKernelMode.UgkOn
+    )]
+    // Likely the same root cause as UUM-157510 (DX12); UGK-3317 re-enables it once that fix lands.
+    [IgnoreGraphicsTest(
+        "DifferentDrawCommandTypes",
+        "https://jira.unity3d.com/browse/UGK-3317",
+        GraphicsDeviceType.Metal,
+        RuntimePlatform.OSXPlayer,
+        UnityGraphicsKernelMode.UgkOn
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (testCase.ScenePath.Contains("ErrorMaterial"))
@@ -62,7 +78,7 @@ public class GraphicsTests
 
         if (XRGraphicsAutomatedTests.enabled)
         {
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(true, waitFrames, settings.ImageComparisonSettings);
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(waitFrames, settings.ImageComparisonSettings);
         }
 
         for (int i = 0; i < waitFrames; i++)

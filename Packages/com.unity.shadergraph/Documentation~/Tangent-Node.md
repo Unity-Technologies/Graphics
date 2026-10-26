@@ -8,7 +8,7 @@ Returns the tangent of the value of input **In**.
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
+| In      | Input | Dynamic Vector | Input value in radians |
 | Out | Output      |    Dynamic Vector | Output value |
 
 ## Generated Code Example
@@ -21,3 +21,7 @@ void Unity_Tangent_float4(float4 In, out float4 Out)
     Out = tan(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

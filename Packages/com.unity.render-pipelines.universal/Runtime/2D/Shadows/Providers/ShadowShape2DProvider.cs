@@ -3,10 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -44,13 +40,39 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
         public virtual void OnInitialized(Component sourceComponent, ShadowShape2D persistantShadowShape) { }
 
+
         /// <summary>
-        /// Called before 2D lighting is rendered each frame
+        /// Called before 2D lighting is rendered each frame. Superseded by the overload that also
+        /// receives the <see cref="Camera"/>; prefer that one in new providers.
         /// </summary>
+        /// <remarks>
+        /// Not marked <c>[Obsolete]</c>. Both overloads are called, this one first (see
+        /// <c>ShapeProviderUtility.CallOnBeforeRender</c>), so a provider that overrides only this
+        /// signature keeps working and has no reason to be warned about it. Marking it obsolete while
+        /// still calling it would put a warning in front of every such provider for a change they do
+        /// not have to make.
+        /// </remarks>
         /// <param name="sourceComponent">The component associated with the provider</param>
         /// <param name="worldCullingBounds">The bounds enclosing the region of the view frustum and all visible lights</param>
         /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
         public virtual void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
+
+        /// <summary>
+        /// Called before 2D lighting is rendered each frame
+        /// </summary>
+        /// <param name="camera">The camera being rendered</param>
+        /// <param name="sourceComponent">The component associated with the provider</param>
+        /// <param name="worldCullingBounds">The bounds enclosing the region of the view frustum and all visible lights</param>
+        /// <param name="persistantShadowShape">An instance of <c>ShadowShape2D</c> that is used by the <c>ShadowCaster2D</c></param>
+        public virtual void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape) { }
+
+        // World bounds of the whole source shape, independent of any camera's culling. When this returns
+        // true, the ShadowCaster2D sizes its bounding sphere from them instead of from the (culled) shadow mesh.
+        internal virtual bool TryGetWorldBounds(Component sourceComponent, out Bounds worldBounds)
+        {
+            worldBounds = default;
+            return false;
+        }
 
         /// <summary>
         /// Called for each component on a <c>ShadowCaster2D's</c> <c>GameObject</c>. Returns true if the provided component is the data source of the <c>ShadowShapeProvider</c>.
@@ -62,5 +84,28 @@ namespace UnityEngine.Rendering.Universal
 
         internal override GUIContent Internal_ProviderName(string componentName) { return ProviderName(componentName); }
         internal override bool Internal_IsRequiredComponentData(Component sourceComponent) { return IsRequiredComponentData(sourceComponent); }
+
+        // Cached stable identifier hash for this provider's concrete type. Computed lazily on
+        // first access and cached for the lifetime of the instance, so per-frame change detection
+        // does not pay the string/CRC cost. Uses assembly name + full type name so two providers
+        // sharing a class name in different assemblies do not collide, and excludes assembly
+        // version so version bumps do not invalidate the hash.
+        [NonSerialized] int m_TypeIdentifierHash;
+
+        internal int TypeIdentifierHash
+        {
+            get
+            {
+                if (m_TypeIdentifierHash == 0)
+                {
+                    Type type = GetType();
+                    string qualified = type.Assembly.GetName().Name + "::" + type.FullName;
+                    int hash = unchecked((int)URP2D_Crc32.Compute(qualified));
+                    // Reserve 0 as "uncomputed" sentinel.
+                    m_TypeIdentifierHash = hash == 0 ? 1 : hash;
+                }
+                return m_TypeIdentifierHash;
+            }
+        }
     }
 }

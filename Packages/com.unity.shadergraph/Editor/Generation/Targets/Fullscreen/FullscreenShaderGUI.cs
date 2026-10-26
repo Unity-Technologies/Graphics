@@ -26,55 +26,55 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             // Categories
             /// <summary>Surface Option header name</summary>
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls the rendering states of the fullscreen material.");
+                L10n.TextContent("Surface Options", "Controls the rendering states of the fullscreen material.", null, null);
             /// <summary>Surface Inputs header name</summary>
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
-                "These settings describe the look and feel of the surface itself.");
+            public static readonly GUIContent SurfaceInputs = L10n.TextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.", null, null);
 
             /// <summary>Name and tooltip for the blending mode property in the material GUI</summary>
-            public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
-                "Controls how the color of the Transparent surface blends with the Material color in the background.");
+            public static readonly GUIContent blendingMode = L10n.TextContent("Blending Mode",
+                "Controls how the color of the Transparent surface blends with the Material color in the background.", null, null);
             /// <summary>Name and tooltip for the source color blend mode property in the material GUI</summary>
-            public static readonly GUIContent srcColorBlendMode = EditorGUIUtility.TrTextContent("Src Color",
-                "Describes how the input color will be blended.");
+            public static readonly GUIContent srcColorBlendMode = L10n.TextContent("Src Color",
+                "Describes how the input color will be blended.", null, null);
             /// <summary>Name and tooltip for the destination color blend mode property in the material GUI</summary>
-            public static readonly GUIContent dstColorBlendMode = EditorGUIUtility.TrTextContent("Dst Color",
-                "Describes how the destination color will be blended.");
+            public static readonly GUIContent dstColorBlendMode = L10n.TextContent("Dst Color",
+                "Describes how the destination color will be blended.", null, null);
             /// <summary>Name and tooltip for the color blend operation property in the material GUI</summary>
-            public static readonly GUIContent colorBlendOperation = EditorGUIUtility.TrTextContent("Color Blend Op",
-                "Tell which operation to use when blending the colors. Default is Add.");
+            public static readonly GUIContent colorBlendOperation = L10n.TextContent("Color Blend Op",
+                "Tell which operation to use when blending the colors. Default is Add.", null, null);
             /// <summary>Name and tooltip for the source alpha blend mode property in the material GUI</summary>
-            public static readonly GUIContent srcAlphaBlendMode = EditorGUIUtility.TrTextContent("Src Alpha",
-                "Describes how the input alpha will be blended.");
+            public static readonly GUIContent srcAlphaBlendMode = L10n.TextContent("Src Alpha",
+                "Describes how the input alpha will be blended.", null, null);
             /// <summary>Name and tooltip for the destination alpha blend mode property in the material GUI</summary>
-            public static readonly GUIContent dstAlphaBlendMode = EditorGUIUtility.TrTextContent("Dst Alpha",
-                "Describes how the input alpha will be blended.");
+            public static readonly GUIContent dstAlphaBlendMode = L10n.TextContent("Dst Alpha",
+                "Describes how the input alpha will be blended.", null, null);
             /// <summary>Name and tooltip for the alpha blend operation property in the material GUI</summary>
-            public static readonly GUIContent alphaBlendOperation = EditorGUIUtility.TrTextContent("Alpha Blend Op",
-                "Tell which operation to use when blending the alpha channel. Default is Add.");
+            public static readonly GUIContent alphaBlendOperation = L10n.TextContent("Alpha Blend Op",
+                "Tell which operation to use when blending the alpha channel. Default is Add.", null, null);
             /// <summary>Name and tooltip for the depth write property in the material GUI</summary>
-            public static readonly GUIContent depthWrite = EditorGUIUtility.TrTextContent("Depth Write",
-                "Controls whether the shader writes depth.");
+            public static readonly GUIContent depthWrite = L10n.TextContent("Depth Write",
+                "Controls whether the shader writes depth.", null, null);
             /// <summary>Name and tooltip for the depth test property in the material GUI</summary>
-            public static readonly GUIContent depthTest = EditorGUIUtility.TrTextContent("Depth Test",
-                "Specifies the depth test mode. The default is Always.");
+            public static readonly GUIContent depthTest = L10n.TextContent("Depth Test",
+                "Specifies the depth test mode. The default is Always.", null, null);
 
             /// <summary>Name and tooltip for the stencil override property in the material GUI</summary>
-            public static readonly GUIContent stencil = EditorGUIUtility.TrTextContent("Stencil Override", "Enable the stencil block in the shader.");
+            public static readonly GUIContent stencil = L10n.TextContent("Stencil Override", "Enable the stencil block in the shader.", null, null);
             /// <summary>Name and tooltip for the stencil reference property in the material GUI</summary>
-            public static readonly GUIContent stencilRef = EditorGUIUtility.TrTextContent("Reference", "Reference value use for comparison and operations.");
+            public static readonly GUIContent stencilRef = L10n.TextContent("Reference", "Reference value use for comparison and operations.", null, null);
             /// <summary>Name and tooltip for the stencil read mask property in the material GUI</summary>
-            public static readonly GUIContent stencilReadMask = EditorGUIUtility.TrTextContent("Read Mask", "Tells which bit are allowed to be read during the stencil test.");
+            public static readonly GUIContent stencilReadMask = L10n.TextContent("Read Mask", "Tells which bit are allowed to be read during the stencil test.", null, null);
             /// <summary>Name and tooltip for the stencil write mask property in the material GUI</summary>
-            public static readonly GUIContent stencilWriteMask = EditorGUIUtility.TrTextContent("Write Mask", "Tells which bit are allowed to be written during the stencil test.");
+            public static readonly GUIContent stencilWriteMask = L10n.TextContent("Write Mask", "Tells which bit are allowed to be written during the stencil test.", null, null);
             /// <summary>Name and tooltip for the stencil comparison property in the material GUI</summary>
-            public static readonly GUIContent stencilComparison = EditorGUIUtility.TrTextContent("Comparison", "Tells which function to use when doing the stencil test.");
+            public static readonly GUIContent stencilComparison = L10n.TextContent("Comparison", "Tells which function to use when doing the stencil test.", null, null);
             /// <summary>Name and tooltip for the stencil pass operation property in the material GUI</summary>
-            public static readonly GUIContent stencilPass = EditorGUIUtility.TrTextContent("Pass", "Tells what to do when the stencil test succeed.");
+            public static readonly GUIContent stencilPass = L10n.TextContent("Pass", "Tells what to do when the stencil test succeed.", null, null);
             /// <summary>Name and tooltip for the stencil fail operation property in the material GUI</summary>
-            public static readonly GUIContent stencilFail = EditorGUIUtility.TrTextContent("Fail", "Tells what to do when the stencil test fails.");
+            public static readonly GUIContent stencilFail = L10n.TextContent("Fail", "Tells what to do when the stencil test fails.", null, null);
             /// <summary>Name and tooltip for the stencil depth fail operation property in the material GUI</summary>
-            public static readonly GUIContent stencilDepthFail = EditorGUIUtility.TrTextContent("Depth Fail", "Tells what to do when the depth test fails.");
+            public static readonly GUIContent stencilDepthFail = L10n.TextContent("Depth Fail", "Tells what to do when the depth test fails.", null, null);
         }
 
         bool m_FirstTimeApply = true;

@@ -738,7 +738,7 @@ namespace UnityEditor.VFX.SDF
         public void AddItemsToMenu(GenericMenu menu)
         {
             menu.AddAdvancedPropertiesBoolMenuItem();
-            menu.AddItem(EditorGUIUtility.TrTextContent("Create new session"), false, CreateNewSession);
+            menu.AddItem(L10n.TextContent("Create new session", null, null, null), false, CreateNewSession);
         }
     }
 }

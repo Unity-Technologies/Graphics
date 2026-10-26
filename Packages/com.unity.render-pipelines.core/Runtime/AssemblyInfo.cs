@@ -2,19 +2,22 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Runtime.Shared")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.CLI")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.RPCore.Runtime")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.Universal.Runtime")] // access to internal ProfileIds
-
-// Access to CoreProfilingSamplers for the UniversalRenderPipelineDebugDisplayStats
-[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime")]
 
 // Access to SamplingResources for the PathTracing package, to be removed when its content will be moved to RP Core
 [assembly: InternalsVisibleTo("Unity.Rendering.PathTracing.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.Modules.GI.PathTracing.Tests.Editor")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor")]
+
+// Access to RenderGraph internals (e.g. RenderGraphParameters.invalidContextForTesting) for SurfaceCache core tests
+[assembly: InternalsVisibleTo("Unity.SurfaceCache.Tests")]
 
 // Smoke test project visibility
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime")]
@@ -24,3 +27,4 @@ using System.Runtime.CompilerServices;
 
 // Access for URP Tests so they use internals from Core Runtime
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.Tests")]

@@ -36,3 +36,13 @@ REQUIRE_DEFINED(INITIALIZE_OUTPUT)
 #ifndef UNITY_LOOP
 #   define UNITY_LOOP
 #endif
+
+// In situations where buffer accesses are correctly guarded by an
+// out of bounds check, Unity may perform branch flattening in such
+// a way that the out of bounds access happens regardless. This is
+// valid in some languages (e.g. HLSL) but not in others (e.g. MSL)
+// where it causes undefined behavior. See UUM-126860 for more
+// details. As a workaround you may use this macro.
+#ifndef UNITY_OUT_OF_BOUNDS_BRANCH
+#   define UNITY_OUT_OF_BOUNDS_BRANCH
+#endif

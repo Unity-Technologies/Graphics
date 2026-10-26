@@ -17,7 +17,7 @@ namespace Unity.Testing.XR.Editor
                 var xrGeneralSettings = AssetDatabase.LoadAssetAtPath(pathToSettings, typeof(XRGeneralSettingsPerBuildTarget));
                 Assert.NotNull(xrGeneralSettings, "Unable to load " + pathToSettings);
 
-                EditorBuildSettings.AddConfigObject(XRGeneralSettings.k_SettingsKey, xrGeneralSettings, true);
+                EditorBuildSettings.AddConfigObject(XRGeneralSettings.settingsKey, xrGeneralSettings, true);
             }
         }
     }

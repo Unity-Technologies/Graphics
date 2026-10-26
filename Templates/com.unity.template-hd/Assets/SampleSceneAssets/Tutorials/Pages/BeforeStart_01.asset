@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: BeforeStart_01
   m_EditorClassIdentifier: 
+  <IndexInTutorial>k__BackingField: 0
   Title:
     m_Untranslated: Quality and Performance
-  m_Paragraphs:
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 0af20b5291f94d54cb2690f236082cc8, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 0af20b5291f94d54cb2690f236082cc8, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -39,36 +51,39 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'Take a moment to adjust your Quality Settings for a smooth
-          tutorial experience,  under <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b>
+        m_Untranslated: 'Take a moment to adjust your Quality Settings for a smooth tutorial experience,  under <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b>
 
 
-          To
-          complete all sections of this tutorial, we recommend you use at least the
-          <b>Medium</b> quality level. If the framerate in the Scene view is too
-          low, you may switch to <b>Low,</b> however, you will not be able to complete
-          the section related to <b>Fog.</b>
+          To complete all sections of this tutorial, we recommend you use at least the <b>Medium</b> quality level. If the framerate in the Scene view is too low, you may switch to <b>Low,</b> however, you will not be able to complete the section related to <b>Fog.</b>
 
 
-          Finally, for the best image
-          quality without noticeable aliasing, enable <b>Temporal Anti-aliasing</b>(camera
-          icon) and <b>Always Refresh</b>(layers icon) in the <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/ViewModes.html">Scene
-          View Options toolbar</a> by default located at the top right corner of
-          the Scene view Window.'
+          Finally, for the best image quality without noticeable aliasing, enable <b>Temporal Anti-aliasing</b>(camera icon) and <b>Always Refresh</b>(layers icon) in the <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/ViewModes.html">Scene View Options toolbar</a> by default located at the top right corner of the Scene view Window.'
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0
@@ -90,6 +105,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

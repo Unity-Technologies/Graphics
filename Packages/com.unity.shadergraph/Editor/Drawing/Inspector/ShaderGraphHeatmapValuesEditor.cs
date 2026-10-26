@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
                 : NodeTypeNamesToTitles.GetValueOrDefault(nodeTypeName, nodeTypeName);
         }
 
-        static void ConfigureNodeLabelColumn(Column column, HeatmapEntries entries)
+        static void ConfigureNodeLabelColumn(Column column, Func<HeatmapEntries> getEntries)
         {
             column.makeCell = () =>
             {
@@ -97,15 +97,19 @@ namespace UnityEditor.ShaderGraph
             };
             column.bindCell = (v, i) =>
             {
+                // Resolve via getter on every bind: the underlying List<HeatmapEntry> reference can be
+                // replaced during undo deserialization, so a captured reference would go stale and throw on RefreshItems.
+                var entries = getEntries().Entries;
+                if ((uint)i >= (uint)entries.Count)
+                    return;
                 var label = (Label) v;
-                label.text = GetTitleForNode(entries.Entries[i].m_NodeName);
+                label.text = GetTitleForNode(entries[i].m_NodeName);
             };
         }
 
         void ConfigureSubgraphPickerColumn(Column column)
         {
             var serializedEntries = serializedObject.FindProperty("m_Subgraphs");
-            var entries = HeatmapValuesTarget.Subgraphs;
 
             column.makeCell = () =>
             {
@@ -125,12 +129,17 @@ namespace UnityEditor.ShaderGraph
                 var objectField = (ObjectField) v;
                 objectField.RegisterCallback<ChangeEvent<UnityEngine.Object>, int>(OnSubgraphChanged, i);
 
-                if (string.IsNullOrEmpty(entries.Entries[i].m_NodeName))
+                // Resolve dynamically — see ConfigureNodeLabelColumn for why we can't capture the list.
+                var entries = HeatmapValuesTarget.Subgraphs.Entries;
+                if ((uint)i >= (uint)entries.Count)
+                    return;
+
+                if (string.IsNullOrEmpty(entries[i].m_NodeName))
                 {
                     return;
                 }
 
-                var assetPath = AssetDatabase.GUIDToAssetPath(entries.Entries[i].m_NodeName);
+                var assetPath = AssetDatabase.GUIDToAssetPath(entries[i].m_NodeName);
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
                 objectField.SetValueWithoutNotify(asset);
             };
@@ -160,7 +169,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void ConfigureCategoryColumn(Column c, SerializedProperty serializedEntries, HeatmapEntries entries)
+        void ConfigureCategoryColumn(Column c, SerializedProperty serializedEntries, Func<HeatmapEntries> getEntries)
         {
             c.makeCell = () =>
             {
@@ -175,8 +184,11 @@ namespace UnityEditor.ShaderGraph
             };
             c.bindCell = (v, i) =>
             {
+                var entries = getEntries().Entries;
+                if ((uint)i >= (uint)entries.Count)
+                    return;
                 var intField = (IntegerField) v;
-                intField.SetValueWithoutNotify(entries.Entries[i].m_Category);
+                intField.SetValueWithoutNotify(entries[i].m_Category);
                 intField.RegisterCallback<ChangeEvent<int>, int>(OnHeatChanged, i);
             };
             c.unbindCell = (v, i) =>
@@ -215,6 +227,19 @@ namespace UnityEditor.ShaderGraph
             if (HeatmapValuesTarget != null)
             {
                 m_RefreshNodesHint.EnableInClassList(k_HelpBoxHiddenUssModifier, HeatmapValuesTarget.ContainsAllApplicableNodes());
+
+                // Re-bind itemsSource (the underlying List<T> reference may have been replaced during deserialization) and force a redraw.
+                serializedObject.Update();
+                if (m_SubgraphListView != null)
+                {
+                    m_SubgraphListView.itemsSource = HeatmapValuesTarget.Subgraphs.Entries;
+                    m_SubgraphListView.RefreshItems();
+                }
+                if (m_NodesListView != null)
+                {
+                    m_NodesListView.itemsSource = HeatmapValuesTarget.Nodes.Entries;
+                    m_NodesListView.RefreshItems();
+                }
             }
 
             UpdateShaderGraphWindows();
@@ -291,8 +316,8 @@ namespace UnityEditor.ShaderGraph
             m_RefreshNodesHint.Q<Button>(k_RefreshNodesButtonName).clicked += RefreshNodeListFromProject;
 
             var nodesSerializedProperty = serializedObject.FindProperty("m_Nodes");
-            ConfigureNodeLabelColumn(m_NodesListView.columns[k_NodeTitleColumnName], nodeEntries);
-            ConfigureCategoryColumn(m_NodesListView.columns[k_HeatValueColumnName], nodesSerializedProperty, nodeEntries);
+            ConfigureNodeLabelColumn(m_NodesListView.columns[k_NodeTitleColumnName], () => HeatmapValuesTarget.Nodes);
+            ConfigureCategoryColumn(m_NodesListView.columns[k_HeatValueColumnName], nodesSerializedProperty, () => HeatmapValuesTarget.Nodes);
 
             m_NodesListView.AddManipulator(new ContextualMenuManipulator(evt =>
             {
@@ -317,10 +342,26 @@ namespace UnityEditor.ShaderGraph
 
             var subgraphsSerializedProperty = serializedObject.FindProperty("m_Subgraphs");
             ConfigureSubgraphPickerColumn(m_SubgraphListView.columns[k_SubgraphColumnName]);
-            ConfigureCategoryColumn(m_SubgraphListView.columns[k_HeatValueColumnName], subgraphsSerializedProperty, subgraphEntries);
+            ConfigureCategoryColumn(m_SubgraphListView.columns[k_HeatValueColumnName], subgraphsSerializedProperty, () => HeatmapValuesTarget.Subgraphs);
 
             m_SubgraphListView.TrackPropertyValue(subgraphsSerializedProperty, _ => { m_SubgraphListView.RefreshItems(); });
             m_SubgraphListView.itemsSource = subgraphEntries.Entries;
+
+            // Route +/- through SerializedProperty so ApplyModifiedProperties records undo.
+            var subgraphEntriesProperty = subgraphsSerializedProperty.FindPropertyRelative("m_Entries");
+            m_SubgraphListView.onAdd = _ =>
+            {
+                subgraphEntriesProperty.arraySize++;
+                ApplyChanges();
+            };
+            m_SubgraphListView.onRemove = list =>
+            {
+                if (subgraphEntriesProperty.arraySize == 0)
+                    return;
+                int index = list.selectedIndex >= 0 ? list.selectedIndex : subgraphEntriesProperty.arraySize - 1;
+                subgraphEntriesProperty.DeleteArrayElementAtIndex(index);
+                ApplyChanges();
+            };
 
             return root;
         }

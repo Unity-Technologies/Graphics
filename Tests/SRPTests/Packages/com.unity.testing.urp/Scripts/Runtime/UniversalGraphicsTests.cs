@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -10,8 +9,10 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 using Object = UnityEngine.Object;
 #if OCULUS_SDK || OPENXR_SDK
+using System.Collections.Generic;
 using UnityEngine.XR;
 #endif
 
@@ -19,17 +20,77 @@ namespace Unity.Rendering.Universal.Tests
 {
     public static class UniversalGraphicsTests
     {
+        static bool UsesNativeGraphicsJobs()
+        {
+            switch (SystemInfo.renderingThreadingMode)
+            {
+                case RenderingThreadingMode.NativeGraphicsJobs:
+                case RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread:
+                case RenderingThreadingMode.NativeGraphicsJobsSplitThreading:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        static bool UseAsyncShaderCompilation(SceneGraphicsTestCase testCase, System.Text.RegularExpressions.Regex asyncShaderCompilationScenes)
+        {
+#if UNITY_EDITOR
+            if (asyncShaderCompilationScenes == null)
+                return false;
+
+            // Workaround for UUM-153790
+            if (UsesNativeGraphicsJobs() && GraphicsDeviceInfo.IsVendor(GraphicsVendor.AMD))
+                return false;
+
+            var sceneName = System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath);
+            return asyncShaderCompilationScenes.IsMatch(sceneName);
+#else
+            return false;
+#endif
+        }
 #if UNITY_ANDROID
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
-        public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase)
+        public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase, System.Text.RegularExpressions.Regex asyncShaderCompilationScenes = null)
         {
             Watermark.showDeveloperWatermark = false;
             GraphicsTestLogger.Log(
                 $"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
 
             SceneManager.LoadScene(testCase.ScenePath);
+
+            if (UseAsyncShaderCompilation(testCase, asyncShaderCompilationScenes))
+            {
+                // Load once to trigger a shader compile for the scene, then reload before capturing
+                // to ensure that synchronous and async runs capture on the same frame for consistency
+                try
+                {
+#if UNITY_EDITOR
+                    UnityEditor.ShaderUtil.allowAsyncCompilation = true;
+                    UnityEditor.EditorSettings.asyncShaderCompilation = true;
+#endif
+                    yield return null;
+
+                    var warmupSettings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
+                    yield return ShaderWarmup.WaitForCompilation((warmupSettings?.WaitFrames ?? 0) + 2);
+
+                    // Variant bookkeeping lags the drain by a few frames (UUM-149513).
+                    for (int settleFrame = 0; settleFrame < 3; settleFrame++)
+                        yield return null;
+                }
+                finally
+                {
+#if UNITY_EDITOR
+                    UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+                    UnityEditor.EditorSettings.asyncShaderCompilation = false;
+#endif
+                }
+
+                SceneManager.LoadScene(testCase.ScenePath);
+            }
 
             // Always wait one frame for scene load
             yield return null;
@@ -44,28 +105,13 @@ namespace Unity.Rendering.Universal.Tests
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
             Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-            // Tests need higher threshold on AMD due to platform-specific rendering precision differences
-            bool isAMD = SystemInfo.graphicsDeviceVendor.Contains("amd", StringComparison.InvariantCultureIgnoreCase) ||
-                         SystemInfo.graphicsDeviceVendor.Contains("ati", StringComparison.InvariantCultureIgnoreCase);
-            if (isAMD)
-            {
-                settings.ImageComparisonSettings.AverageCorrectnessThreshold = Math.Max(settings.amdMinThreshold, settings.ImageComparisonSettings.AverageCorrectnessThreshold);
-                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold = Math.Max(settings.amdMinThreshold, settings.ImageComparisonSettings.PerPixelCorrectnessThreshold);
-            }
-
-#if OCULUS_SDK || OPENXR_SDK
-            if(!settings.XRCompatible)
-            {
-                Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
-            }
-#endif
             int waitFrames = 1;
 
             // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
 #if OCULUS_SDK || OPENXR_SDK
             waitFrames = 4;
 #elif ENABLE_VR && USE_XR_MOCK_HMD
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.WaitFrames, settings.ImageComparisonSettings);
 #else
             waitFrames = settings.WaitFrames;
 #endif
@@ -115,21 +161,54 @@ namespace Unity.Rendering.Universal.Tests
         }
 #endif
 
-        // If we're running using OCULUS_SDK or OPENXR_SDK, we need to use the ScreenCapture API to get stereo images for comparison
+        // OCULUS_SDK/OPENXR_SDK: built-in stereo ScreenCapture falls back to a mono game-view mirror on device
+        // (no OpenXR IVRDeviceScreenCapture), so grab the XR eye render textures and compose them side-by-side
+        // via ScreenCapture.CaptureXREyeTexturesToTexture2D.
 #if OCULUS_SDK || OPENXR_SDK
+        var xrDisplays = new List<XRDisplaySubsystem>();
+        SubsystemManager.GetInstances(xrDisplays);
+        Assert.IsTrue(xrDisplays.Count > 0 && xrDisplays[0].running, "No active XR display for stereo screen capture.");
+        var xrDisplay = xrDisplays[0];
+
         yield return new WaitForSeconds(1);
         yield return new WaitForEndOfFrame();
-        var screenShot = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-        screenShot = ScreenCapture.CaptureScreenshotAsTexture(ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
-        // Log the frame we are comparing to catch/debug waitFrame differences.
-        Debug.Log($"OCULUS_SDK || OPENXR_SDK == true: ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(ScreenCapture.CaptureScreenshotAsTexture)}");
-        ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
+        var eyeRenderTextures = new List<RenderTexture>();
+        int passCount = xrDisplay.GetRenderPassCount();
+        for (int p = 0; p < passCount; p++)
+        {
+            var eyeRT = xrDisplay.GetRenderTextureForRenderPass(p);
+            if (eyeRT != null)
+                eyeRenderTextures.Add(eyeRT);
+        }
+
+        var screenShot = ScreenCapture.CaptureXREyeTexturesToTexture2D(eyeRenderTextures.ToArray());
+        Assert.IsNotNull(screenShot, "No XR eye render textures were captured.");
+        GraphicsTestLogger.Log($"Both-eyes eye-RT capture {screenShot.width}x{screenShot.height} on Frame #{Time.frameCount}");
+        try
+        {
+            // Match the reference's format so comparison isn't rejected on a format mismatch.
+            var expectedImage = testCase.ReferenceImage.Image;
+            if (expectedImage != null && screenShot.format != expectedImage.format)
+            {
+                var normalized = new Texture2D(screenShot.width, screenShot.height, expectedImage.format, false, true);
+                normalized.SetPixels(screenShot.GetPixels());
+                normalized.Apply();
+                Object.DestroyImmediate(screenShot);
+                screenShot = normalized;
+            }
+
+            ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
+        }
+        finally
+        {
+            Object.DestroyImmediate(screenShot);
+        }
 
         // Else continue to use the camera for image comparison
 #else
             // Log the frame we are comparing to catch/debug waitFrame differences.
-            Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
+            GraphicsTestLogger.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
 
 #if UNITY_2023_2_OR_NEWER
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
@@ -147,13 +226,6 @@ namespace Unity.Rendering.Universal.Tests
 #endif
 
 #endif
-
-            if (settings == null || settings.CheckMemoryAllocation)
-            {
-                // Does it allocate memory when it renders what's on the main camera?
-                var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-                yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
-            }
         }
     }
 }

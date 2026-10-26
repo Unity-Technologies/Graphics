@@ -23,6 +23,11 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty softShadowQualityProp { get; }                     // Per light soft shadow filtering quality.
         public SerializedProperty lightCookieSizeProp { get; }                       // Multi dimensional light cookie size replacing `cookieSize` in legacy light.
         public SerializedProperty lightCookieOffsetProp { get; }                     // Multi dimensional light cookie offset.
+#if VOLUMETRIC_FOG
+        public SerializedProperty affectsVolumetricFogProp { get; }                  // Whether the light interacts with volumetric fog.
+        public SerializedProperty volumetricMultiplierProp { get; }                  // Multiplier on the light's intensity in volumetric fog.
+        public SerializedProperty volumetricShadowDimmerProp { get; }                // Multiplier on the light's shadow intensity in volumetric fog.
+#endif
 
         // Light layers related
         public SerializedProperty renderingLayers { get; }
@@ -66,6 +71,11 @@ namespace UnityEditor.Rendering.Universal
             softShadowQualityProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowQuality");
             lightCookieSizeProp = serializedAdditionalDataObject.FindProperty("m_LightCookieSize");
             lightCookieOffsetProp = serializedAdditionalDataObject.FindProperty("m_LightCookieOffset");
+#if VOLUMETRIC_FOG
+            affectsVolumetricFogProp = serializedAdditionalDataObject.FindProperty("m_AffectsVolumetricFog");
+            volumetricMultiplierProp = serializedAdditionalDataObject.FindProperty("m_VolumetricMultiplier");
+            volumetricShadowDimmerProp = serializedAdditionalDataObject.FindProperty("m_VolumetricShadowDimmer");
+#endif
 
             renderingLayers = serializedAdditionalDataObject.FindProperty("m_RenderingLayersMask");
             customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");

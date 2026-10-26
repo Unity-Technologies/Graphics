@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
@@ -6,7 +7,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Encapsulates variable shading rate support (VRS) and texture conversion to shading rate image
     /// </summary>
-    public static class Vrs
+    public static partial class Vrs
     {
         class ConversionPassData
         {
@@ -31,8 +32,16 @@ namespace UnityEngine.Rendering
             public Vector4 visualizationParams;
         }
 
+        [NoAutoStaticsCleanup]
         internal static readonly int shadingRateFragmentSizeCount = Enum.GetNames(typeof(ShadingRateFragmentSize)).Length;
 
+        [OnCodeInitializing]
+        static void ResetStaticsOnLoad()
+        {
+            DisposeResources();
+        }
+
+        [NoAutoStaticsCleanup]
         static VrsResources s_VrsResources;
 
         /// <summary>

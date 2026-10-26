@@ -15,7 +15,11 @@
     #define SMAA_PRESET_HIGH
 #endif
 
-TEXTURE2D_X(_BlendTexture);
+// _BlendTexture must be explicit float4 to match SMAATexture2D (now TEXTURE2D_X_FLOAT in the SMAA core).
+// DXC treats Texture2D<float4> and Texture2D<min16float4> as distinct types; FXC/HLSLcc unified them.
+// _AreaTexture/_SearchTexture expand to bare Texture2D, which in HLSL defaults to float4, matching their
+// SMAATexture2D_Non_Array params.
+TEXTURE2D_X_FLOAT(_BlendTexture);
 TEXTURE2D(_AreaTexture);
 TEXTURE2D(_SearchTexture);
 

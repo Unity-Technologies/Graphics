@@ -15,9 +15,14 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_TESTS_FRAMEWORK"
     ],
     "versionDefines": [
+        {
+            "name": "com.unity.testing.xr",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        },
         {
             "name": "com.unity.xr.mock-hmd",
             "expression": "1.2.0-preview.1",

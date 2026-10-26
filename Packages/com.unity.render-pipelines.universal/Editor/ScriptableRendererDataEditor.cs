@@ -51,11 +51,19 @@ namespace UnityEditor.Rendering.Universal
 
         private void OnEnable()
         {
-            m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
-            m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
+            InitializeIfNeeded();
             var editorObj = new SerializedObject(this);
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
+        }
+
+        void InitializeIfNeeded()
+        {
+            if (m_RendererFeatures == null)
+                m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
+
+            if (m_RendererFeaturesMap == null)
+                m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
         }
 
         private void OnDisable()
@@ -169,7 +177,7 @@ namespace UnityEditor.Rendering.Universal
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(rendererFeatureObjRef, pos, index), null, null, helpURL);
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(L10n.TextContent(title, tooltip, null, null), renderFeatureProperty, activeProperty, pos => OnContextClick(rendererFeatureObjRef, pos, index), null, null, helpURL);
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
@@ -240,20 +248,20 @@ namespace UnityEditor.Rendering.Universal
             var menu = new GenericMenu();
 
             if (id == 0)
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
+                menu.AddDisabledItem(L10n.TextContent("Move Up", null, null, null));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
+                menu.AddItem(L10n.TextContent("Move Up", null, null, null), false, () => MoveComponent(id, -1));
 
             if (id == m_RendererFeatures.arraySize - 1)
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
+                menu.AddDisabledItem(L10n.TextContent("Move Down", null, null, null));
             else
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
+                menu.AddItem(L10n.TextContent("Move Down", null, null, null), false, () => MoveComponent(id, 1));
 
             if(rendererFeatureObject?.GetType() == typeof(FullScreenPassRendererFeature))
                 menu.AddAdvancedPropertiesBoolMenuItem();
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddItem(L10n.TextContent("Remove", null, null, null), false, () => RemoveComponent(id));
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }
@@ -261,10 +269,13 @@ namespace UnityEditor.Rendering.Universal
 
         internal void AddComponent(Type type)
         {
+            InitializeIfNeeded();
+
             serializedObject.Update();
 
             ScriptableObject component = CreateInstance(type);
             component.name = $"{type.Name}";
+            component.hideFlags |= HideFlags.HideInHierarchy;
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards
@@ -297,6 +308,8 @@ namespace UnityEditor.Rendering.Universal
 
         private void RemoveComponent(int id)
         {
+            InitializeIfNeeded();
+
             SerializedProperty property = m_RendererFeatures.GetArrayElementAtIndex(id);
             Object component = property.objectReferenceValue;
             property.objectReferenceValue = null;
@@ -365,8 +378,6 @@ namespace UnityEditor.Rendering.Universal
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
-            AssetDatabase.SaveAssetIfDirty(target);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
         }
     }
 

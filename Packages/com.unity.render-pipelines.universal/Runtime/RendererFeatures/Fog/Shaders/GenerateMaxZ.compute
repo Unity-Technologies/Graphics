@@ -1,0 +1,138 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel ComputeMaxZ MAX_Z_DOWNSAMPLE=1
+#pragma kernel ComputeFinalMask FINAL_MASK=1
+#pragma kernel DilateMask DILATE_MASK=1
+
+#pragma multi_compile_local _ DISABLE_TEXTURE2D_X_ARRAY
+
+CBUFFER_START(MaxZConstants)
+float4 _ZBufferParams;
+CBUFFER_END
+
+TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+
+#ifdef MAX_Z_DOWNSAMPLE
+
+#define GROUP_SIZE 8
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+groupshared float gs_maxDepth[GROUP_SIZE * GROUP_SIZE];
+#endif
+
+RW_TEXTURE2D_X(float, _OutputTexture);
+
+float GetDepthToDownsample(uint2 pixCoord)
+{
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord).r;
+    return (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE) ? 1e10f : LinearEyeDepth(deviceDepth, _ZBufferParams);
+}
+
+float ParallelReduction(uint gid, uint threadIdx, float depth)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    return WaveActiveMax(depth);
+#else
+    gs_maxDepth[threadIdx] = depth;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+    for (uint s = (GROUP_SIZE * GROUP_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_maxDepth[threadIdx] = max(gs_maxDepth[threadIdx], gs_maxDepth[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+    return gs_maxDepth[0];
+#endif
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void ComputeMaxZ(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint threadIdx = groupThreadId.y * GROUP_SIZE + groupThreadId.x;
+
+    uint2 depthSize;
+    GET_TEXTURE2D_X_SIZE(_CameraDepthTexture, depthSize.x, depthSize.y);
+
+    float currDepth = -1;
+    if (all(dispatchThreadId.xy < depthSize))
+        currDepth = GetDepthToDownsample(dispatchThreadId.xy);
+
+    float maxDepth = ParallelReduction(gid, threadIdx, currDepth);
+
+    if (threadIdx == 0)
+    {
+        _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = maxDepth;
+    }
+}
+
+#elif FINAL_MASK
+
+TEXTURE2D_X_FLOAT(_InputTexture);
+RW_TEXTURE2D_X(float, _OutputTexture);
+
+[numthreads(8, 8, 1)]
+void ComputeFinalMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 srcSize;
+    GET_TEXTURE2D_X_SIZE(_InputTexture, srcSize.x, srcSize.y);
+    uint2 srcLimit = srcSize - 1u;
+
+    // Upper-left pixel coordinate of quad that this thread will read
+    uint2 srcPixelUL = (dispatchThreadId.xy << 1);
+
+    float s0 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 0u), srcLimit))].x;
+    float s1 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 0u), srcLimit))].x;
+    float s2 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), srcLimit))].x;
+    float s3 = _InputTexture[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))].x;
+
+    float maxDepth = max(Max3(s0, s1, s2), s3);
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = maxDepth;
+}
+
+#elif DILATE_MASK
+
+#define DILATION_WIDTH 1
+
+TEXTURE2D_X_FLOAT(_InputTexture);
+RW_TEXTURE2D_X(float, _OutputTexture);
+
+[numthreads(8, 8, 1)]
+void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 srcSize;
+    GET_TEXTURE2D_X_SIZE(_InputTexture, srcSize.x, srcSize.y);
+    int2 srcLimit = (int2)srcSize;
+
+    int2 currentCoord = (int2)dispatchThreadId.xy;
+
+    float dilatedMaxVal = -1;
+    for (int i = -DILATION_WIDTH; i <= DILATION_WIDTH; ++i)
+    {
+        for (int j = -DILATION_WIDTH; j <= DILATION_WIDTH; ++j)
+        {
+            int2 tapCoordinate = clamp(currentCoord + int2(i, j), 0, srcLimit - 1);
+            float s = _InputTexture[COORD_TEXTURE2D_X(tapCoordinate)].x;
+            dilatedMaxVal = max(dilatedMaxVal, s);
+        }
+    }
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = dilatedMaxVal;
+}
+
+#endif

@@ -35,6 +35,10 @@ namespace UnityEngine.Rendering
         // Holds the state of _all_ component types you can possibly add on volumes
         internal readonly Dictionary<Type, VolumeComponent> components = new();
 
+        // Per component type, the Volume that overrode its VolumeSceneObjectReference this frame (highest-priority
+        // overriding Volume, applied last). Rebuilt every Update.
+        readonly Dictionary<Type, Volume> m_OverridingVolumes = new();
+
         // Flat list of every volume parameter for faster per-frame stack reset.
         internal VolumeParameter[] parameters;
 
@@ -104,6 +108,19 @@ namespace UnityEngine.Rendering
             components.TryGetValue(type, out var comp);
             return comp;
         }
+
+        // The scene object that the overriding Volume contributes for component type T (the value of that Volume's
+        // VolumeSceneObjectReference for T), or null when no Volume overrode it.
+        internal GameObject GetSceneObjectReference<T>()
+            where T : VolumeComponent
+        {
+            m_OverridingVolumes.TryGetValue(typeof(T), out var overridingVolume);
+            return overridingVolume != null ? overridingVolume.sceneObjectReference.value : null;
+        }
+
+        internal void SetOverridingVolume(Type type, Volume volume) => m_OverridingVolumes[type] = volume;
+
+        internal void ClearOverridingVolumes() => m_OverridingVolumes.Clear();
 
         /// <summary>
         /// Cleans up the content of this stack. Once a <c>VolumeStack</c> is disposed, it shouldn't

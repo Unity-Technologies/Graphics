@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering
             {
                 var type = GetType();
                 var displayTypeInfoAttribute = type.GetCustomAttribute<DisplayInfoAttribute>();
-                return EditorGUIUtility.TrTextContent(displayTypeInfoAttribute != null ? displayTypeInfoAttribute.name : type.Name);
+                return L10n.TextContent(displayTypeInfoAttribute != null ? displayTypeInfoAttribute.name : type.Name, null, null, null);
             }
         }
 

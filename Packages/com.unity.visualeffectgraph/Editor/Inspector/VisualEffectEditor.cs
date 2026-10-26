@@ -1403,6 +1403,9 @@ namespace UnityEditor.VFX
                                 m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
                             EditorGUI.EndProperty();
 
+                            if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.CustomProvided)
+                                EditorGUILayout.HelpBox(Contents.lightProbeCustomProvidedUnsupportedNote.text, MessageType.Warning);
+
 #pragma warning disable CS0618
                             if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
                             {
@@ -1465,19 +1468,20 @@ namespace UnityEditor.VFX
 
             private static class Contents
             {
-                public static readonly GUIContent renderingLayerMaskStyle = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
-                public static readonly GUIContent rendererPriorityStyle = EditorGUIUtility.TrTextContent("Priority", "Priority used for sorting objects on top of material render queue.");
-                public static readonly GUIContent lightProbeUsageStyle = EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
-                public static readonly GUIContent reflectionProbeUsageStyle = EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
-                public static readonly GUIContent lightProbeVolumeOverrideStyle = EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
-                public static readonly GUIContent lightProbeAnchorStyle = EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
-                public static readonly GUIContent lightProbeVolumeUnsupportedNote = EditorGUIUtility.TrTextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.");
+                public static readonly GUIContent renderingLayerMaskStyle = L10n.TextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.", null, null);
+                public static readonly GUIContent rendererPriorityStyle = L10n.TextContent("Priority", "Priority used for sorting objects on top of material render queue.", null, null);
+                public static readonly GUIContent lightProbeUsageStyle = L10n.TextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.", null, null);
+                public static readonly GUIContent reflectionProbeUsageStyle = L10n.TextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.", null, null);
+                public static readonly GUIContent lightProbeVolumeOverrideStyle = L10n.TextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.", null, null);
+                public static readonly GUIContent lightProbeAnchorStyle = L10n.TextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.", null, null);
+                public static readonly GUIContent lightProbeVolumeUnsupportedNote = L10n.TextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.", null, null, null);
+                public static readonly GUIContent lightProbeCustomProvidedUnsupportedNote = L10n.TextContent("Custom Provided light probes are not supported by Visual Effect Graph.", null, null, null);
 
-                public static readonly GUIContent probeSettings = EditorGUIUtility.TrTextContent("Probes");
-                public static readonly GUIContent otherSettings = EditorGUIUtility.TrTextContent("Additional Settings");
+                public static readonly GUIContent probeSettings = L10n.TextContent("Probes", null, null, null);
+                public static readonly GUIContent otherSettings = L10n.TextContent("Additional Settings", null, null, null);
 
-                public static readonly GUIContent sortingLayerStyle = EditorGUIUtility.TrTextContent("Sorting Layer", "Name of the Renderer's sorting layer");
-                public static readonly GUIContent sortingOrderStyle = EditorGUIUtility.TrTextContent("Order in Layer", "Renderer's order within a sorting layer");
+                public static readonly GUIContent sortingLayerStyle = L10n.TextContent("Sorting Layer", "Name of the Renderer's sorting layer", null, null);
+                public static readonly GUIContent sortingOrderStyle = L10n.TextContent("Order in Layer", "Renderer's order within a sorting layer", null, null);
 
                 public static readonly GUIStyle boldPopupStyle = new GUIStyle(EditorStyles.popup) { fontStyle = FontStyle.Bold };
             }
@@ -1485,21 +1489,21 @@ namespace UnityEditor.VFX
 
         protected static class Contents
         {
-            public static readonly GUIContent headerPlayControls = EditorGUIUtility.TrTextContent("Play Controls");
-            public static readonly GUIContent headerGeneral = EditorGUIUtility.TrTextContent("General");
-            public static readonly GUIContent headerProperties = EditorGUIUtility.TrTextContent("Properties");
-            public static readonly GUIContent headerRenderer = EditorGUIUtility.TrTextContent("Renderer");
-            public static readonly GUIContent headerInstancing = EditorGUIUtility.TrTextContent("Instancing");
+            public static readonly GUIContent headerPlayControls = L10n.TextContent("Play Controls", null, null, null);
+            public static readonly GUIContent headerGeneral = L10n.TextContent("General", null, null, null);
+            public static readonly GUIContent headerProperties = L10n.TextContent("Properties", null, null, null);
+            public static readonly GUIContent headerRenderer = L10n.TextContent("Renderer", null, null, null);
+            public static readonly GUIContent headerInstancing = L10n.TextContent("Instancing", null, null, null);
 
-            public static readonly GUIContent assetPath = EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
-            public static readonly GUIContent randomSeed = EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
-            public static readonly GUIContent reseedOnPlay = EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
-            public static readonly GUIContent openEditor = EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
-            public static readonly GUIContent createAsset = EditorGUIUtility.TrTextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.");
-            public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
-            public static readonly GUIContent resetInitialEvent = EditorGUIUtility.TrTextContent("Default");
-            public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
-            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
+            public static readonly GUIContent assetPath = L10n.TextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.", null, null);
+            public static readonly GUIContent randomSeed = L10n.TextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.", null, null);
+            public static readonly GUIContent reseedOnPlay = L10n.TextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.", null, null);
+            public static readonly GUIContent openEditor = L10n.TextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.", null, null);
+            public static readonly GUIContent createAsset = L10n.TextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.", null, null);
+            public static readonly GUIContent setRandomSeed = L10n.TextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.", null, null);
+            public static readonly GUIContent resetInitialEvent = L10n.TextContent("Default", null, null, null);
+            public static readonly GUIContent setPlayRate = L10n.TextContent("Set", null, null, null);
+            public static readonly GUIContent playRate = L10n.TextContent("Rate", null, null, null);
             public static readonly GUILayoutOption playRateWidth = GUILayout.Width(46);
             public static readonly GUILayoutOption showToggleLabelsWidth = GUILayout.Width(192);
             public static readonly GUILayoutOption showToggleWidth = GUILayout.Width(18);
@@ -1507,10 +1511,10 @@ namespace UnityEditor.VFX
             public static readonly GUILayoutOption sceneViewButtonWidth = GUILayout.Width(52);
             public static readonly GUILayoutOption playRateDropdownWidth = GUILayout.Width(40);
 
-            public static readonly GUIContent allowInstancing = EditorGUIUtility.TrTextContent("Allow Instancing", "When enabled, the effect will try to be batched with other of the same type.");
-            public static readonly GUIContent releaseInstanceOnDisable = EditorGUIUtility.TrTextContent("Release Instance On Disable", "When enabled, the effect instance will be created when the component is enabled, and released when it is disabled, to optimize memory usage.");
+            public static readonly GUIContent allowInstancing = L10n.TextContent("Allow Instancing", "When enabled, the effect will try to be batched with other of the same type.", null, null);
+            public static readonly GUIContent releaseInstanceOnDisable = L10n.TextContent("Release Instance On Disable", "When enabled, the effect instance will be created when the component is enabled, and released when it is disabled, to optimize memory usage.", null, null);
 
-            public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
+            public static readonly GUIContent graphInBundle = L10n.TextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.", null, null, null);
             public static readonly GUIContent play = new GUIContent("Send Play Event");
             public static readonly GUIContent stop = new GUIContent("Send Stop Event");
 

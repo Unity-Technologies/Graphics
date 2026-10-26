@@ -9,6 +9,7 @@ using UnityObject = UnityEngine.Object;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Experimental.GraphView;
+using UnityEditorInternal;
 
 namespace UnityEditor
 {
@@ -107,25 +108,34 @@ namespace UnityEditor
 
         public static T CreateNew<T>(string path) where T : UnityObject
         {
-            string emptyAsset =
-@"%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!114 &114350483966674976
-MonoBehaviour:
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
---- !u!2058629511 &1
-VisualEffectResource:
-  m_Graph: {fileID: 114350483966674976}
-";
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                throw new DirectoryNotFoundException($"Could not find a part of the path '{path}'");
 
-            File.WriteAllText(path, emptyAsset);
+            var resource = new VisualEffectResource();
+            var graph = resource.CreateGraph();
+            try
+            {
+                // Writing untracked keeps these from becoming persistent at a path the AssetDatabase
+                // doesn't know yet; the import below is what makes the file loadable.
+                InternalEditorUtility.SaveToSerializedFileAndForget(new UnityObject[] { resource, graph }, path, true);
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(graph);
+                UnityObject.DestroyImmediate(resource);
+            }
 
             AssetDatabase.ImportAsset(path);
 
-            return AssetDatabase.LoadAssetAtPath<T>(path);
+            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (asset == null)
+                throw new System.InvalidOperationException($"Could not create the asset at '{path}'");
+
+            return asset;
         }
 
-        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph...", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             VFXLibrary.LogUnsupportedSRP();
@@ -156,7 +166,7 @@ VisualEffectResource:
         public static void CreateHLSLFileAsset()
         {
             var action = ScriptableObject.CreateInstance<DoCreateHLSLFile>();
-            var icon = EditorGUIUtility.FindTexture(typeof(TextAsset));
+            var icon = EditorGUIUtility.FindTexture(typeof(ShaderInclude));
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, action, "New custom node.hlsl", icon, null);
         }
 

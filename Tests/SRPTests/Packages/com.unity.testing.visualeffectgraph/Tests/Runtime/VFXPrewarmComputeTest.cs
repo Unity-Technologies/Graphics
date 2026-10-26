@@ -10,12 +10,14 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [AssetBundleSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXPrewarmComputeTest
     {
         private const string kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/PrewarmCompute.unity";
@@ -49,10 +51,6 @@ namespace UnityEngine.VFX.Test
         [DeviceFilter(GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan, GraphicsDeviceType.Metal)]
         public IEnumerator All_Compute_Shaders_Prewarmed()
         {
-#if UNITY_EDITOR_OSX
-            Assert.Ignore("See UUM-140411");
-#endif
-
             // Find the CreateComputePipelineImpl marker
             m_Recorders = new List<ProfilerRecorder>();
             var allHandles = new List<ProfilerRecorderHandle>();

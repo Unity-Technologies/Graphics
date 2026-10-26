@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool ValidateMaskInput(int InputValueSize)
         {
-            convertedMask = _maskInput.ToLower();
+            convertedMask = _maskInput.ToLowerInvariant();
 
             Dictionary<char, char> mask_map = new Dictionary<char, char>
             {

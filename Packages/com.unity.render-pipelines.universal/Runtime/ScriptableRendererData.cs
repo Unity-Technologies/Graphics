@@ -78,8 +78,34 @@ namespace UnityEngine.Rendering.Universal
             // when ScriptableRendererFeatures haven't been compiled before this check).
             if (!EditorApplication.isCompiling && m_RendererFeatures.Contains(null))
                 ValidateRendererFeatures();
+
+            MigrateRendererFeatureHideFlags();
 #endif
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Migrates renderer features to use HideInHierarchy flag so they don't appear in the project browser.
+        /// </summary>
+        void MigrateRendererFeatureHideFlags()
+        {
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+                return;
+            bool dirty = false;
+            foreach (var feature in m_RendererFeatures)
+            {
+                if (feature != null && (feature.hideFlags & HideFlags.HideInHierarchy) == 0)
+                {
+                    feature.hideFlags |= HideFlags.HideInHierarchy;
+                    EditorUtility.SetDirty(feature);
+                    dirty = true;
+                }
+            }
+
+            if (dirty)
+                EditorUtility.SetDirty(this);
+        }
+#endif
 
         /// <summary>
         /// This function is called when the object becomes enabled and active.
@@ -99,9 +125,9 @@ namespace UnityEngine.Rendering.Universal
         {
             foreach (var target in rendererFeatures)
             {
-                if (target.GetType() == typeof(T))
+                if (target is T feature)
                 {
-                    rendererFeature = target as T;
+                    rendererFeature = feature;
                     return true;
                 }
             }

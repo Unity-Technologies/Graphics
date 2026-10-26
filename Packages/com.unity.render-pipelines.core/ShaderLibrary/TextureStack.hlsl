@@ -80,9 +80,8 @@
     Also, for tiles to be automatically loaded, you need to write to the VT Feedback texture
     (SV_Target1) by yourself in the "ForwardOnly" pass. For example:
 
-        #if defined(UNITY_VIRTUAL_TEXTURING) && defined(SHADER_API_PSSL)
-            // Prevent loss of precision on some Sony platforms.
-            #pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
+        #if defined(UNITY_VIRTUAL_TEXTURING)
+            #pragma rendertarget_format_hint MRT1 R16G16_UNorm
         #endif
 
         void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0

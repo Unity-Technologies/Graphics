@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Render Graph-related Rendering Debugger settings.
     /// </summary>
-    [PipelineHelpURL("UniversalRenderPipelineAsset", pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", pageName: "urp/features/rendering-debugger-reference", pageHash: "render-graph")]
     [PipelineHelpURL("HDRenderPipelineAsset", pageName: "rendering-debugger-window-reference", pageHash: "render-graph")]
     class DebugDisplaySettingsRenderGraph : IDebugDisplaySettingsData
     {

@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
         const float k_Limit = 100000f;
         const float k_LimitInv = 1f / k_Limit;
 
-        static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static readonly GUIContent k_NewDecalMaterialButtonText = L10n.TextContent("New", "Creates a new Decal material.", null, null);
         static readonly string k_NewDecalText = "URP Decal";
         static readonly string k_NewSGDecalText = "ShaderGraph Decal";
         static readonly string k_NewSGDecalFromTemplateText = "ShaderGraph Decal from Template";

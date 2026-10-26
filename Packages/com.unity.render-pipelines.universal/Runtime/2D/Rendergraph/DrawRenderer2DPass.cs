@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.U2D.Profiler;
@@ -11,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
 
-        private static readonly List<ShaderTagId> k_ShaderTags =
+        internal static readonly List<ShaderTagId> k_ShaderTags =
             new List<ShaderTagId>() {k_LegacyPassName, k_CombinedRenderingPassName};
 
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
@@ -91,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
             var layerBatch = rendering2DData.layerBatches[batchIndex];
 
             // Check for lighting in scene/prefab/preview camera 
-            var isLightingActive = rendering2DData.isLightingActive;
+            var isLightingActive = Renderer2D.IsSceneViewOrPreviewLightingActive(cameraData);
 
             // Preset global light textures for first batch
             if (batchIndex == 0)
@@ -165,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                 // Set color and depth attachments
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
 
-                if (Renderer2D.IsDepthUsageAllowed(frameData, rendererData))
+                if (commonResourceData.activeDepthTexture.IsValid())
                     builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
 
                 builder.AllowGlobalStateModification(true);
@@ -184,6 +183,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, ContextContainer frameData, int batchIndex, bool isLightingActive)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             Renderer2DData rendererData = frameData.Get<Universal2DRenderingData>().renderingData;
             var layerBatch = frameData.Get<Universal2DRenderingData>().layerBatches[batchIndex];
             var lightTextures = frameData.Get<Universal2DResourceData>().lightTextures[batchIndex];

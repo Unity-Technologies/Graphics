@@ -1080,6 +1080,7 @@ namespace UnityEngine.Rendering
             noiseTextureInfo.msaaSamples = 1;
             noiseTextureInfo.format = noiseTexture.graphicsFormat;
             noiseTextureInfo.bindMS = false;
+            noiseTextureInfo.isMemoryless = false;
 
             TextureHandle noiseTextureHandle = renderGraph.ImportTexture(noiseTextureRtHandle, noiseTextureInfo);
 

@@ -15,11 +15,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [CustomObjectIndexer(typeof(ShaderGraphImporter), version = 1)]
+        [CustomObjectIndexer(typeof(ShaderGraphImporter), version = 2)]
         internal static void ShaderGraphImporterIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
             => ShaderGraphIndexer(context, indexer);
 
-        [CustomObjectIndexer(typeof(Shader), version = 1)]
+        [CustomObjectIndexer(typeof(Shader), version = 2)]
         internal static void ShaderGraphShaderIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
             => ShaderGraphIndexer(context, indexer);
     }

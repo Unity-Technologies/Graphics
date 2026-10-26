@@ -8,33 +8,33 @@ namespace UnityEditor.Rendering.Universal
     {
         class Styles
         {
-            public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
-            public static readonly GUIContent lightRenderTexturesHeader = EditorGUIUtility.TrTextContent("Light Render Textures");
-            public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
-            public static readonly GUIContent postProcessHeader = EditorGUIUtility.TrTextContent("Post-processing");
+            public static readonly GUIContent generalHeader = L10n.TextContent("General", null, null, null);
+            public static readonly GUIContent lightRenderTexturesHeader = L10n.TextContent("Light Render Textures", null, null, null);
+            public static readonly GUIContent lightBlendStylesHeader = L10n.TextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.", null, null);
+            public static readonly GUIContent postProcessHeader = L10n.TextContent("Post-processing", null, null, null);
 
-            public static readonly GUIContent filteringSectionLabel = EditorGUIUtility.TrTextContent("Filtering", "Settings that controls and define which layers the renderer draws.");
-            public static readonly GUIContent layerMask = EditorGUIUtility.TrTextContent("Layer Mask", "Controls which transparent layers this renderer draws.");
+            public static readonly GUIContent filteringSectionLabel = L10n.TextContent("Filtering", "Settings that controls and define which layers the renderer draws.", null, null);
+            public static readonly GUIContent layerMask = L10n.TextContent("Layer Mask", "Controls which transparent layers this renderer draws.", null, null);
 
-            public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
-            public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
-            public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
-            public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
-            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
-            public static readonly GUIContent maxShadowRTCount = EditorGUIUtility.TrTextContent("Max Shadow Render Textures", "How many intermediate shadow render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
-            public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
-            public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
+            public static readonly GUIContent transparencySortMode = L10n.TextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects", null, null);
+            public static readonly GUIContent transparencySortAxis = L10n.TextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode", null, null);
+            public static readonly GUIContent hdrEmulationScale = L10n.TextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR", null, null);
+            public static readonly GUIContent lightRTScale = L10n.TextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.", null, null);
+            public static readonly GUIContent maxLightRTCount = L10n.TextContent("Max Light Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.", null, null);
+            public static readonly GUIContent maxShadowRTCount = L10n.TextContent("Max Shadow Render Textures", "How many intermediate shadow render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.", null, null);
+            public static readonly GUIContent defaultMaterialType = L10n.TextContent("Default Material Type", "Material to use when adding new objects to a scene", null, null);
+            public static readonly GUIContent defaultCustomMaterial = L10n.TextContent("Default Custom Material", "Material to use when adding new objects to a scene", null, null);
 
-            public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
-            public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
-            public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
-            public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
-            public static readonly GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
-            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
+            public static readonly GUIContent name = L10n.TextContent("Name", null, null, null);
+            public static readonly GUIContent maskTextureChannel = L10n.TextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.", null, null);
+            public static readonly GUIContent blendMode = L10n.TextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.", null, null);
+            public static readonly GUIContent useDepthStencilBuffer = L10n.TextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.", null, null);
+            public static readonly GUIContent postProcessIncluded = L10n.TextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.", null, null);
+            public static readonly GUIContent postProcessData = L10n.TextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.", null, null);
 
-            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layer Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture");
-            public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Foremost Sorting Layer", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture");
-            public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayerTexture");
+            public static readonly GUIContent cameraSortingLayerTextureHeader = L10n.TextContent("Camera Sorting Layer Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture", null, null);
+            public static readonly GUIContent cameraSortingLayerTextureBound = L10n.TextContent("Foremost Sorting Layer", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture", null, null);
+            public static readonly GUIContent cameraSortingLayerDownsampling = L10n.TextContent("Downsampling Method", "Method used to copy _CameraSortingLayerTexture", null, null);
         }
 
         struct LightBlendStyleProps

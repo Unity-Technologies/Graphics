@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6253413526524538880
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac1e685d8f7565142b879339cd471764, type: 3}
+  m_Name: SurfaceCacheGIVolumeOverride
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.SurfaceCacheGIVolumeOverride
+  active: 1
+  enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  lightTransportMultiBounce:
+    m_OverrideState: 1
+    m_Value: 1
+  lightTransportBouncePatchAllocation:
+    m_OverrideState: 1
+    m_Value: 1
+  lightTransportSampleCount:
+    m_OverrideState: 1
+    m_Value: 32
+  lightTransportRenderingLayerMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 0
+      m_Bits: 4294967295
+  lightTransportDefragCount:
+    m_OverrideState: 1
+    m_Value: 1
+  lightTransportWarmupSampleMultiplier:
+    m_OverrideState: 1
+    m_Value: 8
+  patchFilteringTemporalSmoothing:
+    m_OverrideState: 1
+    m_Value: 0.6
+  patchFilteringSpatialEnabled:
+    m_OverrideState: 1
+    m_Value: 1
+  patchFilteringSpatialSampleCount:
+    m_OverrideState: 1
+    m_Value: 8
+  patchFilteringSpatialRadius:
+    m_OverrideState: 1
+    m_Value: 1
+  patchFilteringPostTemporalEnabled:
+    m_OverrideState: 1
+    m_Value: 1
+  screenFilteringLookupSampleCount:
+    m_OverrideState: 1
+    m_Value: 16
+  screenFilteringDenoisingPassCount:
+    m_OverrideState: 1
+    m_Value: 2
+  volumeSize:
+    m_OverrideState: 1
+    m_Value: 20
+  volumeResolution:
+    m_OverrideState: 1
+    m_Value: 128
+  volumeCascadeCount:
+    m_OverrideState: 1
+    m_Value: 1
+  volumeDistanceFallback:
+    m_OverrideState: 1
+    m_Value: 0
+  volumePatchWarpingEnabled:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: SurfaceCacheGIVolume
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
+  components:
+  - {fileID: -6253413526524538880}

@@ -1,10 +1,21 @@
 #pragma only_renderers d3d11 xboxone xboxseries vulkan metal
+#pragma multi_compile _ TERRAIN_RAY_MARCHING_ENABLED
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
+
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+// Terrain ray marching resources
+Texture2DArray<float> _TerrainTexture;
+SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TerrainRayMarching.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/FetchTerrainGeometry.hlsl"
+#endif
+#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/TraceRayProbeVolume.hlsl"
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
@@ -86,13 +97,23 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
         bool hasHit = false;
 
-        hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, rayFlags);
+        hitResult = TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, rayFlags);
         hasHit = hitResult.IsValid();
 
         if (hasHit)
         {
             UnifiedRT::InstanceData instanceInfo = UnifiedRT::GetInstance(hitResult.instanceID);
-            UnifiedRT::HitGeomAttributes hitGeom = UnifiedRT::FetchHitGeomAttributesInWorldSpace(instanceInfo, hitResult);
+
+            UnifiedRT::HitGeomAttributes hitGeom;
+            #ifdef TERRAIN_RAY_MARCHING_ENABLED
+            if (instanceInfo.terrainIndex >= 0)
+                hitGeom = FetchTerrainHitGeomAttributes(hitResult, instanceInfo.terrainIndex);
+            else
+            #endif
+                hitGeom = UnifiedRT::FetchHitGeomAttributes(hitResult, UnifiedRT::kGeomAttribPosition | UnifiedRT::kGeomAttribNormal);
+
+            hitGeom = UnifiedRT::TransformToWorldSpace(instanceInfo, hitGeom);
+
             hitPointWS = hitGeom.position;
             normalWS = hitGeom.normal;
             if (dot(normalWS, ray.direction) > 0.0f) // flip normal if hitting backface

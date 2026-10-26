@@ -1,4 +1,4 @@
-# Output Distortion
+# Output Distortion Context
 
 Menu Path : **Context > Output [Strip/Particle] Distortion [Quad/Mesh]**
 

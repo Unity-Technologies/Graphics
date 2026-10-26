@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Materials_01
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: What are Materials?
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 4e47698a7516ca94a98f4e1345391f75, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 4e47698a7516ca94a98f4e1345391f75, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,31 +49,38 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: What are Materials?
+        m_Untranslated: 
       Text:
-        m_Untranslated: 'Materials are used to set the visual aspect of the objects
-          in the Scene. Typically, a Material relies on a shader and a variety of
-          inputs, such as textures and numerical values.
+        m_Untranslated: 'Materials are used to set the visual aspect of the objects in the Scene. Typically, a Material relies on a shader and a variety of inputs, such as textures and numerical values.
 
 
-          HDRP uses <b>Physically
-          Based Rendering (PBR)</b> materials. PBR is an industry-standard technique
-          that more accurately simulates the real-world interaction of the lighting
-          with the materials.'
+          HDRP uses <b>Physically Based Rendering (PBR)</b> materials. PBR is an industry-standard technique that more accurately simulates the real-world interaction of the lighting with the materials.'
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -81,6 +102,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

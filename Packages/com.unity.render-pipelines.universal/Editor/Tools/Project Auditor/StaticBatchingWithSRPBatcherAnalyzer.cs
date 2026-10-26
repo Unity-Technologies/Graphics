@@ -4,6 +4,7 @@ using Unity.ProjectAuditor.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Universal.ProjectAuditor
 {
@@ -21,7 +22,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
         )
         {
             Fixer = FixStaticBatching,
-            DefaultSeverity = Severity.Warning,
             MessageFormat = "URP: Static Batching conflicts with SRP Batcher enabled in {0}.asset in {1}",
         };
 
@@ -38,18 +38,18 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 yield return new RenderingSettingsIssue(URP0302, assetName: urpAsset.name);
             }
 
-            using (UnityEngine.Pool.ListPool<(int level, string name)>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<(int level, string assetName)>.Get(out var tmp))
             {
                 QualitySettings.ForEach((level, name) =>
                 {
                     if (QualitySettings.renderPipeline is UniversalRenderPipelineAsset urpAsset && urpAsset.useSRPBatcher)
                     {
-                        tmp.Add((level, name));
+                        tmp.Add((level, urpAsset.name));
                     }
                 });
 
-                foreach (var (level, name) in tmp)
-                    yield return new RenderingSettingsIssue(URP0302, level, name);
+                foreach (var (level, assetName) in tmp)
+                    yield return new RenderingSettingsIssue(URP0302, level, assetName);
             }
         }
 

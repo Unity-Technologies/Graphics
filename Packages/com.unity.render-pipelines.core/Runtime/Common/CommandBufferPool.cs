@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using UnityEngine.Events;
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -8,13 +5,13 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CommandBufferPool
     {
-        static ObjectPool<CommandBuffer> s_BufferPool = new ObjectPool<CommandBuffer>(null, x => x.Clear());
+        static UnityEngine.Pool.ObjectPool<CommandBuffer> s_BufferPool = new UnityEngine.Pool.ObjectPool<CommandBuffer>(() => new CommandBuffer(), null, x => x.Clear());
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         static void ResetStaticsOnLoad()
         {
-            s_BufferPool = new ObjectPool<CommandBuffer>(null, x => x.Clear());
+            s_BufferPool = new UnityEngine.Pool.ObjectPool<CommandBuffer>(() => new CommandBuffer(), null, x => x.Clear());
         }
 #endif
 

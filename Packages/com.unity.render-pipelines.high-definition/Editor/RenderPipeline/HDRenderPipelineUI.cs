@@ -572,26 +572,83 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_AMD && !ENABLE_AMD_MODULE
         static bool s_DisplayAMDModuleButtonInstall = true;
 #endif
+
+        // Resolve the framework IUpscaler instance for a registered upscaler ID.
+        static IUpscaler ResolveIUpscalerById(string upscalerId)
+        {
+            Upscaling upscaling = HDRenderPipeline.currentPipeline?.upscaling;
+            if (upscaling == null || string.IsNullOrEmpty(upscalerId))
+                return null;
+            return upscaling.GetIUpscalerById(upscalerId);
+        }
+
+        // Contextual HelpBox under a framework upscaler's Resolution Mode dropdown, explaining how the chosen mode
+        // interacts with HDRP Dynamic Resolution: Quality Mode pins the render resolution (the screen-percentage range is
+        // ignored); Custom Scaling lets Dynamic Resolution drive within the upscaler's limits (a hard clamp for upscalers
+        // that report a range, an advisory floor otherwise). Driven entirely by GetResolutionInfo, so it works for any
+        // framework upscaler (including future ones) with no per-upscaler code.
+        static void DrawIUpscalerResolutionModeHelp(UpscalerOptions upscalerOptions, SerializedHDRenderPipelineAsset serialized)
+        {
+            IUpscaler upscaler = ResolveIUpscalerById(upscalerOptions.upscalerId);
+            if (upscaler == null || !upscaler.hasQualityMode)
+                return; // no quality mode -> the resolution mode is dormant, nothing to explain
+
+            if (upscalerOptions.resolutionMode == UpscalerResolutionMode.QualityMode)
+            {
+                EditorGUILayout.HelpBox(Styles.iUpscalerQualityModeInfo, MessageType.Info, wide: true);
+                return;
+            }
+
+            // Custom Scaling: branch on what the upscaler reports. The reference resolution is arbitrary -- only the
+            // min/max-to-display ratio is used (for the percentages shown), and that ratio is resolution-independent.
+            var reference = new Vector2Int(3840, 2160);
+            UpscalerResolutionInfo info = upscaler.GetResolutionInfo(reference, upscalerOptions);
+
+            if (info.constraint == UpscalerResolutionConstraint.Fixed)
+            {
+                // Single valid render resolution for this preset (e.g. DLSS Ultra Performance): DRS is ignored.
+                // Report the pinned size as a render-scale % (resolution-independent; the pixel size depends on the
+                // actual display resolution).
+                float pinnedScale = (float)info.qualityModeResolution.x / reference.x;
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomSingleResInfo, pinnedScale * 100f), MessageType.Info, wide: true);
+            }
+            else if (info.constraint == UpscalerResolutionConstraint.Range)
+            {
+                float minScale = (float)info.minResolution.x / reference.x;
+                float maxScale = (float)info.maxResolution.x / reference.x;
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomClampInfo, minScale * 100f, maxScale * 100f), MessageType.Info, wide: true);
+
+                // Warn if the configured minimum Screen Percentage is below the upscaler's hard minimum (it would be
+                // clamped at runtime).
+                float configuredMinPct = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
+                if (configuredMinPct < minScale * 100f - 0.5f)
+                    EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomMinBelowRangeWarning, configuredMinPct, minScale * 100f, upscaler.name), MessageType.Warning, wide: true);
+            }
+            else if (info.recommendedMinScale > 0f)
+            {
+                EditorGUILayout.HelpBox(string.Format(Styles.iUpscalerCustomAdvisoryInfo, info.recommendedMinScale * 100f), MessageType.Info, wide: true);
+            }
+            // else: no opinion / fully free -> no message.
+        }
+
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-#if ENABLE_UPSCALER_FRAMEWORK
-            bool ShouldSkipAdvancedUpscaler(string upscalerName)
+            bool ShouldSkipAdvancedUpscaler(string upscalerId)
             {
                 // Filter out DLSS/FSR2/STP IUpscaler implementations since HDRP already lists these upscalers as builtin.
-                // We skip these upscalers since IUpscalers don't have per-camera overrides while the builtin do, 
+                // We skip these upscalers since IUpscalers don't have per-camera overrides while the builtin do,
                 // leading to potential for user confusion and bad UX.
                 // If we need to test these IUpscalers in HDRP, remove the condition from here + update numIUpscalersToDisplay
                 // count below to reflect the correct number of options to display.
-                return upscalerName == STPIUpscaler.upscalerName
+                return upscalerId == STPIUpscaler.registeredId
                     #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                    || upscalerName == DLSSIUpscaler.upscalerName
+                    || upscalerId == DLSSIUpscaler.registeredId
                     #endif
                     #if ENABLE_AMD && ENABLE_AMD_MODULE
-                    || upscalerName == FSR2IUpscaler.upscalerName
+                    || upscalerId == FSR2IUpscaler.registeredId
                     #endif
                     ;
             }
-#endif
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
 
@@ -614,27 +671,21 @@ namespace UnityEditor.Rendering.HighDefinition
             advancedUpscalersDetectedMask |= (1 << (int)AdvancedUpscalers.STP);
             advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.STP);
 
-#if ENABLE_UPSCALER_FRAMEWORK
-            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null && HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Count > 0)
+            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null && HDRenderPipeline.currentPipeline.upscaling.upscalerIds.Count > 0)
             {
                 advancedUpscalersDetectedMask |= (1 << (int)AdvancedUpscalers.IUpscaler);
             }
-#endif
 
-#if ENABLE_UPSCALER_FRAMEWORK
             const int builtinUpscalerCount = (int)AdvancedUpscalers.IUpscaler;
-#else
-            const int builtinUpscalerCount = (int)AdvancedUpscalers.STP + 1;
-#endif
+
             // calculate advancedUpscalersEnabledMask value
             for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
             {
-                string name = serialized.renderPipelineSettings.dynamicResolutionSettings
-                    .advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
+                string advancedUpscaler = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
                 int nameIndex = -1;
                 for (int j = 0; j < builtinUpscalerCount; j++)
                 {
-                    if (name == ((AdvancedUpscalers)j).ToString())
+                    if (advancedUpscaler == ((AdvancedUpscalers)j).ToString())
                     {
                         nameIndex = j;
                         break;
@@ -669,37 +720,37 @@ namespace UnityEditor.Rendering.HighDefinition
                             },
                             drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                             {
-                                string name = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(index).stringValue;
+                                string advancedUpscaler = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(index).stringValue;
+
+                                // Read the registry, not the pipeline: editing the asset destroys the pipeline instance.
+                                if (UpscalerRegistry.s_RegisteredUpscalers.TryGetValue(advancedUpscaler, out var registered))
+                                    advancedUpscaler = registered.DisplayName;
+
                                 rect.y += 2;
-                                EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight), name, EditorStyles.label);
+                                EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight), advancedUpscaler, EditorStyles.label);
                             },
                             onAddDropdownCallback = (rect,list) => {
-#if ENABLE_UPSCALER_FRAMEWORK
-                                int numIUpscalers = 0;
-#endif
                                 int numIUpscalersToDisplay = 0; // we'll exclude already available IUpscalers (STP/FSR2/DLSS)
-#if ENABLE_UPSCALER_FRAMEWORK
-                                if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.upscaling != null)
-                                {
-                                    numIUpscalers = HDRenderPipeline.currentPipeline.upscaling.upscalerNames.Count;
 
-                                    // count the IUpscalers surviving the filtering by ShouldSkipAdvancedUpscaler()
-                                    numIUpscalersToDisplay = numIUpscalers;
-                                    numIUpscalersToDisplay -= 1; // STP
-#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                                    numIUpscalersToDisplay -= 1; // DLSS
-#endif
-#if ENABLE_AMD && ENABLE_AMD_MODULE
-                                    numIUpscalersToDisplay -= 1; // FSR2
-#endif
+                                // Read the registry, not the pipeline: editing the asset destroys the pipeline instance.
+                                var iUpscalerIds = new List<string>();
+                                foreach (var registered in UpscalerRegistry.s_RegisteredUpscalers)
+                                {
+                                    if (!ShouldSkipAdvancedUpscaler(registered.Key))
+                                        iUpscalerIds.Add(registered.Key);
                                 }
-#endif // ENABLE_UPSCALER_FRAMEWORK
+
+                                // Matches the order Upscaling applies when no priority order is given.
+                                iUpscalerIds.Sort(StringComparer.OrdinalIgnoreCase);
+                                numIUpscalersToDisplay = iUpscalerIds.Count;
+								
                                 int numBuiltinUpscalers = math.countbits(advancedUpscalersAvailable);
                                 int numTotalUpscalers = numBuiltinUpscalers + numIUpscalersToDisplay;
 
                                 AdvancedUpscalers[] possible = new AdvancedUpscalers[numTotalUpscalers];
                                 var names = new GUIContent[numTotalUpscalers];
                                 var enabled = new bool[numTotalUpscalers];
+                                var values = new string[numTotalUpscalers];
 
                                 // Populate builtin upscalers
                                 int nextItem = 0;
@@ -709,23 +760,22 @@ namespace UnityEditor.Rendering.HighDefinition
                                     enabled[nextItem] = (advancedUpscalersEnabledMask & (1 << (int)upscalerIndex)) == 0;
                                     possible[nextItem] = upscalerIndex;
                                     names[nextItem] = new GUIContent(upscalerIndex.ToString());
+                                    values[nextItem] = upscalerIndex.ToString();
                                     upscalerRemainingMask ^= (1 << (int)upscalerIndex);//turn off the bit
                                     nextItem++;
                                 }
-#if ENABLE_UPSCALER_FRAMEWORK
+
                                 // Populate IUpscalers
-                                for (int i = numBuiltinUpscalers; i < numBuiltinUpscalers + numIUpscalers; i++)
+                                for (int i = 0; i < iUpscalerIds.Count; i++)
                                 {
-                                    string upscalerName = HDRenderPipeline.currentPipeline.upscaling.upscalerNames[i - numBuiltinUpscalers];
-                                    if (ShouldSkipAdvancedUpscaler(upscalerName))
-                                        continue;
+                                    string upscalerId = iUpscalerIds[i];
 
                                     possible[nextItem] = AdvancedUpscalers.IUpscaler;
-                                    names[nextItem] = new GUIContent(upscalerName);
+                                    names[nextItem] = new GUIContent(UpscalerRegistry.s_RegisteredUpscalers[upscalerId].DisplayName);
+                                    values[nextItem] = upscalerId;
                                     enabled[nextItem] = false;
                                     nextItem++;
                                 }
-#endif
 
                                 EditorUtility.SelectMenuItemFunction value = (userData, options, selected) =>
                                 {
@@ -733,8 +783,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     bool containsSelection = false;
                                     for(int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
                                     {
-                                        string name = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
-                                        if(name == names[selected].text)
+                                        string advancedUpscaler = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
+                                        if(advancedUpscaler == values[selected])
                                         {
                                             containsSelection = true;
                                             break;
@@ -746,8 +796,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     {
                                         int index = list.count > 0 ? list.index : 0;
                                         serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.InsertArrayElementAtIndex(index);
-                                        SerializedProperty nameProp = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(index);
-                                        nameProp.stringValue = names[selected].text;
+                                        SerializedProperty advancedUpscalerProp = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(index);
+                                        advancedUpscalerProp.stringValue = values[selected];
                                         serialized.serializedObject.ApplyModifiedProperties();
                                     }
                                 };
@@ -935,7 +985,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 #endregion
 
                 #region IUPSCALER_GUI
-#if ENABLE_UPSCALER_FRAMEWORK
                 bool detectedIUpscaler = ((1 << (int)AdvancedUpscalers.IUpscaler) & advancedUpscalersDetectedMask) != 0;
                 if(detectedIUpscaler)
                 {
@@ -946,21 +995,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.arraySize; ++i)
                     {
-                        string advancedUpscalerName = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
+                        string advancedUpscalerId = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.GetArrayElementAtIndex(i).stringValue;
 
-                        if (ShouldSkipAdvancedUpscaler(advancedUpscalerName))
+                        if (ShouldSkipAdvancedUpscaler(advancedUpscalerId))
+                            continue;
+
+                        IUpscaler advancedUpscaler = ResolveIUpscalerById(advancedUpscalerId);
+                        if (advancedUpscaler == null)
                             continue;
 
                         List<UpscalerOptions> upscalerOptionsList = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions;
-                        // O(N^2) IUpscaler name comparison but typical use case is <6 entries w/ each entry around 20B of char data
+                        // O(N^2) IUpscaler ID comparison but typical use case is <6 entries w/ each entry around 20B of char data
                         foreach (UpscalerOptions upscalerOptions in upscalerOptionsList)
                         {
-                            if (upscalerOptions.upscalerName != advancedUpscalerName)
+                            if (upscalerOptions.upscalerId != advancedUpscalerId)
                             {
                                 continue;
                             }
 
-                            EditorGUILayout.LabelField(upscalerOptions.upscalerName, EditorStyles.boldLabel);
+                            EditorGUILayout.LabelField(advancedUpscaler.name, EditorStyles.boldLabel);
                             ++EditorGUI.indentLevel;
 
                             Debug.Assert(hdrpEditor != null);
@@ -982,6 +1035,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                 editor.OnInspectorGUI();
                             }
 
+                            // Contextual help on how the selected Resolution Mode interacts with HDRP Dynamic Resolution.
+                            DrawIUpscalerResolutionModeHelp(upscalerOptions, serialized);
+
                             --EditorGUI.indentLevel;
 
                         } // foreach upscaler option
@@ -994,7 +1050,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorUtility.SetDirty(HDRenderPipeline.currentAsset);
                     }
                 }
-#endif
                 #endregion
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
@@ -1573,6 +1628,23 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                var serializedGPUResidentDrawer = serialized.renderPipelineSettings.gpuResidentDrawerSettings;
+
+                var shadowSmallMeshScreenPctContent = new[]{ Styles.shadowSmallMeshPct1, Styles.shadowSmallMeshPct2, Styles.shadowSmallMeshPct3, Styles.shadowSmallMeshPct4 };
+
+                using (new EditorGUI.MixedValueScope(serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.hasMultipleDifferentValues))
+                {
+                    Vector4 shadowSmallMeshScreenPercentages = new Vector4();
+
+                    EditorGUI.BeginChangeCheck();
+
+                    for (int i = 0; i < 4; i++)
+                        shadowSmallMeshScreenPercentages[i] = Mathf.Clamp(EditorGUILayout.FloatField(shadowSmallMeshScreenPctContent[i], serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.vector4Value[i]),0.0f, 50.0f);
+
+                    if (EditorGUI.EndChangeCheck())
+                        serializedGPUResidentDrawer.shadowSmallMeshScreenPercentages.vector4Value = shadowSmallMeshScreenPercentages;
+                }
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras, Styles.enableOcclusionCullingInCameras);
                 if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue == GPUResidentDrawerMode.InstancedDrawing && gpuResidentDrawerSettings.enableOcclusionCullingInCameras.boolValue)
                 {
@@ -1599,6 +1671,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                var validationSettings = HDProjectSettings.validationSettings;
+                bool ssgiEnabled = serialized.renderPipelineSettings.supportSSGI.boolValue;
+                if (ssgiEnabled && !validationSettings.k_ScreenSpaceGlobalIllumination_Recommended)
+                {
+                    HDEditorUtils.ShowFeatureOptimisationWarning(Styles.supportSSGIContent.text);
+                }
+            }
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
             EditorGUI.BeginChangeCheck();

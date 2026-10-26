@@ -1,5 +1,13 @@
+// #define is file-scoped in C#: this file cannot read the #define in ProfilingScope.cs, only
+// duplicate it by hand. Keep the two in sync — if UNITY_USE_RECORDER there is undefined (to strip
+// recorder overhead), undefine it here too.
+#define UNITY_USE_RECORDER
+
+using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using Unity.Profiling.LowLevel;
 using UnityEngine.TestTools;
@@ -9,6 +17,15 @@ namespace UnityEngine.Rendering.Tests
     class ProfilingSamplerTests
     {
         const int k_FrameCount = 4;
+
+        // Every [Test]/[TestCase]/[UnityTest] method declared below, given the current state of
+        // UNITY_USE_RECORDER above. Update both branches when adding or removing a test method
+        // (see AllTestMethods_AreDiscovered_WhenRecorderDefineEnabled).
+#if UNITY_USE_RECORDER
+        const int k_ExpectedTestMethodCount = 19;
+#else
+        const int k_ExpectedTestMethodCount = 9;
+#endif
 
         ProfilingSampler m_Sampler;
 
@@ -21,7 +38,7 @@ namespace UnityEngine.Rendering.Tests
         [TearDown]
         public void TearDown()
         {
-            m_Sampler.enableRecording = false;
+            m_Sampler.Dispose();
         }
 
         static void WaitAtLeastMs(int milliseconds)
@@ -33,6 +50,20 @@ namespace UnityEngine.Rendering.Tests
                 System.Threading.Thread.Sleep(milliseconds);
 #endif
             }
+        }
+
+        [Test]
+        public void AllTestMethods_AreDiscovered_WhenRecorderDefineEnabled()
+        {
+            int testMethodCount = GetType()
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                .Count(m => Attribute.IsDefined(m, typeof(TestAttribute))
+                         || Attribute.IsDefined(m, typeof(TestCaseAttribute))
+                         || Attribute.IsDefined(m, typeof(UnityTestAttribute)));
+
+            Assert.AreEqual(k_ExpectedTestMethodCount, testMethodCount,
+                "Some ProfilingSamplerTests methods failed to compile for the current state of " +
+                "UNITY_USE_RECORDER. Check the preprocessor guards on the methods in this fixture.");
         }
 
         [Test]
@@ -56,7 +87,7 @@ namespace UnityEngine.Rendering.Tests
             var sampler = ProfilingSampler.Create("CreatedMarker", MarkerFlags.Default);
             Assert.IsNotNull(sampler);
             Assert.IsTrue(sampler.IsValid());
-#if USE_RECORDER
+#if UNITY_USE_RECORDER && ENABLE_PROFILER
             Assert.IsFalse(sampler.m_Recorder.Valid);
             Assert.IsFalse(sampler.m_GpuRecorder.Valid);
             Assert.IsFalse(sampler.m_InlineRecorder.Valid);
@@ -68,7 +99,7 @@ namespace UnityEngine.Rendering.Tests
         {
             var sampler = ProfilingSampler.Create("FlagsMarker", MarkerFlags.VerbosityAdvanced);
             Assert.IsTrue(sampler.IsValid());
-#if USE_RECORDER
+#if UNITY_USE_RECORDER && ENABLE_PROFILER
             // Recorders are allocated lazily; none should be valid before enableRecording = true.
             Assert.IsFalse(sampler.m_Recorder.Valid);
             Assert.IsFalse(sampler.m_GpuRecorder.Valid);
@@ -129,7 +160,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(0,    m_Sampler.inlineCpuSampleCount);
         }
 
-#if USE_RECORDER
+#if UNITY_USE_RECORDER && ENABLE_PROFILER
         // Bits 10-12 all zero → SampleGPU auto-added → GpuRecorder is created on first enableRecording = true
         [Test]
         public void SampleGPU_AutoAdded_ForUserFacingMarker()

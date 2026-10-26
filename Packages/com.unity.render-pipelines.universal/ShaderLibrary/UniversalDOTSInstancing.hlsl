@@ -7,7 +7,6 @@
 #undef unity_WorldToObject
 #undef unity_MatrixPreviousM
 #undef unity_MatrixPreviousMI
-// TODO: This might not work correctly in all cases, double check!
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_WorldToObject)
@@ -20,6 +19,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(SH,       unity_SHCoefficients)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint2,    unity_EntityId)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint,     unity_RendererUserValuesPropertyEntry)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint,     unity_LightProbeUsagePropertyEntry)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
@@ -28,6 +28,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
 #define unity_RendererUserValue    (UNITY_ACCESS_DOTS_INSTANCED_PROP(uint,   unity_RendererUserValuesPropertyEntry))
+#define unity_LightProbeUsage      (UNITY_ACCESS_DOTS_INSTANCED_PROP(uint,   unity_LightProbeUsagePropertyEntry))
 #define unity_SHAr                  LoadDOTSInstancedData_SHAr()
 #define unity_SHAg                  LoadDOTSInstancedData_SHAg()
 #define unity_SHAb                  LoadDOTSInstancedData_SHAb()
@@ -54,10 +55,12 @@ static const float4 unity_SpecCube0_BoxMax = float4(1,1,1,1);
 static const float4 unity_SpecCube0_BoxMin = float4(0,0,0,0);
 static const float4 unity_SpecCube0_ProbePosition = float4(0,0,0,0);
 static const float4 unity_SpecCube0_Rotation = float4(0,0,0,0);
+static const float4 unity_SpecCube0_Exposure = float4(1,0,0,0);
 static const float4 unity_SpecCube1_BoxMax = float4(1,1,1,1);
 static const float4 unity_SpecCube1_BoxMin = float4(0,0,0,0);
 static const float4 unity_SpecCube1_ProbePosition = float4(0,0,0,0);
 static const float4 unity_SpecCube1_Rotation = float4(0,0,0,0);
+static const float4 unity_SpecCube1_Exposure = float4(1,0,0,0);
 static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
 
 // Set up by BRG picking/selection code

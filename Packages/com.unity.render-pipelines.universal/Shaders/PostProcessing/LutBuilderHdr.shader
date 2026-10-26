@@ -1,7 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL _TONEMAP_AGX
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -30,6 +30,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
         float4 _SplitHighlights;    // xyz: color, w: unused
         float4 _HDROutputLuminanceParams; // xy: brightness min/max, z: paper white brightness, w: 1.0 / brightness max
         float4 _HDROutputGradingParams; // x: eetf/range reduction mode, y: hue shift, zw: unused
+        float4 _AgxParams; // x: contrast, y: mid-grey, z: toe-a, w: slope
 
         TEXTURE2D(_CurveMaster);
         TEXTURE2D(_CurveRed);
@@ -55,13 +56,14 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 
         float3 RotateToColorGradeOutputSpace(float3 gradedColor)
         {
-            #ifdef _TONEMAP_ACES
-                // In ACES workflow we return graded color in ACEScg, we move to ACES (AP0) later on
+            #if defined(_TONEMAP_ACES) || defined(_TONEMAP_AGX)
+                // ACES grades in ACEScg (moved to AP0 later); AgX grades in Rec709 and runs its own inset +
+                // output-space rotation later in ProcessColorForHDR. Neither rotates to Rec2020 here.
                 return gradedColor;
-            #elif defined(HDR_COLORSPACE_CONVERSION) // HDR but not ACES workflow
+            #elif defined(HDR_COLORSPACE_CONVERSION) // HDR but not ACES/AgX workflow
                 // If we are doing HDR we expect grading to finish at Rec2020. Any supplemental rotation is done inside the various options.
                 return RotateRec709ToRec2020(gradedColor);
-            #else // Nor ACES or HDR
+            #else // Neither ACES/AgX nor HDR
                 // We already graded in sRGB
                 return gradedColor;
             #endif
@@ -134,8 +136,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             colorLinear = sign(colorLinear) * pow(abs(colorLinear), _Gamma.xyz);
 
             // HSV operations
+            // Lift can push channels below zero, but RgbToHsv requires non-negative input. Clamp to 0.
             float satMult;
-            float3 hsv = RgbToHsv(colorLinear);
+            float3 hsv = RgbToHsv2(max(colorLinear, 0.0));
             {
                 // Hue Vs Sat
                 satMult = EvaluateCurve(_CurveHueVsSat, hsv.x) * 2.0;
@@ -150,9 +153,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
                 float hue = hsv.x + _HueSatCon.x;
                 float offset = EvaluateCurve(_CurveHueVsHue, hue) - 0.5;
                 hue += offset;
-                hsv.x = RotateHue(hue, 0.0, 1.0);
+                hsv.x = RotateHue2(hue, 0.0, 1.0);
             }
-            colorLinear = HsvToRgb(hsv);
+            colorLinear = HsvToRgb2(hsv);
 
             // Global saturation
             luma = GetLuminance(colorLinear);
@@ -198,6 +201,13 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
                 float3 aces = ACEScg_to_ACES(colorLinear);
                 colorLinear = AcesTonemap(aces);
             }
+            #elif _TONEMAP_AGX
+            {
+                // AgX's outputMax is the display ceiling in paper-white units; on this SDR grading LUT path that
+                // is 1.0 (SDR white). The HDR-output path (ProcessColorForHDR) passes MaxNits / PaperWhite instead.
+                const float sdrOutputMax = 1.0;
+                colorLinear = AgxTonemap(colorLinear, sdrOutputMax, _AgxParams.x, _AgxParams.y, _AgxParams.z, _AgxParams.w);
+            }
             #endif
 
             return colorLinear;
@@ -211,6 +221,12 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
                 return HDRMappingACES(aces.rgb, PaperWhite, MinNits, MaxNits, RangeReductionMode, true);
                 #elif _TONEMAP_NEUTRAL
                 return HDRMappingFromRec2020(colorLinear.rgb, PaperWhite, MinNits, MaxNits, RangeReductionMode, HueShift, true);
+                #elif _TONEMAP_AGX
+                // AgX does its own display mapping: the curve retargets its shoulder to the display headroom
+                // (outputMax), mapping to the output range in one step. Routing through the shared Neutral/ACES
+                // range reduction would tonemap twice. Input stays Rec709.
+                float3 agx = AgxTonemap(colorLinear.rgb, max(MaxNits / PaperWhite, 1.0), _AgxParams.x, _AgxParams.y, _AgxParams.z, _AgxParams.w);
+                return RotateRec709ToOutputSpace(agx) * PaperWhite;
                 #else
                 // Grading finished in Rec2020, converting to the expected color space and [0, 10k] nits range
                 return RotateRec2020ToOutputSpace(colorLinear) * PaperWhite;

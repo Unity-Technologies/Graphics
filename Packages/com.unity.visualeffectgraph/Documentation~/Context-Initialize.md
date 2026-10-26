@@ -1,4 +1,4 @@
-# Initialize
+# Initialize Particle Context
 
 Menu Path : **Context > Initialize Particle**
 

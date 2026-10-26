@@ -3,6 +3,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 using UnityEngine.Rendering;
 using System.Runtime.InteropServices;
 using Unity.Testing.XR.Runtime;
@@ -28,17 +30,37 @@ public class HDRP_Runtime_Graphics_Tests
     }
 
     [UnityOneTimeSetUp]
-    public IEnumerable UnityOneTimeSetUp()
+    public IEnumerator UnityOneTimeSetUp()
     {
         // Required because of resolution inconsistencies on some platforms                     
         yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
+    }
+
+    [SetUp]
+    public void ClearDeveloperConsole()
+    {
+        // UGK logs a startup error (UGK-3045) that leaves the console over the first capture.
+        if (GraphicsTestPlatform.Current.GetValue<UnityGraphicsKernelMode>() == UnityGraphicsKernelMode.UgkOn)
+            Debug.ClearDeveloperConsole();
     }
 
     [UnityTest]
     [SceneGraphicsTest(@"Assets/Scenes/^[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     [IgnoreGraphicsTest("005", "Was excluded from the build settings")]
-    [IgnoreGraphicsTest("007|008", "Temporary ignore due to light baking")]
+    [IgnoreGraphicsTest("007", "Temporary ignore due to light baking")]
+    [IgnoreGraphicsTest(
+        "003-VirtualTexturing$|003-VirtualTexturing-Forward$",
+        "https://jira.unity3d.com/browse/UGK-3045",
+        UnityGraphicsKernelMode.UgkOn
+    )]
+    [IgnoreGraphicsTest(
+        "011-HighQualityLines$",
+        "https://jira.unity3d.com/browse/UGK-3099",
+        GraphicsDeviceType.Direct3D12,
+        UnityGraphicsKernelMode.UgkOn,
+        GraphicsApiValidationMode.Enabled
+    )]
     [IgnoreGraphicsTest(
         "001-HDTemplate$",
         "https://jira.unity3d.com/browse/UUM-48116",
@@ -51,7 +73,7 @@ public class HDRP_Runtime_Graphics_Tests
     )]
     [IgnoreGraphicsTest(
         "001-HDTemplate$",
-        "Linux/VK: The test is a bit flaky, failing around 1/6 runs. Needs further investigation.",
+        "Linux/VK: The test is a bit flaky, failing around 1/6 runs. Needs further investigation. Bug: https://jira.unity3d.com/browse/UUM-155350",
         RuntimePlatform.LinuxPlayer,
         GraphicsDeviceType.Vulkan
     )]
@@ -66,10 +88,9 @@ public class HDRP_Runtime_Graphics_Tests
         GraphicsDeviceType.Metal
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing$",
-        "https://jira.unity3d.com/browse/UUM-135501 Unstable on PS4",
-        RuntimePlatform.PS4,
-        RenderingThreadingMode.MultiThreaded
+        "002-HDMaterials$",
+        "UGK does not support tessellation shaders. https://jira.unity3d.com/browse/UUM-154386",
+        UnityGraphicsKernelMode.UgkOn
     )]
     [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
@@ -84,14 +105,24 @@ public class HDRP_Runtime_Graphics_Tests
         Architecture.X64
     )]
     [IgnoreGraphicsTest(
-        "010-BRG-Simple",
-        "Unstable: https://jira.unity3d.com/browse/UUM-134572",
-        RuntimePlatform.PS5
-    )]
-    [IgnoreGraphicsTest(
         "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
         RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2
+    )]
+    [TestNotSupportedOn(
+        "012|011",
+        "Not XR compatible",
+        StereoRenderingContext.StereoEnabled
+    )]
+    [TestNotSupportedOn(
+        "012|011",
+        "Not XR compatible", XrDevice.Any
+    )]
+    [TestNotSupportedOn(
+        "011-HighQualityLines$",
+        "HQ Line Rendering needs a 1024-thread compute threadgroup; Intel Mac Metal caps below that. https://jira.unity3d.com/browse/UUM-147457",
+        GraphicsDeviceType.Metal,
+        Architecture.X64
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

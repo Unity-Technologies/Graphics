@@ -3,7 +3,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Alchemy Ambient Occlusion (AAO) Pass - Standard SSAO mode using raster shaders.
+    // Alchemy Ambient Occlusion (AAO) Pass - SSAO mode using raster shaders.
     internal class AAOPass : ScriptableRenderPass, IDisposable
     {
         private readonly bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSAO;
         private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
         private SSAOUtils.SSAOMaterialParams m_SSAOParamsPrev = new SSAOUtils.SSAOMaterialParams();
+        private bool m_WarnedMissingTextures;
 
         internal AAOPass(Shader shader, Texture2D[] blueNoiseTextures)
         {
@@ -24,23 +25,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlueNoiseTextures = blueNoiseTextures;
         }
 
-        // Sets up AAO pass using renderer feature settings. Returns false if the pass should be skipped.
-        internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScreenSpaceAmbientOcclusionSettings.DepthSource depthSource)
-        {
-            m_CurrentSettings = featureSettings;
-            m_CurrentSettings.Source = depthSource;
-#if MODERN_SSAO
-            m_CurrentSettings.Mode = ScreenSpaceAmbientOcclusionMode.Standard;
-#endif
-            m_BlurType = SSAOUtils.GetBlurType(m_CurrentSettings.BlurQuality);
-
-            return m_CurrentSettings.Intensity > 0.0f
-                   && m_CurrentSettings.Radius > 0.0f
-                   && m_CurrentSettings.Falloff > 0.0f;
-        }
-
-#if MODERN_SSAO
-        // Sets up AAO pass using active volume for Standard mode. Returns false if the pass should be skipped.
+        // Sets up AAO pass using active volume for SSAO mode. Returns false if the pass should be skipped.
         internal bool Setup(ScreenSpaceAmbientOcclusionVolumeOverride ssaoVolume, bool usesDeferredLighting)
         {
             ApplyVolumeSettings(m_CurrentSettings, ssaoVolume, usesDeferredLighting);
@@ -50,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static void ApplyVolumeSettings(ScreenSpaceAmbientOcclusionSettings settings, ScreenSpaceAmbientOcclusionVolumeOverride volume, bool usesDeferredLighting)
         {
-            settings.Mode = ScreenSpaceAmbientOcclusionMode.Standard;
+            settings.Mode = ScreenSpaceAmbientOcclusionMode.SSAO;
             settings.Intensity = volume.intensity;
             settings.Radius = volume.radius;
             settings.DirectLightingStrength = volume.directLightingStrength;
@@ -83,28 +68,40 @@ namespace UnityEngine.Rendering.Universal
             if (usesDeferredLighting)
                 settings.Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
         }
-#endif
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+            TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
+
+            if (!cameraDepthTexture.IsValid() || (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals && !cameraNormalsTexture.IsValid()))
+            {
+                if (Debug.isDebugBuild && !m_WarnedMissingTextures)
+                {
+                    m_WarnedMissingTextures = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: skipped because the active renderer does not provide the required camera depth/normals textures.");
+                }
+                return;
+            }
+
+            if (Debug.isDebugBuild) // Saw valid textures: reset so a later renderer without them warns again.
+                m_WarnedMissingTextures = false;
+
             // Builds a TextureDesc compatible with the active camera color target, safe for both intermediate render textures and imported back-buffer handles.
-            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, resourceData.activeColorTexture, cameraData.camera.allowDynamicResolution);
+            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, cameraData, resourceData.activeColorTexture);
 
             SSAOUtils.CreateRenderTextureHandles(renderGraph, resourceData, cameraColorDesc,
                 m_CurrentSettings, m_SupportsR8RenderTextureFormat, m_BlurType, enableRandomWrite: false,
                 out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle temporalTexture, out TextureHandle finalTexture);
 
-            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-            TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
-
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
 
-            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, ref m_SSAOParamsPrev);
-            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc);
+            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, useDepthPyramid: false, ref m_SSAOParamsPrev);
+            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc, depthPyramid: default);
             SSAOUtils.RecordBlurChain(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, cameraData, aoTexture, blurTexture, finalTexture);
 
             if (!m_CurrentSettings.AfterOpaque)

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using UnityEngine.Scripting;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -100,6 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Base class for custom Sky Settings.
     /// </summary>
+    [Preserve]
+    [RequireDerived]
     public abstract class SkySettings : VolumeComponent
     {
         /// <summary>Rotation of the sky.</summary>

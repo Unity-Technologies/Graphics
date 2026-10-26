@@ -111,13 +111,15 @@ namespace UnityEngine.Rendering.Tests
             QualitySettings.enableLODCrossFade = m_OldEnableLodCrossFade;
         }
 
-        private void InitializeGPUResidentDrawer(OnCullingCompleteCallback onCompleteCallback = null, bool supportDitheringCrossFade = false, float smallMeshScreenPercentage = 0f)
+        private void InitializeGPUResidentDrawer(OnCullingCompleteCallback onCompleteCallback = null, bool supportDitheringCrossFade = false, float smallMeshScreenPercentage = 0f, float4 shadowSmallMeshScreenPercentage = default, bool enableOcclusionCulling = false)
         {
             m_GPUResidentDrawer = new GPUResidentDrawer(new GPUResidentDrawerSettings
             {
                 mode = GPUResidentDrawerMode.InstancedDrawing,
                 supportDitheringCrossFade = supportDitheringCrossFade,
-                smallMeshScreenPercentage = smallMeshScreenPercentage
+                smallMeshScreenPercentage = smallMeshScreenPercentage,
+                shadowSmallMeshScreenPercentages = shadowSmallMeshScreenPercentage,
+                enableOcclusionCulling = enableOcclusionCulling,
             },
             new InternalGPUResidentDrawerSettings
             {
@@ -268,7 +270,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
-        [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-71039")]
         public void TestSceneViewHiddenRenderersCullingTier0()
         {
             var callbackCounter = new BoxedCounter();
@@ -315,6 +316,9 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(callbackCounter.Value, 1);
 
             m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            mainCamera = null;
+            GameObject.DestroyImmediate(cameraObject);
 
             instanceIDs.Dispose();
 
@@ -579,6 +583,107 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        [Ignore("Unstable - see https://jira.unity3d.com/browse/UUM-134437")]
+        public void TestGpuDrivenSmallMeshShadowCulling()
+        {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+
+            var expectedMeshIDs = new List<int>();
+            var expectedDrawCommandCount = new BoxedCounter();
+
+            var lastLodBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = 1.0f;
+            var lastShadowCascades = QualitySettings.shadowCascades;
+            QualitySettings.shadowCascades = 4;
+
+            OnCullingCompleteCallback onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
+            {
+                jobHandle.Complete();
+
+                if (cc.viewType != BatchCullingViewType.Light)
+                    return;
+
+                BatchCullingOutputDrawCommands drawCommands = cullingOutput.drawCommands[0];
+
+                unsafe
+                {
+                    Assert.AreEqual(1, drawCommands.drawRangeCount);
+                    BatchDrawRange range = drawCommands.drawRanges[0];
+                    Assert.AreEqual(expectedDrawCommandCount.Value, range.drawCommandsCount, " Incorrect draw Command Count");
+                    for (int i = 0; i < range.drawCommandsCount; ++i)
+                    {
+                        BatchDrawCommand cmd = drawCommands.drawCommands[range.drawCommandsBegin + i];
+                        Assert.AreEqual(cmd.meshID.value, expectedMeshIDs[i], "Incorrect mesh rendered");
+                    }
+                }
+            };
+
+            InitializeGPUResidentDrawer(shadowSmallMeshScreenPercentage: new float4(10.0f,10.0f,10.0f,10.0f), onCompleteCallback: onCompleteCallback);
+
+            var gameObject = new GameObject("Root");
+            var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.parent = gameObject.transform;
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.AddComponent<DisallowSmallMeshCulling>();
+            cube.transform.parent = gameObject.transform;
+
+            var light1 = new GameObject();
+            var dirLight = gameObject.AddComponent<Light>();
+            dirLight.type = LightType.Directional;
+            light1.transform.parent = gameObject.transform;
+
+            var objList = new List<MeshRenderer>();
+            objList.Add(sphere.GetComponent<MeshRenderer>());
+            objList.Add(cube.GetComponent<MeshRenderer>());
+
+            var instanceIDs = new NativeList<EntityId>(Allocator.TempJob);
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat = new Material(simpleDots);
+
+            foreach (var obj in objList)
+            {
+                obj.material = simpleDotsMat;
+                instanceIDs.Add(obj.GetEntityId());
+            }
+
+            instanceIDs.Add(light1.GetEntityId());
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs.AsArray());
+
+            var cameraObject = new GameObject("myCamera");
+            var mainCamera = cameraObject.AddComponent<Camera>();
+            mainCamera.fieldOfView = 60;
+
+            //Test 0 - (1m) Should render both spheres.
+            expectedMeshIDs.Add(1);
+            expectedMeshIDs.Add(2);
+            expectedDrawCommandCount.Value = 2;
+            cameraObject.transform.position = new Vector3(0.0f, 0.0f, -1.0f);
+            SubmitCameraRenderRequest(mainCamera);
+
+            //Test 2 - (10m) Should only render sphere1.
+            expectedMeshIDs.Clear();
+            expectedMeshIDs.Add(2);
+            expectedDrawCommandCount.Value = 1;
+            cameraObject.transform.position = new Vector3(0.0f, 0.0f, -10.0f);
+            SubmitCameraRenderRequest(mainCamera);
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs.AsArray());
+
+            QualitySettings.lodBias = lastLodBias;
+            QualitySettings.shadowCascades = lastShadowCascades;
+
+            mainCamera = null;
+            GameObject.DestroyImmediate(cameraObject);
+
+            instanceIDs.Dispose();
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestInstanceData()
         {
             InitializeGPUResidentDrawer();
@@ -706,6 +811,161 @@ namespace UnityEngine.Rendering.Tests
 
             GameObject.DestroyImmediate(staticBatchingRoot);
             GameObject.DestroyImmediate(simpleDotsMat);
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestMeshRendererWithMoreMaterialsThanSubMeshesUsesLastSubMesh()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat0 = new Material(simpleDots);
+            var simpleDotsMat1 = new Material(simpleDots);
+            var simpleDotsMat2 = new Material(simpleDots);
+
+            // The cube primitive's mesh has a single submesh.
+            var gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+
+            // Assign more material slots than the mesh has submeshes. The extra material slots
+            // should redraw the last submesh instead of reading out of bounds (UUM-147082).
+            renderer.sharedMaterials = new Material[] { simpleDotsMat0, simpleDotsMat1, simpleDotsMat2 };
+
+            var instanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            instanceIDs[0] = renderer.GetEntityId();
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+
+            var drawInstanceData = m_Batcher.GetDrawInstanceData();
+            Assert.AreEqual(3, drawInstanceData.drawInstances.Length);
+
+            foreach (var drawInstance in drawInstanceData.drawInstances)
+            {
+                Assert.AreEqual(0, drawInstance.key.submeshIndex);
+            }
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            instanceIDs.Dispose();
+
+            GameObject.DestroyImmediate(gameObject);
+            GameObject.DestroyImmediate(simpleDotsMat0);
+            GameObject.DestroyImmediate(simpleDotsMat1);
+            GameObject.DestroyImmediate(simpleDotsMat2);
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestStaticBatchedMeshRendererWithMoreMaterialsThanSubMeshesUsesLastRendererSubMesh()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat0 = new Material(simpleDots);
+            var simpleDotsMat1 = new Material(simpleDots);
+            var simpleDotsMat2 = new Material(simpleDots);
+
+            var staticBatchingRoot = new GameObject();
+            staticBatchingRoot.transform.position = new Vector3(10, 0, 0);
+
+            // Static batching truncates excess material slots, so add them only after combining.
+            var gameObjects = new GameObject[3]
+            {
+                GameObject.CreatePrimitive(PrimitiveType.Cube),
+                GameObject.CreatePrimitive(PrimitiveType.Cube),
+                GameObject.CreatePrimitive(PrimitiveType.Cube)
+            };
+
+            foreach (var go in gameObjects)
+            {
+                MeshRenderer renderer = go.GetComponent<MeshRenderer>();
+                renderer.receiveGI = ReceiveGI.LightProbes;
+                renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
+                renderer.sharedMaterial = simpleDotsMat0;
+            }
+
+            gameObjects[0].transform.position = new Vector3(2, 0, 0);
+            gameObjects[1].transform.position = new Vector3(0, 0, 0);
+            gameObjects[2].transform.position = new Vector3(-2, 0, 0);
+
+            StaticBatchingUtility.Combine(gameObjects, staticBatchingRoot);
+
+            var instanceIDs = new NativeArray<EntityId>(3, Allocator.TempJob);
+            instanceIDs[0] = gameObjects[0].GetComponent<MeshRenderer>().GetEntityId();
+            instanceIDs[1] = gameObjects[1].GetComponent<MeshRenderer>().GetEntityId();
+            instanceIDs[2] = gameObjects[2].GetComponent<MeshRenderer>().GetEntityId();
+
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+
+            var instances = new NativeArray<InstanceHandle>(instanceIDs.Length, Allocator.TempJob);
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+
+            int combinedSubMeshCount = gameObjects[0].GetComponent<MeshFilter>().sharedMesh.subMeshCount;
+            int middleRendererSlot = -1;
+
+            // Select a renderer with submeshes on both sides of its range. This ensures that clamping
+            // against the combined mesh would select another renderer's submesh and fail the test.
+            for (int i = 0; i < instances.Length; i++)
+            {
+                int index = m_InstanceDataSystem.renderWorld.HandleToIndex(instances[i]);
+                int rendererSubMeshStartIndex = m_InstanceDataSystem.renderWorld.subMeshStartIndices[index];
+                int rendererSubMeshCount = m_InstanceDataSystem.renderWorld.staticBatchSubMeshCounts[index];
+                if (rendererSubMeshStartIndex > 0 &&
+                    rendererSubMeshStartIndex + rendererSubMeshCount < combinedSubMeshCount)
+                    middleRendererSlot = i;
+            }
+            Assert.AreNotEqual(-1, middleRendererSlot,
+                "Expected a renderer with submeshes before and after its static batch range.");
+
+            MeshRenderer middleRenderer = gameObjects[middleRendererSlot].GetComponent<MeshRenderer>();
+
+            // Adding material slots after combining preserves the renderer's static batch range.
+            middleRenderer.sharedMaterials = new Material[] { simpleDotsMat0, simpleDotsMat1, simpleDotsMat2 };
+
+            var changedInstanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            changedInstanceIDs[0] = instanceIDs[middleRendererSlot];
+            m_MeshRendererProcessor.ProcessGameObjectChanges(changedInstanceIDs);
+            changedInstanceIDs.Dispose();
+
+            var drawInstanceData = m_Batcher.GetDrawInstanceData();
+
+            int middleRendererIndex = m_InstanceDataSystem.renderWorld.HandleToIndex(instances[middleRendererSlot]);
+            ushort subMeshStartIndex = m_InstanceDataSystem.renderWorld.subMeshStartIndices[middleRendererIndex];
+            ushort staticBatchSubMeshCount =
+                m_InstanceDataSystem.renderWorld.staticBatchSubMeshCounts[middleRendererIndex];
+            Assert.AreEqual(1, staticBatchSubMeshCount);
+
+            int expectedClampedSubMeshIndex = subMeshStartIndex + staticBatchSubMeshCount - 1;
+            int middleRendererInstanceIndex = instances[middleRendererSlot].index;
+
+            // The draw list contains all three renderers. Isolate the middle renderer and verify that
+            // each of its material slots resolves to the last submesh in its own static batch range.
+            int drawInstanceCountForRenderer = 0;
+            foreach (var drawInstance in drawInstanceData.drawInstances)
+            {
+                if (drawInstance.instanceIndex != middleRendererInstanceIndex)
+                    continue;
+
+                drawInstanceCountForRenderer++;
+                Assert.AreEqual(expectedClampedSubMeshIndex, drawInstance.key.submeshIndex);
+            }
+            Assert.AreEqual(3, drawInstanceCountForRenderer);
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+
+            instances.Dispose();
+            instanceIDs.Dispose();
+
+            foreach (var go in gameObjects)
+                GameObject.DestroyImmediate(go);
+
+            GameObject.DestroyImmediate(staticBatchingRoot);
+            GameObject.DestroyImmediate(simpleDotsMat0);
+            GameObject.DestroyImmediate(simpleDotsMat1);
+            GameObject.DestroyImmediate(simpleDotsMat2);
 
             ShutdownGPUResidentDrawer();
         }
@@ -961,6 +1221,145 @@ namespace UnityEngine.Rendering.Tests
             instanceIDs.Dispose();
             ShutdownGPUResidentDrawer();
             dummyWindAsset = null;
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestLocalBoundsGPUDataUpload()
+        {
+            InitializeGPUResidentDrawer(enableOcclusionCulling: true);
+
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat = new Material(simpleDots);
+
+            // Reads back unity_LocalBounds for the given renderers and checks it against the render world's local AABBs,
+            // which UpdateInstanceData filled from the same batch.
+            void AssertGPULocalBoundsMatchRenderWorld(NativeArray<EntityId> ids)
+            {
+                var instances = new NativeArray<InstanceHandle>(ids.Length, Allocator.TempJob);
+                m_InstanceDataSystem.QueryRendererInstances(ids, instances);
+
+                var gpuIndices = new NativeArray<GPUInstanceIndex>(instances.Length, Allocator.TempJob);
+                m_InstanceDataSystem.gpuBuffer.QueryInstanceGPUIndices(m_InstanceDataSystem.renderWorld, instances, gpuIndices);
+
+                var readback = m_InstanceDataSystem.ReadbackInstanceDataBuffer<uint>();
+                ref DefaultGPUComponents defaultGPUComponents = ref m_InstanceDataSystem.defaultGPUComponents;
+
+                for (int i = 0; i < instances.Length; ++i)
+                {
+                    Assert.IsTrue(instances[i].isValid);
+
+                    int instanceIndex = m_InstanceDataSystem.renderWorld.HandleToIndex(instances[i]);
+                    AABB expected = m_InstanceDataSystem.renderWorld.localAABBs[instanceIndex];
+                    LocalBoundsGPUData actual = readback.LoadData<LocalBoundsGPUData>(defaultGPUComponents.localBoundsAABB, gpuIndices[i]);
+
+                    Assert.AreEqual(LocalBoundsGPUData.Pack(expected.center, expected.extents).packedMinMax, actual.packedMinMax);
+                }
+
+                readback.Dispose();
+                gpuIndices.Dispose();
+                instances.Dispose();
+            }
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+
+            // The uploaded bounds are mesh-space data:
+            // transforms (including mirroring) only affect the object-to-world matrix the occlusion kernel pairs them with.
+            var mirroredCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            mirroredCube.transform.localScale = new Vector3(-2.0f, 1.0f, 3.0f);
+            mirroredCube.transform.rotation = Quaternion.Euler(0.0f, 45.0f, 30.0f);
+
+            var gameObjects = new[] { cube, capsule, mirroredCube };
+            var instanceIDs = new NativeArray<EntityId>(gameObjects.Length, Allocator.TempJob);
+            for (int i = 0; i < gameObjects.Length; ++i)
+            {
+                gameObjects[i].GetComponent<MeshRenderer>().sharedMaterial = simpleDotsMat;
+                instanceIDs[i] = gameObjects[i].GetComponent<MeshRenderer>().GetEntityId();
+            }
+
+            // Creation uploads the bounds.
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+            AssertGPULocalBoundsMatchRenderWorld(instanceIDs);
+
+            // Mesh change re-uploads them:
+            // swap the cube mesh (extents 0.5) for the capsule mesh (extents y = 1) so a stale value cannot pass the check.
+            var cubeID = new NativeArray<EntityId>(1, Allocator.TempJob);
+            cubeID[0] = instanceIDs[0];
+            cube.GetComponent<MeshFilter>().sharedMesh = capsule.GetComponent<MeshFilter>().sharedMesh;
+            m_MeshRendererProcessor.ProcessGameObjectChanges(cubeID);
+            AssertGPULocalBoundsMatchRenderWorld(instanceIDs);
+            cubeID.Dispose();
+
+            // Destroy and recreate: freed slots that get reused must be rewritten.
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+            m_MeshRendererProcessor.ProcessGameObjectChanges(instanceIDs);
+            AssertGPULocalBoundsMatchRenderWorld(instanceIDs);
+
+            // Buffer growth: allocating many new instances forces the GPU buffer through SetGPULayout,
+            // which must preserve the already-written bounds of live instances.
+            const int extraCount = 64;
+            var extraGameObjects = new GameObject[extraCount];
+            var extraInstanceIDs = new NativeArray<EntityId>(extraCount, Allocator.TempJob);
+            for (int i = 0; i < extraCount; ++i)
+            {
+                extraGameObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                extraGameObjects[i].GetComponent<MeshRenderer>().sharedMaterial = simpleDotsMat;
+                extraInstanceIDs[i] = extraGameObjects[i].GetComponent<MeshRenderer>().GetEntityId();
+            }
+            m_MeshRendererProcessor.ProcessGameObjectChanges(extraInstanceIDs);
+            AssertGPULocalBoundsMatchRenderWorld(instanceIDs);
+            AssertGPULocalBoundsMatchRenderWorld(extraInstanceIDs);
+
+            m_MeshRendererProcessor.DestroyInstances(instanceIDs);
+            m_MeshRendererProcessor.DestroyInstances(extraInstanceIDs);
+
+            foreach (var go in gameObjects)
+                GameObject.DestroyImmediate(go);
+            foreach (var go in extraGameObjects)
+                GameObject.DestroyImmediate(go);
+            GameObject.DestroyImmediate(simpleDotsMat);
+
+            instanceIDs.Dispose();
+            extraInstanceIDs.Dispose();
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test]
+        public void TestLocalBoundsFP16DirectedRounding()
+        {
+            static uint RoundedDown(float f) => LocalBoundsGPUData.F32ToF16Directed(f, roundUp: false);
+            static uint RoundedUp(float f) => LocalBoundsGPUData.F32ToF16Directed(f, roundUp: true);
+
+            void AssertBrackets(float f)
+            {
+                float down = math.f16tof32(RoundedDown(f));
+                float up = math.f16tof32(RoundedUp(f));
+                Assert.LessOrEqual(down, f, $"rounded-down fp16 must not exceed {f}");
+                Assert.GreaterOrEqual(up, f, $"rounded-up fp16 must not be below {f}");
+            }
+
+            // Exactly representable values must survive both directions unchanged.
+            foreach (var f in new[] { 0.0f, -0.0f, 0.5f, -0.5f, 1.0f, 65504.0f, -65504.0f, 0.000000059604645f /* 2^-24, smallest fp16 subnormal */ })
+            {
+                Assert.AreEqual(f, math.f16tof32(RoundedDown(f)));
+                Assert.AreEqual(f, math.f16tof32(RoundedUp(f)));
+            }
+
+            // Out-of-range values saturate outward to infinity and inward to the largest finite fp16.
+            Assert.AreEqual(0x7C00u, RoundedUp(1e6f));
+            Assert.AreEqual(0x7BFFu, RoundedDown(1e6f));
+            Assert.AreEqual(0xFC00u, RoundedDown(-1e6f));
+            Assert.AreEqual(0xFBFFu, RoundedUp(-1e6f));
+
+            // Sweep both signs across subnormal, normal, and overflow magnitudes.
+            var rng = new Unity.Mathematics.Random(0x12345678u);
+            for (int i = 0; i < 10000; ++i)
+            {
+                float magnitude = math.pow(10.0f, rng.NextFloat(-9.0f, 6.0f));
+                AssertBrackets(magnitude);
+                AssertBrackets(-magnitude);
+            }
         }
     }
 }

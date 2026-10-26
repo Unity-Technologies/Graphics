@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal
         private bool m_ShowRequirementsColorTileOnlyError;
         private bool m_ShowRequirementsDepthWithoutNormalTileOnlyError;
         private bool m_ShowRequirementsMotionWithoutNormalTileOnlyError;
+        private bool m_ShowRequirementsDeferredTileOnlyError;
 
         private static readonly GUIContent k_InjectionPointGuiContent = new GUIContent("Injection Point", "Specifies where in the frame this pass will be injected.");
         private static readonly GUIContent k_RequirementsGuiContent = new GUIContent("Requirements", "A mask of URP internal textures that will need to be generated and bound for sampling.\n\nNote that 'Color' here corresponds to '_CameraOpaqueTexture' so most of the time you will want to use the 'Fetch Color Buffer' option instead.");
@@ -33,17 +34,18 @@ namespace UnityEditor.Rendering.Universal
         private static readonly GUIContent k_BindDepthStencilAttachmentGuiContent = new GUIContent("Bind Depth-Stencil", "Enable this to bind the active camera's depth-stencil attachment to the framebuffer (only use this if depth-stencil ops are used by the assigned material as this could have a performance impact).");
         private static readonly GUIContent k_PassMaterialGuiContent = new GUIContent("Pass Material", "The material used to render the full screen pass.");
         private static readonly GUIContent k_PassGuiContent = new GUIContent("Pass", "The name of the shader pass to use from the assigned material.");
-        private static readonly string k_FetchColorBufferIncompatibleWithTileOnlyMode = L10n.Tr("Fetch Color Buffer is incompatible with the enabled 'Tile-Only Mode'. Disable this setting.");
-        private static readonly string k_RequirementsColorIncompatibleWithTileOnlyMode = L10n.Tr("Color is incompatible with the enabled 'Tile-Only Mode'. Clear Color from Requirements.");
-        private static readonly string k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Depth without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Depth.");
-        private static readonly string k_RequirementsMotionWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Motion without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Motion.");
+        private static readonly string k_FetchColorBufferIncompatibleWithTileOnlyMode = L10n.Tr("Fetch Color Buffer is incompatible with the enabled 'Tile-Only Mode'. Disable this setting.", null);
+        private static readonly string k_RequirementsColorIncompatibleWithTileOnlyMode = L10n.Tr("Color is incompatible with the enabled 'Tile-Only Mode'. Clear Color from Requirements.", null);
+        private static readonly string k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Depth without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Depth.", null);
+        private static readonly string k_RequirementsMotionWithoutNormalIncompatibleWithTileOnlyMode = L10n.Tr("Motion without Normal is incompatible with the enabled 'Tile-Only Mode'. Add Normal to Requirements or clear Motion.", null);
+        private static readonly string k_RequirementsDeferredIncompatibleWithTileOnlyMode = L10n.Tr("When the Deferred rendering path is active, Depth, Normal and Motion are incompatible with the enabled 'Tile-Only Mode'. Clear them from Requirements, or switch to the Forward rendering path, where Depth and Motion also require Normal.", null);
 
         /// <summary>
         /// The renderer data that owns the feature when the inspector is drawn.
         /// </summary>
         public ScriptableRendererData owningRendererData { get; set; }
 
-        static readonly GUIContent k_NewFullscreenMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Fullscreen material.");
+        static readonly GUIContent k_NewFullscreenMaterialButtonText = L10n.TextContent("New", "Creates a new Fullscreen material.", null, null);
         static readonly string k_NewBlitShaderText = "SRP Blit Shader";
         static readonly string k_NewSGFullscreenText = "ShaderGraph Fullscreen";
         static readonly string k_NewSGFullscreenFromTemplateText = "ShaderGraph Fullscreen from Template";
@@ -79,11 +81,14 @@ namespace UnityEditor.Rendering.Universal
             if (Event.current.type == EventType.Layout)
             {
                 bool tileOnlyMode = rendererData != null && rendererData.tileOnlyMode;
+                bool deferred = rendererData != null && rendererData.usesDeferredLighting;
                 m_ShowFetchColorBufferTileOnlyError = tileOnlyMode && m_FetchColorBufferProperty.boolValue;
                 m_ShowRequirementsColorTileOnlyError = tileOnlyMode && (requirements & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                // Depth without Normal triggers a depth copy; with Normal, URP does a prepass instead (see comment on k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode).
-                m_ShowRequirementsDepthWithoutNormalTileOnlyError = tileOnlyMode && (requirements & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None;
-                m_ShowRequirementsMotionWithoutNormalTileOnlyError = tileOnlyMode && (requirements & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None;
+                // Deferred: any depth-dependent input triggers a depth copy from the depth attachment (see RenderingUtils.IsCompatibleWithTileOnlyMode).
+                m_ShowRequirementsDeferredTileOnlyError = tileOnlyMode && deferred && (requirements & (ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal | ScriptableRenderPassInput.Motion)) != ScriptableRenderPassInput.None;
+                // Forward: Depth without Normal triggers a depth copy; with Normal, URP does a prepass instead (see comment on k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode).
+                m_ShowRequirementsDepthWithoutNormalTileOnlyError = tileOnlyMode && !deferred && (requirements & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None;
+                m_ShowRequirementsMotionWithoutNormalTileOnlyError = tileOnlyMode && !deferred && (requirements & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None;
             }
             if (m_ShowFetchColorBufferTileOnlyError)
                 EditorGUILayout.HelpBox(k_FetchColorBufferIncompatibleWithTileOnlyMode, MessageType.Error, true);
@@ -93,6 +98,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(k_RequirementsDepthWithoutNormalIncompatibleWithTileOnlyMode, MessageType.Error, true);
             if (m_ShowRequirementsMotionWithoutNormalTileOnlyError)
                 EditorGUILayout.HelpBox(k_RequirementsMotionWithoutNormalIncompatibleWithTileOnlyMode, MessageType.Error, true);
+            if (m_ShowRequirementsDeferredTileOnlyError)
+                EditorGUILayout.HelpBox(k_RequirementsDeferredIncompatibleWithTileOnlyMode, MessageType.Error, true);
 
             EditorGUILayout.PropertyField(m_FetchColorBufferProperty, k_FetchColorBufferGuiContent);
 
@@ -145,12 +152,12 @@ namespace UnityEditor.Rendering.Universal
 
         internal static void CreateFullscreenMaterialFromTemplate(FullScreenPassRendererFeature obj, string templatePath = null)
         {
-            var selection = Selection.activeObject; // holding selection
+            var selection = Selection.activeObject;
             CreateShaderGraph.CreateGraphAndMaterialFromTemplate((material) =>
             {
                 obj.passMaterial = material;
                 EditorUtility.SetDirty(obj);
-                Selection.activeObject = selection; //restoring selection
+                Selection.activeObject = selection;
             },
             templatePath,
             $"New {k_NewSGFullscreenText}",
@@ -162,14 +169,14 @@ namespace UnityEditor.Rendering.Universal
         {
             string materialName = "New " + k_NewBlitShaderText;
 
-            var selection = Selection.activeObject; // holding selection
+            var selection = Selection.activeObject;
             AssetCreationUtil.CreateShaderAndMaterial(
                 materialName,
                 (material) =>
                 {
                     obj.passMaterial = material;
                     EditorUtility.SetDirty(obj);
-                    Selection.activeObject = selection; //restoring selection
+                    Selection.activeObject = selection;
                 },
                 k_BlitShaderTemplatePath
             );
@@ -191,7 +198,6 @@ namespace UnityEditor.Rendering.Universal
             List<string> passIndexEntries = new List<string>();
             for (int i = 0; i < component.passMaterial.passCount; ++i)
             {
-                // "Name of a pass (index)" - "PassAlpha (1)"
                 string entry = $"{component.passMaterial.GetPassName(i)} ({i})";
                 passIndexEntries.Add(entry);
             }

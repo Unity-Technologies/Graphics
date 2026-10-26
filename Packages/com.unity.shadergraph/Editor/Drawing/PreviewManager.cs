@@ -72,8 +72,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(GraphData graph, MessageManager messenger)
+        bool m_DisablePreviewsForTesting;
+
+        public PreviewManager(GraphData graph, MessageManager messenger, bool disablePreviewsForTesting = false)
         {
+            m_DisablePreviewsForTesting = disablePreviewsForTesting;
             m_SharedPreviewPropertyBlock = new MaterialPropertyBlock();
             m_SharedPreviewProperties = new Dictionary<string, PreviewProperty>();
             m_Graph = graph;
@@ -192,6 +195,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             m_MasterRenderData.shaderData = shaderData;
 
+            // Shader interface mode has no master preview yet.
+            if (m_Graph.isShaderInterfaceMode)
+                return;
+
             m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
             m_PreviewsToDraw.Add(m_MasterRenderData);
             m_TopologyDirty = true;
@@ -199,6 +206,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateMasterPreview(ModificationScope scope)
         {
+            if (m_Graph.isShaderInterfaceMode)
+                return;
+
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
@@ -636,8 +646,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
         private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
         private float previewTime = 0;
+
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
+            if (m_DisablePreviewsForTesting)
+                return;
+
             using (RenderPreviewsMarker.Auto())
             using (UnityEngine.Pool.ListPool<PreviewRenderData>.Get(out var renderList2D))
             using (UnityEngine.Pool.ListPool<PreviewRenderData>.Get(out var renderList3D))
@@ -1192,7 +1206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             int childStart = childStartStack.Pop();
 
                             // process node
-                            process(node, allChildren.Slice(childStart, allChildren.Count));
+                            process(node, allChildren.EnumerateRange(childStart, allChildren.Count - childStart));
                             processed.Add(node);
 
                             // remove the children that were added in state 0
@@ -1221,7 +1235,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ForeachConnectedNode(node, PropagationDirection.Upstream, n => allChildren.Add(n));
 
                 // process children
-                var children = allChildren.Slice(childStart, allChildren.Count);
+                var children = allChildren.EnumerateRange(childStart, allChildren.Count - childStart);
                 foreach (var child in children)
                     ProcessInDependencyOrderRecursive(child);
 
@@ -1504,6 +1518,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
+                node.UnregisterCallback(OnNodeModified);
+
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
 

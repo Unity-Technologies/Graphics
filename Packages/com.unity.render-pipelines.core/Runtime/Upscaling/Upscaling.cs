@@ -1,4 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 #nullable enable
 using System;
 using System.Collections.Generic;
@@ -13,22 +12,22 @@ namespace UnityEngine.Rendering
         private struct ContextKey : IEquatable<ContextKey>
         {
             public ulong cameraId;
-            public string upscalerName;
+            public Type upscalerType; // Unique at runtime, cheaper than comparing strings.
 
-            public ContextKey(ulong cameraId, string upscalerName)
+            public ContextKey(ulong cameraId, Type upscalerType)
             {
                 this.cameraId = cameraId;
-                this.upscalerName = upscalerName;
+                this.upscalerType = upscalerType;
             }
 
             public bool Equals(ContextKey other)
             {
                 return cameraId == other.cameraId &&
-                       upscalerName == other.upscalerName;
+                       upscalerType == other.upscalerType;
             }
 
             public override bool Equals(object? obj) => obj is ContextKey other && Equals(other);
-            public override int GetHashCode() => HashCode.Combine(cameraId, upscalerName);
+            public override int GetHashCode() => HashCode.Combine(cameraId, upscalerType);
         }
 
         // Contexts unused for this many frames are automatically cleaned up.
@@ -55,7 +54,7 @@ namespace UnityEngine.Rendering
             UpscalerOptions options,
             Vector2Int displayResolution)
         {
-            var key = new ContextKey(cameraId, upscaler.name);
+            var key = new ContextKey(cameraId, upscaler.GetType());
 
             // Note: Time.frameCount may not advance in Editor when Game view is inactive.
             // This is acceptable because contexts are only acquired during active rendering,
@@ -155,29 +154,70 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// Registry of the upscaler implementations available to the pipeline, and of the options type each one uses.
+    /// </summary>
     public static class UpscalerRegistry
     {
-        public static readonly Dictionary<Type, (Type? OptionsType, string ID)> s_RegisteredUpscalers = new();
+        /// <summary>
+        /// The registered upscalers, keyed by upscaler ID.
+        /// </summary>
+        public static readonly Dictionary<string, (Type UpscalerType, Type? OptionsType, string DisplayName)> s_RegisteredUpscalers = new();
 
         /// <summary>
         /// Registers an IUpscaler type without any custom options type.
         /// </summary>
-        public static void Register<TUpscaler>(string id) where TUpscaler : IUpscaler, new()
+        /// <typeparam name="TUpscaler">The type of upscaler to register.</typeparam>
+        /// <param name="upscalerId">Stable identifier for the upscaler, serialized by render pipeline assets.</param>
+        /// <param name="displayName">Name shown for the upscaler in the editor.</param>
+        public static void Register<TUpscaler>(string upscalerId, string displayName) where TUpscaler : IUpscaler, new()
         {
-            s_RegisteredUpscalers[typeof(TUpscaler)] = (null, id);
+            Register(typeof(TUpscaler), null, upscalerId, displayName);
         }
 
         /// <summary>
         /// Registers an IUpscaler type with its custom options type.
         /// </summary>
-        public static void Register<TUpscaler, TOptions>(string id)
+        /// <typeparam name="TUpscaler">The type of upscaler to register.</typeparam>
+        /// <typeparam name="TOptions">The type of upscaler options to register.</typeparam>
+        /// <param name="upscalerId">Stable identifier for the upscaler, serialized by render pipeline assets.</param>
+        /// <param name="displayName">Name shown for the upscaler in the editor.</param>
+        public static void Register<TUpscaler, TOptions>(string upscalerId, string displayName)
             where TUpscaler : IUpscaler
             where TOptions : UpscalerOptions
         {
-            s_RegisteredUpscalers[typeof(TUpscaler)] = (typeof(TOptions), id);
+            Register(typeof(TUpscaler), typeof(TOptions), upscalerId, displayName);
+        }
+
+        static void Register(Type upscalerType, Type? optionsType, string upscalerId, string displayName)
+        {
+            if (string.IsNullOrEmpty(upscalerId))
+            {
+                Debug.LogError($"{upscalerType.FullName} was registered without an upscaler ID.");
+                return;
+            }
+
+            // Upscalers re-register on domain reload and again on runtime init, so a repeat is expected.
+            if (s_RegisteredUpscalers.TryGetValue(upscalerId, out var registered))
+            {
+                // Single Id registered under multiple types is an error.
+                if (registered.UpscalerType != upscalerType)
+                {
+                    Debug.LogError($"{upscalerType.AssemblyQualifiedName} cannot use the upscaler ID '{upscalerId}' because {registered.UpscalerType.AssemblyQualifiedName} already does.");
+                    return;
+                }
+            }
+
+            s_RegisteredUpscalers[upscalerId] = (upscalerType, optionsType, displayName);
+#if UNITY_EDITOR
+            UpscalerSupportedBuildTargetAttribute.ValidateDeclarations(upscalerType);
+#endif
         }
     }
 
+    /// <summary>
+    /// Manages the pipeline's upscalers: their instances, the active selection, their per-camera contexts and options.
+    /// </summary>
     public class Upscaling
     {
         #region private
@@ -203,15 +243,18 @@ namespace UnityEngine.Rendering
         }
 
         private List<UpscalerEntry> m_Upscalers = new List<UpscalerEntry>();
-        private string[] m_UpscalerNamesCache;
+        private string[] m_UpscalerIdsCache;
         private int m_ActiveUpscalerIndex = -1;
         private readonly UpscalerContextManager m_ContextManager = new();
+        // Pipeline-wide ("global") options per upscaler, keyed by upscaler type; GetGlobalOptions() returns these.
+        // Absent for upscalers registered without an options type (spatial/embedded) — their options are null.
+        private readonly Dictionary<Type, UpscalerOptions> m_GlobalOptions = new();
         #endregion
 
         /// <summary>
-        /// Returns the names of the upscalers registered to the upscaling system.
+        /// Returns the IDs of the upscalers registered to the upscaling system.
         /// </summary>
-        public IReadOnlyList<string> upscalerNames => m_UpscalerNamesCache;
+        public IReadOnlyList<string> upscalerIds => m_UpscalerIdsCache;
 
         /// <summary>
         /// Returns the active IUpscaler instance, null if none is selected.
@@ -241,7 +284,8 @@ namespace UnityEngine.Rendering
             // 1. Instantiate the upscaler instances
             foreach (var kvp in UpscalerRegistry.s_RegisteredUpscalers)
             {
-                Type upscalerType = kvp.Key;
+                string upscalerId = kvp.Key;
+                Type upscalerType = kvp.Value.UpscalerType;
                 Type? optionsType = kvp.Value.OptionsType;
 
                 // find any serialized options, if any provided by the package implementor
@@ -249,15 +293,22 @@ namespace UnityEngine.Rendering
                 bool optionsNotFound = optionsIndex == -1;
                 UpscalerOptions? options = optionsNotFound ? null: upscalerOptions[optionsIndex];
 
-                // construct upscaler
-                IUpscaler upscaler = optionsType != null
-                    ? (IUpscaler)Activator.CreateInstance(upscalerType, new object[] { options! })
-                    : (IUpscaler)Activator.CreateInstance(upscalerType);
+                // construct upscaler (always parameterless; options are owned by the framework, not the instance)
+                IUpscaler upscaler = (IUpscaler)Activator.CreateInstance(upscalerType);
 
-                if(options != null && string.IsNullOrEmpty(options.upscalerName))
+                // The registered ID is what assets serialize, so an upscaler disagreeing with it would never resolve.
+                if (upscaler.upscalerId != upscalerId)
+                    Debug.LogError($"{upscalerType.FullName} was registered as '{upscalerId}' but reports the upscaler ID '{upscaler.upscalerId}'.");
+
+                // Create a fresh options object when the asset provided none, so a quality-mode upscaler always has one.
+                // Upscalers without an options type (spatial/embedded) keep no entry, leaving their options null.
+                if (options == null && optionsType != null)
+                    options = (UpscalerOptions)ScriptableObject.CreateInstance(optionsType);
+
+                if (options != null)
                 {
-                    Debug.LogWarningFormat("[Upscaling] UpscalerOptions with empty upscalerName for {0}", upscaler.name);
-                    options.upscalerName = upscaler.name;
+                    options.upscalerId = upscalerId;
+                    m_GlobalOptions[upscalerType] = options;
                 }
 
                 bool isEmbedded = embeddedTypes != null && embeddedTypes.Contains(upscalerType);
@@ -287,24 +338,24 @@ namespace UnityEngine.Rendering
                 if (indexB != -1) return 1;
 
                 // Fallback Sort: If neither are in the list (external upscalers), sort Alphabetically.
-                return string.Compare(a.Instance.name, b.Instance.name, StringComparison.OrdinalIgnoreCase);
+                return string.Compare(a.Instance.upscalerId, b.Instance.upscalerId, StringComparison.OrdinalIgnoreCase);
             });
 
-            // 3. Populate name cache
-            m_UpscalerNamesCache = new string[m_Upscalers.Count];
+            // 3. Populate ID cache
+            m_UpscalerIdsCache = new string[m_Upscalers.Count];
             for (int i = 0; i < m_Upscalers.Count; i++)
-            {
-                string name = m_Upscalers[i].Instance.name;
-                m_UpscalerNamesCache[i] = name;
-            }
+                m_UpscalerIdsCache[i] = m_Upscalers[i].Instance.upscalerId;
         }
 
         /// <summary>
-        /// Sets the active upscaler by name, returns whether an upscaler with the given name was found.
+        /// Sets the active upscaler by ID, returns whether an upscaler with the given ID was registered. The
+        /// upscaler is activated whether or not it runs on this device, which is left for the caller to decide.
         /// </summary>
-        public bool SetActiveUpscaler(string name)
+        /// <param name="upscalerId">An upscaler ID. See <see cref="IUpscaler.upscalerId" />.</param>
+        /// <returns>True if an upscaler with the given ID exists and it was set as active.</returns>
+        public bool SetActiveUpscaler(string upscalerId)
         {
-            int index = Array.IndexOf(m_UpscalerNamesCache, name);
+            int index = Array.IndexOf(m_UpscalerIdsCache, upscalerId);
             if (index == -1)
             {
                 m_ActiveUpscalerIndex = -1;
@@ -312,49 +363,106 @@ namespace UnityEngine.Rendering
             }
 
             m_ActiveUpscalerIndex = index;
-
-            // TODO (Apoorva): We need to allow the IUpscaler itself to decide whether it can run. E.g.
-            // DLSS might need a certain version of Windows, and a compatible GPU. We should add an
-            // overrideable function to IUpscaler so that the active IUpscaler can return a bool
-            // indicating support.
             return true;
         }
 
         /// <summary>
-        /// Returns the index of the upscalerName. -1 is returned if upscalerName is not in the name cache.
+        /// Activates the first upscaler in the list that runs on this device.
         /// </summary>
-        public int IndexOf(string upscalerName)
+        /// <param name="upscalerIds">Upscaler IDs, from highest to lowest priority.</param>
+        public void SetActiveUpscalerToFirstSupported(IReadOnlyList<string>? upscalerIds)
         {
-            return Array.IndexOf(m_UpscalerNamesCache, upscalerName);
+            m_ActiveUpscalerIndex = -1;
+            if (upscalerIds == null)
+                return;
+
+            for (int i = 0; i < upscalerIds.Count; ++i)
+            {
+                int index = Array.IndexOf(m_UpscalerIdsCache, upscalerIds[i]);
+                if (index == -1 || !m_Upscalers[index].Instance.isSupportedOnDevice)
+                    continue;
+
+                m_ActiveUpscalerIndex = index;
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Returns the index of the upscalerId.
+        /// </summary>
+        /// <param name="upscalerId">An upscaler ID. See <see cref="IUpscaler.upscalerId"/>.</param>
+        /// <returns>The index of the upscalerId. -1 if upscalerId is not in the ID cache.</returns>
+        public int IndexOf(string upscalerId)
+        {
+            return Array.IndexOf(m_UpscalerIdsCache, upscalerId);
+        }
+
+        /// <summary>
+        /// Returns the registered IUpscaler instance with the given ID.
+        /// </summary>
+        /// <param name="upscalerId">An upscaler ID. See <see cref="IUpscaler.upscalerId"/>.</param>
+        /// <returns>The registered IUpscaler instance with the given ID, or null if none matches.</returns>
+        public IUpscaler? GetIUpscalerById(string upscalerId)
+        {
+            int index = IndexOf(upscalerId);
+            return index >= 0 ? m_Upscalers[index].Instance : null;
         }
 
         /// <summary>
         /// Returns null if no IUpscaler exists for given type
         /// </summary>
+        /// <typeparam name="T">The upscaler type to fetch.</typeparam>
+        /// <returns>The registered instance of that type, or <c>null</c> if no upscaler of that type is registered.</returns>
         public IUpscaler? GetIUpscalerOfType<T>() where T : IUpscaler
         {
-            if(!UpscalerRegistry.s_RegisteredUpscalers.ContainsKey(typeof(T)))
-                return null;
-            foreach (UpscalerEntry entry in m_Upscalers)
-                if (entry.Instance.GetType() == typeof(T))
-                    return entry.Instance;
-            Debug.LogErrorFormat($"Upscaler type {typeof(T)} not found");
-            return null;
+            return GetIUpscalerOfType(typeof(T));
         }
 
         /// <summary>
         /// Returns null if no IUpscaler exists for given type
         /// </summary>
+        /// <param name="T">The upscaler type to fetch.</param>
+        /// <returns>The registered instance of that type, or <c>null</c> if no upscaler of that type is registered.</returns>
         public IUpscaler? GetIUpscalerOfType(Type T)
         {
-            if (!UpscalerRegistry.s_RegisteredUpscalers.ContainsKey(T))
-                return null;
             foreach (UpscalerEntry entry in m_Upscalers)
                 if (entry.Instance.GetType() == T)
                     return entry.Instance;
-            Debug.LogErrorFormat($"Upscaler type {T} not found");
+
+            Debug.LogError($"Upscaler type {T.FullName} not found");
             return null;
         }
+
+        #region Options
+
+        /// <summary>
+        /// Returns the pipeline-wide ("global") options for the given upscaler — the live, user-configured options
+        /// object the pipeline supplied (e.g. an RP-asset sub-asset), shared by all cameras — or <c>null</c> if the
+        /// upscaler was registered without an options type (e.g. spatial/embedded upscalers).
+        /// </summary>
+        /// <param name="upscaler">The upscaler whose global options to fetch.</param>
+        /// <returns>The pipeline-wide options, or null if the upscaler has no options type.</returns>
+        /// <remarks>
+        /// <para>
+        /// This is not a copy and not factory defaults: editing the returned object (inspector or C# API) is reflected
+        /// here, because it is the same serialized instance. Options are owned by the framework, not the
+        /// <see cref="IUpscaler"/> instance.
+        /// </para>
+        /// <para>
+        /// Per-camera options (future) layer on top of this: add an override-aware
+        /// <c>ResolveOptions(IUpscaler, UpscalerOptions perCameraOverride)</c> returning
+        /// <c>perCameraOverride ?? GetGlobalOptions(upscaler)</c>, and have the call sites pass the camera's serialized
+        /// override (read from the pipeline-specific camera component — core cannot see it). That is a non-breaking
+        /// addition and this method stays as the global fallback. Not added now because no per-camera override source
+        /// exists yet (it would be a no-op).
+        /// </para>
+        /// </remarks>
+        public UpscalerOptions? GetGlobalOptions(IUpscaler upscaler)
+        {
+            return upscaler != null && m_GlobalOptions.TryGetValue(upscaler.GetType(), out var options) ? options : null;
+        }
+
+        #endregion
 
         #region Context Management
 
@@ -387,7 +495,16 @@ namespace UnityEngine.Rendering
             m_ContextManager.CleanupExpiredContexts(cmd);
         }
 
+        /// <summary>
+        /// Cleans up all contexts. Call when the upscaling system is torn down (e.g. when the render
+        /// pipeline is disposed)
+        /// </summary>
+        /// <param name="cmd">The command buffer to record cleanup commands into.</param>
+        public void Dispose(CommandBuffer cmd)
+        {
+            m_ContextManager.Dispose(cmd);
+        }
+
         #endregion
     }
 }
-#endif

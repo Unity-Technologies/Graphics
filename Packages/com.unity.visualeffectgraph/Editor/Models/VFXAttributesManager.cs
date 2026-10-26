@@ -151,6 +151,7 @@ namespace UnityEditor.VFX
         private static readonly List<VFXAttribute> s_VariadicAttribute = new () { VFXAttribute.angle, VFXAttribute.angularVelocity, VFXAttribute.pivot, VFXAttribute.scale };
 
         public static VFXAttribute[] AffectingAABBAttributes => s_AffectingAABBAttributes.ToArray();
+        public static readonly string s_DefaultCustomAttributeName = "CustomAttribute";
 
         private static readonly Dictionary<string, VFXAttribute> s_BuiltinAttributeNameMap;
 
@@ -266,6 +267,16 @@ namespace UnityEditor.VFX
                 s_NewCompilerAttributes.Add(vfxAttribute, attribute);
             }
             return attribute;
+        }
+
+        public static Unity.GraphCommon.LowLevel.Editor.AttributeUsage ConvertToNewCompiler(VFXAttributeMode mode)
+        {
+            Unity.GraphCommon.LowLevel.Editor.AttributeUsage usage = 0;
+            if (mode.HasFlag(VFXAttributeMode.Read))
+                usage |= Unity.GraphCommon.LowLevel.Editor.AttributeUsage.Read;
+            if (mode.HasFlag(VFXAttributeMode.Write))
+                usage |= Unity.GraphCommon.LowLevel.Editor.AttributeUsage.Write;
+            return usage;
         }
 
         /****************************************************************/
@@ -453,7 +464,7 @@ namespace UnityEditor.VFX
 
             if (!CustomAttributeUtility.IsShaderCompilableName(newName))
             {
-                Debug.LogError("Custom attribute could not be renamed, it does not start with a letter or underscore and/or contains non-alphanumeric characters. Previous name has been kept.");
+                Debug.LogError("Custom attribute could not be renamed, it does not start with a letter or underscore or contains non-alphanumeric characters or contains only spaces/underscores. Previous name has been kept.");
                 return RenameStatus.InvalidName;
             }
 
@@ -468,7 +479,13 @@ namespace UnityEditor.VFX
             if (TryFind(name, out var newAttribute))
             {
                 // Do not register, let the graph do it
-                newAttribute.name = FindUniqueName(newAttribute.name);
+                var newName = FindUniqueName(newAttribute.name);
+                if (string.IsNullOrEmpty(newName))
+                {
+                    Debug.LogWarning("The original attribute name is not supported anymore. The new attribute name falls back to a default name.");
+                    newName = FindUniqueName(s_DefaultCustomAttributeName);
+                }
+                newAttribute.name = newName;
                 return newAttribute;
             }
 
@@ -477,8 +494,8 @@ namespace UnityEditor.VFX
 
         public string FindUniqueName(string name)
         {
-            var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
-            return VFXParameterController.MakeNameUnique(name, existingNames, false);
+            var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true), StringComparer.OrdinalIgnoreCase);
+            return VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength);
         }
 
 
@@ -491,9 +508,9 @@ namespace UnityEditor.VFX
                     return true;
                 }
 
-                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
+                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true), StringComparer.OrdinalIgnoreCase);
                 var rejectedCandidateNames = new List<string>();
-                name = VFXParameterController.MakeNameUnique(name, existingNames, false, rejectedCandidateNames);
+                name = VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength, rejectedCandidateNames);
                 foreach (var candidateName in rejectedCandidateNames)
                 {
                     if (TryFind(candidateName, out attribute) && attribute.type == type)

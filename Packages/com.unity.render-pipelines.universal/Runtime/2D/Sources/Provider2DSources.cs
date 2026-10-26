@@ -12,7 +12,10 @@ namespace UnityEngine.Rendering.Universal
         //Editor 
         [SerializeField] int                    m_SelectedHashCode;
         [SerializeReference] SelectionSource    m_SelectedSource;
-        [SerializeReference] IProvider2DCache   m_Provider2DCache;
+        // Rebuilt by RefreshSources whenever it is null, so it does not need to survive a domain
+        // reload -- and must not be serialized, because it holds an instance of every provider type
+        // in the project (see Provider2DCache.m_Cache).
+        IProvider2DCache                        m_Provider2DCache;
         List<SelectionSource>                   m_Sources = new List<SelectionSource>();
         List<SelectionSource>                   m_AdditionalSources = new List<SelectionSource>();
 
@@ -133,6 +136,28 @@ namespace UnityEngine.Rendering.Universal
                 provider2DSources.m_SelectedSource = null;
                 provider2DSources.m_SelectedHashCode = 0;
             }
+        }
+
+        /// <summary>
+        /// Selects the source at <paramref name="index"/> and applies its type as one undoable change.
+        /// </summary>
+        /// <remarks>
+        /// The boxedValue of a [SerializeReference] field is the live instance. So the selection fields change
+        /// on the object itself, and the object must be recorded first or Undo captures the changed state.
+        /// Writing the instance back through boxedValue is not needed, and would be dropped anyway by the
+        /// Update() that SetSourceType starts with. The sources are read from <paramref name="property"/>, so
+        /// the instance that changes always belongs to the object that was recorded. Call RefreshSources on
+        /// that same instance first, so <paramref name="index"/> points into its current list.
+        /// </remarks>
+        public static void ApplySelectionFromIndex(SerializedProperty property, int index, string undoName)
+        {
+            Undo.RecordObject(property.serializedObject.targetObject, undoName);
+            UpdateSelectionFromIndex(property.boxedValue as IProvider2DSources, index);
+            SetSourceType(property);
+
+            // SetSourceType applies its edits through ApplyModifiedProperties, which records under its own
+            // name. Name the group so Undo shows the pick, not the property it happened to write.
+            Undo.SetCurrentGroupName(undoName);
         }
 
         public GUIContent[] GetSourceNames()

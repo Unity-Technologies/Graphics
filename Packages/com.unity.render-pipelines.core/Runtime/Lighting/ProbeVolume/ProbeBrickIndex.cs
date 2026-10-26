@@ -1,14 +1,14 @@
 //#define USE_INDEX_NATIVE_ARRAY
 using System;
-using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel;
-using System.Collections;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using CellIndexInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellIndexInfo;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
 namespace UnityEngine.Rendering
 {
@@ -32,17 +32,16 @@ namespace UnityEngine.Rendering
                 MarkerFlags.VerbosityAdvanced);
 
         // a few constants
-        internal const int kMaxSubdivisionLevels = 7; // 3 bits
-        internal const int kIndexChunkSize = 243;
+        internal const int k_MaxSubdivisionLevels = 7; // 3 bits
+        internal const int k_IndexChunkSize = 243;
 
-        internal const int kFailChunkIndex = -1;
-        internal const int kEmptyIndex = -2; // This is a tag value used to say that we have a valid entry but with no data.
+        internal const int k_FailChunkIndex = -1;
+        internal const int k_EmptyIndex = -2; // This is a tag value used to say that we have a valid entry but with no data.
 
+        readonly BitArray m_IndexChunks;
+        readonly BitArray m_IndexChunksCopyForChecks;
 
-        BitArray m_IndexChunks;
-        BitArray m_IndexChunksCopyForChecks;
-
-        int m_ChunksCount;
+        readonly int m_ChunksCount;
         int m_AvailableChunkCount;
 
         ComputeBuffer m_PhysicalIndexBuffer;
@@ -79,7 +78,7 @@ namespace UnityEngine.Rendering
             public bool IntersectArea(Bounds boundInBricksToCheck)
             {
                 int sizeInMinBricks = ProbeReferenceVolume.CellSize(subdivisionLevel);
-                Bounds brickBounds = new Bounds();
+                var brickBounds = new Bounds();
                 brickBounds.min = position;
                 brickBounds.max = position + new Vector3Int(sizeInMinBricks, sizeInMinBricks, sizeInMinBricks);
 
@@ -117,12 +116,12 @@ namespace UnityEngine.Rendering
 
             m_NeedUpdateIndexComputeBuffer = false;
 
-            m_ChunksCount = Mathf.Max(1, Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / kIndexChunkSize));
+            m_ChunksCount = Mathf.Max(1, Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / k_IndexChunkSize));
             m_AvailableChunkCount = m_ChunksCount;
             m_IndexChunks = new BitArray(m_ChunksCount);
             m_IndexChunksCopyForChecks = new BitArray(m_ChunksCount);
 
-            int physicalBufferSize = m_ChunksCount * kIndexChunkSize;
+            int physicalBufferSize = m_ChunksCount * k_IndexChunkSize;
             m_PhysicalIndexBufferData = new NativeArray<int>(physicalBufferSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int), ComputeBufferType.Structured);
 
@@ -260,14 +259,14 @@ namespace UnityEngine.Rendering
 
         int MergeIndex(int index, int size)
         {
-            const int mask = kMaxSubdivisionLevels;
+            const int mask = k_MaxSubdivisionLevels;
             const int shift = 28;
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
         internal int GetNumberOfChunks(int brickCount)
         {
-            return Mathf.CeilToInt((float)brickCount / kIndexChunkSize);
+            return Mathf.CeilToInt((float)brickCount / k_IndexChunkSize);
         }
 
         internal bool FindSlotsForEntries(ref IndirectionEntryUpdateInfo[] entriesInfo)
@@ -285,7 +284,7 @@ namespace UnityEngine.Rendering
             int numberOfEntries = entriesInfo.Length;
             for (int entry = 0; entry < numberOfEntries; ++entry)
             {
-                entriesInfo[entry].firstChunkIndex = kEmptyIndex;
+                entriesInfo[entry].firstChunkIndex = k_EmptyIndex;
 
                 int numberOfChunksForEntry = entriesInfo[entry].numberOfChunks;
                 if (numberOfChunksForEntry == 0) continue;
@@ -312,7 +311,9 @@ namespace UnityEngine.Rendering
                 if (entriesInfo[entry].firstChunkIndex < 0)
                 {
                     for (int e = 0; e < numberOfEntries; ++e)
-                        entriesInfo[e].firstChunkIndex = kFailChunkIndex;
+                    {
+                        entriesInfo[e].firstChunkIndex = k_FailChunkIndex;
+                    }
                     return false;
                 }
 
@@ -380,7 +381,7 @@ namespace UnityEngine.Rendering
             // and so we do the update in a simpler fashion.
             if (entry.hasOnlyBiggerBricks)
             {
-                int singleEntry = entry.firstChunkIndex * kIndexChunkSize;
+                int singleEntry = entry.firstChunkIndex * k_IndexChunkSize;
                 m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, singleEntry);
                 m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, singleEntry);
                 m_PhysicalIndexBufferData[singleEntry] = idx;
@@ -424,7 +425,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
-                int chunkStart = entry.firstChunkIndex * kIndexChunkSize;
+                int chunkStart = entry.firstChunkIndex * k_IndexChunkSize;
                 int newMin = chunkStart + LocationToIndex(brickMin.x, brickMin.y, brickMin.z, sizeOfValid);
                 int newMax = chunkStart + LocationToIndex(brickMax.x - 1, brickMax.y - 1, brickMax.z - 1, sizeOfValid);
                 m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
@@ -460,17 +461,17 @@ namespace UnityEngine.Rendering
             int entrySubdivLevel = prv.GetEntrySubdivLevel();
 
             // Iterate over all bricks, while tracking allocated coords in the pool
-            int brick_idx = 0;
+            int brickIdx = 0;
             for (int i = 0; i < allocations.Count; i++)
             {
                 Chunk alloc = allocations[i];
-                int last_brick = brick_idx + Mathf.Min(allocationSize, bricks.Length - brick_idx);
-                while (brick_idx != last_brick)
+                int lastBrick = brickIdx + Mathf.Min(allocationSize, bricks.Length - brickIdx);
+                while (brickIdx != lastBrick)
                 {
                     // Fetch brick and increment counters
-                    Brick brick = bricks[brick_idx++];
-                    int idx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.subdivisionLevel);
-                    alloc.x += ProbeBrickPool.kBrickProbeCountPerDim;
+                    Brick brick = bricks[brickIdx++];
+                    int idx = MergeIndex(alloc.FlattenIndex(poolWidth, poolHeight), brick.subdivisionLevel);
+                    alloc.x += ProbeBrickPool.k_BrickProbeCountPerDim;
 
                     // Brick bounds
                     int brickSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);

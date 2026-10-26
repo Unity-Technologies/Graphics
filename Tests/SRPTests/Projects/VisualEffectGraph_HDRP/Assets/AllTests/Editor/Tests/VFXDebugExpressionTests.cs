@@ -138,19 +138,19 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(particleId);
             particleId.SetSettingValue("attribute", VFXAttribute.ParticleId.name);
 
-            graph.RecompileIfNeeded(); //at this point, compilation is still legal
+            VFXTestCommon.ReimportVFXGraph(graph); //at this point, compilation is still legal
             particleId.outputSlots[0].Link(modulo.inputSlots[0]);
 
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             branch.outputSlots[0].UnlinkAll();
-            graph.RecompileIfNeeded(); //Back to a legal state
+            VFXTestCommon.ReimportVFXGraph(graph); //Back to a legal state
 
             quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Opaque);
             quadOutput.SetSettingValue("useAlphaClipping", true);
             Assert.IsTrue(modulo.outputSlots[0].Link(quadOutput.inputSlots.First(o => o.variant.name.Contains("alphaThreshold"))));
-            graph.RecompileIfNeeded(); //Should also be legal (alphaTreshold relying on particleId)
+            VFXTestCommon.ReimportVFXGraph(graph); //Should also be legal (alphaTreshold relying on particleId)
 
             yield return null;
         }

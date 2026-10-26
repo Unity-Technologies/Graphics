@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     interface IDataDescriptionWriter
@@ -8,17 +6,22 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
         void WriteDescription(ShaderWriter writer, DataView dataView, string name, CompilationContext context);
 
-        bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context) => false;
+        bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context) => false;
 
         string GetSubdataName(DataView dataView, IDataKey subDataKey) => throw new System.NotImplementedException();
 
         string GetSubdataTypeName(IDataKey subDataKey) => throw new System.NotImplementedException();
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView) { }
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode) { }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView) { }
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode) { }
 
-        IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView) => System.Array.Empty<(string, string)>();
+        /// <summary>
+        /// The shader binding name this data view is declared under, so a lowered task can bind the
+        /// concrete buffer under the same name the generated code reads it by. Null when the writer has no
+        /// binding for the view, in which case the caller skips it.
+        /// </summary>
+        string GetResourceName(DataView dataView) => null;
     }
 
     interface IDataDescriptionWriter<T> : IDataDescriptionWriter where T : class, IDataDescription

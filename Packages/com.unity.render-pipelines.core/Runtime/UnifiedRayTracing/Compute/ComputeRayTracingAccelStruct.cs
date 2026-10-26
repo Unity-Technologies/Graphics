@@ -173,7 +173,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].localToWorldTransform = ConvertTranform(localToWorldMatrix);
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.localToWorldTransform = ConvertTranform(localToWorldMatrix);
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -181,7 +183,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].userInstanceID = instanceID;
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.userInstanceID = instanceID;
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -189,7 +193,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             CheckInstanceHandleIsValid(instanceHandle);
 
-            m_RadeonInstances[instanceHandle].instanceMask = mask;
+            var instance = m_RadeonInstances[instanceHandle];
+            instance.instanceMask = mask;
+            m_RadeonInstances[instanceHandle] = instance;
             FreeTopLevelAccelStruct();
         }
 
@@ -292,8 +298,6 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             var bvhNodeSizeInDwords = RadeonRaysAPI.BvhInternalNodeSizeInDwords();
 
-            mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-            mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
             SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(submeshIndex);
             using var vertexBuffer = LoadPositionBuffer(mesh, out int stride, out int offset);
 
@@ -309,6 +313,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             vertexBufferDesc.baseVertex = submeshDescriptor.baseVertex + submeshDescriptor.firstVertex;
             vertexBufferDesc.vertexCount = (uint)submeshDescriptor.vertexCount;
             vertexBufferDesc.vertexStride = (uint)stride;
+            vertexBufferDesc.format = mesh.GetVertexAttributeFormat(VertexAttribute.Position);
+            vertexBufferDesc.dimension = mesh.GetVertexAttributeDimension(VertexAttribute.Position);
             m_BlasPositions.Add(vertexBufferDesc, out blas.blasVertices);
 
             var meshBuildInfo = new MeshBuildInfo();
@@ -365,21 +371,26 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         GraphicsBuffer LoadIndexBuffer(Mesh mesh)
         {
-            Debug.Assert((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) != 0 || (mesh.GetIndices(0) != null && mesh.GetIndices(0).Length != 0),
-               "Cant use a mesh buffer that is not raw and has no CPU index information.");
-
-            return mesh.GetIndexBuffer();
+            var buffer = mesh.GetIndexBuffer();
+            Debug.Assert((buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh index buffer target must include Raw.");
+            return buffer;
         }
 
         GraphicsBuffer LoadPositionBuffer(Mesh mesh, out int stride, out int offset)
         {
+#if UNITY_EDITOR
+            Utils.EnsureMeshHasRawBufferTarget(mesh);
+#endif
+
             VertexAttribute attribute = VertexAttribute.Position;
             Debug.Assert(mesh.HasVertexAttribute(attribute), "Cant use a mesh buffer that has no positions.");
 
             int stream = mesh.GetVertexAttributeStream(attribute);
             stride = mesh.GetVertexBufferStride(stream) / 4;
             offset = mesh.GetVertexAttributeOffset(attribute) / 4;
-            return mesh.GetVertexBuffer(stream);
+            var buffer = mesh.GetVertexBuffer(stream);
+            Debug.Assert((buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh vertex buffer target must include Raw.");
+            return buffer;
         }
 
         void DeleteMeshBlas((int mesh, int subMeshIndex) geomKey, MeshBlas blas)
@@ -775,7 +786,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             shader.SetBufferParam(cmd, Shader.PropertyToID(name + "vertexBuffer"), m_BlasPositions.VertexBuffer);
         }
 
-        public void Bind(CommandBuffer cmd, string name, ComputeShader shader, int kernelIndex)
+        public void Bind(CommandBuffer cmd, ComputeShader shader, int kernelIndex, string name)
         {
             cmd.SetComputeBufferParam(shader, kernelIndex, Shader.PropertyToID(name + "bvh"), topLevelBvhBuffer);
             cmd.SetComputeBufferParam(shader, kernelIndex, Shader.PropertyToID(name + "bottomBvhs"), bottomLevelBvhBuffer);
@@ -834,14 +845,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             if (!allocation.valid)
             {
                 int oldCapacity = m_BlasInternalNodesAllocator.capacity;
+                int maxCapacity = GraphicsHelpers.MaxElementCount(RadeonRaysAPI.BvhInternalNodeSizeInBytes());
 
-                if (!m_BlasInternalNodesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes()), out int newCapacity))
+                if (!m_BlasInternalNodesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, maxCapacity, out int newCapacity))
                     throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, RadeonRaysAPI.BvhInternalNodeSizeInBytes(), ref m_BlasInternalNodesBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity * RadeonRaysAPI.BvhInternalNodeSizeInBytes()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                allocation = m_BlasInternalNodesAllocator.GrowAndAllocate(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes()), out  oldCapacity, out newCapacity);
+                allocation = m_BlasInternalNodesAllocator.GrowAndAllocate(allocationNodeCount, maxCapacity, out  oldCapacity, out newCapacity);
                 Debug.Assert(allocation.valid);
             }
 
@@ -854,14 +866,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             if (!allocation.valid)
             {
                 int oldCapacity = m_BlasLeafNodesAllocator.capacity;
+                int maxCapacity = GraphicsHelpers.MaxElementCount(RadeonRaysAPI.BvhLeafNodeSizeInBytes());
 
-                if (!m_BlasLeafNodesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes()), out int newCapacity))
+                if (!m_BlasLeafNodesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, maxCapacity, out int newCapacity))
                     throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, RadeonRaysAPI.BvhLeafNodeSizeInBytes(), ref m_BlasLeafNodesBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity* RadeonRaysAPI.BvhLeafNodeSizeInBytes()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                allocation = m_BlasLeafNodesAllocator.GrowAndAllocate(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes()), out oldCapacity, out newCapacity);
+                allocation = m_BlasLeafNodesAllocator.GrowAndAllocate(allocationNodeCount, maxCapacity, out oldCapacity, out newCapacity);
                 Debug.Assert(allocation.valid);
             }
 
@@ -911,7 +924,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         readonly Dictionary<int, RadeonRaysInstance> m_RadeonInstances = new ();
         readonly Queue<uint> m_FreeHandles = new();
 
-        sealed class RadeonRaysInstance
+        struct RadeonRaysInstance
         {
             public Blas blas;
             public uint instanceMask;

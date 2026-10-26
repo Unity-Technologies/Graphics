@@ -1,10 +1,92 @@
-using System;
 using System.Collections.Generic;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     /*public*/ partial class GraphTraverser
     {
+        /// <summary>
+        /// Adapter bridging <see cref="DataNode"/> to the generic traversal core.
+        /// </summary>
+        public readonly struct DataTraversalAdapter :
+            ITraversalAdapter<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator>
+        {
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.GetId"/>
+            public DataNodeId GetId(in DataNode node) => node.Id;
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.GetLinks"/>
+            public DataNodeLinks GetLinks(in DataNode node, Direction direction) =>
+                direction == Direction.Downwards ? node.Children : node.Parents;
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.GetLinkCount"/>
+            public int GetLinkCount(in DataNodeLinks links) => links.Count;
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.GetLinkId"/>
+            public DataNodeId GetLinkId(in DataNodeLinks links, int index) => links[index].Id;
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.Resolve"/>
+            public DataNode Resolve(IReadOnlyGraph graph, DataNodeId id) => graph.DataNodes[id];
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.GetNodes"/>
+            public DataNodeEnumerator GetNodes(IReadOnlyGraph graph) => graph.DataNodes.GetEnumerator();
+            /// <inheritdoc cref="ITraversalAdapter{TNode, TId, TLinks, TNodeEnumerator}.SeedInDegrees"/>
+            public void SeedInDegrees(IReadOnlyGraph graph, Direction direction, Dictionary<DataNodeId, int> inDegrees, Deque<DataNodeId> ready)
+            {
+                foreach (var node in graph.DataNodes)
+                {
+                    int inDegree = direction == Direction.Downwards ? node.Parents.Count : node.Children.Count;
+                    inDegrees[node.Id] = inDegree;
+                    if (inDegree == 0)
+                        ready.AddBack(node.Id);
+                }
+            }
+        }
+
+        /// <summary>Enumerable for recursive traversal of data nodes.</summary>
+        public readonly struct DataTraversalEnumerable
+        {
+            private readonly TraversalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter> m_Inner;
+
+            internal DataTraversalEnumerable(in DataNode startNode, Direction direction, TraversalMethod method,
+                IReadOnlyGraph graph, TraversalPools<DataNodeId> pools, OnVisitNode<DataNode> onVisit)
+            {
+                m_Inner = new TraversalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>(
+                    in startNode, direction, method, graph, pools, onVisit);
+            }
+
+            public TraversalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>.Enumerator GetEnumerator() =>
+                m_Inner.GetEnumerator();
+
+            public void Execute() => m_Inner.Execute();
+        }
+
+        /// <summary>Enumerable for topological traversal of data nodes.</summary>
+        public readonly struct TopologicalDataEnumerable
+        {
+            private readonly TopologicalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter> m_Inner;
+
+            internal TopologicalDataEnumerable(IReadOnlyGraph graph, TraversalPools<DataNodeId> pools, Direction direction)
+            {
+                m_Inner = new TopologicalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>(
+                    graph, pools, direction);
+            }
+
+            public TopologicalEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>.Enumerator GetEnumerator() =>
+                m_Inner.GetEnumerator();
+
+            public void Execute() => m_Inner.Execute();
+        }
+
+        /// <summary>Enumerable for linear traversal of data nodes with optional filtering.</summary>
+        public readonly struct LinearDataEnumerable
+        {
+            private readonly LinearEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter> m_Inner;
+
+            internal LinearDataEnumerable(IReadOnlyGraph graph, OnFilterNode<DataNode> onFilter)
+            {
+                m_Inner = new LinearEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>(graph, onFilter);
+            }
+
+            public LinearEnumerable<DataNode, DataNodeId, DataNodeLinks, DataNodeEnumerator, DataTraversalAdapter>.Enumerator GetEnumerator() =>
+                m_Inner.GetEnumerator();
+
+            public void Execute() => m_Inner.Execute();
+        }
+
         /// <summary>
         /// Traverses all root data nodes in the graph.
         /// </summary>
@@ -37,287 +119,85 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Traverses data nodes recursively, starting from the specified node.
         /// </summary>
         /// <param name="node">The starting data node for traversal.</param>
-        /// <param name="order">The traversal order (depth or breadth first).</param>
         /// <param name="direction">The traversal direction (downwards or upwards).</param>
+        /// <param name="method">The traversal method.</param>
         /// <param name="onVisit">Optional callback that is invoked when visiting each node. Return false to skip child traversal.</param>
         /// <returns>An enumerable object that can be used to traverse the data nodes.</returns>
         public DataTraversalEnumerable TraverseDataRecursive(DataNode node, Direction direction = Direction.Downwards,
-            TraversalOrder order = TraversalOrder.DepthFirst, OnVisitDataNode onVisit = null)
+            TraversalMethod method = TraversalMethod.DepthFirstPre, OnVisitNode<DataNode> onVisit = null)
         {
-            return new DataTraversalEnumerable(node, direction, order, this, onVisit);
+            return new DataTraversalEnumerable(in node, direction, method, m_Graph, m_DataPools, onVisit);
         }
 
         /// <summary>
-        /// Traverses data nodes in a depth-first manner, starting from the specified node and moving downwards.
+        /// Traverses data nodes depth-first pre-order, starting from the specified node and moving downwards.
         /// </summary>
         /// <param name="node">The starting data node for traversal.</param>
         /// <param name="onVisit">Optional callback that is invoked when visiting each node. Return false to skip child traversal.</param>
         /// <returns>An enumerable object that can be used to traverse the data nodes.</returns>
-        public DataTraversalEnumerable TraverseDataDownwards(DataNode node, OnVisitDataNode onVisit = null)
+        public DataTraversalEnumerable TraverseDataDownwards(DataNode node, OnVisitNode<DataNode> onVisit = null)
         {
-            return TraverseDataRecursive(node, Direction.Downwards, TraversalOrder.DepthFirst, onVisit);
+            return TraverseDataRecursive(node, Direction.Downwards, TraversalMethod.DepthFirstPre, onVisit);
         }
 
         /// <summary>
-        /// Traverses data nodes in a breadth-first manner, starting from the specified node and moving downwards.
+        /// Traverses data nodes breadth-first, starting from the specified node and moving downwards.
         /// </summary>
         /// <param name="node">The starting data node for traversal.</param>
         /// <param name="onVisit">Optional callback that is invoked when visiting each node. Return false to skip child traversal.</param>
         /// <returns>An enumerable object that can be used to traverse the data nodes.</returns>
-        public DataTraversalEnumerable TraverseDataDownwardsBreadthFirst(DataNode node, OnVisitDataNode onVisit = null)
+        public DataTraversalEnumerable TraverseDataDownwardsBreadthFirst(DataNode node, OnVisitNode<DataNode> onVisit = null)
         {
-            return TraverseDataRecursive(node, Direction.Downwards, TraversalOrder.BreadthFirst, onVisit);
+            return TraverseDataRecursive(node, Direction.Downwards, TraversalMethod.BreadthFirst, onVisit);
         }
 
         /// <summary>
-        /// Traverses data nodes in a depth-first manner, starting from the specified node and moving upwards.
+        /// Traverses data nodes depth-first pre-order, starting from the specified node and moving upwards.
         /// </summary>
         /// <param name="node">The starting data node for traversal.</param>
         /// <param name="onVisit">Optional callback that is invoked when visiting each node. Return false to skip parent traversal.</param>
         /// <returns>An enumerable object that can be used to traverse the data nodes.</returns>
-        public DataTraversalEnumerable TraverseDataUpwards(DataNode node, OnVisitDataNode onVisit = null)
+        public DataTraversalEnumerable TraverseDataUpwards(DataNode node, OnVisitNode<DataNode> onVisit = null)
         {
-            return TraverseDataRecursive(node, Direction.Upwards, TraversalOrder.DepthFirst, onVisit);
+            return TraverseDataRecursive(node, Direction.Upwards, TraversalMethod.DepthFirstPre, onVisit);
         }
 
         /// <summary>
-        /// Traverses data nodes in a breadth-first manner, starting from the specified node and moving upwards.
+        /// Traverses data nodes breadth-first, starting from the specified node and moving upwards.
         /// </summary>
         /// <param name="node">The starting data node for traversal.</param>
         /// <param name="onVisit">Optional callback that is invoked when visiting each node. Return false to skip parent traversal.</param>
         /// <returns>An enumerable object that can be used to traverse the data nodes.</returns>
-        public DataTraversalEnumerable TraverseDataUpwardsBreadthFirst(DataNode node, OnVisitDataNode onVisit = null)
+        public DataTraversalEnumerable TraverseDataUpwardsBreadthFirst(DataNode node, OnVisitNode<DataNode> onVisit = null)
         {
-            return TraverseDataRecursive(node, Direction.Upwards, TraversalOrder.BreadthFirst, onVisit);
-        }
-
-
-        /// <summary>
-        /// Represents an enumerable collection for depth-first traversal of data nodes.
-        /// </summary>
-        public struct DataTraversalEnumerable
-        {
-            /// <summary>
-            /// Initializes a new instance of the DataDepthFirstEnumerable struct.
-            /// </summary>
-            /// <param name="node">The starting node for traversal.</param>
-            /// <param name="direction">The direction of traversal (Upwards or Downwards).</param>
-            /// <param name="order"> The order of traversal (depth first or breadth first).</param>
-            /// <param name="traverser">The graph traverser object in use.</param>
-            /// <param name="onVisit">Optional callback that is invoked when visiting each node.</param>
-            public DataTraversalEnumerable(DataNode node, Direction direction, TraversalOrder order,
-                GraphTraverser traverser, OnVisitDataNode onVisit = null)
-            {
-                m_Node = node;
-                m_GraphTraverser = traverser;
-                m_Direction = direction;
-                m_Order = order;
-                m_OnVisit = onVisit;
-            }
-
-            private DataNode m_Node;
-            private GraphTraverser m_GraphTraverser;
-            private Direction m_Direction;
-            private TraversalOrder m_Order;
-            private OnVisitDataNode m_OnVisit;
-
-            /// <summary>
-            /// Gets an enumerator for traversing the data nodes in depth-first order.
-            /// </summary>
-            /// <returns>An enumerator that can be used to traverse the data nodes.</returns>
-            public Enumerator GetEnumerator() =>
-                new Enumerator(m_Node, m_Direction, m_Order, m_GraphTraverser, m_OnVisit);
-
-
-            /// <summary>
-            /// Executes the traversal by iterating through all nodes using the enumerator.
-            /// </summary>
-            public void Execute()
-            {
-                using var enumerator = GetEnumerator();
-                while (enumerator.MoveNext()) { }
-            }
-
-            /// <summary>
-            /// Enumerator for depth-first traversal of data nodes.
-            /// </summary>
-            public struct Enumerator : IDisposable
-            {
-                private Deque<DataNode> m_Deque;
-                private HashSet<DataNodeId> m_Visited;
-                private bool m_OwnsVisited;
-                private GraphTraverser m_GraphTraverser;
-                private DataNode m_Current;
-                private Direction m_Direction;
-                private TraversalOrder m_Order;
-                private OnVisitDataNode m_OnVisit;
-
-                /// <summary>
-                /// Initializes a new instance of the Enumerator struct.
-                /// </summary>
-                /// <param name="startNode">The starting node for traversal.</param>
-                /// <param name="direction">The direction of traversal.</param>
-                /// <param name="order"> The order of traversal (depth first or breadth first).</param>
-                /// <param name="traverser">The graph traverser object in use.</param>
-                /// <param name="onVisit">Optional callback that is invoked when visiting each node.</param>
-                public Enumerator(DataNode startNode, Direction direction, TraversalOrder order,
-                    GraphTraverser traverser, OnVisitDataNode onVisit = null)
-                {
-                    m_Direction = direction;
-                    m_Order = order;
-                    m_GraphTraverser = traverser;
-                    m_OwnsVisited = traverser.m_DataVisited == null;
-                    m_Visited = m_OwnsVisited ? m_GraphTraverser.m_DataVisitedPool.Get() : traverser.m_DataVisited;
-                    m_Deque = m_GraphTraverser.m_DataDequePool.Get();
-                    m_Current = new DataNode();
-                    m_OnVisit = onVisit;
-                    m_Deque.AddFront(startNode);
-                }
-
-                /// <summary>
-                /// Advances the enumerator to the next data node in the depth-first traversal.
-                /// </summary>
-                /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
-                public bool MoveNext()
-                {
-                    while (m_Deque.Count > 0)
-                    {
-                        m_Current = m_Order == TraversalOrder.DepthFirst ? m_Deque.RemoveFront() : m_Deque.RemoveBack();
-                        if (m_Visited.Add(m_Current.Id) && (m_OnVisit == null || m_OnVisit.Invoke(m_Current)))
-                        {
-                            var connections = m_Direction == Direction.Downwards
-                                ? m_Current.Children
-                                : m_Current.Parents;
-
-                            for (int i = 0; i < connections.Count; i++)
-                            {
-                                var neighbor = m_Order == TraversalOrder.DepthFirst
-                                    ? connections[connections.Count - 1 - i]
-                                    : connections[i];
-                                if (!m_Visited.Contains(neighbor.Id))
-                                {
-                                    if (m_Order == TraversalOrder.DepthFirst)
-                                        m_Deque.AddFront(neighbor);
-                                    else
-                                        m_Deque.AddBack(neighbor);
-                                }
-                            }
-
-                            return true;
-                        }
-                    }
-
-                    m_Current = new DataNode();
-                    return false;
-                }
-
-                /// <summary>
-                /// Gets the current data node in the traversal.
-                /// </summary>
-                public DataNode Current => m_Current.Id.IsValid ? m_Current : default;
-
-                /// <summary>
-                /// Releases all resources used by the enumerator.
-                /// </summary>
-                public void Dispose()
-                {
-                    if (m_OwnsVisited)
-                    {
-                        m_Visited.Clear();
-                        m_GraphTraverser.m_DataVisitedPool.Release(m_Visited);
-                    }
-
-                    m_Deque.Clear();
-                    m_GraphTraverser.m_DataDequePool.Release(m_Deque);
-                }
-            }
+            return TraverseDataRecursive(node, Direction.Upwards, TraversalMethod.BreadthFirst, onVisit);
         }
 
         /// <summary>
-        /// Represents an enumerable collection for linear traversal of data nodes with optional filtering.
+        /// Traverses all data nodes in parent-first (topological) order: a node is yielded only
+        /// after every data node it depends on (its parents) has already been yielded.
+        /// The graph is expected to be acyclic; if a cycle is
+        /// detected, the remaining nodes are still yielded (in arbitrary order) after an assert,
+        /// so that no node is silently dropped.
         /// </summary>
-        public struct LinearDataEnumerable
+        /// <returns>An enumerable object that yields data nodes in parent-first order.</returns>
+        public TopologicalDataEnumerable TraverseDataParentsFirst()
         {
-            private IReadOnlyGraph m_Graph;
-            private OnFilterDataNode m_OnFilter;
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="LinearDataEnumerable"/> struct.
-            /// </summary>
-            /// <param name="graph">The graph to traverse.</param>
-            /// <param name="onFilter">Optional filter callback to control traversal and acceptance of nodes.</param>
-            public LinearDataEnumerable(IReadOnlyGraph graph, OnFilterDataNode onFilter = null)
-            {
-                m_Graph = graph;
-                m_OnFilter = onFilter;
-            }
-
-            /// <summary>
-            /// Gets an enumerator for traversing the data nodes linearly.
-            /// </summary>
-            /// <returns>An enumerator for the data nodes.</returns>
-            public Enumerator GetEnumerator() => new Enumerator(m_Graph, m_OnFilter);
-
-            /// <summary>
-            /// Executes the traversal, iterating through all nodes.
-            /// </summary>
-            public void Execute()
-            {
-                var enumerator = GetEnumerator();
-                while (enumerator.MoveNext()) { }
-            }
-
-            /// <summary>
-            /// Enumerator for linear traversal of data nodes with filtering.
-            /// </summary>
-            public struct Enumerator
-            {
-                private IReadOnlyGraph m_Graph;
-                private OnFilterDataNode m_OnFilter;
-                private int m_Index;
-
-                /// <summary>
-                /// Initializes a new instance of the <see cref="Enumerator"/> struct.
-                /// </summary>
-                /// <param name="graph">The graph to traverse.</param>
-                /// <param name="onFilter">Optional filter callback to control traversal and acceptance of nodes.</param>
-                public Enumerator(IReadOnlyGraph graph, OnFilterDataNode onFilter)
-                {
-                    m_Graph = graph;
-                    m_OnFilter = onFilter;
-                    m_Index = -1;
-                }
-
-                /// <summary>
-                /// Gets the current data node in the traversal.
-                /// </summary>
-                public DataNode Current => m_Graph.DataNodes[m_Index];
-
-                /// <summary>
-                /// Advances the enumerator to the next data node that matches the filter.
-                /// </summary>
-                /// <returns>True if a node was found; otherwise, false.</returns>
-                public bool MoveNext()
-                {
-                    while (m_Index < m_Graph.DataNodes.Count - 1)
-                    {
-                        m_Index++;
-                        var node = m_Graph.DataNodes[m_Index];
-                        var control = m_OnFilter(node);
-                        if (!control.Continue)
-                        {
-                            m_Index = m_Graph.DataNodes.Count;
-                        }
-
-                        if (control.Accept)
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }
-            }
+            return new TopologicalDataEnumerable(m_Graph, m_DataPools, Direction.Downwards);
         }
+
+        /// <summary>
+        /// Traverses all data nodes in children-first (reverse topological) order: a node is yielded
+        /// only after every data node that depends on it (its children) has already been yielded.
+        /// The graph is expected to be acyclic; if a cycle is
+        /// detected, the remaining nodes are still yielded (in arbitrary order) after an assert,
+        /// so that no node is silently dropped.
+        /// </summary>
+        /// <returns>An enumerable object that yields data nodes in children-first order.</returns>
+        public TopologicalDataEnumerable TraverseDataChildrenFirst()
+        {
+            return new TopologicalDataEnumerable(m_Graph, m_DataPools, Direction.Upwards);
+        }
+
     }
 }

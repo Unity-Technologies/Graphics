@@ -1,0 +1,100 @@
+{
+	"introduction":
+	"""Welcome to the Particle Shaders Sample.
+
+	This collection is composed of various <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/index.html">Shader Graphs</a>, each to visually explain how to use Shader Graph with Particle Systems.""",
+
+	"samples": [
+		{
+			"title": "GPU Instancing",
+			"prefabName": "GPU Instancing",
+			"description":
+			"""<ignore><link="Particle Lit.shadergraph">Open Shader Graph</link>
+			<link="GPU Instancing/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			Like Particle Graph Templates, all examples work on Particle Systems with Render Mode set to Billboard or Mesh, with or without GPU Instancing enabled, by using Particle Data nodes from the Shader Functions Library, such as Particle Transforms, Color and TexCoords.
+
+			Open the shader graph for more information.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Particle-Transforms-Node.html">Particle Transforms</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Particle-Color-Node.html">Particle Color</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Particle-Texcoords-Node.html">Particle Texcoords</a>"""
+		},
+		{
+			"title": "Flipbook Blending",
+			"prefabName": "Flipbook Blending",
+			"description":
+			"""<ignore><link="Flipbook Blending.shadergraph">Open Shader Graph</link>
+			<link="Flipbook Blending/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			This example uses the (new) Particle Flipbook Blending subgraph.
+			The upper system’s material has blending enabled, while the lower one has it disabled.
+When using Billboard or Mesh with GPU Instancing disabled, it expects Custom Vertex Streams set to: Color, UV, UV2 and AnimBlend.
+Note, Normal is also required for Lit, and Tangent if Normal Maps are used.
+When GPU Instancing is disabled, a mesh where UV1 is the same as UV0 is required.
+When using Mesh with GPU Instancing enabled, this requires no Custom Vertex Streams.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Manual/PartSysTexSheetAnimModule.html">Texture Sheet Animation</a>"""
+		},
+		{
+			"title": "Soft Particles",
+			"prefabName": "Soft Particles",
+			"description":
+			"""<ignore><link="Soft Particles.shadergraph">Open Shader Graph</link>
+			<link="Soft Particles/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			This example fades transparent particles near opaque geometry, so as to avoid hard clipping where particles overlap scene objects. This is similar to URP Particle Shaders’ “Soft Particles” option.
+The upper system’s material shows Soft Particles, while the lower one shows clipping artefacts that occur without it.
+
+			Open the shader graph for more information.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Scene-Depth-Node.html">Scene Depth Node</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Screen-Position-Node.html">Screen Position Node</a>"""
+		},
+		{
+			"title": "Camera Fading",
+			"prefabName": "Camera Fading",
+			"description":
+			"""<ignore><link="Camera Fading.shadergraph">Open Shader Graph</link>
+			<link="Camera Fading/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			This example fades transparent particles near the camera, so as to avoid hard clipping where particles come near the Camera clipping plane. This is similar to URP Particle Shader “Camera Fade” option.
+
+			Open the shader graph for more information.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Position-Node.html">Position Node</a>"""
+		},
+		{
+			"title": "Distortion",
+			"prefabName": "Distortion",
+			"description":
+			"""<ignore><link="Distortion.shadergraph">Open Shader Graph</link>
+			<link="Distortion/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			This example uses a Normal Map to distort the background behind transparent particles. This is similar to URP Particle Shaders “Distortion” option.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Scene-Color-Node.html">Scene Color Node</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Screen-Position-Node.html">Screen Position Node</a>"""
+		},
+		{
+			"title": "Custom Particle Data (Particle Age)",
+			"prefabName": "Particle Age",
+			"description":
+			"""<ignore><link="Particle Age.shadergraph">Open Shader Graph</link>
+			<link="Particle Age/TurntableWithBackdrop_Particles/Particle System">Show Particle System</link>
+			</ignore>
+			This example shows how to use Custom Vertex Streams to use Particle Data in the shader, either using vertex streams with Billboards or custom ParticleData struct with Mesh and GPU Instancing enabled.
+Here the Particle Age is used to dissolve particles.
+	
+			Open the shader graph for more information.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Manual/PartSysVertexStreams.html">Particle Systems Vertex Streams</a>"""
+		}
+	]
+}

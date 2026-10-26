@@ -114,6 +114,13 @@ float4 _FlareOcclusionIndex;
 #define _FlareCutoffSpeed       _FlareData5.z
 #define _FlareCutoffRadius      _FlareData5.w
 
+// A render pipeline can define FLARE_APPLY_EXPOSURE(color) before including this file to bring
+// the flare color into the exposure space of the destination buffer (e.g. multiply by the camera
+// pre-exposure so flares dim/brighten with scene exposure). Identity by default.
+#ifndef FLARE_APPLY_EXPOSURE
+#define FLARE_APPLY_EXPOSURE(color) (color)
+#endif
+
 void Rotate(out float2 rot, float2 v, float cos0, float sin0)
 {
     rot = float2(v.x * cos0 - v.y * sin0,
@@ -156,6 +163,9 @@ float GetLinearDepthValue(float2 uv)
         depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
 
 #endif
+
+    if (unity_OrthoParams.w != 0.0)
+        return LinearEyeDepthOrtho(depth, _ProjectionParams.y, _ProjectionParams.z);
 
     return LinearEyeDepth(depth, _ZBufferParams);
 }
@@ -577,6 +587,7 @@ float4 GetFlareShape(float2 uv, float2 screenPos)
     }
     flareColor *= _FlareColorValue;
     flareColor.rgb *= _FlareIntensity;
+    flareColor.rgb = FLARE_APPLY_EXPOSURE(flareColor.rgb);
 
 #ifdef FLARE_ADDITIVE_BLEND
     float4 finalValue = float4(flareColor.rgb * shape, shape * flareColor.a);

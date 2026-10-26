@@ -98,6 +98,221 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
             }
             ENDHLSL
         }
+
+        // Pass 1: Blit valid depth data from _XRDepthTexture to motionvector depth target
+        Pass
+        {
+            Name "XR MotionVector Depth Copy"
+
+            Cull Off
+            ZWrite On
+            ColorMask RGBA
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma multi_compile_fragment _ _SUBSAMPLE_DEPTH
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            
+            // -------------------------------------
+            // Constants
+            float _SpaceWarpNDCModifier;
+            float2 _XRDepthTextureUVScale;
+
+            // -------------------------------------
+            // Structs
+            struct Attributes
+            {
+                uint vertexID   : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 position : SV_POSITION;
+                float4 posCS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            // -------------------------------------
+            // Vertex
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                
+                output.position = GetFullScreenTriangleVertexPosition(input.vertexID, 1 - UNITY_NEAR_CLIP_VALUE);
+                output.posCS = output.position;
+
+                float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                uv *= _XRDepthTextureUVScale;
+                output.uv = uv;
+
+                return output;
+            }
+
+            TEXTURE2D_X(_XRDepthTexture);
+            SAMPLER(sampler_XRDepthTexture);
+
+            // -------------------------------------
+            // Fragment
+            float4 Frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                float2 uv = input.uv;
+
+             #if _SUBSAMPLE_DEPTH && SHADER_TARGET >= 45 && defined(PLATFORM_SUPPORT_GATHER)
+                float4 depth4 = GATHER_RED_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, uv);
+                #if UNITY_REVERSED_Z
+                    float depth = min(min(depth4.x, depth4.y), min(depth4.z, depth4.w));
+                #else
+                    float depth = max(max(depth4.x, depth4.y), max(depth4.z, depth4.w));
+                #endif
+            #else
+                float depth = SAMPLE_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, uv).x;
+            #endif
+
+                // This is required to avoid artifacts from the motion vector pass outputting the same z
+            #if UNITY_REVERSED_Z
+                outDepth = depth - 0.0001; // Write depth with a small offset
+            #else
+                outDepth = depth + 0.0001; // Write depth with a small offset
+            #endif
+
+                // Reconstruct world position from the sampled depth instead of the
+                // far-plane WS interpolated from the vertex stage. Without this, static
+                // pixels get camera motion as if they were at the far plane and lose
+                // parallax during head translation.
+                float4 posCSReal = float4(input.posCS.xy, depth, 1.0);
+                float3 posWS = ComputeWorldSpacePosition(posCSReal, UNITY_MATRIX_I_VP);
+
+                float4 posCS = mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0));
+                float4 prevPosCS = mul(_PrevViewProjMatrix, float4(posWS, 1.0));
+
+                // Non-uniform raster needs to keep the posNDC values in float to avoid additional conversions
+                // since uv remap functions use floats
+                float3 posNDC = posCS.xyz * rcp(posCS.w);
+                float3 prevPosNDC = prevPosCS.xyz * rcp(prevPosCS.w);
+
+                // Calculate forward velocity
+                float3 velocity = (posNDC - prevPosNDC);
+
+                #if UNITY_UV_STARTS_AT_TOP
+                velocity.y = velocity.y * _SpaceWarpNDCModifier;
+                #endif
+
+                return float4(velocity.xyz, 0);
+            }
+            ENDHLSL
+        }
+
+        // Pass 2: Scale outer MVs into inner (foveal) view space for Quad View.
+        // Inner and outer views share the same eye; only FoV differs, so the transform is a constant per-axis scale with UV crop.
+        // Replaces the full inner XRDepthMotionPass.
+        Pass
+        {
+            Name "XR MotionVector QuadView Reprojection"
+
+            Cull Off
+            ZWrite On
+            ZTest Always
+            ColorMask RGBA
+
+            HLSLPROGRAM
+            #pragma target 3.5
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            // -------------------------------------
+            // Constants
+            float    _SpaceWarpNDCModifier;
+            float4   _QuadViewUVScales;       // inner-to-outer UV scale,         xy = left eye, zw = right eye
+            float4   _QuadViewUVOffsets;      // inner-to-outer UV offset (curr),  xy = left eye, zw = right eye
+            float4   _QuadViewPrevUVOffsets;  // inner-to-outer UV offset (prev),  xy = left eye, zw = right eye
+
+            TEXTURE2D_X(_QuadViewMVTex);
+            SAMPLER(s_point_clamp_sampler);
+            TEXTURE2D_X(_XRDepthTexture);
+            SAMPLER(sampler_XRDepthTexture);
+
+            // -------------------------------------
+            // Structs
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 position : SV_POSITION;
+                float2 uv       : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            // -------------------------------------
+            // Vertex
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                output.position = GetFullScreenTriangleVertexPosition(input.vertexID, 1 - UNITY_NEAR_CLIP_VALUE);
+                output.uv       = GetFullScreenTriangleTexCoord(input.vertexID);
+                return output;
+            }
+
+            // -------------------------------------
+            // Fragment
+            float4 Frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                float2 uvScale      = unity_StereoEyeIndex == 0 ? _QuadViewUVScales.xy      : _QuadViewUVScales.zw;
+                float2 uvOffset     = unity_StereoEyeIndex == 0 ? _QuadViewUVOffsets.xy     : _QuadViewUVOffsets.zw;
+                float2 prevUVOffset = unity_StereoEyeIndex == 0 ? _QuadViewPrevUVOffsets.xy : _QuadViewPrevUVOffsets.zw;
+
+                // Remap inner UV to the outer MV texture.
+                // uvOffset.y uses (1 - uvScale.y - uvOffset.y) because the OpenXR Vulkan projection inverts the sign fed to ExtractFrustumBoundsFromProjection
+                // causing uvOffset.y to encode the top-edge distance instead of the bottom-edge distance required for BottomLeft UV sampling.
+                float2 outerUV = float2(
+                    input.uv.x * uvScale.x + uvOffset.x,
+                    input.uv.y * uvScale.y + (1.0 - uvScale.y - uvOffset.y)
+                );
+
+                outDepth = SAMPLE_TEXTURE2D_X(_XRDepthTexture, sampler_XRDepthTexture, outerUV).x;
+
+                float4 outerMV = SAMPLE_TEXTURE2D_X(_QuadViewMVTex, s_point_clamp_sampler, outerUV);
+
+                // Gaze-shift correction: when the inner frustum center moves between frames due to eye tracking, the inner MVs must also pan by that amount.
+                // The UV-space offset delta is converted to NDC-space ([0,1] UV -> [-1, 1] NDC)
+                // The Y term is then brought into the SpaceWarp NDC convention via _SpaceWarpNDCModifier, matching Passes 0 and 1
+                float panX =  2.0 * (prevUVOffset.x - uvOffset.x) / uvScale.x;
+                float panY =  2.0 * (prevUVOffset.y - uvOffset.y) / uvScale.y;
+                #if UNITY_UV_STARTS_AT_TOP
+                panY *= _SpaceWarpNDCModifier;
+                #endif
+
+                return float4(outerMV.x / uvScale.x + panX,
+                              outerMV.y / uvScale.y + panY,
+                              outerMV.z,
+                              0);
+            }
+            ENDHLSL
+        }
     }
     Fallback Off
 }

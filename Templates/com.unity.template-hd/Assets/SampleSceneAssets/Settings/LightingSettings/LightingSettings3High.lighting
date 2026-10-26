@@ -7,7 +7,7 @@ LightingSettings:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LightingSettings3High
-  serializedVersion: 9
+  serializedVersion: 11
   m_EnableBakedLightmaps: 1
   m_EnableRealtimeLightmaps: 0
   m_RealtimeEnvironmentLighting: 1
@@ -22,6 +22,12 @@ LightingSettings:
   m_BakeResolution: 30
   m_Padding: 5
   m_LightmapCompression: 0
+  m_LightmapPackingMode: 1
+  m_LightmapPackingMethod: 0
+  m_XAtlasPackingAttempts: 16384
+  m_XAtlasBruteForce: 0
+  m_XAtlasBlockAlign: 0
+  m_XAtlasRepackUnderutilizedLightmaps: 1
   m_AO: 0
   m_AOMaxDistance: 1
   m_CompAOExponent: 1
@@ -61,3 +67,11 @@ LightingSettings:
   m_PVRFilteringAtrousPositionSigmaIndirect: 0.5
   m_PVRFilteringAtrousPositionSigmaAO: 1
   m_RespectSceneVisibilityWhenBakingGI: 0
+  m_DirectLightSamplingMode: 2
+  m_DirectRISCandidateCount: 4
+  m_IndirectLightSamplingMode: 1
+  m_IndirectRISCandidateCount: 1
+  m_LightAccelerationStructure: 0
+  m_LightGridMaxCells: 262144
+  m_DirectEmissiveSamplingMode: 2
+  m_IndirectEmissiveSamplingMode: 2

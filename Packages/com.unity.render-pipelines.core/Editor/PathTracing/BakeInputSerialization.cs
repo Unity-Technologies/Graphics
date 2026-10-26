@@ -52,21 +52,33 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         }
     }
 
+    // Reads from a Stream so that the total payload size is not bounded by the
+    // ~2 GB cap on a single byte[] (the cause of UUM-143207). Individual transfers
+    // still copy into managed arrays of int-indexed length, but the cumulative size
+    // of the stream may exceed int.MaxValue bytes.
     internal class BakeInputReader : IBakeInputVisitor
     {
-        private int _position;
-        private byte[] _bytes;
+        const int ChunkSize = 1 << 20; // 1 MiB
+
+        private readonly Stream _stream;
+        private byte[] _scratch = new byte[8];
+
+        public BakeInputReader(Stream stream)
+        {
+            _stream = stream;
+        }
 
         public BakeInputReader(byte[] bytes)
+            : this(new MemoryStream(bytes, writable: false))
         {
-            _position = 0;
-            _bytes = bytes;
         }
 
         public void TransferBoolean(ref bool result)
         {
-            result = _bytes[_position] != 0;
-            _position += sizeof(byte);
+            int b = _stream.ReadByte();
+            if (b < 0)
+                throw new EndOfStreamException();
+            result = b != 0;
         }
 
         public void TransferString(ref string result)
@@ -90,11 +102,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public unsafe void TransferBlittable<T>(ref T result)
             where T : unmanaged
         {
-            var size = sizeof(T);
-            fixed (byte* ptr = &_bytes[_position])
+            fixed (T* ptr = &result)
             {
-                UnsafeUtility.CopyPtrToStructure(ptr, out result);
-                _position += size;
+                ReadExactlyToPointer((byte*)ptr, (ulong)sizeof(T));
             }
         }
 
@@ -106,18 +116,13 @@ namespace UnityEditor.PathTracing.LightBakerBridge
 
             array = new T[length];
 
-            if (0 == length) // This avoids going out-of-bounds below when we are at the end of data.
+            if (0 == length)
                 return;
 
-            // Pin the managed arrays while we copy data over
-            int byteLength = (int)length * sizeof(T);
-            fixed (byte* ptr = &_bytes[_position])
+            ulong byteLength = length * (ulong)sizeof(T);
+            fixed (T* arrayPtr = array)
             {
-                fixed (T* arrayPtr = array)
-                {
-                    UnsafeUtility.MemCpy(arrayPtr, ptr, byteLength);
-                    _position += byteLength;
-                }
+                ReadExactlyToPointer((byte*)arrayPtr, byteLength);
             }
         }
 
@@ -136,18 +141,49 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 dict.Add(key, value);
             }
         }
-    }
 
-    internal class BakeInputWriter : IBakeInputVisitor
-    {
-        private List<byte> _outBytes;
-
-        public BakeInputWriter(List<byte> outBytes)
+        private void ReadExactly(byte[] buffer, int offset, int count)
         {
-            _outBytes = outBytes;
+            int totalRead = 0;
+            while (totalRead < count)
+            {
+                int n = _stream.Read(buffer, offset + totalRead, count - totalRead);
+                if (n == 0)
+                    throw new EndOfStreamException();
+                totalRead += n;
+            }
         }
 
-        public void TransferBoolean(ref bool result) => _outBytes.Add(result ? (byte)1 : (byte)0);
+        private unsafe void ReadExactlyToPointer(byte* destination, ulong count)
+        {
+            ulong totalRead = 0;
+            while (totalRead < count)
+            {
+                int toRead = (int)Math.Min((ulong)ChunkSize, count - totalRead);
+                var span = new Span<byte>(destination + totalRead, toRead);
+                int n = _stream.Read(span);
+                if (n == 0)
+                    throw new EndOfStreamException();
+                totalRead += (ulong)n;
+            }
+        }
+    }
+
+    // Writes to a Stream so the total payload size is not bounded by List<byte>/byte[]'s
+    // ~2 GB cap. Individual transfers fit in int-indexed managed arrays, but the cumulative
+    // bytes written to the stream may exceed int.MaxValue.
+    internal class BakeInputWriter : IBakeInputVisitor
+    {
+        const int ChunkSize = 1 << 20; // 1 MiB
+
+        private readonly Stream _stream;
+
+        public BakeInputWriter(Stream stream)
+        {
+            _stream = stream;
+        }
+
+        public void TransferBoolean(ref bool result) => _stream.WriteByte(result ? (byte)1 : (byte)0);
 
         public void TransferString(ref string result)
         {
@@ -168,17 +204,27 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public unsafe void TransferBlittable<T>(ref T result)
             where T : unmanaged
         {
-            var size = sizeof(T);
-            byte[] bytes = new byte[size];
-            fixed (byte* ptr = &bytes[0])
+            fixed (T* ptr = &result)
             {
-                UnsafeUtility.CopyStructureToPtr(ref result, ptr);
+                WriteFromPointer((byte*)ptr, (ulong)sizeof(T));
             }
-            _outBytes.AddRange(bytes);
         }
 
-        public void TransferBlittableArray<T>(ref T[] array)
-            where T : unmanaged => TransferArray(ref array, (IBakeInputVisitor visitor, ref T result) => visitor.TransferBlittable(ref result));
+        public unsafe void TransferBlittableArray<T>(ref T[] array)
+            where T : unmanaged
+        {
+            UInt64 length = (UInt64)array.Length;
+            TransferBlittable(ref length);
+
+            if (0 == length)
+                return;
+
+            ulong byteLength = length * (ulong)sizeof(T);
+            fixed (T* arrayPtr = array)
+            {
+                WriteFromPointer((byte*)arrayPtr, byteLength);
+            }
+        }
 
         public void TransferDictionary<TKey, TValue>(ref Dictionary<TKey, TValue> dict, TransferFunction<TValue> valueTransfer)
             where TKey : unmanaged
@@ -192,6 +238,18 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 TransferBlittable(ref keyCopy);
                 TValue valueCopy = value;
                 valueTransfer(this, ref valueCopy);
+            }
+        }
+
+        private unsafe void WriteFromPointer(byte* source, ulong count)
+        {
+            ulong written = 0;
+            while (written < count)
+            {
+                int toWrite = (int)Math.Min((ulong)ChunkSize, count - written);
+                var span = new ReadOnlySpan<byte>(source + written, toWrite);
+                _stream.Write(span);
+                written += (ulong)toWrite;
             }
         }
     }
@@ -956,28 +1014,32 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         // If these are out of sync, the implementation in this file probably needs to be updated.
         const UInt64 CurrentFileVersion = 202605011;
 
+        // File payloads may exceed 2 GB (UUM-143207), so the file path overloads stream through a
+        // FileStream rather than buffering the whole file in a byte[] via File.ReadAllBytes /
+        // File.WriteAllBytes.
+        const int StreamBufferSize = 1 << 20; // 1 MiB
+
         public static bool Deserialize(string path, out BakeInput bakeInput)
         {
-            BakeInputReader reader = new(File.ReadAllBytes(path));
-            return Deserialize(reader, out bakeInput);
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, StreamBufferSize);
+            return Deserialize(new BakeInputReader(fs), out bakeInput);
         }
 
         public static bool Deserialize(string path, out LightmapRequestData lightmapRequestData)
         {
-            BakeInputReader reader = new(File.ReadAllBytes(path));
-            return Deserialize(reader, out lightmapRequestData);
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, StreamBufferSize);
+            return Deserialize(new BakeInputReader(fs), out lightmapRequestData);
         }
 
         public static bool Deserialize(string path, out ProbeRequestData probeRequestData)
         {
-            BakeInputReader reader = new(File.ReadAllBytes(path));
-            return Deserialize(reader, out probeRequestData);
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, StreamBufferSize);
+            return Deserialize(new BakeInputReader(fs), out probeRequestData);
         }
 
         public static bool Deserialize(byte[] memory, out BakeInput bakeInput)
         {
-            BakeInputReader reader = new(memory);
-            return Deserialize(reader, out bakeInput);
+            return Deserialize(new BakeInputReader(memory), out bakeInput);
         }
 
         private static bool Deserialize(BakeInputReader visitor, out BakeInput bakeInput)
@@ -1025,58 +1087,70 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             return true;
         }
 
+        // The byte[] Serialize overloads are intended for tests only — they buffer the full payload
+        // in a MemoryStream, so the result is capped at int.MaxValue bytes. Use the file path
+        // overloads for production payloads (which can exceed 2 GB).
         public static byte[] Serialize(ref BakeInput bakeInput)
         {
-            var bytes = new List<byte>();
-            BakeInputWriter writer = new(bytes);
-
-            UInt64 fileVersion = CurrentFileVersion;
-            writer.TransferBlittable(ref fileVersion);
-
-            writer.Transfer(ref bakeInput);
-
-            return bytes.ToArray();
+            using var ms = new MemoryStream();
+            SerializeTo(ms, ref bakeInput);
+            return ms.ToArray();
         }
 
         public static byte[] Serialize(ref LightmapRequestData lightmapRequestData)
         {
-            var bytes = new List<byte>();
-            BakeInputWriter writer = new(bytes);
-
-            UInt64 fileVersion = CurrentFileVersion;
-            writer.TransferBlittable(ref fileVersion);
-
-            writer.Transfer(ref lightmapRequestData);
-
-            return bytes.ToArray();
+            using var ms = new MemoryStream();
+            SerializeTo(ms, ref lightmapRequestData);
+            return ms.ToArray();
         }
 
         public static byte[] Serialize(ref ProbeRequestData probeRequestData)
         {
-            var bytes = new List<byte>();
-            BakeInputWriter writer = new(bytes);
-
-            UInt64 fileVersion = CurrentFileVersion;
-            writer.TransferBlittable(ref fileVersion);
-
-            writer.Transfer(ref probeRequestData);
-
-            return bytes.ToArray();
+            using var ms = new MemoryStream();
+            SerializeTo(ms, ref probeRequestData);
+            return ms.ToArray();
         }
 
         public static void Serialize(string path, ref BakeInput bakeInput)
         {
-            File.WriteAllBytes(path, Serialize(ref bakeInput));
+            using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, StreamBufferSize);
+            SerializeTo(fs, ref bakeInput);
         }
 
         public static void Serialize(string path, ref LightmapRequestData lightmapRequestData)
         {
-            File.WriteAllBytes(path, Serialize(ref lightmapRequestData));
+            using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, StreamBufferSize);
+            SerializeTo(fs, ref lightmapRequestData);
         }
 
         public static void Serialize(string path, ref ProbeRequestData probeRequestData)
         {
-            File.WriteAllBytes(path, Serialize(ref probeRequestData));
+            using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, StreamBufferSize);
+            SerializeTo(fs, ref probeRequestData);
+        }
+
+        private static void SerializeTo(Stream stream, ref BakeInput bakeInput)
+        {
+            var writer = new BakeInputWriter(stream);
+            UInt64 fileVersion = CurrentFileVersion;
+            writer.TransferBlittable(ref fileVersion);
+            writer.Transfer(ref bakeInput);
+        }
+
+        private static void SerializeTo(Stream stream, ref LightmapRequestData lightmapRequestData)
+        {
+            var writer = new BakeInputWriter(stream);
+            UInt64 fileVersion = CurrentFileVersion;
+            writer.TransferBlittable(ref fileVersion);
+            writer.Transfer(ref lightmapRequestData);
+        }
+
+        private static void SerializeTo(Stream stream, ref ProbeRequestData probeRequestData)
+        {
+            var writer = new BakeInputWriter(stream);
+            UInt64 fileVersion = CurrentFileVersion;
+            writer.TransferBlittable(ref fileVersion);
+            writer.Transfer(ref probeRequestData);
         }
     }
 }

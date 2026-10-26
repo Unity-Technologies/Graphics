@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             M_Mesh = o.Find(x => x.m_InternalMesh);
         }
 
-        static public readonly GUIContent k_MeshText = EditorGUIUtility.TrTextContent("Mesh", "Specifies the mesh filter used for the exclusion.");
+        static public readonly GUIContent k_MeshText = L10n.TextContent("Mesh", "Specifies the mesh filter used for the exclusion.", null, null);
 
         public override void OnInspectorGUI()
         {

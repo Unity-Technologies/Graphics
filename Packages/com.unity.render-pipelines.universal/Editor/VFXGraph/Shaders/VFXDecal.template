@@ -239,7 +239,8 @@ void PrepareSurfaceAndInputData(VFX_VARYING_PS_INPUTS i, inout SurfaceData surfa
     decalSurfaceData.normalWS.xyz = normalize(lerp(receiverNormalWS.xyz, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w));
 #endif
 
-    inputData = VFXGetInputData(i, posInput, decalSurfaceData.normalWS.xyz, true);
+    float3 unusedGeometricNormalWS;
+    inputData = VFXGetInputData(i, posInput, decalSurfaceData.normalWS.xyz, true, unusedGeometricNormalWS);
 }
 
 

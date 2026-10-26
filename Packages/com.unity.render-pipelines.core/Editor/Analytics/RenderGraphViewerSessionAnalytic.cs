@@ -1,7 +1,5 @@
-﻿using System;
-using UnityEngine;
+using System;
 using UnityEngine.Analytics;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEditor.Rendering.Analytics
@@ -26,7 +24,7 @@ namespace UnityEditor.Rendering.Analytics
         {
             public Analytic(SessionType sessionType, DebugMessageHandler.AnalyticsPayload payload)
             {
-                using (GenericPool<Data>.Get(out var data))
+                using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.session_type = sessionType.ToString();
                     data.graphics_device_type = payload.graphicsDeviceType.ToString();

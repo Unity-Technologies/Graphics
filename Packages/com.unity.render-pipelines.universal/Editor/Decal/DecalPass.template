@@ -27,6 +27,7 @@ Pass
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 
     // Defines
     $Attributes.normalOS:               #define ATTRIBUTES_NEED_NORMAL
@@ -59,7 +60,7 @@ Pass
     $Varyings.dynamicLightmapUV:        #define VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV
     $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
 
-    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                  #define FEATURES_GRAPH_VERTEX
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
@@ -99,8 +100,14 @@ Pass
     // Graph Functions
     $splice(GraphFunctions)
 
+    // Custom interpolators pre vertex
+    $splice(CustomInterpolatorPreVertex)
+
     // Graph Vertex
     $splice(GraphVertex)
+
+    // Custom interpolators, pre surface
+    $splice(CustomInterpolatorPreSurface)
 
     // Graph Pixel
     $splice(GraphPixel)
@@ -108,12 +115,22 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
     $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data
+
+    // With XYZ normal map encoding we sporadically sample normals with near-zero length that would result in NaN (see NormalizeNormalPerPixel).
+    half3 DecalSafeNormalize(half3 n, half3 fallback)
+    {
+    #if defined(UNITY_NO_DXT5nm)
+        half lenSq = dot(n, n);
+        return lenSq > HALF_MIN ? n * rsqrt(lenSq) : fallback;
+    #else
+        return normalize(n);
+    #endif
+    }
 
     void GetSurfaceData(Varyings input, float4 positionCS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
@@ -137,9 +154,7 @@ Pass
             $Varyings.normalWS:  input.normalWS.xyz = normalWS;
             $Varyings.tangentWS: input.tangentWS.xyzw = half4(tangentWS, sign);
         #else
-            #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-                LODFadeCrossFade(positionCS);
-            #endif
+            LODFadeCrossFade(positionCS);
 
             half fadeFactor = half(1.0);
         #endif
@@ -166,7 +181,7 @@ Pass
 
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             #if defined(_MATERIAL_AFFECTS_NORMAL)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = DecalSafeNormalize(mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz), normalize(normalToWorld[2].xyz));
             #else
                 surfaceData.normalWS.xyz = normalize(normalToWorld[2].xyz);
             #endif
@@ -177,7 +192,7 @@ Pass
                 half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = DecalSafeNormalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld), normalize(half3(input.normalWS)));
             #else
                 surfaceData.normalWS.xyz = normalize(half3(input.normalWS)); // Default to vertex normal
             #endif

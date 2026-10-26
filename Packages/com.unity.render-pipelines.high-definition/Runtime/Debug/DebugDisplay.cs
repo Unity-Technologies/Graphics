@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Unity.Scripting.LifecycleManagement;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition.Attributes;
-using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -18,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
         public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
-        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.kMaxSubdivisionLevels
+        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.k_MaxSubdivisionLevels
         public fixed float _DebugAPVSubdivColors[7 * 4];
 
         public int _DebugLightingMode; // Match enum DebugLightingMode
@@ -279,6 +275,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
 #endif
 
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+        internal UnityEngine.AMD.DebugView amdDebugView { get; } = new UnityEngine.AMD.DebugView();
+#endif
+
+
         /// <summary>
         /// Debug data.
         /// </summary>
@@ -341,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Obsolete("This API has been deprecated. #from(6000.6)")] // TODO: Remove with debugCameraToFreeze
             private static Camera[] GetAvailableDebuggableCameras()
             {
-                using (ListPool<Camera>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
                 {
 
 #if UNITY_EDITOR
@@ -518,9 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug data.
         /// </summary>
-        public DebugData data { get => m_Data; }
-
-        internal Action resetAction { private get; set; }
+        public DebugData data => m_Data;
 
         // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
         /// <summary>List of Full Screen Rendering Debug mode names.</summary>
@@ -535,6 +534,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal DebugDisplaySettings()
         {
+            m_ResetAction = () =>
+            {
+                m_Data = new DebugData();
+
+                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
+                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
+                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
+                Texture.streamingTextureDiscardUnusedMips = false;
+            };
         }
 
         void InitializeDebugEnums()
@@ -560,11 +568,12 @@ namespace UnityEngine.Rendering.HighDefinition
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
         }
 
+        private Action m_ResetAction;
         /// <summary>
         /// Get Reset action.
         /// </summary>
         /// <returns></returns>
-        Action IDebugData.GetReset() => resetAction;
+        Action IDebugData.GetReset() => m_ResetAction;
 
         internal float[] GetDebugMaterialIndexes()
         {
@@ -1744,7 +1753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ComputeThicknessScale = new() { name = "Thickness Scale", tooltip = "Thickness Scale for visualization." };
 
             // Mipmaps
-            public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the TextureStreamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that the Streamer behaves as expected."};
+            public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the Texture Streamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that Mipmap Streaming behaves as expected."};
             public static readonly NameAndTooltip MipMapDebugView = new() { name = "Debug View", tooltip = "Use the drop-down to select a mipmap property to debug." };
             public static readonly NameAndTooltip MipMapDebugOpacity = new() { name = "Debug Opacity", tooltip = "Opacity of texture mipmap streaming debug colors." };
             public static readonly NameAndTooltip MipMapMaterialTextureSlot = new() { name = "Material Texture Slot", tooltip = "Use the drop-down to select the material texture slot to debug (does not affect terrain).\n\nThe slot indices follow the default order by which texture properties appear in the Material Inspector.\nThe default order is itself defined by the order in which (non-hidden) texture properties appear in the shader's \"Properties\" block." };
@@ -1852,22 +1861,23 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 renderingSettings.children.Add(new DebugUI.Container
                 {
-                    isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors || data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity),
+                    displayName = "#FullScreenMode_MotionVectors",
+                    isHiddenCallback = () => !(data.fullScreenDebugMode == FullScreenDebugMode.MotionVectors || data.fullScreenDebugMode == FullScreenDebugMode.MotionVectorsIntensity),
                     children =
                     {
-                        new DebugUI.FloatField {displayName = "Min Motion Vector Length (in pixels)", getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value, min = () => 0}
+                        new DebugUI.FloatField { displayName = "Min Motion Vector Length (in pixels)",
+                                                 getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value,
+                                                 min = () => 0.0f, max = () => 10.0f, incStep = 0.1f, incStepMult = 2.0f, decimals = 2,
+                                                 isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors)},
+                        new DebugUI.FloatField { displayName = "Motion Vector Scale",
+                                                 getter = () => data.motionVecVisualizationScale, setter = value => data.motionVecVisualizationScale = value,
+                                                 min = () => 0,
+                                                 isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity)},
+                        new DebugUI.BoolField  { displayName = "Visualize as Heat map",
+                                                 getter = () => data.motionVecIntensityHeat, setter = value => data.motionVecIntensityHeat = value,
+                                                 isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity) }
                     }
                 });
-                renderingSettings.children.Add(new DebugUI.Container
-                {
-                    isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity),
-                    children =
-                    {
-                        new DebugUI.FloatField {displayName = "Motion Vector Scale", getter = () => data.motionVecVisualizationScale, setter = value => data.motionVecVisualizationScale = value, min = () => 0},
-                        new DebugUI.BoolField {displayName = "Visualize as Heat map", getter = () => data.motionVecIntensityHeat, setter = value => data.motionVecIntensityHeat = value }
-                    }
-                });
-
             }
 
             {
@@ -2160,6 +2170,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             widgetList.Add(nvidiaDebugView.CreateWidget());
+#endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            widgetList.Add(amdDebugView.CreateWidget());
 #endif
 
             m_DebugRenderingItems = widgetList.ToArray();

@@ -1,4 +1,4 @@
-# Output ShaderGraph Quad
+# Output ShaderGraph Quad Context
 
 Menu Path : **Context > Output Particle ShaderGraph Quad**
 
@@ -10,7 +10,7 @@ This output is similar to [Output Particle Quad](Context-OutputPrimitive.md).
 
 | Setting | Type | Description |
 | ------- | ---- | ----------- |
-| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) that Unity uses to render particles produced by this output. When you are assigning a Shader Graph to this field, the Inspector exposes all the Surface Options from the Shader Graph, which allows you to edit the Shader Graph properties inside the Inspector for the Context.<br />The Context properties are populated with compatible exposed inputs from the Shader Graph.<br />For more information on the Surface Options this setting adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html). |
+| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) that Unity uses to render particles produced by this output. When you assign a Shader Graph to this field, the Inspector exposes all the Surface Options from the Shader Graph, which allows you to edit the Shader Graph properties inside the Inspector for the Context.<br />The Context properties are populated with compatible exposed inputs from the Shader Graph.<br />For more information on the Surface Options this setting adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html).<br />To create a new Shader Graph asset instead of assigning an existing one, select **New**. This opens the [Shader Graph template browser](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/template-browser.html), filtered to show only templates that support the Visual Effect Graph. |
 | **Primitive Type** | Enum | **(Inspector)** Specifies the primitive this Context uses to render each particle. The options are:<br/>&#8226; **Quad**: Renders each particle as a quad.<br/>&#8226; **Triangle**: Renders each particle as a triangle.<br/>&#8226; **Octagon**: Renders each particle as an octagon.<br /> |
 
 ## Context properties

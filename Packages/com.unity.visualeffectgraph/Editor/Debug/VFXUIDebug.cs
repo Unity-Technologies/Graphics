@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,7 +34,7 @@ namespace UnityEditor.VFX.UI
                 public VerticalBar(float xPos)
                 {
                     m_Mesh = new Mesh();
-                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, -1, 0), new Vector3(xPos, 1, 0) };
+                    m_Mesh.vertices = new Vector3[] { new Vector3(xPos, 0, 0), new Vector3(xPos, 1, 0) };
                     m_Mesh.SetIndices(new int[] { 0, 1 }, MeshTopology.Lines, 0);
                 }
 
@@ -153,7 +152,6 @@ namespace UnityEditor.VFX.UI
             Material m_CurveMat;
             Material m_BarMat;
             VFXUIDebug m_DebugUI;
-            int m_ClippingMatrixId;
 
             List<SwitchableCurve> m_VFXCurves;
             VerticalBar m_VerticalBar;
@@ -167,38 +165,24 @@ namespace UnityEditor.VFX.UI
             bool m_ShouldDrawTimeBars = true;
             static readonly float s_TimeBarsInterval = 1;
 
-            private static Func<VisualElement, Rect> GetWorldClipRect()
-            {
-                var worldClipProp = typeof(VisualElement).GetMethod("get_worldClip", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (worldClipProp != null)
-                {
-                    return delegate (VisualElement elt)
-                    {
-                        return (Rect)worldClipProp.Invoke(elt, null);
-                    };
-                }
-
-                Debug.LogError("could not retrieve get_worldClip");
-                return delegate (VisualElement elt)
-                {
-                    return new Rect();
-                };
-            }
-
-            private static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
-
             public CurveContent(VFXUIDebug debugUI, int maxPoints, long timeBetweenDraw = 33)
             {
                 m_DebugUI = debugUI;
                 m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemInfo"));
                 m_BarMat = new Material(Shader.Find("Hidden/VFX/TimeBar"));
-                m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 m_MaxPoints = maxPoints;
                 m_VFXCurves = new List<SwitchableCurve>();
 
                 m_VerticalBar = new VerticalBar(0);
                 m_TimeBarsOffsets = new List<float>();
                 m_LastTimeBarDrawTime = -2 * s_TimeBarsInterval;
+
+                style.position = UnityEngine.UIElements.Position.Absolute;
+                style.left = 0;
+                style.right = 0;
+                style.top = 0;
+                style.bottom = 0;
+                pickingMode = PickingMode.Ignore;
 
                 SetSamplingRate((long)timeBetweenDraw);
             }
@@ -327,20 +311,11 @@ namespace UnityEditor.VFX.UI
 
                 MarkDirtyRepaint();
 
-                // draw matrix
-                var debugRect = m_DebugUI.m_DebugDrawingBox.worldBound;
-                var clippedDebugRect = k_BoxWorldclip(m_DebugUI.m_DebugDrawingBox);
-                var windowRect = panel.InternalGetGUIView().position;
-                var trans = new Vector4(debugRect.x / windowRect.width, (windowRect.height - (debugRect.y + debugRect.height)) / windowRect.height, 0, 0);
-                var scale = new Vector3(debugRect.width / windowRect.width, debugRect.height / windowRect.height, 0);
-
-                // clip matrix
-                var clippedScale = new Vector3(windowRect.width / clippedDebugRect.width, windowRect.height / clippedDebugRect.height, 0);
-                var clippedTrans = new Vector3(-clippedDebugRect.x / clippedDebugRect.width, ((clippedDebugRect.y + clippedDebugRect.height) - windowRect.height) / clippedDebugRect.height);
-                var baseChange = Matrix4x4.TRS(clippedTrans, Quaternion.identity, clippedScale);
-                m_CurveMat.SetMatrix(m_ClippingMatrixId, baseChange);
-                m_BarMat.SetMatrix(m_ClippingMatrixId, baseChange);
-
+                // Map mesh [0..1]x[0..1] to element-local pixels. Y is flipped so that
+                // data=max (mesh y=1) draws at the top in UI y-down space.
+                var rect = contentRect;
+                var trans = new Vector3(rect.x, rect.y + rect.height, 0);
+                var scale = new Vector3(rect.width, -rect.height, 0);
 
                 // curves update
                 var now = Time.time;
@@ -449,15 +424,6 @@ namespace UnityEditor.VFX.UI
             m_View = view;
             m_Graph = m_View.controller.graph;
             m_GpuSystems = new List<int>();
-        }
-
-        ~VFXUIDebug()
-        {
-            Clear();
-            m_View = null;
-            m_VFX = null;
-            m_GpuSystems = null;
-            m_CurrentMode = Modes.None;
         }
 
         public Modes GetDebugMode()
@@ -606,10 +572,10 @@ namespace UnityEditor.VFX.UI
             // ui
             m_DebugButton.text = "Efficiency Plot";
             m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
-            m_ComponentBoard.contentContainer.Add(m_Curves);
 
             var Yaxis = SetYAxis("100%", "50%", "0%");
             m_DebugDrawingBox = SetDebugDrawingBox();
+            m_DebugDrawingBox.Add(m_Curves);
             var settingsBox = SetSettingsBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
             var title = SetSystemInfosTitle();
@@ -629,10 +595,10 @@ namespace UnityEditor.VFX.UI
             // ui
             m_DebugButton.text = "Alive Particles Count Plot";
             m_Curves = new CurveContent(this, (int)(10.0f / 0.016f), 16);
-            m_ComponentBoard.contentContainer.Add(m_Curves);
 
             var Yaxis = SetYAxis("", "", "0");
             m_DebugDrawingBox = SetDebugDrawingBox();
+            m_DebugDrawingBox.Add(m_Curves);
             var settingsBox = SetSettingsBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
             var title = SetSystemInfosTitle();
@@ -955,8 +921,8 @@ namespace UnityEditor.VFX.UI
         {
             m_Graph.onRuntimeDataChanged -= UpdateDebugMode;
 
-            if (m_ComponentBoard != null && m_Curves != null)
-                m_ComponentBoard.contentContainer.Remove(m_Curves);
+            if (m_Curves != null)
+                m_Curves.RemoveFromHierarchy();
             m_ComponentBoard = null;
             m_Curves = null;
 

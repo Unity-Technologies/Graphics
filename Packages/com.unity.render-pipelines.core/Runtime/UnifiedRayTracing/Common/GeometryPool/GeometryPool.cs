@@ -16,13 +16,36 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public int indexPoolByteSize;
         public int meshChunkTablesByteSize;
 
+        // The pool grows on demand, so keep the initial allocation small enough for low-end devices.
         public static GeometryPoolDesc NewDefault()
         {
             return new GeometryPoolDesc()
             {
-                vertexPoolByteSize = 256 * 1024 * 1024, //256 mb
-                indexPoolByteSize = 32 * 1024 * 1024, //32 mb
+                vertexPoolByteSize = 32 * 1024 * 1024,
+                indexPoolByteSize = 8 * 1024 * 1024,
+                meshChunkTablesByteSize = 1024 * 1024
+            };
+        }
+
+        public static GeometryPoolDesc NewForBaking()
+        {
+            return new GeometryPoolDesc()
+            {
+                vertexPoolByteSize = 256 * 1024 * 1024,
+                indexPoolByteSize = 32 * 1024 * 1024,
                 meshChunkTablesByteSize = 4 * 1024 * 1024
+            };
+        }
+
+        // Reserve a minimal pool in test contexts, Vulkan frees these allocations at the end of the
+        // frame, so when testing this can accumulate and result in an OOM crash.
+        public static GeometryPoolDesc NewMinimal()
+        {
+            return new GeometryPoolDesc()
+            {
+                vertexPoolByteSize = 1024 * 1024,
+                indexPoolByteSize = 256 * 1024,
+                meshChunkTablesByteSize = 64 * 1024
             };
         }
     }
@@ -93,12 +116,20 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public static readonly int _OutputVBOffset = Shader.PropertyToID("_OutputVBOffset");
             public static readonly int _InputPosBufferStride = Shader.PropertyToID("_InputPosBufferStride");
             public static readonly int _InputPosBufferOffset = Shader.PropertyToID("_InputPosBufferOffset");
+            public static readonly int _InputPosBufferFormat = Shader.PropertyToID("_InputPosBufferFormat");
+            public static readonly int _InputPosBufferDimension = Shader.PropertyToID("_InputPosBufferDimension");
             public static readonly int _InputUv0BufferStride = Shader.PropertyToID("_InputUv0BufferStride");
             public static readonly int _InputUv0BufferOffset = Shader.PropertyToID("_InputUv0BufferOffset");
+            public static readonly int _InputUv0BufferFormat = Shader.PropertyToID("_InputUv0BufferFormat");
+            public static readonly int _InputUv0BufferDimension = Shader.PropertyToID("_InputUv0BufferDimension");
             public static readonly int _InputUv1BufferStride = Shader.PropertyToID("_InputUv1BufferStride");
             public static readonly int _InputUv1BufferOffset = Shader.PropertyToID("_InputUv1BufferOffset");
+            public static readonly int _InputUv1BufferFormat = Shader.PropertyToID("_InputUv1BufferFormat");
+            public static readonly int _InputUv1BufferDimension = Shader.PropertyToID("_InputUv1BufferDimension");
             public static readonly int _InputNormalBufferStride = Shader.PropertyToID("_InputNormalBufferStride");
             public static readonly int _InputNormalBufferOffset = Shader.PropertyToID("_InputNormalBufferOffset");
+            public static readonly int _InputNormalBufferFormat = Shader.PropertyToID("_InputNormalBufferFormat");
+            public static readonly int _InputNormalBufferDimension = Shader.PropertyToID("_InputNormalBufferDimension");
             public static readonly int _PosBuffer = Shader.PropertyToID("_PosBuffer");
             public static readonly int _Uv0Buffer = Shader.PropertyToID("_Uv0Buffer");
             public static readonly int _Uv1Buffer = Shader.PropertyToID("_Uv1Buffer");
@@ -169,6 +200,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             public int stride;
             public int offset;
             public int byteCount;
+            public VertexAttributeFormat format;
+            public int dimension;
 
             public bool valid => buffer != null;
         }
@@ -254,9 +287,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_MustClearCmdBuffer = false;
             m_PendingCmds = 0;
 
-            m_MaxVertCounts = CalcVertexCount(desc.vertexPoolByteSize);
-            m_MaxIndexCounts = CalcIndexCount(desc.indexPoolByteSize);
-            m_MaxMeshChunkTableEntriesCount = CalcMeshChunkTablesCount(desc.meshChunkTablesByteSize);
+            m_MaxVertCounts = Math.Min(CalcVertexCount(desc.vertexPoolByteSize), GraphicsHelpers.MaxElementCount(GetVertexByteSize()));
+            m_MaxIndexCounts = Math.Min(CalcIndexCount(desc.indexPoolByteSize), GraphicsHelpers.MaxElementCount(GetIndexByteSize()));
+            m_MaxMeshChunkTableEntriesCount = Math.Min(CalcMeshChunkTablesCount(desc.meshChunkTablesByteSize), GraphicsHelpers.MaxElementCount(GetMeshChunkTableEntryByteSize()));
 
             m_GlobalVertexBuffer = new GraphicsBuffer(VertexBufferTarget, DivUp(m_MaxVertCounts * GetVertexByteSize(), 4), 4);
             m_GlobalIndexBuffer = new GraphicsBuffer(IndexBufferTarget, m_MaxIndexCounts, 4);
@@ -372,6 +405,30 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_GeoSlots[geoSlotHandle] = geoSlot;
         }
 
+        // The table has a struct stride, so it can't go through the uint copy kernel. Rebuild it from the CPU-side slots instead.
+        private void ReallocateMeshChunkTableBuffer(int newCapacity)
+        {
+            var newBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newCapacity, GetMeshChunkTableEntryByteSize());
+            if (!newBuffer.IsValid())
+                throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+
+            var table = new NativeArray<GeoPoolMeshChunk>(newCapacity, Allocator.Temp);
+            foreach (var geoSlot in m_GeoSlots)
+            {
+                if (!geoSlot.valid || !geoSlot.hasGPUData)
+                    continue;
+
+                for (int i = 0; i < geoSlot.meshChunks.Length; ++i)
+                    table[geoSlot.meshChunkTableAlloc.block.offset + i] = geoSlot.meshChunks[i].EncodeGPUEntry();
+            }
+            newBuffer.SetData(table);
+            table.Dispose();
+
+            m_GlobalMeshChunkTableEntryBuffer.Dispose();
+            m_GlobalMeshChunkTableEntryBuffer = newBuffer;
+            m_MaxMeshChunkTableEntriesCount = newCapacity;
+        }
+
         private bool AllocateGeo(Mesh mesh, out int allocationHandle)
         {
             uint meshHash = (uint)mesh.GetHashCode();
@@ -405,12 +462,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.Allocate(mesh.subMeshCount);
                 if (!newSlot.meshChunkTableAlloc.valid)
                 {
-                    newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.GrowAndAllocate(mesh.subMeshCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / GetMeshChunkTableEntryByteSize()), out int oldCapacity, out int newCapacity);
+                    newSlot.meshChunkTableAlloc = m_MeshChunkTableAllocator.GrowAndAllocate(mesh.subMeshCount, GraphicsHelpers.MaxElementCount(GetMeshChunkTableEntryByteSize()), out _, out int newCapacity);
                     if (!newSlot.meshChunkTableAlloc.valid)
                         throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                    GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetMeshChunkTableEntryByteSize(), ref m_GlobalMeshChunkTableEntryBuffer);
-                    m_MaxMeshChunkTableEntriesCount = newCapacity;
+                    ReallocateMeshChunkTableBuffer(newCapacity);
                 }
 
                 newSlot.meshChunks = new NativeArray<MeshChunk>(mesh.subMeshCount, Allocator.Persistent);
@@ -422,22 +478,24 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     newMeshChunk.vertexAlloc = m_VertexAllocator.Allocate(submeshDescriptor.vertexCount);
                     if (!newMeshChunk.vertexAlloc.valid)
                     {
-                        newMeshChunk.vertexAlloc = m_VertexAllocator.GrowAndAllocate(submeshDescriptor.vertexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / GetVertexByteSize()), out int oldCapacity, out int newCapacity);
+                        newMeshChunk.vertexAlloc = m_VertexAllocator.GrowAndAllocate(submeshDescriptor.vertexCount, GraphicsHelpers.MaxElementCount(GetVertexByteSize()), out int oldCapacity, out int newCapacity);
                         if (!newMeshChunk.vertexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                        GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetVertexByteSize(), ref m_GlobalVertexBuffer);
+                        if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, GetVertexByteSize(), ref m_GlobalVertexBuffer))
+                            throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
                         m_MaxVertCounts = newCapacity;
                     }
 
                     newMeshChunk.indexAlloc = m_IndexAllocator.Allocate(submeshDescriptor.indexCount);
                     if (!newMeshChunk.indexAlloc.valid)
                     {
-                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshDescriptor.indexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / sizeof(int)), out int oldCapacity, out int newCapacity);
+                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshDescriptor.indexCount, GraphicsHelpers.MaxElementCount(sizeof(int)), out int oldCapacity, out int newCapacity);
                         if (!newMeshChunk.indexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                        GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, sizeof(int), ref m_GlobalIndexBuffer);
+                        if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, sizeof(int), ref m_GlobalIndexBuffer))
+                            throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
                         m_MaxIndexCounts = newCapacity;
                     }
 
@@ -730,12 +788,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         private GraphicsBuffer LoadIndexBuffer(Mesh mesh)
         {
-            Debug.Assert((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) != 0 || (mesh.GetIndices(0) != null && mesh.GetIndices(0).Length != 0),
-                "Cant use a mesh buffer that is not raw and has no CPU index information.");
-
-            mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-            mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+#if UNITY_EDITOR
+            Utils.EnsureMeshHasRawBufferTarget(mesh);
+#endif
             var idxBuffer = mesh.GetIndexBuffer();
+            Debug.Assert((idxBuffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh index buffer target must include Raw.");
             m_InputBufferReferences.Add(idxBuffer);
             return idxBuffer;
         }
@@ -746,6 +803,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 output.buffer = null;
                 output.stride = output.offset = output.byteCount = 0;
+                output.format = VertexAttributeFormat.Float32;
+                output.dimension = 0;
                 return;
             }
 
@@ -754,11 +813,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             output.stride = mesh.GetVertexBufferStride(stream);
             output.offset = mesh.GetVertexAttributeOffset(attribute);
             output.byteCount = GetFormatByteCount(mesh.GetVertexAttributeFormat(attribute)) * mesh.GetVertexAttributeDimension(attribute);
+            output.format = mesh.GetVertexAttributeFormat(attribute);
+            output.dimension = mesh.GetVertexAttributeDimension(attribute);
 
             output.buffer = mesh.GetVertexBuffer(stream);
             m_InputBufferReferences.Add(output.buffer);
 
-            Assertions.Assert.IsTrue((output.buffer.target & GraphicsBuffer.Target.Raw) != 0);
+            Assertions.Assert.IsTrue((output.buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh vertex buffer target must include Raw.");
         }
 
         private CommandBuffer AllocateCommandBuffer()
@@ -838,12 +899,20 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._OutputVBOffset, location.block.offset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferStride, pos.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferOffset, pos.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferFormat, (int)pos.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputPosBufferDimension, pos.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferStride, uv0.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferOffset, uv0.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferFormat, (int)uv0.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferDimension, uv0.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferStride, uv1.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferOffset, uv1.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferFormat, (int)uv1.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferDimension, uv1.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferStride, n.stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferOffset, n.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferFormat, (int)n.format);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferDimension, n.dimension);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._AttributesMask, (int)attributes);
 
             int kernel = m_KernelMainUpdateVertexBuffer;

@@ -33,11 +33,13 @@ MaterialNodeView #previewFiller.expanded {
 }
 
 MaterialNodeView #previewFiller,
-MaterialNodeView #controls {
+MaterialNodeView #controls,
+MaterialNodeView #dropdowns {
     background-color: rgba(63, 63, 63, 0.8);
 }
 
-MaterialNodeView #controls > #items {
+MaterialNodeView #controls > #items,
+MaterialNodeView #dropdowns > #items {
     padding-top: 4px;
     padding-bottom: 4px;
 }

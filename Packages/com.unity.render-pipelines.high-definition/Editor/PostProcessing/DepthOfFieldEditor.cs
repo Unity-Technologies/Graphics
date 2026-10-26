@@ -180,6 +180,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawQualitySettings()
         {
+            if (EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+            {
+                DepthOfField dof = HDEditorUtils.GetVolumeComponentDefaultState<DepthOfField>();
+
+                bool useDefaultQuality = !overrideState;
+                int effectiveQuality = useDefaultQuality
+                    ? dof?.quality.value ?? (int)ScalableSettingLevelParameter.Level.Low
+                    : value;
+
+                if (effectiveQuality > (int)ScalableSettingLevelParameter.Level.Low &&
+                    effectiveQuality != k_CustomQuality)
+                {
+                    string tierName = ((ScalableSettingLevelParameter.Level)effectiveQuality).ToString();
+
+                    HDEditorUtils.ShowFeatureOptimisationWarning(tierName);
+                }
+            }
+
             using (new QualityScope(this))
             {
                 PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);

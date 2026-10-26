@@ -348,12 +348,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static readonly CED.IDrawer Inspector;
 
-        public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
-        public static readonly GUIContent simulationHeader = EditorGUIUtility.TrTextContent("Simulation");
-        public static readonly GUIContent decalHeader = EditorGUIUtility.TrTextContent("Water Decals");
-        public static readonly GUIContent appearanceHeader = EditorGUIUtility.TrTextContent("Appearance");
-        public static readonly GUIContent foamHeader = EditorGUIUtility.TrTextContent("Foam");
-        public static readonly GUIContent miscellaneousHeader = EditorGUIUtility.TrTextContent("Miscellaneous");
+        public static readonly GUIContent generalHeader = L10n.TextContent("General", null, null, null);
+        public static readonly GUIContent simulationHeader = L10n.TextContent("Simulation", null, null, null);
+        public static readonly GUIContent decalHeader = L10n.TextContent("Water Decals", null, null, null);
+        public static readonly GUIContent appearanceHeader = L10n.TextContent("Appearance", null, null, null);
+        public static readonly GUIContent foamHeader = L10n.TextContent("Foam", null, null, null);
+        public static readonly GUIContent miscellaneousHeader = L10n.TextContent("Miscellaneous", null, null, null);
 
         enum Expandable
         {

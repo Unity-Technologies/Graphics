@@ -397,6 +397,7 @@ namespace UnityEngine.Rendering
                 NativeArray<EntityId> rendererSection = updateBatch.instanceIDs[jobRange.sectionIndex];
                 NativeArray<EntityId> meshSection = updateBatch.GetMeshSectionOrDefault(jobRange.sectionIndex);
                 NativeArray<ushort> subMeshStartIndexSection = updateBatch.GetSubMeshStartIndexSectionOrDefault(jobRange.sectionIndex);
+                NativeArray<ushort> staticBatchSubMeshCountSection = updateBatch.GetStaticBatchSubMeshCountSectionOrDefault(jobRange.sectionIndex);
                 NativeArray<EntityId> materialSection = updateBatch.GetMaterialSectionOrDefault(jobRange.sectionIndex);
                 NativeArray<RangeInt> subMaterialRangeSection = updateBatch.GetSubMaterialRangeSectionOrDefault(jobRange.sectionIndex);
                 NativeArray<float4x4> localToWorldSection = updateBatch.GetLocalToWorldSectionOrDefault(jobRange.sectionIndex);
@@ -502,6 +503,9 @@ namespace UnityEngine.Rendering
 
                     if (updateBatch.HasAnyComponent(MeshRendererComponentMask.SubMeshStartIndex))
                         renderWorld.subMeshStartIndices.ElementAtRW(instanceIndex) = subMeshStartIndexSection[localIndex];
+
+                    if (updateBatch.HasAnyComponent(MeshRendererComponentMask.StaticBatchSubMeshCount))
+                        renderWorld.staticBatchSubMeshCounts.ElementAtRW(instanceIndex) = staticBatchSubMeshCountSection[localIndex];
 
                     if (updateBatch.HasAnyComponent(MeshRendererComponentMask.RendererSettings))
                     {

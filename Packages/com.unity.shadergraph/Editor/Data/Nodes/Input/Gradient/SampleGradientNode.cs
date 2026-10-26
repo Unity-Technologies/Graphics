@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 @"
 {
     $precision3 color = Gradient.colors[0].rgb;
-    [unroll]
+    [unroll(SG_GRADIENT_MAX_KEYS - 1)]
     for (int c = 1; c < Gradient.colorsLength; c++)
     {
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
     color = SRGBToLinear(color);
 #endif
     $precision alpha = Gradient.alphas[0].x;
-    [unroll]
+    [unroll(SG_GRADIENT_MAX_KEYS - 1)]
     for (int a = 1; a < Gradient.alphasLength; a++)
     {
         $precision alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
     // convert to OkLab if we need perceptual color space.
     $precision3 color = lerp(Gradient.colors[0].rgb, LinearToOklab(Gradient.colors[0].rgb), Gradient.type == 2);
 
-    [unroll]
+    [unroll(SG_GRADIENT_MAX_KEYS - 1)]
     for (int c = 1; c < Gradient.colorsLength; c++)
     {
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
 #endif
 
     $precision alpha = Gradient.alphas[0].x;
-    [unroll]
+    [unroll(SG_GRADIENT_MAX_KEYS - 1)]
     for (int a = 1; a < Gradient.alphasLength; a++)
     {
         $precision alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);

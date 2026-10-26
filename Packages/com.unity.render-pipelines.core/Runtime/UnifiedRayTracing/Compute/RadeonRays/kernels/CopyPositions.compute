@@ -1,5 +1,7 @@
 
 
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common/VertexAttributeDecode.hlsl"
+
 #define GROUP_SIZE 128
 #define ITEMS_PER_THREAD 48
 
@@ -8,6 +10,8 @@ int _InputBaseVertex;
 int _InputPosBufferStride;
 int _InputPosBufferOffset;
 int _OutputPosBufferOffset;
+int _InputPosBufferFormat;
+int _InputPosBufferDimension;
 
 ByteAddressBuffer _InputPosBuffer;
 RWStructuredBuffer<uint> _OutputPosBuffer;
@@ -23,7 +27,7 @@ void CopyVertexBuffer(uint gidx : SV_DispatchThreadID)
             return;
 
         uint inputAddr = _InputPosBufferOffset + (_InputBaseVertex + offset) * _InputPosBufferStride;
-        uint3 val = _InputPosBuffer.Load3(inputAddr << 2);
+        uint3 val = asuint(LoadVertexAttribute(_InputPosBuffer, inputAddr << 2, _InputPosBufferFormat, _InputPosBufferDimension).xyz);
 
         uint outputAddr = _OutputPosBufferOffset + 3 * offset;
         _OutputPosBuffer[outputAddr] = val.x;

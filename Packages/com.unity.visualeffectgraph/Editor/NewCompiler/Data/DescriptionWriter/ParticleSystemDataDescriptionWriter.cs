@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.GraphCommon.LowLevel.Editor;
 using UnityEngine;
 
@@ -9,6 +8,9 @@ namespace UnityEditor.VFX
         IDataDescriptionWriter<AttributeData> m_AttributeDataWriter;
         private static readonly string DeadlistBufferTypeDefine = "DEADLIST_BUFFER_TYPE";
         private static readonly string AttributeBufferTypeDefine = "ATTRIBUTE_BUFFER_TYPE";
+
+        static string AttributeBufferResourceName(string containerName) => $"_{containerName}_attributeBuffer";
+        static string DeadListBufferResourceName(string containerName) => $"_{containerName}_deadListBuffer";
 
         public ParticleSystemDataDescriptionWriter(IDataDescriptionWriter<AttributeData> attributeDataWriter)
         {
@@ -27,6 +29,18 @@ namespace UnityEditor.VFX
             }
 
             var attributeData = dataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView) ? attributeDataView.DataDescription as AttributeData : null;
+
+            if (attributeData != null)
+            {
+                shaderWriter.WriteVariableDeclaration(AttributeBufferTypeDefine, AttributeBufferResourceName(name));
+                shaderWriter.NewLine();
+            }
+            if (deadlist != null)
+            {
+                shaderWriter.WriteVariableDeclaration(DeadlistBufferTypeDefine, DeadListBufferResourceName(name));
+                shaderWriter.NewLine();
+            }
+
             if (attributeData != null)
             {
                 shaderWriter.NewLine();
@@ -43,7 +57,7 @@ namespace UnityEditor.VFX
                 shaderWriter.WriteLine("VFXDeadListData deadList;");
             }
             shaderWriter.NewLine();
-            shaderWriter.WriteLine("void Init()");
+            shaderWriter.WriteLine("void Init(ThreadData threadData)");
             shaderWriter.OpenBlock();
             shaderWriter.WriteLine($"uint capacity = {particleSystemData.Capacity}u;");
             shaderWriter.WriteLine("particleSystem.Init(capacity);");
@@ -52,7 +66,8 @@ namespace UnityEditor.VFX
                 shaderWriter.NewLine();
                 shaderWriter.WriteLine("VFXByteAddressBuffer particleBuffer;");
                 var layoutCompilationData = context.data.Get<AttributeSetLayoutCompilationData>();
-                shaderWriter.WriteLine($"particleBuffer.Init(_{name}_attributeBuffer, {0}u, {layoutCompilationData[attributeData].GetBufferSize()}u);");
+                uint attributeBufferSize = layoutCompilationData[attributeData].GetBufferSize();
+                shaderWriter.WriteLine($"particleBuffer.Init({AttributeBufferResourceName(name)}, threadData.instancingData.instanceIndex * {attributeBufferSize}u, {attributeBufferSize}u );");
                 shaderWriter.WriteLine("particleAttributeBuffer.Init(particleBuffer);");
             }
             if (deadlist != null)
@@ -61,10 +76,10 @@ namespace UnityEditor.VFX
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListCounter;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListCounterCopy;");
                 shaderWriter.WriteLine("VFXStructuredBuffer_uint deadListBuffer;");
-                shaderWriter.WriteLine($"deadListCounter.Init(_{name}_deadListBuffer, {0}u, {1}u);");
-                shaderWriter.WriteLine($"deadListCounterCopy.Init(_{name}_deadListBuffer, {1}u, {1}u);");
-                shaderWriter.WriteLine($"deadListBuffer.Init(_{name}_deadListBuffer, {2}u, {particleSystemData.Capacity}u);");
-                shaderWriter.WriteLine("deadList.Init(deadListCounter, deadListCounterCopy, deadListBuffer);");
+                shaderWriter.WriteLine($"deadListCounter.Init({DeadListBufferResourceName(name)}, threadData.instancingData.instanceIndex, {1}u);");
+                shaderWriter.WriteLine($"deadListCounterCopy.Init({DeadListBufferResourceName(name)}, threadData.instancingData.batchSize + threadData.instancingData.instanceIndex , {1}u );");
+                shaderWriter.WriteLine($"deadListBuffer.Init({DeadListBufferResourceName(name)}, 2u * threadData.instancingData.batchSize + {particleSystemData.Capacity}u * threadData.instancingData.instanceIndex , {particleSystemData.Capacity}u );");
+                shaderWriter.WriteLine($"deadList.Init(deadListCounter, deadListCounterCopy, deadListBuffer);");
             }
             shaderWriter.CloseBlock();
 
@@ -105,15 +120,13 @@ namespace UnityEditor.VFX
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
-            usedDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeUsedDataView);
-            bool needsParticleAttributeData = attributeUsedDataView.Id.IsValid;
+            bool needsParticleAttributeData = dataView.FindSubData(ParticleData.AttributeDataKey, out var attributeDataView)
+                && dataNode.Uses(attributeDataView.Id);
             if (needsParticleAttributeData)
             {
-                readDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeReadDataView);
-                writtenDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeWrittenDataView);
-                m_AttributeDataWriter.WriteView(shaderWriter, attributeUsedDataView, attributeReadDataView, attributeWrittenDataView, name + "_ParticleAttributeBuffer", sourceName + "_ParticleAttributeBuffer", context);
+                m_AttributeDataWriter.WriteView(shaderWriter, attributeDataView, dataNode, name + "_ParticleAttributeBuffer", sourceName + "_ParticleAttributeBuffer", context);
                 shaderWriter.NewLine();
             }
             shaderWriter.WriteLine($"struct {name}View");
@@ -168,10 +181,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode)
         {
-            if(writtenDataView.FindSubData(ParticleData.AttributeDataKey, out var attributeWrittenDataView))
+            if (dataView.FindSubData(ParticleData.AttributeDataKey, out var attributeView)
+                && dataNode.Writes(attributeView.Id))
             {
                 shaderWriter.Define(AttributeBufferTypeDefine, "RWByteAddressBuffer");
             }
@@ -180,7 +193,8 @@ namespace UnityEditor.VFX
                 shaderWriter.Define(AttributeBufferTypeDefine, "ByteAddressBuffer");
             }
 
-            if (writtenDataView.FindSubData(ParticleData.DeadlistKey, out var _))
+            if (dataView.FindSubData(ParticleData.DeadlistKey, out var deadlistView)
+                && dataNode.Writes(deadlistView.Id))
             {
                 shaderWriter.Define(DeadlistBufferTypeDefine, "RWStructuredBuffer<uint>");
             }
@@ -190,35 +204,27 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode)
         {
-            if (usedDataView.FindSubData(ParticleData.AttributeDataKey, out var _))
+            if (dataView.FindSubData(ParticleData.AttributeDataKey, out var _))
             {
                 shaderWriter.Undefine(AttributeBufferTypeDefine);
             }
 
-            if (usedDataView.FindSubData(ParticleData.DeadlistKey, out var _))
+            if (dataView.FindSubData(ParticleData.DeadlistKey, out var _))
             {
                 shaderWriter.Undefine(DeadlistBufferTypeDefine);
             }
         }
 
-        public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
+        public string GetResourceName(DataView dataView)
         {
-            if (usedDataView.FindSubData(ParticleData.AttributeDataKey, out var _))
-            {
-                string attributeBufferType = AttributeBufferTypeDefine; //TODO: Define actual resource types
-                string attributeBufferName = $"_{name}_attributeBuffer";
-                yield return (attributeBufferType, attributeBufferName);
-            }
-
-            if (usedDataView.FindSubData(ParticleData.DeadlistKey, out var _))
-            {
-                string deadlistBufferType = DeadlistBufferTypeDefine; //TODO: Define actual resource types
-                string deadlistBufferName = $"_{name}_deadListBuffer";
-                yield return (deadlistBufferType, deadlistBufferName);
-            }
+            string containerName = dataView.DataContainer.IdentifierName;
+            if (dataView.SubDataKey == ParticleData.AttributeDataKey)
+                return AttributeBufferResourceName(containerName);
+            if (dataView.SubDataKey == ParticleData.DeadlistKey)
+                return DeadListBufferResourceName(containerName);
+            return null;
         }
     }
 }

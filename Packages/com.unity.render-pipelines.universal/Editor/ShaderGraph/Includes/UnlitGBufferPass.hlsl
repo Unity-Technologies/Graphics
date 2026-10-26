@@ -1,5 +1,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
@@ -41,30 +42,26 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     surfaceData.alpha = AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
 #endif
 
-#if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
     LODFadeCrossFade(unpacked.positionCS);
-#endif
 
-#if defined(_ALPHAMODULATE_ON)
     surfaceData.albedo = AlphaModulate(surfaceDescription.BaseColor, surfaceData.alpha);
-#else
-    surfaceData.albedo = surfaceDescription.BaseColor;
-#endif
 
-#if defined(_DBUFFER)
+#if defined(_DBUFFER) && defined(UNLIT_DEFAULT_DECAL_BLENDING)
     ApplyDecalToBaseColor(unpacked.positionCS, surfaceData.albedo);
 #endif
 
     InputData inputData;
     InitializeInputData(unpacked, inputData);
+    surfaceData.occlusion = 1;
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(unpacked.positionCS);
+#if defined(UNLIT_DEFAULT_SSAO)
+    if (ScreenSpaceOcclusionAvailable()) // No transparent-surface check needed: the GBuffer pass only renders opaque geometry
+    {
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(inputData.positionCS);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
-        surfaceData.albedo.rgb *= aoFactor.directAmbientOcclusion;
-    #else
-        surfaceData.occlusion = 1;
-    #endif
+        surfaceData.occlusion = aoFactor.directAmbientOcclusion;
+    }
+#endif
 
     return PackGBuffersSurfaceData(surfaceData, inputData, float3(0,0,0));
 }

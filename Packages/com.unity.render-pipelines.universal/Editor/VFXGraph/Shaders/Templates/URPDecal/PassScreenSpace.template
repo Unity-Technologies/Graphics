@@ -21,6 +21,7 @@ Pass
     // Keywords
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
     #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+    #pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
     #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
     #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
     #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
@@ -29,10 +30,12 @@ Pass
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
     #pragma multi_compile _DECAL_NORMAL_BLEND_LOW _DECAL_NORMAL_BLEND_MEDIUM _DECAL_NORMAL_BLEND_HIGH
     #pragma multi_compile _ _DECAL_LAYERS
+    #pragma multi_compile_fragment _ _EXPOSURE
 
     ${VFXIncludeRP("VFXDecalVaryings.template")}
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
     struct ps_input
     {
@@ -78,9 +81,10 @@ Pass
 
         PrepareSurfaceAndInputData(i, surfaceData, decalSurfaceData, inputData);
 
-        half4 color = UniversalFragmentPBR(inputData, surfaceData);
+        URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        float linearEyeDepth = dot(GetViewForwardDir(), inputData.positionWS - GetCameraPositionWS());
+        color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth));
         return color;
     }
 

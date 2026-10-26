@@ -33,6 +33,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     Pass = "Replace",
                 })},
             };
+
+            public static readonly RenderStateCollection RenderingLayerMask = new RenderStateCollection()
+            {
+                { RenderState.Blend("Blend Off")},
+                { RenderState.ZWrite(ZWrite.Off) },
+                { RenderState.ZTest("Off") },
+                { RenderState.Cull(Cull.Off) },
+            };
         }
     }
 }

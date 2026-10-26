@@ -346,17 +346,17 @@ class VFXSlotContainerEditor : Editor
 
     public class Contents
     {
-        public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
-        public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
-        public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
+        public static GUIContent name = L10n.TextContent("Name", null, null, null);
+        public static GUIContent type = L10n.TextContent("Type", null, null, null);
+        public static GUIContent mode = L10n.TextContent("Mode", null, null, null);
 
         private static Texture2D warningIcon = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png");
-        public static GUIContent gizmoWarningDefault = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value is indeterminate.");
-        public static GUIContent gizmoWarningHasLinkIndeterminate = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo state is indeterminate because the value relies on an indeterminate evaluation.");
-        public static GUIContent gizmoWarningNeedComponent = EditorGUIUtility.TrIconContent(warningIcon, "Local values require a target GameObject to display");
-        public static GUIContent gizmoWarningNeedExplicitSpace = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value needs an explicit Local or World space.");
-        public static GUIContent gizmoWarningNotAvailable = EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
-        public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
+        public static GUIContent gizmoWarningDefault = L10n.IconContent(warningIcon, "The gizmo value is indeterminate.", null);
+        public static GUIContent gizmoWarningHasLinkIndeterminate = L10n.IconContent(warningIcon, "The gizmo state is indeterminate because the value relies on an indeterminate evaluation.", null);
+        public static GUIContent gizmoWarningNeedComponent = L10n.IconContent(warningIcon, "Local values require a target GameObject to display", null);
+        public static GUIContent gizmoWarningNeedExplicitSpace = L10n.IconContent(warningIcon, "The gizmo value needs an explicit Local or World space.", null);
+        public static GUIContent gizmoWarningNotAvailable = L10n.IconContent(warningIcon, "There isn't any gizmo available.", null);
+        public static GUIContent gizmoFrame = L10n.TextContent("", "Frame Gizmo in scene", null, null);
 
         public static GUIContent GetGizmoErrorContent(GizmoError gizmoError)
         {

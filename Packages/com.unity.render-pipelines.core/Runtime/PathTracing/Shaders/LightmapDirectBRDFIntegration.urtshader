@@ -2,6 +2,7 @@
 #pragma exclude_renderers switch switch2
 
 #pragma multi_compile _ EMISSIVE_SAMPLING_LIGHT EMISSIVE_SAMPLING_BRDF EMISSIVE_SAMPLING_MIS
+#pragma multi_compile _ TERRAIN_RAY_MARCHING_ENABLED
 
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1

@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -28,18 +27,9 @@ namespace UnityEngine.Rendering.Universal
         {
             Reflection = 0, // Generate reflected color texture
             BlitAfterOpaque = 1, // Blit to screen (only when using After Opaque mode)
-
-            // Bilateral blur passes, 8-12 taps each.
-            BilateralBlurHorizontal = 2,
-            BilateralBlurVertical = 3,
-            BilateralBlurFinal = 4,
-
-            // Gaussian blur passes, 4 taps each
-            GaussianBlurHorizontal = 5,
-            GaussianBlurVertical = 6,
-
-            // Single pass kawase blur.
-            KawaseBlur = 7,
+            BilinearUpscale = 2, // Single pass bilinear upscale
+            BilateralUpscale = 3, // Single pass normal-weighted bilinear upscale
+            TemporalFiltering = 4,
         }
 
         // Constants
@@ -47,12 +37,14 @@ namespace UnityEngine.Rendering.Universal
         const string k_HiZTrace = "_HIZ_TRACE";
         const string k_UseMotionVectors = "_USE_MOTION_VECTORS";
         const string k_RefineDepth = "_REFINE_DEPTH";
+        const string k_ContactHardening = "_CONTACT_HARDENING";
 
         // Statics
         internal static class ShaderConstants
         {
             internal static readonly int _ReflectionParam = Shader.PropertyToID("_ScreenSpaceReflectionParam");
             internal static readonly int _ReflectionParam2 = Shader.PropertyToID("_ScreenSpaceReflectionParam2");
+            internal static readonly int _ReflectionParam3 = Shader.PropertyToID("_ScreenSpaceReflectionParam3");
             internal static readonly int _MaxRayLength = Shader.PropertyToID("_MaxRayLength");
             internal static readonly int _MaxRaySteps = Shader.PropertyToID("_MaxRaySteps");
             internal static readonly int _Downsample = Shader.PropertyToID("_Downsample");
@@ -70,37 +62,26 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly int _LastFrameCameraDepthTexture = Shader.PropertyToID("_LastFrameCameraDepthTexture");
             internal static readonly int _SsrDepthPyramidMaxMip = Shader.PropertyToID("_SsrDepthPyramidMaxMip");
             internal static readonly int _SsrDepthPyramid = Shader.PropertyToID("_DepthPyramid");
-            internal static readonly int _MinimumSmoothnessAndFadeStart = Shader.PropertyToID("_MinimumSmoothnessAndFadeStart");
+            internal static readonly int _SmoothnessAndStrengthAndClamp = Shader.PropertyToID("_SmoothnessAndStrengthAndClamp");
             internal static readonly int _ScreenEdgeFadeAndViewConeDot = Shader.PropertyToID("_ScreenEdgeFadeAndViewConeDot");
             internal static readonly int _ReflectSky = Shader.PropertyToID("_ReflectSky");
             internal static readonly int _HitRefinementSteps = Shader.PropertyToID("_HitRefinementSteps");
             internal static readonly int _DepthPyramidMipLevelOffsets = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
             internal static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
             internal static readonly int _CameraDeltaJitterOffset = Shader.PropertyToID("_CameraDeltaJitterOffset");
+            internal static readonly int _ReflectionHistoryTexture = Shader.PropertyToID("_ReflectionHistoryTexture");
+            internal static readonly int _BaseBlendFactor = Shader.PropertyToID("_BaseBlendFactor");
+            internal static readonly int _ResolutionScales = Shader.PropertyToID("_ResolutionScales");
         }
 
         // Private Variables
         Material m_Material;
         Material m_BlitMaterial;
-        LocalKeywordSet m_LocalKeywords;
         bool m_AfterOpaque;
-
-        struct LocalKeywordSet
-        {
-            public LocalKeyword hiZTraceKeyword;
-            public LocalKeyword useMotionVectorsKeyword;
-            public LocalKeyword refineDepthKeyword;
-
-            public void Init(Shader shader)
-            {
-                hiZTraceKeyword = new(shader, k_HiZTrace);
-                useMotionVectorsKeyword = new(shader, k_UseMotionVectors);
-                refineDepthKeyword = new(shader, k_RefineDepth);
-            }
-        };
 
         readonly ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSR;
         readonly ProfilingSampler m_DepthPyramidSampler = new("SSR - Depth Pyramid Generation");
+        readonly ProfilingSampler m_RayDistancePyramidSampler = new("SSR - Ray Distance Pyramid Generation");
         readonly ProfilingSampler m_UpscalingSampler = new("SSR - Upscaling");
         readonly ProfilingSampler m_FinalBlitSampler = new("SSR - Final Blit");
 
@@ -128,7 +109,6 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = material;
                 if (m_Material != null)
                 {
-                    m_LocalKeywords.Init(m_Material.shader);
                 }
             }
 
@@ -155,8 +135,8 @@ namespace UnityEngine.Rendering.Universal
             // Write smoothness to alpha of depth normals texture so we can sample it in SSR pass.
             renderingData.writesSmoothnessToDepthNormalsAlpha = true;
 
-            // Before opaque needs motion vectors for reprojection.
-            if (!m_AfterOpaque && (cameraType == CameraType.VR || cameraType == CameraType.Game))
+            // Motion vectors are needed for reprojection (before opaque) and temporal filtering.
+            if ((!m_AfterOpaque || settings.temporalFiltering.value) && (cameraType == CameraType.VR || cameraType == CameraType.Game || cameraType == CameraType.SceneView))
                 requiredInputs |= ScriptableRenderPassInput.Motion;
 
             ConfigureInput(requiredInputs);
@@ -176,9 +156,8 @@ namespace UnityEngine.Rendering.Universal
             internal Matrix4x4[] cameraViews = new Matrix4x4[2];
             internal Vector4[] depthPyramidMipOffsets = new Vector4[15];
 
-            // Material containg SSR pass, and keywords.
+            // Material containing SSR pass.
             internal Material material;
-            internal LocalKeywordSet localKeywords;
 
             // MipInfo for HiZ marching.
             internal PackedMipChainInfo mipsInfo;
@@ -199,6 +178,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle lastFrameCameraColor; // Camera target texture from last frame (only needed if AfterOpaque=false).
             internal TextureHandle motionVectorColor;    // Motion vectors (only needed if AfterOpaque=false).
             internal TextureHandle depthPyramidTexture;  // Depth pyramid texture for HiZ marching (only needed if LinearMarching=false).
+            internal TextureHandle rayDistanceTexture;   // Ray travel distances and hit validity (only needed if ContactHardening=true).
 
             // Settings.
             internal float minimumSmoothness;
@@ -215,10 +195,36 @@ namespace UnityEngine.Rendering.Universal
             internal int maxRaySteps;
             internal int resolutionScale;
             internal float roughnessScale;
+            internal float reflectionStrength;
+            internal float clampValue;
             internal bool reflectSky;
             internal bool afterOpaque;
             internal bool linearMarching;
-            internal bool useGaussianBlur;
+            internal float contactHardeningScale;
+            internal float contactDistanceBias;
+
+            internal Vector2 currentResolutionScale;
+            // The scale applied to the sampled camera color: one for AfterOpaque, the previous frame's scale for BeforeOpaque.
+            internal Vector2 cameraColorResolutionScale;
+        }
+
+        private class TemporalFilteringPassData
+        {
+            internal Material material;
+            internal TextureHandle ssrTexture;
+            internal TextureHandle reflectionHistory;
+            internal TextureHandle motionVectors;
+            internal float baseBlendFactor;
+            internal Vector2 currentResolutionScale;
+            internal Vector2 previousResolutionScale;
+            internal Vector2Int viewportSize;
+        }
+
+        private class DepthCopyPassData
+        {
+            internal Material blitMaterial;
+            internal TextureHandle source;
+            internal Vector2Int viewportSize;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -233,11 +239,12 @@ namespace UnityEngine.Rendering.Universal
                 resourceData,
                 settings,
                 out TextureHandle ssrTexture,
-                out TextureHandle blurTexture,
                 out TextureHandle upscaleTexture,
                 out TextureHandle mipGenTexture,
                 out TextureHandle finalTexture,
-                out TextureHandle depthPyramidTexture);
+                out TextureHandle depthPyramidTexture,
+                out TextureHandle rayDistanceTempTexture,
+                out TextureHandle rayDistanceTexture);
 
             // Get input resources.
             SharedSSRData ssrData = frameData.GetOrCreate<SharedSSRData>();
@@ -252,15 +259,25 @@ namespace UnityEngine.Rendering.Universal
                 cameraNormalsTexture = ssrData.normalTransparentTexture;
             }
 
+            Vector2 cameraTargetScale = ColorHistory.GetCurrentDynamicResolutionScale(cameraData);
+            Vector2 depthTextureScale = cameraDepthTexture.GetDescriptor(renderGraph).useDynamicScale
+                ? new Vector2(ScalableBufferManager.widthScaleFactor, ScalableBufferManager.heightScaleFactor)
+                : Vector2.one;
+
             using (new RenderGraphProfilingScope(renderGraph, m_ProfilingSampler))
             {
                 if (!settings.ShouldUseLinearMarching())
                 {
                     using (new RenderGraphProfilingScope(renderGraph, m_DepthPyramidSampler))
                     {
-                        var blitParam = new BlitMaterialParameters(cameraDepthTexture, depthPyramidTexture, new(1f, 2f), Vector2.zero, m_BlitMaterial, 0);
-                        renderGraph.AddBlitPass(blitParam, passName: "Copy depth to mip 0");
-                        m_PackedMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(cameraData.cameraTargetDescriptor.width / (int)settings.resolution.value, cameraData.cameraTargetDescriptor.height / (int)settings.resolution.value), 0);
+                        int downsample = (int)settings.resolution.value;
+                        var mip0Size = new Vector2Int(
+                            Mathf.CeilToInt(cameraData.cameraTargetDescriptor.width / downsample * depthTextureScale.x),
+                            Mathf.CeilToInt(cameraData.cameraTargetDescriptor.height / downsample * depthTextureScale.y));
+                        m_PackedMipChainInfo.ComputePackedMipChainInfo(mip0Size, 0);
+
+                        AddDepthCopyPass(renderGraph, cameraDepthTexture, depthPyramidTexture, mip0Size, m_BlitMaterial, "Copy depth to mip 0");
+
                         m_MipGenerator.RenderMinDepthPyramid(renderGraph, depthPyramidTexture, ref m_PackedMipChainInfo);
                     }
                 }
@@ -274,8 +291,11 @@ namespace UnityEngine.Rendering.Universal
                     passData.cameraData = cameraData;
                     passData.previousJitter = Vector2.zero;
                     passData.afterOpaque = m_AfterOpaque;
+                    passData.currentResolutionScale = cameraTargetScale;
+                    passData.cameraColorResolutionScale = Vector2.one;
                     passData.linearMarching = settings.ShouldUseLinearMarching();
-                    passData.useGaussianBlur = settings.ShouldUseGaussianBlurRoughness();
+                    passData.contactHardeningScale = settings.ShouldUseContactHardening() ? settings.contactHardeningScale.value : 0f;
+                    passData.contactDistanceBias = settings.contactDistanceBias.value;
                     passData.minimumSmoothness = settings.minimumSmoothness.value;
                     passData.smoothnessFadeStart = settings.smoothnessFadeStart.value;
                     passData.normalFade = settings.normalFade.value;
@@ -287,8 +307,10 @@ namespace UnityEngine.Rendering.Universal
                     passData.maxRaySteps = settings.maxRaySteps.value;
                     passData.resolutionScale = (int)settings.resolution.value;
                     passData.roughnessScale = settings.roughnessScale.value;
+                    passData.reflectionStrength = settings.reflectionStrength.value;
+                    // 65504 is the max representable FP16 value - use it to avoid an additional branch in shader.
+                    passData.clampValue = settings.clampReflectedColor.value ? settings.maxColorValue.value : 65504.0f;
                     passData.material = m_Material;
-                    passData.localKeywords = m_LocalKeywords;
                     passData.mipsInfo = m_PackedMipChainInfo;
                     passData.cameraColor = cameraColorTexture;
                     passData.cameraDepth = cameraDepthTexture;
@@ -309,6 +331,11 @@ namespace UnityEngine.Rendering.Universal
 
                     // Declare required input textures.
                     builder.SetRenderAttachment(passData.ssrTexture, 0, AccessFlags.ReadWrite);
+                    if (settings.ShouldUseContactHardening())
+                    {
+                        passData.rayDistanceTexture = rayDistanceTempTexture;
+                        builder.SetRenderAttachment(passData.rayDistanceTexture, 1, AccessFlags.Write);
+                    }
                     builder.UseTexture(passData.cameraDepth);
                     builder.UseTexture(passData.cameraColor);
                     builder.UseTexture(passData.cameraNormalsTexture);
@@ -333,28 +360,31 @@ namespace UnityEngine.Rendering.Universal
 
                         // If we are rendering transparents in SSR, we want the last frame color to include transparents.
                         // Otherwise, we want last frame color before rendering transparents.
-                        RTHandle historyTexture;
+                        ColorHistory colorHistory;
                         if (settings.ShouldRenderTransparents())
                         {
                             cameraData.historyManager.RequestAccess<RawColorHistory>();
-                            RawColorHistory history = cameraData.historyManager.GetHistoryForRead<RawColorHistory>();
-                            historyTexture = history?.GetPreviousTexture(multipassId);
+                            colorHistory = cameraData.historyManager.GetHistoryForRead<RawColorHistory>();
                         }
                         else
                         {
                             cameraData.historyManager.RequestAccess<BeforeTransparentsColorHistory>();
-                            BeforeTransparentsColorHistory history = cameraData.historyManager.GetHistoryForRead<BeforeTransparentsColorHistory>();
-                            historyTexture = history?.GetPreviousTexture(multipassId);
+                            colorHistory = cameraData.historyManager.GetHistoryForRead<BeforeTransparentsColorHistory>();
                         }
 
+                        RTHandle historyTexture = colorHistory?.GetPreviousTexture(multipassId);
                         if (historyTexture != null)
                         {
+                            // The recorded dynamic resolution scale does not apply with MSAA
+                            passData.cameraColorResolutionScale = cameraData.cameraTargetDescriptor.msaaSamples > 1
+                                ? Vector2.one
+                                : colorHistory.GetPreviousDynamicResolutionScale(multipassId);
                             passData.lastFrameCameraColor = renderGraph.ImportTexture(historyTexture);
                             builder.UseTexture(passData.lastFrameCameraColor);
                         }
 
                         // We also need motion vectors to reproject.
-                        if (input.HasFlag(ScriptableRenderPassInput.Motion))
+                        if ((input & ScriptableRenderPassInput.Motion) != 0)
                         {
                             passData.motionVectorColor = motionVectorColorTexture;
                             builder.UseTexture(passData.motionVectorColor);
@@ -380,7 +410,8 @@ namespace UnityEngine.Rendering.Universal
                         SetupKeywordsAndParameters(ref ssrData);
 
                         var cmd = rgContext.cmd;
-                        ssrData.material.SetVector(ShaderConstants._SourceSize, PostProcessUtils.CalcShaderSourceSize(ssrData.cameraColor));
+                        Vector4 finalTextureSourceSize = PostProcessUtils.CalcShaderSourceSize(ssrData.cameraColor);
+                        ssrData.material.SetVector(ShaderConstants._SourceSize, finalTextureSourceSize);
 
                         ssrData.material.SetTexture(ShaderConstants._CameraDepthTexture, ssrData.cameraDepth);
 
@@ -402,42 +433,130 @@ namespace UnityEngine.Rendering.Universal
                         ssrData.material.SetTexture(ShaderConstants._CameraNormalsTexture, ssrData.cameraNormalsTexture);
                         ssrData.material.SetTexture(ShaderConstants._SmoothnessTexture, ssrData.smoothnessTexture);
                         ssrData.material.SetTexture(ShaderConstants._MotionVectorColorTexture, ssrData.motionVectorColor);
+                        ssrData.material.SetVector(ShaderConstants._ResolutionScales, new Vector4(
+                            ssrData.currentResolutionScale.x, ssrData.currentResolutionScale.y,
+                            ssrData.cameraColorResolutionScale.x, ssrData.cameraColorResolutionScale.y));
 
                         // Main SSR Pass
                         Blitter.BlitTexture(cmd, ssrData.ssrTexture, new Vector4(1, 1, 0, 0), ssrData.material, (int)ShaderPasses.Reflection);
 
-                        if (!ssrData.afterOpaque)
-                        {
-                            // We only want URP shaders to sample SSR if After Opaque is disabled...
-                            cmd.SetGlobalVector(ShaderConstants._ReflectionParam, new Vector4(1f, ssrData.minimumSmoothness, ssrData.smoothnessFadeStart, 0));
-                        }
+                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam, new Vector4(1f, ssrData.minimumSmoothness, ssrData.smoothnessFadeStart, 0f));
 
-                        // This handles asymetric projections as well as orthographic ones. We only take into account the first eye as both eyes have the same "width", even
-                        // if the projection is "flipped"
-                        Vector3 right = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(1, 0, 0));
-                        Vector3 left = ssrData.cameraInverseProjections[0].MultiplyPoint(new Vector3(-1, 0, 0));
+                        // This handles asymetric projections as well as orthographic ones.
+                        Matrix4x4 inverseProjection = GL.GetGPUProjectionMatrix(ssrData.cameraData.camera.projectionMatrix, true).inverse;
+                        Vector3 right = inverseProjection.MultiplyPoint(new Vector3(1, 0, 0));
+                        Vector3 left = inverseProjection.MultiplyPoint(new Vector3(-1, 0, 0));
 
-                        Vector4 ssrTextureSourceSize = PostProcessUtils.CalcShaderSourceSize(ssrData.ssrTexture);
-                        float ssrTextureLastMipIndex = Mathf.Log(ssrTextureSourceSize.x) / Mathf.Log(2);
-                        float ssrTextureLastValidMipIndex = ssrTextureLastMipIndex;
-                        // With gaussian blurring, we do not compute mips that are under k_MinimumResolutionGaussian pixels wide.
-                        // See MipGenerator.RenderColorGaussianPyramid
-                        if (ssrData.useGaussianBlur)
-                        {
-                            float mipOffset = Mathf.Log((float)MipGenerator.k_MinimumResolutionGaussian) / Mathf.Log(2);
-                            ssrTextureLastValidMipIndex = Mathf.Max(0, ssrTextureLastValidMipIndex - mipOffset);
-                        }
+                        float finalTextureLastMipIndex = Mathf.Log(finalTextureSourceSize.x) / Mathf.Log(2);
+                        float gaussianMipOffset = Mathf.Log((float)MipGenerator.k_MinimumResolutionGaussian) / Mathf.Log(2);
+                        float finalTextureLastValidMipIndex = Mathf.Max(0, finalTextureLastMipIndex - gaussianMipOffset);
 
                         const float k_SSRBlurReferenceLastMipIndex = 10.0f;
-                        float ssrTextureMipOffset = ssrTextureLastMipIndex - k_SSRBlurReferenceLastMipIndex;
+                        float finalTextureMipOffset = finalTextureLastMipIndex - k_SSRBlurReferenceLastMipIndex;
 
                         // Multiply by the ratio between a reference screen width and the actual width so we are independent of field of view.
                         const float k_SSRBlurReferenceScreenHalfWidth = 1.0f;
                         const float k_BlurrinessBase = 100f;
                         float screenHalfWidthAtOne = 0.5f * Math.Abs(left.x / left.z - right.x / right.z);
                         float blurriness = k_BlurrinessBase * Mathf.Pow(2f, ssrData.roughnessScale) * k_SSRBlurReferenceScreenHalfWidth / Math.Max(0.01f, screenHalfWidthAtOne);
-                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam2, new Vector4(blurriness, ssrTextureMipOffset, ssrTextureLastValidMipIndex, 0));
+                        // The ray distance pyramid is at low res, so both its mip offset and its
+                        // last valid mip are the reflection chain's shifted by the downsample factor.
+                        float guideMipDelta = Mathf.Log(ssrData.resolutionScale) / Mathf.Log(2);
+                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam2, new Vector4(blurriness, finalTextureMipOffset, finalTextureLastValidMipIndex, guideMipDelta));
+                        cmd.SetGlobalVector(ShaderConstants._ReflectionParam3, new Vector4(ssrData.contactHardeningScale, ssrData.contactDistanceBias, 0f, 0f));
                     });
+                }
+
+                // Generate ray distance pyramid.
+                if (settings.ShouldUseContactHardening())
+                {
+                    var lowResViewportSize = new Vector2Int(
+                        cameraData.cameraTargetDescriptor.width / (int)settings.resolution.value,
+                        cameraData.cameraTargetDescriptor.height / (int)settings.resolution.value);
+
+                    using (new RenderGraphProfilingScope(renderGraph, m_RayDistancePyramidSampler))
+                        m_MipGenerator.RenderColorGaussianPyramid(renderGraph, lowResViewportSize, rayDistanceTempTexture, rayDistanceTexture);
+                }
+
+                // Temporal filtering pass.
+                bool ssrTextureIsHistory = false;
+                if (settings.temporalFiltering.value &&
+                    cameraData.historyManager != null &&
+                    (input & ScriptableRenderPassInput.Motion) != 0)
+                {
+                    int multipassId = 0;
+                    bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+                    multipassId = cameraData.xr.multipassId;
+#endif
+                    cameraData.historyManager.RequestAccess<ScreenSpaceReflectionColorHistory>();
+                    var ssrHistory = cameraData.historyManager.GetHistoryForWrite<ScreenSpaceReflectionColorHistory>();
+                    if (ssrHistory != null)
+                    {
+                        // Get history descriptor.
+                        TextureDesc ssrHistoryDesc = ssrTexture.GetDescriptor(renderGraph);
+                        var ssrDesc = cameraData.cameraTargetDescriptor;
+                        ssrDesc.width = ssrHistoryDesc.width;
+                        ssrDesc.height = ssrHistoryDesc.height;
+                        ssrDesc.graphicsFormat = ssrHistoryDesc.format;
+                        ssrDesc.depthStencilFormat = GraphicsFormat.None;
+                        ssrDesc.msaaSamples = 1;
+                        ssrDesc.useMipMap = false;
+                        ssrDesc.autoGenerateMips = false;
+                        ssrDesc.enableRandomWrite = false;
+
+                        // Apply temporal filtering resolve.
+                        bool isNewAlloc = ssrHistory.Update(cameraData, xrMultipassEnabled, ssrDesc);
+                        RTHandle prevRT = ssrHistory.GetPreviousTexture(multipassId);
+                        RTHandle currRT = ssrHistory.GetCurrentTexture(multipassId);
+                        if (prevRT != null && currRT != null)
+                        {
+                            TextureHandle historyTexture = renderGraph.ImportTexture(prevRT);
+                            TextureHandle currentHistoryTexture = renderGraph.ImportTexture(currRT);
+
+                            using (var builder = renderGraph.AddRasterRenderPass<TemporalFilteringPassData>("SSR - Temporal Filtering", out var passData))
+                            {
+                                passData.material = m_Material;
+                                passData.ssrTexture = ssrTexture;
+                                passData.reflectionHistory = historyTexture;
+                                passData.motionVectors = motionVectorColorTexture;
+                                passData.baseBlendFactor = isNewAlloc ? 0.0f : settings.baseBlendFactor.value;
+                                passData.currentResolutionScale = cameraTargetScale;
+                                passData.previousResolutionScale = ssrHistory.GetPreviousDynamicResolutionScale(multipassId);
+                                passData.viewportSize = new Vector2Int(
+                                    Mathf.CeilToInt(ssrHistoryDesc.width * cameraTargetScale.x),
+                                    Mathf.CeilToInt(ssrHistoryDesc.height * cameraTargetScale.y));
+
+                                builder.SetRenderAttachment(currentHistoryTexture, 0);
+                                builder.UseTexture(ssrTexture);
+                                builder.UseTexture(historyTexture);
+                                builder.UseTexture(motionVectorColorTexture);
+
+                                builder.SetRenderFunc<TemporalFilteringPassData>(static (data, ctx) =>
+                                {
+                                    data.material.SetTexture(ShaderConstants._ReflectionHistoryTexture, data.reflectionHistory);
+                                    data.material.SetTexture(ShaderConstants._MotionVectorColorTexture, data.motionVectors);
+                                    data.material.SetFloat(ShaderConstants._BaseBlendFactor, data.baseBlendFactor);
+                                    data.material.SetVector(ShaderConstants._ResolutionScales, new Vector4(
+                                        data.currentResolutionScale.x, data.currentResolutionScale.y,
+                                        data.previousResolutionScale.x, data.previousResolutionScale.y));
+                                    ctx.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
+                                    Blitter.BlitTexture(ctx.cmd, data.ssrTexture, Vector2.one, data.material, (int)ShaderPasses.TemporalFiltering);
+                                });
+                            }
+                            if (settings.resolution == ScreenSpaceReflectionVolumeSettings.Resolution.Full && cameraTargetScale != Vector2.one)
+                            {
+                                // No upscale pass follows, so unpack the history's scaled region back into the full resolution SSR texture.
+                                renderGraph.AddBlitPass(currentHistoryTexture, ssrTexture, cameraTargetScale, Vector2.zero, filterMode: BlitFilterMode.ClampNearest, passName: "SSR - Unpack temporal history");
+                            }
+                            else
+                            {
+                                ssrTexture = currentHistoryTexture;
+                                ssrTextureIsHistory = true;
+                            }
+                        }
+                    }
                 }
 
                 // Upscale pass.
@@ -448,32 +567,15 @@ namespace UnityEngine.Rendering.Universal
                     {
                         fullResSSRTexture = upscaleTexture;
 
-                        if (settings.upscalingMethod == UpscalingMethod.None)
+                        if (settings.upscalingMethod == UpscalingMethod.Bilinear)
                         {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_BlitMaterial, 0);
-                            renderGraph.AddBlitPass(blitParam, passName: "Nearest");
-                        }
-                        else if (settings.upscalingMethod == UpscalingMethod.Kawase)
-                        {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.KawaseBlur);
-                            renderGraph.AddBlitPass(blitParam, passName: "KawaseBlur");
-                        }
-                        else if (settings.upscalingMethod == UpscalingMethod.Gaussian)
-                        {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, blurTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.GaussianBlurHorizontal);
-                            renderGraph.AddBlitPass(blitParam, passName: "GaussianBlurHorizontal");
-                            blitParam = new BlitMaterialParameters(blurTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.GaussianBlurVertical);
-                            renderGraph.AddBlitPass(blitParam, passName: "GaussianBlurVertical");
+                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, ssrTextureIsHistory ? cameraTargetScale : Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilinearUpscale);
+                            renderGraph.AddBlitPass(blitParam, passName: "BilinearUpscale");
                         }
                         else if (settings.upscalingMethod == UpscalingMethod.Bilateral)
                         {
-                            var blitParam = new BlitMaterialParameters(ssrTexture, blurTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurHorizontal);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurHorizontal");
-                            blitParam = new BlitMaterialParameters(blurTexture, ssrTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurVertical);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurVertical");
-
-                            blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralBlurFinal);
-                            renderGraph.AddBlitPass(blitParam, passName: "BilateralBlurFinal");
+                            var blitParam = new BlitMaterialParameters(ssrTexture, upscaleTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BilateralUpscale);
+                            renderGraph.AddBlitPass(blitParam, passName: "BilateralUpscale");
                         }
                     }
                 }
@@ -490,8 +592,7 @@ namespace UnityEngine.Rendering.Universal
                             textureToBlit = mipGenTexture;
                             m_MipGenerator.RenderColorGaussianPyramid(renderGraph, viewportSizeWithScale, fullResSSRTexture, mipGenTexture);
                         }
-                        var blitParam = new BlitMaterialParameters(textureToBlit, finalTexture, Vector2.one, Vector2.zero, m_Material, (int)ShaderPasses.BlitAfterOpaque);
-                        renderGraph.AddBlitPass(blitParam, passName: "Final blit");
+                        RenderAfterOpaqueBlit(renderGraph, textureToBlit, rayDistanceTexture, finalTexture);
                     }
                     else
                     {
@@ -509,9 +610,45 @@ namespace UnityEngine.Rendering.Universal
 
             // Set global texture so subsequent passes can read it.
             if (m_AfterOpaque)
+            {
                 resourceData.ssrTexture = TextureHandle.nullHandle;
+                resourceData.ssrRayDistanceTexture = TextureHandle.nullHandle;
+            }
             else
+            {
                 resourceData.ssrTexture = finalTexture;
+                resourceData.ssrRayDistanceTexture = rayDistanceTexture;
+            }
+        }
+
+        private class AfterOpaqueBlitPassData
+        {
+            internal Material material;
+            internal TextureHandle source;
+            internal TextureHandle rayDistanceTexture;
+        }
+
+        private void RenderAfterOpaqueBlit(RenderGraph renderGraph, TextureHandle source, TextureHandle rayDistanceTexture, TextureHandle destination)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<AfterOpaqueBlitPassData>("Final blit", out var passData))
+            {
+                passData.material = m_Material;
+                passData.source = source;
+                passData.rayDistanceTexture = rayDistanceTexture;
+
+                builder.UseTexture(source, AccessFlags.Read);
+                if (rayDistanceTexture.IsValid())
+                    builder.UseTexture(rayDistanceTexture, AccessFlags.Read);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.ReadWrite);
+
+                builder.SetRenderFunc<AfterOpaqueBlitPassData>(static (data, ctx) =>
+                {
+                    if (data.rayDistanceTexture.IsValid())
+                        data.material.SetTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.rayDistanceTexture);
+
+                    Blitter.BlitTexture(ctx.cmd, data.source, Vector2.one, data.material, (int)ShaderPasses.BlitAfterOpaque);
+                });
+            }
         }
 
         static void SetupKeywordsAndParameters(ref ScreenSpaceReflectionPassData data)
@@ -542,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
             data.material.SetMatrixArray(ShaderConstants._CameraViews, data.cameraViews);
             data.material.SetMatrixArray(ShaderConstants._CameraInverseViewProjections, data.cameraInverseViewProjections);
             data.material.SetMatrixArray(ShaderConstants._CameraViewProjections, data.cameraViewProjections);
-            data.material.SetVector(ShaderConstants._MinimumSmoothnessAndFadeStart, new Vector4(data.minimumSmoothness, data.smoothnessFadeStart));
+            data.material.SetVector(ShaderConstants._SmoothnessAndStrengthAndClamp, new Vector4(data.minimumSmoothness, data.smoothnessFadeStart, data.reflectionStrength, data.clampValue));
             data.material.SetVector(ShaderConstants._ScreenEdgeFadeAndViewConeDot, new Vector4(data.screenEdgeFade, 1.0f - data.screenEdgeFade, 2.0f * data.normalFade - 1.0f));
             data.material.SetInteger(ShaderConstants._ReflectSky, data.reflectSky ? 1 : 0);
             data.material.SetInteger(ShaderConstants._HitRefinementSteps, data.hitRefinementSteps);
@@ -563,9 +700,10 @@ namespace UnityEngine.Rendering.Universal
                 data.material.SetTexture(ShaderConstants._SsrDepthPyramid, data.depthPyramidTexture);
             }
 
-            CoreUtils.SetKeyword(data.material, data.localKeywords.hiZTraceKeyword, !data.linearMarching);
-            CoreUtils.SetKeyword(data.material, data.localKeywords.refineDepthKeyword, data.hitRefinementSteps > 0);
-            CoreUtils.SetKeyword(data.material, data.localKeywords.useMotionVectorsKeyword, !data.afterOpaque && !cameraData.isSceneViewCamera);
+            CoreUtils.SetKeyword(data.material, k_HiZTrace, !data.linearMarching);
+            CoreUtils.SetKeyword(data.material, k_RefineDepth, data.hitRefinementSteps > 0);
+            CoreUtils.SetKeyword(data.material, k_ContactHardening, data.contactHardeningScale > 0f);
+            CoreUtils.SetKeyword(data.material, k_UseMotionVectors, !data.afterOpaque);
         }
 
         // Instead of calculating the 'floor' depth by adding a constant thickness to the linear depth from the depth buffer, we treat thickness as a multiplier
@@ -595,14 +733,15 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData,
             ScreenSpaceReflectionVolumeSettings settings,
             out TextureHandle ssrTexture,
-            out TextureHandle blurTexture,
             out TextureHandle upscaleTexture,
             out TextureHandle mipGenTexture,
             out TextureHandle finalTexture,
-            out TextureHandle depthPyramidTexture)
+            out TextureHandle depthPyramidTexture,
+            out TextureHandle rayDistanceTempTexture,
+            out TextureHandle rayDistanceTexture)
         {
-            bool needRoughnessMips = settings.roughReflections.value != RoughReflectionsQuality.Disabled;
-            bool boxBlurRoughness = settings.roughReflections.value == RoughReflectionsQuality.BoxBlur;
+            bool needRoughnessMips = settings.roughnessFilter.value != RoughReflectionsQuality.Disabled;
+            bool boxBlurRoughness = settings.roughnessFilter.value == RoughReflectionsQuality.BoxBlur;
 
             TextureDesc cameraDesc = resourceData.cameraColor.GetDescriptor(renderGraph);
             bool useHdrRendering = GraphicsFormatUtility.IsHDRFormat(cameraDesc.format);
@@ -634,14 +773,6 @@ namespace UnityEngine.Rendering.Universal
             TextureDesc ssrTextureDescriptor = boxBlurRoughness ? lowResWithMips : lowResNoMips;
             ssrTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, ssrTextureDescriptor, "_SSR_ReflectionTexture", false, Color.clear, FilterMode.Bilinear);
 
-            // Temporary texture for bilateral and gaussian blur. No mips.
-            bool gaussian = settings.upscalingMethod.value == UpscalingMethod.Gaussian;
-            bool bilateral = settings.upscalingMethod.value == UpscalingMethod.Bilateral;
-            if (settings.resolution != ScreenSpaceReflectionVolumeSettings.Resolution.Full && (gaussian || bilateral))
-                blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lowResNoMips, "_SSR_BlurTexture", false, Color.clear, FilterMode.Bilinear);
-            else
-                blurTexture = TextureHandle.nullHandle;
-
             // Temporary texture storing output of upscale. Only needs mips if we are relying on automips rather than gaussian mipchain, so there is no mipGenTexture.
             TextureDesc upscaleTextureDescriptor = boxBlurRoughness ? fullResWithMips : fullResNoMips;
             if (settings.resolution != ScreenSpaceReflectionVolumeSettings.Resolution.Full)
@@ -652,12 +783,33 @@ namespace UnityEngine.Rendering.Universal
             // Temporary texture storing mipchain from color pyramid generator for rough reflections. Full res, with mips.
             // Only needed in AfterOpaque, otherwise mips generated directly to final texture.
             if (settings.ShouldUseGaussianBlurRoughness() && m_AfterOpaque)
-                mipGenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullResWithMips, "_SSR_MipGenTexture", false, Color.clear, FilterMode.Bilinear);
+                mipGenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullResWithMips, "_SSR_MipGenTexture", false, Color.clear, FilterMode.Trilinear);
             else
                 mipGenTexture = TextureHandle.nullHandle;
 
+            // Mip-chain built from ray distance texture.
+            if (settings.ShouldUseContactHardening())
+            {
+                // Temporary texture to store ray distances.
+                TextureDesc rayDistanceTempDesc = lowResNoMips;
+                rayDistanceTempDesc.format = GraphicsFormat.R16G16B16A16_SFloat;
+                rayDistanceTempTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, rayDistanceTempDesc, "_SSR_RayDistanceTempTexture", false, Color.white, FilterMode.Bilinear);
+
+                // Mip generator output texture.
+                TextureDesc rayDistanceDesc = rayDistanceTempDesc;
+                rayDistanceDesc.useMipMap = true;
+                rayDistanceDesc.autoGenerateMips = false;
+                rayDistanceDesc.enableRandomWrite = SystemInfo.supportsComputeShaders;
+                rayDistanceTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, rayDistanceDesc, "_SSR_RayDistanceTexture", false, Color.white, FilterMode.Trilinear);
+            }
+            else
+            {
+                rayDistanceTempTexture = TextureHandle.nullHandle;
+                rayDistanceTexture = TextureHandle.nullHandle;
+            }
+
             // Final texture. If after opaque, this is the screen target, otherwise a persistent texture with mips.
-            finalTexture = m_AfterOpaque ? resourceData.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullResWithMips, k_ScreenSpaceReflectionTextureName, false, Color.clear, FilterMode.Bilinear);
+            finalTexture = m_AfterOpaque ? resourceData.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullResWithMips, k_ScreenSpaceReflectionTextureName, false, Color.clear, FilterMode.Trilinear);
 
             // Depth pyramid for Hi-Z tracing.
             if (!settings.ShouldUseLinearMarching())
@@ -680,6 +832,8 @@ namespace UnityEngine.Rendering.Universal
                 depthPyramidDesc.useMipMap = false;
                 depthPyramidDesc.autoGenerateMips = false;
                 depthPyramidDesc.enableRandomWrite = true;
+                depthPyramidDesc.useDynamicScale = false;
+                depthPyramidDesc.useDynamicScaleExplicit = true;
                 depthPyramidDesc.width /= (int)settings.resolution.value;
                 depthPyramidDesc.height /= (int)settings.resolution.value;
                 depthPyramidTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthPyramidDesc, "_SSR_DepthPyramid", false, Color.clear, FilterMode.Point);
@@ -714,12 +868,41 @@ namespace UnityEngine.Rendering.Universal
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
-                            renderGraph.AddBlitPass(cameraDepthTexture, depthHistoryTarget, Vector2.one, Vector2.zero, filterMode: BlitFilterMode.ClampNearest);
+
+                            // Pack the depth into the same region the color history uses.
+                            // Using a plain AddBlitPass would not guarantee this layout.
+                            Vector2 contentScale = cameraData.cameraTargetDescriptor.msaaSamples > 1
+                                ? Vector2.one
+                                : ColorHistory.GetCurrentDynamicResolutionScale(cameraData);
+                            var viewportSize = new Vector2Int(
+                                Mathf.CeilToInt(cameraData.cameraTargetDescriptor.width * contentScale.x),
+                                Mathf.CeilToInt(cameraData.cameraTargetDescriptor.height * contentScale.y));
+                            AddDepthCopyPass(renderGraph, cameraDepthTexture, depthHistoryTarget, viewportSize, null, "SSR - Copy depth history");
                         }
                     }
                 }
             }
         }
+        
+        // Copies the potentially dynamically scaled depth into a viewport of a fixed size target.
+        static void AddDepthCopyPass(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, Vector2Int viewportSize, Material blitMaterial, string passName)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<DepthCopyPassData>(passName, out var passData))
+            {
+                passData.blitMaterial = blitMaterial;
+                passData.source = source;
+                passData.viewportSize = viewportSize;
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                builder.UseTexture(source);
+                builder.SetRenderFunc<DepthCopyPassData>(static (data, context) =>
+                {
+                    context.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
+                    if (data.blitMaterial != null)
+                        Blitter.BlitTexture(context.cmd, data.source, new Vector4(1f, 1f, 0f, 0f), data.blitMaterial, 0);
+                    else
+                        Blitter.BlitTexture(context.cmd, data.source, new Vector4(1f, 1f, 0f, 0f), 0, false);
+                });
+            }
+        }
     }
 }
-#endif

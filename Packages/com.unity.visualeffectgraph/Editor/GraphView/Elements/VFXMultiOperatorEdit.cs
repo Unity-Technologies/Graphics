@@ -286,7 +286,7 @@ namespace UnityEditor.VFX.UI
 
             public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnified op, int index) : base(owner, op, index)
             {
-                field = new TextField();
+                field = new TextField(64, false, false, '*');
                 field.Q("unity-text-input").RegisterCallback<BlurEvent>(OnChangeValue, TrickleDown.TrickleDown);
                 field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
 

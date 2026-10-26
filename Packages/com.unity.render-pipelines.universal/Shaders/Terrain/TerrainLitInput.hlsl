@@ -3,8 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
@@ -66,8 +67,13 @@ TEXTURE2D(_Mask2);      SAMPLER(sampler_Mask2);
 TEXTURE2D(_Mask3);      SAMPLER(sampler_Mask3);
 
 TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
+TEXTURE2D(_BumpMap);       SAMPLER(sampler_BumpMap);
 TEXTURE2D(_SpecGlossMap);  SAMPLER(sampler_SpecGlossMap);
 TEXTURE2D(_MetallicTex);   SAMPLER(sampler_MetallicTex);
+
+half GetBumpScale()            { return half(1.0); }
+
+half4 SampleBumpMap(float2 uv) { return SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv); }
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
 #define ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -103,8 +109,8 @@ void ClipHoles(float2 uv)
 
 #define SampleLayerAlbedo(i) (SAMPLE_TEXTURE2D(_Splat##i, sampler_Splat0, splat##i##uv) * half4(_DiffuseRemapScale##i.rgb, 1.0h))
 
-#ifdef _NORMALMAP
-    #define SampleLayerNormal(i) UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal##i, sampler_Normal0, splat##i##uv), _NormalScale##i)
+#if FEATURES_NORMALMAP
+    #define SampleLayerNormal(i) (UseNormalMap() ? UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal##i, sampler_Normal0, splat##i##uv), _NormalScale##i) : half3(0.0, 0.0, 1.0))
 #else
     #define SampleLayerNormal(i) half3(0.0, 0.0, 1.0)
 #endif
@@ -115,7 +121,7 @@ void ClipHoles(float2 uv)
     #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
 #endif
 
-half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
+half4 SampleTerrainMetallic(float2 uv, half albedoAlpha)
 {
     half4 specGloss;
     specGloss = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, uv);
@@ -129,14 +135,14 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     half4 albedoSmoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
     outSurfaceData.alpha = 1;
 
-    half4 specGloss = SampleMetallicSpecGloss(uv, albedoSmoothness.a);
+    half4 specGloss = SampleTerrainMetallic(uv, albedoSmoothness.a);
     outSurfaceData.albedo = albedoSmoothness.rgb;
 
     outSurfaceData.metallic = specGloss.r;
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    outSurfaceData.normalTS = SampleNormal(uv);
     outSurfaceData.occlusion = 1;
     outSurfaceData.emission = 0;
 }

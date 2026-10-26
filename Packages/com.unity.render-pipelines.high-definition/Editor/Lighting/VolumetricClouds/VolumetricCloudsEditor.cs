@@ -174,10 +174,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
 
-        static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
-        static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
-        static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
-        static public readonly GUIContent k_PerceptualBlending = EditorGUIUtility.TrTextContent("Perceptual Blending", "When enabled, the clouds will blend in a perceptual way with the environment. This may cause artifacts when the sky is over-exposed.\nThis only works when MSAA is off.");
+        static public readonly GUIContent k_CloudMapTilingText = L10n.TextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.", null, null);
+        static public readonly GUIContent k_CloudMapOffsetText = L10n.TextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.", null, null);
+        static public readonly GUIContent k_GlobalHorizontalWindSpeedText = L10n.TextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.", null, null);
+        static public readonly GUIContent k_PerceptualBlending = L10n.TextContent("Perceptual Blending", "When enabled, the clouds will blend in a perceptual way with the environment. This may cause artifacts when the sky is over-exposed.\nThis only works when MSAA is off.", null, null);
 
         void MicroDetailsSection()
         {
@@ -389,8 +389,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static public readonly GUIContent k_CloudSimpleModeText = EditorGUIUtility.TrTextContent("Mode", "Specifies the quality mode used to render the volumetric clouds.");
-        static public readonly GUIContent k_CloudPresetText = EditorGUIUtility.TrTextContent("Preset", "Specifies the weather preset in Simple mode.");
+        static public readonly GUIContent k_CloudSimpleModeText = L10n.TextContent("Mode", "Specifies the quality mode used to render the volumetric clouds.", null, null);
+        static public readonly GUIContent k_CloudPresetText = L10n.TextContent("Preset", "Specifies the weather preset in Simple mode.", null, null);
 
         void SimpleControlMode(bool controlChanged)
         {
@@ -547,7 +547,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
+            PropertyField(m_Enable, L10n.TextContent("State", null, null, null));
             if (m_Enable.value.boolValue && !notSupported)
                 HDEditorUtils.EnsureFrameSetting(FrameSettingsField.VolumetricClouds);
 

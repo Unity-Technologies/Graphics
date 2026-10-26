@@ -1,4 +1,5 @@
 #pragma only_renderers d3d11 xboxone xboxseries vulkan metal
+#pragma multi_compile _ TERRAIN_RAY_MARCHING_ENABLED
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 
@@ -6,7 +7,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+
+#ifdef TERRAIN_RAY_MARCHING_ENABLED
+// Terrain ray marching resources
+Texture2DArray<float> _TerrainTexture;
+SamplerState sampler_TerrainTexture;
+float _TerrainTextureInvWidth;
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/TerrainRayMarching.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PathTracing/Shaders/FetchTerrainGeometry.hlsl"
+#endif
+#include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/TraceRayProbeVolume.hlsl"
 
 
 #define DISTANCE_THRESHOLD 5e-5f
@@ -81,7 +92,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         ray.direction = k_RayDirections[i];
         ray.origin = probe.position + probe.originBias * ray.direction;
 
-        UnifiedRT::Hit hit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
+        UnifiedRT::Hit hit = TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
 
         // If any of the closest hit is the sky or a front face, skip it
         if (!hit.IsValid() || hit.isFrontFace)
@@ -93,7 +104,18 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
             float distanceDiff = hit.hitDistance - minDist;
             if (distanceDiff < DISTANCE_THRESHOLD)
             {
-                UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit, UnifiedRT::kGeomAttribFaceNormal);
+                UnifiedRT::InstanceData instanceInfo = UnifiedRT::GetInstance(hit.instanceID);
+
+                UnifiedRT::HitGeomAttributes attributes;
+                #ifdef TERRAIN_RAY_MARCHING_ENABLED
+                if (instanceInfo.terrainIndex >= 0)
+                    attributes = FetchTerrainHitGeomAttributes(hit, instanceInfo.terrainIndex);
+                else
+                #endif
+                    attributes = UnifiedRT::FetchHitGeomAttributes(hit, UnifiedRT::kGeomAttribFaceNormal);
+
+                attributes = UnifiedRT::TransformToWorldSpace(instanceInfo, attributes);
+
                 float dotSurface = dot(ray.direction, attributes.faceNormal);
 
                 // If new distance is smaller by at least kDistanceThreshold, or if ray is at least DOT_THRESHOLD more colinear with normal

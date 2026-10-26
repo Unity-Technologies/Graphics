@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -8,30 +9,96 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering
 {
+
+    /// <summary>
+    /// Identifies the XR rendering layout for the current frame.
+    /// The layout is inferred from the XR display subsystem configuration
+    /// (number of render passes and views per pass) and determines how
+    /// the render pipeline structures its XR rendering passes.
+    /// </summary>
+    public enum XRLayoutType
+    {
+        /// <summary>
+        /// The layout type could not be determined. This value is used as
+        /// the default before inference runs and indicates an unsupported
+        /// or unrecognized XR display configuration.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        /// Single-pass instanced stereo rendering. One render pass with two
+        /// views (left and right eye) rendered simultaneously via instancing.
+        /// </summary>
+        SinglePassStereo,
+
+        /// <summary>
+        /// Multi-pass stereo rendering. Two render passes, each with one
+        /// view (one eye per pass).
+        /// </summary>
+        TwoPassStereo,
+
+        /// <summary>
+        /// Two-pass quad views rendering. Two render passes, each with two
+        /// views. The first pass renders peripheral (outer) views and the
+        /// second pass renders foveal (inner) views.
+        /// </summary>
+        TwoPassQuadViews,
+
+        /// <summary>
+        /// One-pass rendering. One render pass with one view.
+        /// </summary>
+        OnePassOneView
+    }
+
     /// <summary>
     /// Used by render pipelines to control the active XR shader variant.
     /// </summary>
-    public static class SinglepassKeywords
+    public static partial class SinglepassKeywords
     {
         /// <summary> XR shader keyword used by multiview rendering </summary>
+        [AutoStaticsCleanup]
         public static GlobalKeyword STEREO_MULTIVIEW_ON;
         /// <summary> XR shader keywordused by single pass instanced rendering </summary>
+        [AutoStaticsCleanup]
         public static GlobalKeyword STEREO_INSTANCING_ON;
     }
 
     /// <summary>
     /// Used by render pipelines to communicate with XR SDK.
     /// </summary>
-    public static class XRSystem
+    public static partial class XRSystem
     {
-        // Keep track of only one XR layout
+        [OnCodeInitializing]
+        static void ResetStaticsOnLoad()
+        {
+            // Drain any remaining layouts to return pooled XRPass/XRLayout resources
+            while (s_Layout != null && s_Layout.hasLayout)
+                s_Layout.Release();
+            s_Layout = new XRLayoutStack();
+
+            // Dispose materials before nulling — requires custom disposal logic
+            CoreUtils.Destroy(s_OcclusionMeshMaterial);
+            s_OcclusionMeshMaterial = null;
+            CoreUtils.Destroy(s_MirrorViewMaterial);
+            s_MirrorViewMaterial = null;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_OcclusionMeshScaling = 1.0f;
+#endif
+        }
+
+        // Keep track of only one XR layout — manually drained in ResetStaticsOnLoad()
+        [NoAutoStaticsCleanup]
         static XRLayoutStack s_Layout = new ();
 
         // Delegate allocations of XRPass to the render pipeline
+        [AutoStaticsCleanup]
         static Func<XRPassCreateInfo, XRPass> s_PassAllocator = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        [AutoStaticsCleanup]
         static List<XRDisplaySubsystem> s_DisplayList = new List<XRDisplaySubsystem>();
+        [AutoStaticsCleanup]
         static XRDisplaySubsystem s_Display;
 
         /// <summary>
@@ -44,22 +111,51 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         // MSAA level (number of samples per pixel) shared by all XR displays
+        [AutoStaticsCleanup]
         static MSAASamples s_MSAASamples = MSAASamples.None;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        // Occlusion Mesh scaling factor
+        // Occlusion Mesh scaling factor — manually reset; captured into XRPassCreateInfo
+        [NoAutoStaticsCleanup]
         static float s_OcclusionMeshScaling = 1.0f;
 
         // Return true if wants to enable visibility mesh passes
+        [AutoStaticsCleanup]
         static bool s_UseVisibilityMesh = true;
 #endif
 
-        // Internal resources used by XR rendering
+        // Internal resources used by XR rendering — manually cleaned up via CoreUtils.Destroy()
+        [NoAutoStaticsCleanup]
         static Material s_OcclusionMeshMaterial;
+        [NoAutoStaticsCleanup]
         static Material s_MirrorViewMaterial;
 
         // Ability to override the default XR layout
+        [AutoStaticsCleanup]
         static Action<XRLayout, Camera> s_LayoutOverride = null;
+
+        /// <summary>Per-frame Temporal Pixel Synthesis configuration override.</summary>
+        public struct TemporalPixelSynthesisConfig
+        {
+            /// <summary>TPS active this frame (gates URP TAA/STP/upscaler).</summary>
+            public bool active;
+            /// <summary>Runtime requests a stencil aspect on the motion-vector target.</summary>
+            public bool requestStencil;
+            /// <summary>Stencil reference value: (stencil &amp; mask) == value ⇒ excluded from TPS.</summary>
+            public uint stencilValue;
+            /// <summary>Stencil bitmask tested by TPS (non-zero; must not overlap pipeline-private bits).</summary>
+            public uint stencilMask;
+            /// <summary>Compositor performs upscaling (eye target may be rendered below display res).</summary>
+            public bool upscalingEnabled;
+        }
+
+        /// <summary>
+        /// Overrides the Temporal Pixel Synthesis contract reported by <see cref="XRPass"/>, for exercising
+        /// the feature without an XR provider that implements <c>XR_META_temporal_pixel_synthesis</c>.
+        /// Takes precedence over provider-supplied values while <see cref="TemporalPixelSynthesisConfig.active"/> is true.
+        /// </summary>
+        [AutoStaticsCleanup]
+        public static TemporalPixelSynthesisConfig temporalPixelSynthesisConfig { get; set; }
 
         /// <summary>
         /// Returns true if a XR device is connected and running.
@@ -88,21 +184,25 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Valid empty pass when a camera is not using XR.
         /// </summary>
+        [NoAutoStaticsCleanup]
         public static readonly XRPass emptyPass = new XRPass();
 
         /// <summary>
         /// If true, the system will try to create a layout compatible with single-pass rendering.
         /// </summary>
+        [AutoStaticsCleanup]
         static public bool singlePassAllowed { get; set; } = true;
 
         /// <summary>
         /// Cached value of SystemInfo.foveatedRenderingCaps.
         /// </summary>
+        [AutoStaticsCleanup]
         static public FoveatedRenderingCaps foveatedRenderingCaps { get; set; }
 
         /// <summary>
         /// If true, the system will log some information about the layout to the console.
         /// </summary>
+        [AutoStaticsCleanup]
         static public bool dumpDebugInfo { get; set; } = false;
 
         /// <summary>
@@ -430,6 +530,49 @@ namespace UnityEngine.Experimental.Rendering
             if (s_Display == null)
                 throw new NullReferenceException(nameof(s_Display));
 
+            // early return when there's no render pass.
+            if (s_Display.GetRenderPassCount() == 0)
+                return;
+
+            // infer XRLayout from number of render passes and number of views in each pass
+            XRLayoutType layoutType = XRLayoutType.Unknown;
+            switch (s_Display.GetRenderPassCount())
+            {
+                case 1:
+                    s_Display.GetRenderPass(0, out var renderPass);
+                    if (renderPass.GetRenderParameterCount() == 2)
+                    {
+                        // If the runtime can use single-pass instancing, keep SinglePassStereo.
+                        // Otherwise the loop below will split the two views into separate passes,
+                        // so the effective layout is TwoPassStereo.
+                        layoutType = CanUseSinglePass(camera, renderPass)
+                            ? XRLayoutType.SinglePassStereo
+                            : XRLayoutType.TwoPassStereo;
+                    }
+                    else if (renderPass.GetRenderParameterCount() == 1)
+                    {
+                        layoutType = XRLayoutType.OnePassOneView;
+                    }
+                    break;
+                case 2:
+                    s_Display.GetRenderPass(0, out var renderPass0);
+                    s_Display.GetRenderPass(1, out var renderPass1);
+
+                    // Two passes, each with one view, is TwoPassStereo
+                    if (renderPass0.GetRenderParameterCount() == 1 && renderPass1.GetRenderParameterCount() == 1)
+                        layoutType = XRLayoutType.TwoPassStereo;
+                    // Two passes, each with two views, is TwoPassQuadViews — but only
+                    // if single-pass instancing is supported. Without it the loop would
+                    // split each 2-view pass into separate passes, producing 4 total
+                    // passes which is not a supported layout.
+                    else if (renderPass0.GetRenderParameterCount() == 2 && renderPass1.GetRenderParameterCount() == 2
+                        && CanUseSinglePass(camera, renderPass0) && CanUseSinglePass(camera, renderPass1))
+                        layoutType = XRLayoutType.TwoPassQuadViews;
+                    break;
+            }
+            if (layoutType == XRLayoutType.Unknown)
+                throw new NotImplementedException($"Unsupported XR layout: {s_Display.GetRenderPassCount()} render passes");
+
             void AddViewToPass(XRPass xrPass, XRDisplaySubsystem.XRRenderPass renderPass, int renderParamIndex)
             {
                 renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
@@ -461,35 +604,35 @@ namespace UnityEngine.Experimental.Rendering
             // This avoids List allocations that would cause GC pressure every frame
             Vector4 pass0View0Bounds = default, pass0View1Bounds = default;
             Vector4 pass1View0Bounds = default, pass1View1Bounds = default;
-            bool isQuadViewSetup = renderPassCount == 2;
-            if (isQuadViewSetup)
+            if (layoutType == XRLayoutType.TwoPassQuadViews)
             {
                 s_Display.GetRenderPass(0, out var pass0);
                 s_Display.GetRenderPass(1, out var pass1);
-                if (pass0.GetRenderParameterCount() >= 2 && pass1.GetRenderParameterCount() >= 2)
-                {
-                    pass0View0Bounds = ExtractViewBounds(pass0, 0);
-                    pass0View1Bounds = ExtractViewBounds(pass0, 1);
-                    pass1View0Bounds = ExtractViewBounds(pass1, 0);
-                    pass1View1Bounds = ExtractViewBounds(pass1, 1);
-                }
-                else
-                {
-                    isQuadViewSetup = false;
-                }
+                pass0View0Bounds = ExtractViewBounds(pass0, 0);
+                pass0View1Bounds = ExtractViewBounds(pass0, 1);
+                pass1View0Bounds = ExtractViewBounds(pass1, 0);
+                pass1View1Bounds = ExtractViewBounds(pass1, 1);
             }
 
             for (int renderPassIndex = 0; renderPassIndex < renderPassCount; ++renderPassIndex)
             {
                 s_Display.GetRenderPass(renderPassIndex, out var renderPass);
-                s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
                 int renderParameterCount = renderPass.GetRenderParameterCount();
+                s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
                 bool isLastPass = renderPassIndex == renderPassCount - 1;
                 // This parameter makes sure we are in 2 pass quad view's second pass, which is the only case we need to apply special UV scale and offset.
-                bool isQuadViewLastPass = isLastPass && isQuadViewSetup;
+                bool isQuadViewLastPass = isLastPass && layoutType == XRLayoutType.TwoPassQuadViews;
+                bool isQuadViewFirstPass = renderPassIndex == 0 && layoutType == XRLayoutType.TwoPassQuadViews;
                 Vector4 uvScales = Vector4.one;
                 Vector4 uvOffsets = Vector4.zero;
+                if (isQuadViewFirstPass)
+                {
+                    s_Display.GetRenderPass(renderPassIndex + 1, out var innerRenderPass);
+                    SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
+                }
+
                 if (isQuadViewLastPass)
                 {
                     // Calculate UV scales and offsets from pre-computed view bounds
@@ -502,11 +645,43 @@ namespace UnityEngine.Experimental.Rendering
                     uvOffsets.y = -(pass1View0Bounds.w - pass0View0Bounds.w) / pass0View0Bounds.y;
                     uvOffsets.z = (pass1View1Bounds.z - pass0View1Bounds.z) / pass0View1Bounds.x;
                     uvOffsets.w = -(pass1View1Bounds.w - pass0View1Bounds.w) / pass0View1Bounds.y;
+
+                    // Cache the inset rect as a bottom-left origin fraction of the full periphery frustum
+                    // uvScales and uvOffsets are already ratios of inset-to-peripheral spans and bottom-left corner positions, respectively
+                    float insetW = uvScales.x;
+                    float insetH = uvScales.y;
+                    float insetX = uvOffsets.x;
+                    float insetY = uvOffsets.y;
+
+                    // Asymmetric per-eye inner frustums are uncommon (Quest 3 uses conjugate gaze with symmetric frustums),
+                    // but intersect both eye rects when they differ to avoid rejecting pixels the compositor still shows on either eye
+                    float featherBoundsX = pass0View0Bounds.x;
+                    float featherBoundsY = pass0View0Bounds.y;
+                    if (!Mathf.Approximately(insetW, uvScales.z)  || !Mathf.Approximately(insetH, uvScales.w)  ||
+                        !Mathf.Approximately(insetX, uvOffsets.z) || !Mathf.Approximately(insetY, uvOffsets.w))
+                    {
+                        float right = Mathf.Min(insetX + insetW, uvOffsets.z + uvScales.z);
+                        float top   = Mathf.Min(insetY + insetH, uvOffsets.w + uvScales.w);
+                        insetX = Mathf.Max(insetX, uvOffsets.z);
+                        insetY = Mathf.Max(insetY, uvOffsets.w);
+                        insetW = right - insetX;
+                        insetH = top   - insetY;
+
+                        // Use the smaller peripheral extent per axis so the feather fraction is larger (more conservative).
+                        featherBoundsX = Mathf.Min(pass0View0Bounds.x, pass0View1Bounds.x);
+                        featherBoundsY = Mathf.Min(pass0View0Bounds.y, pass0View1Bounds.y);
+                    }
+
+                    layout.quadView.peripheryInsetViewport = new Vector4(insetX, insetY, insetW, insetH);
+
+                    // Cache a safety margin as a fraction of the full periphery frustum to avoid compositor blending issues
+                    const float insetMarginRadians = 0.05f;
+                    layout.quadView.peripheryInsetFeather = new Vector2(insetMarginRadians / featherBoundsX, insetMarginRadians / featherBoundsY);
                 }
 
                 if (CanUseSinglePass(camera, renderPass))
                 {
-                    var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1, uvScales, uvOffsets);
+                    var createInfo = BuildPass(renderPass, cullingParams, layout, layoutType, uvScales, uvOffsets);
                     var xrPass = s_PassAllocator(createInfo);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
@@ -520,7 +695,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
                     {
-                        var createInfo = BuildPass(renderPass, cullingParams, layout, renderPassIndex == s_Display.GetRenderPassCount() - 1, uvScales, uvOffsets);
+                        var createInfo = BuildPass(renderPass, cullingParams, layout, layoutType, uvScales, uvOffsets);
                         var xrPass = s_PassAllocator(createInfo);
                         AddViewToPass(xrPass, renderPass, renderParamIndex);
                         layout.AddPass(camera, xrPass);
@@ -542,6 +717,15 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(xrPass.singlePassEnabled || renderPass.GetRenderParameterCount() == 1);
 
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
+                // For the outer QuadView pass, re-derive split planes from the inner pass every frame.
+                // This must happen after BeginCameraRendering, which may have moved the camera.
+                if (xrPass.xrLayoutType == XRLayoutType.TwoPassQuadViews && !xrPass.isQuadViewInnerPass)
+                {
+                    s_Display.GetRenderPass(xrPass.multipassId + 1, out var innerRenderPass);
+                    SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
+                }
+
                 xrPass.AssignCullingParams(renderPass.cullingPassIndex, cullingParams);
 
                 for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
@@ -556,6 +740,15 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        static void SetSplitCullingPlanes(Camera camera, int innerCullingPassIndex, ref ScriptableCullingParameters cullingParams)
+        {
+            Debug.Assert(s_Display != null);
+            s_Display.GetCullingParameters(camera, innerCullingPassIndex, out var innerParams);
+            cullingParams.splitPlaneCount = innerParams.cullingPlaneCount;
+            for (int i = 0; i < innerParams.cullingPlaneCount; ++i)
+                cullingParams.SetSplitCullingPlane(i, innerParams.GetCullingPlane(i));
+        }
+
         static bool CanUseSinglePass(Camera camera, XRDisplaySubsystem.XRRenderPass renderPass)
         {
             if (!singlePassAllowed)
@@ -606,11 +799,52 @@ namespace UnityEngine.Experimental.Rendering
             rtDesc.vrUsage      = xrDesc.vrUsage;
             rtDesc.sRGB         = xrDesc.sRGB;
             rtDesc.shadowSamplingMode = xrDesc.shadowSamplingMode;
+            rtDesc.memoryless   = xrDesc.memoryless;
             return rtDesc;
         }
 
-        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout, bool isLastPass, Vector4 uvScales, Vector4 uvOffsets)
+        // Frame-keyed rather than a bool reset on "TPS inactive": in multi-pass the provider may describe
+        // pass 0 but not pass 1, and a per-pass reset would put the message back to once per frame.
+        [AutoStaticsCleanup]
+        static int s_LastTemporalPixelSynthesisStencilFormatErrorFrame = -1;
+
+        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout, XRLayoutType layoutType, Vector4 uvScales, Vector4 uvOffsets)
         {
+            bool temporalPixelSynthesisActive;
+            uint temporalPixelSynthesisStencilValue;
+            uint temporalPixelSynthesisStencilMask;
+            bool temporalPixelSynthesisStencilRequested;
+
+            if (temporalPixelSynthesisConfig.active)
+            {
+                temporalPixelSynthesisActive = true;
+                temporalPixelSynthesisStencilValue = temporalPixelSynthesisConfig.stencilValue;
+                temporalPixelSynthesisStencilMask = temporalPixelSynthesisConfig.stencilMask;
+                temporalPixelSynthesisStencilRequested = temporalPixelSynthesisConfig.requestStencil;
+            }
+            else
+            {
+                temporalPixelSynthesisActive = xrRenderPass.isTemporalPixelSynthesisActive;
+                temporalPixelSynthesisStencilValue = (uint)xrRenderPass.motionVectorStencilValue;
+                temporalPixelSynthesisStencilMask = (uint)xrRenderPass.motionVectorStencilMask;
+                temporalPixelSynthesisStencilRequested = temporalPixelSynthesisActive;
+            }
+
+            // The 0xFF bound matters because the mask reaches StencilState.writeMask as a byte downstream,
+            // so e.g. 0x100 would truncate to 0 and silently write no stencil at all.
+            bool hasMotionVectorStencil = temporalPixelSynthesisActive
+                && temporalPixelSynthesisStencilRequested
+                && xrRenderPass.hasMotionVectorPass
+                && temporalPixelSynthesisStencilMask != 0
+                && temporalPixelSynthesisStencilMask <= 0xFF;
+
+            // Don't publish a contract that isn't in force.
+            if (!hasMotionVectorStencil)
+            {
+                temporalPixelSynthesisStencilValue = 0;
+                temporalPixelSynthesisStencilMask = 0;
+            }
+
             XRPassCreateInfo passInfo = new XRPassCreateInfo
             {
                 renderTarget            = xrRenderPass.renderTarget,
@@ -628,13 +862,83 @@ namespace UnityEngine.Experimental.Rendering
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
                 spaceWarpRightHandedNDC = xrRenderPass.spaceWarpRightHandedNDC,
+                hasMotionVectorStencil   = hasMotionVectorStencil,
+                motionVectorStencilValue = temporalPixelSynthesisStencilValue,
+                motionVectorStencilMask  = temporalPixelSynthesisStencilMask,
+                isTemporalPixelSynthesisActive   = temporalPixelSynthesisActive,
+                skipFDMForFinalPasses   = xrRenderPass.skipFDMForFinalPasses,
                 xrSdkRenderPass         = xrRenderPass,
-                isLastCameraPass        = isLastPass,
+                xrLayoutType            = layoutType,
                 uvScales                 = uvScales,
                 uvOffsets                = uvOffsets
             };
 
+            // The pipeline-private bit-reservation check lives in URP (XRDepthMotionPass) instead, since
+            // which stencil bits the producer reserves is a URP shader convention.
+            if (passInfo.hasMotionVectorStencil)
+            {
+                Debug.Assert((passInfo.motionVectorStencilValue & passInfo.motionVectorStencilMask) == passInfo.motionVectorStencilValue,
+                    "TPS: motionVectorStencilValue must be a subset of motionVectorStencilMask.");
+
+                if (!GraphicsFormatUtility.IsStencilFormat(passInfo.motionVectorRenderTargetDesc.depthStencilFormat)
+                    && s_LastTemporalPixelSynthesisStencilFormatErrorFrame != Time.frameCount)
+                {
+                    s_LastTemporalPixelSynthesisStencilFormatErrorFrame = Time.frameCount;
+                    Debug.LogError($"Temporal Pixel Synthesis requested a motion-vector stencil aspect, but the motion-vector depth target format ({passInfo.motionVectorRenderTargetDesc.depthStencilFormat}) has no stencil bits. A stencil-capable format such as D24_UNorm_S8_UInt or D32_SFloat_S8_UInt is required; TPS pixel exclusion will not work.");
+                }
+            }
+
+            DebugTraceTemporalPixelSynthesis(in passInfo, xrRenderPass);
+
             return passInfo;
+        }
+
+        // Traces what the provider delivers at the boundary where TPS data crosses into SRP.
+        const bool k_DebugTemporalPixelSynthesis = false;
+
+        // Indexed by multipassId, so the steady-state cost is a struct compare rather than a string per
+        // pass per frame.
+        [NoAutoStaticsCleanup]
+        static readonly (bool active, bool stencil, uint value, uint mask, bool hasMVPass, GraphicsFormat mvDepthFmt)[] s_LastTemporalPixelSynthesisTrace
+            = new (bool, bool, uint, uint, bool, GraphicsFormat)[kMaxTracedPasses];
+        [NoAutoStaticsCleanup]
+        static readonly bool[] s_TemporalPixelSynthesisTraceLogged = new bool[kMaxTracedPasses];
+        const int kMaxTracedPasses = 8;
+
+        static void DebugTraceTemporalPixelSynthesis(in XRPassCreateInfo passInfo, XRDisplaySubsystem.XRRenderPass xrRenderPass)
+        {
+#pragma warning disable 162 // unreachable code when the flag is false
+            if (!k_DebugTemporalPixelSynthesis)
+                return;
+
+            int passIndex = passInfo.multipassId;
+            if (passIndex < 0 || passIndex >= kMaxTracedPasses)
+                return;
+
+            var state = (passInfo.isTemporalPixelSynthesisActive,
+                         passInfo.hasMotionVectorStencil,
+                         passInfo.motionVectorStencilValue,
+                         passInfo.motionVectorStencilMask,
+                         passInfo.hasMotionVectorPass,
+                         passInfo.motionVectorRenderTargetDesc.depthStencilFormat);
+
+            if (s_TemporalPixelSynthesisTraceLogged[passIndex] && s_LastTemporalPixelSynthesisTrace[passIndex].Equals(state))
+                return;
+
+            s_TemporalPixelSynthesisTraceLogged[passIndex] = true;
+            s_LastTemporalPixelSynthesisTrace[passIndex] = state;
+
+            // raw(...) is pre-override, pre-validation: populated raw with an empty resolved value means
+            // the contract was dropped here rather than never delivered.
+            Debug.Log($"[TPS] pass={passIndex} active={passInfo.isTemporalPixelSynthesisActive} " +
+                      $"stencilRequested={passInfo.hasMotionVectorStencil} " +
+                      $"value=0x{passInfo.motionVectorStencilValue:X} mask=0x{passInfo.motionVectorStencilMask:X} " +
+                      $"| hasMVPass={passInfo.hasMotionVectorPass} " +
+                      $"mvDepthFmt={passInfo.motionVectorRenderTargetDesc.depthStencilFormat} " +
+                      $"stencilCapable={GraphicsFormatUtility.IsStencilFormat(passInfo.motionVectorRenderTargetDesc.depthStencilFormat)} " +
+                      $"| raw(active={xrRenderPass.isTemporalPixelSynthesisActive} value={xrRenderPass.motionVectorStencilValue} mask={xrRenderPass.motionVectorStencilMask}) " +
+                      $"configOverride={temporalPixelSynthesisConfig.active}");
+#pragma warning restore 162
         }
 
 #endif

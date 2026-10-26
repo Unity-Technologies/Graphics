@@ -45,17 +45,17 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RipplesCurrentRes = o.Find(x => x.ripplesCurrentRes);
         }
 
-        static public readonly GUIContent k_RegionSize = EditorGUIUtility.TrTextContent("Region Size", "Sets the extent of the decal region in meters.");
-        static public readonly GUIContent k_RegionAnchor = EditorGUIUtility.TrTextContent("Region Anchor", "Sets the center of the decal region. If nothing is set, the region will follow the main camera transform.");
+        static public readonly GUIContent k_RegionSize = L10n.TextContent("Region Size", "Sets the extent of the decal region in meters.", null, null);
+        static public readonly GUIContent k_RegionAnchor = L10n.TextContent("Region Anchor", "Sets the center of the decal region. If nothing is set, the region will follow the main camera transform.", null, null);
 
-        static public readonly GUIContent k_DecalResolution = EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution of the texture covering the region.");
+        static public readonly GUIContent k_DecalResolution = L10n.TextContent("Resolution", "Sets the resolution of the texture covering the region.", null, null);
 
-        static public readonly GUIContent k_DeformationDecals = EditorGUIUtility.TrTextContent("Deformation", "Specifies if decals deforming the surface of the water are supported.");
-        static public readonly GUIContent k_FoamDecals = EditorGUIUtility.TrTextContent("Foam", "Specifies if decals injecting foam are supported.");
-        static public readonly GUIContent k_MaskDecals = EditorGUIUtility.TrTextContent("Simulation Mask", "Specifies if decals masking the simulation are supported.");
-        static public readonly GUIContent k_FoamMaskDecals = EditorGUIUtility.TrTextContent("Simulation Foam Mask", "Specifies if decals masking the simulation foam are supported.");
-        static public readonly GUIContent k_LargeCurrentDecals = EditorGUIUtility.TrTextContent("Large Current", "Specifies if decals affecting the swell current on oceans and the agitation current on rivers are supported.");
-        static public readonly GUIContent k_RipplesCurrentDecals = EditorGUIUtility.TrTextContent("Ripples Current", "Specifies if decals affecting the ripples current are supported.");
+        static public readonly GUIContent k_DeformationDecals = L10n.TextContent("Deformation", "Specifies if decals deforming the surface of the water are supported.", null, null);
+        static public readonly GUIContent k_FoamDecals = L10n.TextContent("Foam", "Specifies if decals injecting foam are supported.", null, null);
+        static public readonly GUIContent k_MaskDecals = L10n.TextContent("Simulation Mask", "Specifies if decals masking the simulation are supported.", null, null);
+        static public readonly GUIContent k_FoamMaskDecals = L10n.TextContent("Simulation Foam Mask", "Specifies if decals masking the simulation foam are supported.", null, null);
+        static public readonly GUIContent k_LargeCurrentDecals = L10n.TextContent("Large Current", "Specifies if decals affecting the swell current on oceans and the agitation current on rivers are supported.", null, null);
+        static public readonly GUIContent k_RipplesCurrentDecals = L10n.TextContent("Ripples Current", "Specifies if decals affecting the ripples current are supported.", null, null);
 
         static void DecalSupportOption(SerializedProperty enable, GUIContent enableTitle, SerializedProperty resolution)
         {

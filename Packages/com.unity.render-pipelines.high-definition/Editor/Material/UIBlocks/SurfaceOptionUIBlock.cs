@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static class Styles
         {
-            public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Surface Options");
+            public static GUIContent optionText { get; } = L10n.TextContent("Surface Options", null, null, null);
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";

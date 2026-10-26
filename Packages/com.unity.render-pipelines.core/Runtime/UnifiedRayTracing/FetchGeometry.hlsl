@@ -95,21 +95,18 @@ HitGeomAttributes FetchHitGeomAttributes(int geometryIndex, int primitiveIndex, 
     return result;
 }
 
-
 HitGeomAttributes FetchHitGeomAttributes(Hit hit, uint attributesToFetch = kGeomAttribAll)
 {
     int geometryIndex = g_AccelStructInstanceList[hit.instanceID].geometryIndex;
     return FetchHitGeomAttributes(geometryIndex, hit.primitiveIndex, hit.uvBarycentrics, attributesToFetch);
 }
 
-HitGeomAttributes FetchHitGeomAttributesInWorldSpace(UnifiedRT::InstanceData instanceInfo, UnifiedRT::Hit hit)
+HitGeomAttributes TransformToWorldSpace(UnifiedRT::InstanceData instanceInfo, UnifiedRT::HitGeomAttributes hitGeomAttributes)
 {
-    UnifiedRT::HitGeomAttributes res = UnifiedRT::FetchHitGeomAttributes(hit);
-
-    HitGeomAttributes wsRes = res;
-    wsRes.position = mul(float4(res.position, 1), instanceInfo.localToWorld);
-    wsRes.normal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, res.normal));
-    wsRes.faceNormal = normalize(mul((float3x3)instanceInfo.localToWorldNormals, res.faceNormal));
+    HitGeomAttributes wsRes = hitGeomAttributes;
+    wsRes.position = mul(float4(hitGeomAttributes.position, 1), instanceInfo.localToWorld);
+    wsRes.normal = normalize(mul((float3x3) instanceInfo.localToWorldNormals, hitGeomAttributes.normal));
+    wsRes.faceNormal = normalize(mul((float3x3) instanceInfo.localToWorldNormals, hitGeomAttributes.faceNormal));
 
     return wsRes;
 }

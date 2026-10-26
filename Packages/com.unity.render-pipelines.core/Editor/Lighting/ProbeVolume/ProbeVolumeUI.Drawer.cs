@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
 
     static partial class ProbeVolumeUI
     {
-        internal static readonly CED.IDrawer Inspector = CED.Group(
+        internal static readonly CED.IDrawer k_Inspector = CED.Group(
             CED.Group(
                 Drawer_VolumeContent,
                 Drawer_RebakeWarning // This needs to be last to avoid popping in the UI
@@ -18,15 +18,15 @@ namespace UnityEditor.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
 
-            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+            ProbeVolume pv = (serialized.m_SerializedObject.targetObject as ProbeVolume);
 
             GIContributors.ContributorFilter? filter = null;
 
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to All Scenes", "Fit this Adaptive Probe Volume to cover all loaded Scenes. "), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to All Scenes", "Fit this Adaptive Probe Volume to cover all loaded Scenes. ", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.All;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fit this Adaptive Probe Volume to the renderers in the same Scene."), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to Scene", "Fit this Adaptive Probe Volume to the renderers in the same Scene.", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Scene;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits this Adaptive Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections."), EditorStyles.miniButton))
+            if (GUILayout.Button(L10n.TextContent("Fit to Selection", "Fits this Adaptive Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections.", null, null), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Selection;
 
             if (filter.HasValue)
@@ -39,33 +39,33 @@ namespace UnityEditor.Rendering
 
                 var bounds = pv.ComputeBounds(filter.Value, pv.gameObject.scene);
                 pv.transform.position = bounds.center;
-                serialized.size.vector3Value = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
+                serialized.m_Size.vector3Value = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
             }
         }
 
-        static int s_SubdivisionRangeID = "SubdivisionRange".GetHashCode();
+        static readonly int k_SubdivisionRangeID = "SubdivisionRange".GetHashCode();
 
         static void SubdivisionRange(SerializedProbeVolume serialized, int maxSimplicationLevel, float minDistance)
         {
             var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.minSubdivisionLevel);
-            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.maxSubdivisionLevel);
-            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.overridesSubdivision);
+            EditorGUI.BeginProperty(rect, Styles.k_DistanceBetweenProbes, serialized.m_MinSubdivisionLevel);
+            EditorGUI.BeginProperty(rect, Styles.k_DistanceBetweenProbes, serialized.m_MaxSubdivisionLevel);
+            EditorGUI.BeginProperty(rect, Styles.k_DistanceBetweenProbes, serialized.m_OverridesSubdivision);
 
             var checkbox = new Rect(rect) { width = 14 + 9, x = rect.x + 2 };
-            serialized.overridesSubdivision.boolValue = EditorGUI.Toggle(checkbox, serialized.overridesSubdivision.boolValue);
+            serialized.m_OverridesSubdivision.boolValue = EditorGUI.Toggle(checkbox, serialized.m_OverridesSubdivision.boolValue);
 
-            using (new EditorGUI.DisabledScope(!serialized.overridesSubdivision.boolValue))
+            using (new EditorGUI.DisabledScope(!serialized.m_OverridesSubdivision.boolValue))
             {
                 EditorGUIUtility.labelWidth -= checkbox.width;
                 rect.xMin = checkbox.xMax - 4;
-                int id = GUIUtility.GetControlID(s_SubdivisionRangeID, FocusType.Keyboard, rect);
-                rect = EditorGUI.PrefixLabel(rect, id, Styles.s_DistanceBetweenProbes);
+                int id = GUIUtility.GetControlID(k_SubdivisionRangeID, FocusType.Keyboard, rect);
+                rect = EditorGUI.PrefixLabel(rect, id, Styles.k_DistanceBetweenProbes);
                 EditorGUIUtility.labelWidth += checkbox.width;
 
                 // Make sure data is valid
-                float maxLevelOverride = Mathf.Min(serialized.maxSubdivisionLevel.intValue, maxSimplicationLevel);
-                float minLevelOverride = Mathf.Min(serialized.minSubdivisionLevel.intValue, maxLevelOverride);
+                float maxLevelOverride = Mathf.Min(serialized.m_MaxSubdivisionLevel.intValue, maxSimplicationLevel);
+                float minLevelOverride = Mathf.Min(serialized.m_MinSubdivisionLevel.intValue, maxLevelOverride);
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MinMaxSlider(rect, ref minLevelOverride, ref maxLevelOverride, 0, maxSimplicationLevel);
@@ -73,12 +73,12 @@ namespace UnityEditor.Rendering
                 {
                     GUIUtility.keyboardControl = id;
 
-                    serialized.minSubdivisionLevel.intValue = Mathf.RoundToInt(minLevelOverride);
-                    serialized.maxSubdivisionLevel.intValue = Mathf.RoundToInt(maxLevelOverride);
+                    serialized.m_MinSubdivisionLevel.intValue = Mathf.RoundToInt(minLevelOverride);
+                    serialized.m_MaxSubdivisionLevel.intValue = Mathf.RoundToInt(maxLevelOverride);
                 }
 
                 ProbeVolumeLightingTab.DrawSimplificationLevelsMarkers(rect, minDistance, 0, maxSimplicationLevel,
-                    serialized.minSubdivisionLevel.intValue, serialized.maxSubdivisionLevel.intValue);
+                    serialized.m_MinSubdivisionLevel.intValue, serialized.m_MaxSubdivisionLevel.intValue);
             }
 
             EditorGUI.EndProperty();
@@ -88,16 +88,16 @@ namespace UnityEditor.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+            ProbeVolume pv = (serialized.m_SerializedObject.targetObject as ProbeVolume);
             var bakingSet = ProbeVolumeLightingTab.GetSceneBakingSetForUI(pv.gameObject.scene);
 
-            EditorGUILayout.PropertyField(serialized.mode);
-            if (serialized.mode.intValue == (int)ProbeVolume.Mode.Local)
+            EditorGUILayout.PropertyField(serialized.m_Mode);
+            if (serialized.m_Mode.intValue == (int)ProbeVolume.Mode.Local)
             {
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+                EditorGUILayout.PropertyField(serialized.m_Size, Styles.k_Size);
                 if (EditorGUI.EndChangeCheck())
-                    serialized.size.vector3Value = Vector3.Max(serialized.size.vector3Value, Vector3.zero);
+                    serialized.m_Size.vector3Value = Vector3.Max(serialized.m_Size.vector3Value, Vector3.zero);
 
                 Drawer_BakeToolBar(serialized, owner);
             }
@@ -135,16 +135,16 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(serialized.overrideRendererFilters, Styles.s_OverrideRendererFilters);
-            if (serialized.overrideRendererFilters.boolValue)
+            EditorGUILayout.PropertyField(serialized.m_OverrideRendererFilters, Styles.k_OverrideRendererFilters);
+            if (serialized.m_OverrideRendererFilters.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
-                EditorGUILayout.PropertyField(serialized.minRendererVolumeSize, Styles.s_MinRendererVolumeSize);
+                EditorGUILayout.PropertyField(serialized.m_ObjectLayerMask, Styles.k_ObjectLayerMask);
+                EditorGUILayout.PropertyField(serialized.m_MinRendererVolumeSize, Styles.k_MinRendererVolumeSize);
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
+            EditorGUILayout.PropertyField(serialized.m_FillEmptySpaces);
 
             if (bakingSet == null)
             {
@@ -161,13 +161,13 @@ namespace UnityEditor.Rendering
 
         static void Drawer_RebakeWarning(SerializedProbeVolume serialized, Editor owner)
         {
-            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+            ProbeVolume pv = (serialized.m_SerializedObject.targetObject as ProbeVolume);
 
             if (pv.mightNeedRebaking)
             {
                 EditorGUILayout.Space();
-                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
-                EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
+                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.k_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
+                EditorGUI.HelpBox(helpBoxRect, Styles.k_ProbeVolumeChangedMessage, MessageType.Warning);
             }
         }
     }

@@ -1,6 +1,6 @@
-# Vector Field Force
+# Vector Field Force Block
 
-Menu Path : **Force > Vector Field Force**
+Menu Path : **Force** > **Vector Field Force**
 
 The **Vector Field Force** Block uses [vector fields](VectorFields.md) to apply a force to the particles. This Block is useful for adding specific forces created in advance and stored in vector field assets.
 

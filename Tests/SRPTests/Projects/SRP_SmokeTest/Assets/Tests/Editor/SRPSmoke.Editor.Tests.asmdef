@@ -14,7 +14,10 @@
         "Unity.RenderPipelines.Core.Editor.Tests",
         "Unity.RenderPipelines.Core.Runtime.Tests",
         "UnityEngine.TestTools.Graphics",
-        "Unity.Graphics.Testing.Common.Editor"
+        "Unity.Graphics.Testing.Common.Editor",
+        "Unity.Testing.XR.Editor",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor"
     ],
     "includePlatforms": [
         "Editor"

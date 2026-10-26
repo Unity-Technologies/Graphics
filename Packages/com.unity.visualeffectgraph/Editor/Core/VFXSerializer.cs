@@ -208,6 +208,10 @@ namespace UnityEditor.VFX
                 public TangentMode rightTangentMode;
 
                 public bool broken;
+
+                public WeightedMode weightedMode;
+                public float inWeight;
+                public float outWeight;
             }
             public Keyframe[] frames;
             public WrapMode preWrapMode;
@@ -298,6 +302,9 @@ namespace UnityEditor.VFX
                     sac.frames[i].leftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, i);
                     sac.frames[i].rightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, i);
                     sac.frames[i].broken = AnimationUtility.GetKeyBroken(curve, i);
+                    sac.frames[i].weightedMode = curve.keys[i].weightedMode;
+                    sac.frames[i].inWeight = curve.keys[i].inWeight;
+                    sac.frames[i].outWeight = curve.keys[i].outWeight;
                 }
                 sac.preWrapMode = curve.preWrapMode;
                 sac.postWrapMode = curve.postWrapMode;
@@ -404,6 +411,9 @@ namespace UnityEditor.VFX
                         keys[i].value = sac.frames[i].value;
                         keys[i].inTangent = sac.frames[i].inTangent;
                         keys[i].outTangent = sac.frames[i].outTangent;
+                        keys[i].weightedMode = sac.frames[i].weightedMode;
+                        keys[i].inWeight = sac.frames[i].inWeight;
+                        keys[i].outWeight = sac.frames[i].outWeight;
                         if (sac.version == 1)
                         {
                             AnimationUtility.SetKeyLeftTangentMode(ref keys[i], sac.frames[i].leftTangentMode);

@@ -43,9 +43,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_Mode.value.intValue == (int)DepthOfFieldMode.Gaussian)
             {
-                PropertyField(m_GaussianStart, EditorGUIUtility.TrTextContent("Start"));
-                PropertyField(m_GaussianEnd, EditorGUIUtility.TrTextContent("End"));
-                PropertyField(m_GaussianMaxRadius, EditorGUIUtility.TrTextContent("Max Radius"));
+                PropertyField(m_GaussianStart, L10n.TextContent("Start", null, null, null));
+                PropertyField(m_GaussianEnd, L10n.TextContent("End", null, null, null));
+                PropertyField(m_GaussianMaxRadius, L10n.TextContent("Max Radius", null, null, null));
                 PropertyField(m_HighQualitySampling);
             }
             else if (m_Mode.value.intValue == (int)DepthOfFieldMode.Bokeh)

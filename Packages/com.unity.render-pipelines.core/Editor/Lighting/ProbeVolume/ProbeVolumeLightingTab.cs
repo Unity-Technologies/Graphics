@@ -3,17 +3,17 @@
 #endif
 
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
-using UnityEditor.Overlays;
-using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEngine.Rendering
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
     {
         const int k_AddSceneID = 654423;
 
-        static string documentationURL = "probevolumes";
+        static readonly string k_DocumentationUrl = "probevolumes";
 
         static class Styles
         {
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent bakeBox = new GUIContent("", "Controls if Adaptive Probe Volumes in this scene are baked when Generating Lighting.");
             public static readonly GUIContent warnings = new GUIContent("Warnings");
 
-            public static readonly string[] bakingModeOptions = new string[] { "Single Scene", "Baking Set" };
+            public static readonly string[] bakingModeOptions = new[] { "Single Scene", "Baking Set" };
 
             public static readonly GUIContent iconEnableAll = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), "The Scene is loaded but is currently not enabled for Baking. It will therefore not be considered when generating lighting data.");
             public static readonly GUIContent iconLoadForBake = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Warning), "The Scene is currently enabled for baking but is unloaded in the Hierarchy. This may result in incomplete lighting data being generated.\nLoad the Scene in the Hierarchy, or use the shortcuts below to fix the issue.");
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
         };
 
         static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.InvaliditySettings;
-        static ExpandedState<Expandable, ProbeVolumeBakingProcessSettings> k_Foldouts;
+        static ExpandedState<Expandable, ProbeVolumeBakingProcessSettings> s_Foldouts;
 
         // This set is used to draw a read only inspector in case no other set has been created
         // It's content must not be changed
@@ -110,14 +110,13 @@ namespace UnityEngine.Rendering
 
         public static bool singleSceneMode => instance?.m_SingleSceneMode ?? true;
 
-
         Vector2 m_ScrollPosition = Vector2.zero;
         bool m_SingleSceneMode = true;
-        bool m_TempBakingSet = false;
-        bool m_Initialized = false;
+        bool m_TempBakingSet;
+        bool m_Initialized;
 
-        ProbeVolumeBakingSetWeakReference m_ActiveSet = new();
-        ProbeVolumeBakingSet activeSet
+        readonly ProbeVolumeBakingSetWeakReference m_ActiveSet = new();
+        internal ProbeVolumeBakingSet activeSet
         {
             get => m_ActiveSet.Get();
             set
@@ -143,25 +142,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /*
-        SerializedObject m_LightmapSettings;
-        SerializedProperty m_LightingSettingsAsset;
-        SerializedObject lightmapSettings
-        {
-            get
-            {
-                // if we set a new scene as the active scene, we need to make sure to respond to those changes
-                if (m_LightmapSettings == null || m_LightmapSettings.targetObject != GetLightmapSettings())
-                {
-                    m_LightmapSettings = new SerializedObject(GetLightmapSettings());
-                    m_LightingSettingsAsset = m_LightmapSettings.FindProperty("m_LightingSettings");
-                }
-
-                return m_LightmapSettings;
-            }
-        }
-        */
-
         public override void OnEnable()
         {
             instance = this;
@@ -171,19 +151,21 @@ namespace UnityEngine.Rendering
             RefreshSceneAssets();
         }
 
-        bool FindActiveSet()
+        bool FindActiveSet(bool forceRefresh = false)
         {
-            if (m_ActiveSet.Get() == null)
+            if (forceRefresh || m_ActiveSet.Get() == null)
             {
                 activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(SceneManager.GetActiveScene());
                 for (int i = 0; activeSet == null && i < SceneManager.sceneCount; i++)
+                {
                     activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(SceneManager.GetSceneAt(i));
+                }
             }
 
             return m_ActiveSet.Get() != null;
         }
 
-        void Initialize()
+        internal void Initialize()
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
@@ -197,7 +179,12 @@ namespace UnityEngine.Rendering
             if (m_Initialized)
                 return;
 
-            FindActiveSet();
+            var currentBakingSet = ProbeReferenceVolume.instance.currentBakingSet;
+            if (currentBakingSet != null)
+                activeSet = currentBakingSet;
+            else
+                FindActiveSet(forceRefresh: true);
+            m_TrackedActiveScene = default;
 
             EditorSceneManager.sceneOpened += OnSceneOpened;
 
@@ -210,6 +197,7 @@ namespace UnityEngine.Rendering
                 Object.DestroyImmediate(m_ActiveSetEditor);
 
             EditorSceneManager.sceneOpened -= OnSceneOpened;
+            m_Initialized = false;
 
             // We keep allocated acceleration structures while the Lighting window is open in order to make subsequent bakes faster, but when the window closes we dispose of them
             // Unless a bake is running, in which case we leave disposing to CleanBakeData()
@@ -217,12 +205,14 @@ namespace UnityEngine.Rendering
                 AdaptiveProbeVolumes.CleanUp();
         }
 
-        #region On GUI
         public override void OnGUI()
         {
             EditorGUIUtility.hierarchyMode = true;
 
             Initialize();
+
+            if (m_Initialized)
+                TrackActiveScene();
 
             var prv = ProbeReferenceVolume.instance;
 
@@ -234,7 +224,7 @@ namespace UnityEngine.Rendering
                 var activeScene = SceneManager.GetActiveScene();
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(activeScene);
                 if (set == null)
-                    UseTemporaryBakingSet(activeScene.GetGUID(), activeSet ? activeSet.Clone() : null);
+                    UseTemporaryBakingSet(activeScene.guid, activeSet ? activeSet.Clone() : null);
             }
 
             // Not sure how we can get to that state but we can
@@ -277,12 +267,12 @@ namespace UnityEngine.Rendering
         {
             var iconSize = EditorStyles.iconButton.CalcSize(Styles.helpIcon);
             if (GUI.Button(GUILayoutUtility.GetRect(iconSize.x, iconSize.y), Styles.helpIcon, EditorStyles.iconButton))
-                Help.BrowseURL(DocumentationInfo.GetPageLink("com.unity.render-pipelines.high-definition", documentationURL));
+                Help.BrowseURL(DocumentationInfo.GetPageLink("com.unity.render-pipelines.high-definition", k_DocumentationUrl));
 
             iconSize = EditorStyles.iconButton.CalcSize(Styles.settingsIcon);
             var rect = GUILayoutUtility.GetRect(iconSize.x, iconSize.y);
             if (EditorGUI.DropdownButton(rect, Styles.settingsIcon, FocusType.Passive, EditorStyles.iconButton))
-                EditorUtility.DisplayCustomMenu(rect, new[] { EditorGUIUtility.TrTextContent("Open Rendering Debugger") }, -1, OpenProbeVolumeDebugPanel, null);
+                EditorUtility.DisplayCustomMenu(rect, new[] { L10n.TextContent("Open Rendering Debugger", null, null, null) }, -1, OpenProbeVolumeDebugPanel, null);
 
             //var style = new GUIStyle(EditorStyles.iconButton);
             //style.padding = new RectOffset(1, 1, 1, 1);
@@ -296,7 +286,7 @@ namespace UnityEngine.Rendering
             var debugWindow = EditorWindow.GetWindow<DebugWindow>();
             debugWindow.titleContent = DebugWindow.s_TitleContent;
             debugWindow.Show();
-            DebugManager.instance.RequestEditorWindowPanel(ProbeReferenceVolume.k_DebugPanelName);
+            DebugManager.instance.RequestPanelSelection(ProbeReferenceVolume.k_DebugPanelName);
 #endif
         }
 
@@ -325,21 +315,19 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake, Styles.buttonStyle))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
                 return;
             }
 
             if (EditorGUI.LargeSplitButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback))
                 Lightmapping.BakeAsync();
         }
-        #endregion
 
-        #region Baking
         ReorderableList m_ScenesInSet;
 
-        List<Scene> scenesToUnload = new();
-        List<SceneData> scenesForBake = new();
-        List<SceneData> scenesToEnable = new();
+        readonly List<Scene> m_ScenesToUnload = new();
+        readonly List<SceneData> m_ScenesForBake = new();
+        readonly List<SceneData> m_ScenesToEnable = new();
 
         void BakingGUI()
         {
@@ -347,7 +335,11 @@ namespace UnityEngine.Rendering
             m_SingleSceneMode = EditorGUILayout.Popup(Styles.bakingMode, m_SingleSceneMode ? 0 : 1, Styles.bakingModeOptions) == 0;
             if (EditorGUI.EndChangeCheck() && !m_SingleSceneMode)
             {
-                if (activeSet != null) { EditorUtility.SetDirty(activeSet); activeSet.singleSceneMode = false; }
+                if (activeSet != null)
+                {
+                    EditorUtility.SetDirty(activeSet);
+                    activeSet.singleSceneMode = false;
+                }
                 SaveTempBakingSetIfNeeded();
             }
 
@@ -357,11 +349,14 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            EditorGUI.BeginChangeCheck();
             var newSet = ObjectFieldWithNew(Styles.currentBakingSet, activeSet, CreateBakingSet);
-            if (EditorGUI.EndChangeCheck())
+            if (newSet != activeSet)
             {
-                if (newSet != null) { EditorUtility.SetDirty(newSet); newSet.singleSceneMode = false; }
+                if (newSet != null)
+                {
+                    EditorUtility.SetDirty(newSet);
+                    newSet.singleSceneMode = false;
+                }
                 activeSet = newSet;
 
                 ProbeReferenceVolume.instance.Clear();
@@ -393,9 +388,9 @@ namespace UnityEngine.Rendering
             if (m_Initialized)
             {
                 var activeScene = SceneManager.GetActiveScene();
-                var activeSceneGUID = ProbeReferenceVolume.GetSceneGUID(activeScene);
-                var activeSceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeSceneGUID);
-                if (activeSceneSet && activeSceneSet.sceneGUIDs.Count == 1)
+                var activeSceneGuid = ProbeReferenceVolume.GetSceneGuid(activeScene);
+                var activeSceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeSceneGuid);
+                if (activeSceneSet && activeSceneSet.scenesInBakingSet.Count == 1)
                 {
                     if (!activeSceneSet.singleSceneMode)
                     {
@@ -404,20 +399,20 @@ namespace UnityEngine.Rendering
                         activeSet = activeSceneSet;
                     }
                 }
-                else if (activeSceneSet && (activeSceneSet.sceneGUIDs.Any(s => s != activeSceneGUID) && activeSceneSet.sceneGUIDs.Count > 1))
+                else if (activeSceneSet && activeSceneSet.scenesInBakingSet.Count > 1)
                 {
                     if (EditorUtility.DisplayDialog("Move Scene to new baking set", $"The scene '{activeScene.name}' is part of the Baking Set '{activeSceneSet.name}' with other scenes." +
                         " This is not compatible with the Single Scene mode.\nDo you want to move the scene to a new set?", "Yes", "Cancel"))
                     {
                         var tmpSet = activeSceneSet.Clone();
-                        activeSceneSet.RemoveScene(activeSceneGUID);
-                        UseTemporaryBakingSet(activeSceneGUID, tmpSet);
+                        activeSceneSet.RemoveScene(activeSceneGuid);
+                        UseTemporaryBakingSet(activeSceneGuid, tmpSet);
                     }
                     else
                         m_SingleSceneMode = false;
                 }
-                else if (activeSet == null || (activeSet.sceneGUIDs.Any(s => s != activeSceneGUID) && activeSet.sceneGUIDs.Count > 1))
-                    UseTemporaryBakingSet(activeSceneGUID);
+                else if (activeSet == null || activeSet.scenesInBakingSet.Count > 1)
+                    UseTemporaryBakingSet(activeSceneGuid);
             }
 
             var firstInvalid = GetFirstProbeVolumeInNonActiveScene();
@@ -435,30 +430,34 @@ namespace UnityEngine.Rendering
             {
                 Scene scene = SceneManager.GetSceneAt(i);
                 if (scene.isLoaded && ProbeVolumeBakingSet.GetBakingSetForScene(scene) != activeSet)
-                    scenesToUnload.Add(scene);
+                    m_ScenesToUnload.Add(scene);
             }
 
-            bool hasWarnings = scenesForBake.Count + scenesToUnload.Count + scenesToEnable.Count > 0;
+            bool hasWarnings = m_ScenesForBake.Count + m_ScenesToUnload.Count + m_ScenesToEnable.Count > 0;
             if (hasWarnings && Foldout(Styles.warnings, Expandable.BakingWarnings, false))
             {
-                if (scenesForBake.Count > 0)
+                if (m_ScenesForBake.Count > 0)
                 {
                     EditorGUILayout.HelpBox(Styles.msgLoadForBake, MessageType.Warning);
                     if (RightAlignedButton("Load Baking Set"))
                     {
-                        foreach (var scene in scenesForBake)
-                            EditorSceneManager.OpenScene(scene.GetPath(), OpenSceneMode.Additive);
-                        if (scenesToUnload.All(s => !s.isDirty) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                        foreach (var scene in m_ScenesForBake)
                         {
-                            foreach (var scene in scenesToUnload)
+                            EditorSceneManager.OpenScene(scene.GetPath(), OpenSceneMode.Additive);
+                        }
+                        if (m_ScenesToUnload.All(s => !s.isDirty) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                        {
+                            foreach (var scene in m_ScenesToUnload)
+                            {
                                 EditorSceneManager.CloseScene(scene, true);
+                            }
                         }
                     }
                 }
-                if (scenesToUnload.Count > 0)
+                if (m_ScenesToUnload.Count > 0)
                 {
                     EditorGUILayout.HelpBox(Styles.msgUnloadOther, MessageType.Warning);
-                    switch (RightAlignedButton("Add to Baking Set", "Unload These Scenes", disable2: scenesToUnload.Count == SceneManager.loadedSceneCount))
+                    switch (RightAlignedButton("Add to Baking Set", "Unload These Scenes", disable2: m_ScenesToUnload.Count == SceneManager.loadedSceneCount))
                     {
                         case 1:
                             for (int i = 0; i < SceneManager.sceneCount; i++)
@@ -469,31 +468,35 @@ namespace UnityEngine.Rendering
                             }
                             break;
                         case 2:
-                            if (scenesToUnload.All(s => !s.isDirty) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                            if (m_ScenesToUnload.All(s => !s.isDirty) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                             {
-                                foreach (var scene in scenesToUnload)
+                                foreach (var scene in m_ScenesToUnload)
+                                {
                                     EditorSceneManager.CloseScene(scene, string.IsNullOrEmpty(scene.path)); // Remove the scene from the hierarchy iff it has never been saved.
+                                }
                             }
                             break;
                     }
                 }
-                if (scenesToEnable.Count > 0)
+                if (m_ScenesToEnable.Count > 0)
                 {
                     EditorGUILayout.HelpBox(Styles.msgEnableAll, MessageType.Info);
                     if (RightAlignedButton("Enable All Scenes"))
                     {
-                        foreach (var scene in scenesToEnable)
+                        foreach (var scene in m_ScenesToEnable)
+                        {
                             activeSet.SetSceneBaking(scene.guid, true);
+                        }
                     }
                 }
             }
 
-            scenesForBake.Clear();
-            scenesToUnload.Clear();
-            scenesToEnable.Clear();
+            m_ScenesForBake.Clear();
+            m_ScenesToUnload.Clear();
+            m_ScenesToEnable.Clear();
         }
 
-        void UseTemporaryBakingSet(string sceneGUID, ProbeVolumeBakingSet set = null)
+        internal void UseTemporaryBakingSet(GUID sceneGuid, ProbeVolumeBakingSet set = null)
         {
             if (set == null)
             {
@@ -504,10 +507,10 @@ namespace UnityEngine.Rendering
             }
 
             EditorUtility.SetDirty(set);
-            var sceneData = FindSceneData(sceneGUID);
+            var sceneData = FindSceneData(sceneGuid);
             set.name = (sceneData.asset == null ? "Untitled" : sceneData.asset.name) + " Baking Set";
             set.singleSceneMode = true;
-            set.AddScene(sceneGUID);
+            set.AddScene(sceneGuid);
             activeSet = set;
             m_TempBakingSet = true;
         }
@@ -535,7 +538,9 @@ namespace UnityEngine.Rendering
         {
             m_SingleSceneMode = activeSet.singleSceneMode = false;
             for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
                 TryAddSceneToSet(SceneManager.GetSceneAt(i));
+            }
             SaveTempBakingSetIfNeeded();
         }
 
@@ -568,13 +573,13 @@ namespace UnityEngine.Rendering
             return evt.type == EventType.ExecuteCommand && evt.commandName == "ObjectSelectorSelectionDone" && GUIUtility.keyboardControl == k_AddSceneID;
         }
 
-        bool TryMoveSceneToActiveSet(string sceneName, string sceneGUID, ProbeVolumeBakingSet oldSet, int index = -1)
+        bool TryMoveSceneToActiveSet(string sceneName, GUID sceneGuid, ProbeVolumeBakingSet oldSet, int index = -1)
         {
             if (!EditorUtility.DisplayDialog("Move Scene to baking set", $"The scene '{sceneName}' was already added in the baking set '{oldSet.name}'. Do you want to move it to the current set?", "Yes", "Cancel"))
                 return false;
 
             Undo.RegisterCompleteObjectUndo(new Object[] { activeSet, oldSet }, "Moved scene to baking set");
-            activeSet.MoveSceneToBakingSet(sceneGUID, index);
+            activeSet.MoveSceneToBakingSet(sceneGuid, index);
 
             return true;
         }
@@ -582,7 +587,7 @@ namespace UnityEngine.Rendering
         void TrySetSceneInSet(SceneData scene, int index)
         {
             var sceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene.guid);
-            if (scene.guid == null || sceneSet == activeSet)
+            if (scene.guid == default || sceneSet == activeSet)
                 return;
             if (sceneSet != null)
             {
@@ -597,48 +602,47 @@ namespace UnityEngine.Rendering
         }
 
         void TryAddSceneToSet(SceneAsset scene) { TryAddSceneToSet(scene.name, FindSceneData(scene).guid); }
-        void TryAddSceneToSet(Scene scene) { TryAddSceneToSet(scene.name, scene.GetGUID()); }
+        void TryAddSceneToSet(Scene scene) { TryAddSceneToSet(scene.name, scene.guid); }
 
-        void TryAddSceneToSet(string sceneName, string sceneGUID)
+        void TryAddSceneToSet(string sceneName, GUID sceneGuid)
         {
             // Don't allow the same scene in two different sets
-            var sceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGUID);
+            var sceneSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGuid);
             if (sceneSet == activeSet)
                 return;
             if (sceneSet != null)
             {
-                if (!TryMoveSceneToActiveSet(sceneName, sceneGUID, sceneSet))
+                if (!TryMoveSceneToActiveSet(sceneName, sceneGuid, sceneSet))
                     return;
             }
             else
             {
                 Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Added scene in baking set");
-                activeSet.AddScene(sceneGUID);
+                activeSet.AddScene(sceneGuid);
             }
         }
 
         void InitializeSceneList()
         {
-            m_ScenesInSet = new ReorderableList((System.Collections.IList)activeSet.sceneGUIDs, typeof(string), true, true, true, true)
+            m_ScenesInSet = new ReorderableList((System.Collections.IList)activeSet.scenesInBakingSet, typeof(GUID), true, true, true, true)
             {
                 multiSelect = true,
                 elementHeight = EditorGUIUtility.singleLineHeight + 2,
 
-                onAddCallback = (list) =>
+                onAddCallback = list =>
                 {
                     GUIUtility.keyboardControl = k_AddSceneID;
                     EditorGUIUtility.ShowObjectPicker<SceneAsset>(null, false, null, k_AddSceneID);
                 },
 
-                onRemoveCallback = (list) =>
+                onRemoveCallback = list =>
                 {
-                    var guid = (string)list.list[list.index];
-                    activeSet.RemoveScene(guid);
+                    var guid = (GUID)list.list[list.index];
                     Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Deleted scene in baking set");
-                    EditorUtility.SetDirty(activeSet);
+                    activeSet.RemoveScene(guid);
                 },
 
-                drawHeaderCallback = (rect) =>
+                drawHeaderCallback = rect =>
                 {
                     SplitRectInThree(rect, out var sceneRect, out var statusRect, out var bakeRect);
                     EditorGUI.LabelField(sceneRect, Styles.scenesInSet);
@@ -649,7 +653,8 @@ namespace UnityEngine.Rendering
                     if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
                     {
                         var menu = new GenericMenu();
-                        menu.AddItem(Styles.addLoadedScenes, false, () => {
+                        menu.AddItem(Styles.addLoadedScenes, false, () =>
+                        {
                             for (int i = 0; i < SceneManager.sceneCount; i++)
                             {
                                 if (SceneManager.GetSceneAt(i).isLoaded)
@@ -670,7 +675,7 @@ namespace UnityEngine.Rendering
                     rect.yMax--;
                     SplitRectInThree(rect, out var sceneRect, out var statusRect, out var bakeRect);
 
-                    var scene = index < activeSet.sceneGUIDs.Count ? FindSceneData(activeSet.sceneGUIDs[index]) : default;
+                    var scene = index < activeSet.scenesInBakingSet.Count ? FindSceneData(activeSet.scenesInBakingSet[index]) : default;
                     Scene scene2 = SceneManager.GetSceneByPath(scene.GetPath());
                     bool isLoaded = scene2.isLoaded;
                     bool isActive = SceneManager.GetActiveScene() == scene2;
@@ -689,7 +694,7 @@ namespace UnityEngine.Rendering
                         bakeRect.width = 21;
 
                         bool bake = true;
-                        if (scene.guid != null)
+                        if (scene.guid != default)
                         {
                             var bakeData = activeSet.GetSceneBakeData(scene.guid);
                             if (bakeData.hasProbeVolume)
@@ -710,12 +715,12 @@ namespace UnityEngine.Rendering
                         if (isLoaded && !bake)
                         {
                             content = Styles.iconEnableAll;
-                            scenesToEnable.Add(scene);
+                            m_ScenesToEnable.Add(scene);
                         }
-                        if (!isLoaded && scene.guid != null)
+                        if (!isLoaded && scene.guid != default)
                         {
                             content = Styles.iconLoadForBake;
-                            scenesForBake.Add(scene);
+                            m_ScenesForBake.Add(scene);
                         }
 
                         if (content != null)
@@ -728,12 +733,10 @@ namespace UnityEngine.Rendering
                 }
             };
         }
-        #endregion
 
-        #region Summary
         public override void OnSummaryGUI()
         {
-            Func<long, string> FormatToMB = (bytes) => (bytes / (float)(1000 * 1000)).ToString("F1") + " MB";
+            Func<long, string> formatToMB = bytes => (bytes / (float)(1000 * 1000)).ToString("F1") + " MB";
 
             if (!m_Initialized || activeSet == null)
             {
@@ -744,7 +747,7 @@ namespace UnityEngine.Rendering
                 GUILayout.EndVertical();
 
                 GUILayout.BeginVertical();
-                GUILayout.Label(FormatToMB(0), EditorStyles.wordWrappedMiniLabel);
+                GUILayout.Label(formatToMB(0), EditorStyles.wordWrappedMiniLabel);
                 GUILayout.EndVertical();
 
                 GUILayout.EndHorizontal();
@@ -755,7 +758,9 @@ namespace UnityEngine.Rendering
 
             long sharedCost = activeSet.GetDiskSizeOfSharedData();
             foreach (var scenario in activeSet.m_LightingScenarios)
+            {
                 sharedCost += activeSet.GetDiskSizeOfScenarioData(scenario);
+            }
 
             GUILayout.BeginHorizontal();
 
@@ -765,19 +770,17 @@ namespace UnityEngine.Rendering
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical();
-            GUILayout.Label(FormatToMB(scenarioCost), EditorStyles.wordWrappedMiniLabel);
-            GUILayout.Label(FormatToMB(sharedCost), EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label(formatToMB(scenarioCost), EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Label(formatToMB(sharedCost), EditorStyles.wordWrappedMiniLabel);
             GUILayout.EndVertical();
 
             GUILayout.EndHorizontal();
         }
-        #endregion
 
-        #region Scene Management
         struct SceneData
         {
             public SceneAsset asset;
-            public string guid;
+            public GUID guid;
 
             public string GetPath()
             {
@@ -786,6 +789,22 @@ namespace UnityEngine.Rendering
         }
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
+
+        Scene m_TrackedActiveScene;
+
+        // Only the scene's own set may replace the cached one: FindActiveSet would fall back to another loaded
+        // scene's set, which is not what ProbeReferenceVolume.TrackActiveScene leaves rendering.
+        internal void TrackActiveScene()
+        {
+            var active = SceneManager.GetActiveScene();
+            if (active == m_TrackedActiveScene)
+                return;
+            m_TrackedActiveScene = active;
+
+            var set = ProbeVolumeBakingSet.GetBakingSetForScene(active);
+            if (set != null)
+                activeSet = set;
+        }
 
         internal void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
@@ -810,9 +829,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        bool NoSceneHasProbeVolume() => ProbeVolume.instances.Count == 0;
-        bool ActiveSceneHasProbeVolume() => ProbeVolume.instances.Any(d => d.gameObject.scene == SceneManager.GetActiveScene());
-        ProbeVolume GetFirstProbeVolumeInNonActiveScene() => ProbeVolume.instances.FirstOrDefault(d => d.gameObject.scene != SceneManager.GetActiveScene());
+        bool NoSceneHasProbeVolume() => ProbeVolume.s_Instances.Count == 0;
+        bool ActiveSceneHasProbeVolume() => ProbeVolume.s_Instances.Any(d => d.gameObject.scene == SceneManager.GetActiveScene());
+        ProbeVolume GetFirstProbeVolumeInNonActiveScene() => ProbeVolume.s_Instances.FirstOrDefault(d => d.gameObject.scene != SceneManager.GetActiveScene());
 
         void RefreshSceneAssets()
         {
@@ -825,7 +844,7 @@ namespace UnityEngine.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    guid = s,
+                    guid = new GUID(s),
                 };
             }).ToList();
         }
@@ -843,7 +862,7 @@ namespace UnityEngine.Rendering
             return data;
         }
 
-        SceneData FindSceneData(string guid)
+        SceneData FindSceneData(GUID guid)
         {
             var data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid);
 
@@ -868,20 +887,18 @@ namespace UnityEngine.Rendering
                 return null;
             if (!singleSceneMode || !instance.activeSet.singleSceneMode)
                 return null;
-            if (!instance.activeSet.sceneGUIDs.Contains(scene.GetGUID()))
+            if (!instance.activeSet.HasScene(scene.guid))
                 return null;
 
             return instance.activeSet;
         }
-        #endregion
 
-        #region Async Bake
         internal static void BakeAPVButton()
         {
             if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake))
-                    AdaptiveProbeVolumes.Cancel();
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.Cancel();
             }
             else
             {
@@ -891,9 +908,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
-        #endregion
 
-        #region UI Helpers
         internal static void OpenBakingSet(ProbeVolumeBakingSet bakingSet)
         {
             var lightingWindow = Type.GetType("UnityEditor.LightingWindow,UnityEditor");
@@ -905,14 +920,14 @@ namespace UnityEngine.Rendering
             instance.activeSet = bakingSet;
         }
 
-        static MethodInfo k_FoldoutTitlebar;
+        static MethodInfo s_FoldoutTitlebar;
         internal static bool Foldout(GUIContent label, Expandable expandable, bool title, Action<Rect> contextMenuCallback = null)
         {
-            if (k_FoldoutTitlebar == null)
+            if (s_FoldoutTitlebar == null)
             {
                 var flags = BindingFlags.NonPublic | BindingFlags.Static;
-                Type[] args = new Type[] { typeof(Rect), typeof(GUIContent), typeof(bool), typeof(bool) };
-                k_FoldoutTitlebar = typeof(EditorGUI).GetMethod("FoldoutTitlebar", flags, null, args, null);
+                var args = new[] { typeof(Rect), typeof(GUIContent), typeof(bool), typeof(bool) };
+                s_FoldoutTitlebar = typeof(EditorGUI).GetMethod("FoldoutTitlebar", flags, null, args, null);
             }
 
             var labelRect = GUILayoutUtility.GetRect(GUIContent.none, Styles.inspectorTitle, GUILayout.ExpandWidth(true));
@@ -924,13 +939,13 @@ namespace UnityEngine.Rendering
                     contextMenuCallback(contextMenuRect);
             }
 
-            if (k_Foldouts == null)
-                k_Foldouts = new(k_ExpandableDefault, "APV");
+            if (s_Foldouts == null)
+                s_Foldouts = new(k_ExpandableDefault, "APV");
 
             bool foldout = title ?
-                (bool)k_FoldoutTitlebar.Invoke(null, new object[] { labelRect, label, k_Foldouts[expandable], true }) :
-                EditorGUI.Foldout(labelRect, k_Foldouts[expandable], label, true);
-            k_Foldouts.SetExpandedAreas(expandable, foldout);
+                (bool)s_FoldoutTitlebar.Invoke(null, new object[] { labelRect, label, s_Foldouts[expandable], true }) :
+                EditorGUI.Foldout(labelRect, s_Foldouts[expandable], label, true);
+            s_Foldouts.SetExpandedAreas(expandable, foldout);
 
             // Shameful hack warning: we have to display the button before the foldout to take precedence on click
             // Therefore we have to draw it again afterwards so that we can see it on top.
@@ -940,28 +955,28 @@ namespace UnityEngine.Rendering
             return foldout;
         }
 
-        static MethodInfo k_GetLightmapSettings;
+        static MethodInfo s_GetLightmapSettings;
         internal static Object GetLightmapSettings()
         {
-            if (k_GetLightmapSettings == null)
+            if (s_GetLightmapSettings == null)
             {
                 var flags = BindingFlags.NonPublic | BindingFlags.Static;
-                k_GetLightmapSettings = typeof(LightmapEditorSettings).GetMethod("GetLightmapSettings", flags);
+                s_GetLightmapSettings = typeof(LightmapEditorSettings).GetMethod("GetLightmapSettings", flags);
             }
 
-            return (Object)k_GetLightmapSettings.Invoke(null, null);
+            return (Object)s_GetLightmapSettings.Invoke(null, null);
         }
 
-        static MethodInfo k_GetLightingSettingsOrDefaultsFallback = typeof(Lightmapping).GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly MethodInfo s_GetLightingSettingsOrDefaultsFallback = typeof(Lightmapping).GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
         internal static LightingSettings GetLightingSettings()
         {
-            return k_GetLightingSettingsOrDefaultsFallback.Invoke(null, null) as LightingSettings;
+            return s_GetLightingSettingsOrDefaultsFallback.Invoke(null, null) as LightingSettings;
         }
 
-        static MethodInfo k_Lightmapping_BakeAllReflectionProbesSnapshots = typeof(Lightmapping).GetMethod("BakeAllReflectionProbesSnapshots", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly MethodInfo s_LightmappingBakeAllReflectionProbesSnapshots = typeof(Lightmapping).GetMethod("BakeAllReflectionProbesSnapshots", BindingFlags.Static | BindingFlags.NonPublic);
         static bool BakeAllReflectionProbes()
         {
-            return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, null);
+            return (bool)s_LightmappingBakeAllReflectionProbesSnapshots.Invoke(null, null);
         }
 
         internal bool PrepareAPVBake(ProbeReferenceVolume prv)
@@ -969,24 +984,24 @@ namespace UnityEngine.Rendering
             if (!prv.isInitialized || !prv.enabledBySRP)
                 return false;
 
-            // Always baking with a fresh activeSet
-            activeSet = null;
-
-            // In case UI was never opened we have to setup some stuff
-            FindActiveSet();
+            // Always bake with a fresh activeSet. Also handles the case where the UI was never opened.
+            FindActiveSet(forceRefresh: true);
 
             if (activeSet == null)
             {
                 // APV was never setup by the user, try to do it for him by creating a default baking set
                 var activeScene = SceneManager.GetActiveScene();
-                var activeSceneGUID = ProbeReferenceVolume.GetSceneGUID(activeScene);
-                UseTemporaryBakingSet(activeSceneGUID);
+                var activeSceneGuid = ProbeReferenceVolume.GetSceneGuid(activeScene);
+                UseTemporaryBakingSet(activeSceneGuid);
             }
+
+            // Sync data.
+            m_SingleSceneMode = activeSet.singleSceneMode;
 
             bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
             if (createPV)
             {
-                if(!activeSet.DialogNoProbeVolumeInSetShown())
+                if (!activeSet.DialogNoProbeVolumeInSetShown())
                 {
                     if (!Application.isBatchMode)
                         if (EditorUtility.DisplayDialog("No Adaptive Probe Volume in Scene",
@@ -1021,21 +1036,21 @@ namespace UnityEngine.Rendering
                 return false;
 
             // Exclude scenes unchecked from the UI and scenes from other baking sets
-            AdaptiveProbeVolumes.partialBakeSceneList = new();
+            AdaptiveProbeVolumes.s_PartialBakeSceneList = new();
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
-                var guid = ProbeReferenceVolume.GetSceneGUID(scene);
+                var guid = ProbeReferenceVolume.GetSceneGuid(scene);
                 var sceneBakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(guid);
                 if (!scene.isLoaded || sceneBakingSet != activeSet) continue;
                 var sceneBakeData = sceneBakingSet.GetSceneBakeData(guid);
                 if (sceneBakeData.hasProbeVolume && !sceneBakeData.bakeScene) continue;
 
-                AdaptiveProbeVolumes.partialBakeSceneList.Add(guid);
+                AdaptiveProbeVolumes.s_PartialBakeSceneList.Add(guid);
             }
 
-            if (AdaptiveProbeVolumes.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
-                AdaptiveProbeVolumes.partialBakeSceneList = null;
+            if (AdaptiveProbeVolumes.s_PartialBakeSceneList.Count == activeSet.scenesInBakingSet.Count)
+                AdaptiveProbeVolumes.s_PartialBakeSceneList = null;
 
             if (prv.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario) && activeSet.m_LightingScenarios.Count > 0)
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
@@ -1043,7 +1058,7 @@ namespace UnityEngine.Rendering
             // Layout has changed and is incompatible.
             if (activeSet.HasValidSharedData() && !activeSet.freezePlacement && !activeSet.CheckCompatibleCellLayout())
             {
-                if (AdaptiveProbeVolumes.partialBakeSceneList != null)
+                if (AdaptiveProbeVolumes.s_PartialBakeSceneList != null)
                 {
                     const string warning = "You are partially baking the set with an incompatible cell layout.";
                     if (Application.isBatchMode)
@@ -1078,14 +1093,14 @@ namespace UnityEngine.Rendering
 
         static T ObjectFieldWithNew<T>(GUIContent label, T obj, Func<T> onClick) where T : Object
         {
-            const int k_NewFieldWidth = 70;
+            const int newFieldWidth = 70;
 
             var rect = EditorGUILayout.GetControlRect();
-            rect.xMax -= k_NewFieldWidth + 2;
+            rect.xMax -= newFieldWidth + 2;
 
             var newFieldRect = rect;
             newFieldRect.x = rect.xMax + 2;
-            newFieldRect.width = k_NewFieldWidth;
+            newFieldRect.width = newFieldWidth;
             if (GUI.Button(newFieldRect, "New"))
                 return onClick();
 
@@ -1149,9 +1164,9 @@ namespace UnityEngine.Rendering
             EditorGUI.indentLevel = level;
         }
 
-        private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
-        private static Color k_LiteThemeColor = new Color32(97, 97, 97, 255);
-        static Color GetMarkerColor() => EditorGUIUtility.isProSkin ? k_DarkThemeColor : k_LiteThemeColor;
+        static Color s_DarkThemeColor = new Color32(153, 153, 153, 255);
+        static Color s_LiteThemeColor = new Color32(97, 97, 97, 255);
+        static Color GetMarkerColor() => EditorGUIUtility.isProSkin ? s_DarkThemeColor : s_LiteThemeColor;
 
         internal static void DrawSimplificationLevelsMarkers(Rect rect, float minDistanceBetweenProbes, int lowestSimplification, int highestSimplification, int hideStart, int hideEnd)
         {
@@ -1195,26 +1210,22 @@ namespace UnityEngine.Rendering
             }
         }
 
-        #endregion
-
-        #region Probe Volume Scene Overlay
-
         [Overlay(typeof(SceneView), k_OverlayID)]
         [Icon("Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos/ProbeVolume.png")]
         internal class ProbeVolumeOverlay : Overlay, ITransientOverlay
         {
             const string k_OverlayID = "APV Overlay";
 
-            VisualElement m_Disabled = null;
-            Toggle[] m_LayerToggles = null;
-            Label[] m_BrickLabels = null;
-            GroupBox layerMasksGroupBox = null;
-            GroupBox probeDistanceGroupBox = null;
-            GroupBox probeSamplingGroupBox = null;
-            TextElement vertexSamplingWarning = null;
+            VisualElement m_Disabled;
+            Toggle[] m_LayerToggles;
+            Label[] m_BrickLabels;
+            GroupBox m_LayerMasksGroupBox;
+            GroupBox m_ProbeDistanceGroupBox;
+            GroupBox m_ProbeSamplingGroupBox;
+            TextElement m_VertexSamplingWarning;
 
-            int maxSubdiv;
-            float minDistance;
+            int m_MaxSubdiv;
+            float m_MinDistance;
 
             public bool visible => IsVisible();
 
@@ -1222,7 +1233,7 @@ namespace UnityEngine.Rendering
             {
                 if (ProbeReferenceVolume.instance.probeVolumeDebug.realtimeSubdivision)
                 {
-                    #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
 #pragma warning restore CS0618 // Type or member is obsolete
                     if (probeVolume != null && probeVolume.isActiveAndEnabled)
@@ -1249,10 +1260,10 @@ namespace UnityEngine.Rendering
                 if (!debug.drawBricks && !debug.drawProbeSamplingDebug && !debugLayers)
                     return false;
 
-                EnableGroupBox(layerMasksGroupBox, debugLayers);
-                EnableGroupBox(probeDistanceGroupBox, debug.drawBricks);
-                EnableGroupBox(probeSamplingGroupBox, debug.drawProbeSamplingDebug);
-                EnableTextArea(vertexSamplingWarning, ProbeReferenceVolume.instance.vertexSampling);
+                EnableGroupBox(m_LayerMasksGroupBox, debugLayers);
+                EnableGroupBox(m_ProbeDistanceGroupBox, debug.drawBricks);
+                EnableGroupBox(m_ProbeSamplingGroupBox, debug.drawProbeSamplingDebug);
+                EnableTextArea(m_VertexSamplingWarning, ProbeReferenceVolume.instance.vertexSampling);
 
                 if (debugLayers && m_LayerToggles != null)
                 {
@@ -1279,24 +1290,30 @@ namespace UnityEngine.Rendering
                     else
                     {
                         for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
+                        {
                             m_LayerToggles[i].parent.style.display = DisplayStyle.None;
+                        }
                         m_Disabled.style.display = DisplayStyle.Flex;
                     }
                 }
                 if (debug.drawBricks && m_BrickLabels != null)
                 {
                     (int max, float min) = GetSettings();
-                    if (maxSubdiv != max)
+                    if (m_MaxSubdiv != max)
                     {
-                        maxSubdiv = max;
+                        m_MaxSubdiv = max;
                         for (int i = 0; i < m_BrickLabels.Length; i++)
-                            m_BrickLabels[i].parent.EnableInClassList("unity-pbr-validation-hidden", i >= maxSubdiv);
+                        {
+                            m_BrickLabels[i].parent.EnableInClassList("unity-pbr-validation-hidden", i >= m_MaxSubdiv);
+                        }
                     }
-                    if (minDistance != min)
+                    if (m_MinDistance != min)
                     {
-                        minDistance = min;
+                        m_MinDistance = min;
                         for (int i = 0; i < m_BrickLabels.Length; i++)
-                            m_BrickLabels[i].text = (minDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
+                        {
+                            m_BrickLabels[i].text = (m_MinDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
+                        }
                     }
                 }
 
@@ -1331,7 +1348,7 @@ namespace UnityEngine.Rendering
                 swatchContainer.AddToClassList("unity-base-field__label");
                 swatchContainer.AddToClassList("unity-pbr-validation-color-swatch");
 
-                var colorContent = new VisualElement() { name = "color-content" };
+                var colorContent = new VisualElement { name = "color-content" };
                 colorContent.style.backgroundColor = new StyleColor(color);
                 swatchContainer.Add(colorContent);
 
@@ -1341,20 +1358,20 @@ namespace UnityEngine.Rendering
             public override VisualElement CreatePanelContent()
             {
                 displayName = "Adaptive Probe Volumes";
-                maxSubdiv = 0;
-                minDistance = -1;
+                m_MaxSubdiv = 0;
+                m_MinDistance = -1;
 
                 var root = new VisualElement();
 
                 // Layer mask
-                layerMasksGroupBox = new GroupBox();
-                layerMasksGroupBox.text = "Rendering Layer Masks";
+                m_LayerMasksGroupBox = new GroupBox();
+                m_LayerMasksGroupBox.text = "Rendering Layer Masks";
 
                 m_LayerToggles = new Toggle[APVDefinitions.probeMaxRegionCount];
                 for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
                 {
-                    var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
-                    layerMasksGroupBox.Add(row);
+                    var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+                    m_LayerMasksGroupBox.Add(row);
 
                     row.Add(CreateColorSwatch(APVDefinitions.layerMaskColors[i]));
 
@@ -1364,8 +1381,8 @@ namespace UnityEngine.Rendering
                     row.Add(m_LayerToggles[i]);
                 }
                 {
-                    m_Disabled = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
-                    layerMasksGroupBox.Add(m_Disabled);
+                    m_Disabled = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+                    m_LayerMasksGroupBox.Add(m_Disabled);
 
                     m_Disabled.Add(CreateColorSwatch(APVDefinitions.debugEmptyColor));
 
@@ -1376,66 +1393,65 @@ namespace UnityEngine.Rendering
                 }
 
                 // Distance Between Probes
-                probeDistanceGroupBox = new GroupBox();
-                probeDistanceGroupBox.text = "Distance Between probes";
+                m_ProbeDistanceGroupBox = new GroupBox();
+                m_ProbeDistanceGroupBox.text = "Distance Between probes";
 
                 m_BrickLabels = new Label[6];
                 for (int i = 0; i < m_BrickLabels.Length; i++)
                 {
-                    var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
-                    probeDistanceGroupBox.Add(row);
+                    var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+                    m_ProbeDistanceGroupBox.Add(row);
 
                     row.Add(CreateColorSwatch(ProbeReferenceVolume.instance.subdivisionDebugColors[i]));
 
-                    m_BrickLabels[i] = new Label() { name = "color-label" };
+                    m_BrickLabels[i] = new Label { name = "color-label" };
                     m_BrickLabels[i].AddToClassList("unity-base-field__label");
                     row.Add(m_BrickLabels[i]);
                 }
 
                 // Probe Sampling Select Pixel
-                probeSamplingGroupBox = new GroupBox();
-                probeSamplingGroupBox.text = "Probe Sampling";
+                m_ProbeSamplingGroupBox = new GroupBox();
+                m_ProbeSamplingGroupBox.text = "Probe Sampling";
 
-                var probeSampling_row = new VisualElement() { style = { flexDirection = FlexDirection.Column } };
-                probeSamplingGroupBox.Add(probeSampling_row);
+                var probeSamplingRow = new VisualElement { style = { flexDirection = FlexDirection.Column } };
+                m_ProbeSamplingGroupBox.Add(probeSamplingRow);
 
                 var selectPixelButton = new Button();
                 selectPixelButton.clickable.activators.Clear();
                 selectPixelButton.text = "Select Pixel";
                 selectPixelButton.tooltip = "Use this button or Ctrl+Click on the viewport to select which pixel to debug for APV sampling";
 
-                Color buttonDefaultColor = new Color(0.250f, 0.250f, 0.250f);
-                Color buttonHoverColor = new Color(0.404f, 0.404f, 0.404f);
-                Color buttonPressedColor = new Color(0.133f, 0.133f, 0.133f);
+                var buttonDefaultColor = new Color(0.250f, 0.250f, 0.250f);
+                var buttonHoverColor = new Color(0.404f, 0.404f, 0.404f);
+                var buttonPressedColor = new Color(0.133f, 0.133f, 0.133f);
                 selectPixelButton.style.backgroundColor = buttonDefaultColor;
-                selectPixelButton.RegisterCallback<MouseOverEvent>((type) => { selectPixelButton.style.backgroundColor = buttonHoverColor; });
-                selectPixelButton.RegisterCallback<MouseOutEvent>((type) => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
-                selectPixelButton.RegisterCallback<MouseDownEvent>((type) => { selectPixelButton.style.backgroundColor = buttonPressedColor; });
-                selectPixelButton.RegisterCallback<MouseUpEvent>((type) => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
+                selectPixelButton.RegisterCallback<MouseOverEvent>(type => { selectPixelButton.style.backgroundColor = buttonHoverColor; });
+                selectPixelButton.RegisterCallback<MouseOutEvent>(type => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
+                selectPixelButton.RegisterCallback<MouseDownEvent>(type => { selectPixelButton.style.backgroundColor = buttonPressedColor; });
+                selectPixelButton.RegisterCallback<MouseUpEvent>(type => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
 
-                selectPixelButton.RegisterCallback<MouseDownEvent>(e => ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always);
+                selectPixelButton.RegisterCallback<MouseDownEvent>(e => ProbeReferenceVolume.s_ProbeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always);
 
-                probeSampling_row.Add(selectPixelButton);
+                probeSamplingRow.Add(selectPixelButton);
 
-                vertexSamplingWarning = new TextElement();
-                vertexSamplingWarning.text = "Warning: Probe Sampling is currently set to\n" +
+                m_VertexSamplingWarning = new TextElement();
+                m_VertexSamplingWarning.text = "Warning: Probe Sampling is currently set to\n" +
                                              "per-vertex. This debug mode shows per-pixel\n" +
                                              "information.";
-                vertexSamplingWarning.style.display = DisplayStyle.None;
+                m_VertexSamplingWarning.style.display = DisplayStyle.None;
 
-                probeSampling_row.Add(vertexSamplingWarning);
+                probeSamplingRow.Add(m_VertexSamplingWarning);
 
-                layerMasksGroupBox.style.display = DisplayStyle.None;
-                probeDistanceGroupBox.style.display = DisplayStyle.None;
-                probeSamplingGroupBox.style.display = DisplayStyle.None;
+                m_LayerMasksGroupBox.style.display = DisplayStyle.None;
+                m_ProbeDistanceGroupBox.style.display = DisplayStyle.None;
+                m_ProbeSamplingGroupBox.style.display = DisplayStyle.None;
 
-                root.Add(layerMasksGroupBox);
-                root.Add(probeDistanceGroupBox);
-                root.Add(probeSamplingGroupBox);
+                root.Add(m_LayerMasksGroupBox);
+                root.Add(m_ProbeDistanceGroupBox);
+                root.Add(m_ProbeSamplingGroupBox);
 
                 return root;
             }
         }
-        #endregion
     }
 }

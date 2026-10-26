@@ -7,9 +7,9 @@ namespace UnityEditor.VFX.UI
     abstract class VFXBlackboardFieldBase : GraphElement, IBlackBoardElementWithTitle
     {
         private VFXView m_View;
+        private TextField m_TextField;
 
         protected Label m_Label;
-        protected TextField m_TextField;
 
         protected VFXView View => m_View;
 
@@ -26,12 +26,23 @@ namespace UnityEditor.VFX.UI
             set => m_Label.text = value;
         }
 
-        public virtual void OpenTextEditor()
+        protected int maxTextLength { get; set; } = VFXParameterController.kMaxExposedNameLength;
+
+        public virtual bool OpenTextEditor()
         {
+            if (text.Length > maxTextLength)
+            {
+                var result = EditorUtility.DisplayDialog("Name is too long", "The name exceeds the character count limit. Do you want to proceed with renaming and truncate it, or cancel renaming?", "Rename", "Cancel");
+                if (!result)
+                {
+                    return false;
+                }
+            }
             m_Label.style.display = DisplayStyle.None;
-            m_TextField.value = text;
+            m_TextField.value = text.Length <= maxTextLength ? text : text.Substring(0, maxTextLength);
             m_TextField.style.display = DisplayStyle.Flex;
             m_TextField.Q(TextField.textInputUssName).Focus();
+            return true;
         }
 
         public override void OnSelected()
@@ -42,6 +53,14 @@ namespace UnityEditor.VFX.UI
         public override void OnUnselected()
         {
             m_View.blackboard.UpdateSelection();
+        }
+
+        protected void SetTextField(TextField textField)
+        {
+            m_TextField = textField;
+            m_TextField.maxLength = maxTextLength;
+            textField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
+            textField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
         }
 
         protected virtual void OnMouseDown(MouseDownEvent evt)
@@ -64,13 +83,13 @@ namespace UnityEditor.VFX.UI
                     break;
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
-                    OnEditTextSucceed(null);
+                    OnEditTextSucceed(m_TextField);
                     e.StopPropagation();
                     break;
             }
         }
 
-        protected virtual void OnEditTextSucceed(FocusOutEvent evt)
+        protected virtual void OnEditTextSucceed(TextField textField)
         {
             CleanupNameField();
         }
@@ -80,6 +99,12 @@ namespace UnityEditor.VFX.UI
             m_TextField.style.display = DisplayStyle.None;
             m_Label.style.display = DisplayStyle.Flex;
             GetFirstAncestorOfType<TreeView>().Focus();
+        }
+
+        private void OnEditTextSucceed(FocusOutEvent evt)
+        {
+            if (m_TextField.style.display != DisplayStyle.None)
+                OnEditTextSucceed(m_TextField);
         }
 
         private void OnAttachToPanel(AttachToPanelEvent evt)

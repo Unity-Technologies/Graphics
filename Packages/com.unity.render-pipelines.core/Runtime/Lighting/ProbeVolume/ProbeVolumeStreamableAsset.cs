@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using UnityEngine.Serialization;
 using Unity.IO.LowLevel.Unsafe;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -22,10 +22,10 @@ namespace UnityEngine.Rendering
             public int elementCount; // Number of elements in the cell (can be data chunks, bricks, debug info, etc)
         }
 
-        [SerializeField] [FormerlySerializedAs("assetGUID")] string m_AssetGUID = ""; // In the editor, allows us to load the asset through the AssetDatabase.
-        [SerializeField] [FormerlySerializedAs("streamableAssetPath")]string m_StreamableAssetPath = ""; // At runtime, path of the asset within the StreamingAssets data folder.
-        [SerializeField] [FormerlySerializedAs("elementSize")]int m_ElementSize; // Size of an element. Can be a data chunk, a brick, etc.
-        [SerializeField] [FormerlySerializedAs("streamableCellDescs")] SerializedDictionary<int, StreamableCellDesc> m_StreamableCellDescs = new SerializedDictionary<int, StreamableCellDesc>();
+        [SerializeField][FormerlySerializedAs("assetGUID")] string m_AssetGUID = ""; // In the editor, allows us to load the asset through the AssetDatabase.
+        [SerializeField][FormerlySerializedAs("streamableAssetPath")] string m_StreamableAssetPath = ""; // At runtime, path of the asset within the StreamingAssets data folder.
+        [SerializeField][FormerlySerializedAs("elementSize")] int m_ElementSize; // Size of an element. Can be a data chunk, a brick, etc.
+        [SerializeField][FormerlySerializedAs("streamableCellDescs")] SerializedDictionary<int, StreamableCellDesc> m_StreamableCellDescs = new SerializedDictionary<int, StreamableCellDesc>();
         [SerializeField] TextAsset m_Asset;
 
         public string assetGUID { get => m_AssetGUID; }

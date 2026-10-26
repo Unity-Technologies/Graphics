@@ -129,6 +129,7 @@ namespace UnityEngine.Rendering
             public DirectionalLight? DirectionalLight => 0 < _directionalLights.Count ? _directionalLights.Values[0] : null;
             public GraphicsBuffer PunctualLightBuffer => _punctualLights.Buffer;
             public uint PunctualLightCount => _punctualLights.Count;
+            public PunctualLight GetPunctualLight(int index) => _punctualLights.Values[index];
 
             Handle<Light> AddToList(LightDescriptor desc)
             {
@@ -297,16 +298,222 @@ namespace UnityEngine.Rendering
             }
         }
 
+        // Maintains a persistent GPU buffer of emissive triangles.
+        internal class EmissiveTriangleList
+        {
+            static class ShaderIDs
+            {
+                public static readonly int _EmissiveTriangles = Shader.PropertyToID("_EmissiveTriangles");
+                public static readonly int _EmissiveTriangleCounter = Shader.PropertyToID("_EmissiveTriangleCounter");
+                public static readonly int _SubmeshInstanceId = Shader.PropertyToID("_SubmeshInstanceId");
+                public static readonly int _SubmeshTriangleCount = Shader.PropertyToID("_SubmeshTriangleCount");
+                public static readonly int _SrcTriangles = Shader.PropertyToID("_SrcTriangles");
+                public static readonly int _SrcTriangleCount = Shader.PropertyToID("_SrcTriangleCount");
+                public static readonly int _DstTriangles = Shader.PropertyToID("_DstTriangles");
+                public static readonly int _DstTriangleCount = Shader.PropertyToID("_DstTriangleCount");
+                public static readonly int _RemovedInstanceIds = Shader.PropertyToID("_RemovedInstanceIds");
+                public static readonly int _RemovedInstanceIdCount = Shader.PropertyToID("_RemovedInstanceIdCount");
+            }
+
+            // Dependencies
+            readonly ComputeShader _additionShader;
+            readonly ComputeShader _removalShader;
+            readonly int _addKernel;
+            readonly int _removeKernel;
+            readonly uint _addGroupSize;
+            readonly uint _removeGroupSize;
+
+            // Bookkeeping
+            readonly Dictionary<int, int> _submeshInstanceTriangleCounts = new(); // Key = instanceID, Value = triangle count
+            readonly List<int> _pendingAdds = new(); // Key = instanceID
+            readonly List<int> _pendingRemovals = new(); // Key = instanceID
+            int _trackedTriangleCount = 0;
+
+            // Double-buffered list of emissive triangles
+            GraphicsBuffer _emissiveTriangles;
+            GraphicsBuffer _emissiveTrianglesScratch;
+            GraphicsBuffer _emissiveTriangleCounter;
+            GraphicsBuffer _emissiveTriangleCounterScratch;
+
+            // Temporary buffer used during removal of triangles
+            GraphicsBuffer _removedInstanceIds;
+
+            public EmissiveTriangleList(ComputeShader additionShader, ComputeShader removalShader)
+            {
+                _additionShader = additionShader;
+                _removalShader = removalShader;
+                _addKernel = _additionShader.FindKernel("Add");
+                _removeKernel = _removalShader.FindKernel("Remove");
+                _additionShader.GetKernelThreadGroupSizes(_addKernel, out _addGroupSize, out _, out _);
+                _removalShader.GetKernelThreadGroupSizes(_removeKernel, out _removeGroupSize, out _, out _);
+
+                _emissiveTriangles = AllocateTriangleBuffer(16);
+                _emissiveTrianglesScratch = AllocateTriangleBuffer(16);
+                _emissiveTriangleCounter = AllocateCounterBuffer();
+                _emissiveTriangleCounterScratch = AllocateCounterBuffer();
+                _removedInstanceIds = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 16, sizeof(uint));
+            }
+
+            static GraphicsBuffer AllocateCounterBuffer()
+            {
+                var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, sizeof(uint));
+                buffer.SetData(new uint[1]);
+                return buffer;
+            }
+
+            static GraphicsBuffer AllocateTriangleBuffer(int capacity)
+            {
+                return new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, sizeof(uint) * 2);
+            }
+
+            public void AddSubmeshInstance(int instanceID, int triangleCount)
+            {
+                Debug.Assert(!_submeshInstanceTriangleCounts.ContainsKey(instanceID), "Cannot add submesh instance that was already added.");
+
+                _submeshInstanceTriangleCounts.Add(instanceID, triangleCount);
+                _pendingAdds.Add(instanceID);
+                _trackedTriangleCount += triangleCount;
+            }
+
+            public void RemoveSubmeshInstance(int instanceID)
+            {
+                Debug.Assert(_submeshInstanceTriangleCounts.ContainsKey(instanceID), "Cannot remove submesh instance that was never added.");
+
+                _trackedTriangleCount -= _submeshInstanceTriangleCounts[instanceID];
+                _submeshInstanceTriangleCounts.Remove(instanceID);
+
+                // If we have a pending add for this instance, removal simply cancels it,
+                // and we don't need to add any pending removal.
+                if (!_pendingAdds.Remove(instanceID))
+                    _pendingRemovals.Add(instanceID);
+            }
+
+            public void Commit(CommandBuffer cmd)
+            {
+                if (_pendingAdds.Count == 0 && _pendingRemovals.Count == 0)
+                    return;
+
+                // Remove dead entries, and resize the buffer if needed
+                int targetCapacity = Mathf.NextPowerOfTwo(_trackedTriangleCount);
+                if (_pendingRemovals.Count > 0 || targetCapacity > _emissiveTriangles.count)
+                {
+                    RemoveInstancesAndResizeList(cmd, targetCapacity);
+                    _pendingRemovals.Clear();
+                }
+
+                // Add new instances to the end of the buffer
+                if (_pendingAdds.Count > 0)
+                {
+                    AddInstances(cmd);
+                    _pendingAdds.Clear();
+                }
+            }
+
+            void RemoveInstancesAndResizeList(CommandBuffer cmd, int targetCapacity)
+            {
+                // Grow input buffers if needed
+                int scratchCapacity = Mathf.Max(targetCapacity, _emissiveTriangles.count);
+                if (_emissiveTrianglesScratch.count < scratchCapacity)
+                {
+                    _emissiveTrianglesScratch?.Dispose();
+                    _emissiveTrianglesScratch = AllocateTriangleBuffer(scratchCapacity);
+                }
+
+                int removedCount = _pendingRemovals.Count;
+                if (_removedInstanceIds.count < removedCount)
+                {
+                    _removedInstanceIds?.Dispose();
+                    _removedInstanceIds = new GraphicsBuffer(GraphicsBuffer.Target.Structured, removedCount, sizeof(uint));
+                }
+
+                // Upload instance indices to remove
+                if (removedCount > 0)
+                {
+                    cmd.SetBufferData(_removedInstanceIds, _pendingRemovals, 0, 0, removedCount);
+                }
+
+                // Reset destination counter to 0
+                cmd.SetBufferData(_emissiveTriangleCounterScratch, new uint[1]);
+
+                // Run removal kernel
+                cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._SrcTriangles, _emissiveTriangles);
+                cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._SrcTriangleCount, _emissiveTriangleCounter);
+                cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._DstTriangles, _emissiveTrianglesScratch);
+                cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._DstTriangleCount, _emissiveTriangleCounterScratch);
+                cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._RemovedInstanceIds, _removedInstanceIds);
+                cmd.SetComputeIntParam(_removalShader, ShaderIDs._RemovedInstanceIdCount, removedCount);
+                cmd.DispatchCompute(_removalShader, _removeKernel, GraphicsHelpers.DivUp(_emissiveTriangles.count, _removeGroupSize), 1, 1);
+
+                // Swap scratch and active buffers
+                (_emissiveTriangles, _emissiveTrianglesScratch) = (_emissiveTrianglesScratch, _emissiveTriangles);
+                (_emissiveTriangleCounter, _emissiveTriangleCounterScratch) = (_emissiveTriangleCounterScratch, _emissiveTriangleCounter);
+            }
+
+            void AddInstances(CommandBuffer cmd)
+            {
+                // Update global state
+                cmd.SetComputeBufferParam(_additionShader, _addKernel, ShaderIDs._EmissiveTriangles, _emissiveTriangles);
+                cmd.SetComputeBufferParam(_additionShader, _addKernel, ShaderIDs._EmissiveTriangleCounter, _emissiveTriangleCounter);
+
+                // Write each submesh to the end of the buffer, one by one
+                foreach (int instanceID in _pendingAdds)
+                {
+                    int triangleCount = _submeshInstanceTriangleCounts[instanceID];
+                    cmd.SetComputeIntParam(_additionShader, ShaderIDs._SubmeshInstanceId, instanceID);
+                    cmd.SetComputeIntParam(_additionShader, ShaderIDs._SubmeshTriangleCount, triangleCount);
+                    cmd.DispatchCompute(_additionShader, _addKernel, GraphicsHelpers.DivUp(triangleCount, _addGroupSize), 1, 1);
+                }
+            }
+
+            public GraphicsBuffer GetEmissiveTriangleBuffer() => _emissiveTriangles;
+            public GraphicsBuffer GetEmissiveTriangleCounterBuffer() => _emissiveTriangleCounter;
+            public int TrackedTriangleCount => _trackedTriangleCount;
+
+            public void Dispose()
+            {
+                _emissiveTriangles?.Dispose();
+                _emissiveTrianglesScratch?.Dispose();
+                _emissiveTriangleCounter?.Dispose();
+                _emissiveTriangleCounterScratch?.Dispose();
+                _removedInstanceIds?.Dispose();
+            }
+        }
+
+        private class InstanceInfo
+        {
+            public int[] SubMeshTriangleCounts; // Per-submesh triangle count
+            public MaterialHandle[] SubMeshMaterials; // Per-submesh material handle
+            public bool[] SubMeshEmissiveMask; // Per-submesh flag indicating if the submesh is emissive
+        }
+
+        private class MaterialInfo
+        {
+            public HashSet<InstanceHandle> Instances; // Which instances use this material?
+            public bool IsEmissive;
+        }
+
+        private readonly Dictionary<InstanceHandle, InstanceInfo> _trackedInstances = new();
+        private readonly Dictionary<int, Stack<InstanceInfo>> _freeInstanceInfos = new();
+        private readonly List<InstanceHandle> _instancesToRetrack = new();
+        private readonly Dictionary<MaterialHandle, MaterialInfo> _trackedMaterials = new();
+
         private readonly InstanceHandleSet _instanceHandleSet = new();
         private readonly MaterialHandleSet _materialHandleSet = new();
 
         private LightSet _lights = new();
+        private EmissiveTriangleList _emissiveTriangles;
+
         private MaterialPool _materialPool;
         private AccelStructAdapter _rayTracingAccelerationStructure;
         private CubemapRender _cubemapRender;
         private float _environmentIntensityMultiplier = 1.0f;
 
-        public void Init(RayTracingContext ctx, WorldResourceSet worldResources)
+        public void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader)
+        {
+            Init(ctx, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader, GeometryPoolDesc.NewDefault());
+        }
+
+        internal void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader, in GeometryPoolDesc geometryPoolDesc)
         {
             _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie);
 
@@ -314,9 +521,11 @@ namespace UnityEngine.Rendering
             {
                 buildFlags = BuildFlags.None, // TODO: Consider whether to use BuildFlags.MinimizeMemory once https://jira.unity3d.com/browse/UUM-54575 is fixed.
             };
-            _rayTracingAccelerationStructure = new AccelStructAdapter(ctx.CreateAccelerationStructure(options), new GeometryPool(GeometryPoolDesc.NewDefault(), ctx.Resources.geometryPoolKernels, ctx.Resources.copyBuffer));
+            _rayTracingAccelerationStructure = new AccelStructAdapter(ctx.CreateAccelerationStructure(options), new GeometryPool(geometryPoolDesc, ctx.Resources.geometryPoolKernels, ctx.Resources.copyBuffer));
 
-            _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh);
+            _emissiveTriangles = new EmissiveTriangleList(emissiveTriangleAdditionShader, emissiveTriangleRemovalShader);
+
+            _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh, worldResources.SolidColorShader);
         }
 
         public DirectionalLight? GetDirectionalLight()
@@ -337,6 +546,29 @@ namespace UnityEngine.Rendering
         public uint GetPunctualLightCount()
         {
             return _lights.PunctualLightCount;
+        }
+
+        public GraphicsBuffer GetEmissiveTriangleBuffer() => _emissiveTriangles.GetEmissiveTriangleBuffer();
+        public GraphicsBuffer GetEmissiveTriangleCounterBuffer() => _emissiveTriangles.GetEmissiveTriangleCounterBuffer();
+
+        internal PunctualLight GetPunctualLight(int index)
+        {
+            return _lights.GetPunctualLight(index);
+        }
+
+        internal int GetInstanceCount()
+        {
+            return _instanceHandleSet.Count;
+        }
+
+        internal int GetMaterialCount()
+        {
+            return _materialHandleSet.Count;
+        }
+
+        internal int GetTrackedEmissiveTriangleCount()
+        {
+            return _emissiveTriangles.TrackedTriangleCount;
         }
 
         public void SetEnvironmentMaterial(Material mat)
@@ -389,9 +621,14 @@ namespace UnityEngine.Rendering
             return _materialPool.TransmissionTextures;
         }
 
-        public Texture GetEnvironmentTexture()
+        public Texture GetEnvironmentCubemap()
         {
             return _cubemapRender.GetCubemap();
+        }
+
+        public int GetEnvironmentCubemapHash()
+        {
+            return _cubemapRender.Hash;
         }
 
         public void Dispose()
@@ -400,6 +637,7 @@ namespace UnityEngine.Rendering
             _materialPool?.Dispose();
             _cubemapRender?.Dispose();
             _lights.Dispose();
+            _emissiveTriangles?.Dispose();
         }
 
         public AccelStructAdapter GetAccelerationStructure()
@@ -409,12 +647,18 @@ namespace UnityEngine.Rendering
 
         public void RemoveInstance(InstanceHandle instance)
         {
+            if (_trackedInstances.ContainsKey(instance))
+                UntrackInstance(instance);
             _rayTracingAccelerationStructure.RemoveInstance(instance.Value);
             _instanceHandleSet.Remove(instance);
         }
 
         public void RemoveMaterial(MaterialHandle materialHandle)
         {
+            if (_trackedMaterials.Remove(materialHandle, out MaterialInfo info))
+                Debug.Assert(info.Instances.Count == 0, "Cannot remove material which is still referenced by some instances.");
+            else
+                Debug.Assert(false, "Cannot remove material which was never added.");
             _materialHandleSet.Remove(materialHandle);
             _materialPool.RemoveMaterial(materialHandle.Value);
         }
@@ -423,12 +667,50 @@ namespace UnityEngine.Rendering
         {
             MaterialHandle handle = _materialHandleSet.Add();
             _materialPool.AddMaterial(handle.Value, in material, albedoAndEmissionUVChannel);
+
+            Debug.Assert(!_trackedMaterials.ContainsKey(handle), "Material handle is already tracked.");
+            _trackedMaterials.Add(handle, new MaterialInfo
+            {
+                Instances = new HashSet<InstanceHandle>(),
+                IsEmissive = _materialPool.IsEmissive(handle.Value, out _),
+            });
             return handle;
         }
 
         public void UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             _materialPool.UpdateMaterial(materialHandle.Value, in material, albedoAndEmissionUVChannel);
+
+            // If a material goes from non-emissive to emissive or vice versa,
+            // we need to update any instances referencing the material.
+            Debug.Assert(_trackedMaterials.ContainsKey(materialHandle), "Cannot update a material that is not tracked.");
+            MaterialInfo matInfo = _trackedMaterials[materialHandle];
+            bool isEmissive = _materialPool.IsEmissive(materialHandle.Value, out _);
+            if (isEmissive != matInfo.IsEmissive)
+            {
+                matInfo.IsEmissive = isEmissive;
+
+                // Copy since this may be mutated
+                _instancesToRetrack.Clear();
+                _instancesToRetrack.AddRange(matInfo.Instances);
+                foreach (var instanceHandle in _instancesToRetrack)
+                {
+                    RetrackInstance(instanceHandle);
+                }
+                _instancesToRetrack.Clear();
+            }
+        }
+
+        void RetrackInstance(InstanceHandle instanceHandle)
+        {
+            Debug.Assert(_trackedInstances.ContainsKey(instanceHandle), "Material references an instance that is not tracked.");
+            InstanceInfo info = _trackedInstances[instanceHandle];
+            Span<int> copiedTriangleCounts = stackalloc int[info.SubMeshTriangleCounts.Length];
+            info.SubMeshTriangleCounts.CopyTo(copiedTriangleCounts);
+            Span<MaterialHandle> copiedMaterials = stackalloc MaterialHandle[info.SubMeshMaterials.Length];
+            info.SubMeshMaterials.CopyTo(copiedMaterials);
+            UntrackInstance(instanceHandle);
+            TrackInstance(instanceHandle, copiedTriangleCounts, copiedMaterials);
         }
 
         public InstanceHandle AddInstance(
@@ -453,8 +735,17 @@ namespace UnityEngine.Rendering
                 isOpaque[i] = !isTransmissive;
             }
 
+            Span<int> subMeshTriangleCounts = stackalloc int[mesh.subMeshCount];
+            for (int i = 0; i < subMeshTriangleCounts.Length; ++i)
+            {
+                uint indexCount = mesh.GetIndexCount(i);
+                Debug.Assert(indexCount % 3 == 0, "Mesh should contain triangles.");
+                subMeshTriangleCounts[i] = (int)(indexCount / 3);
+            }
+
             InstanceHandle instance = _instanceHandleSet.Add();
             _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, 0);
+            TrackInstance(instance, subMeshTriangleCounts, materials);
             return instance;
         }
 
@@ -503,6 +794,92 @@ namespace UnityEngine.Rendering
             }
 
             _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
+
+            Debug.Assert(_trackedInstances.ContainsKey(instance), "Cannot update an instance that is not tracked.");
+            int[] trackedTriangleCounts = _trackedInstances[instance].SubMeshTriangleCounts;
+            Span<int> copiedTriangleCounts = stackalloc int[trackedTriangleCounts.Length];
+            trackedTriangleCounts.CopyTo(copiedTriangleCounts);
+            UntrackInstance(instance);
+            TrackInstance(instance, copiedTriangleCounts, materials);
+        }
+
+        void TrackInstance(InstanceHandle instanceHandle, ReadOnlySpan<int> subMeshTriangleCounts, ReadOnlySpan<MaterialHandle> materialHandles)
+        {
+            Debug.Assert(!_trackedInstances.ContainsKey(instanceHandle), "Instance is already tracked.");
+
+            Debug.Assert(subMeshTriangleCounts.Length == materialHandles.Length, "Instance must have one material per submesh.");
+
+            var info = ReuseOrCreateInstanceInfo(materialHandles.Length);
+            subMeshTriangleCounts.CopyTo(info.SubMeshTriangleCounts);
+            materialHandles.CopyTo(info.SubMeshMaterials);
+            _trackedInstances[instanceHandle] = info;
+
+            int subMeshCount = Math.Min(subMeshTriangleCounts.Length, materialHandles.Length);
+            for (int subMeshIdx = 0; subMeshIdx < subMeshCount; subMeshIdx++)
+            {
+                Debug.Assert(materialHandles[subMeshIdx] != MaterialHandle.Invalid, "Material referenced by instance is invalid");
+                if (!_materialPool.IsEmissive(materialHandles[subMeshIdx].Value, out _))
+                    continue;
+
+                info.SubMeshEmissiveMask[subMeshIdx] = true;
+                int instanceID = _rayTracingAccelerationStructure.GetInstanceID(instanceHandle.Value, subMeshIdx);
+                _emissiveTriangles.AddSubmeshInstance(instanceID, subMeshTriangleCounts[subMeshIdx]);
+            }
+
+            foreach (var materialHandle in materialHandles)
+            {
+                Debug.Assert(_trackedMaterials.ContainsKey(materialHandle), "Cannot reference an untracked material.");
+                _trackedMaterials[materialHandle].Instances.Add(instanceHandle);
+            }
+        }
+
+        void UntrackInstance(InstanceHandle instanceHandle)
+        {
+            bool didRemove = _trackedInstances.Remove(instanceHandle, out InstanceInfo info);
+            Debug.Assert(didRemove, "Cannot remove an instance that wasn't tracked.");
+
+            foreach (var materialHandle in info.SubMeshMaterials)
+            {
+                Debug.Assert(_trackedMaterials.ContainsKey(materialHandle), "Instance references a material that is not tracked.");
+                _trackedMaterials[materialHandle].Instances.Remove(instanceHandle);
+            }
+
+            for (int subMeshIdx = 0; subMeshIdx < info.SubMeshEmissiveMask.Length; subMeshIdx++)
+            {
+                if (!info.SubMeshEmissiveMask[subMeshIdx])
+                    continue;
+
+                int instanceID = _rayTracingAccelerationStructure.GetInstanceID(instanceHandle.Value, subMeshIdx);
+                _emissiveTriangles.RemoveSubmeshInstance(instanceID);
+            }
+
+            RecycleInstanceInfo(info);
+        }
+
+        InstanceInfo ReuseOrCreateInstanceInfo(int subMeshCount)
+        {
+            if (_freeInstanceInfos.TryGetValue(subMeshCount, out var freeInfos) && freeInfos.Count != 0)
+                return freeInfos.Pop();
+
+            return new InstanceInfo
+            {
+                SubMeshTriangleCounts = new int[subMeshCount],
+                SubMeshMaterials = new MaterialHandle[subMeshCount],
+                SubMeshEmissiveMask = new bool[subMeshCount],
+            };
+        }
+
+        void RecycleInstanceInfo(InstanceInfo info)
+        {
+            int subMeshCount = info.SubMeshMaterials.Length;
+            if (!_freeInstanceInfos.TryGetValue(subMeshCount, out var freeInfos))
+            {
+                freeInfos = new Stack<InstanceInfo>();
+                _freeInstanceInfos.Add(subMeshCount, freeInfos);
+            }
+
+            Array.Clear(info.SubMeshEmissiveMask, 0, subMeshCount);
+            freeInfos.Push(info);
         }
 
         public LightHandle[] AddLights(Span<LightDescriptor> lightDescs)
@@ -557,6 +934,7 @@ namespace UnityEngine.Rendering
             _rayTracingAccelerationStructure.Build(cmdBuf, ref scratchBuffer);
             _cubemapRender.Update(cmdBuf, sun, (int)envCubemapResolution, out viewAndProjectionMatricesChanged);
             _lights.Commit(cmdBuf);
+            _emissiveTriangles.Commit(cmdBuf);
         }
     }
 }

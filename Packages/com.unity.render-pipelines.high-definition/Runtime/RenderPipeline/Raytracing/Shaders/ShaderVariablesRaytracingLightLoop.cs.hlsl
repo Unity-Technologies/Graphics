@@ -7,9 +7,9 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesRaytracingLightLoop
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesRaytracingLightLoop, b4)
-    float3 _MinClusterPos;
+    float4 _MinClusterPos;
+    float4 _MaxClusterPos;
     uint _LightPerCellCount;
-    float3 _MaxClusterPos;
 CBUFFER_END
 
 

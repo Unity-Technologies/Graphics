@@ -1,0 +1,602 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+
+// We're binding a large number of structured buffers in this shader, more than certain platforms accept
+// by default. Using this pragma extends this limit on these platforms at the expense
+// of some extra indirections. On platforms that don't have this limit, this is a no-op.
+#pragma extended_structured_buffer_bindings
+
+#define THREAD_GROUP_SIZE 32
+
+#define UNIFIED_RT_GROUP_SIZE_X THREAD_GROUP_SIZE
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+
+#pragma kernel EstimateCompute Estimate=EstimateCompute UNIFIED_RT_BACKEND_COMPUTE
+#pragma kernel EstimateHardware Estimate=EstimateHardware UNIFIED_RT_BACKEND_HARDWARE
+#pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+
+// Shader variant 'EstimateHardware' fails to compile on Metal with inlineraytracing
+// enabled due to inlineraytracing requiring DXC over FXC compilation path.
+// The DXC path fails to compile the expression 'float3 l1s[3]' in Common.hlsl
+// as it generates invalid SPIR-V OpTypeVector due to the extra DXC+MTL flag
+// '--convert-relaxed-to-half'. Requiring 'native16bit' on the variant removes
+// that extra DXC flag, and enables successful DXC compilation, just like on VK.
+//
+// Todo(UUM-153535) : Remove once DXC + MTL compilation error is addressed
+#if defined(SHADER_API_METAL)
+#pragma require native16bit : UNIFIED_RT_BACKEND_HARDWARE
+#endif
+
+#define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
+
+#include "Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/PseudoRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "PathTracing.hlsl"
+#include "PatchAllocationRequest.hlsl"
+#include "RingBuffer.hlsl"
+#include "PatchUtil.hlsl"
+#include "PunctualLights.hlsl"
+#include "EmissiveTriangles.hlsl"
+
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+RWStructuredBuffer<PatchAllocationRequest> _PatchAllocationRequests;
+RWStructuredBuffer<uint> _PatchAllocationRequestCount;
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+StructuredBuffer<uint> _CellPatchIndices;
+StructuredBuffer<int3> _VolumeCascadeOffsets;
+StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
+StructuredBuffer<PunctualLightSample> _PunctualLightSamples;
+StructuredBuffer<PunctualLight> _PunctualLights;
+StructuredBuffer<EmissiveTriangle> _EmissiveTriangles;
+StructuredBuffer<uint> _EmissiveTriangleCount;
+Texture2DArray<float4> _AlbedoTextures;
+Texture2DArray<float4> _EmissionTextures;
+SamplerState sampler_EmissionTextures;
+SamplerState sampler_AlbedoTextures;
+TextureCube<float3> _EnvironmentCubemap;
+SamplerState sampler_EnvironmentCubemap;
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+
+uint _PunctualLightCount;
+uint _FrameIdx;
+uint _VolumeSpatialResolution;
+uint _VolumeCascadeCount;
+float _VolumeVoxelMinSize;
+uint _MultiBounce;
+uint _SampleCount;
+uint _WarmUpSampleMultiplier;
+uint _PunctualLightCandidateCount;
+float _ShortHysteresis;
+uint _RingConfigOffset;
+float3 _VolumeTargetPos;
+int _PatchWarping;
+float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
+float _AlbedoBoost;
+float _EnvironmentIntensityMultiplier;
+float _EmissiveTriangleIntensityMultiplier;
+uint _PunctualLightSampleCount;
+float3 _DirectionalLightDirection;
+float3 _DirectionalLightIntensity;
+uint _BouncePatchAllocation;
+
+SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(
+    float shortHysteresis,
+    uint newSampleCount,
+    uint oldSampleCount,
+    float3 shortVariance,
+    float3 shortMean,
+    SphericalHarmonics::RGBL1 newEstimate,
+    SphericalHarmonics::RGBL1 oldEstimate)
+{
+    const float3 stdDevEstimate = sqrt(shortVariance);
+    const float3 drift = abs(shortMean - oldEstimate.l0) / stdDevEstimate;
+    const float driftScaling = 1.0f / 4.0f; // Empirically chosen. A trade-off between temporal stability and reaction time.
+    const float3 driftWeight = smoothstep(0, 1, drift * driftScaling);
+    const float longHys = 0.995f;
+
+    float3 updateWeight = lerp((float3)longHys, (float3)shortHysteresis, driftWeight);
+    if (oldSampleCount != PatchUtil::updateMax)
+        updateWeight = float(oldSampleCount) * rcp(oldSampleCount + newSampleCount);
+
+    const SphericalHarmonics::RGBL1 output = SphericalHarmonics::Lerp(newEstimate, oldEstimate, updateWeight);
+    return output;
+}
+
+void ProcessAndStoreRadianceSample(
+    RWStructuredBuffer<SphericalHarmonics::RGBL1> irradiances,
+    RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statSets,
+    PatchUtil::PatchStatisticsSet currentStatSet,
+    uint patchIdx,
+    SphericalHarmonics::RGBL1 newEstimate,
+    uint newEstimateUpdateCount,
+    float shortHysteresis)
+{
+    SphericalHarmonics::CosineConvolve(newEstimate);
+
+    const uint oldUpdateCount = PatchUtil::GetUpdateCount(currentStatSet.irradianceState);
+    const uint newUpdateCount = min(oldUpdateCount + newEstimateUpdateCount, PatchUtil::updateMax);
+    const SphericalHarmonics::RGBL1 oldIrradiance = irradiances[patchIdx];
+
+    float shortIrradianceUpdateWeight;
+    if (oldUpdateCount == 0)
+        shortIrradianceUpdateWeight = 0;
+    else
+        shortIrradianceUpdateWeight = min(
+            float(oldUpdateCount) * rcp(oldUpdateCount + newEstimateUpdateCount),
+            shortHysteresis);
+
+    const float3 newL0ShortIrradiance = lerp(newEstimate.l0, currentStatSet.mean, shortIrradianceUpdateWeight);
+    const float3 varianceSample = (newEstimate.l0 - newL0ShortIrradiance) * (newEstimate.l0 - currentStatSet.mean);
+    const float3 newVariance = lerp(varianceSample, currentStatSet.variance, shortHysteresis);
+
+    const SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(
+        shortHysteresis,
+        newEstimateUpdateCount,
+        oldUpdateCount,
+        newVariance,
+        newL0ShortIrradiance,
+        newEstimate,
+        oldIrradiance);
+
+    irradiances[patchIdx] = output;
+
+    statSets[patchIdx].mean = newL0ShortIrradiance;
+    statSets[patchIdx].variance = newVariance;
+    PatchUtil::IrradianceState irState = currentStatSet.irradianceState;
+    PatchUtil::SetUpdateCount(irState, newUpdateCount);
+    statSets[patchIdx].irradianceState = irState;
+}
+
+void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sampleRadiance, float3 sampleDirection)
+{
+    accumulator.l0 += sampleRadiance * SphericalHarmonics::y0;
+    accumulator.l1s[0] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.y;
+    accumulator.l1s[1] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.z;
+    accumulator.l1s[2] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.x;
+}
+
+float GetAdditionalRayOffset(float volumeVoxelMinSize)
+{
+    // We currently use the OffsetRayOrigin() heuristic to offset ray origins to avoid self-intersections. While this
+    // helps for Surface Cache it is not enough since the ray origins are relatively imprecise because they are derived
+    // from output of the rasterizer (as opposed to being reconstructed via barycentrics).
+    // We fix this by adding an additional offset. This offset is a percentage of the min voxel size to keep it
+    // somewhat proportional to the scene scale.
+    return volumeVoxelMinSize * 0.001;
+}
+
+void SamplePunctualLightBounceRadianceUniform(
+    inout QrngKronecker2D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    uint sampleCount,
+    MaterialPoolParamSet matPoolParams,
+    StructuredBuffer<PunctualLight> lights,
+    StructuredBuffer<PunctualLightSample> lightSamples,
+    uint lightSamplesLength,
+    float volumeVoxelMinSize,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        PunctualLightSample lightSample = lightSamples[min(rng.GetSample(0).x * lightSamplesLength, lightSamplesLength - 1)];
+        rng.NextSample();
+
+        if (!lightSample.HasHit())
+        {
+            validSampleCount++;
+            continue;
+        }
+
+        bool discardSample;
+        if (RejectPunctualLightSample(
+            dispatchThreadIndex,
+            groupThreadIndex,
+            accelStruct,
+            matPoolParams,
+            lightSample.hitPos,
+            lightSample.hitInstanceId,
+            lightSample.hitPrimitiveIndex,
+            patchGeo.position,
+            reconnectionRayOrigin,
+            discardSample))
+        {
+            if (!discardSample)
+                validSampleCount++;
+
+            continue;
+        }
+
+        RadianceSample radianceSample = EvaluateUnshadowedPunctualLightSampleBounceRadiance(
+            lights,
+            lightSample,
+            patchGeo.position,
+            patchGeo.normal,
+            reconnectionRayOrigin);
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, radianceSample.radianceOverDensity, radianceSample.direction);
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+struct PunctualLightReservoirSample
+{
+    float3 hitPos;
+    uint hitInstanceId;
+    uint hitPrimitiveIndex;
+    RadianceSample radianceSample;
+};
+
+struct PunctualLightReservoir
+{
+    float weightSum;
+    PunctualLightReservoirSample lightSample;
+
+    void ProcessSample(PunctualLightReservoirSample candidate, float candidateWeight, float uniformRand)
+    {
+        weightSum += candidateWeight;
+        if (uniformRand * weightSum < candidateWeight)
+            lightSample = candidate;
+    }
+};
+
+void SamplePunctualLightBounceRadianceRIS(
+    inout QrngPcg4D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    uint sampleCount,
+    MaterialPoolParamSet matPoolParams,
+    StructuredBuffer<PunctualLight> lights,
+    StructuredBuffer<PunctualLightSample> lightSamples,
+    uint lightSamplesLength,
+    uint candidateCount,
+    float volumeVoxelMinSize,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        PunctualLightReservoir reservoir = (PunctualLightReservoir)0;
+        for (uint candidateIdx = 0; candidateIdx < candidateCount; ++candidateIdx)
+        {
+            float indexPickingNoise = rng.GetSample();
+            PunctualLightSample punctualLightSample = lightSamples[min(indexPickingNoise * lightSamplesLength, lightSamplesLength - 1)];
+
+            float resamplingNoise = rng.GetSample();
+            if (punctualLightSample.HasHit())
+            {
+                PunctualLightReservoirSample candidate;
+                candidate.hitPos = punctualLightSample.hitPos;
+                candidate.hitInstanceId = punctualLightSample.hitInstanceId;
+                candidate.hitPrimitiveIndex = punctualLightSample.hitPrimitiveIndex;
+                candidate.radianceSample = EvaluateUnshadowedPunctualLightSampleBounceRadiance(
+                    lights,
+                    punctualLightSample,
+                    patchGeo.position,
+                    patchGeo.normal,
+                    reconnectionRayOrigin);
+
+                // weight = targetVal / sourceDensity, and targetVal = Luminance(radiance), so
+                // weight = Luminance(radiance / sourceDensity) = Luminance(radiance) / sourceDensity.
+                float candidateWeight = Luminance(candidate.radianceSample.radianceOverDensity);
+                reservoir.ProcessSample(candidate, candidateWeight, resamplingNoise);
+            }
+
+            rng.NextSample();
+        }
+
+        if (reservoir.weightSum <= 0.0f)
+        {
+            validSampleCount++;
+            continue;
+        }
+
+        bool discardSample;
+        if (RejectPunctualLightSample(
+            dispatchThreadIndex,
+            groupThreadIndex,
+            accelStruct,
+            matPoolParams,
+            reservoir.lightSample.hitPos,
+            reservoir.lightSample.hitInstanceId,
+            reservoir.lightSample.hitPrimitiveIndex,
+            patchGeo.position,
+            reconnectionRayOrigin,
+            discardSample))
+        {
+            // We discard samples whose reconnection rays hit backfaces from the average (see IsValidSample()).
+            // This adds bias, because such samples still contribute weight to reservoir.weightSum. To avoid this,
+            // we would either need to shoot a reconnection ray for every RIS candidate (too expensive), or not discard
+            // these samples. Instead, we choose to accept the bias, as it is negligible in most cases.
+            if (!discardSample)
+                validSampleCount++;
+
+            continue;
+        }
+
+        float winnerWeight = Luminance(reservoir.lightSample.radianceSample.radianceOverDensity); // targetVal / sourceDensity
+        float unbiasedContributionWeightTimesDensity = reservoir.weightSum * rcp(float(candidateCount) * winnerWeight); // UCW * sourceDensity
+        float3 radianceEstimate = reservoir.lightSample.radianceSample.radianceOverDensity * unbiasedContributionWeightTimesDensity; // (radiance / sourceDensity) * (UCW * sourceDensity) = radiance * UCW
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, radianceEstimate, reservoir.lightSample.radianceSample.direction);
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+void SampleEmissiveTriangleRadiance(
+    inout QrngKronecker2D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    uint sampleCount,
+    StructuredBuffer<EmissiveTriangle> emissiveTriangles,
+    uint emissiveTriangleCount,
+    MaterialPoolParamSet matPoolParams,
+    float emissiveTriangleIntensityMultiplier,
+    float volumeVoxelMinSize,
+    PatchUtil::PatchGeometry patchGeo,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        RadianceSample sample_ = EstimateIncomingRadianceFromEmissiveTriangles(
+            dispatchThreadIndex,
+            groupThreadIndex,
+            accelStruct,
+            emissiveTriangles,
+            emissiveTriangleCount,
+            matPoolParams,
+            emissiveTriangleIntensityMultiplier,
+            patchGeo.position,
+            patchGeo.normal,
+            GetAdditionalRayOffset(volumeVoxelMinSize),
+            rng.GetSample(0).x,
+            rng.GetSample(1));
+
+        if (!sample_.IsValid())
+            continue;
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, sample_.radianceOverDensity, sample_.direction);
+
+        rng.NextSample();
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+    bool enablePatchAllocation,
+    uint frameIndex,
+    inout QrngKronecker2D rng,
+    UnifiedRT::RayTracingAccelStruct accelStruct,
+    uint dispatchThreadIndex,
+    uint groupThreadIndex,
+    uint sampleCount,
+    MaterialPoolParamSet matPoolParams,
+    uint emissiveTriangleCount,
+    PatchUtil::PatchGeometry patchGeo,
+    RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics,
+    CellPatchIndexBufferType cellPatchIndices,
+    PatchUtil::VolumeParamSet volumeParams,
+    inout SphericalHarmonics::RGBL1 accumulator,
+    inout bool gotValidSamples)
+{
+    UnifiedRT::Ray ray;
+    ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeParams.voxelMinSize));
+    ray.tMin = 0;
+    ray.tMax = FLT_MAX;
+
+    SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
+
+    uint validSampleCount = 0;
+    for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
+    {
+        ray.direction = UniformHemisphereSample(rng.GetSample(0), patchGeo.normal);
+        const float3 radiance = IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
+            dispatchThreadIndex,
+            groupThreadIndex,
+            accelStruct,
+            ray,
+            matPoolParams,
+            _DirectionalLightDirection,
+            _DirectionalLightIntensity,
+            _MultiBounce,
+            _EnvironmentCubemap,
+            _EnvironmentIntensityMultiplier,
+            _EmissiveTriangleIntensityMultiplier,
+            emissiveTriangleCount,
+            sampler_EnvironmentCubemap,
+            _PatchIrradiances,
+            patchStatistics,
+            _PatchAllocationRequests,
+            _PatchAllocationRequestCount,
+            cellPatchIndices,
+            volumeParams,
+            enablePatchAllocation,
+            frameIndex);
+
+        if (all(radiance == invalidRadiance))
+            continue;
+
+        validSampleCount++;
+        ProjectAndAccumulate(radianceAccumulator, radiance, ray.direction);
+
+        rng.NextSample();
+    }
+
+    if (validSampleCount != 0)
+    {
+        gotValidSamples = true;
+        const float normalizationFactor = rcp(uniformHemisphereDensity) * rcp(validSampleCount);
+        SphericalHarmonics::AddMut(accumulator, SphericalHarmonics::MulPure(radianceAccumulator, normalizationFactor));
+    }
+}
+
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_GroupIndex)
+{
+    if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+    QrngKronecker2D rng;
+
+    const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
+    bool enablePatchAllocation;
+    if (_BouncePatchAllocation)
+        enablePatchAllocation = (PatchUtil::GetRank(_PatchStatistics[patchIdx].requestState) == 0);
+    else
+        enablePatchAllocation = false;
+
+    MaterialPoolParamSet matPoolParams;
+    matPoolParams.materialEntries = _MaterialEntries;
+    matPoolParams.albedoTextures = _AlbedoTextures;
+    matPoolParams.emissionTextures = _EmissionTextures;
+    matPoolParams.emissionSampler = sampler_EmissionTextures;
+    matPoolParams.albedoSampler = sampler_AlbedoTextures;
+    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
+    matPoolParams.albedoBoost = _AlbedoBoost;
+
+    PatchUtil::VolumeParamSet volumeParams;
+    volumeParams.spatialResolution = _VolumeSpatialResolution;
+    volumeParams.voxelMinSize = _VolumeVoxelMinSize;
+    volumeParams.targetPos = _VolumeTargetPos;
+    volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
+    volumeParams.cascadeCount = _VolumeCascadeCount;
+    volumeParams.patchWarping = _PatchWarping != 0;
+
+    SphericalHarmonics::RGBL1 radianceEstimate = (SphericalHarmonics::RGBL1)0;
+    bool gotValidSamples = false;
+
+    const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
+
+    const uint patchIdxHash = LowBiasHash32(patchIdx);
+    const uint warmUpSampleMultiplier = _WarmUpSampleMultiplier;
+    const bool shouldWarmUp = (PatchUtil::GetUpdateCount(stats.irradianceState) == 0 && PatchUtil::GetRank(stats.requestState) == 0);
+    uint sampleCount;
+    uint sampleOffset;
+    if (shouldWarmUp)
+    {
+        sampleCount = _SampleCount * warmUpSampleMultiplier;
+        sampleOffset = (_FrameIdx + 1) * _SampleCount;
+    }
+    else
+    {
+        sampleCount = _SampleCount;
+        sampleOffset = _SampleCount * (_FrameIdx + warmUpSampleMultiplier);
+    }
+    const uint emissiveTriangleCount = _EmissiveTriangleCount[0];
+
+    rng.Init(patchIdxHash, sampleOffset);
+    SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
+        enablePatchAllocation,
+        _FrameIdx,
+        rng,
+        accelStruct,
+        patchIdx,
+        groupThreadIndex,
+        sampleCount,
+        matPoolParams,
+        emissiveTriangleCount,
+        patchGeo,
+        _PatchStatistics,
+        _CellPatchIndices,
+        volumeParams,
+        radianceEstimate,
+        gotValidSamples);
+
+    if (_PunctualLightCount != 0)
+    {
+        QrngPcg4D pcg;
+        pcg.Init(patchIdxHash, sampleOffset);
+        SamplePunctualLightBounceRadianceRIS(
+            pcg,
+            accelStruct,
+            patchIdx,
+            groupThreadIndex,
+            sampleCount,
+            matPoolParams,
+            _PunctualLights,
+            _PunctualLightSamples,
+            _PunctualLightSampleCount,
+            _PunctualLightCandidateCount,
+            _VolumeVoxelMinSize,
+            patchGeo,
+            radianceEstimate,
+            gotValidSamples);
+    }
+
+    if (emissiveTriangleCount != 0)
+    {
+        rng.Init(patchIdxHash, sampleOffset);
+        SampleEmissiveTriangleRadiance(
+            rng,
+            accelStruct,
+            patchIdx,
+            groupThreadIndex,
+            sampleCount,
+            _EmissiveTriangles,
+            emissiveTriangleCount,
+            matPoolParams,
+            _EmissiveTriangleIntensityMultiplier,
+            _VolumeVoxelMinSize,
+            patchGeo,
+            radianceEstimate,
+            gotValidSamples);
+    }
+
+    if (gotValidSamples)
+    {
+        const uint estimateUpdateCount = sampleCount / _SampleCount;
+        ProcessAndStoreRadianceSample(
+            _PatchIrradiances,
+            _PatchStatistics,
+            stats,
+            patchIdx,
+            radianceEstimate,
+            estimateUpdateCount,
+            _ShortHysteresis);
+    }
+}

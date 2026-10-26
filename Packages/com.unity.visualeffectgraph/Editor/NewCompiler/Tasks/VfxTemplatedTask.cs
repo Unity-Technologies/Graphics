@@ -1,0 +1,259 @@
+using System.Collections.Generic;
+using Unity.GraphCommon.LowLevel.Editor;
+using UnityEngine;
+using EntityId = UnityEngine.EntityId;
+
+namespace UnityEditor.VFX
+{
+    /// <summary>
+    /// Extension methods for adding attribute paths to templated task bindings.
+    /// </summary>
+    static class VfxTemplatedTaskBindingExtensions
+    {
+        /// <summary>
+        /// Adds attribute read and write paths for the specified attribute set, using the provided base data path.
+        /// </summary>
+        /// <param name="binding">The binding to add paths to.</param>
+        /// <param name="attributesPath">The base <see cref="DataPath"/> under which attribute keys will be added.</param>
+        /// <param name="attributeSet">The <see cref="AttributeSet"/> containing the attributes to be read and written.</param>
+        public static void Add(this TemplatedTaskBinding binding, DataPath attributesPath, AttributeSet attributeSet)
+        {
+            foreach (var attribute in attributeSet.ReadAttributes)
+            {
+                binding.ReadPathSet.Add(attributesPath + new AttributeKey(attribute));
+            }
+            foreach (var attribute in attributeSet.WriteAttributes)
+            {
+                binding.WritePathSet.Add(attributesPath + new AttributeKey(attribute));
+            }
+        }
+
+        /// <summary>
+        /// Adds the attributes a model declares to the read path set of the binding, whatever access it
+        /// declares for them. For a task that never stores what it writes - an output, and the output
+        /// update derived from it - a write is a load followed by a local change; declared as a write it
+        /// would make everything reading the particles after it wait on a store that never happens.
+        /// </summary>
+        public static void AddAsRead(this TemplatedTaskBinding binding, DataPath attributesPath, IEnumerable<VFXAttributeInfo> attributeInfos)
+        {
+            foreach (var attributeInfo in attributeInfos)
+                binding.Add(attributesPath, attributeInfo.attrib, AttributeUsage.Read);
+        }
+
+        /// <summary>
+        /// Adds the attributes a model declares to the read and/or write path sets of the binding.
+        /// </summary>
+        /// <param name="binding">The binding to add paths to.</param>
+        /// <param name="attributesPath">The base <see cref="DataPath"/> under which attribute keys will be added.</param>
+        /// <param name="attributeInfos">The attributes to add, along with how they are accessed.</param>
+        public static void Add(this TemplatedTaskBinding binding, DataPath attributesPath, IEnumerable<VFXAttributeInfo> attributeInfos)
+        {
+            foreach (var attributeInfo in attributeInfos)
+            {
+                binding.Add(attributesPath, attributeInfo.attrib, VFXAttributesManager.ConvertToNewCompiler(attributeInfo.mode));
+            }
+        }
+
+        /// <summary>
+        /// Adds a VFX attribute to the read and/or write path sets of the binding.
+        /// </summary>
+        /// <param name="binding">The binding to add paths to.</param>
+        /// <param name="attributesPath">The base <see cref="DataPath"/> under which the attribute key will be added.</param>
+        /// <param name="vfxAttribute">The <see cref="VFXAttribute"/> to add.</param>
+        /// <param name="usage">The <see cref="AttributeUsage"/> flags indicating read and/or write access.</param>
+        public static void Add(this TemplatedTaskBinding binding, DataPath attributesPath, VFXAttribute vfxAttribute, AttributeUsage usage)
+        {
+            var attribute = VFXAttributesManager.ConvertToNewCompiler(vfxAttribute);
+            var attributePath = attributesPath + new AttributeKey(attribute);
+            if (usage.HasFlag(AttributeUsage.Read))
+                binding.ReadPathSet.Add(attributePath);
+            if (usage.HasFlag(AttributeUsage.Write))
+                binding.WritePathSet.Add(attributePath);
+        }
+    }
+
+    enum VfxTaskStage
+    {
+        Initialize,
+        Update,
+        Output,
+    }
+
+    enum VfxOutputTopology
+    {
+        Point,
+        Line,
+        Triangle,
+        Quad,
+        Octagon,
+        Hexahedron,
+        Mesh,
+    }
+
+    /// <summary>
+    /// Represents a VFX task generated using a template and a list of subtasks, with attribute support.
+    /// </summary>
+    class VfxTemplatedTask : TemplatedTask
+    {
+        public readonly struct ContextParameter
+        {
+            public string HlslTypeName { get; }
+            public string Name { get; }
+
+            public ContextParameter(string hlslTypeName, string name)
+            {
+                HlslTypeName = hlslTypeName;
+                Name = name;
+            }
+        }
+
+        /// <summary>
+        /// Arguments used to initialize a <see cref="VfxTemplatedTask"/>.
+        /// </summary>
+        public new struct Args
+        {
+            /// <summary>
+            /// Base arguments for the templated task.
+            /// </summary>
+            public TemplatedTask.Args BaseArgs;
+
+            /// <summary>
+            /// Mappings from generic attribute keys to their corresponding data paths.
+            /// </summary>
+            public Dictionary<IDataKey, (IDataKey, DataPath)> AttributeKeyMappings;
+
+            public VfxTaskStage Stage;
+
+            // Only meaningful for an Output stage.
+            public VfxOutputTopology Topology;
+
+            // Only meaningful for an Update stage.
+            public bool IsPerCamera;
+
+            /// <summary>
+            /// The values the context's own slots feed.
+            /// </summary>
+            public List<ContextParameter> ContextParameters;
+
+            /// <inheritdoc cref="VfxTemplatedTask.ParameterValues"/>
+            public List<(IDataKey key, int value)> ParameterValues;
+        }
+
+        readonly Dictionary<IDataKey, (IDataKey, DataPath)> m_AttributeKeyMappings;
+
+        public VfxTaskStage Stage { get; }
+        public VfxOutputTopology Topology { get; }
+        public bool IsPerCamera { get; }
+
+        public bool IsCompute => Stage != VfxTaskStage.Output;
+        public bool IsOutput => Stage == VfxTaskStage.Output;
+
+        /// <summary>
+        /// Gets the values the context's own slots feed.
+        /// </summary>
+        public IReadOnlyList<ContextParameter> ContextParameters { get; }
+
+        /// <summary>
+        /// The task parameters the runtime resolves to a constant rather than to a graph value, such as
+        /// whether an output draws indirect. They carry no data binding, so they never reach the graph:
+        /// the lowering hands them straight to the <see cref="VfxTask"/>.
+        /// </summary>
+        public IReadOnlyList<(IDataKey key, int value)> ParameterValues { get; }
+
+        /// <summary>
+        /// The element type the task declared for the resource bound under the given key. False when the task
+        /// asked for no resource there, or asked for one with no declared element type: in both cases the
+        /// resource is declared with whatever its description says.
+        /// </summary>
+        public bool TryGetResourceType(IDataKey bindingKey, out BufferType bufferType)
+        {
+            if (TryGetBinding(bindingKey, out VfxResourceBinding resourceBinding) && resourceBinding.BufferType.valid)
+            {
+                bufferType = resourceBinding.BufferType;
+                return true;
+            }
+            bufferType = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Whether the given key is one the runtime resolves as a task parameter, which means the generated
+        /// code never names it.
+        /// </summary>
+        public bool IsTaskParameter(IDataKey bindingKey) => TryGetBinding(bindingKey, out VfxTaskParameterBinding _);
+
+        /// <summary>
+        /// Gets the mappings from attribute keys to their corresponding binding relative paths.
+        /// </summary>
+        public IEnumerable<KeyValuePair<IDataKey, (IDataKey, DataPath)>> AttributeKeyMappings => m_AttributeKeyMappings;
+
+        /// <summary>
+        /// Gets the entity ID of the source model (e.g., VFXContext) that this task was created from.
+        /// Used for material setup callbacks during compilation.
+        /// </summary>
+        public EntityId SourceModelId { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VfxTemplatedTask"/> class using the specified template name and arguments.
+        /// </summary>
+        /// <param name="templateName">The name of the template associated with the task.</param>
+        /// <param name="args">The parameters to setup the templated task <see cref="Args"/>.</param>
+        /// <param name="sourceModelId">Optional entity ID of the source model (e.g., VFXContext) that this task was created from.</param>
+        public VfxTemplatedTask(string templateName, Args args, EntityId sourceModelId = default)
+            : base(templateName, args.BaseArgs)
+        {
+            Stage = args.Stage;
+            Topology = args.Topology;
+            IsPerCamera = args.IsPerCamera;
+            var contextParameters = args.ContextParameters != null
+                ? new List<ContextParameter>(args.ContextParameters)
+                : new List<ContextParameter>();
+            ContextParameters = contextParameters;
+            ParameterValues = args.ParameterValues != null
+                ? new List<(IDataKey key, int value)>(args.ParameterValues)
+                : new List<(IDataKey key, int value)>();
+            m_AttributeKeyMappings = args.AttributeKeyMappings != null ? new(args.AttributeKeyMappings) : new();
+            SourceModelId = sourceModelId;
+
+            // Validate attribute key mappings reference valid bindings
+            foreach (var attributeKeyMapping in m_AttributeKeyMappings)
+            {
+                Debug.Assert(HasBinding(attributeKeyMapping.Value.Item1));
+            }
+
+            // Process attribute sets from TemplateSubtasks
+            foreach (var subtaskDescription in args.BaseArgs.Subtasks)
+            {
+                if (subtaskDescription.Task is TemplateSubtask templateSubtask)
+                {
+                    foreach (var kvp in templateSubtask.AttributeSets)
+                    {
+                        var attributeKey = kvp.Key;
+                        if (m_AttributeKeyMappings.TryGetValue(attributeKey, out var mappedKeyPath))
+                        {
+                            IDataKey bindingKey = mappedKeyPath.Item1;
+                            DataPath attributesPath = mappedKeyPath.Item2;
+
+                            var snippetAttributeSet = kvp.Value;
+                            Debug.Assert(HasBinding(bindingKey), $"Binding key '{bindingKey}' not found in args.Bindings. All bindings should be declared upfront with their types.");
+
+                            foreach (var attribute in snippetAttributeSet.ReadAttributes)
+                            {
+                                AddReadPath(bindingKey, attributesPath + new AttributeKey(attribute));
+                            }
+
+                            foreach (var attribute in snippetAttributeSet.WriteAttributes)
+                            {
+                                AddWritePath(bindingKey, attributesPath + new AttributeKey(attribute));
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Attribute set \"{kvp.Key}\" not found in task {this}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

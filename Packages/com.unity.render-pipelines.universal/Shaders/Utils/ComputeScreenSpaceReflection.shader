@@ -32,6 +32,7 @@ Shader "Hidden/Universal Render Pipeline/ComputeScreenSpaceReflection"
                 #pragma multi_compile_local_fragment _ _HIZ_TRACE
                 #pragma multi_compile_local_fragment _ _REFINE_DEPTH
                 #pragma multi_compile_local_fragment _ _USE_MOTION_VECTORS
+                #pragma multi_compile_local_fragment _ _CONTACT_HARDENING
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
@@ -54,84 +55,49 @@ Shader "Hidden/Universal Render Pipeline/ComputeScreenSpaceReflection"
         }
 
         // ------------------------------------------------------------------
-        // Bilateral Blur
+        // Bilinear Upscale
         // ------------------------------------------------------------------
         Pass
         {
-            Name "SSR_Bilateral_HorizontalBlur"
+            Name "SSR_BilinearUpscale"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment HorizontalBilateralBlur
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "SSR_Bilateral_VerticalBlur"
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment VerticalBilateralBlur
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "SSR_Bilateral_FinalBlur"
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment FinalBilateralBlur
+                #pragma fragment BilinearUpscale
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
             ENDHLSL
         }
 
         // ------------------------------------------------------------------
-        // Gaussian Blur
+        // Bilateral Upscale
         // ------------------------------------------------------------------
         Pass
         {
-            Name "SSR_Gaussian_HorizontalBlur"
+            Name "SSR_BilateralUpscale"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment HorizontalGaussianBlur
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "SSR_Gaussian_VerticalBlur"
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment VerticalGaussianBlur
+                #pragma fragment BilateralUpscale
+                #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
             ENDHLSL
         }
 
         // ------------------------------------------------------------------
-        // Kawase Blur
+        // Temporal Filtering
         // ------------------------------------------------------------------
         Pass
         {
-            Name "SSR_KawaseBlur"
+            Name "SSR_TemporalFiltering"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment KawaseBlur
-                #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #pragma fragment SSRTemporalFiltering
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
             ENDHLSL
         }
+
     }
 }

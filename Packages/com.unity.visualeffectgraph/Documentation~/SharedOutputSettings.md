@@ -1,11 +1,11 @@
-# Shared Output Settings
+# Shared Output Settings Context
 
 Explore the settings that appear in multiple outputs in Visual Effect Graph.
 
 | Page | Description |
 |-|-|
-|[Global Settings](Context-OutputSharedSettings.md)|Explore the settings and property that all outputs share. | 
-|[Lit Output Settings](Context-OutputLitSettings.md)|Explore outputs that receive lighting information, and support texture and material types that relate to lighting. |
+|[Lit Output Settings Context](Context-OutputLitSettings.md)|Explore outputs that receive lighting information, and support texture and material types that relate to lighting. |
+|[Shared output settings and properties Context](Context-OutputSharedSettings.md)|Explore the settings and property that all outputs share. | 
 
 ## Additional resources
 

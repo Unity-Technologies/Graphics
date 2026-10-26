@@ -833,7 +833,7 @@ namespace UnityEditor.VFX.UI
                         {
                             p = viewController.AddVFXParameter(Vector2.zero, desc.variant);
                             serializableGraph.parameters = serializableGraph.parameters.Where(x => x.name != parameter.name).ToArray();
-                            CopyParameter(parameter, p, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
+                            CopyParameter(viewController, parameter, p, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
                         }
                     }
 
@@ -862,13 +862,16 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            var existingCategories = viewController.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>();
-            var categoryMapping = new Dictionary<string, string>();
+            var existingCategories = viewController.graph.UIInfos.categories?.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var categoryMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (serializableGraph.categories != null)
             {
                 foreach (var category in serializableGraph.categories)
                 {
-                    var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories);
+                    if (categoryMapping.ContainsKey(category))
+                        continue;
+
+                    var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories, true, VFXBlackboardCategory.kMaxCategoryNameLength);
                     existingCategories.Add(newCategoryName);
                     categoryMapping[category] = newCategoryName;
                 }
@@ -880,12 +883,12 @@ namespace UnityEditor.VFX.UI
                 {
                     var newVfxParameter = ScriptableObject.CreateInstance<VFXParameter>();
                     newVfxParameter.Init(parameter.value.type);
-                    CopyParameter(parameter, newVfxParameter, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
+                    CopyParameter(viewController, parameter, newVfxParameter, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
                     if (categoryMapping.TryGetValue(newVfxParameter.category, out var category))
                     {
                         newBlackboardItems.Add(category);
                         newVfxParameter.category = category;
-                        newCategories.Remove(parameter.category);
+                        newCategories.RemoveAll(c => string.Equals(c, parameter.category, StringComparison.OrdinalIgnoreCase));
                     }
                     viewController.AddVFXModel(Vector2.zero, newVfxParameter);
                     var groupChanged = false;
@@ -901,10 +904,10 @@ namespace UnityEditor.VFX.UI
 
         private void PasteCategories(VFXViewController viewController)
         {
-            var existingCategories = viewController.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
+            var existingCategories = viewController.graph.UIInfos.categories.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var category in newCategories)
             {
-                var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories);
+                var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories, true, VFXBlackboardCategory.kMaxCategoryNameLength);
                 existingCategories.Add(newCategoryName);
                 viewController.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
                 viewController.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
@@ -917,7 +920,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void CopyParameter(Parameter parameter, VFXParameter vfxParameter, bool isOutput)
+        private void CopyParameter(VFXViewController viewController, Parameter parameter, VFXParameter vfxParameter, bool isOutput)
         {
             vfxParameter.value = parameter.value.Get();
             vfxParameter.valueFilter = parameter.valueFilter;
@@ -932,7 +935,8 @@ namespace UnityEditor.VFX.UI
                 vfxParameter.enumValues = parameter.enumValue.ToList();
             }
             vfxParameter.SetSettingValue("m_Exposed", parameter.exposed);
-            vfxParameter.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
+            var copyName = VFXParameterController.MakeNameUnique(viewController, parameter.name, VFXParameterController.kMaxExposedNameLength);
+            vfxParameter.SetSettingValue("m_ExposedName", copyName);
             vfxParameter.isOutput = isOutput;
             vfxParameter.tooltip = parameter.tooltip;
             vfxParameter.collapsed = parameter.collapsed;

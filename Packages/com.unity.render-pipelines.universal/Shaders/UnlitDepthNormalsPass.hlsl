@@ -2,9 +2,10 @@
 #define UNIVERSAL_UNLIT_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitFeatures.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 
 struct Attributes
 {
@@ -57,23 +58,14 @@ void DepthNormalsFragment(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if defined(_ALPHATEST_ON)
-        Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+        half albedoAlpha = SampleBaseMap(input.uv).a;
+        AlphaDiscard((UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha()) ? _BaseColor.a : albedoAlpha * _BaseColor.a, _Cutoff);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE)
-        LODFadeCrossFade(input.positionCS);
-    #endif
+    LODFadeCrossFade(input.positionCS);
 
     // Output...
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(input.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);             // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);     // values between [ 0,  1]
-        half3 packedNormalWS = half3(PackFloat2To888(remappedOctNormalWS)); // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-        outNormalWS = half4(NormalizeNormalPerPixel(input.normalWS), 0.0);
-    #endif
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normalWS, UseNormalMap())), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
         outRenderingLayers = EncodeMeshRenderingLayer();

@@ -1,4 +1,4 @@
-# Sample Attribute Map
+# Sample Attribute Map Operator
 
 > [!IMPORTANT]
 > This feature is experimental. To use this feature, open the **Preferences** window, go to the **Visual Effects** tab, and enable **Experimental Operators/Blocks**.

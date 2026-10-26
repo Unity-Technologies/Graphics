@@ -15,6 +15,7 @@ All properties have the following common parameters in addition to those specifi
 | **Name** | Displays the user-facing name of the property in the UI. |
 | **Reference** | Defines the internal identifier used by the shader for this property; use this `Reference` instead of the display `Name` when accessing the property from a script.<br /><br />If you overwrite this parameter, be aware of the following:<ul><li>If the string doesn't begin with an underscore, Unity automatically adds one.</li><li>If the string contains any characters that HLSL does not support, Unity removes them.</li><li>You can revert to the default value: right-click on the **Reference** field label, and select **Reset Reference**.</li></ul> |
 | **Promote to final Shader** | Makes the property accessible across the final shader as a material property, not as an input port on the Subgraph Node. |
+| **Disable connector** | Removes the input port for the property on the sub graph node, and displays the input in the body of the node instead, labeled with the property name. The input can't accept a connection, so Shader Graph compiles the value into the shader as a constant.<br /><br />This parameter is available only in sub graphs, and only for Boolean, Color, Float, and Gradient properties. It's not available when you enable **Promote to final Shader**.<br /><br />**Note**: If a parent shader graph already connects a node to this input, enabling this parameter removes that connection.<br /><br />For more information, refer to [Change how sub graph inputs appear on a node](Sub-Graph-Input-Display.md). |
 | **Precision** | Sets the numeric precision for the property’s data type.<br /><br />The options are:<ul><li>**Inherit**: Uses the precision defined by the graph or parent context.</li><li>**Single**: Uses single-precision (float) for maximum accuracy.</li><li>**Half**: Uses half-precision to reduce memory and improve performance.</li><li>**Use Graph Precision**: Uses the precision mode set in the graph settings.</li></ul><br />For more details, refer to [Precision Modes](Precision-Modes.md). |
 | **Scope** | Specifies where and how the property is edited across materials. The options are:<ul><li>**Global**: Makes the property editable at a global level, through a C# script only, for all materials that use it. Selecting this option hides or grays out all parameters that relate to the Inspector UI display.</li><li>**Per Material**: Makes the property independently editable per material, either through a C# script, or in the Inspector UI if you enable **Show In Inspector**.</li><li>**Hybrid Per Instance**: Has the same effect as **Per Material**, unless you're using [DOTS instancing](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/index.html?subfolder=/manual/dots-instancing-shader.html).</li></ul> |
 | **Default Value** | Sets the property's initial value to be serialized and used when new material instances are created. The value depends on the property type. |
@@ -32,13 +33,15 @@ Parameters specific to Float properties in addition to the [common parameters](#
 
 | Parameter | Description |
 | :--- | :--- |
-| **Mode** | Selects the UI mode used to display and edit the property value in the material Inspector, requiring a specific subset of parameters depending on the chosen option.<br /><br />The options are:<ul><li>**Default**: Displays a scalar input field in the material Inspector; only requires a **Default Value**.</li><li>**Slider**: Defines the Float property in [`Range`](https://docs.unity3d.com/Manual/SL-Properties.html#material-property-declaration-syntax-by-type) mode to display a slider; use [additional parameters](#slider) to define the slider type.</li><li>**Integer**: Displays an integer input field in the material Inspector; only requires a **Default Value**.</li><li>**Enum**: Adds an [`Enum`](https://docs.unity3d.com/ScriptReference/MaterialPropertyDrawer.html) attribute to the Float property to display a drop-down of specific values; use [additional parameters](#enum) to define the enum type.</li></ul> |
+| **Mode** | Selects the UI mode used to display and edit the property value in the material Inspector.<br /><br />In a sub graph, this parameter selects how the input displays on the sub graph node in the parent shader graph. For more information, refer to [Change how sub graph inputs appear on a node](Sub-Graph-Input-Display.md).<br /><br />The options are:<ul><li>**Default**: Displays a scalar input field in the material Inspector; only requires a **Default Value**.</li><li>**Slider**: Defines the Float property in [`Range`](https://docs.unity3d.com/Manual/SL-Properties.html#material-property-declaration-syntax-by-type) mode to display a slider. Use [additional parameters](#slider) to define the slider type.</li><li>**Integer**: Displays an integer input field in the material Inspector. This only requires a **Default Value**.</li><li>**Enum**: Adds an [`Enum`](https://docs.unity3d.com/ScriptReference/MaterialPropertyDrawer.html) attribute to the Float property to display a dropdown of specific values. Use [additional parameters](#enum) to define the enum type.</li></ul> |
 | **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />The value is either a float or an integer depending on the selected **Mode** and its options. Not available when **Scope** is set to **Global**. |
 | **Requires Literal Input** | Requires the input to be a constant value. When enabled, if the user connects a variable, the shader compilation fails with an error. |
 
 ### Slider
 
 Additional parameters available when you set the Float property **Mode** to **Slider**.
+
+In a sub graph, **Slider Type** doesn't appear, even if you enable **Promote to final Shader**, so you can't set the slider response for a sub graph input.
 
 | Parameter | Description |
 | :--- | :--- |
@@ -122,6 +125,7 @@ Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.htm
 | **Mode** | Defines the fallback texture Unity uses when none is provided.<br /><br />The options are:<ul><li>**White**: Sets a solid white (1,1,1) texture to ensure full-intensity sampling.</li><li>**Black**: Sets a solid black (0,0,0) texture to yield zero contribution.</li><li>**Grey**: Sets a mid-grey in sRGB (~0.5) as a neutral fallback.</li><li>**Normal Map**: Sets a flat normal value to keep surfaces flat without a normal texture.</li><li>**Linear Grey**: Sets a mid-grey in linear color space.</li><li>**Red**: Sets a solid red (1,0,0) texture, useful for data expected in the red channel.</li></ul> |
 | **Use Tiling and Offset** | Toggles the property `NoScaleOffset` to enable manipulating scale and offset separately from other texture properties; see [SplitTextureTransformNode](Split-Texture-Transform-Node.md).<br />A boolean value. |
 | **Use TexelSize** | Uses the size of texels expressed in UV space. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 ## Texture 2D Array
 
@@ -130,6 +134,7 @@ Defines a [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImport
 | Parameter | Description |
 | :--- | :--- |
 | **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A texture asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 ## Texture 3D
 
@@ -138,6 +143,7 @@ Defines a [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.htm
 | Parameter | Description |
 | :--- | :--- |
 | **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A texture asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 ## Cubemap
 
@@ -146,6 +152,7 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 | Parameter | Description |
 | :--- | :--- |
 | **Default Value** | Sets the initial value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html).<br />A cubemap asset reference. |
+| **Is HDR** | Allows any node that samples the texture to automatically decode the sampled value if the texture is stored in an encoded HDR format (for example, dLDR). |
 
 <a name="virtual-texture"> </a>
 ## Virtual Texture

@@ -1,6 +1,7 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 #pragma kernel Evict
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "PatchUtil.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
@@ -25,18 +26,18 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
 
     PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
 
-    const uint frameSinceLastAccess = PatchUtil::GetFramesSinceLastAccess(_FrameIdx, PatchUtil::GetLastAccessFrame(stats.counters));
+    const uint framesSinceHeartbeat = PatchUtil::GetFramesSinceHeartbeat(_FrameIdx, PatchUtil::GetHeartbeat(stats.requestState));
 
-    if (PatchUtil::evictionThreshold < frameSinceLastAccess)
+    if (PatchUtil::evictionThreshold < framesSinceHeartbeat)
     {
         // If Bounce Patch Allocation is enabled, then rank 0 patches are
         // first demoted to rank 1, then later they are evicted.
         // If Bounce Patch Allocation is disabled we go directly to
         // eviction.
-        if (_BouncePatchAllocation && PatchUtil::GetRank(stats.counters) == 0)
+        if (_BouncePatchAllocation && PatchUtil::GetRank(stats.requestState) == 0)
         {
-            PatchUtil::SetRank(stats.counters, 1);
-            PatchUtil::SetLastAccessFrame(stats.counters, _FrameIdx);
+            PatchUtil::SetRank(stats.requestState, 1);
+            PatchUtil::SetHeartbeat(stats.requestState, _FrameIdx);
             _PatchStatistics[patchIdx] = stats;
         }
         else
@@ -46,5 +47,4 @@ void Evict(uint patchIdx : SV_DispatchThreadID)
             _CellPatchIndices[cellIdx] = PatchUtil::invalidPatchIndex;
         }
     }
-
 }

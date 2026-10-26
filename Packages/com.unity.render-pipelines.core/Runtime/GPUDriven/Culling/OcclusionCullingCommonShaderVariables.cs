@@ -37,10 +37,11 @@ namespace UnityEngine.Rendering
             in OccluderContext occluderCtx,
             in InstanceOcclusionTestSubviewSettings subviewSettings,
             bool occlusionOverlayCountVisible,
-            bool overrideOcclusionTestToAlwaysPass)
+            bool overrideOcclusionTestToAlwaysPass,
+            bool useBoundingSphereOcclusionTest)
         {
             for (int i = 0; i < occluderCtx.subviewCount; ++i)
-            { 
+            {
                 if (occluderCtx.IsSubviewValid(i))
                 {
                     unsafe
@@ -61,7 +62,8 @@ namespace UnityEngine.Rendering
             _OccluderMipLayoutSizeY = (uint)occluderCtx.occluderMipLayoutSize.y;
             _OcclusionTestDebugFlags
                 = (overrideOcclusionTestToAlwaysPass ? (uint)OcclusionTestDebugFlag.AlwaysPass : 0)
-                | (occlusionOverlayCountVisible ? (uint)OcclusionTestDebugFlag.CountVisible : 0);
+                | (occlusionOverlayCountVisible ? (uint)OcclusionTestDebugFlag.CountVisible : 0)
+                | (useBoundingSphereOcclusionTest ? (uint)OcclusionTestDebugFlag.UseSphereBounds : 0);
             _OcclusionCullingCommonPad0 = 0;
 
             _OcclusionTestCount = subviewSettings.testCount;

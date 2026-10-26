@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMainLightShadows;
 
         /// <summary>
-        /// True if additional lights shadows are enabled in the URP Asset
+        /// True if main lights shadows are enabled in the URP Asset
         /// </summary>
         internal bool mainLightShadowsEnabled;
 
@@ -86,6 +87,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public List<int> resolution;
 
+        internal ShadowDepthBiasMode depthBiasMode;
+        internal ShadowNormalBiasMode normalBiasMode;
+
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
         internal int mainLightShadowResolution;
@@ -94,6 +98,21 @@ namespace UnityEngine.Rendering.Universal
 
         internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
         internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
+
+        // Owned by AdditionalLightsShadowCasterPass
+        internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
+        internal GraphicsBuffer extraForwardAdditionalLightShadowsBuffer;
+        internal Vector4[] extraForwardAdditionalLightShadowParams;
+        internal Vector4[] extraForwardAdditionalLightReceiverNormalBiases;
+        internal short[] visibleLightIndexToAdditionalLightIndex;
+        internal bool[] visibleLightIndexToIsCastingShadows;
+
+        internal ShadowPassGroup shadowPassGroup;
+
+        // True when this camera pass should reuse a previously rendered shadow map. Currently only used with XR QuadViews.
+        internal bool useCachedShadowMap;
+        // True when shadow map caching is enabled for the camera. Currently only used with XR QuadViews.
+        internal bool shadowMapCachingEnabled;
 
         /// <inheritdoc/>
         public override void Reset()
@@ -111,6 +130,8 @@ namespace UnityEngine.Rendering.Universal
             shadowmapDepthBufferBits = 0;
             bias?.Clear();
             resolution?.Clear();
+            depthBiasMode = ShadowDepthBiasMode.Legacy;
+            normalBiasMode = ShadowNormalBiasMode.Caster;
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;
@@ -120,6 +141,17 @@ namespace UnityEngine.Rendering.Universal
 
             visibleLightsShadowCullingInfos = default;
             shadowAtlasLayout = default;
+            shadowPassGroup = null;
+            visibleLightIndexToAdditionalLightIndex = null;
+            visibleLightIndexToIsCastingShadows = null;
+
+            emptyAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightShadowParams = null;
+            extraForwardAdditionalLightReceiverNormalBiases = null;
+
+            useCachedShadowMap = false;
+            shadowMapCachingEnabled = false;
         }
     }
 }

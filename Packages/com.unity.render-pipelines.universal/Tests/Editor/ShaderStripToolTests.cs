@@ -15,6 +15,7 @@ namespace ShaderStrippingAndPrefiltering
     {
         private static List<string> s_EnabledKeywords;
         private static List<string> s_PassKeywords;
+        private static List<string> s_DynamicKeywords;
         internal struct TestStrippingData : IShaderScriptableStrippingData
         {
             public ShaderFeatures shaderFeatures { get; set; }
@@ -42,7 +43,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get; set; }
             public bool IsRenderCompatibilityMode { get; set; }
-
+            public bool stripExposureVariants { get; set; }
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
             {
@@ -68,6 +69,11 @@ namespace ShaderStrippingAndPrefiltering
             {
                 return s_PassKeywords != null && s_PassKeywords.Contains(keyword.name);
             }
+
+            public bool IsKeywordDynamic(LocalKeyword keyword)
+            {
+                return s_DynamicKeywords != null && s_DynamicKeywords.Contains(keyword.name);
+            }
         }
 
         [Test]
@@ -75,6 +81,7 @@ namespace ShaderStrippingAndPrefiltering
         {
             s_PassKeywords = new List<string>();
             s_EnabledKeywords = new List<string>();
+            s_DynamicKeywords = new List<string>();
             ShaderStripTool<ShaderFeatures> stripTool;
             IShaderScriptableStrippingData strippingData;
             LocalKeyword kw = new (Shader.Find("Universal Render Pipeline/Lit"), ShaderKeywordStrings.ScreenSpaceOcclusion);
@@ -93,6 +100,16 @@ namespace ShaderStrippingAndPrefiltering
             stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
             actual = stripTool.ContainsKeyword(kw);
             Assert.IsTrue(actual);
+
+            // Present in the pass but dynamic -> ContainsKeyword excludes it.
+            strippingData = new TestStrippingData();
+            strippingData.shaderFeatures = ShaderFeatures.None;
+            s_PassKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
+            s_DynamicKeywords = new List<string>() { ShaderKeywordStrings.ScreenSpaceOcclusion };
+            stripTool = new ShaderStripTool<ShaderFeatures>(strippingData.shaderFeatures, ref strippingData);
+            actual = stripTool.ContainsKeyword(kw);
+            Assert.IsFalse(actual);
+            s_DynamicKeywords = new List<string>();
         }
 
         [Test]

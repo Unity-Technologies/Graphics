@@ -257,6 +257,9 @@ Uncheck the checkbox to temporarily disable the define.";
             if (graphData.isSubGraph)
                 return element;
 
+            if (graphData.isShaderInterfaceMode)
+                return new ProviderSystem.ShaderInterfaceSettings(graphData);
+
             void RegisterActionToUndo(string actionName)
             {
                 graphData.owner.RegisterCompleteObjectUndo(actionName);

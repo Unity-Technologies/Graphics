@@ -27,6 +27,10 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
 
             HLSLPROGRAM
 
+                // Full-precision color input, matching the Blend pass and the (now full-float) SMAA texture
+                // params. Without this _BlitTexture is min16float here, which DXC won't pass to the float
+                // Texture2D<float4> params (FXC/HLSLcc unified the two; DXC keeps them distinct).
+                #define USE_FULL_PRECISION_BLIT_TEXTURE 1
                 #pragma vertex VertEdge
                 #pragma fragment FragEdge
                 #include "SubpixelMorphologicalAntialiasingBridge.hlsl"
@@ -61,6 +65,8 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
         {
             HLSLPROGRAM
 
+                // Full-precision color input, matching the other SMAA passes and the full-float texture params.
+                #define USE_FULL_PRECISION_BLIT_TEXTURE 1
                 #pragma vertex VertNeighbor
                 #pragma fragment FragNeighbor
                 #include "SubpixelMorphologicalAntialiasingBridge.hlsl"

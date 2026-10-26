@@ -81,7 +81,7 @@ public class ShootCameraRays : MonoBehaviour
         m_RtResources.Load();
 
         // Create the RayTracingContext
-        var backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
+        var backend = RayTracingContext.GetSupportedFeatures(RayTracingBackend.Hardware).HasFlag(RayTracingFeatures.RayTracingShaders) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
         m_RtContext = new RayTracingContext(backend, m_RtResources);
 
         // Load the unified ray tracing shader

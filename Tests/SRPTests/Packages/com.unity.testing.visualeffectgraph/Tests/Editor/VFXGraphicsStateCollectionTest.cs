@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator GraphicsStateCollection_IsFilled()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/GraphicsStateCollectionTest.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
 

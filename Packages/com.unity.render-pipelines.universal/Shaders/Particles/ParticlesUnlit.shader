@@ -22,6 +22,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
         // Hidden properties - Generic
         _Surface("__surface", Float) = 0.0
         _Blend("__mode", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 0.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
@@ -53,10 +54,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
     }
 
     HLSLINCLUDE
-
-    //Particle shaders rely on "write" to CB syntax which is not supported by DXC
-    #pragma never_use_dxc
-
     ENDHLSL
 
     SubShader
@@ -107,11 +104,15 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma multi_compile_fragment _ _EXPOSURE
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DEPTH_AS_INPUT_ATTACHMENT _DEPTH_AS_INPUT_ATTACHMENT_MSAA
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
@@ -169,6 +170,54 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthOnlyPass.hlsl"
             ENDHLSL
         }
+
+        // ------------------------------------------------------------------
+        //  Shadow Caster pass.
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+
+            // -------------------------------------
+            // Render State Commands
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex ShadowCasterParticlesVertex
+            #pragma fragment ShadowCasterParticlesFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _ALPHATEST_ON
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesShadowCasterPass.hlsl"
+            ENDHLSL
+        }
         // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
@@ -206,6 +255,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
             // Includes

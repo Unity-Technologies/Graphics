@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CullingDistance;
         SerializedDataParameter m_MinSolidAngle;
 
-        static public readonly GUIContent k_RTASBuildModeText = EditorGUIUtility.TrTextContent("Acceleration Structure Build Mode", "Specifies if HDRP handles automatically the building of the ray tracing acceleration structure internally or if it's provided by the user through the camera. If manual is selected and no acceleration structure is fed to the camera, ray-traced effects are not executed and fallback to rasterization.");
+        static public readonly GUIContent k_RTASBuildModeText = L10n.TextContent("Acceleration Structure Build Mode", "Specifies if HDRP handles automatically the building of the ray tracing acceleration structure internally or if it's provided by the user through the camera. If manual is selected and no acceleration structure is fed to the camera, ray-traced effects are not executed and fallback to rasterization.", null, null);
         public override void OnEnable()
         {
             base.OnEnable();

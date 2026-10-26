@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: UnlitShaderGraph
-  m_Shader: {fileID: -6465566751694194690, guid: d1c4152ecb0f9466d9d098d6ea466df2,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: d1c4152ecb0f9466d9d098d6ea466df2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -126,10 +125,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - Color_132302224e17454faa35cc9a79b1265d: {r: 0.627451, g: 0.0627451, b: 0.0627451,
-        a: 0}
-    - Color_fa5ca8f38896499e80a31ab31e583c55: {r: 0.627451, g: 0.0627451, b: 0.0627451,
-        a: 0}
+    - Color_132302224e17454faa35cc9a79b1265d: {r: 0.627451, g: 0.0627451, b: 0.0627451, a: 0}
+    - Color_fa5ca8f38896499e80a31ab31e583c55: {r: 0.627451, g: 0.0627451, b: 0.0627451, a: 0}
     - _BaseColor: {r: 0.627451, g: 0.0627451, b: 0.0627451, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: 0, b: 0, a: 0}
@@ -151,4 +148,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11

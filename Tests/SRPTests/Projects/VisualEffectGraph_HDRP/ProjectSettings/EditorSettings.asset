@@ -37,3 +37,4 @@ EditorSettings:
   m_CacheServerEnableDownload: 1
   m_CacheServerEnableUpload: 1
   m_CacheServerEnableTls: 0
+  m_UseLegacyHierarchy: 1

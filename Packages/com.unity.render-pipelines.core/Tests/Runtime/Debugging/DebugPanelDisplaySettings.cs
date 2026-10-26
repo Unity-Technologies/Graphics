@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.Tests
             // Object
             public Object objectField { get; set; }
 
-            //public Object[] objectListField { get; set; }//= new Object[]{Camera.main, Camera.main, Camera.main };
+            public Object[] objectListField { get; set; } = new Object[] { Camera.main, Camera.main, Camera.main };
             public Object objectPopupField { get; set; }
 
             public float value1 { get; set; } = 1.123456f;
@@ -475,6 +475,12 @@ namespace UnityEngine.Rendering.Tests
                     setter = (value) => data.objectField = value
                 };
 
+                internal static DebugUI.Widget CreateObjectListField(DebugPanelDisplaySettingsData data) => new DebugUI.ObjectListField
+                {
+                    nameAndTooltip = Strings.ObjectListField,
+                    getter = () => data.objectListField,
+                };
+
                 internal static DebugUI.Widget CreateObjectPopupField(DebugPanelDisplaySettingsData data) => new DebugUI.ObjectPopupField
                 {
                     nameAndTooltip = Strings.ObjectPopupField,
@@ -697,7 +703,7 @@ namespace UnityEngine.Rendering.Tests
                         children =
                         {
                             WidgetFactory.CreateObjectField(data),
-                            //WidgetFactory.CreateObjectListField(data),
+                            WidgetFactory.CreateObjectListField(data),
                             WidgetFactory.CreateObjectPopupField(data),
                             WidgetFactory.CreateCamerasField(data),
                             WidgetFactory.CreateRenderingLayersField(data),

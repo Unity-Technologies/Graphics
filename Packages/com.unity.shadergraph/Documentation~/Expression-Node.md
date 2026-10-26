@@ -2,6 +2,9 @@
 
 Use the Expression node to specify a complex mathematical expression as a string instead of using multiple [Math nodes](Math-Nodes.md).
 
+> [!NOTE]
+> Unity injects the provided expression into the shader code as HLSL and validates it through preview shader compilation. Ensure that the provided expression conforms to HLSL syntax.
+
 ## Input ports
 
 The number and type of input ports automatically adjust to the values of the [node controls](#controls). Unity adds an input port for each variable in the expression in the text field.
@@ -29,3 +32,7 @@ If you specify the expression:
 * If you input 1, 2, and 10, the node calculates `1 + 2 * 10 / 2` and outputs the result to the **Out** port.
 
 **Note**: If you use Shader Graph math nodes instead, the example requires three separate nodes: [Divide](Divide-Node.md), [Multiply](Multiply-Node.md), and [Add](Add-Node.md).
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

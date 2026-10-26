@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Analytics;
-using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering
 {
@@ -90,7 +89,7 @@ namespace UnityEditor.Rendering
 
         static string DumpValues(this IList list)
         {
-            using (ListPool<string>.Get(out var tempList))
+            using (UnityEngine.Pool.ListPool<string>.Get(out var tempList))
             {
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -268,7 +267,7 @@ namespace UnityEditor.Rendering
 
         private static string[] EnumerableToNestedColumn<T>([DisallowNull] this IEnumerable collection)
         {
-            using (ListPool<string>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
             {
                 foreach (var element in collection)
                 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
-using UnityEditor;
+using Unity.Scripting.LifecycleManagement;
 #endif
 
 namespace UnityEngine.Rendering
@@ -12,26 +12,30 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A manager to enqueue extra probe rendering outside of probe volumes.
     /// </summary>
-    public class AdditionalGIBakeRequestsManager
+    public partial class AdditionalGIBakeRequestsManager
     {
         // The baking ID for the extra requests
         // TODO: Need to ensure this never conflicts with bake IDs from others interacting with the API.
         // In our project, this is ProbeVolumes.
-        internal static readonly int s_BakingID = 912345678;
+        internal static readonly int k_BakingID = 912345678;
 
-        private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
+        [AutoStaticsCleanup]
+        static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
         /// <summary>
         /// Get the manager that governs the additional light probe rendering requests.
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        const float kInvalidSH = 1f;
-        const float kInvalidValidity = 1f;
-        const float kValidSHThresh = 0.33f;
+        const float k_InvalidSH = 1f;
+        const float k_InvalidValidity = 1f;
+        const float k_ValidSHThresh = 0.33f;
 
-        private static Dictionary<EntityId, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<EntityId, SphericalHarmonicsL2>();
-        private static Dictionary<EntityId, float> m_SHValidity = new Dictionary<EntityId, float>();
-        private static Dictionary<EntityId, Vector3> m_RequestPositions = new Dictionary<EntityId, Vector3>();
+        [AutoStaticsCleanup]
+        static Dictionary<EntityId, SphericalHarmonicsL2> s_SHCoefficients = new Dictionary<EntityId, SphericalHarmonicsL2>();
+        [AutoStaticsCleanup]
+        static Dictionary<EntityId, float> s_SHValidity = new Dictionary<EntityId, float>();
+        [AutoStaticsCleanup]
+        static Dictionary<EntityId, Vector3> s_RequestPositions = new Dictionary<EntityId, Vector3>();
 
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
@@ -40,9 +44,9 @@ namespace UnityEngine.Rendering
         /// <param name ="probeEntityId"> The entityId of the probe doing the request.</param>
         public void EnqueueRequest(Vector3 capturePosition, EntityId probeEntityId)
         {
-            m_SHCoefficients[probeEntityId] = new SphericalHarmonicsL2();
-            m_SHValidity[probeEntityId] = kInvalidSH;
-            m_RequestPositions[probeEntityId] = capturePosition;
+            s_SHCoefficients[probeEntityId] = new SphericalHarmonicsL2();
+            s_SHValidity[probeEntityId] = k_InvalidSH;
+            s_RequestPositions[probeEntityId] = capturePosition;
         }
 
         /// <summary>
@@ -51,11 +55,11 @@ namespace UnityEngine.Rendering
         /// <param name ="probeInstanceID">The instance ID of the probe for which we want to dequeue a request. </param>
         public void DequeueRequest(EntityId probeInstanceID)
         {
-            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            if (s_SHCoefficients.ContainsKey(probeInstanceID))
             {
-                m_SHCoefficients.Remove(probeInstanceID);
-                m_SHValidity.Remove(probeInstanceID);
-                m_RequestPositions.Remove(probeInstanceID);
+                s_SHCoefficients.Remove(probeInstanceID);
+                s_SHValidity.Remove(probeInstanceID);
+                s_RequestPositions.Remove(probeInstanceID);
             }
         }
 
@@ -69,11 +73,11 @@ namespace UnityEngine.Rendering
         [Obsolete("Use RetrieveProbe instead. #from(6000.2)")]
         public bool RetrieveProbeSH(int probeInstanceID, out SphericalHarmonicsL2 sh, out Vector3 pos)
         {
-            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            if (s_SHCoefficients.ContainsKey(probeInstanceID))
             {
-                sh = m_SHCoefficients[probeInstanceID];
-                pos = m_RequestPositions[probeInstanceID];
-                return m_SHValidity[probeInstanceID] < kValidSHThresh;
+                sh = s_SHCoefficients[probeInstanceID];
+                pos = s_RequestPositions[probeInstanceID];
+                return s_SHValidity[probeInstanceID] < k_ValidSHThresh;
             }
 
             sh = new SphericalHarmonicsL2();
@@ -91,11 +95,11 @@ namespace UnityEngine.Rendering
         /// <returns>True if the request ID is valid.</returns>
         public bool RetrieveProbe(EntityId probeInstanceID, out Vector3 pos, out SphericalHarmonicsL2 sh, out float validity)
         {
-            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            if (s_SHCoefficients.ContainsKey(probeInstanceID))
             {
-                sh = m_SHCoefficients[probeInstanceID];
-                pos = m_RequestPositions[probeInstanceID];
-                validity = m_SHValidity[probeInstanceID];
+                sh = s_SHCoefficients[probeInstanceID];
+                pos = s_RequestPositions[probeInstanceID];
+                validity = s_SHValidity[probeInstanceID];
 
                 return true;
             }
@@ -109,9 +113,9 @@ namespace UnityEngine.Rendering
 
         static internal bool GetPositionForRequest(EntityId probeInstanceID, out Vector3 pos)
         {
-            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            if (s_SHCoefficients.ContainsKey(probeInstanceID))
             {
-                pos = m_RequestPositions[probeInstanceID];
+                pos = s_RequestPositions[probeInstanceID];
                 return true;
             }
 
@@ -126,11 +130,11 @@ namespace UnityEngine.Rendering
         /// <param name ="newPosition"> The position at which a probe is baked.</param>
         public void UpdatePositionForRequest(EntityId probeInstanceID, Vector3 newPosition)
         {
-            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            if (s_SHCoefficients.ContainsKey(probeInstanceID))
             {
-                m_RequestPositions[probeInstanceID] = newPosition;
-                m_SHCoefficients[probeInstanceID] = new SphericalHarmonicsL2();
-                m_SHValidity[probeInstanceID] = kInvalidSH;
+                s_RequestPositions[probeInstanceID] = newPosition;
+                s_SHCoefficients[probeInstanceID] = new SphericalHarmonicsL2();
+                s_SHValidity[probeInstanceID] = k_InvalidSH;
             }
             else
             {
@@ -138,7 +142,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static internal List<Vector3> GetProbeNormalizationRequests() => new List<Vector3>(m_RequestPositions.Values);
+        static internal List<Vector3> GetProbeNormalizationRequests() => new List<Vector3>(s_RequestPositions.Values);
 
         static internal void OnAdditionalProbesBakeCompleted(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
@@ -162,29 +166,35 @@ namespace UnityEngine.Rendering
 
         static internal void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
-            Debug.Assert(sh.Length == m_SHCoefficients.Count);
+            Debug.Assert(sh.Length == s_SHCoefficients.Count);
             Debug.Assert(sh.Length == validity.Length);
 
-            List<EntityId> requestsInstanceIDs = new List<EntityId>(m_SHCoefficients.Keys);
+            var requestsInstanceIDs = new List<EntityId>(s_SHCoefficients.Keys);
 
             for (int i = 0; i < sh.Length; ++i)
+            {
                 SetSHCoefficients(requestsInstanceIDs[i], sh[i], validity[i]);
+            }
         }
 
         static internal void SetSHCoefficients(EntityId instanceID, SphericalHarmonicsL2 sh, float validity)
         {
-            if (validity < kValidSHThresh)
+            if (validity < k_ValidSHThresh)
             {
                 if (IsZero(in sh))
                 {
-                    // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution
+                    // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution.
+                    // Written directly to the L0 coefficients rather than via AddAmbientLight, so the sentinel stays finite regardless of
+                    // the SupportedRenderingFeatures.divideBakedOutputByPI convention scaling.
                     const float k = float.MaxValue;
-                    sh.AddAmbientLight(new Color(k, k, k));
+                    sh[0, 0] = k;
+                    sh[1, 0] = k;
+                    sh[2, 0] = k;
                 }
             }
 
-            m_SHCoefficients[instanceID] = sh;
-            m_SHValidity[instanceID] = validity;
+            s_SHCoefficients[instanceID] = sh;
+            s_SHValidity[instanceID] = validity;
         }
     }
 #endif

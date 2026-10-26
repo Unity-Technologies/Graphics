@@ -107,6 +107,30 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugFullScreenMode fullScreenDebugMode { get; set; } = DebugFullScreenMode.None;
 
+        /// <summary>
+        /// The Batching type view enable flag.
+        /// </summary>
+        public bool batchingTypeViewEnabled { get; private set; }
+
+#if ENABLE_PROFILER
+        internal static event Action<bool> onBatchingTypeViewChanged;
+#endif
+
+        internal void SetBatchingTypeDebugEnabled(bool enabled)
+        {
+#if ENABLE_PROFILER
+            if (batchingTypeViewEnabled == enabled)
+            {
+                return;
+            }
+            batchingTypeViewEnabled = enabled;
+
+            GPUResidentDrawer.SetBatchingTypeDebugView(enabled);
+
+            onBatchingTypeViewChanged?.Invoke(enabled);
+#endif
+        }
+
         internal int stpDebugViewIndex { get; set; } = 0;
 
         /// <summary>
@@ -215,13 +239,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal bool blockSTPOverlay {
             get {
-                var asset = UniversalRenderPipeline.asset; 
+                var asset = UniversalRenderPipeline.asset;
                 return asset != null && fullScreenDebugMode == DebugFullScreenMode.STP &&
-#if ENABLE_UPSCALER_FRAMEWORK
-                    asset.upscalerName != STPIUpscaler.upscalerName;
-#else
-                    asset.upscalingFilter != UpscalingFilterSelection.STP;
-#endif
+                    // The overlay only has anything to show while STP is the upscaler actually running.
+                    UniversalRenderPipeline.upscaling?.activeUpscaler is not STPIUpscaler;
             }
         }
 
@@ -255,14 +276,15 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
             public static readonly NameAndTooltip ReflectionProbeAtlasDebugWarning = new() { name = "Warning: Reflection Probe Atlas visualization not supported for the current rendering path. Switch to Forward+ or Deferred+ to use this debug view.", tooltip = "Switch to Forward+ or Deferred+ in the main camera's Universal Renderer Data asset to use this debug overlay." };
-            public static readonly NameAndTooltip StpDebugWarning = new() { name = "Warning: STP Overlay Not Active. Enable STP upscaling filter in the render pipeline asset to use these debug view.", tooltip = "Enable STP upscaling filter in the render pipeline asset to use these debug views." };
+            public static readonly NameAndTooltip StpDebugWarning = new() { name = "Warning: STP Overlay Not Active. Enable STP upscaling filter in the render pipeline asset to use these debug views.", tooltip = "Enable STP upscaling filter in the render pipeline asset to use these debug views." };
             public static readonly NameAndTooltip StpDebugViews = new() { name = "STP Debug Views", tooltip = "Debug visualizations provided by STP." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip OverdrawMode = new() { name = "Overdraw Mode", tooltip = "Debug anywhere materials that overdrawn pixels top of each other." };
+            public static readonly NameAndTooltip BatchingType = new() { name = "Batching Type", tooltip = "Display batching type colors (GRD (Green), SRP Batcher (Blue), Unbatched (Orange), Untracked (Grey))" };
             public static readonly NameAndTooltip MaxOverdrawCount = new() { name = "Max Overdraw Count", tooltip = "Maximum overdraw count allowed for a single pixel." };
-            public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the TextureStreamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that the Streamer behaves as expected."};
+            public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the Texture Streamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that Mipmap Streaming behaves as expected."};
             public static readonly NameAndTooltip MipMapDebugView = new() { name = "Debug View", tooltip = "Use the drop-down to select a mipmap property to debug." };
             public static readonly NameAndTooltip MipMapDebugOpacity = new() { name = "Debug Opacity", tooltip = "Opacity of texture mipmap streaming debug colors." };
             public static readonly NameAndTooltip MipMapMaterialTextureSlot = new() { name = "Material Texture Slot", tooltip = "Use the drop-down to select the material texture slot to debug (does not affect terrain).\n\nThe slot indices follow the default order by which texture properties appear in the Material Inspector.\nThe default order is itself defined by the order in which (non-hidden) texture properties appear in the shader's \"Properties\" block." };
@@ -382,6 +404,22 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => data.overdrawMode = (DebugOverdrawMode)value,
                 getIndex = () => (int)data.overdrawMode,
                 setIndex = (value) => data.overdrawMode = (DebugOverdrawMode)value
+            };
+
+            internal static DebugUI.Widget CreateBatchingTypeViewEnabled(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            {
+                nameAndTooltip = Strings.BatchingType,
+                getter = () => data.batchingTypeViewEnabled,
+                setter = (value) => data.SetBatchingTypeDebugEnabled(value),
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    var asset = UniversalRenderPipeline.asset;
+                    return !asset || asset.gpuResidentDrawerMode == GPUResidentDrawerMode.Disabled;
+#else
+                    return true;
+#endif
+                }
             };
 
             internal static DebugUI.Widget CreateMaxOverdrawCount(DebugDisplaySettingsRendering data) => new DebugUI.Container()
@@ -592,7 +630,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [DisplayInfo(name = "Rendering", order = 1)]
-        [URPHelpURL("features/rendering-debugger-reference", "rendering")]
+        [URPHelpURL("urp/features/rendering-debugger-reference", "rendering")]
         internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsRendering>
         {
             public SettingsPanel(DebugDisplaySettingsRendering data)
@@ -616,6 +654,7 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
                         WidgetFactory.CreateWireframeNotSupportedWarning(data),
                         WidgetFactory.CreateOverdrawMode(data),
+                        WidgetFactory.CreateBatchingTypeViewEnabled(data),
                         WidgetFactory.CreateMaxOverdrawCount(data),
                         WidgetFactory.CreateMipMapDebugWidget(data)
                     }
@@ -666,6 +705,7 @@ namespace UnityEngine.Rendering.Universal
         public bool AreAnySettingsActive => (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
         (fullScreenDebugMode != DebugFullScreenMode.None) ||
         (sceneOverrideMode != DebugSceneOverrideMode.None) ||
+        batchingTypeViewEnabled ||
         (mipInfoMode != DebugMipInfoMode.None) ||
         (validationMode != DebugValidationMode.None) ||
         !enableMsaa ||

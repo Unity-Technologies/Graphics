@@ -1,7 +1,8 @@
 #ifndef UNIVERSAL_SPEEDTREE7BILLBOARD_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7BILLBOARD_PASSES_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
 #include "SpeedTree7CommonPasses.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half outHueVariation)
@@ -78,19 +79,19 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = input.normal; // Already calculated in world space. Can probably get rid of the world space transform in GetVertexPositionInputs too.
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
     half fogFactor = 0.0;
-#if !defined(_FOG_FRAGMENT)
-    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = TransformObjectToWorldNormal(input.normal);
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;
@@ -105,8 +106,8 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        output.shadowCoord = GetShadowCoord(vertexInput);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
     #endif
 
     return output;
@@ -153,11 +154,14 @@ SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormalBillboard(SpeedTreeVer
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = normalWS;
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;
@@ -178,25 +182,25 @@ half4 SpeedTree7FragDepthNormalBillboard(SpeedTreeVertexDepthNormalOutput input)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uvHueVariation.xy;
-    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    half4 diffuse = SampleBaseMap(uv);
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
         AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(input.clipPos);
+    LODFadeCrossFade(input.clipPos);
+
+    half3 normalWS = input.normalWS.xyz;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+        {
+            half3 normalTS = SampleNormal(uv);
+            normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+        }
     #endif
 
-    #if defined(EFFECT_BUMP)
-        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
-    #else
-        half3 normalWS = input.normalWS.xyz;
-    #endif
-
-    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), 0.0);
 }
 
 

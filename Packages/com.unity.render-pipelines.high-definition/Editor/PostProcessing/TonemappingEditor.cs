@@ -150,13 +150,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (m_Mode.value.intValue == (int)TonemappingMode.External)
             {
-                PropertyField(m_LutTexture, EditorGUIUtility.TrTextContent("Lookup Texture"));
+                PropertyField(m_LutTexture, L10n.TextContent("Lookup Texture", null, null, null));
 
                 var lut = m_LutTexture.value.objectReferenceValue;
                 if (lut != null && !((Tonemapping)target).ValidateLUT())
                     EditorGUILayout.HelpBox("Invalid lookup texture. It must be a 3D Texture or a Render Texture and have the same size as set in the HDRP settings.", MessageType.Warning);
 
-                PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
+                PropertyField(m_LutContribution, L10n.TextContent("Contribution", null, null, null));
 
                 EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
             }

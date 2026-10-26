@@ -62,7 +62,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
                 surfaceData.normalWS = 0.0;
             }
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }
@@ -92,7 +92,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
                 surfaceData.normalWS = 0.0;
             }
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }
@@ -121,7 +121,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
                 surfaceData.normalWS = 0.0;
             }
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }
@@ -150,7 +150,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
                 surfaceData.normalWS = 0.0;
             }
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }

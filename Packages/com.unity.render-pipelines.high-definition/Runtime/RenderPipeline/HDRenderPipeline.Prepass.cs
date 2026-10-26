@@ -1003,7 +1003,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.finalTextureArrayRT, AccessFlags.Write);
                 passData.reindexMap = renderGraph.ImportBuffer(m_ComputeThicknessReindexMap);
 
-                passData.rendererLists = ListPool<RendererListHandle>.Get();
+                passData.rendererLists = UnityEngine.Pool.ListPool<RendererListHandle>.Get();
                 passData.camera = hdCamera;
 
                 for (int k = 0; k < HDComputeThickness.computeThicknessMaxLayer; ++k)
@@ -1079,7 +1079,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ++idx;
                         }
 
-                        ListPool<RendererListHandle>.Release(data.rendererLists);
+                        UnityEngine.Pool.ListPool<RendererListHandle>.Release(data.rendererLists);
                     });
             }
         }

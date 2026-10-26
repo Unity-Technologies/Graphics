@@ -133,10 +133,10 @@ namespace UnityEditor.VFX.UI
 
         internal static class Contents
         {
-            public static readonly GUIContent clickToUnlock = EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
-            public static readonly GUIContent clickToLock = EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
-            public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
-            public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
+            public static readonly GUIContent clickToUnlock = L10n.TextContent("Click to enable auto-attachment to selection", null, null, null);
+            public static readonly GUIContent clickToLock = L10n.TextContent("Click to disable auto-attachment to selection", null, null, null);
+            public static readonly GUIContent attachedToGameObject = L10n.TextContent("Attached to {0}", null, null, null);
+            public static readonly GUIContent notAttached = L10n.TextContent("Select a Game Object running this VFX to attach it", null, null, null);
         }
 
         private static readonly List<string> ToolbarElementsToDisableWhenNoAsset = new ()
@@ -179,6 +179,10 @@ namespace UnityEditor.VFX.UI
 
         public bool isDisconnecting { get; private set; }
 
+        bool? m_UnsavedChangesOnClose;
+
+        internal void SetUnsavedChangesOnClose(bool hasUnsavedChanges) => m_UnsavedChangesOnClose = hasUnsavedChanges;
+
         internal IVFXViewEditorAssetEventHandler AssetEventHandler { get; set; }
 
         public static string GetSaveChangesMessage(string path)
@@ -218,7 +222,6 @@ namespace UnityEditor.VFX.UI
         void DisconnectController(VFXViewController previousController)
         {
             isDisconnecting = true;
-            VFXGraph.UnregisterAuthoringCompileData(previousController.Guid);
             var path = AssetDatabase.GUIDToAssetPath(previousController.Guid);
 
             //N.B.: This behavior shouldn't belong to view but VFXViewWindow
@@ -227,7 +230,8 @@ namespace UnityEditor.VFX.UI
                 && previousController.graph.GetResource() is { } resource)
             {
                 var previousGraph = previousController.graph;
-                if (EditorUtility.IsDirty(previousGraph))
+                var hasUnsavedChanges = m_UnsavedChangesOnClose ?? EditorUtility.IsDirty(previousGraph);
+                if (hasUnsavedChanges)
                 {
                     var choice = AssetEventHandler.AskAssetChangedBeforeClose(path);
                     if (choice == AskAssetChangedBeforeCloseChoice.Save)
@@ -362,7 +366,6 @@ namespace UnityEditor.VFX.UI
 
             SceneView.duringSceneGui += OnSceneGUI;
             AssetEventHandler ??= this;
-            VFXGraph.RegisterAuthoringCompileData(controller.Guid);
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler);
         }
 
@@ -380,10 +383,18 @@ namespace UnityEditor.VFX.UI
             foreach (var id in info.elements)
             {
                 var e = graphView.GetElementByGuid(id);
-                if (e is VFXBlackboardField || e is VFXBlackboardAttributeField)
+                if (e is VFXBlackboardField or VFXBlackboardAttributeField)
                 {
                     var tokens = id.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    blackboard.ScrollToItem(tokens.Length == 1 ? tokens[0] : tokens[1]);
+                    var itemName = tokens.Length == 1 ? tokens[0] : tokens[1];
+                    if (e is VFXBlackboardField)
+                    {
+                        blackboard.ScrollToItem<PropertyItem>(itemName);
+                    }
+                    else
+                    {
+                        blackboard.ScrollToItem<AttributeItem>(itemName);
+                    }
                     elements.Add(e);
                 }
             }
@@ -555,10 +566,10 @@ namespace UnityEditor.VFX.UI
             return picked.OfType<VFXGroupNode>().FirstOrDefault();
         }
 
-        internal VFXNodeController AddOperator(Type type)
+        internal VFXNodeController AddOperator(Type type, Vector2 mousePosition)
         {
             var desc = VFXLibrary.GetOperators().FirstOrDefault(x => x.modelType == type);
-            return AddNode(desc.variant, Event.current.mousePosition);
+            return AddNode(desc.variant, mousePosition);
         }
 
         public VFXNodeController AddNode(Variant variant, Vector2 mPos)
@@ -833,7 +844,7 @@ namespace UnityEditor.VFX.UI
             if (playModeState == PlayModeStateChange.EnteredEditMode ||
                 playModeState == PlayModeStateChange.EnteredPlayMode)
             {
-                controller.graph.PrepareGraph();
+                controller?.graph?.PrepareGraph();
             }
 
             if (playModeState == PlayModeStateChange.EnteredEditMode)
@@ -1258,6 +1269,8 @@ namespace UnityEditor.VFX.UI
                     {
                         selectionCopy.Remove(category);
                         blackboard.RemoveCategory(category.title);
+                        selection.Remove(category);
+                        selection.RemoveAll(x => x is VFXBlackboardField field && field.controller.model.category == category.title);
                         shouldClearBlackboardSelection = true;
                     }
                     selectionCopy.RemoveAll(x => x is VFXBlackboardField field && field.controller.model.category == category.title);
@@ -1266,7 +1279,11 @@ namespace UnityEditor.VFX.UI
                 foreach (var parameter in selectionCopy.OfType<VFXBlackboardField>().ToArray())
                 {
                     selectionCopy.Remove(parameter);
-                    shouldClearBlackboardSelection |= blackboard.RemoveParameter(parameter.PropertyItem);
+                    if (blackboard.RemoveParameter(parameter.PropertyItem))
+                    {
+                        selection.Remove(parameter);
+                        shouldClearBlackboardSelection = true;
+                    }
                 }
 
                 foreach (var attributeField in selectionCopy.OfType<VFXBlackboardAttributeField>().ToArray())
@@ -1274,7 +1291,11 @@ namespace UnityEditor.VFX.UI
                     selectionCopy.Remove(attributeField);
                     if (attributeField.attribute.isEditable)
                     {
-                        shouldClearBlackboardSelection |= blackboard.RemoveCustomAttribute(attributeField.attribute);
+                        if (blackboard.RemoveCustomAttribute(attributeField.attribute))
+                        {
+                            selection.Remove(attributeField);
+                            shouldClearBlackboardSelection = true;
+                        }
                     }
                     else
                     {
@@ -1293,7 +1314,13 @@ namespace UnityEditor.VFX.UI
                 var newSelection = Selection.objects.ToList();
                 newSelection.RemoveAll(x => x is VFXModel);
 
-                selection.Clear();
+                // Drop the graph elements that controller.Remove is about to destroy
+                foreach (var element in selectionCopy.OfType<IControlledElement>())
+                {
+                    if (element is ISelectable selectable)
+                        selection.Remove(selectable);
+                }
+
                 Selection.objects = newSelection.ToArray();
                 controller.Remove(selectionCopy.OfType<IControlledElement>().Select(t => t.controller).ToArray(), true);
             }
@@ -1916,32 +1943,43 @@ namespace UnityEditor.VFX.UI
                     tPos.y = (resolvedStyle.height / 2f - pos.y.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.height / 2f;
                 }
 
-                var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, null, null, null);
+                var templateAttributes = templateController.graph.attributesManager.GetCustomAttributes().ToArray();
+                var conflicts = new List<string>();
+                foreach (var attribute in templateAttributes)
+                {
+                    if (controller.graph.attributesManager.TryFind(attribute.name, out var existingAttribute) && existingAttribute.type != attribute.type)
+                        conflicts.Add($"'{attribute.name}' (template type {attribute.type}, existing type {existingAttribute.type})");
+                }
+                if (conflicts.Count > 0)
+                {
+                    Debug.LogError($"Cannot insert template '{System.IO.Path.GetFileName(path)}': the following custom attributes conflict with existing attributes of a different type: {string.Join(", ", conflicts)}. Rename or remove the conflicting attributes before inserting the template.");
+                    templateController.useCount--;
+                    return;
+                }
+
+                var pastedAttributes = templateAttributes.Select(x => new VFXCopyPasteCommon.Attribute { name = x.name, type = x.type, description = x.description, canDuplicate = false });
+                var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, pastedAttributes, null, null);
                 VFXPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 
                 templateController.useCount--;
             }
         }
 
+        public static void UpdateAssetValues(VFXGraph graph)
+        {
+            if (graph == null)
+                return;
+
+            graph.UpdateValuesIfDirty();
+            graph.UpdateMaterialIfDirty();
+        }
+
         public static void CompileAndUpdateAsset(VFXGraph graph)
         {
             var asset = graph.GetResource().asset;
-            var output = graph.CompileAndUpdateAsset(asset);
+            graph.CompileAndUpdateAsset(asset);
             // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
             graph.SetExpressionGraphDirty(false);
-
-            var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
-            VFXGraph.UpdateAuthoringCompileData(assetGuid, output.output, output.instancingEnabled, output.initialVariant, output.mode);
-        }
-
-        public static void RecompileIfNeeded(VFXGraph graph)
-        {
-            var output = graph.RecompileIfNeeded(true);
-            if (output.assetDesc.sheet.values != null)
-            {
-                var assetGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(graph));
-                VFXGraph.UpdateAuthoringValues(assetGuid, output.assetDesc.sheet.values);
-            }
         }
 
         internal void Compile()
@@ -1949,11 +1987,10 @@ namespace UnityEditor.VFX.UI
             VFXLibrary.LogUnsupportedSRP();
 
             if (controller.model.isSubgraph)
-                controller.graph.RecompileIfNeeded(false);
+                controller.graph.PrepareGraph();
             else
-            {
                 CompileAndUpdateAsset(controller.graph);
-            }
+
             foreach (var model in m_ModelsWithHiddenBadges)
             {
                 model.RefreshErrors();
@@ -3306,7 +3343,8 @@ namespace UnityEditor.VFX.UI
                 }
 
                 // Forbid dropping a subgraph output property multiple times
-                if (items.OfType<PropertyItem>().Select(x => controller.parameterControllers.SingleOrDefault(c => c.exposedName == x.title)).Any(x => x is { isOutput: true, hasNodes: true }))
+                if (items.OfType<PropertyItem>()
+                    .Any(x => x.controller is { isOutput: true, hasNodes: true }))
                 {
                     return;
                 }
@@ -3347,10 +3385,9 @@ namespace UnityEditor.VFX.UI
                 UpdateSelectionWithNewNode();
                 foreach (var item in items)
                 {
-                    if (item is PropertyItem)
+                    if (item is PropertyItem propertyItem)
                     {
-                        var parameterController = controller.parameterControllers.Single(x => x.exposedName == item.title);
-                        AddVFXParameter(mousePosition - new Vector2(50, 20), parameterController, groupNode);
+                        AddVFXParameter(mousePosition - new Vector2(50, 20), propertyItem.controller, groupNode);
                         mousePosition.y += 40;
                     }
                     else if (item is AttributeItem)
@@ -3460,7 +3497,7 @@ namespace UnityEditor.VFX.UI
 
             if (string.IsNullOrEmpty(newCategoryName))
             {
-                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>());
+                newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase), true, VFXBlackboardCategory.kMaxCategoryNameLength);
             }
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
@@ -3502,7 +3539,7 @@ namespace UnityEditor.VFX.UI
             if (IsLocked())
                 return null;
 
-            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName);
+            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName, VFXParameterController.kMaxExposedNameLength);
             var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
             controller.AddVFXModel(Vector2.zero, newVfxParameter);
 

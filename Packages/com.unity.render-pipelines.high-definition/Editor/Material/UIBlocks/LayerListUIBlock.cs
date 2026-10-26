@@ -13,11 +13,11 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Layering List");
-            public static readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
-            public static readonly GUIContent layerMaterialHeader = EditorGUIUtility.TrTextContent("Layer Material");
-            public static readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also reset UV.");
-            public static readonly GUIContent resetButtonIcon = EditorGUIUtility.TrTextContent("Reset", "Copy again Material parameters to layer. If UV is disabled, this will not copy UV."); //EditorGUIUtility.IconContent("RotateTool", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
+            public static GUIContent header { get; } = L10n.TextContent("Layering List", null, null, null);
+            public static readonly GUIContent layerNameHeader = L10n.TextContent("Layer name", null, null, null);
+            public static readonly GUIContent layerMaterialHeader = L10n.TextContent("Layer Material", null, null, null);
+            public static readonly GUIContent uvHeader = L10n.TextContent("UV", "Also reset UV.", null, null);
+            public static readonly GUIContent resetButtonIcon = L10n.TextContent("Reset", "Copy again Material parameters to layer. If UV is disabled, this will not copy UV.", null, null); //EditorGUIUtility.IconContent("RotateTool", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
         }
 
         MaterialProperty layerCount = null;

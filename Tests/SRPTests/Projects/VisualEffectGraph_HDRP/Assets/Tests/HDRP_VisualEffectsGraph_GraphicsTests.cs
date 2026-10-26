@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEngine.VFX.Test
@@ -24,13 +25,9 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("021_Check_Garbage_Spawner", "No reference images provided")]
         [IgnoreGraphicsTest("022_Repro_Crash_Null_Indexbuffer", "No reference images provided")]
         [IgnoreGraphicsTest("023_Check_Garbage_Timeline", "No reference images provided")]
-        [IgnoreGraphicsTest("026_InstancingGPUevents", "See UUM-88671", GraphicsDeviceType.Metal)]
-        [IgnoreGraphicsTest("026_RWBuffer", "Unstable: https://jira.unity3d.com/browse/UUM-119810")]
-        [IgnoreGraphicsTest("027_RWTexture", "See UUM-140411, might relate with UUM-119810", RuntimePlatform.OSXEditor)]
         [IgnoreGraphicsTest("36_SkinnedSDF", "See UUM-66822 and VFXG-539", RuntimePlatform.GameCoreXboxOne, RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("39_SmokeLighting_APV", "Too many bindings when using APVs", RuntimePlatform.Switch)]
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", RuntimePlatform.Switch)]
-        [IgnoreGraphicsTest("DebugAlbedo", "Onscreen assert", RuntimePlatform.Switch2)]
         [IgnoreGraphicsTest("Repro_SampleGradient_Branch_Instancing", "Compute shader ([Repro_SampleGradient_Branch_Instancing] [Minimal] Update Particles): Property (Repro_SampleGradient_Branch_Instancing_Buffer) at kernel index (0) is not set")]
         [IgnoreGraphicsTest("Empty", "No reference images provided")]
         [IgnoreGraphicsTest("Empty_With_Camera", "No reference images provided")]
@@ -39,9 +36,55 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
         [IgnoreGraphicsTest("PrewarmCompute", "No reference images provided")]
         [IgnoreGraphicsTest("Readback_ParticleCount", "No reference images provided")]
-        [IgnoreGraphicsTest("009_MultiCamera", "See UUM-140411", RuntimePlatform.OSXEditor)]
+        [IgnoreGraphicsTest(
+            "009_MultiCamera_MotionVector",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "07_UnityLogo",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "12_LocalTransformations",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-146723",
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "HDRP_Debug",
+            "https://jira.unity3d.com/browse/UUM-157588",
+            GraphicsDeviceType.Vulkan, GraphicsDeviceType.Direct3D12,
+            RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn
+        )]
+        [IgnoreGraphicsTest(
+            "40_InstancingSplitCompute|007_MeshSampling",
+            "https://jira.unity3d.com/browse/UUM-157507",
+            GraphicsDeviceType.Direct3D12,
+            RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn,
+            GraphicsApiValidationMode.Enabled
+        )]
+        [IgnoreGraphicsTest(
+            "027_RWTexture",
+            "https://jira.unity3d.com/browse/UGK-2500",
+            GraphicsDeviceType.Vulkan, GraphicsDeviceType.Direct3D12,
+            RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn
+        )]
 
-        [MockHmdSetup(99)]
+        [TestNotSupportedOn(
+            "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
+            "Not XR compatible", XrDevice.Any
+        )]
+
+        [MockHmdSetup]
         [AssetBundleSetup]
         [UnityTest, Category("VisualEffect")]
         [SceneGraphicsTest("Assets/AllTests/VFXTests/GraphicsTests", "Packages/com.unity.testing.visualeffectgraph/Scenes")]

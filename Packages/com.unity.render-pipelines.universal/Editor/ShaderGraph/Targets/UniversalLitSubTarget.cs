@@ -31,6 +31,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_BlendModePreserveSpecular = true;
 
+        [SerializeField]
+        bool m_ScreenSpaceReflections = true;
+
+        [SerializeField]
+        bool m_ScreenSpaceReflectionsContributeTransparent = true;
+
+        [SerializeField]
+        bool m_ReceiveFog = true;
+
         public UniversalLitSubTarget()
         {
             displayName = "Lit";
@@ -71,7 +80,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_BlendModePreserveSpecular = value;
         }
 
+        public bool screenSpaceReflections
+        {
+            get => m_ScreenSpaceReflections;
+            set => m_ScreenSpaceReflections = value;
+        }
+
+        public bool screenSpaceReflectionsContributeTransparent
+        {
+            get => m_ScreenSpaceReflectionsContributeTransparent;
+            set => m_ScreenSpaceReflectionsContributeTransparent = value;
+        }
+
+        public bool receiveFog
+        {
+            get => m_ReceiveFog;
+            set => m_ReceiveFog = value;
+        }
+
         public override bool IsActive() => true;
+
+        internal override bool supportsStencilOverride => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -90,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular, receiveFog)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -189,18 +218,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.DstBlendAlpha, 0.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+                if (target.overrideStencilState)
+                {
+                    collector.AddFloatProperty(Property.StencilRef, target.stencilReference);
+                    collector.AddFloatProperty(Property.StencilReadMask, target.stencilReadMask);
+                    collector.AddFloatProperty(Property.StencilWriteMask, target.stencilWriteMask);
+                    collector.AddFloatProperty(Property.StencilCompFunc, (float)target.stencilCompareFunction);
+                    collector.AddFloatProperty(Property.StencilPassOp, (float)target.stencilPassOperation);
+                    collector.AddFloatProperty(Property.StencilFailOp, (float)target.stencilFailOperation);
+                    collector.AddFloatProperty(Property.StencilZFailOp, (float)target.stencilZFailOperation);
+                    collector.AddFloatProperty(Property.StencilCompFuncBack, (float)target.stencilCompareFunctionBack);
+                    collector.AddFloatProperty(Property.StencilPassOpBack, (float)target.stencilPassOperationBack);
+                    collector.AddFloatProperty(Property.StencilFailOpBack, (float)target.stencilFailOperationBack);
+                    collector.AddFloatProperty(Property.StencilZFailOpBack, (float)target.stencilZFailOperationBack);
+                    AddStencilDefaultProperties(collector);
+                }
 
                 bool enableAlphaToMask = (target.alphaClip && (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
+
+            // Marker for the material UI: this shader bakes stencil writes into the ShadowCaster pass.
+            // BaseShaderGUI uses this to show a warning when the URP renderer's Shadowmap Stencil is off.
+            if (target.overrideStencilState && target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
+                collector.AddFloatProperty(Property.StencilUsesShadowPass, 1.0f);
+
+            // Material-UI marker (Property.StencilUsesPrepass); condition mirrors needsDepthOnlyPass.
+            if ((target.overrideStencilState || target.allowMaterialOverride) && target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass))
+                collector.AddFloatProperty(Property.StencilUsesPrepass, 1.0f);
 
             // We always need these properties regardless of whether the material is allowed to override other shader properties.
             // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
             // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
             collector.AddFloatProperty(Property.QueueControl, -1.0f);
+
+            // Emitted unconditionally so UpdateScreenSpaceReflectionsKeyword and
+            // UpdateScreenSpaceReflectionContributeTransparentPassState can read the sub-target
+            // defaults at material-update time to configure the runtime keyword and pass state.
+            collector.AddToggleProperty(Property.ScreenSpaceReflections, screenSpaceReflections);
+            collector.AddToggleProperty(Property.ScreenSpaceReflectionsContributeTransparent, screenSpaceReflectionsContributeTransparent);
 
             if (IsSpacewarpSupported())
             {
@@ -245,19 +304,63 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            if (target.surfaceType == SurfaceType.Transparent)
-            {
-                if (target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive)
-                    context.AddProperty("Preserve Specular Lighting", new Toggle() { value = blendModePreserveSpecular }, (evt) =>
-                    {
-                        if (Equals(blendModePreserveSpecular, evt.newValue))
-                            return;
+            bool isTransparent = target.surfaceType == SurfaceType.Transparent;
 
-                        registerUndo("Change Preserve Specular");
-                        blendModePreserveSpecular = evt.newValue;
-                        onChange();
-                    });
+            // Disable the Receive SSR toggle when transparent and not contributing. Without
+            // contributing to the SSR depth prepass, the material would sample the reflection of
+            // whatever sits behind it.
+            var receiveToggle = new Toggle() { value = screenSpaceReflections };
+            receiveToggle.SetEnabled(!isTransparent || screenSpaceReflectionsContributeTransparent);
+            context.AddProperty("Screen Space Reflections", receiveToggle, (evt) =>
+            {
+                if (Equals(screenSpaceReflections, evt.newValue))
+                    return;
+
+                registerUndo("Change Screen Space Reflections");
+                screenSpaceReflections = evt.newValue;
+                onChange();
+            });
+
+            if (isTransparent)
+            {
+                context.AddProperty("Screen Space Reflections Contribute Transparent", new Toggle() { value = screenSpaceReflectionsContributeTransparent }, (evt) =>
+                {
+                    if (Equals(screenSpaceReflectionsContributeTransparent, evt.newValue))
+                        return;
+
+                    registerUndo("Change Screen Space Reflections Contribute Transparent");
+                    screenSpaceReflectionsContributeTransparent = evt.newValue;
+                    onChange();
+                });
             }
+
+            if (isTransparent && (target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive))
+            {
+                context.AddProperty("Preserve Specular Lighting", new Toggle() { value = blendModePreserveSpecular }, (evt) =>
+                {
+                    if (Equals(blendModePreserveSpecular, evt.newValue))
+                        return;
+
+                    registerUndo("Change Preserve Specular");
+                    blendModePreserveSpecular = evt.newValue;
+                    onChange();
+                });
+            }
+
+#if VOLUMETRIC_FOG
+            if (isTransparent)
+            {
+                context.AddProperty("Receive Fog", "When enabled, the transparent surface receives fog from the Fog volume override.", 0, new Toggle() { value = receiveFog }, (evt) =>
+                {
+                    if (Equals(receiveFog, evt.newValue))
+                        return;
+
+                    registerUndo("Change Receive Fog");
+                    receiveFog = evt.newValue;
+                    onChange();
+                });
+            }
+#endif
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
@@ -340,7 +443,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular)
+            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular, bool receiveFog)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -354,9 +457,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward, LitKeywords.Forward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, receiveFog, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward, LitKeywords.Forward));
                 else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.Forward, LitKeywords.Forward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, receiveFog, CorePragmas.Forward, LitKeywords.Forward));
 
                 // ForwardOnly ComplexLit fills GBuffer too for potential custom usage of the GBuffer.
                 result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
@@ -372,7 +475,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (IsSpacewarpSupported())
                     result.passes.Add(PassVariant(CorePasses.XRMotionVectors(target), CorePragmas.XRMotionVectors));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 if (complexLit)
@@ -416,6 +519,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalTarget target,
                 WorkflowMode workflowMode,
                 bool blendModePreserveSpecular,
+                bool receiveFog,
                 PragmaCollection pragmas,
                 KeywordCollection keywords)
             {
@@ -451,11 +555,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
+                if (receiveFog && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
+
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                bool colorOn = target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !colorOn);
+                CorePasses.AddStencilStateControlToPass(ref result, target, useDefaults: !colorOn);
 
                 return result;
             }
@@ -465,6 +578,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 WorkflowMode workflowMode,
                 bool complexLit,
                 bool blendModePreserveSpecular,
+                bool receiveFog,
                 BlockFieldDescriptor[] vertexBlocks,
                 BlockFieldDescriptor[] pixelBlocks,
                 PragmaCollection pragmas,
@@ -505,11 +619,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (complexLit)
                     result.defines.Add(LitDefines.ClearCoat, 1);
 
+                if (receiveFog && (target.surfaceType == SurfaceType.Transparent || target.allowMaterialOverride))
+                {
+                    result.defines.Add(CoreKeywordDescriptors.ReceiveFog, 1);
+                    result.keywords.Add(CoreKeywordDescriptors.FogMode);
+                }
+
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                bool colorOn = target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !colorOn);
+                CorePasses.AddStencilStateControlToPass(ref result, target, useDefaults: !colorOn);
 
                 return result;
             }
@@ -553,6 +676,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
 
                 return result;
             }
@@ -628,6 +752,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
 
                 return result;
             }
@@ -659,7 +784,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness, CoreKeywordDescriptors.GBufferNormalsOct },
+                    keywords = new KeywordCollection
+                    {
+                        CoreKeywordDescriptors.WriteSmoothness,
+                        CoreKeywordDescriptors.GBufferNormalsOct,
+                        LitKeywords.ScreenSpaceReflectionsOff,
+                    },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
@@ -668,6 +798,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                CorePasses.AddStencilStateControlToPass(ref result, target,
+                    useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
 
                 return result;
             }
@@ -699,7 +832,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness },
+                    keywords = new KeywordCollection
+                    {
+                        CoreKeywordDescriptors.WriteSmoothness,
+                        CoreKeywordDescriptors.GBufferNormalsOct,
+                        LitKeywords.ScreenSpaceReflectionsOff,
+                    },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
@@ -708,6 +846,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                CorePasses.AddStencilStateControlToPass(ref result, target,
+                    useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
 
                 return result;
             }
@@ -834,7 +975,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Keywords
-        static class LitKeywords
+        internal static class LitKeywords
         {
             public static readonly KeywordDescriptor ReceiveShadowsOff = new KeywordDescriptor()
             {
@@ -845,10 +986,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
+            public static readonly KeywordDescriptor ScreenSpaceReflectionsOff = new KeywordDescriptor()
+            {
+                displayName = "Screen Space Reflections Off",
+                referenceName = "_SCREENSPACEREFLECTIONS_OFF",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment,
+            };
+
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { ScreenSpaceReflectionsOff },
                 { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
@@ -858,6 +1011,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeRotation },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
@@ -869,13 +1023,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
                 { CoreKeywordDescriptors.ClusterLightLoop },
                 { CoreKeywordDescriptors.EvaluateSh },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { ScreenSpaceReflectionsOff },
                 { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
@@ -889,7 +1046,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },

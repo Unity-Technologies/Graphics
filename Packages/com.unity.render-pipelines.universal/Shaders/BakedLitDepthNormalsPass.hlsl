@@ -1,9 +1,13 @@
 #ifndef UNIVERSAL_BAKEDLIT_DEPTH_NORMALS_PASS_INCLUDED
 #define UNIVERSAL_BAKEDLIT_DEPTH_NORMALS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+
+#if FEATURES_NORMALMAP
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
 struct Attributes
@@ -22,7 +26,7 @@ struct Varyings
     float2 uv           : TEXCOORD0;
     half3 normalWS      : TEXCOORD1;
 
-    #if defined(_NORMALMAP)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 tangentWS : TEXCOORD3;
     #endif
 
@@ -46,7 +50,7 @@ Varyings DepthNormalsVertex(Attributes input)
     // also required for per-vertex SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     output.normalWS = half3(normalInput.normalWS);
-    #if defined(_NORMALMAP)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         real sign = input.tangentOS.w * GetOddNegativeScale();
         output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
@@ -65,32 +69,30 @@ void DepthNormalsFragment(
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half4 texColor = (half4) SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+    half4 texColor = (half4) SampleBaseMap(input.uv);
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(input.positionCS);
-    #endif
+    LODFadeCrossFade(input.positionCS);
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(input.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-        #if defined(_NORMALMAP)
-            half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        half3 normalTS = SampleNormal(input.uv);
+        half3 normalWS;
+        if (UseNormalMap())
+        {
             half sgn = input.tangentWS.w;      // should be either +1 or -1
             half3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
-        #else
-            half3 normalWS = input.normalWS;
-        #endif
-
-        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
+            normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+        }
+        else
+        {
+            normalWS = input.normalWS;
+        }
+    #else
+        half3 normalWS = input.normalWS;
     #endif
+
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
         outRenderingLayers = EncodeMeshRenderingLayer();

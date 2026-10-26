@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// GPU Resident Drawer Rendering Debugger settings.
     /// </summary>
-    [CurrentPipelineHelpURL("gpu-resident-drawer")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", "urp/gpu-resident-drawer")]
+    [PipelineHelpURL("HDRenderPipelineAsset", "gpu-resident-drawer")]
     [Serializable]
     public class DebugDisplayGPUResidentDrawer : IDebugDisplaySettingsData, ISerializedDebugDisplaySettings
     {
@@ -48,6 +49,8 @@ namespace UnityEngine.Rendering
 
         internal bool overrideOcclusionTestToAlwaysPass { get; set; }
 
+        internal bool useBoundingSphereOcclusionTest { get; set; }
+
         /// <summary>Returns true if the occluder debug overlay is enabled.</summary>
         public bool occluderDebugViewEnable = false;
 
@@ -81,6 +84,7 @@ namespace UnityEngine.Rendering
             public static readonly NameAndTooltip occlusionTestOverlayEnable = new() { name = "Occlusion Test Overlay", tooltip = "Occlusion test visualisation." };
             public static readonly NameAndTooltip occlusionTestOverlayCountVisible = new() { name = "Occlusion Test Overlay Count Visible", tooltip = "Occlusion test visualisation should count visible instances instead of occluded instances." };
             public static readonly NameAndTooltip overrideOcclusionTestToAlwaysPass = new() { name = "Override Occlusion Test To Always Pass", tooltip = "Occlusion test always passes." };
+            public static readonly NameAndTooltip useBoundingSphereOcclusionTest = new() { name = "Use Bounding Sphere Occlusion Test", tooltip = "Use the legacy bounding sphere occlusion test instead of the oriented bounding box test. Useful for comparing culling efficiency." };
             public static readonly NameAndTooltip occluderContextStats = new() { name = "Occluder Context Stats", tooltip = "Show all the active occluder context textures." };
             public static readonly NameAndTooltip occluderDebugViewEnable = new() { name = "Occluder Debug View", tooltip = "Debug view of occluder texture." };
             public static readonly NameAndTooltip occluderDebugViewIndex = new() { name = "Occluder Debug View Index", tooltip = "Index of the view for which the occluder texture is displayed. Use the Occlusion Test Context Stats for a list of the views." };
@@ -261,7 +265,7 @@ namespace UnityEngine.Rendering
                 };
                 foldout.children.Add(helpBox);
 
-                GPUResidentDrawer.initializedChanged += OnGPUResidentDrawerInitialzedChanged;
+                GPUResidentDrawer.initializedChanged += OnGPUResidentDrawerInitializedChanged;
 
                 // Avoid creating GRD debug modes when it's not enabled.
                 // This debug UI currently creates ~650 DebugUI Widgets (over 80% of all debug widgets in URP).
@@ -279,6 +283,7 @@ namespace UnityEngine.Rendering
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayEnable, getter = () => data.occlusionTestOverlayEnabled, setter = value => data.occlusionTestOverlayEnabled = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayCountVisible, getter = () => data.occlusionTestOverlayCountVisible, setter = value => data.occlusionTestOverlayCountVisible = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.overrideOcclusionTestToAlwaysPass, getter = () => data.overrideOcclusionTestToAlwaysPass, setter = value => data.overrideOcclusionTestToAlwaysPass = value},
+                        new DebugUI.BoolField { nameAndTooltip = Strings.useBoundingSphereOcclusionTest, getter = () => data.useBoundingSphereOcclusionTest, setter = value => data.useBoundingSphereOcclusionTest = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occluderContextStats, getter = () => data.occluderContextStats, setter = value => data.occluderContextStats = value},
                         new DebugUI.BoolField { nameAndTooltip = Strings.occluderDebugViewEnable, getter = () => data.occluderDebugViewEnable, setter = value => data.occluderDebugViewEnable = value},
                         new DebugUI.IntField { nameAndTooltip = Strings.occluderDebugViewIndex, getter = () => data.occluderDebugViewIndex, setter = value => data.occluderDebugViewIndex = value, isHiddenCallback = () => !data.occluderDebugViewEnable, min = () => 0, max = () => Math.Max(GetOcclusionContextsCounts() - 1, 0) },
@@ -299,19 +304,15 @@ namespace UnityEngine.Rendering
                 AddInstanceCullingStatsWidget(data);
             }
 
-            private void OnGPUResidentDrawerInitialzedChanged(bool previousValue, bool currentValue)
+            private void OnGPUResidentDrawerInitializedChanged(bool previousValue, bool currentValue)
             {
-                // Reload the UI if GRD enabled state changes, from disabled to enabled only, as the UI did not have all the widgets and we need to add them
-                // in assembly reloads, or entering playmode we do not have this code path and the SettingsPanel will be recreated itself by the Rendering Debugger
-                // reconstruction.
-                if ( previousValue == false && currentValue == true )
-                    DebugManager.instance.Reset();
+                DebugManager.instance.RecreateDebugUI();
             }
 
             public override void Dispose()
             {
                 base.Dispose();
-                GPUResidentDrawer.initializedChanged -= OnGPUResidentDrawerInitialzedChanged;
+                GPUResidentDrawer.initializedChanged -= OnGPUResidentDrawerInitializedChanged;
             }
 
             private void AddInstanceCullingStatsWidget(DebugDisplayGPUResidentDrawer data)

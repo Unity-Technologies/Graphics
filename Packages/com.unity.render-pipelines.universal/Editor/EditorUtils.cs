@@ -26,11 +26,31 @@ namespace UnityEditor.Rendering.Universal
             //Measurements
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            public static readonly GUIContent alembicMotionVectors = EditorGUIUtility.TrTextContent("Alembic Motion Vectors",
-                "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.");
+            public static readonly GUIContent alembicMotionVectors = L10n.TextContent("Alembic Motion Vectors",
+                "When enabled, the material will use motion vectors from the Alembic animation cache. Should not be used on regular meshes or Alembic caches without precomputed motion vectors.", null, null);
 
-            public static readonly GUIContent xrMotionVectorsPass = EditorGUIUtility.TrTextContent("XR Motion Vectors Pass (Space Warp)",
-                "When enabled, the material will run the XR motion vectors pass to be compatible with Space Warp.");
+            public static readonly GUIContent xrMotionVectorsPass = L10n.TextContent("XR Motion Vectors Pass (Space Warp)",
+                "When enabled, the material will run the XR motion vectors pass to be compatible with Space Warp.", null, null);
+        }
+
+        // Shared by the SG target inspector and the material inspector so the two never drift.
+        internal const string shadowmapStencilWarning =
+            "Shadow Pass stencil writes require Shadowmap Stencil enabled on the active URP renderer.";
+
+        // True if at least one ScriptableRenderer in the current URP pipeline asset has its
+        // ShadowmapStencil toggle on. Used to gate warnings in shader inspectors when a material
+        // declares it uses the shadowmap stencil pass but no renderer has the buffer allocated.
+        internal static bool AnyActiveRendererHasShadowmapStencil()
+        {
+            var asset = UniversalRenderPipeline.asset;
+            if (asset == null)
+                return false;
+            foreach (var data in asset.rendererDataList)
+            {
+                if (data is UniversalRendererData urpData && urpData.shadowmapStencil)
+                    return true;
+            }
+            return false;
         }
 
         internal static void FeatureHelpBox(string message, MessageType type)

@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (vectorProperty.x > 0.0f || vectorProperty.y > 0.0f || vectorProperty.z > 0.0f)
                     {
-                        material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                        material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
                         material.EnableKeyword("_EMISSION");
                     }
 

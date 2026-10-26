@@ -19,17 +19,17 @@ namespace UnityEditor.Rendering.HighDefinition
             new Color(0f, 0f, .5f, 1f)
         };
 
-        static readonly GUIContent manipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.");
+        static readonly GUIContent manipulatonTypeContent = L10n.TextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.", null, null);
 
         static readonly string[] displayedManipulationOptions = new[] { "Simplified", "Advanced" };
 
-        static readonly GUIContent shapeContent = EditorGUIUtility.TrTextContent("Shape", "Specifies the shape of the Influence Volume.");
-        static readonly GUIContent boxSizeContent = EditorGUIUtility.TrTextContent("Box Size", "Sets the size of the Box Influence Volume on a per axis basis. The Transform Scale does not affect these dimensions.");
-        static readonly GUIContent offsetContent = EditorGUIUtility.TrTextContent("Offset", "Sets the coordinates for the Influence Volumes's center relative to the Transform Position.");
-        static readonly GUIContent blendDistanceContent = EditorGUIUtility.TrTextContent("Blend Distance", "Sets the boundaries inside the Influence Volume within which the Reflection Probe blends with other Reflection Probes. Only available for deferred Reflection Probes.");
-        static readonly GUIContent blendNormalDistanceContent = EditorGUIUtility.TrTextContent("Blend Normal Distance", "Area around the probe where the normals influence the probe. Only available for deferred Reflection Probes.");
-        static readonly GUIContent faceFadeContent = EditorGUIUtility.TrTextContent("Face Fade", "Fade faces of the cubemap.");
+        static readonly GUIContent shapeContent = L10n.TextContent("Shape", "Specifies the shape of the Influence Volume.", null, null);
+        static readonly GUIContent boxSizeContent = L10n.TextContent("Box Size", "Sets the size of the Box Influence Volume on a per axis basis. The Transform Scale does not affect these dimensions.", null, null);
+        static readonly GUIContent offsetContent = L10n.TextContent("Offset", "Sets the coordinates for the Influence Volumes's center relative to the Transform Position.", null, null);
+        static readonly GUIContent blendDistanceContent = L10n.TextContent("Blend Distance", "Sets the boundaries inside the Influence Volume within which the Reflection Probe blends with other Reflection Probes. Only available for deferred Reflection Probes.", null, null);
+        static readonly GUIContent blendNormalDistanceContent = L10n.TextContent("Blend Normal Distance", "Area around the probe where the normals influence the probe. Only available for deferred Reflection Probes.", null, null);
+        static readonly GUIContent faceFadeContent = L10n.TextContent("Face Fade", "Fade faces of the cubemap.", null, null);
 
-        static readonly GUIContent radiusContent = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the Sphere Influence Volume. The Transform Scale does not affect this value.");
+        static readonly GUIContent radiusContent = L10n.TextContent("Radius", "Sets the radius of the Sphere Influence Volume. The Transform Scale does not affect this value.", null, null);
     }
 }

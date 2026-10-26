@@ -74,10 +74,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (materialProfile != null)
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(
-                        out var defaultVolumeProfileSettings))
+                if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings))
                 {
                     var volumeProfile = defaultVolumeProfileSettings.volumeProfile;
+                    if (volumeProfile == null)
+                    {
+                        VolumeUtils.EnsureDefaultVolumeProfile();
+                        volumeProfile = defaultVolumeProfileSettings.volumeProfile;
+                    }
+
                     if (!VolumeUtils.IsDiffusionProfileRegistered(materialProfile, volumeProfile))
                     {
                         CoreEditorUtils.DrawFixMeBox(diffusionProfileNotInHDRPAsset, "Fix", () =>

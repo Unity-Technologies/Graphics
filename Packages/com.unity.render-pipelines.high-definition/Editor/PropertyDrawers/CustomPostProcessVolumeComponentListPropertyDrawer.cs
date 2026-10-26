@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var listTypes = new List<Type>();
 
-            using (HashSetPool<string>.Get(out var tmp))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var tmp))
             {
                 for (int i = 0; i < list.arraySize; i++)
                 {
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var type in listTypes)
                 {
                     atLeastOne = true;
-                    menu.AddItem(EditorGUIUtility.TrTextContent(type.Name, type.AssemblyQualifiedName), on: false, () =>
+                    menu.AddItem(L10n.TextContent(type.Name, type.AssemblyQualifiedName, null, null), on: false, () =>
                     {
                         int lastPos = currentPostProcessTypes.arraySize;
                         currentPostProcessTypes.InsertArrayElementAtIndex(lastPos);
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     });
                 }
                 if (!atLeastOne)
-                    menu.AddDisabledItem(EditorGUIUtility.TrTextContent("No Custom Post Process Available"), false);
+                    menu.AddDisabledItem(L10n.TextContent("No Custom Post Process Available", null, null, null), false);
                 menu.DropDown(new Rect(button.worldBound.position + Vector2.up * button.worldBound.size.y, Vector2.zero));
             };
             listView.itemsRemoved += (indices) => listView.allowRemove = currentPostProcessTypes.arraySize  != 1;

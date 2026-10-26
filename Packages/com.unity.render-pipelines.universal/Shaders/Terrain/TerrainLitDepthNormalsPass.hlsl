@@ -20,7 +20,7 @@ struct VaryingsDepthNormal
         float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
     #endif
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
         half4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
         half4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
@@ -51,16 +51,18 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
         o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
     #endif
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(attributes.positionWS);
-        float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
-        VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
+    o.normal.xyz = TransformObjectToWorldNormal(v.normalOS);
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+        {
+            half3 viewDirWS = GetWorldSpaceNormalizeViewDir(attributes.positionWS);
+            float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
+            VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
 
-        o.normal = half4(normalInput.normalWS, viewDirWS.x);
-        o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
-        o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
-    #else
-        o.normal = TransformObjectToWorldNormal(v.normalOS);
+            o.normal = half4(normalInput.normalWS, viewDirWS.x);
+            o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
+            o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
+        }
     #endif
 
     o.clipPos = attributes.positionCS;
@@ -85,27 +87,20 @@ void DepthNormalOnlyFragment(
     half3 normalTS = half3(0.0h, 0.0h, 1.0h);
     NormalMapMix(IN.uvSplat01, IN.uvSplat23, splatControl, normalTS);
 
-    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+    half3 normalWS = IN.normal.xyz;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+            normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = IN.viewDir;
         float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
-        half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
-        half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-    #else
-        half3 normalWS = IN.normal;
+        half3 perpixelNormalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+        half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, perpixelNormalWS);
+        normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(perpixelNormalWS, tangentWS), perpixelNormalWS));
     #endif
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-    normalWS = normalize(normalWS);
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-    outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
-    #endif
+    normalWS = NormalizeNormalPerPixel(normalWS, UseNormalMap());
+
+    outNormalWS = half4(PackNormalWSToTexture(normalWS), 0.0);
 
     #if defined(_WRITE_SMOOTHNESS)
         half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);

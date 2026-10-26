@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering
                         {
                             background = m_TransparentTexture,
                             scaledBackgrounds = null,
-                            textColor = EditorGUIUtility.isProSkin ? Color.grey : Color.darkGray
+                            textColor = EditorGUIUtility.isProSkin ? Color.grey : new Color(0.25f, 0.25f, 0.25f, 1f)
                         }
                     };
                     var activeState = new GUIStyleState
@@ -80,20 +80,6 @@ namespace UnityEditor.Rendering
         /// <summary>Style of Sub-Section Headers.</summary>
         public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
 
-
-        static System.Lazy<GUIStyle> m_HelpBox = new(() =>
-        {
-            var style = new GUIStyle()
-            {
-                imagePosition = ImagePosition.ImageLeft,
-                fontSize = 10,
-                wordWrap = true,
-                alignment = TextAnchor.MiddleLeft
-            };
-            style.normal.textColor = EditorStyles.helpBox.normal.textColor;
-            return style;
-        });
-        internal static GUIStyle helpBox => m_HelpBox.Value;
 
         #endregion
 
@@ -179,15 +165,15 @@ namespace UnityEditor.Rendering
         public static readonly GUIContent contextMenuIcon;
 
         /// <summary>Reset Content</summary>
-        public static readonly GUIContent resetButtonLabel = EditorGUIUtility.TrTextContent("Reset");
+        public static readonly GUIContent resetButtonLabel = L10n.TextContent("Reset", null, null, null);
 
         /// <summary>Reset All content</summary>
-        public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
+        public static readonly GUIContent resetAllButtonLabel = L10n.TextContent("Reset All", null, null, null);
 
         /// <summary>
         /// Empty space content in case that you want to keep the indentation but have nothing to write
         /// </summary>
-        public static readonly GUIContent empty = EditorGUIUtility.TrTextContent(" ");
+        public static readonly GUIContent empty = L10n.TextContent(" ", null, null, null);
 
         #endregion
 

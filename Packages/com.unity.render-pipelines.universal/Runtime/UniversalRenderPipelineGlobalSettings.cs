@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("urp-global-settings")]
+    [URPHelpURL("urp/urp-global-settings")]
     [DisplayInfo(name = "URP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [DisplayName("URP")]
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 11;
+        internal const int k_LastVersion = 16;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -159,6 +159,39 @@ namespace UnityEngine.Rendering.Universal
             {
                 MigrateFilmGrainTextures();
                 asset.m_AssetVersion = 11;
+            }
+
+            if (asset.m_AssetVersion < 12)
+            {
+                var exposureSettings = GetOrCreateGraphicsSettings<URPExposureSettings>(asset);
+                exposureSettings.UseExposure = false;
+                asset.m_AssetVersion = 12;
+            }
+
+            if (asset.m_AssetVersion < 13)
+            {
+                var shadowBiasSettings = GetOrCreateGraphicsSettings<URPShadowBiasSettings>(asset);
+                shadowBiasSettings.depthBiasMode = ShadowDepthBiasMode.Legacy;
+                asset.m_AssetVersion = 13;
+            }
+
+            if (asset.m_AssetVersion < 14)
+            {
+                MigrateScreenSpaceAmbientOcclusionToVolumeProfiles(asset);
+                asset.m_AssetVersion = 14;
+            }
+
+            if (asset.m_AssetVersion < 15)
+            {
+                var shadowBiasSettings = GetOrCreateGraphicsSettings<URPShadowBiasSettings>(asset);
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Caster;
+                asset.m_AssetVersion = 15;
+            }
+
+            if (asset.m_AssetVersion < 16)
+            {
+                MigrateLightFalloffMode(asset);
+                asset.m_AssetVersion = 16;
             }
 
             // If the asset version has changed, means that a migration step has been executed
@@ -297,6 +330,186 @@ namespace UnityEngine.Rendering.Universal
             catch (System.Exception ex)
             {
                 Debug.LogWarning($"URP: Failed to migrate terrain detail shader settings: {ex.Message}. Terrain detail shaders will use default values.");
+            }
+        }
+
+        static void MigrateScreenSpaceAmbientOcclusionToVolumeProfiles(UniversalRenderPipelineGlobalSettings data)
+        {
+            // SSAO is now driven by the volume stack, so the renderer feature settings are no longer read.
+            // The default profile goes first because a quality profile can reference that same asset.
+            MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(data);
+            MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles();
+        }
+
+        static void MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles()
+        {
+            var migratedProfiles = new Dictionary<VolumeProfile, UniversalRenderPipelineAsset>();
+            foreach (var urpAsset in EnumerateQualityLevelPipelineAssets())
+            {
+                var profile = urpAsset.volumeProfile;
+                if (profile == null || !TryGetActiveScreenSpaceAmbientOcclusionFeature(urpAsset, out var ssaoFeature))
+                    continue;
+
+                if (migratedProfiles.TryGetValue(profile, out var sourceAsset))
+                {
+                    Debug.LogWarning($"URP: The volume profile '{profile.name}' is shared by the pipeline assets '{sourceAsset.name}' and '{urpAsset.name}'. " +
+                        $"Its Screen Space Ambient Occlusion override uses the settings of '{sourceAsset.name}'.");
+                    continue;
+                }
+
+                // Authored by the user, or already migrated
+                if (profile.Has<ScreenSpaceAmbientOcclusionVolumeOverride>())
+                    continue;
+
+                var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: true);
+                CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
+                PersistVolumeOverride(profile, ssaoOverride);
+                migratedProfiles.Add(profile, urpAsset);
+            }
+        }
+
+        static void MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(UniversalRenderPipelineGlobalSettings data)
+        {
+            // The default profile is shared by every quality level, so it can only hold the active pipeline's settings
+            var profile = GetOrCreateGraphicsSettings<URPDefaultVolumeProfileSettings>(data).volumeProfile;
+            if (profile == null)
+                return;
+
+            // Authored by the user, or already migrated
+            if (profile.Has<ScreenSpaceAmbientOcclusionVolumeOverride>())
+                return;
+
+            ScreenSpaceAmbientOcclusion ssaoFeature = null;
+            bool active = GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urpAsset
+                && TryGetActiveScreenSpaceAmbientOcclusionFeature(urpAsset, out ssaoFeature);
+
+            var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: active);
+
+            if (active)
+                CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
+
+            PersistVolumeOverride(profile, ssaoOverride);
+        }
+
+        static IEnumerable<UniversalRenderPipelineAsset> EnumerateQualityLevelPipelineAssets()
+        {
+            var visited = new HashSet<UniversalRenderPipelineAsset>();
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount; i++)
+            {
+                if (QualitySettings.GetRenderPipelineAssetAt(i) is UniversalRenderPipelineAsset urpAsset && visited.Add(urpAsset))
+                    yield return urpAsset;
+            }
+
+            // Quality levels without their own asset render with the default one
+            if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset defaultAsset && visited.Add(defaultAsset))
+                yield return defaultAsset;
+        }
+
+        static bool TryGetActiveScreenSpaceAmbientOcclusionFeature(UniversalRenderPipelineAsset urpAsset, out ScreenSpaceAmbientOcclusion ssaoFeature)
+        {
+            ssaoFeature = null;
+            return urpAsset.TryGetRendererData(urpAsset.m_DefaultRendererIndex, out var rendererData)
+                && rendererData != null
+                && rendererData.TryGetRendererFeature<ScreenSpaceAmbientOcclusion>(out ssaoFeature)
+                && ssaoFeature.isActive;
+        }
+
+        static void PersistVolumeOverride(VolumeProfile profile, VolumeComponent volumeOverride)
+        {
+            // A profile that only lives in memory cannot hold the override as a sub-asset
+            if (!EditorUtility.IsPersistent(profile))
+                return;
+
+            // A read-only profile cannot store the override, and the version bump would hide the loss
+            if (!AssetDatabase.MakeEditable(AssetDatabase.GetAssetPath(profile)))
+            {
+                Debug.LogWarning($"URP: The volume profile '{profile.name}' is not editable, so its Screen Space Ambient Occlusion settings were not migrated. " +
+                    "Make the asset editable and add the override manually.");
+                return;
+            }
+
+            AssetDatabase.AddObjectToAsset(volumeOverride, profile);
+
+            // Ensure only saves the global settings asset, so the version bump would outlive the override
+            EditorUtility.SetDirty(volumeOverride);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssetIfDirty(profile);
+        }
+
+        static void CopyRendererFeatureSettingsToVolumeOverride(ScreenSpaceAmbientOcclusion feature, ScreenSpaceAmbientOcclusionVolumeOverride ssaoOverride)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var settings = feature.settings;
+#pragma warning restore CS0618
+
+            // Custom quality keeps the copied values instead of applying a preset
+            ssaoOverride.mode = ScreenSpaceAmbientOcclusionMode.SSAO;
+            ssaoOverride.quality = ScreenSpaceAmbientOcclusionQuality.Custom;
+
+            ssaoOverride.intensity = settings.Intensity;
+            ssaoOverride.radius = settings.Radius;
+            ssaoOverride.falloffDistance = settings.Falloff;
+            ssaoOverride.directLightingStrength = settings.DirectLightingStrength;
+            ssaoOverride.downsample = settings.Downsample;
+            ssaoOverride.afterOpaque = settings.AfterOpaque;
+
+            // Note: sample count and blur quality run high to low on the feature, low to high on the volume
+            ssaoOverride.method = settings.AOMethod switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise => ScreenSpaceAmbientOcclusionNoiseMethod.BlueNoise,
+                _ => ScreenSpaceAmbientOcclusionNoiseMethod.InterleavedGradient
+            };
+
+            ssaoOverride.depthSource = settings.Source switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth => ScreenSpaceAmbientOcclusionDepthSource.Depth,
+                _ => ScreenSpaceAmbientOcclusionDepthSource.DepthNormals
+            };
+
+            ssaoOverride.normalQuality = settings.NormalSamples switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.NormalQuality.High => ScreenSpaceAmbientOcclusionNormalQuality.High,
+                ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium => ScreenSpaceAmbientOcclusionNormalQuality.Medium,
+                _ => ScreenSpaceAmbientOcclusionNormalQuality.Low
+            };
+
+            ssaoOverride.blurQuality = settings.BlurQuality switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High => ScreenSpaceAmbientOcclusionBlurQuality.High,
+                ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Medium => ScreenSpaceAmbientOcclusionBlurQuality.Medium,
+                _ => ScreenSpaceAmbientOcclusionBlurQuality.Low
+            };
+
+            ssaoOverride.sampleCount = settings.Samples switch
+            {
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High => ScreenSpaceAmbientOcclusionSampleCount.High,
+                ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium => ScreenSpaceAmbientOcclusionSampleCount.Medium,
+                _ => ScreenSpaceAmbientOcclusionSampleCount.Low
+            };
+
+            // GTAO and temporal filtering have no feature equivalent and keep the override defaults
+        }
+
+        static void MigrateLightFalloffMode(UniversalRenderPipelineGlobalSettings data)
+        {
+            // Quadratic is the value a user had to opt into, so it wins when assets disagree.
+            var lightFalloffSettings = GetOrCreateGraphicsSettings<URPLightFalloffSettings>(data);
+
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets"))
+                    continue;
+
+                var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
+#pragma warning disable 618 // Type or member is obsolete
+                if (urpAsset == null || urpAsset.m_ObsoleteLightFalloffMode != LightFalloffMode.Quadratic)
+                    continue;
+#pragma warning restore 618
+
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
+                break;
             }
         }
 

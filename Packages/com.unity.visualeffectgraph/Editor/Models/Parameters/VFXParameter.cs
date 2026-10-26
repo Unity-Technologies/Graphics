@@ -178,14 +178,13 @@ namespace UnityEditor.VFX
             {
                 if (m_IsOutput != value)
                 {
-                    m_IsOutput = value;
-
-                    if (m_IsOutput)
+                    if (value)
                     {
                         var oldSlot = outputSlots[0];
                         var newSlot = VFXSlot.Create(new VFXProperty(oldSlot.property.type, "i"), VFXSlot.Direction.kInput);
                         newSlot.value = oldSlot.value;
                         oldSlot.UnlinkAll(true);
+                        m_IsOutput = value;
                         ReplaceSlot(oldSlot, newSlot);
 
                         if (m_Nodes != null && m_Nodes.Count > 1)
@@ -202,6 +201,7 @@ namespace UnityEditor.VFX
                         var newSlot = VFXSlot.Create(new VFXProperty(oldSlot.property.type, "o"), VFXSlot.Direction.kOutput);
                         newSlot.value = oldSlot.value;
                         oldSlot.UnlinkAll(true);
+                        m_IsOutput = value;
                         ReplaceSlot(oldSlot, newSlot);
 
                         ResetOutputValueExpression();
@@ -491,6 +491,7 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
+            onModified -= OnModified;
             onModified += OnModified;
             if (!isOutput && outputSlots.Count > 0)
             {

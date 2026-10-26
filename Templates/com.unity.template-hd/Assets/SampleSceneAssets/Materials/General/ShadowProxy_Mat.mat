@@ -264,6 +264,7 @@ Material:
     - _UnlitColor: {r: 0, g: 0, b: 0, a: 1}
     - _UnlitColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &109166935848551558
 MonoBehaviour:
   m_ObjectHideFlags: 11

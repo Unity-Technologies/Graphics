@@ -1,6 +1,6 @@
-# Set Position (Sequential)
+# Set Position (Sequential) Block
 
-Menu Path : **Position > Set Position (Sequential : \<SequentialMode\>)**
+Menu Path : **Position** > **Set Position (Sequential : \<SequentialMode\>)**
 
 The **Set Position (Sequential)** Block calculates a position based on arithmetic sequences and stores the result in the **position** attribute. Optionally, it can also calculate a position based on an offset index in the sequence and store the result in the **targetPosition** attribute.
 

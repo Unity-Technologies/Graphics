@@ -12,12 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
   m_Name: BakedLighting
   m_EditorClassIdentifier: 
+  m_Version: 0
   TutorialTitle:
     m_Untranslated: Baked Lighting
-  m_TutorialTitle: 
   m_LessonId: 1010
-  m_Version: 0
-  m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
+  m_Pages:
+    m_Items:
+    - {fileID: 11400000, guid: b783a23ca052a3b478dc9372df37d7a1, type: 2}
+    - {fileID: 11400000, guid: 58378efb5de1aa2438eca872486c7756, type: 2}
+    - {fileID: 11400000, guid: 63da3039a99009241b899644febb5cdd, type: 2}
+    - {fileID: 11400000, guid: 71b086629e9add24dbcf4cc6e55c7ff5, type: 2}
+    - {fileID: 11400000, guid: 8c0e7c51c2285dc44a96db3fc8c7e591, type: 2}
+  m_SceneManagementBehavior: 2
+  m_ReturnToPreviousScenes: 1
+  m_Scenes:
+  - {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
   m_DefaultSceneCameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -34,16 +43,24 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_ExitBehavior: 1
-  m_SkipTutorialBehavior: 0
-  m_AssetSelectedOnExit: {fileID: 0}
-  m_WelcomePage: {fileID: 0}
-  m_CompletedPage: {fileID: 0}
+  m_ProgressTrackingEnabled: 1
   m_WindowLayout: {fileID: 0}
-  m_Pages:
-    m_Items:
-    - {fileID: 11400000, guid: b783a23ca052a3b478dc9372df37d7a1, type: 2}
-    - {fileID: 11400000, guid: 58378efb5de1aa2438eca872486c7756, type: 2}
-    - {fileID: 11400000, guid: 63da3039a99009241b899644febb5cdd, type: 2}
-    - {fileID: 11400000, guid: 71b086629e9add24dbcf4cc6e55c7ff5, type: 2}
-    - {fileID: 11400000, guid: 8c0e7c51c2285dc44a96db3fc8c7e591, type: 2}
+  CompletionDialog: {fileID: 0}
+  Initiated:
+    m_PersistentCalls:
+      m_Calls: []
+  PageInitiated:
+    m_PersistentCalls:
+      m_Calls: []
+  GoingBack:
+    m_PersistentCalls:
+      m_Calls: []
+  Completed:
+    m_PersistentCalls:
+      m_Calls: []
+  Quit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Scene: {fileID: 0}
+  m_TutorialTitle: 
+  m_FaqEntries: []

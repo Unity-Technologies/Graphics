@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
 
         public bool valid { get; }
         public string name { get; }
-        public object value => field.GetValue(instance);
+        public object value => @field.GetValue(instance);
         public VFXSettingAttribute.VisibleFlags visibility { get; private set; }
 
         public void SetReadOnly()

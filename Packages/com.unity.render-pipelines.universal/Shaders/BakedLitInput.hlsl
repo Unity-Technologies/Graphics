@@ -1,9 +1,18 @@
 #ifndef UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
 #define UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
+TEXTURE2D(_BaseMap);
+SAMPLER(sampler_BaseMap);
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_BaseMap);
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
@@ -12,6 +21,7 @@ CBUFFER_START(UnityPerMaterial)
     half _Cutoff;
     half _Glossiness;
     half _Metallic;
+    half _Blend;
     UNITY_TEXTURE_STREAMING_DEBUG_VARS;
 CBUFFER_END
 
@@ -22,12 +32,14 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
     UNITY_DOTS_INSTANCED_PROP(float , _Glossiness)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
+    UNITY_DOTS_INSTANCED_PROP(float , _Blend)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 static float4 unity_DOTS_Sampled_BaseColor;
 static float  unity_DOTS_Sampled_Cutoff;
 static float  unity_DOTS_Sampled_Glossiness;
 static float  unity_DOTS_Sampled_Metallic;
+static float  unity_DOTS_Sampled_Blend;
 
 void SetupDOTSBakedLitMaterialPropertyCaches()
 {
@@ -35,6 +47,7 @@ void SetupDOTSBakedLitMaterialPropertyCaches()
     unity_DOTS_Sampled_Cutoff     = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _Cutoff);
     unity_DOTS_Sampled_Glossiness = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _Glossiness);
     unity_DOTS_Sampled_Metallic   = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _Metallic);
+    unity_DOTS_Sampled_Blend      = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float , _Blend);
 }
 
 #undef UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES
@@ -44,7 +57,13 @@ void SetupDOTSBakedLitMaterialPropertyCaches()
 #define _Cutoff             unity_DOTS_Sampled_Cutoff
 #define _Glossiness         unity_DOTS_Sampled_Glossiness
 #define _Metallic           unity_DOTS_Sampled_Metallic
+#define _Blend              unity_DOTS_Sampled_Blend
 
 #endif
+
+half GetBumpScale()            { return half(1.0); }
+
+half4 SampleBaseMap(float2 uv) { return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv); }
+half4 SampleBumpMap(float2 uv) { return SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv); }
 
 #endif

@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
             LocalMode,
             InvertOverrideLevels,
 
-            Count
+            Count,
         }
 
         [SerializeField]
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering
             }
             if (version == Version.InvertOverrideLevels - 1)
             {
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 ProbeVolumeBakingSet.SyncBakingSets();
                 var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(gameObject.scene);
                 if (bakingSet != null)
@@ -41,21 +41,21 @@ namespace UnityEngine.Rendering
                     lowestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - highestSubdivLevelOverride, 0, 5);
                     highestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - tmpLowest, 0, 5);
                 }
-                #endif
+#endif
 
                 version++;
             }
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(this);
-            #endif
+#endif
         }
 
         /// <summary>
         /// If is a global bolume
         /// </summary>
         [SerializeField, Obsolete("Use mode instead. #from(2023.1)")]
-        public bool globalVolume = false;
+        public bool globalVolume;
 
     }
 }

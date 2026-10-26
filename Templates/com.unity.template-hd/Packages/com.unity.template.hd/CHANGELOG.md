@@ -4,6 +4,32 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.3.0] - 2026-09-16
+
+- Upgraded version to Unity 6000.7.0b1
+- Disabled Static Batching
+
+## [16.2.2] - 2026-08-07
+
+- Bump SRP packages to 17.7.0
+- Disabled the GPU Resident Drawer
+
+## [16.2.1] - 2026-06-03
+
+### Changed
+
+- Renamed HDRP Assets and made performant asset more adapted to handheld devices. 
+
+## [16.2.0] - 2026-04-29
+
+### Added
+
+- Added support for fast enter playmode [COPT-3750]
+
+### Changed
+
+- Upgraded version to 6000.6.0a5
+
 ## [16.1.2] - 2025-12-08
 
 ### Added

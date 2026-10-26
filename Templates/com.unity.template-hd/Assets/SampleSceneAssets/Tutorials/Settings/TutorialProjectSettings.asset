@@ -31,4 +31,6 @@ MonoBehaviour:
       m_Prefab: {fileID: 0}
     m_Enabled: 1
   m_TutorialStyle: {fileID: 11400000, guid: bcaf24dcefa7047b19a2b51c946e64bf, type: 2}
-  m_RestoreDefaultAssetsOnTutorialReload: 0
+  m_RestoreAssetsBackupOnTutorialReload: 0
+  m_ReportUrl: https://discussions.unity.com/c/learn/50
+  m_AppendDataToReport: 0

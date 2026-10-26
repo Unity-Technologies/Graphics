@@ -11,6 +11,7 @@ Explore nodes that enable color and channel manipulation, mathematical and proce
 | [Custom Render Texture nodes](Custom-Render-Texture-Nodes.md) | Learn about properties and data of custom render textures.                           |
 | [Input](Input-Nodes.md)                                       | Learn about values, mesh attributes, gradients, matrices, deformation data, PBR parameters, scene information, and texture sampling options. |
 | [Math](Math-Nodes.md)                                         | Learn about mathematical operations.                                                 |
+| [Particle](Particle-Nodes.md)                                 | Learn about particle system transforms, color, and Texture Sheet Animation data in a Shader Graph shader. |
 | [Procedural](Procedural-Nodes.md)                             | Learn about creating patterns, noise textures, and geometric shapes.                                                                         |
 | [SpeedTree](SpeedTree8-SubGraphAssets.md)                     | Learn about using SpeedTree 8 Sub Graph assets |
 | [UI](UI-Nodes.md)                                               | Learn about nodes specifically designed for UI elements, including render type handling, element texture sampling, and layout-based UVs.      |

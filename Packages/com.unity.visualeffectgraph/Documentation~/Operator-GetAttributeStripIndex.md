@@ -1,4 +1,4 @@
-# Get Attribute: stripIndex
+# Get Attribute: stripIndex Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: stripIndex**
 

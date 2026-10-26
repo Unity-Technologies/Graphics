@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const int k_OverridesHeadersAllWidth = 17;
         const int k_OverridesHeadersNoneWidth = 50;
 
-        static readonly GUIContent overrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
+        static readonly GUIContent overrideTooltip = L10n.TextContent("", "Override this setting in component.", null, null);
 
         public static void DrawWithOverride(FrameSettingsExtractedDatas.DataLinked boundInstance, int groupIndex, SerializedFrameSettings.Mask serializedMask)
         {
@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData, serializedMask))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, true);
@@ -212,7 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData, serializedMask))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, true);
@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, false);
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var currentIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = field.indentLevel;
 
-                GUIContent label = EditorGUIUtility.TrTextContent(field.displayedName, field.tooltip);
+                GUIContent label = L10n.TextContent(field.displayedName, field.tooltip, null, null);
                 using (new TitleDrawingScope(remainingsOnLine, label, field.boundData.boundData))
                     remainingsOnLine = DrawLabel(remainingsOnLine, label);
                 DrawFieldPart(remainingsOnLine, field, false);
@@ -476,13 +476,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void OverridesHeaders(Rect rect, FrameSettingsExtractedDatas.DataLinked boundInstance, SerializedFrameSettings.Mask mask, int groupIndex)
         {
-            if (GUI.Button(new Rect(rect.x + k_OverridesHeadersPadding, rect.y, k_OverridesHeadersAllWidth, rect.height), EditorGUIUtility.TrTextContent("All", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton))
+            if (GUI.Button(new Rect(rect.x + k_OverridesHeadersPadding, rect.y, k_OverridesHeadersAllWidth, rect.height), L10n.TextContent("All", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.", null, null), CoreEditorStyles.miniLabelButton))
             {
                 boundInstance.SetAllAllowedOverridesTo(mask, groupIndex, true);
                 GUI.changed = true;
             }
                 
-            if (GUI.Button(new Rect(rect.x + k_OverridesHeadersAllWidth + k_OverridesHeadersPadding*2, rect.y, k_OverridesHeadersNoneWidth, rect.height), EditorGUIUtility.TrTextContent("None", "Toggle all overrides off."), CoreEditorStyles.miniLabelButton))
+            if (GUI.Button(new Rect(rect.x + k_OverridesHeadersAllWidth + k_OverridesHeadersPadding*2, rect.y, k_OverridesHeadersNoneWidth, rect.height), L10n.TextContent("None", "Toggle all overrides off.", null, null), CoreEditorStyles.miniLabelButton))
             {
                 boundInstance.SetAllAllowedOverridesTo(mask, groupIndex, false);
                 GUI.changed = true;
@@ -549,13 +549,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (header != null)
                 Add(header);
             foreach (var descriptor in m_BoundInstance.GetDescriptorForGroup(m_GroupIndex))
-                Add(CreateFieldLayout(descriptor), descriptor.field);
+                Add(CreateFieldLayout(descriptor), descriptor.frameSettingsField);
         }
 
         protected virtual VisualElement CreateHeader() => null;
 
         protected virtual LineField CreateFieldLayout(FrameSettingsExtractedDatas.DataLinked.FieldDescriptor descriptor)
-            => new LineField(descriptor.field, CreateInnerFieldLayout(descriptor));
+            => new LineField(descriptor.frameSettingsField, CreateInnerFieldLayout(descriptor));
 
         VisualElement CreateInnerFieldLayout(FrameSettingsExtractedDatas.DataLinked.FieldDescriptor descriptor)
         {
@@ -903,7 +903,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         
             //Handle direct impact of override toggle on value to display
             //Line is not fully constructed yet. So we must delay
-            AddDelayedInit(descriptor.field, elt =>
+            AddDelayedInit(descriptor.frameSettingsField, elt =>
             {
                 //Line not fully constructed yet -> Delaying
                 UpdateFieldAlongOverrides(toggle, GetSiblingFieldOnLine(toggle), descriptor);
@@ -928,7 +928,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddDelayedInit(field, elt =>
                 {
-                    m_QuickAccess[field].AddDependence(descriptor.field);
+                    m_QuickAccess[field].AddDependence(descriptor.frameSettingsField);
 
                     //As there is no common interface allowing to RegisterValueChangedCallback
                     //without knowing the type first, only handling supported types.

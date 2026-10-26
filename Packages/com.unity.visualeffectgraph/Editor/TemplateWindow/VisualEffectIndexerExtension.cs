@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
 {
     static class VisualEffectIndexerExtension
     {
-        [CustomObjectIndexer(typeof(VisualEffectAsset), version = 0)]
+        [CustomObjectIndexer(typeof(VisualEffectAsset), version = 1)]
         internal static void VisualEffectImporterIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
         {
             if (VFXTemplateHelperInternal.TryGetTemplateStatic(context.id, out var template))

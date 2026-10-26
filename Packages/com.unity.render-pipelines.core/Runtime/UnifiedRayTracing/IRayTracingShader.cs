@@ -1,3 +1,4 @@
+using System;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
@@ -94,6 +95,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <summary>
         /// Adds a command in cmd to dispatch this IRayTracingShader.
         /// </summary>
+        /// <param name="cmd">CommandBuffer to register the command to.</param>
+        /// <param name="scratchBuffer">Temporary buffer used during the shader's ray tracing calls.</param>
+        /// <param name="argsBuffer">Buffer with work grid dimensions.</param>
+        [Obsolete("Use DispatchIndirect instead. #from(6000.7)")]
+        void Dispatch(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer);
+
+        /// <summary>
+        /// Adds a command in cmd to dispatch this IRayTracingShader indirectly.
+        /// </summary>
         /// <remarks>
         /// Dispatches to the GPU this shader to be executed on a grid of width*height*depth threads. The grid dimensions are read directly from the argsBuffer parameter. It needs
         /// to contain 3 integers: number of threads in X dimension, number of threads in Y dimension, number of threads in Z dimension.
@@ -104,7 +114,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <param name="cmd">CommandBuffer to register the command to.</param>
         /// <param name="scratchBuffer">Temporary buffer used during the shader's ray tracing calls.</param>
         /// <param name="argsBuffer">Buffer with work grid dimensions.</param>
-        void Dispatch(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer);
+        /// <exception cref="System.InvalidOperationException">Thrown when the Hardware backend is used and the GPU does not support it. See <see cref="CapabilityMask.RayTracingIndirectDispatch"/>.</exception>
+        void DispatchIndirect(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer);
 
         /// <summary>
         /// Adds a command in cmd to set a constant buffer parameter.

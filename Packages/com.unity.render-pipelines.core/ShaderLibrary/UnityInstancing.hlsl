@@ -346,8 +346,12 @@
         #if !defined(DYNAMICLIGHTMAP_ON)
             #define UNITY_USE_SHCOEFFS_ARRAYS
         #endif
-        #if defined(SHADOWS_SHADOWMASK)
+        #if (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
             #define UNITY_USE_PROBESOCCLUSION_ARRAY
+        #elif !defined(SHADOWS_SHADOWMASK_KEYWORD_DECLARED) || (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_SPECIALIZED_VARIANTS)
+            #if defined(SHADOWS_SHADOWMASK)
+                #define UNITY_USE_PROBESOCCLUSION_ARRAY
+            #endif
         #endif
     #endif
 
@@ -368,6 +372,8 @@
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
             #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RendererUserValueArray).x)
+            UNITY_DEFINE_INSTANCED_PROP(float, unity_LightProbeUsageArray)
+            #define unity_LightProbeUsage asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_LightProbeUsageArray).x)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -384,6 +390,8 @@
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RenderingLayerArray).xxxx
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
             #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RendererUserValueArray).x)
+            UNITY_DEFINE_INSTANCED_PROP(float, unity_LightProbeUsageArray)
+            #define unity_LightProbeUsage asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_LightProbeUsageArray).x)
     #endif
         #if defined(UNITY_USE_RENDERER_BOUNDS)
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_RendererBounds_MinArray)

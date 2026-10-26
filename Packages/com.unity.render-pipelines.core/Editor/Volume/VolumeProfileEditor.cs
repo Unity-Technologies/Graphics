@@ -18,21 +18,6 @@ namespace UnityEditor.Rendering
         void OnEnable()
         {
             componentList = new VolumeComponentListEditor(this);
-            if (VolumeManager.instance.isInitialized)
-                Init();
-        }
-
-        void Init()
-        {
-            var volumeProfile = target as VolumeProfile;
-
-            if (volumeProfile == VolumeManager.instance.globalDefaultProfile)
-            {
-                componentList.SetIsGlobalDefaultVolumeProfile(true);
-                VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(volumeProfile);
-            }
-
-            componentList.Init(volumeProfile, serializedObject);
         }
 
         void OnDisable()
@@ -43,15 +28,32 @@ namespace UnityEditor.Rendering
         /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
-            if (componentList == null || componentList.asset == null)
+            if (!VolumeManager.instance.isInitialized)
             {
-                if (!VolumeManager.instance.isInitialized)
+                EditorGUILayout.HelpBox("Volume Profiles require an active Scriptable Render Pipeline, but nothing has been rendered. Make sure Scene or Game View is in focus and no debug modes are active.", MessageType.Warning);
+                return; // Defer initialization until VolumeManager is initialized
+            }
+
+            if (componentList == null)
+                componentList = new VolumeComponentListEditor(this);
+
+            var volumeProfile = target as VolumeProfile;
+
+            bool isDefaultVolumeProfile = volumeProfile == VolumeManager.instance.globalDefaultProfile;
+
+
+            bool initNeeded = componentList.asset == null ||
+                (isDefaultVolumeProfile && (componentList.asset.components == null || componentList.asset.components.Count == 0));
+
+            if (initNeeded)
+            {
+                if (isDefaultVolumeProfile)
                 {
-                    EditorGUILayout.HelpBox("Volume Profiles require an active Scriptable Render Pipeline, but nothing has been rendered. Make sure Scene or Game View is in focus and no debug modes are active.", MessageType.Warning);
-                    return; // Defer initialization until VolumeManager is initialized
+                    componentList.SetIsGlobalDefaultVolumeProfile(true);
+                    VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(volumeProfile);
                 }
 
-                Init();
+                componentList.Init(volumeProfile, serializedObject);
             }
 
             serializedObject.Update();

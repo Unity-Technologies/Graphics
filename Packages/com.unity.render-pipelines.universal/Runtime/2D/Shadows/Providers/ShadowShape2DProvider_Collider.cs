@@ -354,7 +354,22 @@ namespace UnityEngine.Rendering.Universal
             m_LastColliderSpace = Matrix4x4.identity;
         }
 
-        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        internal override bool TryGetWorldBounds(Component sourceComponent, out Bounds worldBounds)
+        {
+            var collider = sourceComponent as Collider2D;
+            if (collider == null || !collider.isActiveAndEnabled || collider.shapeCount == 0)
+            {
+                worldBounds = default;
+                return false;
+            }
+
+            // Read every time rather than cached. A cache keyed on the pose would keep bounds that were
+            // read before Physics2D synced a move.
+            worldBounds = collider.bounds;
+            return true;
+        }
+
+        public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             Collider2D collider = (Collider2D)sourceComponent;
             CalculateShadows(collider, persistantShadowShape, worldCullingBounds);

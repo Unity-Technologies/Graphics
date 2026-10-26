@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 using UnityEditor.VFX;
-using UnityEditor;
+using UnityEditor.VFX.UI;
 using UnityEditorInternal;
 
 namespace UnityEditor.Experimental.VFX.Utility
@@ -101,6 +101,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                             var parameter = property.FindPropertyRelative("m_Name");
                             string parm = parameter.stringValue;
                             parm = EditorGUILayout.TextField(ObjectNames.NicifyVariableName(property.name), parm);
+                            parm = parm is not { Length: > VFXParameterController.kMaxExposedNameLength } ? parm : parm[..VFXParameterController.kMaxExposedNameLength];
 
                             if (parm != parameter.stringValue)
                             {

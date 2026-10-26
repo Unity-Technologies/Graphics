@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.Tests
         readonly string m_AssetPath = $"Assets/{nameof(TestRenderPipelineAssetForVolume)}.asset";
         RenderPipelineAsset m_RenderPipelineAsset;
 
+        Camera m_Camera = null;
+
         [UnityOneTimeSetUp]
         public IEnumerator OneTimeSetup()
         {
@@ -28,10 +30,12 @@ namespace UnityEditor.Rendering.Tests
             GraphicsSettings.defaultRenderPipeline = m_RenderPipelineAsset;
             Assume.That(GraphicsSettings.currentRenderPipeline, Is.InstanceOf<TestRenderPipelineAssetForVolume>());
 
-            var camera = new GameObject("TestCamera").AddComponent<Camera>();
-            camera.Render();
-            yield return null;
-            Object.DestroyImmediate(camera.gameObject);
+            m_Camera = new GameObject("TestCamera").AddComponent<Camera>();
+            m_Camera.Render();
+
+            // To ensure the frame fully completes, including all rendering, before checking if the pipeline was created.
+            yield return new WaitForEndOfFrame();
+
             Assume.That(RenderPipelineManager.currentPipeline, Is.InstanceOf<TestRenderPipeline>());
 
             m_VolumeManager = VolumeManager.instance;
@@ -41,6 +45,8 @@ namespace UnityEditor.Rendering.Tests
         [UnityOneTimeTearDown]
         public IEnumerator OneTimeTearDown()
         {
+            Object.DestroyImmediate(m_Camera.gameObject);
+
             GraphicsSettings.defaultRenderPipeline = null;
             AssetDatabase.DeleteAsset(m_AssetPath);
 

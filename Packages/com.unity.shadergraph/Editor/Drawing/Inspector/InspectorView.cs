@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 var currentInspectables = new HashSet<IInspectable>();
                 foreach (var selectable in selection)
                 {
-                    if (selectable is IInspectable inspectable)
+                    if (selectable is IInspectable inspectable && inspectable.GetObjectToInspect() != null)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
                         currentInspectablesCount++;

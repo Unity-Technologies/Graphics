@@ -59,7 +59,6 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  m_ImportDependencies: []
   m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []

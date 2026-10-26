@@ -97,6 +97,8 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> vtFeedbackVariables = new List<string>();
 
+        public bool hasPromotedPropertiesInInspector;
+
         public string deprecationMessage;
         public bool isDeprecated;
 

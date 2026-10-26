@@ -536,7 +536,7 @@ void GenerateRayMapLocal(uint3 id: SV_DispatchThreadID) {
     float4 newValuePrevX = (id.x > 0) ? rayMapTmp[int3(id.x - 1, id.y, id.z)] : 0;
     float4 newValuePrevY = (id.y > 0) ? rayMapTmp[int3(id.x, id.y - 1, id.z)] : 0;
     float4 newValuePrevZ = (id.z > 0) ? rayMapTmp[int3(id.x, id.y, id.z - 1)] : 0;
-    for (uint i = startId; i < endId && (i < upperBoundCount - 1); i++)
+    for (uint i = startId; i < endId && (i < upperBoundCount); i++)
     {
         uint idTri = triangleIDs[i];
         Tri tri = trianglesUV[idTri];
@@ -695,7 +695,7 @@ void DistanceTransform(uint3 id: SV_DispatchThreadID) {
     }
     uint endId = accumCounter[id3(idSeed)];
     float dist = 9999;
-    for (uint i = startId; (i < endId) && (i < upperBoundCount-1); i++)
+    for (uint i = startId; (i < endId) && (i < upperBoundCount); i++)
     {
         uint idTri = triangleIDs[i];
         Tri tri = trianglesUV[idTri];

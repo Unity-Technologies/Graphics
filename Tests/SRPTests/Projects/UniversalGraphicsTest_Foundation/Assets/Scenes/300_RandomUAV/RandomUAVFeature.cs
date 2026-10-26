@@ -129,7 +129,15 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 imageSize = new Vector4(dummyDesc.width, dummyDesc.height, 0, 0);
 
                 randomUAVDescriptor.enableRandomWrite = true;
-                randomUAVDescriptor.name = "_UAVTextureBuffer";                
+                randomUAVDescriptor.name = "_UAVTextureBuffer";
+
+                // The descriptor is cloned from the camera color target, whose format may not be
+                // usable as a read-write (UAV) texture on every platform. For example, Metal disallows BGRA
+                // and sRGB UAV textures (MTLReadWriteTextureTier2 lists only RGBA8Unorm, UUM-134015).
+                // If the format doesn't support load/store, remap to R8G8B8A8_UNorm. The shader
+                // addresses channels semantically (.rgba), so channel order is irrelevant to the result.
+                if (!SystemInfo.IsFormatSupported(randomUAVDescriptor.format, GraphicsFormatUsage.LoadStore))
+                    randomUAVDescriptor.format = GraphicsFormat.R8G8B8A8_UNorm;
 
                 // Setup the random UAV Texture Target
                 UAVResources.uavTextureBuffer = renderGraph.CreateTexture(randomUAVDescriptor);

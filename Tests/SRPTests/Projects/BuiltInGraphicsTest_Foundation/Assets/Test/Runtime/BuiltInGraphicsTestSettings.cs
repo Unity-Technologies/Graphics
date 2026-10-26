@@ -3,7 +3,6 @@ using UnityEngine.TestTools.Graphics;
 public class BuiltInGraphicsTestSettings : GraphicsTestSettings
 {
     public int WaitFrames = 0;
-    public bool XRCompatible = true;
 
     public BuiltInGraphicsTestSettings()
     {

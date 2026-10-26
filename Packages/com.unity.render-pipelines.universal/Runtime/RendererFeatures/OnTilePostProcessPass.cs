@@ -189,9 +189,12 @@ public class OnTilePostProcessPass : ScriptableRenderPass
             passData.useXRVisibilityMesh = useVisibilityMesh;
             passData.msaaSamples = (int)srcDesc.msaaSamples;
 
-            // When rendering into the backbuffer, we could enable the shader resolve extension to resolve into the msaa1x surface directly on platforms that support auto resolve.
-            // For platforms that don't support auto resolve, the backbuffer is a multisampled surface and we don't need to enable the extension. This is to maximize the pass merging because shader resolve enabled pass has to be the last subpass.
-            bool useMultisampledShaderResolve = (int)srcDesc.msaaSamples > destInfo.msaaSamples && k_SupportsMultisampleShaderResolve;
+            // When rendering into the backbuffer, we could enable the shader resolve extension to resolve into the msaa1x surface directly.
+            // We only enable the extension when resolving an MSAA surface to a non MSAA surface or resolving an MSAA surface to an auto resolve surface (auto resolve surface is a msaa4x surface layered on top of an msaa1x surface).
+            // The extension should be disabled in other cases to maximize the pass merging because a pass with shader resolve must be the last subpass of its native render pass — no subsequent raster pass can merge into it.
+            bool useMultisampledShaderResolve = k_SupportsMultisampleShaderResolve &&
+                ((int)srcDesc.msaaSamples > destInfo.msaaSamples ||
+                srcDesc.msaaSamples != MSAASamples.None && SystemInfo.supportsMultisampleAutoResolve);
 
             ExtendedFeatureFlags featureFlags = ExtendedFeatureFlags.None;
 
@@ -346,7 +349,7 @@ public class OnTilePostProcessPass : ScriptableRenderPass
                 Vector4 vignetteXRCenter;
                 var xrLayout = XRSystem.currentLayout;
 
-                if (xrLayout != null && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                if (xrPass.isQuadViewInnerPass)
                 {
                     // Second pass (inner views): Reuse the cached peripheral vignette center
                     // This ensures vignette is calculated in the outer UV space after remapping
@@ -398,11 +401,19 @@ public class OnTilePostProcessPass : ScriptableRenderPass
                 tonemapping.mode.value == TonemappingMode.Neutral);
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES,
                 tonemapping.mode.value == TonemappingMode.ACES);
+            bool isAgX = tonemapping.mode.value == TonemappingMode.AgX;
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapAgX, isAgX);
+            if (isAgX)
+            {
+                Tonemapping.GetAgXCurveConstants(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, out float agxToeA, out float agxSlope);
+                m_OnTileUberMaterial.SetVector(ShaderConstants._AgxParams, new Vector4(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, agxToeA, agxSlope));
+            }
         }
         else
         {
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapNeutral, false);
             CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapACES, false);
+            CoreUtils.SetKeyword(m_OnTileUberMaterial, ShaderKeywordStrings.TonemapAgX, false);
         }
     }
 
@@ -443,5 +454,6 @@ public class OnTilePostProcessPass : ScriptableRenderPass
         public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
         public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
         public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
+        public static readonly int _AgxParams = Shader.PropertyToID("_AgxParams");
     }
 }

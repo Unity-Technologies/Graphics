@@ -155,78 +155,18 @@ namespace UnityEditor.ShaderGraph
         {
             // preview is always generating a full shader, even when previewing within a subgraph
             bool isGeneratingSubgraph = owner.isSubGraph && !mode.IsPreview();
-
-            switch (property.propertyType)
+            if (isGeneratingSubgraph && property.promoteToFinalShader)
             {
-                case PropertyType.Boolean:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Float:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Vector2:
-                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Vector3:
-                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Vector4:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Color:
-                    switch (property.sgVersion)
-                    {
-                        case 0:
-                        case 2:
-                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                            break;
-                        case 1:
-                        case 3:
-                            //Exposed color properties get put into the correct space automagikally by Unity UNLESS tagged as HDR, then they just get passed in as is.
-                            //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
-                            if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
-                            {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.GetHLSLVariableName(isGeneratingSubgraph, mode)}) : {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                            }
-                            break;
-                        default:
-                            throw new Exception($"Unknown Color Property Version on property {property.displayName}");
-                    }
-                    break;
-                case PropertyType.Matrix2:
-                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Matrix3:
-                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Matrix4:
-                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Texture2D:
-                    sb.AppendLine($"UnityTexture2D {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Texture3D:
-                    sb.AppendLine($"UnityTexture3D {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Texture2DArray:
-                    sb.AppendLine($"UnityTexture2DArray {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Cubemap:
-                    sb.AppendLine($"UnityTextureCube {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.SamplerState:
-                    sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
-                case PropertyType.Gradient:
-                    if (mode.IsPreview())
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph, mode))};");
-                    else
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
-                    break;
+                //Subgraph node has to handle cross compatible assignment 
+                sb.AppendLine("#ifdef HAVE_VFX_MODIFICATION");
+                EmitPropertyAssignment(sb, mode, property.GetHLSLVariableName(isGeneratingSubgraph, GenerationMode.VFX));
+                sb.AppendLine("#else");
+                EmitPropertyAssignment(sb, mode, property.GetHLSLVariableName(isGeneratingSubgraph, mode));
+                sb.AppendLine("#endif");
+            }
+            else
+            {
+                EmitPropertyAssignment(sb, mode, property.GetHLSLVariableName(isGeneratingSubgraph, mode));
             }
 
             if (property.isConnectionTestable)
@@ -235,6 +175,82 @@ namespace UnityEditor.ShaderGraph
                 // If generating preview mode code, we always inline the value, according to code gen requirements.
                 // The parent graph always sets the explicit value to be passed to a subgraph function.
                 sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode.IsPreview() || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+            }
+        }
+
+        void EmitPropertyAssignment(ShaderStringBuilder sb, GenerationMode mode, string rhs)
+        {
+            switch (property.propertyType)
+            {
+                case PropertyType.Boolean:
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Float:
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Vector2:
+                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Vector3:
+                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Vector4:
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Color:
+                    switch (property.sgVersion)
+                    {
+                        case 0:
+                        case 2:
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                            break;
+                        case 1:
+                        case 3:
+                            //Exposed color properties get put into the correct space automagikally by Unity UNLESS tagged as HDR, then they just get passed in as is.
+                            //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
+                            if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
+                            {
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({rhs}) : {rhs};");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                            }
+                            break;
+                        default:
+                            throw new Exception($"Unknown Color Property Version on property {property.displayName}");
+                    }
+                    break;
+                case PropertyType.Matrix2:
+                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Matrix3:
+                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Matrix4:
+                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Texture2D:
+                    sb.AppendLine($"UnityTexture2D {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Texture3D:
+                    sb.AppendLine($"UnityTexture3D {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Texture2DArray:
+                    sb.AppendLine($"UnityTexture2DArray {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Cubemap:
+                    sb.AppendLine($"UnityTextureCube {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.SamplerState:
+                    sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
+                case PropertyType.Gradient:
+                    if (mode.IsPreview())
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(rhs)};");
+                    else
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {rhs};");
+                    break;
             }
         }
 

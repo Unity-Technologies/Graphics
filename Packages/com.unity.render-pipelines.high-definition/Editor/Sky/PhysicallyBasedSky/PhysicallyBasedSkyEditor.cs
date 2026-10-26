@@ -47,8 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
         GUIContent[] m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
         int[] m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
 
-        static public readonly GUIContent k_NewMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Physically Based Sky Material asset template.");
-        static public readonly GUIContent k_CustomMaterial = EditorGUIUtility.TrTextContent("Material", "Sets a custom material that will be used to render the PBR Sky. If set to None, the default Rendering Mode is used.");
+        static public readonly GUIContent k_NewMaterialButtonText = L10n.TextContent("New", "Creates a new Physically Based Sky Material asset template.", null, null);
+        static public readonly GUIContent k_CustomMaterial = L10n.TextContent("Material", "Sets a custom material that will be used to render the PBR Sky. If set to None, the default Rendering Mode is used.", null, null);
 
         static public readonly string k_NewSkyMaterialText = "Physically Based Sky";
 
@@ -101,8 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ModelTypeField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null);
 
             using (var scope = new OverridablePropertyScope(property, title, this))
             {

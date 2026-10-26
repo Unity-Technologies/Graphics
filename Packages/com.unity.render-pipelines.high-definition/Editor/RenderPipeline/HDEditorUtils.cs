@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static bool ResetMaterialKeywords(Material material)
             => HDShaderUtils.ResetMaterialKeywords(material);
 
-        static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
+        static readonly GUIContent s_OverrideTooltip = L10n.TextContent("", "Override this setting in component.", null, null);
 
         internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum
@@ -311,7 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (panelName != null)
             {
-                DebugManager.instance.RequestEditorWindowPanel(panelName);
+                DebugManager.instance.RequestPanelSelection(panelName);
             }
         }
 

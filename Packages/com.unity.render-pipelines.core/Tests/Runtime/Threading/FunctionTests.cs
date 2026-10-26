@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Tests;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -180,10 +181,23 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
         {
             Assert.Ignore("These tests are not supported on WebGPU");
         }
+
+        // Compute output buffer reads back all zeros under UGK on D3D12; Vulkan UGK is unaffected.
+        if (UnityGraphicsKernelTestUtils.IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+        {
+            Assert.Ignore("Compute buffer readback returns all zeros under UGK on D3D12 - https://jira.unity3d.com/browse/UGK-2877");
+        }
     }
 
+    private const int kMicrosoftVendorId = 0x1414;
+    private const int kBasicRenderDriverDeviceId = 0x8c;
+
+    private static bool IsD3D12WarpAdapter() =>
+        SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12
+        && SystemInfo.graphicsDeviceVendorID == kMicrosoftVendorId
+        && SystemInfo.graphicsDeviceID == kBasicRenderDriverDeviceId;
+
     [Test]
-    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
 #if UNITY_ANDROID
@@ -200,6 +214,13 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
             Assert.Ignore("ReadAtBroadcast/native wave broken on Adreno 650 / Samsung Galaxy S20 FE (Vulkan)");
         }
 #endif
+
+        if (IsD3D12WarpAdapter()
+            && (kernel == Kernel.ReadAtBroadcast || kernel == Kernel.ReadAtShuffle)
+            && waveSizeKeyword == WaveSizeKeyword.WAVE_SIZE_NATIVE)
+        {
+            Assert.Ignore("WaveReadLaneAt with the native wave size removes the D3D12 WARP device - https://jira.unity3d.com/browse/UUM-151453");
+        }
 
         int groupSize = (int)GroupSizeKeyword.GROUP_SIZE_128;
 
@@ -237,7 +258,6 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     }
 
     [Test]
-    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-111743")]
     public void GroupTest([Values]Kernel kernel, [Values]GroupSizeKeyword groupSizeKeyword)
     {
         int groupSize = (int)groupSizeKeyword;

@@ -11,8 +11,8 @@ If you change the **Behavior** property of the block, the Block changes to the f
 
 You can add the Kill Shape Block to the following Contexts:
 
-- [Initialize](Context-Initialize.md)
-- [Update](Context-Update.md)
+- [Initialize Particle Context](Context-Initialize.md)
+- [Update Particle Context](Context-Update.md)
 
 To add a Kill Shape Block to your graph, open the graph element menu as described in [Adding graph elements](VisualEffectGraphWindow.md#adding-graph-elements) then select **Collision** > **Kill Shape**.
 

@@ -1,26 +1,30 @@
-using System.Collections.Generic;
-
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     class StructuredDataDescriptionWriter : IDataDescriptionWriter<StructuredData>
     {
         private static readonly string StructuredBufferTypeDefine = "STRUCTURED_BUFFER_TYPE";
 
+        static string BufferResourceName(string containerName) => $"_{containerName}_buffer";
+
         public void WriteDescription(ShaderWriter shaderWriter, DataView dataView, StructuredData structuredData, string name, CompilationContext context)
         {
             shaderWriter.IncludeFile("Packages/com.unity.visualeffectgraph/Shaders/Temp/Data/ByteAddressBuffer.hlsl");
 
+            shaderWriter.WriteVariableDeclaration(StructuredBufferTypeDefine, BufferResourceName(name));
+            shaderWriter.NewLine();
+
             shaderWriter.WriteLine($"struct {name}");
             shaderWriter.OpenBlock();
             shaderWriter.WriteLine("VFXByteAddressBuffer buffer;");
+            shaderWriter.WriteLine("uint instanceStride;");
             shaderWriter.NewLine();
 
             var layoutCompilationData = context.data.Get<DataLayoutContainer>();
             layoutCompilationData.TryGetLayout(dataView.DataContainer.Id, out var layout);
 
-            shaderWriter.WriteLine("void Init()");
+            shaderWriter.WriteLine("void Init(ThreadData threadData)");
             shaderWriter.OpenBlock();
-            shaderWriter.WriteLine($"buffer.Init(_{name}_buffer, 0u, {layout.GetBufferSize()});");
+            shaderWriter.WriteLine($"buffer.Init({BufferResourceName(name)}, {layout.GetBufferSize()} * threadData.instancingData.activeIndex, {layout.GetBufferSize()});");
             shaderWriter.CloseBlock();
             shaderWriter.NewLine();
 
@@ -54,13 +58,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock();
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView,
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode,
             string name, string sourceName, CompilationContext context)
         {
             shaderWriter.WriteLine($"struct {name}View");
             shaderWriter.OpenBlock();
-            foreach (var subDataView in readDataView.Children)
+            foreach (var subDataView in dataView.Children)
             {
+                if (!dataNode.Reads(subDataView.Id)) continue;
                 var subData = subDataView.DataDescription;
                 if (subData is ValueData valueData)
                 {
@@ -72,8 +77,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine($"void Init({sourceName} buffer)");
             shaderWriter.OpenBlock();
 
-            foreach (var subDataView in readDataView.Children)
+            foreach (var subDataView in dataView.Children)
             {
+                if (!dataNode.Reads(subDataView.Id)) continue;
                 var subData = subDataView.DataDescription;
                 if (subData is ValueData)
                 {
@@ -103,10 +109,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return string.Empty;
         }
 
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode)
         {
-            if (writtenDataView.Id.IsValid)
+            if (dataView.Valid && dataNode.Writes(dataView.Id))
             {
                 shaderWriter.Define(StructuredBufferTypeDefine, "RWByteAddressBuffer");
                 return;
@@ -115,17 +120,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.Define(StructuredBufferTypeDefine, "ByteAddressBuffer");
         }
 
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
+        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode)
         {
-            if (usedDataView.Id.IsValid)
+            if (dataView.Valid)
             {
                 shaderWriter.Undefine(StructuredBufferTypeDefine);
             }
         }
-        public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
-        {
-            yield return (StructuredBufferTypeDefine, $"_{name}_buffer");
-        }
+
+        public string GetResourceName(DataView dataView) => BufferResourceName(dataView.DataContainer.IdentifierName);
     }
 }

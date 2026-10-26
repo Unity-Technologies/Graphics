@@ -5,6 +5,8 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.Universal.UniversalRenderPipeline.Profiling.Pipeline;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -65,9 +67,7 @@ namespace UnityEngine.Rendering.Universal
     /// Enumeration that indicates what kind of upscaling filter is being used
     /// </summary>
     ///
-#if ENABLE_UPSCALER_FRAMEWORK
     [Obsolete("ImageUpscalingFilter is no longer used #from(6000.3)")]
-#endif
     internal enum ImageUpscalingFilter
     {
         /// Bilinear filtering
@@ -82,9 +82,7 @@ namespace UnityEngine.Rendering.Universal
         /// Spatial-Temporal Post-Processing
         STP,
 
-#if ENABLE_UPSCALER_FRAMEWORK
         IUpscaler
-#endif
     }
 
     /// <summary>
@@ -329,9 +327,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ref float renderScale => ref frameData.Get<UniversalCameraData>().renderScale;
         internal ref ImageScalingMode imageScalingMode => ref frameData.Get<UniversalCameraData>().imageScalingMode;
-#if ENABLE_UPSCALER_FRAMEWORK
         [Obsolete("upscalingFilter is no longer used #from(6000.3)")]
-#endif
         internal ref ImageUpscalingFilter upscalingFilter => ref frameData.Get<UniversalCameraData>().upscalingFilter;
         internal ref bool fsrOverrideSharpness => ref frameData.Get<UniversalCameraData>().fsrOverrideSharpness;
         internal ref float fsrSharpness => ref frameData.Get<UniversalCameraData>().fsrSharpness;
@@ -664,6 +660,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ref List<int> resolution => ref frameData.Get<UniversalShadowData>().resolution;
 
+        internal ref ShadowDepthBiasMode depthBiasMode => ref frameData.Get<UniversalShadowData>().depthBiasMode;
+
+        internal ref ShadowNormalBiasMode normalBiasMode => ref frameData.Get<UniversalShadowData>().normalBiasMode;
+
         internal ref bool isKeywordAdditionalLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordAdditionalLightShadowsEnabled;
         internal ref bool isKeywordSoftShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordSoftShadowsEnabled;
         internal ref int mainLightShadowResolution => ref frameData.Get<UniversalShadowData>().mainLightShadowResolution;
@@ -858,9 +858,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
         public static readonly int offscreenUIViewportParams = Shader.PropertyToID("_OffscreenUIViewportParams");
         public static readonly int screenSpaceIrradiance = Shader.PropertyToID("_ScreenSpaceIrradiance");
-#if URP_SCREEN_SPACE_REFLECTION
         public static readonly int screenSpaceReflection = Shader.PropertyToID("_ScreenSpaceReflectionTexture");
-#endif
+        public static readonly int screenSpaceReflectionRayDistance = Shader.PropertyToID("_ScreenSpaceReflectionRayDistanceTexture");
     }
 
     /// <summary>
@@ -923,6 +922,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
         public static readonly GlobalKeyword SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
         public static readonly GlobalKeyword SoftShadowsHigh = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsHigh);
+        public static readonly GlobalKeyword MainLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.MainLightShadowsSoftPcss);
+        public static readonly GlobalKeyword AdditionalLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightShadowsSoftPcss);
         public static readonly GlobalKeyword MixedLightingSubtractive = GlobalKeyword.Create(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
         public static readonly GlobalKeyword LightmapShadowMixing = GlobalKeyword.Create(ShaderKeywordStrings.LightmapShadowMixing);
         public static readonly GlobalKeyword ShadowsShadowMask = GlobalKeyword.Create(ShaderKeywordStrings.ShadowsShadowMask);
@@ -930,6 +931,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword RenderPassEnabled = GlobalKeyword.Create(ShaderKeywordStrings.RenderPassEnabled);
         public static readonly GlobalKeyword BillboardFaceCameraPos = GlobalKeyword.Create(ShaderKeywordStrings.BillboardFaceCameraPos);
         public static readonly GlobalKeyword LightCookies = GlobalKeyword.Create(ShaderKeywordStrings.LightCookies);
+        public static readonly GlobalKeyword VolumetricFog = GlobalKeyword.Create(ShaderKeywordStrings.VolumetricFog);
+        public static readonly GlobalKeyword FogAnalytic = GlobalKeyword.Create(ShaderKeywordStrings.FogAnalytic);
+        public static readonly GlobalKeyword FogVolumetric = GlobalKeyword.Create(ShaderKeywordStrings.FogVolumetric);
         public static readonly GlobalKeyword DepthNoMsaa = GlobalKeyword.Create(ShaderKeywordStrings.DepthNoMsaa);
         public static readonly GlobalKeyword DepthMsaa2 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa2);
         public static readonly GlobalKeyword DepthMsaa4 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa4);
@@ -945,6 +949,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword WriteSmoothness = GlobalKeyword.Create(ShaderKeywordStrings.WriteSmoothness);
         public static readonly GlobalKeyword ScreenSpaceOcclusion = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceOcclusion);
         public static readonly GlobalKeyword ScreenSpaceIrradiance = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceIrradiance);
+        public static readonly GlobalKeyword Exposure = GlobalKeyword.Create(ShaderKeywordStrings.Exposure);
         public static readonly GlobalKeyword _SPOT = GlobalKeyword.Create(ShaderKeywordStrings._SPOT);
         public static readonly GlobalKeyword _DIRECTIONAL = GlobalKeyword.Create(ShaderKeywordStrings._DIRECTIONAL);
         public static readonly GlobalKeyword _POINT = GlobalKeyword.Create(ShaderKeywordStrings._POINT);
@@ -998,6 +1003,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword APPLICATION_SPACE_WARP_MOTION_TRANSPARENT = GlobalKeyword.Create(ShaderKeywordStrings.APPLICATION_SPACE_WARP_MOTION_TRANSPARENT);
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
+
+        public static readonly GlobalKeyword LightFalloffQuadratic = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffQuadratic);
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1094,7 +1101,13 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for high quality soft shadows. </summary>
         public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
 
-        /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
+        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on the main directional light. </summary>
+        internal const string MainLightShadowsSoftPcss = "_MAIN_LIGHT_SHADOWS_SOFT_PCSS";
+
+        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on additional punctual lights. </summary>
+        internal const string AdditionalLightShadowsSoftPcss = "_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS";
+
+        /// <summary> Deprecated keyword, equivalent to LightmapShadowMixing without ShadowsShadowMask. Use those instead. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
 
         /// <summary> Keyword used for mixing lightmap shadows. </summary>
@@ -1114,6 +1127,18 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Light Cookies. </summary>
         public const string LightCookies = "_LIGHT_COOKIES";
+
+        /// <summary> Keyword used when any volume-driven fog is active, to dim lit surfaces by its height-fog attenuation. </summary>
+        public const string VolumetricFog = "_VOLUMETRIC_FOG";
+
+        /// <summary> Keyword used when the volume-driven analytic fog renders without a v-buffer. </summary>
+        public const string FogAnalytic = "_FOG_ANALYTIC";
+
+        /// <summary> Keyword used when the volumetric fog v-buffer is available for sampling. </summary>
+        public const string FogVolumetric = "_FOG_VOLUMETRIC";
+
+        /// <summary> Keyword used on transparent materials that sample the volume-driven fog in their forward pass. </summary>
+        public const string TransparentReceiveFog = "_TRANSPARENT_RECEIVE_FOG";
 
         /// <summary> Keyword used for no Multi Sampling Anti-Aliasing (MSAA). </summary>
         public const string DepthNoMsaa = "_DEPTH_NO_MSAA";
@@ -1205,6 +1230,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Neutral Tonemapping. </summary>
         public const string TonemapNeutral = "_TONEMAP_NEUTRAL";
 
+        /// <summary> Keyword used for AgX Tonemapping. </summary>
+        public const string TonemapAgX = "_TONEMAP_AGX";
+
         /// <summary> Keyword used for Film Grain. </summary>
         public const string FilmGrain = "_FILM_GRAIN";
 
@@ -1222,6 +1250,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
+
+        /// <summary> Keyword used for Exposure. </summary>
+        public const string Exposure = "_EXPOSURE";
 
         /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public const string Rcas = "_RCAS";
@@ -1398,6 +1429,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for depth as input attachment MSAA. </summary>
         public const string DEPTH_AS_INPUT_ATTACHMENT_MSAA = "_DEPTH_AS_INPUT_ATTACHMENT_MSAA";
+
+        /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
+        public const string LightFalloffQuadratic = "_LIGHT_FALLOFF_QUADRATIC";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1502,58 +1536,124 @@ namespace UnityEngine.Rendering.Universal
                 return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
+        // Populates cameraData.backbufferColor/backbufferDepth for screen and targetTexture paths.
+        // XR overrides these later in UpdateCameraData with the XR eye texture properties.
+        internal static void CreateBackbufferInfo(Camera camera, UniversalCameraData cameraData, bool needsAlpha)
+        {
+            var colorFormatProxy = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, needsAlpha);
+            var depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
+
+            if (camera.targetTexture == null)
+            {
+                Vector2Int backbufferSize = RenderingUtils.GetScreenBackbufferSize(camera);
+
+                // Describe the real backbuffer's live MSAA. UpdateCameraData later overrides this
+                // with the XR eye texture properties when an XR pass is actually active.
+                cameraData.backbufferColor = new RenderTargetInfo
+                {
+                    width = backbufferSize.x,
+                    height = backbufferSize.y,
+                    volumeDepth = 1,
+                    msaaSamples = Screen.currentBackbufferMSAASamples,
+                    format = colorFormatProxy,
+                };
+                cameraData.backbufferDepth = cameraData.backbufferColor;
+                cameraData.backbufferDepth.format = depthStencilFormat;
+                cameraData.backbufferDepth.isMemoryless = UniversalRenderPipeline.IsBackbufferDepthMemorylessActive();
+            }
+            else
+            {
+                cameraData.backbufferColor = new RenderTargetInfo
+                {
+                    width = camera.targetTexture.width,
+                    height = camera.targetTexture.height,
+                    volumeDepth = camera.targetTexture.volumeDepth,
+                    msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(camera.targetTexture.descriptor),
+                    format = camera.targetTexture.graphicsFormat,
+                };
+                cameraData.backbufferDepth = cameraData.backbufferColor;
+                cameraData.backbufferDepth.format = camera.targetTexture.depthStencilFormat;
+                if (cameraData.backbufferDepth.format == GraphicsFormat.None)
+                {
+                    cameraData.backbufferDepth.format = depthStencilFormat;
+                    Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
+                }
+            }
+        }
+
+        internal static int GetIntermediateTexturesMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer)
+        {
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+            var camera = cameraData.camera;
+
+            int msaaSamples = 1;
+
+            if (rendererSupportsMSAA && camera.allowMSAA)
+            {
+                if (camera.targetTexture == null)
+                {  
+                    msaaSamples = asset.msaaSampleCount;                    
+                }
+                else
+                {
+                    msaaSamples = camera.targetTexture.antiAliasing;
+                }
+            }
+
+            // In tile-only mode the backbuffer and intermediates share a native render pass,
+            // so their MSAA counts must match the live backbuffer value.
+            // TODO: warn the user when this overrides camera.allowMSAA or asset.msaaSampleCount.
+            // TODO: deferred rendering doesn't support MSAA but will soon support tile-only mode.
+            // When multiple cameras share the same backbuffer with mixed renderers (forward + deferred),
+            // the deferred camera can't match backbuffer MSAA in tile-only mode. Needs a strategy for
+            // forcing intermediates or disabling backbuffer MSAA when deferred is in the mix.
+            bool tileOnlyMode = renderer is UniversalRenderer { useTileOnlyMode: true };
+            msaaSamples = (tileOnlyMode) ? cameraData.backbufferColor.msaaSamples : msaaSamples;
+
+            return msaaSamples;
+        }
+
+        // Creates the descriptor for URP's intermediate render textures (cameraColor, cameraDepth).
+        // Shares most properties with the backbuffer (format, depth format) but uses render-scaled
+        // dimensions and independently configured MSAA. Stored as cameraData.cameraTargetDescriptor
+        // for external users; internal code should use TextureDesc from renderGraph.GetDescriptor().
         internal static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, UniversalCameraData cameraData,
-            bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha)
+            int msaaSamples)
         {
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);
-                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
-                desc.depthBufferBits = (int)CoreUtils.GetDefaultDepthBufferBits();
-                desc.depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-                desc.msaaSamples = msaaSamples;
-                desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);           
             }
             else
             {
-                // Note: External texture replaces internal (intermediate) color buffer here, ignoring the configured internal rendering color buffer format.
-                // This is incorrect. We should use the internal rendering format throughout and blit the result to the external texture at the end (blit could be skipped if the formats match).
-                // However, this would lead to breaking changes in the URP asset as we would need to move the internal rendering format to the renderer asset.
-                // This way it could be selected separately for each target.
-                // Current workflow/workaround is to simply pick a suitable format for the external texture.
+                // Note: the intermediate color buffer inherits the external texture's format instead of using the
+                // configured internal rendering format. This is incorrect but kept for backward compatibility.
+                // Ideally we'd use the internal format throughout and blit to the external texture at the end.
                 desc = camera.targetTexture.descriptor;
-                desc.msaaSamples = msaaSamples;
-                // Note: This does not scale the underlying target size.
-                // Instead, it is the scaled viewport rect size which means the viewport offset into the target is always (0,0).
+                
                 desc.width = cameraData.scaledWidth;
                 desc.height = cameraData.scaledHeight;
-
-                if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
-                {
-                    desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                }
-                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
-                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
-                // If this is fixed then we can implement debug statement to the user explaining why some
-                // RenderTextureFormats available resolves in a black render texture when no warning or error
-                // is given.
             }
 
+            desc.graphicsFormat = cameraData.backbufferColor.format;
+            if (camera.cameraType == CameraType.SceneView && !cameraData.isHdrEnabled)
+                desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            desc.depthStencilFormat = cameraData.backbufferDepth.format;
+            desc.msaaSamples = msaaSamples;
             desc.enableRandomWrite = false;
             desc.bindMS = false;
+            desc.shadowSamplingMode = ShadowSamplingMode.None;
             desc.useDynamicScale = camera.allowDynamicResolution;
 
-            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
-            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            // Check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to.
+            // NOTE: this uses a different validation path than backbuffer MSAA (per-format kUsageMSAANx flags
+            // vs hardware-level sample count support). In tile-only mode the caller sets msaaSamples to
+            // currentBackbufferMSAASamples, but this clamp could reduce it below the backbuffer value
+            // (e.g. Mali-G78 doesn't support 2x for RTs while the GPU handles 2x in tile memory).
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
-
-            // if the target platform doesn't support storing multisampled RTs and we are doing any offscreen passes, using a Load load action on the subsequent passes
-            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
-            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
-            if (!SystemInfo.supportsStoreAndResolveAction)
-                desc.msaaSamples = 1;
 
             return desc;
         }
@@ -1566,6 +1666,8 @@ namespace UnityEngine.Rendering.Universal
             // Since LightBaker expects its punctual lights to be expressed in standard radiometric units, the intensity is pre-multiplied by PI here to counteract this.
             // This ensures that the baked punctual light intensity matches realtime intensity. (See GFXLIGHT-1755)
             const float piCorrection = Mathf.PI;
+
+            FalloffType punctualFalloff = IsQuadraticFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
 
 #if UNITY_EDITOR
             // Always extract lights in the Editor.
@@ -1634,12 +1736,12 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                lightData.falloff = FalloffType.InverseSquared;
+                lightData.falloff = punctualFalloff;
                 lightsOutput[i] = lightData;
             }
 #else
             // If Enlighten realtime GI isn't active, we don't extract lights.
-            if (SupportedRenderingFeatures.active.enlighten == false || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
+            if (SupportedRenderingFeatures.active.enlighten == false || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes & (int)LightmapBakeType.Realtime) == 0)
             {
                 for (int i = 0; i < requests.Length; i++)
                 {
@@ -1690,7 +1792,7 @@ namespace UnityEngine.Rendering.Universal
                             lightData.InitNoBake(light.GetEntityId());
                             break;
                     }
-                    lightData.falloff = FalloffType.InverseSquared;
+                    lightData.falloff = punctualFalloff;
                     lightsOutput[i] = lightData;
                 }
             }
@@ -1790,6 +1892,12 @@ namespace UnityEngine.Rendering.Universal
             lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
         }
 
+        internal static bool IsQuadraticFalloffEnabled()
+        {
+            return GraphicsSettings.TryGetRenderPipelineSettings<URPLightFalloffSettings>(out var lightFalloffSettings)
+                && lightFalloffSettings.lightFalloffMode == LightFalloffMode.Quadratic;
+        }
+
         /// <summary>
         /// Initializes common light constants.
         /// </summary>
@@ -1813,8 +1921,9 @@ namespace UnityEngine.Rendering.Universal
             if (lightIndex < 0)
                 return;
 
-            // Avoid memcpys. Pass by ref and locals for multiple uses.
-            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
+            // Avoid memcpys. Pass by ref and locals for multiple uses. Read only access on purpose: this also runs while the
+            // Forward+ culling jobs still hold a read on the array, and a write access would trip the job safety checks.
+            ref VisibleLight lightData = ref lights.UnsafeElementAt(lightIndex);
             var light = lightData.light;
             var lightLocalToWorld = lightData.localToWorldMatrix;
             var lightType = lightData.lightType;
@@ -1876,6 +1985,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly bool isSwitch2;
             public readonly bool isRunningOnPowerVRGPU;
             public readonly bool hasRenderToR32F;
+            public readonly int maxSupportedShadowAtlasResolution;
 
             public PlatformDetectionCache()
             {
@@ -1892,6 +2002,11 @@ namespace UnityEngine.Rendering.Universal
                 isSwitch2 = Application.platform == RuntimePlatform.Switch2;
                 isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
                 hasRenderToR32F = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+
+                // Calculate and cache maximum shadow atlas resolution graphics device support
+                int maxTextureSize = SystemInfo.maxTextureSize;
+                int powerOfTwo = Mathf.ClosestPowerOfTwo(maxTextureSize);
+                maxSupportedShadowAtlasResolution = powerOfTwo > maxTextureSize ? powerOfTwo >> 1 : powerOfTwo;
             }
         }
 
@@ -1949,6 +2064,12 @@ namespace UnityEngine.Rendering.Universal
         /// If true, then the runtime device supports R32_SFloat render targets. Not guaranteed on GLES 3.1 or earlier.
         /// </summary>
         internal static bool hasRenderToR32F => platformCache.Value.hasRenderToR32F;
+
+        /// <summary>
+        /// The maximum shadow atlas resolution supported by the current graphics device.
+        /// Clamped to SystemInfo.maxTextureSize, if requested > SystemInfo.maxTextureSize).
+        /// </summary>
+        internal static int maxSupportedShadowAtlasResolution => platformCache.Value.maxSupportedShadowAtlasResolution;
 
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.

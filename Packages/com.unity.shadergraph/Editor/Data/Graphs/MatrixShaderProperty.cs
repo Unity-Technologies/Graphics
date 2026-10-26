@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
             if (decl == HLSLDeclaration.HybridPerInstance)
                 return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}4x4)";
             else
@@ -31,9 +31,9 @@ namespace UnityEditor.ShaderGraph
             return HLSLDeclaration.UnityPerMaterial;
         }
 
-        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
 
             // HLSL decl is always 4x4 even if matrix smaller
             action(new HLSLProperty(HLSLType._matrix4x4, referenceName, decl, concretePrecision));

@@ -139,6 +139,8 @@ namespace UnityEditor.VFX.Test
             var cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName).First();
 
             // Act
+            // The name is trimmed before being validated, so it ends up empty and is rejected
+            LogAssert.Expect(LogType.Error, "Can't change name, '' is not a valid category name.");
             blackboard.SetCategoryName(cat, " ");
 
             // Assert
@@ -255,6 +257,143 @@ namespace UnityEditor.VFX.Test
             }
             var outputParameterField = blackboard.Q<VFXBlackboardField>();
             Assert.IsTrue(outputParameterField.controller.isOutput);
+        }
+
+        [UnityTest]
+        public IEnumerator Move_Range_Parameter_To_Output_Category_Keeps_Node_Port_Visible()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var window = VFXTestCommon.GetWindow(subgraph.GetResource(), true);
+            window.LoadResource(subgraph.GetResource());
+            yield return null;
+
+            var blackboard = window.graphView.blackboard;
+            blackboard.Update();
+            yield return null;
+
+            var viewController = window.graphView.controller;
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)));
+            var maxFrames = 16;
+            while (maxFrames-- > 0 && !viewController.parameterControllers.Any())
+            {
+                yield return null;
+            }
+
+            var parameterController = viewController.parameterControllers.Single();
+            // The blackboard row must be expanded for the Mode dropdown to be reachable, as it is in the repro
+            parameterController.expanded = true;
+            parameterController.valueFilter = VFXValueFilter.Range;
+            parameterController.maxValue = 100f;
+            viewController.LightApplyChanges();
+            maxFrames = 8;
+            while (maxFrames-- > 0)
+            {
+                yield return null;
+            }
+
+            // Act
+            // Same calls as VFXView when the property is dropped into the workspace...
+            viewController.AddVFXParameter(new Vector2(200, 200), parameterController, null);
+            yield return null;
+            // ...and as VFXBlackboard when it is then dropped onto the Output category
+            parameterController.model.category = string.Empty;
+            parameterController.isOutput = true;
+            parameterController.exposed = false;
+
+            maxFrames = 16;
+            while (maxFrames-- > 0)
+            {
+                yield return null;
+            }
+
+            // Assert
+            var parameterUI = window.graphView.Query<VFXParameterUI>().ToList().SingleOrDefault(x => x.controller?.parentController == parameterController);
+            Assert.NotNull(parameterUI, "The output parameter node was not created in the workspace.");
+            Assert.AreEqual(1, parameterUI.controller.inputPorts.Count, "The output parameter node has no input port.");
+            Assert.IsTrue(parameterUI.expanded, "The output parameter node is collapsed and cannot be expanded.");
+            var port = parameterUI.GetPorts(true, false).FirstOrDefault();
+            Assert.NotNull(port, "The output parameter node has no port element.");
+            Assert.IsTrue(port.visible, "The output parameter node port is invisible.");
+
+            // Laying the blackboard row out must not throw, otherwise the whole panel stops being
+            // updated, which is what makes the node unexpandable and its port invisible
+            var propertyView = blackboard.Query<VFXBlackboardPropertyView>().ToList().SingleOrDefault(x => x.controller == parameterController);
+            Assert.NotNull(propertyView, "The blackboard row of the output parameter was not found.");
+            var relayout = typeof(VFXBlackboardPropertyView).GetMethod("Relayout", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(relayout);
+            Assert.DoesNotThrow(() => relayout.Invoke(propertyView, null));
+        }
+
+        [Test]
+        public void Move_Parameter_To_Output_Category_And_Back_Keeps_Enum_Values()
+        {
+            // Arrange
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var viewController = VFXViewController.GetController(subgraph.GetResource(), true);
+            viewController.useCount++;
+            try
+            {
+                var parameter = viewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(uint)).variant);
+                viewController.LightApplyChanges();
+
+                var parameterController = viewController.GetParameterController(parameter);
+                parameterController.valueFilter = VFXValueFilter.Enum;
+                parameterController.model.enumValues = new List<string> { "Idle", "Walk", "Run" };
+                parameterController.value = 2u;
+                viewController.LightApplyChanges();
+
+                // Act
+                MoveToOutputCategoryAndBack(viewController, parameterController);
+
+                // Assert
+                Assert.AreEqual(VFXValueFilter.Enum, parameterController.valueFilter, "The enum mode was lost when moving the property to the Output category and back.");
+                CollectionAssert.AreEqual(new[] { "Idle", "Walk", "Run" }, parameterController.model.enumValues, "The enum labels were lost when moving the property to the Output category and back.");
+            }
+            finally
+            {
+                viewController.useCount--;
+            }
+        }
+
+        [Test]
+        public void Move_Parameter_To_Output_Category_And_Back_Keeps_Range()
+        {
+            // Arrange
+            var subgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>($"Assets/{testFolder}/vfx_{GUID.Generate()}.vfxoperator");
+            var viewController = VFXViewController.GetController(subgraph.GetResource(), true);
+            viewController.useCount++;
+            try
+            {
+                var parameter = viewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant);
+                viewController.LightApplyChanges();
+
+                var parameterController = viewController.GetParameterController(parameter);
+                parameterController.valueFilter = VFXValueFilter.Range;
+                parameterController.maxValue = 100f;
+                viewController.LightApplyChanges();
+
+                // Act
+                MoveToOutputCategoryAndBack(viewController, parameterController);
+
+                // Assert
+                Assert.AreEqual(VFXValueFilter.Range, parameterController.valueFilter, "The range mode was lost when moving the property to the Output category and back.");
+                Assert.AreEqual(0f, parameterController.minValue, "The range minimum was lost when moving the property to the Output category and back.");
+                Assert.AreEqual(100f, parameterController.maxValue, "The range maximum was lost when moving the property to the Output category and back.");
+            }
+            finally
+            {
+                viewController.useCount--;
+            }
+        }
+
+        private static void MoveToOutputCategoryAndBack(VFXViewController viewController, VFXParameterController parameterController)
+        {
+            parameterController.isOutput = true;
+            viewController.LightApplyChanges();
+            parameterController.isOutput = false;
+            viewController.LightApplyChanges();
         }
 
         [UnityTest]
@@ -480,6 +619,88 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Rename_Parameter_With_Different_Case_Only([Values("", " ")] string padding)
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
+            AddParameter(blackboard, descriptorParameter);
+            yield return null;
+
+            VFXBlackboardField blackboardField = null;
+            var maxFrames = 16;
+            while (blackboardField == null && maxFrames-- > 0)
+            {
+                yield return null;
+                blackboardField = blackboard.Q<VFXBlackboardField>();
+            }
+            Assert.NotNull(blackboardField);
+            var initialName = blackboardField.controller.exposedName;
+
+            // Act
+            var newName = initialName.ToUpperInvariant();
+            Assert.AreNotEqual(initialName, newName);
+            // Surrounding spaces are trimmed, so the name still only differs by its case
+            blackboardField.controller.exposedName = $"{padding}{newName}{padding}";
+            yield return null;
+
+            // Assert
+            Assert.AreEqual(newName, blackboardField.controller.exposedName);
+        }
+
+        [UnityTest]
+        public IEnumerator Rename_Parameter_With_Existing_Name_Gets_Unique_Name()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(int)));
+            yield return null;
+            AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(float)));
+            yield return null;
+
+            var parameterFields = new List<VFXBlackboardField>();
+            var maxFrames = 16;
+            while (parameterFields.Count != 2 && maxFrames-- > 0)
+            {
+                yield return null;
+                parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
+            }
+            Assert.AreEqual(2, parameterFields.Count);
+
+            // Act
+            var existingName = parameterFields[0].controller.exposedName;
+            parameterFields[1].controller.exposedName = existingName;
+            yield return null;
+
+            // Assert
+            Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+
+            // Renaming again to the same existing name must give the same suffix, not alternate between 1 and 2
+            for (var i = 0; i < 3; i++)
+            {
+                parameterFields[1].controller.exposedName = existingName;
+                yield return null;
+                Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator DoubleClick_To_Rename_Category()
         {
             // Arrange
@@ -624,6 +845,37 @@ namespace UnityEditor.VFX.Test
 
             // Assert
             Assert.AreEqual(newCustomAttributeName, setAttributeBlock.attribute);
+        }
+
+        [UnityTest]
+        public IEnumerator Rename_Custom_Attribute_With_Different_Case_Only()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+            blackboard.Update();
+            yield return null;
+            AddCustomAttribute(blackboard, VFXValueType.Boolean);
+            yield return null;
+
+            var customAttributeDescriptor = graph.customAttributes.Single();
+            var initialName = customAttributeDescriptor.attributeName;
+            var newName = initialName.ToUpperInvariant();
+            Assert.AreNotEqual(initialName, newName);
+
+            // Act (this is what the inspector's name field does)
+            var hasChanged = customAttributeDescriptor.Changed(initialName, newName, customAttributeDescriptor.type, customAttributeDescriptor.description);
+            yield return null;
+
+            // Assert
+            Assert.IsTrue(hasChanged);
+            Assert.AreEqual(newName, customAttributeDescriptor.attributeName);
+            Assert.IsTrue(graph.attributesManager.TryFind(newName, out var attribute));
+            Assert.AreEqual(newName, attribute.name);
         }
 
         [UnityTest, Ignore("Click event do not reach the treeview, I keep it to fix it later")]

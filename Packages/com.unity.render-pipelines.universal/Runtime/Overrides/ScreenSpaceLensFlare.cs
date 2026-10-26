@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
     ///         public FloatParameter streaksOrientation;
     ///         public ClampedFloatParameter streaksThreshold;
     ///         public ScreenSpaceLensFlareResolutionParameter resolution;
-    ///         public ClampedFloatParameter chromaticAbberationIntensity;
+    ///         public ClampedFloatParameter chromaticAberrationIntensity;
     ///
     ///
     ///         public void SetVolumeComponentSettings(ref ScreenSpaceLensFlare volumeComponent)
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
     ///             volumeComponent.streaksOrientation = streaksOrientation;
     ///             volumeComponent.streaksThreshold = streaksThreshold;
     ///             volumeComponent.resolution = resolution;
-    ///             volumeComponent.chromaticAbberationIntensity = chromaticAbberationIntensity;
+    ///             volumeComponent.chromaticAberrationIntensity = chromaticAberrationIntensity;
     ///         }
     ///
     ///         public void GetVolumeComponentSettings(ref ScreenSpaceLensFlare volumeComponent)
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
     ///             streaksOrientation = volumeComponent.streaksOrientation;
     ///             streaksThreshold = volumeComponent.streaksThreshold;
     ///             resolution = volumeComponent.resolution;
-    ///             chromaticAbberationIntensity = volumeComponent.chromaticAbberationIntensity;
+    ///             chromaticAberrationIntensity = volumeComponent.chromaticAberrationIntensity;
     ///         }
     ///     }
     ///
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScreenSpaceLensFlareResolutionParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("shared/lens-flare/lens-flare-component")]
+    [URPHelpURL("urp/shared/lens-flare/lens-flare-component")]
     [DisplayInfo(name = "Screen Space Lens Flare")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {
@@ -244,9 +244,16 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls the strength of the Chromatic Aberration effect. The higher the value, the more light is dispersed on the sides of the screen
         /// </summary>
-        [Header("Chromatic Abberation")]
-        public ClampedFloatParameter chromaticAbberationIntensity = new ClampedFloatParameter(0.5f, 0f, 1f);
-        
+        [Header("Chromatic Aberration")]
+        [UnityEngine.Serialization.FormerlySerializedAs("chromaticAbberationIntensity")]
+        public ClampedFloatParameter chromaticAberrationIntensity = new ClampedFloatParameter(0.5f, 0f, 1f);
+
+        /// <summary>
+        /// Controls the strength of the Chromatic Aberration effect. The higher the value, the more light is dispersed on the sides of the screen
+        /// </summary>
+        [Obsolete("chromaticAbberationIntensity has been renamed to chromaticAberrationIntensity. #from(6000.7) (UnityUpgradable) -> chromaticAberrationIntensity")]
+        public ClampedFloatParameter chromaticAbberationIntensity => chromaticAberrationIntensity;
+
         /// <summary>
         /// Tells if the post process needs to be rendered or not.
         /// </summary>

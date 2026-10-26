@@ -1,0 +1,6 @@
+{
+	"displayName":"UI Toolkit Shaders",
+	"interactiveImport": "false",
+	"description":"This sample is the UI Toolkit counterpart of UGUI Shaders. It provides a set of subgraphs targeting the UI Toolkit subtarget (URP) to speed up and simplify the process of creating buttons, widgets, backgrounds, and other VisualElement-based UI. It also includes runtime helpers that bind element size and interaction state to per-element material clones, plus example shaders for buttons, indicators, progress bars, procedural backgrounds, and two custom backdrop-filters. URP only.",
+	"createSeparatePackage": true
+}

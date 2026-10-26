@@ -69,10 +69,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         [InspectorName("Spatial-Temporal Post-Processing (STP)")]
         STP = 2,
-
-#if ENABLE_UPSCALER_FRAMEWORK
+        /// <summary>
+        /// An upscaler managed by the upscaler framework.
+        /// </summary>
         IUpscaler = 3
-#endif
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -94,9 +94,7 @@ namespace UnityEngine.Rendering
             lowResVolumetricCloudsMinimumThreshold = 50.0f,
             rayTracingHalfResThreshold = 50.0f,
 
-#if ENABLE_UPSCALER_FRAMEWORK
             upscalerOptions = new List<UpscalerOptions>(),
-#endif
 
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
@@ -192,14 +190,12 @@ namespace UnityEngine.Rendering
         [Range(0, 1)]
         public float fsrSharpness;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
         /// The list of configuration options for all registered upscalers.
         /// These are typically auto-populated as sub-assets within the Render Pipeline Asset.
         /// </summary>
         [SerializeReference]
         public List<UpscalerOptions> upscalerOptions;
-#endif
 
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>
         public float maxPercentage;

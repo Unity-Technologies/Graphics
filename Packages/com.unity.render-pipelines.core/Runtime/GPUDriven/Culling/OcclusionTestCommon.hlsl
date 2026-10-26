@@ -21,6 +21,24 @@ float FarthestDepth(float4 depths)
 #endif
 }
 
+float ClosestDepth(float depthA, float depthB)
+{
+#if UNITY_REVERSED_Z
+    return max(depthA, depthB);
+#else
+    return min(depthA, depthB);
+#endif
+}
+
+float PullDepthTowardsCamera(float deviceDepth, float eyeDepthFraction)
+{
+#if UNITY_REVERSED_Z
+    return deviceDepth * (1.0f + eyeDepthFraction);
+#else
+    return deviceDepth * (1.0f - eyeDepthFraction);
+#endif
+}
+
 bool IsVisibleAfterOcclusion(float occluderDepth, float queryClosestDepth)
 {
 #if UNITY_REVERSED_Z

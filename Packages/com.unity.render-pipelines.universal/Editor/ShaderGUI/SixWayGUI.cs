@@ -20,7 +20,7 @@ namespace UnityEditor
             /// The text and tooltip for the surface options GUI.
             /// </summary>
             public static readonly GUIContent UseColorAbsorptionText =
-                EditorGUIUtility.TrTextContent("Use Color Absorption", "When enabled, the lightmaps are used to simulate color absorption whose strength can be tuned with the Absorption Strength parameter.");
+                L10n.TextContent("Use Color Absorption", "When enabled, the lightmaps are used to simulate color absorption whose strength can be tuned with the Absorption Strength parameter.", null, null);
         }
 
         // collect properties from the material properties

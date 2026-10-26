@@ -1,0 +1,112 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+
+#define THREAD_GROUP_SIZE 32
+
+#define UNIFIED_RT_GROUP_SIZE_X THREAD_GROUP_SIZE
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+
+#pragma kernel SamplePunctualLightsCompute SamplePunctualLights=SamplePunctualLightsCompute UNIFIED_RT_BACKEND_COMPUTE
+#pragma kernel SamplePunctualLightsHardware SamplePunctualLights=SamplePunctualLightsHardware UNIFIED_RT_BACKEND_HARDWARE
+#pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+
+// Shader variant 'SamplePunctualLightsHardware' fails to compile on Metal with inlineraytracing
+// enabled due to inlineraytracing requiring DXC over FXC compilation path.
+// The DXC path fails to compile the expression 'float3 l1s[3]' in Common.hlsl
+// as it generates invalid SPIR-V OpTypeVector due to the extra DXC+MTL flag
+// '--convert-relaxed-to-half'. Requiring 'native16bit' on the variant removes
+// that extra DXC flag, and enables successful DXC compilation, just like on VK.
+//
+// Todo(UUM-153535) : Remove once DXC + MTL compilation error is addressed
+#if defined(SHADER_API_METAL)
+#pragma require native16bit : UNIFIED_RT_BACKEND_HARDWARE
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/PseudoRandom.hlsl"
+#include "PathTracing.hlsl"
+#include "PunctualLights.hlsl"
+
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+
+StructuredBuffer<PunctualLight> _PunctualLights;
+RWStructuredBuffer<PunctualLightSample> _Samples;
+
+StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
+Texture2DArray<float4> _AlbedoTextures;
+SamplerState sampler_AlbedoTextures;
+float _MaterialAtlasTexelSize;
+float _AlbedoBoost;
+uint _FrameIdx;
+uint _PunctualLightCount;
+uint _SamplesPerPunctualLight;
+
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)
+{
+    if (dispatchThreadIdx >= _PunctualLightCount * _SamplesPerPunctualLight)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+
+    MaterialPoolParamSet matPoolParams;
+    matPoolParams.materialEntries = _MaterialEntries;
+    matPoolParams.albedoTextures = _AlbedoTextures;
+    matPoolParams.albedoSampler = sampler_AlbedoTextures;
+    matPoolParams.atlasTexelSize = _MaterialAtlasTexelSize;
+    matPoolParams.albedoBoost = _AlbedoBoost;
+
+    const uint punctualLightIndex = dispatchThreadIdx / _SamplesPerPunctualLight;
+    const PunctualLight light = _PunctualLights[punctualLightIndex];
+
+    UnifiedRT::Ray ray;
+    ray.tMin = 0;
+    ray.tMax = light.range;
+    ray.origin = light.position;
+    {
+        QrngKronecker2D rng;
+        rng.Init(0, _FrameIdx * _SamplesPerPunctualLight + dispatchThreadIdx % _SamplesPerPunctualLight);
+
+        float2 coneSample = rng.GetSample(punctualLightIndex);
+        float3 localDir = SampleConeUniform((real)coneSample.x, (real)coneSample.y, (real)light.cosOuterAngle);
+        float3x3 spotBasis = OrthoBasisFromVector(light.direction);
+        ray.direction = mul(spotBasis, localDir);
+    }
+
+    PunctualLightSample lightSample = (PunctualLightSample)0;
+    lightSample.rayDirection = ray.direction;
+
+    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIdx, groupThreadIdx, accelStruct, ray);
+    if (hitResult.IsValid())
+    {
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);
+        const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[hitInstance.userMaterialID];
+        if (IsValidSample(hitResult.isFrontFace, MaterialPool::UsesDoubleSidedGI(matEntry.flags)))
+        {
+            const SurfaceGeometry hitGeo = FetchSurfaceGeometry(hitInstance, hitResult);
+            const float3 hitAlbedo = MaterialPool::LoadAlbedoWithBoost(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, matPoolParams.albedoBoost, hitGeo.uv0, hitGeo.uv1);
+
+            lightSample.hitPos = ray.origin + ray.direction * hitResult.hitDistance;
+            lightSample.hitNormal = dot(ray.direction, hitGeo.normal) >= 0.0f ? -hitGeo.normal : hitGeo.normal;
+            lightSample.distance = hitResult.hitDistance;
+            lightSample.hitAlbedo = hitAlbedo;
+            lightSample.reciprocalDensity = AreaOfSphericalCapWithRadiusOne(light.cosOuterAngle) * _PunctualLightCount;
+            lightSample.hitInstanceId = hitResult.instanceID;
+            lightSample.hitPrimitiveIndex = hitResult.primitiveIndex;
+            lightSample.lightIndex = punctualLightIndex;
+        }
+        else
+        {
+            lightSample.MarkNoHit();
+        }
+    }
+    else
+    {
+        lightSample.MarkNoHit();
+    }
+
+    _Samples[dispatchThreadIdx] = lightSample;
+}

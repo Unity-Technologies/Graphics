@@ -1,4 +1,4 @@
-# Smoothstep
+# Smoothstep Operator
 
 Menu Path : **Operator > Math > Arithmetic > Smoothstep**
 

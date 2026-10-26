@@ -1,3 +1,4 @@
+#pragma warning disable 618 // LightingSettings.lightmapper is deprecated; tests configure the lightmapper backend directly.
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -22,8 +23,8 @@ public class BuiltInProjectEditorTests
             LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
             if (lightingSettings.bakedGI)
             {
-                Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveCPU || lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU,
-                    $"Lighting settings ({path}) uses deprecated lightmapper {lightingSettings.lightmapper}.");
+                Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU,
+                    $"Lighting settings ({path}) must use the Progressive GPU lightmapper, but uses {lightingSettings.lightmapper}.");
                 Assert.IsTrue(lightingSettings.filteringMode == LightingSettings.FilterMode.None,
                     $"Lighting settings ({path}) have baked GI with filter mode enabled. It is recommended to turn of filter mode to reduce halo effect (If you still want to use it please contact URP team first).");
             }

@@ -58,6 +58,7 @@ namespace UnityEditor.VFX
 
         public bool HasShaderFile() => false;
         public bool Equals(IHLSLCodeHolder other) => false;
+        public void ResetHLSLCache() { }
 
         public override bool Equals(object obj)
         {

@@ -523,7 +523,7 @@ namespace UnityEditor.VFX
             using (new EditorGUI.DisabledScope(scrubbingProperty.boolValue))
             {
                 EditorGUI.BeginChangeCheck();
-                var newReinit = (VisualEffectControlClip.ReinitMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Reinit"), currentReinit);
+                var newReinit = (VisualEffectControlClip.ReinitMode)EditorGUILayout.EnumPopup(L10n.TextContent("Reinit", null, null, null), currentReinit);
                 if (EditorGUI.EndChangeCheck())
                 {
                     reinitProperty.enumValueIndex = (int)newReinit;
@@ -535,11 +535,11 @@ namespace UnityEditor.VFX
                 || currentReinit == VisualEffectControlClip.ReinitMode.OnEnterClip)))
             {
                 EditorGUILayout.PropertyField(startSeedProperty);
-                EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));
+                EditorGUILayout.PropertyField(prewarmEnable, L10n.TextContent("Enable PreWarm", null, null, null));
                 using (new EditorGUI.DisabledScope(!prewarmEnable.boolValue))
                 {
                     VisualEffectAssetEditor.DisplayPrewarmInspectorGUI(serializedObject, prewarmDeltaTime, prewarmStepCount);
-                    EditorGUILayout.PropertyField(prewarmEvent, EditorGUIUtility.TrTextContent("PreWarm Event Name"));
+                    EditorGUILayout.PropertyField(prewarmEvent, L10n.TextContent("PreWarm Event Name", null, null, null));
                 }
             }
 

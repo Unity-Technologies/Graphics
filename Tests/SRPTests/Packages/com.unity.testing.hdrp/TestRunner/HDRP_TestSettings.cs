@@ -29,18 +29,12 @@ public class HDRP_TestSettings : GraphicsTestSettings
     [Tooltip("Sets the multiple frame count.")]
     public int frameCountMultiple = 8;
 
-    [Tooltip("When enabled, the tests handles XR compatibility.")]
-    public bool xrCompatible = true;
-
     [Tooltip("When enabled, the tests handles GPU Driven compatibility.")]
     public bool gpuDrivenCompatible = true;
 
     [UnityEngine.Range(1.0f, 10.0f)]
     [Tooltip("Set the multiplier to increase the tolerance in AverageCorrectnessThreshold and PerPixelCorrectnessThreshold to account for slight changes due to float precision.")]
     public float xrThresholdMultiplier = 1.0f;
-
-    [Tooltip("When enabled, the tests fails if GC.Alloc are executed after a few frames during the tests.")]
-    public bool checkMemoryAllocation = true;
 
     [Tooltip("Specifies the render pipeline asset used when executing the test.")]
     public RenderPipelineAsset renderPipelineAsset;

@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering
@@ -15,7 +14,6 @@ namespace UnityEngine.Rendering
             {
                 int cx = a.x.CompareTo(b.x);
                 if (cx != 0) return cx;
-                // tie on x: larger y first (+1 before -1)
                 return b.y.CompareTo(a.y);
             }
         }
@@ -27,6 +25,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static Vector4[] s_EventsBuffer = new Vector4[32];
+        static Vector2[] s_ActiveBuffer = new Vector2[16];
+
         /// <summary>
         /// Computes the total covered area (union) of a set of axis-aligned rectangles, counting overlaps only once.
         /// </summary>
@@ -35,18 +36,17 @@ namespace UnityEngine.Rendering
         public static float CalculateRectUnionArea(List<Rect> rects)
         {
             int rectsCount = rects.Count;
-            var eventsBuffer = ArrayPool<Vector4>.Shared.Rent(rectsCount * 2);
-            var activeBuffer = ArrayPool<Vector2>.Shared.Rent(rectsCount);
+            int eventsCapacity = rectsCount * 2;
+            if (eventsCapacity > s_EventsBuffer.Length)
+                s_EventsBuffer = new Vector4[eventsCapacity];
+            if (rectsCount > s_ActiveBuffer.Length)
+                s_ActiveBuffer = new Vector2[rectsCount];
 
             int eventCount = 0;
             foreach (var rect in rects)
-                InsertEvents(rect, eventsBuffer, ref eventCount);
+                InsertEvents(rect, s_EventsBuffer, ref eventCount);
 
-            float area = CalculateRectUnionArea(eventsBuffer, activeBuffer, eventCount);
-            ArrayPool<Vector4>.Shared.Return(eventsBuffer);
-            ArrayPool<Vector2>.Shared.Return(activeBuffer);
-
-            return area;
+            return CalculateRectUnionArea(s_EventsBuffer, s_ActiveBuffer, eventCount);
         }
 
         // Merge overlapping intervals and return total covered Y length

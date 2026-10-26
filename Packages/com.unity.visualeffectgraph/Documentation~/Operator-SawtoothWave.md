@@ -1,4 +1,4 @@
-# Sawtooth Wave
+# Sawtooth Wave Operator
 
 Menu Path : **Operator > Math > Wave > Sawtooth Wave**
 

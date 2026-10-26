@@ -1,9 +1,9 @@
-﻿using UnityEditor.Rendering.Analytics;
+using UnityEditor.Rendering.Analytics;
 using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    internal sealed class RenderGraphEditorRemoteDebugSession : RenderGraphDebugSession
+    internal sealed class RenderGraphEditorRemoteDebugSession : LiveRenderGraphDebugSession
     {
         public override bool isActive => false;
 
@@ -57,6 +57,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     RenderGraphViewerSessionCreatedAnalytic.Send(RenderGraphViewerSessionCreatedAnalytic.SessionType.Remote, analyticsPayload);
                 }
             }
+            // Note: MessageType.Pause is not handled here because pause synchronization is unidirectional (editor -> player only).
+            // The editor is the authority for pause state and sends it to the player via SendPauseStateToPlayer.
+            // The player receives pause messages to stop/start sending debug data updates, but never sends pause state back to the editor.
         }
 
         void RegisterAndUpdateDebugData(string graphName, EntityId executionId, string executionName, DebugData debugData)
@@ -64,6 +67,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
             RegisterGraph(graphName);
             RegisterExecution(graphName, executionId, executionName);
             SetDebugData(graphName, executionId, debugData);
+        }
+
+        void SendPauseStateToPlayer(bool paused)
+        {
+            var payload = new DebugMessageHandler.PausePayload { isPaused = paused };
+            m_DebugMessageHandler.Send(DebugMessageHandler.MessageType.Pause, payload);
+        }
+
+        public override bool isPaused
+        {
+            get => base.isPaused;
+            set
+            {
+                ChangePausedState(value);
+                SendPauseStateToPlayer(value);
+            }
         }
     }
 }

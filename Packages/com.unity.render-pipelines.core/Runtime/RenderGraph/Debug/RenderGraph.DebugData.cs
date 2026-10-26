@@ -8,17 +8,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
 {
     public partial class RenderGraph
     {
+        [Serializable]
         // Convenience class that wraps execution id and name for display purposes
         internal class DebugExecutionItem
         {
-            public EntityId id { get; }
+            [SerializeField]
+            private ulong m_EntityId = 0;
 
-            public string name { get; }
+            public EntityId id => EntityId.FromULong(m_EntityId);
+
+            [SerializeField]
+            private string m_Name = string.Empty;
+
+            public string name => m_Name;
 
             public DebugExecutionItem(EntityId id, string name)
             {
-                this.id = id;
-                this.name = name;
+                m_EntityId = EntityId.ToULong(id);
+                m_Name = name;
             }
         }
 
@@ -222,7 +229,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 public NRPInfo nrpInfo;
 
                 // File path and line number where the render pass is defined.
-                public PassScriptInfo scriptInfo;
+                public ScriptInfo scriptInfo;
             }
 
             [Serializable]
@@ -297,6 +304,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // Buffer-specific resource data.
                 [SerializeReference]
                 public BufferResourceData bufferData;
+
+                // File path and line number where the resource is declared.
+                public ScriptInfo scriptInfo;
             }
 
             public void Clear()
@@ -306,9 +316,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 valid = false;
             }
 
-            // Pass script metadata.
+            // Script source location metadata for passes and resources.
             [Serializable]
-            public struct PassScriptInfo
+            public struct ScriptInfo
             {
                 public string filePath;
                 public int line;
@@ -320,10 +330,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
 #if UNITY_ENABLE_CHECKS
             // Does nothing unless debug session is active.
-            if (!RenderGraphDebugSession.hasActiveDebugSession)
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
                 return;
 
-            renderPass.debugScriptInfo = new DebugData.PassScriptInfo { filePath = file, line = line };
+            renderPass.debugScriptInfo = new DebugData.ScriptInfo { filePath = file, line = line };
+#endif
+        }
+
+        [Conditional("UNITY_ENABLE_CHECKS")]
+        void AddResourceDebugMetadata(in TextureHandle handle, string file, int line)
+        {
+#if UNITY_ENABLE_CHECKS
+            // Does nothing unless debug session is active.
+            if (!RenderGraphDebugSessionManager.hasActiveDebugSession)
+                return;
+
+            if (!handle.IsValid())
+                return;
+
+            var resource = m_Resources.GetTextureResource(handle.handle);
+            resource.debugScriptInfo = new DebugData.ScriptInfo { filePath = file, line = line };
 #endif
         }
     }

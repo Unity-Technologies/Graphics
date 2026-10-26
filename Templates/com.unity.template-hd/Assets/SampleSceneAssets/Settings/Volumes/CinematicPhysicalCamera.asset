@@ -160,6 +160,12 @@ MonoBehaviour:
   m_PhysicallyBased:
     m_OverrideState: 1
     m_Value: 0
+  m_AdaptiveSamplingWeight:
+    m_OverrideState: 0
+    m_Value: 0.75
   m_LimitManualRangeNearBlur:
     m_OverrideState: 1
     m_Value: 0
+  coCStabilization:
+    m_OverrideState: 0
+    m_Value: 1

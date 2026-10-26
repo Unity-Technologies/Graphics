@@ -87,6 +87,7 @@ namespace UnityEditor.VFX
         public VFXAbstractRenderedOutput.BlendMode blendMode;
         public VFXOutputUpdate.Features features;
         public bool hasAlphaClipping;
+        public bool receiveShadows;
         public List<(string key, VFXErrorType type, string description)> errors;
     }
 
@@ -173,7 +174,7 @@ namespace UnityEditor.VFX
 
         internal class Content
         {
-            public static GUIContent particlesOptionHeader { get; } = EditorGUIUtility.TrTextContent("Particles Options");
+            public static GUIContent particlesOptionHeader { get; } = L10n.TextContent("Particles Options", null, null, null);
         }
 
         private bool m_ShowParticleOptions = true;
@@ -308,6 +309,7 @@ namespace UnityEditor.VFX
                 m_CacheComposedTraitDescription.sortingPriority = shadingDescription.sortingPriority;
                 m_CacheComposedTraitDescription.blendMode = shadingDescription.blendMode;
                 m_CacheComposedTraitDescription.hasAlphaClipping = shadingDescription.hasAlphaClipping;
+                m_CacheComposedTraitDescription.receiveShadows = shadingDescription.receiveShadows;
 
                 m_CacheComposedTraitDescription.taskType = topologyDescription.taskType | shadingDescription.taskType;
                 m_CacheComposedTraitDescription.features = topologyDescription.features | shadingDescription.features;
@@ -510,6 +512,8 @@ namespace UnityEditor.VFX
         }
 
         public sealed override bool isBlendModeOpaque => GetOrRefreshDecription().blendMode == BlendMode.Opaque;
+
+        public bool receiveShadows => GetOrRefreshDecription().receiveShadows;
 
         public sealed override bool HasSorting()
         {

@@ -16,27 +16,36 @@ MonoBehaviour:
   mode:
     m_OverrideState: 1
     m_Value: 1
+  reflectionStrength:
+    m_OverrideState: 0
+    m_Value: 1
+  clampReflectedColor:
+    m_OverrideState: 0
+    m_Value: 0
+  maxColorValue:
+    m_OverrideState: 0
+    m_Value: 1
   resolution:
     m_OverrideState: 1
     m_Value: 1
   upscalingMethod:
     m_OverrideState: 1
-    m_Value: 3
-  linearMarching:
-    m_OverrideState: 1
-    m_Value: 0
-  refineDepth:
+    m_Value: 1
+  marchingMethod:
     m_OverrideState: 1
     m_Value: 1
-  refineDepthSteps:
+  hitRefinementSteps:
     m_OverrideState: 1
     m_Value: 5
   finalThicknessMultiplier:
     m_OverrideState: 1
     m_Value: 0.16
-  roughReflections:
-    m_OverrideState: 1
+  roughnessFilter:
+    m_OverrideState: 0
     m_Value: 2
+  roughnessScale:
+    m_OverrideState: 0
+    m_Value: 0
   minimumSmoothness:
     m_OverrideState: 1
     m_Value: 0.05
@@ -64,6 +73,12 @@ MonoBehaviour:
   objectThickness:
     m_OverrideState: 1
     m_Value: 0.01
+  temporalFiltering:
+    m_OverrideState: 0
+    m_Value: 0
+  baseBlendFactor:
+    m_OverrideState: 0
+    m_Value: 0.95
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

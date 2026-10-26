@@ -62,7 +62,8 @@ namespace UnityEditor.ShaderGraph
 
             var entries = MultiJsonInternal.Parse(textGraph);
 
-            if (string.IsNullOrWhiteSpace(entries[0].type))
+            // Legacy graphs are a single document.
+            if (entries.Count == 1 && string.IsNullOrWhiteSpace(entries[0].type))
             {
                 var minimalGraphData = JsonUtility.FromJson<MinimalGraphData>(textGraph);
                 entries.Clear();
@@ -80,7 +81,7 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var entry in entries)
             {
-                if (s_MinimalTypeMap.TryGetValue(entry.type, out var minimalType))
+                if (!string.IsNullOrEmpty(entry.type) && s_MinimalTypeMap.TryGetValue(entry.type, out var minimalType))
                 {
                     var instance = (IHasDependencies)Activator.CreateInstance(minimalType);
                     JsonUtility.FromJsonOverwrite(entry.json, instance);

@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -56,44 +57,6 @@ namespace UnityEditor.VFX
             return LoadAssetAtPath<Material>(assetPath);
         }
 
-        private static Type GetPropertyType(AbstractShaderProperty property)
-        {
-            switch (property.propertyType)
-            {
-                case PropertyType.Color:
-                    return typeof(Color);
-                case PropertyType.Texture2D:
-                    return typeof(Texture2D);
-                case PropertyType.Texture2DArray:
-                    return typeof(Texture2DArray);
-                case PropertyType.Texture3D:
-                    return typeof(Texture3D);
-                case PropertyType.Cubemap:
-                    return typeof(Cubemap);
-                case PropertyType.Gradient:
-                    return null;
-                case PropertyType.Boolean:
-                    return typeof(bool);
-                case PropertyType.Float:
-                    return typeof(float);
-                case PropertyType.Vector2:
-                    return typeof(Vector2);
-                case PropertyType.Vector3:
-                    return typeof(Vector3);
-                case PropertyType.Vector4:
-                    return typeof(Vector4);
-                case PropertyType.Matrix2:
-                    return null;
-                case PropertyType.Matrix3:
-                    return null;
-                case PropertyType.Matrix4:
-                    return typeof(Matrix4x4);
-                case PropertyType.SamplerState:
-                default:
-                    return null;
-            }
-        }
-
         private static object GetPropertyValue(AbstractShaderProperty property)
         {
             switch (property.propertyType)
@@ -108,7 +71,7 @@ namespace UnityEditor.VFX
                     return ((Texture2DArrayShaderProperty) property).value.textureArray;
                 default:
                 {
-                    var type = GetPropertyType(property);
+                    var type = AbstractShaderProperty.GetVfxType(property.propertyType);
                     PropertyInfo info = property.GetType().GetProperty("value",
                         BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                     return VFXConverter.ConvertTo(info?.GetValue(property), type);
@@ -162,7 +125,7 @@ namespace UnityEditor.VFX
                     if (IsExcludedFromSlot(shaderProperty))
                         continue;
 
-                    var type = GetPropertyType(shaderProperty);
+                    var type = AbstractShaderProperty.GetVfxType(shaderProperty.propertyType);
                     if (type == null)
                         continue;
 
@@ -222,14 +185,14 @@ namespace UnityEditor.VFX
                         var enumNames = new string[shaderKeyword.entries.Count];
                         for (int index = 0; index < shaderKeyword.entries.Count; ++index)
                         {
-                            keywordsMapping[index] = shaderKeyword.referenceName + "_" + shaderKeyword.entries[index].referenceName;
+                            keywordsMapping[index] = GetEnumKeywordName(shaderKeyword, index);
                             enumNames[index] = shaderKeyword.entries[index].displayName;
                         }
 
                         yield return new Property
                         {
                             property = new VFXPropertyWithValue(
-                                new VFXProperty(typeof(uint), shaderKeyword.displayName, new VFXPropertyAttributes(new EnumAttribute(enumNames))), (uint)shaderKeyword.value),
+                                new VFXProperty(typeof(uint), GetKeywordSlotName(shaderKeyword), new VFXPropertyAttributes(new EnumAttribute(enumNames))), (uint)shaderKeyword.value),
                             multiCompile = shaderKeyword.keywordDefinition == KeywordDefinition.MultiCompile,
                             keywordsMapping = keywordsMapping
                         };
@@ -246,6 +209,86 @@ namespace UnityEditor.VFX
             }
         }
 
+        static string GetKeywordSlotName(ShaderGraph.ShaderKeyword keyword) => keyword.displayName;
+
+        static string GetEnumKeywordName(ShaderGraph.ShaderKeyword keyword, int entryIndex)
+            => keyword.referenceName + "_" + keyword.entries[entryIndex].referenceName;
+
+        public static void EnableEnumKeywordDefaults(ShaderGraphVfxAsset shaderGraph, IEnumerable<VFXSlot> outputInputSlots, Material material)
+        {
+            if (shaderGraph == null || material == null)
+                return;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
+
+            foreach (var property in shaderGraph.properties)
+            {
+                // local enum multi compile or shader feature keywords only
+                if (property is not ShaderGraph.ShaderKeyword keyword
+                    || keyword.keywordType != KeywordType.Enum
+                    || keyword.keywordScope != KeywordScope.Local
+                    || (keyword.keywordDefinition != KeywordDefinition.MultiCompile
+                        && keyword.keywordDefinition != KeywordDefinition.ShaderFeature))
+                    continue;
+
+                // The output's constant value if any, else the graph default.
+                var index = keyword.value;
+                if (keyword.isExposed
+                    && TryGetConstantSlotValue(context, outputInputSlots, GetKeywordSlotName(keyword), out var chosen))
+                    index = chosen;
+                if (index < 0 || index >= keyword.entries.Count)
+                    index = keyword.HasNoneEntry ? 1 : 0;
+                if (index >= keyword.entries.Count)
+                    continue;
+
+                // Keep the backing [KeywordEnum] float in sync.
+                if (material.HasProperty(keyword.referenceName))
+                    material.SetFloat(keyword.referenceName, index);
+
+                for (int i = 0; i < keyword.entries.Count; i++)
+                {
+                    if (keyword.entries[i].IsNoneKeyword)
+                        continue;
+                    var keywordName = GetEnumKeywordName(keyword, i);
+                    if (i == index)
+                        material.EnableKeyword(keywordName);
+                    else
+                        material.DisableKeyword(keywordName);
+                }
+            }
+        }
+
+        static bool TryGetConstantSlotValue(VFXExpression.Context context, IEnumerable<VFXSlot> inputSlots, string propertyName, out int value)
+        {
+            value = 0;
+            if (inputSlots == null)
+                return false;
+
+            VFXSlot slot = null;
+            foreach (var s in inputSlots)
+            {
+                if (s.property.name == propertyName)
+                {
+                    slot = s;
+                    break;
+                }
+            }
+
+            var expression = slot?.GetExpression();
+            if (expression == null)
+                return false;
+
+            // A linked slot may still reduce to a constant, so fold it rather than reading the inline value.
+            context.RegisterExpression(expression);
+            context.Compile();
+            var reduced = context.GetReduced(expression);
+            if (reduced == null || !reduced.Is(VFXExpression.Flags.Constant) || reduced.valueType != VFXValueType.Uint32)
+                return false;
+
+            value = (int)reduced.Get<uint>();
+            return true;
+        }
+
         public static IEnumerable<string> GetTextureOnlyUsedInternally(ShaderGraphVfxAsset shaderGraph)
         {
             foreach (var tex in shaderGraph.textureInfos)
@@ -258,7 +301,7 @@ namespace UnityEditor.VFX
                 {
                     if (IsExcludedFromSlot(shaderProperty))
                     {
-                        var type = GetPropertyType(shaderProperty);
+                        var type = AbstractShaderProperty.GetVfxType(shaderProperty.propertyType);
                         if (type == null)
                             continue;
 

@@ -85,7 +85,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        [Shortcut("Visual Effect Graph/Restart VFX", typeof(VFXViewWindow), KeyCode.Space, ShortcutModifiers.Shift)]
+        // Slash matches ParticleSystem/TrailRenderer Restart and keeps Shift+Space free for Maximize View.
+        [Shortcut("Visual Effect Graph/Restart VFX", typeof(VFXViewWindow), KeyCode.Slash)]
         static void RestartComponent(ShortcutArguments args)
         {
             if (args.context is VFXViewWindow window)
@@ -191,7 +192,7 @@ namespace UnityEditor.VFX
         {
             if (args.context is VFXViewWindow window)
             {
-                window.graphView.CreateNodeOnEdge(Event.current.mousePosition);
+                window.graphView.CreateNodeOnEdge(args.sourceEvent.mousePosition);
             }
         }
 
@@ -211,7 +212,7 @@ namespace UnityEditor.VFX
         {
             if (args.context is VFXViewWindow window)
             {
-                window.graphView.AddStickyNote(Event.current.mousePosition);
+                window.graphView.AddStickyNote(args.sourceEvent.mousePosition);
             }
         }
 
@@ -301,7 +302,7 @@ namespace UnityEditor.VFX
         {
             if (args.context is VFXViewWindow window)
             {
-               return window.graphView.AddOperator(type);
+               return window.graphView.AddOperator(type, args.sourceEvent.mousePosition);
             }
 
             return null;

@@ -7,14 +7,19 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class ShadowMesh2D : ShadowShape2D
     {
-        internal const int k_CapsuleCapSegments = 8;
         internal const float k_TrimEdgeUninitialized = -1;
 
-        public enum EdgeProcessing
-        {
-            None,
-            Clipping,
-        }
+        /// <summary>
+        /// Floor for <see cref="fanSegments"/>. Zero is not merely coarse, it is wrong: a fan is
+        /// what joins two band ends, or a fin to a band, so removing it disconnects the outer
+        /// boundary — measured at up to 2.00x the band width. For a concave corner it is worse, since
+        /// the band corners are set back to the fillet tangent points by a loop that never consults
+        /// the segment count, so at zero the shadow that setback removed is never replaced. See
+        /// simulation report 29.
+        /// </summary>
+        internal const int k_MinFanSegments = 1;
+
+        internal const int k_DefaultFanSegments = 3;
 
         [NonSerialized]  Mesh               m_Mesh;
         [NonSerialized]  bool               m_IsDirty;
@@ -24,53 +29,187 @@ namespace UnityEngine.Rendering.Universal
         NativeArray<ShadowMeshVertex>       m_NativeVertices;
         NativeArray<int>                    m_NativeIndices;
 
+        // Vertex buffer for a generator whose format is not ShadowMeshVertex. Never serialized: a
+        // generator using it declares persistsGeometry == false and its geometry is rebuilt on load.
+        [NonSerialized] NativeArray<float>  m_NativeCustomVertices;
+        [NonSerialized] int                 m_CustomVertexCount;
+
+        [SerializeField] bool               m_IsTransformable = true;
+
 
         [SerializeField] Bounds m_LocalBounds;
-        [SerializeField] EdgeProcessing m_EdgeProcessing = EdgeProcessing.Clipping;
         [SerializeField] float m_TrimEdge = k_TrimEdgeUninitialized;
         [SerializeField] bool  m_FlipX;
         [SerializeField] bool  m_FlipY;
         [SerializeField] float m_InitialTrim = 0;
+
+        // Which generator produced the baked m_Vertices / m_Indices, by id. No longer a request --
+        // the format is a project decision (Shadow2DGeometrySettings.geometryVersion) -- but still
+        // serialized, because it is what says which layout the bytes on disk are in. A mismatch
+        // against the project format on load means the baked geometry is in the wrong layout and
+        // must be rebuilt; see ConsumeGeneratorRebuildRequest.
+        [SerializeField] string m_GeneratorId = ShadowGeometryGeneratorRegistry.k_DefaultGeneratorId;
+
+        // Triangles per fan, for generators that tessellate curved shadow features. Per caster
+        // rather than per light because it fixes the vertex and index counts, which are decided at
+        // mesh-build time.
+        [SerializeField] int m_FanSegments = k_DefaultFanSegments;
+
+        // The generator version that produced the baked m_Vertices / m_Indices. A mismatch on
+        // load means the baked geometry predates the current generator and must be rebuilt.
+        [SerializeField] int m_GeneratorVersion;
+
+        // Pre-id enum value, kept only to migrate assets written before generators were named.
+        // -1 means "nothing to migrate"; old assets serialize 0 (Legacy) or 1 (the since-removed
+        // Passthrough placeholder). Both migrate to Legacy -- see OnAfterDeserialize.
+        [SerializeField] int m_GeometryPath = -1;
+
+        // Which generator actually produced the buffers in memory.
+        [NonSerialized] string m_GeneratedId = ShadowGeometryGeneratorRegistry.k_DefaultGeneratorId;
+
+        // Whether the buffers in memory were built under a global generator override, so
+        // OnBeforeSerialize can refuse to persist them. Recorded at build time rather than read back
+        // from Shadow2DGeometry, because OnBeforeSerialize cannot resolve the override's meaning
+        // without reading graphics settings -- which Unity forbids from a serialization callback.
+        [NonSerialized] bool m_GeneratedUnderOverride;
+
+        // Whether the generator that produced the buffers allows them on disk. Cached at build time
+        // for the same reason m_GeneratedId is: OnBeforeSerialize cannot resolve a generator, because
+        // that builds the registry and its discovery pass reads GraphicsSettings, which Unity forbids
+        // from a serialization callback.
+        [NonSerialized] bool m_GeneratedPersists = true;
+
+        // Set when a generator-version check is owed, so ShadowCaster2D can ask for one on the
+        // main thread. The check itself cannot run in OnAfterDeserialize: resolving a generator
+        // builds the registry, whose discovery pass reads GraphicsSettings, and Unity forbids
+        // that from a serialization callback.
+        [NonSerialized] bool m_GeneratorVersionCheckPending;
 
         public  Mesh mesh
         {
             get
             {
                 if(m_Mesh == null || m_Mesh.vertexCount == 0 || m_IsDirty)
-                    GenerateShadowMesh(ref m_Mesh, m_NativeVertices, m_NativeIndices);
+                {
+                    ShadowGeometryResult current = CurrentGeometry();
+                    ShadowGeometryGeneratorRegistry.Get(m_GeneratedId).UploadMesh(ref m_Mesh, in current);
+                    m_IsDirty = false;
+                }
 
                 return m_Mesh;
             }
+        }
+
+        /// <summary>
+        /// Releases the <c>Mesh</c> this instance built.
+        /// </summary>
+        /// <remarks>
+        /// The mesh is created at runtime and is not serialized, so nothing else owns it and nothing
+        /// else will free it: destroying the managed wrapper is not enough, because a
+        /// <c>UnityEngine.Object</c> wrapper being collected does not destroy the native object
+        /// behind it. Left alone, one mesh per caster outlives the caster.
+        ///
+        /// Called from <c>ShadowCaster2D.OnDestroy</c> rather than from the finalizer below, because
+        /// <c>Object.Destroy</c> is not legal off the main thread.
+        ///
+        /// The geometry buffers are deliberately left alone. They are released by the finalizer, and
+        /// dropping them here would leave a caster that Undo brings back with no geometry until
+        /// something happened to rebuild it.
+        /// </remarks>
+        internal void DestroyMesh()
+        {
+            if (m_Mesh == null)
+                return;
+
+            CoreUtils.Destroy(m_Mesh);
+            m_Mesh = null;
+
+            // So a later access rebuilds from the buffers instead of handing out null.
+            m_IsDirty = true;
         }
 
         public void Clear()
         {
             m_Vertices = null;
             m_Indices = null;
+
+            // Release the geometry too. Leaving the natives alive meant a degenerate shape kept
+            // rendering its previous mesh, and the next OnBeforeSerialize repopulated the managed
+            // arrays from those stale buffers.
+            if (m_NativeVertices.IsCreated)
+                m_NativeVertices.Dispose();
+            if (m_NativeIndices.IsCreated)
+                m_NativeIndices.Dispose();
+            if (m_NativeCustomVertices.IsCreated)
+                m_NativeCustomVertices.Dispose();
+
+            m_NativeVertices = default;
+            m_NativeIndices = default;
+            m_NativeCustomVertices = default;
+            m_CustomVertexCount = 0;
+            m_IsDirty = true;
         }
+
+
+        public bool isTransformable => m_IsTransformable;
 
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
         internal BoundingSphere m_BoundingSphere;   // update to world space
-        public EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
         public float trimEdge { get { return m_TrimEdge; } set { m_TrimEdge = value; } }
 
-        static internal void DuplicateShadowMesh(Mesh source, out Mesh dest)
-        {
-            // This is not gc tested as this generates garbage
-            dest = new Mesh();
-            dest.Clear();
+        /// <summary>
+        /// The generator this caster will actually build with: the project's format, or a global
+        /// override when one is active.
+        /// </summary>
+        /// <remarks>
+        /// There is deliberately no setter for <c>m_GeneratorId</c>. It records which layout the
+        /// baked bytes are in, not a choice -- the choice is
+        /// <c>Shadow2DGeometrySettings.geometryVersion</c>, which is project-wide so that a caster and
+        /// whatever material draws it cannot disagree about the vertex layout.
+        /// </remarks>
+        internal string activeGeneratorId => Shadow2DGeometry.ResolveId(m_GeneratorId);
 
-            if (source != null)
-            {
-                dest.vertices = source.vertices;
-                dest.tangents = source.tangents;
-                dest.triangles = source.triangles;
-                dest.bounds = source.bounds;
-            }
+        /// <summary>
+        /// The generator that actually produced the buffers currently in memory.
+        /// </summary>
+        /// <remarks>
+        /// Differs from <see cref="activeGeneratorId"/> exactly when the mesh is stale, which is the
+        /// one state that renders a wrong shadow rather than a missing one -- the layouts disagree but
+        /// both are self-consistent, so nothing else detects it. Exposed for diagnostics.
+        /// </remarks>
+        internal string generatedGeneratorId => m_GeneratedId;
+
+        /// <summary>
+        /// Triangles per fan, for generators that tessellate curved shadow features. Clamped to at
+        /// least <see cref="k_MinFanSegments"/>: see that field for why zero is not legal. The
+        /// generator clamps again on the way in, because this can also arrive straight off disk.
+        /// </summary>
+        internal int fanSegments
+        {
+            get { return Mathf.Max(k_MinFanSegments, m_FanSegments); }
+            set { m_FanSegments = Mathf.Max(k_MinFanSegments, value); }
         }
 
         internal void OnBeforeSerialize()
         {
+            // Geometry built under a global path override must never reach disk. ShadowCaster2D
+            // is [ExecuteInEditMode], so an override would otherwise be baked into scenes on save
+            // and into prefab assets from Prefab Mode, leaving a large spurious override on every
+            // prefab instance. Skipping the copy leaves whatever was last legitimately serialized;
+            // the mesh rebuilds on load either way.
+            //
+            // Read from the flag captured at build time rather than compared against the project
+            // format here -- resolving that reads graphics settings, which Unity forbids from a
+            // serialization callback.
+            if (m_GeneratedUnderOverride)
+                return;
+
+            // A generator can also opt out of persisting entirely, in which case its geometry is
+            // rebuilt on load instead. Read from the cached flag rather than the registry — see
+            // m_GeneratedPersists.
+            if (!m_GeneratedPersists)
+                return;
+
             if(m_NativeVertices.IsCreated)
                 m_Vertices = m_NativeVertices.ToArray();
 
@@ -87,347 +226,272 @@ namespace UnityEngine.Rendering.Universal
             if(m_NativeIndices.IsCreated)
                 m_NativeIndices.Dispose();
             m_NativeIndices = new NativeArray<int>(m_Indices, Allocator.Persistent);
-        }
 
-        internal void CopyFrom(ShadowMesh2D source)
-        {
-            // This is not gc tested as this generates garbage (calls DuplicateShadowMesh)
-            //DuplicateShadowMesh(source.m_Mesh, out m_Mesh);
-            m_TrimEdge = source.trimEdge;
-            m_LocalBounds = source.m_LocalBounds;
-            m_EdgeProcessing = source.edgeProcessing;
-            m_Vertices.CopyTo(source.m_Vertices, 0);
-            m_Indices.CopyTo(source.m_Indices,0);
-            GenerateShadowMesh(ref m_Mesh, m_NativeVertices, m_NativeIndices);
-        }
-
-        internal void AddCircle(Vector3 center, float r, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
-        {
-            float direction = reverseWindingOrder ? 1 : -1;
-
-            // Special case a full circle
-            float segments = 2 * k_CapsuleCapSegments;
-            float angle;
-            int startWritePos = vertexWritePos;
-            for (int i = 0; i < segments; i++)
+            // Migrate assets written before generators had names. Runs before anything reads
+            // m_GeneratorId, and clears the marker so it only happens once.
+            if (m_GeometryPath >= 0)
             {
-                angle = direction * (2 * Mathf.PI * (float)i / (float)segments);
-                float x = r * Mathf.Cos(angle) + center.x;
-                float y = r * Mathf.Sin(angle) + center.y;
-                generatedIndices[indexWritePos++] = vertexWritePos;
-                generatedIndices[indexWritePos++] = i + 1 < segments ? vertexWritePos + 1 : startWritePos;
-                generatedVertices[vertexWritePos++] = new Vector3(x, y, 0);
+                // Both old values land on Legacy. 0 was Legacy; 1 was the Passthrough development
+                // placeholder, which delegated to Legacy's algorithm and produced identical geometry,
+                // so collapsing it loses nothing. Passthrough was removed once Unity.SoftShadow made it
+                // redundant as a proof that the generator abstraction works.
+                m_GeneratorId = LegacyShadowGeometryGenerator.k_Id;
+                m_GeometryPath = -1;
             }
+
+            // Whatever was on disk was written by the serialized generator (see the guard above).
+            m_GeneratedId = m_GeneratorId;
+
+            // Baked geometry from an older version of this generator is stale. Only *flagged*
+            // here, not decided: deciding means resolving the generator, which builds the registry,
+            // whose discovery pass reads GraphicsSettings -- and that throws when called from a
+            // serialization callback ("not allowed to be called during serialization"). The flag is
+            // resolved by ConsumeGeneratorRebuildRequest, which ShadowCaster2D calls on the main
+            // thread.
+            m_GeneratorVersionCheckPending = true;
+
+            // The buffers were just replaced. m_Mesh is [NonSerialized] and so is normally null
+            // here, but this also runs on an existing instance for every Undo step and prefab
+            // revert -- without this the mesh would keep showing pre-Undo geometry.
+            m_IsDirty = true;
         }
 
-        internal void AddCapsuleCap(Vector3 center, float r, Vector3 otherCenter, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
+        /// <summary>
+        /// Whether this caster's geometry needs rebuilding after a load. True when the baked geometry
+        /// came from a different version of its generator, and true when the generator does not
+        /// persist geometry at all — in that case nothing was written, so there is nothing to load.
+        /// </summary>
+        /// <remarks>
+        /// Answered on demand rather than at deserialization time (see
+        /// <see cref="OnAfterDeserialize"/>) and cleared once, so a load triggers exactly one
+        /// rebuild. Must be called from the main thread, since resolving a generator reads
+        /// GraphicsSettings.
+        /// </remarks>
+        internal bool ConsumeGeneratorRebuildRequest()
         {
-            float startAngle;
-            float endAngle;
+            if (!m_GeneratorVersionCheckPending)
+                return false;
 
-            // Special case a full circle
-            float segments = k_CapsuleCapSegments;
-            Vector3 otherCenterDir = (otherCenter - center).normalized;
-            float absCenterAngle = Mathf.Acos(Vector3.Dot(otherCenterDir, new Vector3(1, 0, 0)));
-            float angleSign = Vector3.Dot(otherCenterDir, new Vector3(0, 1, 0)) < 0 ? -1f : 1f;
-            float centerAngle = absCenterAngle * angleSign;
+            m_GeneratorVersionCheckPending = false;
 
-            // This is hard coded for a half circle
-            if (reverseWindingOrder)
+            // The project's format decides what this caster builds, so geometry baked in any other
+            // layout is stale no matter how current the generator that wrote it was. This is the
+            // check that makes flipping Shadow2DGeometrySettings.geometryVersion take effect, and it
+            // has to come first: m_GeneratorId names the layout on disk, which is exactly what the
+            // version comparison below would otherwise be asking about the wrong generator.
+            if (!string.Equals(m_GeneratorId, activeGeneratorId, StringComparison.Ordinal))
+                return true;
+
+            if (!ShadowGeometryGeneratorRegistry.Contains(m_GeneratorId))
+                return false;
+
+            ShadowGeometryGenerator generator = ShadowGeometryGeneratorRegistry.Get(m_GeneratorId);
+
+            return !generator.persistsGeometry || generator.version != m_GeneratorVersion;
+        }
+
+        // Snapshot of the live buffers in the shape a generator expects. Used by the lazy mesh
+        // getter, which has geometry but no in-flight build to draw a result from.
+        ShadowGeometryResult CurrentGeometry()
+        {
+            return new ShadowGeometryResult
             {
-                float HalfPI = 0.5f * Mathf.PI;
-                startAngle = centerAngle + HalfPI;
-                endAngle = startAngle + Mathf.PI;
-            }
+                vertices = m_NativeVertices,
+                indices = m_NativeIndices,
+                customVertices = m_NativeCustomVertices,
+                customVertexCount = m_CustomVertexCount,
+                localBounds = m_LocalBounds,
+                trimEdge = m_TrimEdge,
+                isTransformable = m_IsTransformable,
+            };
+        }
+
+        /// <summary>
+        /// Runs the active generator and applies everything it produced. The generator owns the
+        /// algorithm and the vertex format; this class stays the sole owner of the buffers.
+        /// </summary>
+        void BuildShape(ref ShadowShapeInput input)
+        {
+            string activeId = activeGeneratorId;
+            ShadowGeometryGenerator generator = ShadowGeometryGeneratorRegistry.Get(activeId);
+
+            // Seeded with the live buffers: ShadowUtility.GenerateShadowGeometry disposes
+            // whatever it is handed, so ownership travels in and back out through the result.
+            ShadowGeometryResult result = CurrentGeometry();
+
+            // Clipper faults instead of rejecting out-of-range input in player builds, where its own
+            // range test is compiled out. Every generator hands its vertices to ShadowUtility, so the
+            // check belongs here rather than in each one: bail out as a degenerate shape does.
+            if (HasUnrepresentableVertices(input.vertices, input.indices))
+                result.cleared = true;
             else
-            {
-                float ThreeHalfsPI = 1.5f * Mathf.PI;
-                startAngle = centerAngle + ThreeHalfsPI;
-                endAngle = startAngle - Mathf.PI;
-            }
+                generator.Build(ref input, ref result);
 
-            float deltaAngle = endAngle - startAngle;
-            float angle;
+            m_NativeVertices = result.vertices;
+            m_NativeIndices = result.indices;
+            m_NativeCustomVertices = result.customVertices;
+            m_CustomVertexCount = result.customVertexCount;
+            m_TrimEdge = result.trimEdge;
+            m_IsTransformable = result.isTransformable;
+            m_GeneratedId = activeId;
+            m_GeneratedPersists = generator.persistsGeometry;
+            m_GeneratorVersion = generator.version;
+            m_GeneratedUnderOverride = Shadow2DGeometry.globalGeneratorOverride != null;
+            // Just built with the current generator, so no version check is owed.
+            m_GeneratorVersionCheckPending = false;
 
-            for (int i = 0; i < segments; i++)
+            // Record which layout the buffers are in, so a later load can tell whether what is on
+            // disk matches the project's format. Skipped under an override for the same reason
+            // OnBeforeSerialize skips the geometry itself: an A/B sweep must leave no trace in the
+            // asset.
+            if (!m_GeneratedUnderOverride)
+                m_GeneratorId = activeId;
+
+            if (result.cleared)
+                Clear();
+
+            if (result.localBoundsAssigned)
+                m_LocalBounds = result.localBounds;
+
+            if (result.markDirty)
+                m_IsDirty = true;
+
+            if (result.uploadMesh)
             {
-                angle = (deltaAngle * (float)i / (float)segments) + startAngle;
-                float x = r * Mathf.Cos(angle) + center.x;
-                float y = r * Mathf.Sin(angle) + center.y;
-                generatedIndices[indexWritePos++] = vertexWritePos;
-                generatedIndices[indexWritePos++] = vertexWritePos + 1;
-                generatedVertices[vertexWritePos++] = new Vector3(x, y, 0);
+                if (m_Mesh == null)
+                    m_Mesh = new Mesh();
+
+                // Upload from the applied state rather than from `result`: Clear() may have just
+                // released the buffers `result` still points at. Clearing m_IsDirty here is what
+                // stops the lazy getter immediately re-uploading the same data.
+                ShadowGeometryResult current = CurrentGeometry();
+                generator.UploadMesh(ref m_Mesh, in current);
+                m_IsDirty = false;
             }
-            angle = deltaAngle + startAngle;
-            generatedVertices[vertexWritePos++] = new Vector3(r * Mathf.Cos(angle) + center.x, r * Mathf.Sin(angle) + center.y, 0);
         }
 
-        internal void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
+        ShadowShapeInput CreateInput(ShadowShapeKind kind, NativeArray<Vector3> vertices, NativeArray<int> indices)
         {
-            // Add Straight Segments
-            Vector3 delta = (pt1 - pt0).normalized;
-            Vector3 relOffset0 = new Vector3(delta.y, -delta.x, 0);
-            Vector3 relOffset1 = new Vector3(-delta.y, delta.x, 0);
-
-            if (pt1.x < pt0.x)
+            return new ShadowShapeInput
             {
-                Vector3 temp = pt0;
-                pt0 = pt1;
-                pt1 = temp;
-            }
-
-            int circle0Start = vertexWritePos;
-
-            // Add circles
-            AddCapsuleCap(pt0, r0, pt1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-            generatedIndices[indexWritePos++] = vertexWritePos - 1;
-            generatedIndices[indexWritePos++] = vertexWritePos;
-            AddCapsuleCap(pt1, r1, pt0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-            generatedIndices[indexWritePos++] = vertexWritePos - 1;
-            generatedIndices[indexWritePos++] = circle0Start;
-        }
-
-        internal int AddShape(NativeArray<Vector3> vertices, NativeArray<int> indices, int indicesProcessed, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, ref int vertexWritePos, ref int indexWritePos)
-        {
-            int indexToProcess = indicesProcessed;
-            int prevIndex = indices[indexToProcess];
-            int startIndex = indices[indexToProcess];
-            int startWriteIndex = vertexWritePos;
-
-            generatedVertices[vertexWritePos++] = vertices[prevIndex];
-
-            bool continueProcessing = true;
-            while (indexToProcess < indices.Length  && continueProcessing)
-            {
-                int index0 = indices[indexToProcess++];
-                int index1 = indices[indexToProcess++];
-
-                generatedIndices[indexWritePos++] = vertexWritePos - 1;
-
-                if (index1 != startIndex)
-                {
-                    generatedIndices[indexWritePos++] = vertexWritePos;
-                    generatedVertices[vertexWritePos++] = vertices[index1];
-                    continueProcessing = index0 == prevIndex;
-                }
-                else
-                {
-                    generatedIndices[indexWritePos++] = startWriteIndex;
-                    continueProcessing = false;
-                }
-
-                prevIndex = index1;
-            }
-
-            return indexToProcess;
+                kind = kind,
+                vertices = vertices,
+                indices = indices,
+                trimEdge = m_TrimEdge,
+                initialTrim = m_InitialTrim,
+                outputTransform = Matrix4x4.identity,
+                fanSegments = fanSegments,
+            };
         }
 
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, Matrix4x4 transform, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTriming = true, bool createInteriorGeometry = false)
         {
-            if (m_TrimEdge == k_TrimEdgeUninitialized)
-                m_TrimEdge = m_InitialTrim;
+            ShadowShapeInput input = CreateInput(ShadowShapeKind.RadiiWithTransform, vertices, indices);
+            input.radii = radii;
+            input.outputTransform = transform;
+            input.windingOrder = windingOrder;
+            input.allowTrimming = allowTriming;
+            input.createInteriorGeometry = createInteriorGeometry;
 
-            if (indices.Length == 0)
-            {
-                Clear();
-                return;
-            }
-
-            bool reverseWindingOrder = windingOrder == ShadowShape2D.WindingOrder.CounterClockwise;
-
-
-            int circleCount = 0;
-            int capsuleCount = 0;
-            for (int i = 0; i < indices.Length; i += 2)
-            {
-                int index0 = indices[i];
-                int index1 = indices[i + 1];
-
-                if (radii[index0] > 0 || radii[index1] > 0)
-                {
-                    if (index0 == index1)
-                        circleCount++;
-                    else
-                        capsuleCount++;
-                }
-            }
-
-            int capsuleStraightSegments = capsuleCount * 2;
-            int capsuleCapSegments = capsuleCount * k_CapsuleCapSegments;  // This can be refined later
-            int circleSegments = circleCount * 2 * k_CapsuleCapSegments;
-
-            int lineCount = (indices.Length >> 1) - (capsuleCount + circleCount);
-            int indexCount = 2 * (lineCount + capsuleStraightSegments + (2 * capsuleCapSegments) + circleSegments);
-            int vertexCount = indexCount;  // Keep this simple for now
-
-            NativeArray<Vector3> generatedVertices = new NativeArray<Vector3>(vertexCount, Allocator.Temp);
-            NativeArray<int> generatedIndices = new NativeArray<int>(indexCount, Allocator.Temp);
-
-            int vertexWritePos = 0;
-            int indexWritePos = 0;
-            int indicesProcessed = 0;
-            while (indicesProcessed < indices.Length)
-            {
-                int v0 = indices[indicesProcessed];
-                int v1 = indices[indicesProcessed + 1];
-
-                float r0 = radii[v0];
-                float r1 = radii[v1];
-
-                if (radii[v0] > 0 || radii[v1] > 0)
-                {
-                    Vector3 pt0 = vertices[v0];
-                    Vector3 pt1 = vertices[v1];
-
-                    if (vertices[v0].x == vertices[v1].x && vertices[v0].y == vertices[v1].y)
-                        AddCircle(pt0, r0, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-                    else
-                        AddCapsule(pt0, pt1, r0, r1, generatedVertices, generatedIndices, reverseWindingOrder, ref vertexWritePos, ref indexWritePos);
-
-                    indicesProcessed += 2;
-                }
-                else
-                {
-                    // Will add edges or polygons
-                    indicesProcessed = AddShape(vertices, indices, indicesProcessed, generatedVertices, generatedIndices, ref vertexWritePos, ref indexWritePos);
-                }
-            }
-
-            for (int i = 0; i < generatedVertices.Length; i++)
-                generatedVertices[i] = transform.MultiplyPoint(generatedVertices[i]);
-
-            NativeArray<ShadowEdge> calculatedEdges;
-            NativeArray<int> calculatedStartingEdges;
-            NativeArray<bool> calculatedIsClosedArray;
-
-            ShadowUtility.CalculateEdgesFromLines(ref generatedIndices, out calculatedEdges, out calculatedStartingEdges, out calculatedIsClosedArray);
-
-            if (reverseWindingOrder)
-                ShadowUtility.ReverseWindingOrder(ref calculatedStartingEdges, ref calculatedEdges);
-
-            if (m_EdgeProcessing == EdgeProcessing.Clipping)
-            {
-                NativeArray<Vector3> clippedVertices;
-                NativeArray<ShadowEdge> clippedEdges;
-                NativeArray<int> clippedStartingIndices;
-
-                ShadowUtility.ClipEdges(ref generatedVertices, ref calculatedEdges, ref calculatedStartingEdges, ref calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
-
-                if (clippedStartingIndices.Length > 0)
-                {
-                    m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
-                    m_IsDirty = true;
-                }
-                else
-                {
-                    m_LocalBounds = new Bounds();
-                    Clear();
-                }
-
-                clippedVertices.Dispose();
-                clippedEdges.Dispose();
-                clippedStartingIndices.Dispose();
-            }
-            else
-            {
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
-                m_IsDirty = true;
-            }
-
-            generatedVertices.Dispose();
-            generatedIndices.Dispose();
-            calculatedEdges.Dispose();
-            calculatedIsClosedArray.Dispose();
-            calculatedStartingEdges.Dispose();
-
+            BuildShape(ref input);
         }
 
 
-        bool AreDegenerateVertices(NativeArray<Vector3> vertices)
+        // Clipper scales incoming coordinates by ShadowUtility's fixed point precision and keeps them in a 64 bit
+        // integer. Its own range test is compiled out when exceptions are disabled, as they are in player builds, so
+        // a coordinate past this bound overflows inside native Clipper and faults instead of being rejected. Staying
+        // within Clipper's low range (0x3FFFFFFF) after scaling by the precision (65536) keeps that arithmetic valid.
+        const float k_MaxClipperCoordinate = 16383.0f;
+
+        static bool IsRepresentableCoordinate(float value)
         {
-            if (vertices == null || vertices.Length == 0)
+            // Both comparisons are false for NaN, so this also rejects NaN and infinities.
+            return value >= -k_MaxClipperCoordinate && value <= k_MaxClipperCoordinate;
+        }
+
+        // Returns true when any vertex the shape actually USES holds a coordinate Clipper cannot
+        // represent, which makes the whole shape unusable. Callers must bail out instead of passing
+        // the data on to native code.
+        //
+        // Only indexed vertices are checked. A provider may hand over a vertex buffer larger than
+        // its index set references -- SpriteSkin does exactly that: outlineVertices is the whole
+        // m_DeformedOutlineVertexCache, allocated with NativeArrayOptions.UninitializedMemory, while
+        // UpdateDeformedOutlineCache only writes the entries m_OutlineIndexCache names (e.g. 63 of
+        // 79 for the head caster in 120_SpriteSkin_Shadows_*). Scanning the unreferenced tail meant
+        // uninitialised garbage -- a NaN or a huge float -- rejected an otherwise valid outline, and
+        // that caster then cast no shadow at all. It only ever bit CPU deformation, because the GPU
+        // path returns the live deformation buffer rather than this cache, and it was intermittent
+        // because it depended on what happened to be in unwritten memory.
+        //
+        // Skipping the tail is also sound for Clipper: edges are built from the index buffer, so a
+        // vertex no index references never reaches native code.
+        static bool HasUnrepresentableVertices(NativeArray<Vector3> vertices, NativeArray<int> indices)
+        {
+            if (vertices == null)
                 return true;
 
-            // This should is a trade off between perfomance and accuracy. This may need to be refined later if we find cases where this is not good enough.
-            int prevIndex = vertices.Length - 1;
-            for (int i=0;i< vertices.Length; i++)
+            // No index buffer means every vertex is potentially consumed, so all of them must be
+            // representable.
+            if (indices == null || indices.Length == 0)
             {
-                if (vertices[prevIndex].x != vertices[i].x || vertices[prevIndex].y != vertices[i].y)
-                    return false;
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    Vector3 vertex = vertices[i];
+                    if (!IsRepresentableCoordinate(vertex.x) || !IsRepresentableCoordinate(vertex.y))
+                        return true;
+                }
 
-                prevIndex = i;
+                return false;
             }
 
-            return true;
+            for (int i = 0; i < indices.Length; i++)
+            {
+                int index = indices[i];
+
+                // An out-of-range index is itself unusable data; reject rather than throw.
+                if (index < 0 || index >= vertices.Length)
+                    return true;
+
+                Vector3 vertex = vertices[index];
+                if (!IsRepresentableCoordinate(vertex.x) || !IsRepresentableCoordinate(vertex.y))
+                    return true;
+            }
+
+            return false;
         }
 
-        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false)
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTriming = true, bool createInteriorGeometry = false, bool inWorldSpace = false)
         {
-            if (AreDegenerateVertices(vertices) || indices == null || indices.Length == 0)
-            {
-                Clear();
-                return;
-            }
+            ShadowShapeInput input = CreateInput(ShadowShapeKind.Radii, vertices, indices);
+            input.radii = radii;
+            input.windingOrder = windingOrder;
+            input.allowTrimming = allowTriming;
+            input.createInteriorGeometry = createInteriorGeometry;
+            input.inWorldSpace = inWorldSpace;
 
-            if (m_TrimEdge == k_TrimEdgeUninitialized)
-                m_TrimEdge = m_InitialTrim;
-
-
-            bool disposeVertices = false;
-            NativeArray<ShadowEdge> edges;
-            NativeArray<int> shapeStartingIndices;
-            NativeArray<bool> shapeIsClosedArray;
-
-            if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
-            {
-                NativeArray<Vector3> newVertices;
-                ShadowUtility.CalculateEdgesFromTriangles(ref vertices, ref indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
-
-                disposeVertices = true;
-                vertices = newVertices;
-            }
-            else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
-            {
-                ShadowUtility.CalculateEdgesFromLines(ref indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
-            }
-
-            if (windingOrder == ShadowShape2D.WindingOrder.CounterClockwise)
-                ShadowUtility.ReverseWindingOrder(ref shapeStartingIndices, ref edges);
-
-            // It would be better if we don't have to rerun SetShape after a trimEdge change.
-            if (m_EdgeProcessing == EdgeProcessing.Clipping && allowTrimming)
-            {
-                NativeArray<Vector3> clippedVertices;
-                NativeArray<ShadowEdge> clippedEdges;
-                NativeArray<int> clippedStartingIndices;
-
-                ShadowUtility.ClipEdges(ref vertices, ref edges, ref shapeStartingIndices, ref shapeIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
-
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
-                m_IsDirty = true;
-
-                clippedVertices.Dispose();
-                clippedEdges.Dispose();
-                clippedStartingIndices.Dispose();
-            }
-            else
-            {
-                m_LocalBounds = ShadowUtility.GenerateShadowGeometry(ref m_NativeVertices, ref m_NativeIndices, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
-                m_IsDirty = true;
-            }
-
-            if (m_Mesh == null)
-                m_Mesh = new Mesh();
-
-            ShadowUtility.GenerateShadowMesh(ref m_Mesh, m_NativeVertices, m_NativeIndices);
-
-            if(disposeVertices)
-                vertices.Dispose();
-
-            edges.Dispose();
-            shapeStartingIndices.Dispose();
-            shapeIsClosedArray.Dispose();
+            BuildShape(ref input);
         }
+
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false, bool inWorldSpace = false)
+        {
+            ShadowShapeInput input = CreateInput(ShadowShapeKind.Topology, vertices, indices);
+            input.topology = outlineTopology;
+            input.windingOrder = windingOrder;
+            input.allowTrimming = allowTrimming;
+            input.createInteriorGeometry = createInteriorGeometry;
+            input.inWorldSpace = inWorldSpace;
+
+            BuildShape(ref input);
+        }
+
+        public override void SetShapeDirect(NativeArray<Vector3> vertices, NativeArray<int> indices, bool inWorldSpace = false)
+        {
+            ShadowShapeInput input = CreateInput(ShadowShapeKind.Direct, vertices, indices);
+            input.inWorldSpace = inWorldSpace;
+
+            BuildShape(ref input);
+        }
+
 
         public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowTrimming)
         {
@@ -452,12 +516,37 @@ namespace UnityEngine.Rendering.Universal
             m_InitialTrim = trim;
         }
 
+#if UNITY_EDITOR
+        internal void DrawPreviewOutline(Matrix4x4 outlineMatrix, float trimDistance)
+        {
+            ShadowGeometryGeneratorRegistry.Get(m_GeneratedId).DrawPreviewOutline(mesh, outlineMatrix, trimDistance);
+        }
+#endif
+
         public void UpdateBoundingSphere(Transform transform)
         {
-            var maxBound = transform.TransformPoint(m_LocalBounds.max);
-            var minBound = transform.TransformPoint(m_LocalBounds.min);
+            var maxBound = m_LocalBounds.max;
+            var minBound = m_LocalBounds.min;
+
+            if (isTransformable)
+            {
+                maxBound = transform.TransformPoint(m_LocalBounds.max);
+                minBound = transform.TransformPoint(m_LocalBounds.min);
+            }
+
             var center = 0.5f * (maxBound + minBound);
             var radius = Vector3.Magnitude(maxBound - center);
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
+        }
+
+        // Sets the bounding sphere from world bounds. Only the x and y extents size it, so the bounds'
+        // z depth cannot inflate it. The center's z is given by the caller.
+        internal void SetBoundingSphere(Bounds worldBounds, float z)
+        {
+            var center = new Vector3(worldBounds.center.x, worldBounds.center.y, z);
+            var extents = worldBounds.extents;
+            var radius = new Vector2(extents.x, extents.y).magnitude;
 
             m_BoundingSphere = new BoundingSphere(center, radius);
         }
@@ -469,6 +558,9 @@ namespace UnityEngine.Rendering.Universal
 
             if(m_NativeVertices.IsCreated)
                 m_NativeVertices.Dispose();
+
+            if(m_NativeCustomVertices.IsCreated)
+                m_NativeCustomVertices.Dispose();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using UnityEngine.Scripting;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,6 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Base class for custom Cloud Settings.
     /// </summary>
+    [Preserve]
+    [RequireDerived]
     public abstract class CloudSettings : VolumeComponent
     {
         static Dictionary<Type, int> s_CloudUniqueIDs = null;

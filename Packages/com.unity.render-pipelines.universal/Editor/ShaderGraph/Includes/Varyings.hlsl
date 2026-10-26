@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
@@ -110,7 +112,7 @@ Varyings BuildVaryings(Attributes input
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
         #ifdef UNIVERSAL_TERRAIN_ENABLED
-        TerrainVaryingGeneration(input, output);
+        ApplyTerrainInstancing(input);
         #endif
 
     #if defined(FEATURES_GRAPH_VERTEX)
@@ -267,7 +269,7 @@ Varyings BuildVaryings(Attributes input
     #ifdef UNIVERSAL_TERRAIN_ENABLED
         #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
             OUTPUT_LIGHTMAP_UV(input.uv0, unity_LightmapST, output.staticLightmapUV);
-        #if defined(DYNAMICLIGHTMAP_ON)
+        #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
             output.dynamicLightmapUV.xy = input.uv0.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
         #endif
             OUTPUT_SH4(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh, output.probeOcclusion);
@@ -275,7 +277,7 @@ Varyings BuildVaryings(Attributes input
     #else
         #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
             OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
-        #if defined(DYNAMICLIGHTMAP_ON)
+        #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
             output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
         #endif
             OUTPUT_SH4(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh, output.probeOcclusion);
@@ -283,15 +285,13 @@ Varyings BuildVaryings(Attributes input
     #endif
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
         half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-            fogFactor = ComputeFogFactor(output.positionCS.z);
-    #endif
-        half3 vertexLight = VertexLighting(positionWS, normalWS);
-        output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-    #endif
 
-    #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        output.shadowCoord = GetShadowCoord(vertexInput);
+        URP_LIGHT_ACCUM3 vertexLight = VertexLighting(positionWS, normalWS);
+        output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
+#endif
+
+    #if defined(VARYINGS_NEED_SHADOW_COORD) && USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), normalWS) : float4(0, 0, 0, 0);
     #endif
 
     #if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)

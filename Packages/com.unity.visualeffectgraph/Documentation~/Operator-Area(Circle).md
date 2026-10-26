@@ -1,4 +1,4 @@
-# Area (Circle)
+# Area (Circle) Operator
 
 Menu Path : **Operator > Math > Geometry > Area (Circle)**
 

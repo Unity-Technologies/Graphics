@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition.LTC;
 
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new BRDF_GGX();
         }
 
+        [NoAutoStaticsCleanup] // Refcounted by the surviving HDRenderPipeline; Build/Cleanup run only from pipeline construction/disposal.
         static LTCAreaLight s_Instance;
 
         internal static LTCAreaLight instance
@@ -67,14 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return s_Instance;
             }
         }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = null;
-        }
-#endif
 
         int m_refCounting;
 

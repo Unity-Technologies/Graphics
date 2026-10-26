@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor Forward(UniversalTarget target, bool blendModePreserveSpecular, PragmaCollection pragmas = null)
             {
                 var result = TerrainLitPasses.Forward(target, blendModePreserveSpecular, pragmas);
-                result.renderStates = AdditionalLayersRenderState();
+                result.renderStates = AdditionalLayersRenderStateForward();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
 
                 return result;
@@ -107,20 +107,38 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBuffer(UniversalTarget target, bool blendModePreserveSpecular)
             {
                 var result = TerrainLitPasses.GBuffer(target, blendModePreserveSpecular);
-                result.renderStates = AdditionalLayersRenderState();
+                result.renderStates = AdditionalLayersRenderStateGBuffer();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
 
                 return result;
             }
 
             // used by lit/unlit subtargets
-            public static RenderStateCollection AdditionalLayersRenderState()
+            public static RenderStateCollection AdditionalLayersRenderStateForward()
             {
                 var result = new RenderStateCollection();
 
                 result.Add(RenderState.Blend(Blend.One, Blend.One));
 
                 return result;
+            }
+            public static RenderStateCollection AdditionalLayersRenderStateGBuffer()
+            {
+                return new RenderStateCollection
+                {
+                    RenderState.ZWrite(ZWrite.Off),
+                    RenderState.Blend("Blend 0 One One"),
+                    RenderState.Blend("Blend 1 One One"),
+                    RenderState.Blend("Blend 2 One One"),
+                    RenderState.Blend("Blend 3 One One"),
+                    RenderState.Blend("Blend 4 Off"),
+                    RenderState.Blend("Blend 5 Off"),
+                    RenderState.Blend("Blend 6 Off"),
+                    RenderState.ColorMask("ColorMask RGB 0"),   // .a carries the packed material flags
+                    RenderState.ColorMask("ColorMask 0 4"),
+                    RenderState.ColorMask("ColorMask 0 5"),
+                    RenderState.ColorMask("ColorMask 0 6"),
+                };
             }
         }
 
@@ -168,8 +186,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
@@ -210,8 +226,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
@@ -235,8 +249,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("frag") },
             };
 
-            public static readonly string kBaseMapPass = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapGenPass.hlsl";
-
             public static readonly IncludeCollection BaseGenMainTexIncludes = new IncludeCollection
             {
                 // Pre-graph
@@ -247,7 +259,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { TerrainCoreIncludes.CorePostgraph },
-                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection BaseGenMetallicTexIncludes = new IncludeCollection
@@ -260,7 +271,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { TerrainCoreIncludes.CorePostgraph },
-                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly AdditionalCommandCollection BaseMapMainTex = new AdditionalCommandCollection()

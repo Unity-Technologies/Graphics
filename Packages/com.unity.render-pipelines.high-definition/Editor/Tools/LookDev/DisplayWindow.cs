@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.LookDev
             internal const string k_uss = @"Packages/com.unity.render-pipelines.high-definition/Editor/Tools/LookDev/DisplayWindow.uss";
             internal const string k_uss_personal_overload = @"Packages/com.unity.render-pipelines.high-definition/Editor/Tools/LookDev/DisplayWindow-PersonalSkin.uss";
 
-            internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
+            internal static readonly GUIContent k_WindowTitleAndIcon = L10n.TextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true), null);
 
             internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),

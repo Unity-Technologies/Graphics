@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -14,16 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDCachedShadowManager
     {
+        [NoAutoStaticsCleanup] // HDAdditionalLightData.lightIdxForCachedShadows indexes into these atlases; native collections disposed via HDShadowManager.
         private static HDCachedShadowManager s_Instance = new HDCachedShadowManager();
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance?.DisposeNativeCollections();
-            s_Instance = new HDCachedShadowManager();
-        }
-#endif
 
         /// <summary>
         /// Get the cached shadow manager to control cached shadow maps.

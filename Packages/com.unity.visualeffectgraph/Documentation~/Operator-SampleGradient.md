@@ -1,4 +1,4 @@
-# Sample Gradient
+# Sample Gradient Operator
 
 Menu Path : **Operator > Sampling > Sample Gradient**
 

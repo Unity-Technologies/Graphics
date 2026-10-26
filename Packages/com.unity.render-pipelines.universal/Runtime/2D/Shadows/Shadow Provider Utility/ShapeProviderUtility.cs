@@ -11,12 +11,29 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class ShapeProviderUtility
     {
-        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds)
+        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds, Camera camera)
         {
             if (component != null)
             {
                 if (shapeProvider != null && component.gameObject.activeInHierarchy)
+                {
+                    // Both overloads are called, the older three-argument one first.
+                    //
+                    // When only the Camera overload was called, a provider written against the older
+                    // signature silently never ran: it pushed no shape, which on the Legacy geometry
+                    // generation goes unnoticed because the geometry serialized with the caster
+                    // already matches. Switch the project to Enhanced and that caster draws Legacy
+                    // vertices through the enhanced shader -- the one state ShadowMesh2D calls out as
+                    // producing a wrong shadow rather than a missing one.
+                    //
+                    // The older overload is deliberately not [Obsolete]: it is still called, so
+                    // warning about it would ask every provider using it to make a change it does not
+                    // have to. A provider that overrides both gets both, old first -- the accepted
+                    // cost of keeping existing providers working, and reachable only by a provider
+                    // that implements the same callback twice, since both base bodies are empty.
                     shapeProvider.OnBeforeRender(component, bounds, shadowMesh);
+                    shapeProvider.OnBeforeRender(camera, component, bounds, shadowMesh);
+                }
             }
             else if (shadowMesh != null && shadowMesh.mesh != null)
             {

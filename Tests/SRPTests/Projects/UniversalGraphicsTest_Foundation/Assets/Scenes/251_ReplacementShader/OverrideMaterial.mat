@@ -8,14 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: OverrideMaterial
-  m_Shader: {fileID: -6465566751694194690, guid: c57275b9bf9750e4ca13731b6742c6c7,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: c57275b9bf9750e4ca13731b6742c6c7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _EMISSION
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -47,6 +46,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RedAdded: 0.2
+    - _ScreenSpaceReflectionsContributeTransparent: 1
     - _Smoothness: 0.2
     m_Colors: []
   m_BuildTextureStacks: []
@@ -63,4 +63,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 10
+  version: 11

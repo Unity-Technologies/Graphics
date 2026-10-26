@@ -1,6 +1,6 @@
-# Left Shift (Bitwise)
+# Left Shift (Bitwise) Operator
 
-Menu Path : **Operator > Bitwise > Left Shift**
+Menu Path : **Operator** > **Bitwise** > **Left Shift**
 
 The **Left Shift** Operator shifts the first input's value left by the number of bits defined in the second input. During the shift, this Operator discards the most-significant bit and inserts a 0 on the right.
 

@@ -1,125 +1,65 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     /// <summary>
     /// Represents a hierarchical data path composed of a sequence of <see cref="IDataKey"/> elements.
     /// </summary>
-    /*public*/ class DataPath : IEquatable<DataPath>
+    /*public*/ record DataPath : IEnumerable<IDataKey>
     {
         /// <summary>
-        /// Represents an empty data path.
+        /// Represents an empty data path (root).
         /// </summary>
-        public static DataPath Empty = new DataPath();
+        public static DataPath Root { get; } = new();
+
+        readonly IDataKey m_Key;
+        readonly DataPath m_Parent;
 
         /// <summary>
-        /// Checks if this data path is empty.
+        /// Initializes a new, empty instance of the <see cref="DataPath"/> class (root).
         /// </summary>
-        /// <returns>
-        /// <see langword="true"/> if the path contains no elements; otherwise, <see langword="false"/>.
-        /// </returns>
-        public bool IsEmpty()
+        DataPath()
         {
-            return this.Equals(Empty);
-        }
-
-        /// <summary>
-        /// Gets the sequence of data keys that make up this path, from root to leaf.
-        /// </summary>
-        /// <value>
-        /// A read-only span containing the sequence of <see cref="IDataKey"/> elements.
-        /// </value>
-        public ReadOnlySpan<IDataKey> PathSequence
-        {
-            get
-            {
-                s_PathSequenceScratch[m_Depth] = m_SelfDataKey;
-                var parentPath = m_ParentDataPath;
-                while(parentPath != null)
-                {
-                    s_PathSequenceScratch[parentPath.m_Depth] = parentPath.m_SelfDataKey;
-                    parentPath = parentPath.m_ParentDataPath;
-                }
-
-                return new ReadOnlySpan<IDataKey>(s_PathSequenceScratch, 0, (int)(m_Depth + 1));
-            }
+            m_Parent = null;
+            m_Key = null;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataPath"/> class with a parent path and a data key.
         /// </summary>
-        /// <param name="parentDataPath">The parent data path.</param>
-        /// <param name="selfDataKey">The data key for this path segment.</param>
-        public DataPath(DataPath parentDataPath, IDataKey selfDataKey)
+        /// <param name="parent">The parent data path.</param>
+        /// <param name="key">The data key for this path segment.</param>
+        DataPath(DataPath parent, IDataKey key)
         {
-            m_ParentDataPath = parentDataPath;
-            m_SelfDataKey = selfDataKey;
-            m_Depth = m_ParentDataPath.m_Depth + 1;
+            Debug.Assert(parent != null);
+            Debug.Assert(key != null);
+            m_Parent = parent;
+            m_Key = key;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataPath"/> class with a single data key.
-        /// </summary>
-        /// <param name="selfDataKey">The data key for this path.</param>
-        public DataPath(IDataKey selfDataKey)
-        {
-            m_ParentDataPath = Empty;
-            m_SelfDataKey = selfDataKey;
-            m_Depth = m_ParentDataPath.m_Depth + 1;
-        }
-
-        internal DataPath(ReadOnlySpan<IDataKey> pathSequence)
-        {
-            var parentDataPath = Empty;
-            foreach (var key in pathSequence)
-            {
-                var dataPath = new DataPath(parentDataPath, key);
-                parentDataPath = dataPath;
-            }
-
-            m_ParentDataPath = parentDataPath.m_ParentDataPath;
-            m_SelfDataKey = parentDataPath.m_SelfDataKey;
-            m_Depth = parentDataPath.m_Depth;
-        }
-
-        /// <summary>
-        /// Returns a partial data path starting from the specified index.
-        /// </summary>
-        /// <param name="start">The zero-based index to start the partial path from (exclusive).</param>
-        /// <returns>
-        /// A new <see cref="DataPath"/> representing the partial path sequence starting after the specified index.
-        /// </returns>
-        public DataPath GetPartialPath(int start)
-        {
-            ReadOnlySpan<IDataKey> partialSequence = PathSequence.Slice(start + 1);
-            return new DataPath(partialSequence);
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="DataPath"/> is equal to the current <see cref="DataPath"/>.
-        /// </summary>
-        /// <param name="other">The <see cref="DataPath"/> to compare with the current <see cref="DataPath"/>.</param>
-        /// <returns>
-        /// <see langword="true"/> if the specified <see cref="DataPath"/> is equal to the current <see cref="DataPath"/>;
-        /// otherwise, <see langword="false"/>.
-        /// </returns>
-        public bool Equals(DataPath other)
-        {
-            return m_SelfDataKey == other.m_SelfDataKey && (m_ParentDataPath == other.m_ParentDataPath || m_ParentDataPath.Equals(other.m_ParentDataPath));
-        }
-
-        /// <summary>
-        /// Returns a hash code for this instance.
+        /// Gets a value indicating whether this data path is the root path.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+        /// <see langword="true"/> if this is the root path; otherwise, <see langword="false"/>.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(m_SelfDataKey, m_ParentDataPath);
-        }
+        public bool IsRoot => m_Parent == null && m_Key == null;
+
+        /// <summary>
+        /// Gets the number of elements in this data path.
+        /// </summary>
+        public int Length => m_Parent == null ? 1 : 1 + m_Parent.Length;
+
+        /// <summary>
+        /// Creates a new child data path by appending a key to the current path.
+        /// </summary>
+        /// <param name="parent">The parent data path.</param>
+        /// <param name="key">The data key to append.</param>
+        /// <returns>A new <see cref="DataPath"/> with the key appended.</returns>
+        public static DataPath operator +(DataPath parent, IDataKey key) => new(parent, key);
 
         /// <summary>
         /// Returns the string representation of this data path.
@@ -130,30 +70,54 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </returns>
         public override string ToString()
         {
-            if (IsEmpty())
-                return "All";
+            if (IsRoot)
+                return "Root";
 
             StringBuilder sb = new StringBuilder();
-            foreach (var dataKey in PathSequence)
+            sb.Append("Root");
+            foreach (var dataKey in this)
             {
-                sb.Append(dataKey == null ? "Root" : dataKey);
                 sb.Append("/");
+                sb.Append(dataKey);
             }
-            return sb.ToString(0, sb.Length - 1);
+            return sb.ToString();
         }
 
-        /// <summary>
-        /// Initializes a new, empty instance of the <see cref="DataPath"/> class.
-        /// </summary>
-        private DataPath()
+        public Enumerator GetEnumerator() => new(this);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator<IDataKey> IEnumerable<IDataKey>.GetEnumerator() => GetEnumerator();
+
+        public struct Enumerator : IEnumerator<IDataKey>
         {
-            m_ParentDataPath = null;
-            m_SelfDataKey = null;
-        }
+            readonly DataPath m_Path;
+            int m_Steps;
 
-        private static IDataKey[] s_PathSequenceScratch = new IDataKey[8];
-        private readonly DataPath m_ParentDataPath;
-        private readonly IDataKey m_SelfDataKey;
-        private readonly uint m_Depth = 0;
+            internal Enumerator(DataPath path)
+            {
+                m_Path = path;
+                m_Steps = path.Length - 1;
+            }
+
+            public IDataKey Current
+            {
+                get
+                {
+                    var current = m_Path;
+                    for (int i = 0; i < m_Steps; i++)
+                    {
+                        current = current.m_Parent;
+                    }
+                    return current.m_Key;
+                }
+            }
+
+            object IEnumerator.Current => Current;
+
+            public bool MoveNext() => --m_Steps >= 0;
+
+            public void Reset() => m_Steps = m_Path.Length - 1;
+
+            public void Dispose() { }
+        }
     }
 }

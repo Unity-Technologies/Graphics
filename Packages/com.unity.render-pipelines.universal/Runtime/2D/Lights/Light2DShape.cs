@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShapeLightParametricRadius = 1.0f;
         [SerializeField] float m_ShapeLightFalloffSize = 0.50f;
         [SerializeField] Vector2 m_ShapeLightFalloffOffset = Vector2.zero;
-        [SerializeField] Vector3[] m_ShapePath = null;
+        [SerializeField] Vector3[] m_ShapePath = { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
 
         float m_PreviousShapeLightFalloffSize = -1;
         int m_PreviousShapeLightParametricSides = -1;
@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal
         float m_PreviousShapeLightParametricRadius = -1;
         int m_PreviousShapePathHash = -1;
         LightType m_PreviousLightType = LightType.Parametric;
+
+        internal const float k_MaxFalloffSize = 1000000f;
 
         /// <summary>
         /// The number of sides in the parametric shape.
@@ -37,11 +39,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// The size of the fall-off area. Bigger value corresponds to bigger fall off size.
+        /// Possible values between 0 and 1000000.
         /// </summary>
         public float shapeLightFalloffSize
         {
             get { return m_ShapeLightFalloffSize; }
-            set { m_ShapeLightFalloffSize = Mathf.Max(0, value); }
+            set { m_ShapeLightFalloffSize = Mathf.Clamp(value, 0, k_MaxFalloffSize); }
         }
 
         /// <summary>

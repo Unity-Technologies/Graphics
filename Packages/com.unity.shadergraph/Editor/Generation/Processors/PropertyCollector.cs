@@ -52,27 +52,6 @@ namespace UnityEditor.ShaderGraph
             m_ReadOnly = true;
         }
 
-        private static bool EquivalentHLSLProperties(AbstractShaderProperty a, AbstractShaderProperty b)
-        {
-            bool equivalent = true;
-            var bHLSLProps = new List<HLSLProperty>();
-            b.ForeachHLSLProperty(bh => bHLSLProps.Add(bh));
-            a.ForeachHLSLProperty(ah =>
-            {
-                var i = bHLSLProps.FindIndex(bh => bh.name == ah.name);
-                if (i < 0)
-                    equivalent = false;
-                else
-                {
-                    var bh = bHLSLProps[i];
-                    if (!ah.ValueEquals(bh))
-                        equivalent = false;
-                    bHLSLProps.RemoveAt(i);
-                }
-            });
-            return equivalent && (bHLSLProps.Count == 0);
-        }
-
         public void AddShaderProperty(AbstractShaderProperty prop)
         {
             if (m_ReadOnly)
@@ -116,7 +95,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        private List<HLSLProperty> BuildHLSLPropertyList()
+        private List<HLSLProperty> BuildHLSLPropertyList(GenerationMode mode)
         {
             SetReadOnly();
             if (m_HLSLProperties == null)
@@ -125,7 +104,7 @@ namespace UnityEditor.ShaderGraph
                 var dict = new Dictionary<string, int>();
                 foreach (var p in m_Properties)
                 {
-                    p.ForeachHLSLProperty(
+                    p.ForeachHLSLProperty(mode,
                         h =>
                         {
                             if (dict.TryGetValue(h.name, out int index))
@@ -153,7 +132,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // build a list of all HLSL properties
-            var hlslProps = BuildHLSLPropertyList();
+            var hlslProps = BuildHLSLPropertyList(mode);
 
             if (mode.IsPreview())
             {
@@ -240,18 +219,6 @@ namespace UnityEditor.ShaderGraph
             foreach (var h in hlslProps)
                 if (h.declaration == HLSLDeclaration.Global)
                     h.AppendTo(builder);
-        }
-
-        public bool HasDotsProperties()
-        {
-            var hlslProps = BuildHLSLPropertyList();
-            bool hasDotsProperties = false;
-            foreach (var h in hlslProps)
-            {
-                if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                    hasDotsProperties = true;
-            }
-            return hasDotsProperties;
         }
 
         public List<TextureInfo> GetConfiguredTextures()

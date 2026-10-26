@@ -82,6 +82,8 @@ namespace UnityEditor.VFX.UI
             this.Q<Button>("swatch2").clicked += OnSwatch2;
             this.Q<Button>("swatch3").clicked += OnSwatch3;
             this.Q<Button>("fitToText").clicked += OnClickFitToText;
+            this.Q<TextField>("title-field").maxLength = 128;
+            this.Q<TextField>("contents-field").maxLength = 10_000;
 
             m_FontSizeDropdown = this.Q<DropdownField>("fontSize");
             m_FontSizeDropdown.choices = new List<string> { "Small", "Medium", "Large", "Huge" };

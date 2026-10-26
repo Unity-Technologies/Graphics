@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public uint vertexCount;
         public uint vertexStride; // in DWORD
         public int baseVertex;
+        public VertexAttributeFormat format;
+        public int dimension;
     }
 
     internal sealed class BLASPositionsPool : IDisposable
@@ -61,8 +63,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             if (!verticesAllocation.valid)
             {
                 int oldCapacity = m_VerticesAllocator.capacity;
-                // Capping capacity to 2,147,483,647 vertices because m_VerticesAllocator is using NativeList which has int max capacity
-                int maxCapacity = (int)math.min((long)Int32.MaxValue, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / (long)UnsafeUtility.SizeOf<float3>());
+
+                // Cap capacity to int.MaxValue vertices because m_VerticesAllocator is using NativeList which has int max capacity.
+                int maxCapacity = GraphicsHelpers.MaxElementCount(UnsafeUtility.SizeOf<float3>());
 
                 if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, maxCapacity, out int newCapacity))
                     throw new UnifiedRayTracingException($"VerticesAllocator can't grow to {maxCapacity } elements", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
@@ -80,6 +83,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmd.SetComputeIntParam(m_CopyPositionsShader, "_InputBaseVertex", info.baseVertex);
             cmd.SetComputeIntParam(m_CopyPositionsShader, "_InputPosBufferStride", (int)info.vertexStride);
             cmd.SetComputeIntParam(m_CopyPositionsShader, "_OutputPosBufferOffset", verticesAllocation.block.offset * VertexSizeInDwords);
+            cmd.SetComputeIntParam(m_CopyPositionsShader, "_InputPosBufferFormat", (int)info.format);
+            cmd.SetComputeIntParam(m_CopyPositionsShader, "_InputPosBufferDimension", info.dimension);
             cmd.SetComputeBufferParam(m_CopyPositionsShader, m_CopyVerticesKernel, "_InputPosBuffer", info.vertices);
             cmd.SetComputeBufferParam(m_CopyPositionsShader, m_CopyVerticesKernel, "_OutputPosBuffer", m_VerticesBuffer);
             cmd.DispatchCompute(m_CopyPositionsShader, m_CopyVerticesKernel, (int)Common.CeilDivide(info.vertexCount, kItemsPerWorkgroup), 1, 1);

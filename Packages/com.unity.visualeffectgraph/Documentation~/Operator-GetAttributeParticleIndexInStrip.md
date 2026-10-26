@@ -1,4 +1,4 @@
-# Get Attribute: particleIndexInStrip
+# Get Attribute: particleIndexInStrip Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: particleIndexInStrip**
 

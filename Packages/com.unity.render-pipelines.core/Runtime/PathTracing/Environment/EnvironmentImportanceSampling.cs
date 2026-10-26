@@ -16,7 +16,12 @@ namespace UnityEngine.PathTracing.Core
     {
         public EnvironmentImportanceSampling(ComputeShader shader)
         {
-            _environmentCDF.MarginalResolution = 64;
+            // The marginal resolution should be at least twice the skybox side length (128 for the baker).
+            // Because we sample from a discrete distribution but normalize against a continuous PDF,
+            // quantization error introduces bias into the result. This bias vanishes as the marginal
+            // resolution grows. When the resolution is too low, bright spots (such as the sun) get an
+            // inflated PDF and are over-darkened, while dark spots end up too bright.
+            _environmentCDF.MarginalResolution = 512;
             _environmentCDF.ConditionalResolution = _environmentCDF.MarginalResolution * 2;
             _environmentCDF.ConditionalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _environmentCDF.ConditionalResolution * _environmentCDF.MarginalResolution, sizeof(float));
             _environmentCDF.MarginalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _environmentCDF.MarginalResolution, sizeof(float));

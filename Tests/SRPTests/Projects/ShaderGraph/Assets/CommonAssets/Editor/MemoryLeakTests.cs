@@ -39,20 +39,25 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [TearDown]
-        public void OnTearDown()
+        public void CloseGraphWindow()
         {
-
+            if (m_Window != null)
+            {
+                m_Window.DiscardChanges();
+                m_Window.Close();
+            }
+            m_Window = null;
+            m_GraphEditorView = null;
         }
 
         [UnityTest]
         public IEnumerator WindowDisposeTest()
         {
-            // Close the graph window, and don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
+            m_Window.DiscardChanges();
             m_Window.Close();
 
             while(m_Window.WereWindowResourcesDisposed != true)
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.IsTrue(m_Window.WereWindowResourcesDisposed);
         }

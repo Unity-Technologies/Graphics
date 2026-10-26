@@ -16,10 +16,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent[] layers { get; } =
             {
-                EditorGUIUtility.TrTextContent(" Main layer", icon: Texture2D.whiteTexture),
-                EditorGUIUtility.TrTextContent(" Layer 1", icon: CoreEditorStyles.redTexture),
-                EditorGUIUtility.TrTextContent(" Layer 2", icon: CoreEditorStyles.greenTexture),
-                EditorGUIUtility.TrTextContent(" Layer 3", icon: CoreEditorStyles.blueTexture),
+                L10n.TextContent(" Main layer", Texture2D.whiteTexture, null),
+                L10n.TextContent(" Layer 1", CoreEditorStyles.redTexture, null),
+                L10n.TextContent(" Layer 2", CoreEditorStyles.greenTexture, null),
+                L10n.TextContent(" Layer 3", CoreEditorStyles.blueTexture, null),
             };
 
             public static ExpandableBit[] layerExpandableBits { get; } =

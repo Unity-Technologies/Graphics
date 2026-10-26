@@ -6,6 +6,13 @@
 #define MERGE_NAME(X, Y) X##Y
 #define CALL_MERGE_NAME(X, Y) MERGE_NAME(X, Y)
 
+// Whether X is defined to a non-zero (or empty) value, for use in #if/#elif expressions.
+// undefined     == false
+// '#define X'   == true
+// '#define X 0' == false
+// '#define X N' == true, where N is non-zero
+#define DEFINED_NONZERO(X) ((1 - X - 1) != 0)
+
 // These define are use to abstract the way we sample into a cubemap array.
 // Some platform don't support cubemap array so we fallback on 2D latlong
 #ifdef  UNITY_NO_CUBEMAP_ARRAY
@@ -20,7 +27,9 @@
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
 #endif
 
+#ifndef PI
 #define PI          3.14159265358979323846
+#endif
 #define TWO_PI      6.28318530717958647693
 #define FOUR_PI     12.5663706143591729538
 #define INV_PI      0.31830988618379067154

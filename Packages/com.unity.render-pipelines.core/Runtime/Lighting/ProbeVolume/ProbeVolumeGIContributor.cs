@@ -111,26 +111,29 @@ namespace UnityEngine.Rendering
         internal static bool ContributesGI(GameObject go) =>
             (GameObjectUtility.GetStaticEditorFlags(go) & StaticEditorFlags.ContributeGI) != 0;
 
-        internal static Vector3[] m_Vertices = new Vector3[8];
+        // Scratch buffer reused across calls to avoid per-call allocation. Every code path fully
+        // writes all 8 elements before reading, so no per-Play-Mode reset is needed (a readonly
+        // array of unmanaged elements is exempt from the statics-cleanup analyzer).
+        static readonly Vector3[] s_Vertices = new Vector3[8];
 
         static Bounds TransformBounds(Bounds bounds, Matrix4x4 transform)
         {
             Vector3 boundsMin = bounds.min, boundsMax = bounds.max;
-            m_Vertices[0] = new Vector3(boundsMin.x, boundsMin.y, boundsMin.z);
-            m_Vertices[1] = new Vector3(boundsMax.x, boundsMin.y, boundsMin.z);
-            m_Vertices[2] = new Vector3(boundsMax.x, boundsMax.y, boundsMin.z);
-            m_Vertices[3] = new Vector3(boundsMin.x, boundsMax.y, boundsMin.z);
-            m_Vertices[4] = new Vector3(boundsMin.x, boundsMin.y, boundsMax.z);
-            m_Vertices[5] = new Vector3(boundsMax.x, boundsMin.y, boundsMax.z);
-            m_Vertices[6] = new Vector3(boundsMax.x, boundsMax.y, boundsMax.z);
-            m_Vertices[7] = new Vector3(boundsMin.x, boundsMax.y, boundsMax.z);
+            s_Vertices[0] = new Vector3(boundsMin.x, boundsMin.y, boundsMin.z);
+            s_Vertices[1] = new Vector3(boundsMax.x, boundsMin.y, boundsMin.z);
+            s_Vertices[2] = new Vector3(boundsMax.x, boundsMax.y, boundsMin.z);
+            s_Vertices[3] = new Vector3(boundsMin.x, boundsMax.y, boundsMin.z);
+            s_Vertices[4] = new Vector3(boundsMin.x, boundsMin.y, boundsMax.z);
+            s_Vertices[5] = new Vector3(boundsMax.x, boundsMin.y, boundsMax.z);
+            s_Vertices[6] = new Vector3(boundsMax.x, boundsMax.y, boundsMax.z);
+            s_Vertices[7] = new Vector3(boundsMin.x, boundsMax.y, boundsMax.z);
 
-            Vector3 min = transform.MultiplyPoint(m_Vertices[0]);
+            Vector3 min = transform.MultiplyPoint(s_Vertices[0]);
             Vector3 max = min;
 
             for (int i = 1; i < 8; i++)
             {
-                var point = transform.MultiplyPoint(m_Vertices[i]);
+                var point = transform.MultiplyPoint(s_Vertices[i]);
                 min = Vector3.Min(min, point);
                 max = Vector3.Max(max, point);
             }
@@ -211,7 +214,7 @@ namespace UnityEngine.Rendering
                         // and to approximate the bounds of tree instances for culling during voxelization.
                         var prefabBounds = TransformBounds(renderer.localBounds, transform);
 
-                        treePrototypes[i] = new TerrainContributor.TreePrototype()
+                        treePrototypes[i] = new TerrainContributor.TreePrototype
                         {
                             component = renderer,
                             transform = transform,
@@ -242,7 +245,7 @@ namespace UnityEngine.Rendering
                 var totalBounds = new Bounds();
                 totalBounds.SetMinMax(terrainBounds.min, totalMax);
 
-                contributors.terrains.Add(new TerrainContributor()
+                contributors.terrains.Add(new TerrainContributor
                 {
                     component = terrain,
                     boundsWithTrees = totalBounds,
@@ -271,9 +274,9 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                 var renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.InstanceID);
-                #pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0618 // Type or member is obsolete
                 using (k_FindRenderers.Auto())
                 {
                     foreach (var renderer in renderers)
@@ -397,7 +400,7 @@ namespace UnityEngine.Rendering
                     if (probeVolumesForProto.Count == 0)
                         continue;
 
-                    treePrototypes[i] = new TerrainContributor.TreePrototype()
+                    treePrototypes[i] = new TerrainContributor.TreePrototype
                     {
                         component = srcProto.component,
                         transform = srcProto.transform,
@@ -428,7 +431,7 @@ namespace UnityEngine.Rendering
                 var totalBounds = new Bounds();
                 totalBounds.SetMinMax(terrain.boundsTerrainOnly.min, totalMax);
 
-                var terrainContrib = new TerrainContributor()
+                var terrainContrib = new TerrainContributor
                 {
                     component = terrain.component,
                     boundsWithTrees = totalBounds,
@@ -477,7 +480,7 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    var terrainContrib = new TerrainContributor()
+                    var terrainContrib = new TerrainContributor
                     {
                         component = terrain.component,
                         boundsWithTrees = terrain.boundsWithTrees,

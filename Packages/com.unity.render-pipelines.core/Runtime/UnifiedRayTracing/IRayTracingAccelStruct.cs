@@ -199,7 +199,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// </summary>
         /// <remarks>
         /// Depending on the backend, the GPU build algorithm can require additional GPU storage that is supplied through the scratchBuffer parameter.
-        /// Its required size can be queried by calling <see cref="GetBuildScratchBufferRequiredSizeInBytes"/>.
+        /// Its required size can be queried by calling <see cref="GetBuildScratchBufferRequiredSizeInBytes"/>. The required scratchBuffer size can increase when the acceleration structure is modified.
+        /// For example, if you call AddInstance, check that scratchBuffer is still large enough before your next call to Build.
         /// </remarks>
         /// <param name="cmd">CommandBuffer to register the build command to.</param>
         /// <param name="scratchBuffer">Temporary buffer used during the build.</param>

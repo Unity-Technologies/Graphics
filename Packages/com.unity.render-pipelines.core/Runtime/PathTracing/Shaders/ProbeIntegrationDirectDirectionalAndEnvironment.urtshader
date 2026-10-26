@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 vulkan metal glcore
 
 #pragma multi_compile _ LIGHT_SAMPLING_UNIFORM LIGHT_SAMPLING_RIS LIGHT_SAMPLING_ROUND_ROBIN
+#pragma multi_compile _ TERRAIN_RAY_MARCHING_ENABLED
 
 #define UNIFIED_RT_GROUP_SIZE_X 128
 #define UNIFIED_RT_GROUP_SIZE_Y 1

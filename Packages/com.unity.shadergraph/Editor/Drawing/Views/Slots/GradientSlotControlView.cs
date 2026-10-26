@@ -21,7 +21,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         [SerializeField]
         SerializedObject m_SerializedObject;
 
-        public GradientSlotControlView(GradientInputMaterialSlot slot)
+        GradientField m_Field;
+        public bool isShowingGradientEditor => GradientPicker.visible && m_Field.isShowingGradientPicker;
+
+        GradientUndoSession m_UndoSession;
+
+        public GradientSlotControlView(GradientInputMaterialSlot slot, bool showGradientEditor)
         {
             m_Slot = slot;
             if (!slot.hideConnector)
@@ -35,9 +40,31 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 
-            var gradientField = new GradientField() { label = m_Slot.hideConnector ? m_Slot.RawDisplayName() : null, value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
-            gradientField.RegisterValueChangedCallback(OnValueChanged);
-            Add(gradientField);
+            m_Field = new GradientField() { label = m_Slot.hideConnector ? m_Slot.RawDisplayName() : null, value = m_GradientObject.gradient, colorSpace = ColorSpace.Linear, hdr = true };
+            m_Field.RegisterValueChangedCallback(OnValueChanged);
+            m_Field.pickerClosed += OnPickerClosed;
+            Add(m_Field);
+
+            m_UndoSession = new GradientUndoSession(
+                () => m_Slot.value,
+                value =>
+                {
+                    m_Slot.value = value;
+                    m_Slot.owner?.Dirty(ModificationScope.Node);
+                },
+                () => m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Modify Gradient"),
+                () => m_Slot?.owner?.owner?.owner != null && !m_Slot.owner.owner.replaceInProgress);
+
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+
+            if (showGradientEditor)
+                m_Field.ShowGradientPicker();
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         void OnValueChanged(ChangeEvent<Gradient> evt)
@@ -45,7 +72,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_SerializedObject.Update();
             if (!evt.newValue.Equals(m_Slot.value))
             {
-                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
+                m_UndoSession.BeginChange();
+                Undo.RegisterCompleteObjectUndo(m_GradientObject, "Modify Gradient Stop");
 
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
                 m_GradientObject.gradient.mode = evt.newValue.mode;
@@ -53,7 +81,34 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
                 m_Slot.value = m_GradientObject.gradient;
                 m_Slot.owner.Dirty(ModificationScope.Node);
+                m_Slot.owner.owner.owner.isDirty = true;
             }
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            if (m_GradientObject == null || m_Slot == null)
+                return;
+
+            m_SerializedObject.Update();
+            m_Slot.value = m_GradientObject.gradient;
+            m_Slot.owner?.Dirty(ModificationScope.Node);
+            var graphObject = m_Slot.owner?.owner?.owner;
+            if (graphObject != null)
+                graphObject.isDirty = true;
+            m_Field.SetValueWithoutNotify(m_GradientObject.gradient);
+        }
+
+        void OnPickerClosed()
+        {
+            m_UndoSession.RecordNetChange();
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            m_UndoSession.RecordNetChange();
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            m_Field.pickerClosed -= OnPickerClosed;
         }
     }
 }

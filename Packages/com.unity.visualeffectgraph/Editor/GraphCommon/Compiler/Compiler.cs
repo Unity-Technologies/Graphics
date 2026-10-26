@@ -1,4 +1,5 @@
 using System;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace Unity.GraphCommon.LowLevel.Editor
@@ -44,7 +45,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <summary>
         /// The mutable graph to be transformed.
         /// </summary>
-        public IMutableGraph graph;
+        public IGraph graph;
         /// <summary>
         /// The compilation data carried aside the graph.
         /// </summary>
@@ -90,6 +91,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
     {
         CompilationPass[] m_Passes;
         DataGenerationPass<T> m_FinalPass;
+        ProfilerMarker[] m_PassMarkers;
+        ProfilerMarker m_FinalPassMarker;
+        static readonly ProfilerMarker k_CompileMarker = new("Compiler.Compile");
 
         /// <summary>
         /// The constructor of Compiler.
@@ -103,6 +107,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             m_Passes = passList;
             m_FinalPass = dataGenerationPass;
+
+            m_PassMarkers = new ProfilerMarker[passList.Length];
+            for (int i = 0; i < passList.Length; ++i)
+                m_PassMarkers[i] = new ProfilerMarker(passList[i].GetType().Name);
+            m_FinalPassMarker = new ProfilerMarker(dataGenerationPass.GetType().Name);
         }
 
         /// <summary>
@@ -113,6 +122,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>The result if the compilation.</returns>
         public CompilationResult<T> Compile(IReadOnlyGraph graph)
         {
+            using var _ = k_CompileMarker.Auto();
             if (graph == null)
                 throw new ArgumentNullException("Trying to compile a null graph");
 
@@ -124,10 +134,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             };
 
             bool error = false;
-            foreach (var pass in m_Passes)
+            for (int i = 0; i < m_Passes.Length; ++i)
             {
+                var pass = m_Passes[i];
                 try
                 {
+                    using var scope = m_PassMarkers[i].Auto();
                     if (!pass.Execute(ref context))
                     {
                         error = true;
@@ -146,6 +158,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             IReadOnlyGraph finalGraph = null;
             if (!error)
             {
+                using var autoScope = m_FinalPassMarker.Auto();
                 compiledGraph = m_FinalPass.Execute(ref context);
                 finalGraph = context.graph;
             }

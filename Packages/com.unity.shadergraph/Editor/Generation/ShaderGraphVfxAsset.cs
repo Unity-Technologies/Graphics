@@ -95,7 +95,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
-            m_TextureInfos = textures.Where(t => t.generatePropertyBlock).Select(t => new TextureInfo(t.name, EditorUtility.EntityIdToObject(t.textureId) as Texture, t.dimension)).ToArray();
+            // Keep all configured textures; VFX has no Shader.SetGlobalTexture pass, so non-exposed textures must be bound here too.
+            // Exposed promoted textures are already stripped upstream by ShaderGraphImporter.BuildVfxAsset (per-element slot path).
+            m_TextureInfos = textures.Select(t => new TextureInfo(t.name, EditorUtility.EntityIdToObject(t.textureId) as Texture, t.dimension)).ToArray();
         }
 
         internal void SetOutputs(OutputMetadata[] outputs)

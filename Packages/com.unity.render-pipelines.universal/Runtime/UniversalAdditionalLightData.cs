@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
-    [URPHelpURL("universal-additional-light-data")]
+    [URPHelpURL("urp/universal-additional-light-data")]
     public partial class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]
@@ -168,7 +168,39 @@ namespace UnityEngine.Rendering.Universal
             set => m_SoftShadowQuality = value;
         }
         [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.UsePipelineSettings;
-        
+
+#if VOLUMETRIC_FOG
+        /// <summary>
+        /// When enabled, this light interacts with volumetric fog.
+        /// </summary>
+        public bool affectsVolumetricFog
+        {
+            get => m_AffectsVolumetricFog;
+            set => m_AffectsVolumetricFog = value;
+        }
+        [SerializeField] bool m_AffectsVolumetricFog = true;
+
+        /// <summary>
+        /// Controls the intensity of the scattered volumetric lighting.
+        /// </summary>
+        public float volumetricMultiplier
+        {
+            get => m_VolumetricMultiplier;
+            set => m_VolumetricMultiplier = Mathf.Clamp(value, 0.0f, 16.0f);
+        }
+        [Range(0.0f, 16.0f), SerializeField] float m_VolumetricMultiplier = 1.0f;
+
+        /// <summary>
+        /// Dims the volumetric shadows this light casts. Set to 0 to skip shadow sampling in volumetric fog.
+        /// </summary>
+        public float volumetricShadowDimmer
+        {
+            get => m_VolumetricShadowDimmer;
+            set => m_VolumetricShadowDimmer = Mathf.Clamp01(value);
+        }
+        [Range(0.0f, 1.0f), SerializeField] float m_VolumetricShadowDimmer = 1.0f;
+#endif
+
         [SerializeField] RenderingLayerMask m_RenderingLayersMask = RenderingLayerMask.defaultRenderingLayerMask;
 
         /// <summary>
@@ -201,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SyncLightAndShadowLayers()
+        internal void SyncLightAndShadowLayers()
         {
             if (light)
                 light.renderingLayerMask = m_CustomShadowLayers ? m_ShadowRenderingLayersMask : m_RenderingLayersMask;

@@ -83,5 +83,18 @@ namespace UnityEngine.Rendering.Universal
             get => m_ProbeVolumeSamplingDebugComputeShader;
             set => this.SetValueAndNotify(ref m_ProbeVolumeSamplingDebugComputeShader, value, nameof(m_ProbeVolumeSamplingDebugComputeShader));
         }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Debug/BatchingTypeDebug.shader")]
+        Shader m_BatchingTypeDebugPS;
+
+        /// <summary>
+        /// Debug shader used to render color of each batch type.
+        /// </summary>
+        public Shader batchingTypeDebugPS
+        {
+            get => m_BatchingTypeDebugPS;
+            set => this.SetValueAndNotify(ref m_BatchingTypeDebugPS, value, nameof(m_BatchingTypeDebugPS));
+        }
     }
 }

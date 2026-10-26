@@ -27,13 +27,13 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: da17ce46e59cdd54693ed4dc687f64fe, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _DISABLE_SSR_TRANSPARENT
-  m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2225
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -165,4 +165,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11

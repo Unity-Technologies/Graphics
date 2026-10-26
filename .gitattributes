@@ -153,6 +153,7 @@
 
 # *** specific binaries in the unity codebase ***
 
+acceleratord			filter=lfs diff=lfs merge=lfs -text
 AudioPluginDemo         filter=lfs diff=lfs merge=lfs -text
 convert                 filter=lfs diff=lfs merge=lfs -text
 ios-deploy              filter=lfs diff=lfs merge=lfs -text
@@ -161,6 +162,7 @@ mobiledevice            filter=lfs diff=lfs merge=lfs -text
 p4                      filter=lfs diff=lfs merge=lfs -text
 p4d                     filter=lfs diff=lfs merge=lfs -text
 RenderingPlugin         filter=lfs diff=lfs merge=lfs -text
+UnityDataLib            filter=lfs diff=lfs merge=lfs -text
 re2c                    filter=lfs diff=lfs merge=lfs -text
 lemon                   filter=lfs diff=lfs merge=lfs -text
 AssetBundles            filter=lfs diff=lfs merge=lfs -text
@@ -235,8 +237,19 @@ Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree9.shader filter=l
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs-text merge=lfs-text -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs-text merge=lfs-text -text
 
+############################
+# OVERRIDES
+############################
+
+# These patterns override settings for specific files.
+
 # YamlMerge test data files are YAML text fixtures used for merge testing.
 # They must not be tracked by LFS — the tests compare merge output byte-for-byte
 # against expected files, and LFS round-tripping can alter whitespace/formatting.
 Editor/Tools/UnityYAMLMerge/TestData/**/*.unity -filter -diff -merge text=auto eol=lf
 Editor/Tools/UnityYAMLMerge/TestData/**/*.prefab -filter -diff -merge text=auto eol=lf
+
+# Header conformance fixtures are byte-exact test data: some fixtures pin CRLF
+# line endings and exact byte offsets. Disable all eol conversion so git never
+# rewrites them.
+Runtime/Serialize/TestData/HeaderCorpus/**/*.yaml -text

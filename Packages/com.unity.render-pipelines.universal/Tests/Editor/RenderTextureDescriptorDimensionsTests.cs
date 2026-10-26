@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.Tests
@@ -53,18 +54,15 @@ namespace UnityEditor.Rendering.Universal.Tests
 
         public RenderTextureDescriptor CreateRenderTextureDescriptor()
         {
-            bool isHdrEnabled = false;
-            HDRColorBufferPrecision requestHDRColorBufferPrecision = HDRColorBufferPrecision._64Bits;
             int msaaSamples = 1;
             bool needsAlpha = false;
+
+            UniversalRenderPipeline.CreateBackbufferInfo(m_Camera, m_CameraData, needsAlpha);
 
             return UniversalRenderPipeline.CreateRenderTextureDescriptor(
                 m_Camera,
                 m_CameraData,
-                isHdrEnabled,
-                requestHDRColorBufferPrecision,
-                msaaSamples,
-                needsAlpha);
+                msaaSamples);
         }
 
         public void CheckDimensions(RenderTextureDescriptor desc, RenderScaleTestCase testCase)
@@ -103,6 +101,34 @@ namespace UnityEditor.Rendering.Universal.Tests
 
             var desc = CreateRenderTextureDescriptor();
             CheckDimensions(desc, testCase);
+        }
+
+        [Test]
+        public void TextureDescriptor_FromShadowCompareTargetTexture_IsNotShadowMap()
+        {
+            var rtDesc = new RenderTextureDescriptor(256, 256, RenderTextureFormat.ARGB32, 24);
+            rtDesc.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
+            var shadowCompareRT = new RenderTexture(rtDesc);
+            shadowCompareRT.Create();
+
+            try
+            {
+                m_CameraData.renderScale = 1f;
+                m_Camera.targetTexture = shadowCompareRT;
+                UniversalRenderPipeline.InitializeScaledDimensions(m_Camera, m_CameraData);
+
+                var desc = CreateRenderTextureDescriptor();
+                UniversalRenderer.GetTextureDesc(desc, out var rgDesc);
+
+                Assert.AreEqual(ShadowSamplingMode.None, desc.shadowSamplingMode);
+                Assert.IsFalse(rgDesc.isShadowMap);
+            }
+            finally
+            {
+                m_Camera.targetTexture = null;
+                shadowCompareRT.Release();
+                Object.DestroyImmediate(shadowCompareRT);
+            }
         }
     }
 }

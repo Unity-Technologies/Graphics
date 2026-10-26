@@ -72,12 +72,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     #define EXTRA_BUFFER_TARGET SV_Target2
     #define BEFORE_REFRACTION_TARGET SV_Target3
     #define BEFORE_REFRACTION_ALPHA_TARGET SV_Target4
-    #if defined(SHADER_API_PSSL)
-        //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
-        //In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
-        //Thus, when VT is enabled, we force FMT_32_ABGR
-        #pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
-    #endif
+    #pragma rendertarget_format_hint MRT1 R16G16_UNorm
 #else
     #define EXTRA_BUFFER_TARGET SV_Target1
     #define BEFORE_REFRACTION_TARGET SV_Target2

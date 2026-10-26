@@ -1,4 +1,5 @@
 using UnityEditor.Experimental;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
@@ -12,11 +13,14 @@ namespace UnityEditor.Rendering.Universal
         {
             SceneView.onCameraCreated += EnsureAdditionalData;
         }
-        
+
         static void EnsureAdditionalData(SceneView sceneView)
         {
-            if (!sceneView.camera.TryGetComponent(out UniversalAdditionalCameraData _))
-                sceneView.camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+            if (!sceneView.camera.TryGetComponent(out UniversalAdditionalCameraData additionalCameraData))
+            {
+                additionalCameraData = sceneView.camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                additionalCameraData.hideFlags = HideFlags.HideAndDontSave;
+            }
         }
     }
 }

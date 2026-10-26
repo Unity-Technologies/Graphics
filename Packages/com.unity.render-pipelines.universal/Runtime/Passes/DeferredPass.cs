@@ -48,7 +48,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cameraData = cameraData;
                 passData.lightData = lightData;
                 passData.shadowData = shadowData;
+                passData.gbuffer = gbuffer;
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
                 passData.deferredLights = m_DeferredLights;
@@ -58,14 +63,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (i == m_DeferredLights.GBufferLightingIndex)
                         continue;
 
-                    builder.SetInputAttachment(gbuffer[i], idx++); 
+                    builder.SetInputAttachment(gbuffer[i], idx++);
                 }
 
                 builder.AllowGlobalStateModification(true);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                {
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(
+                        cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+                }
+#endif
+
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData, data.gbuffer);
+                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData, data.gbuffer, context);
                 });
             }
         }

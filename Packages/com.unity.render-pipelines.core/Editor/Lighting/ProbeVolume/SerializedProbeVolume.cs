@@ -2,37 +2,37 @@ namespace UnityEditor.Rendering
 {
     internal class SerializedProbeVolume
     {
-        internal SerializedProperty mode;
-        internal SerializedProperty size;
-        internal SerializedProperty fillEmptySpaces;
-        internal SerializedProperty overridesSubdivision;
-        internal SerializedProperty objectLayerMask;
-        internal SerializedProperty minRendererVolumeSize;
-        internal SerializedProperty overrideRendererFilters;
+        internal SerializedProperty m_Mode;
+        internal SerializedProperty m_Size;
+        internal SerializedProperty m_FillEmptySpaces;
+        internal SerializedProperty m_OverridesSubdivision;
+        internal SerializedProperty m_ObjectLayerMask;
+        internal SerializedProperty m_MinRendererVolumeSize;
+        internal SerializedProperty m_OverrideRendererFilters;
 
-        internal SerializedProperty minSubdivisionLevel;
-        internal SerializedProperty maxSubdivisionLevel;
+        internal SerializedProperty m_MinSubdivisionLevel;
+        internal SerializedProperty m_MaxSubdivisionLevel;
 
-        internal SerializedObject serializedObject;
+        internal SerializedObject m_SerializedObject;
 
         internal SerializedProbeVolume(SerializedObject obj)
         {
-            serializedObject = obj;
+            m_SerializedObject = obj;
 
-            mode = serializedObject.FindProperty("mode");
-            size = serializedObject.FindProperty("size");
-            objectLayerMask = serializedObject.FindProperty("objectLayerMask");
-            minRendererVolumeSize = serializedObject.FindProperty("minRendererVolumeSize");
-            overrideRendererFilters = serializedObject.FindProperty("overrideRendererFilters");
-            minSubdivisionLevel = serializedObject.FindProperty("lowestSubdivLevelOverride");
-            maxSubdivisionLevel = serializedObject.FindProperty("highestSubdivLevelOverride");
-            overridesSubdivision = serializedObject.FindProperty("overridesSubdivLevels");
-            fillEmptySpaces = serializedObject.FindProperty("fillEmptySpaces");
+            m_Mode = m_SerializedObject.FindProperty("mode");
+            m_Size = m_SerializedObject.FindProperty("size");
+            m_ObjectLayerMask = m_SerializedObject.FindProperty("objectLayerMask");
+            m_MinRendererVolumeSize = m_SerializedObject.FindProperty("minRendererVolumeSize");
+            m_OverrideRendererFilters = m_SerializedObject.FindProperty("overrideRendererFilters");
+            m_MinSubdivisionLevel = m_SerializedObject.FindProperty("lowestSubdivLevelOverride");
+            m_MaxSubdivisionLevel = m_SerializedObject.FindProperty("highestSubdivLevelOverride");
+            m_OverridesSubdivision = m_SerializedObject.FindProperty("overridesSubdivLevels");
+            m_FillEmptySpaces = m_SerializedObject.FindProperty("fillEmptySpaces");
         }
 
         internal void Apply()
         {
-            serializedObject.ApplyModifiedProperties();
+            m_SerializedObject.ApplyModifiedProperties();
         }
     }
 }

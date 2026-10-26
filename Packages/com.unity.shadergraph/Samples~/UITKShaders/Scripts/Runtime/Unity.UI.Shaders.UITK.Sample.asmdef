@@ -1,0 +1,14 @@
+{
+    "name": "Unity.UI.Shaders.UITK.Sample",
+    "rootNamespace": "Unity.UI.Shaders.UITK.Sample",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

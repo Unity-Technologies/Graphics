@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 #if UNITY_EDITOR
@@ -221,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public PrecomputationData data = new PrecomputationData();
             }
 
-            ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
+            UnityEngine.Pool.ObjectPool<RefCountedData> m_DataPool = new UnityEngine.Pool.ObjectPool<RefCountedData>(() => new RefCountedData(), null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
             public PrecomputationData Get(CloudLayer cloudLayer, int currentHash)
@@ -456,18 +457,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [NoAutoStaticsCleanup] // Refcounted by surviving CloudLayerRenderer instances; Get/Release run only from their own UpdateCache/Cleanup calls.
         static PrecomputationCache s_PrecomputationCache = null;
         static PrecomputationCache PrecomputationCacheInstance => s_PrecomputationCache ??= new PrecomputationCache();
 
         PrecomputationData m_PrecomputedData;
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_PrecomputationCache?.Clear();
-            s_PrecomputationCache = null;
-        }
-#endif
     }
 }

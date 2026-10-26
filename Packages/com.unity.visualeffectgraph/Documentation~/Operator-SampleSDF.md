@@ -1,4 +1,4 @@
-# Sample Signed Distance Field
+# Sample Signed Distance Field Operator
 
 **Menu Path : Operator > Sampling > Sample Signed Distance Field**
 

@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
 
         static class Styles
         {
-            public static readonly string k_NoSettingsHelpBox = L10n.Tr("This feature resolves the cascaded shadows in screen space, so there is no options now. It might have additional settings later.");
+            public static readonly string k_NoSettingsHelpBox = L10n.Tr("This feature resolves the cascaded shadows in screen space, so there is no options now. It might have additional settings later.", null);
         }
 
         private void Init()

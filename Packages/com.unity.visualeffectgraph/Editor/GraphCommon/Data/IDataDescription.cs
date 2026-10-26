@@ -25,7 +25,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
         IDataDescription GetSubdata(DataPath dataPath)
         {
             IDataDescription data = this;
-            foreach (var dataKey in dataPath.PathSequence)
+            foreach (var dataKey in dataPath)
             {
                 data = data.GetSubdata(dataKey);
 

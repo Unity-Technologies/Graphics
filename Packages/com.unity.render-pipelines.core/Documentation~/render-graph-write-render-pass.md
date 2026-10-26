@@ -22,6 +22,8 @@ To add a render pass, you must first create a render graph instance and start re
 
     Ensure that you declare only the variables that the render pass uses. Adding unnecessary variables can reduce performance.
 
+    Unity reuses `PassData` instances across frames. If you don't set a property every frame, the property might keep the value from a previous frame. To prevent this, implement [`IRenderGraphPassData`](scriptRef:UnityEngine.Rendering.RenderGraphModule.IRenderGraphPassData), then clear those properties in its `Reset` method. Render graph calls `Reset` automatically before reusing the data.
+
 2. Declare the render pass, for example using the `AddRasterRenderPass` method.
 
     ```lang-cs

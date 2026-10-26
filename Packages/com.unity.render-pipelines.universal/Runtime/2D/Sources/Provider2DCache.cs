@@ -8,7 +8,14 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class Provider2DCache<T> : IProvider2DCache where T : Provider2D
     {
-        [SerializeField] private List<Provider2DKVPair> m_Cache = new List<Provider2DKVPair>();
+        // Deliberately NOT serialized. UpdateCache instantiates one provider per type it discovers,
+        // so serializing this would write a managed reference to every Provider2D subclass in the
+        // project into every Light2D / ShadowCaster2D whose inspector was ever drawn. Deleting any
+        // one of those scripts then makes the engine warn about missing types on every one of those
+        // components, every time its scene loads. The cache only has to keep provider instances
+        // stable between inspector repaints, which an in-memory list does; the provider the user
+        // actually picked is serialized separately, on m_SelectedSource and on the component itself.
+        private List<Provider2DKVPair> m_Cache = new List<Provider2DKVPair>();
 
         public IEnumerable<Provider2DKVPair> Cache
         {

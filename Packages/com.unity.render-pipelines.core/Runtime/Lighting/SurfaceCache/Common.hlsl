@@ -2,6 +2,9 @@
 #define SURFACE_CACHE_COMMON
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "VectorLogic.hlsl"
 
 static const uint patchCapacity = 65536; // Must match C# side.
 static const uint cascadeMax = 8; // Must match C# side.
@@ -13,9 +16,9 @@ static const float invalidNdcDepth = 1.0f;
 
 static const uint lowResScreenScaling = 4; // must match cpu side.
 
-float LoadNdcDepth(Texture2D<float> depthBuffer, uint2 pos)
+float LoadNdcDepth(TYPED_TEXTURE2D_X(float, depthBuffer), uint2 pos)
 {
-    const float depthBufferDepth = depthBuffer[pos];
+    const float depthBufferDepth = depthBuffer[COORD_TEXTURE2D_X(pos)];
     #if UNITY_REVERSED_Z
     return depthBufferDepth;
     #else
@@ -153,6 +156,29 @@ namespace SphericalHarmonics
         output.l2s[4] = lerp(a.l2s[4], b.l2s[4], s);
         return output;
     }
+}
+
+float2 OctWrap(float2 v)
+{
+    return (1.0 - abs(v.yx)) * VECTOR_LOGIC_SELECT(v.xy >= 0.0, 1.0, -1.0);
+}
+
+float2 OctahedralSphereToSquare(float3 n)
+{
+    n /= (abs(n.x) + abs(n.y) + abs(n.z));
+    n.xy = VECTOR_LOGIC_SELECT(n.z >= 0.0, n.xy, OctWrap(n.xy));
+    n.xy = n.xy * 0.5 + 0.5;
+    return n.xy;
+}
+
+float3 OctahedralSquareToSphere(float2 f)
+{
+    f = f * 2.0 - 1.0;
+    // https://twitter.com/Stubbesaurus/status/937994790553227264
+    float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    float t = saturate(-n.z);
+    n.xy += VECTOR_LOGIC_SELECT(n.xy >= 0.0, -t, t);
+    return normalize(n);
 }
 
 #endif

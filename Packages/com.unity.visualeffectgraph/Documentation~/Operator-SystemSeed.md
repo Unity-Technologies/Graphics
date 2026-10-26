@@ -1,4 +1,4 @@
-# System Seed
+# System Seed Operator
 
 Menu Path : **Operator > BuiltIn > System Seed**
 

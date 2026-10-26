@@ -90,7 +90,7 @@ Varyings BuildVaryings(Attributes input)
 
             float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
             float2 maskUV = (input.positionOS.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-            output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * half2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+            output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * float2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
         #else
             output.texCoord1 = input.uv1;
         #endif
@@ -154,12 +154,7 @@ PackedVaryings vert(Attributes input)
 #ifdef UNITY_VIRTUAL_TEXTURING
 #define VT_BUFFER_TARGET SV_Target1
 #define EXTRA_BUFFER_TARGET SV_Target2
-#if defined(SHADER_API_PSSL)
-//For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
-//In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
-//Thus, when VT is enabled, we force FMT_32_ABGR
-#pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
-#endif
+#pragma rendertarget_format_hint MRT1 R16G16_UNorm
 #else
 #define EXTRA_BUFFER_TARGET SV_Target1
 #endif
@@ -195,7 +190,11 @@ out float4 outColor : SV_Target0
 
     #ifdef UNITY_UI_CLIP_RECT
         //mask = Uv2
-        half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw);
+        float2 softness = float2(_UIMaskSoftnessX, _UIMaskSoftnessY);
+        float2 halfPixelBias = 0.5 - 0.5 * softness * unpacked.texCoord1.zw;
+        half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw + halfPixelBias);
+        half2 hardThreshold = 0.5 + 1e-3 * step(0, unpacked.texCoord1.xy);
+        m = lerp(m, step(hardThreshold, m), step(softness, 0));
         outColor.a *= m.x * m.y;
     #endif
 
@@ -214,5 +213,7 @@ out float4 outColor : SV_Target0
         float4 previousPositionCS = unpacked.texCoord2;
         float2 motionVector = CalculateMotionVector(unpacked.positionCS, previousPositionCS);
         outMotionVec = float4(motionVector * 0.5, 1, 1);
+    #else
+        outMotionVec = float4(0.0, 0.0, 0.0, 0.0);
     #endif
 }

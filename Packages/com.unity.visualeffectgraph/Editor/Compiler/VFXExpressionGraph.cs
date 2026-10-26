@@ -28,6 +28,21 @@ namespace UnityEditor.VFX
         public VFXExpressionGraph()
         { }
 
+        public void Clear()
+        {
+            m_Expressions.Clear();
+            m_FlattenedExpressions.Clear();
+            m_CommonExpressionCount = 0u;
+            m_ExpressionsData.Clear();
+            m_ContextsToGPUExpressions.Clear();
+            m_ContextsToCPUExpressions.Clear();
+            m_GPUExpressionsToReduced.Clear();
+            m_CPUExpressionsToReduced.Clear();
+            m_CustomHLSLExpressionsPerContext.Clear();
+            m_BufferTypeUsagePerContext.Clear();
+            m_GlobalEventAttributes.Clear();
+        }
+
         private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {
             ExpressionData data;

@@ -124,7 +124,7 @@ public class ExampleRenderPipeline : RenderPipeline
         } 
         catch (Exception e)
         {
-            if (renderGraph.ResetGraphAndLogException(e))
+            if (myRenderGraph.ResetGraphAndLogException(e))
                 throw;
         }
 

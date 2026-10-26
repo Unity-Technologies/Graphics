@@ -8,9 +8,9 @@ namespace UnityEditor.Rendering.Universal
     {
         private static class Styles
         {
-            public static readonly GUIContent liftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.");
-            public static readonly GUIContent gammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this to control and apply a hue to the mid-range tones with a power function.");
-            public static readonly GUIContent gainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this to increase and apply a hue to the signal and make highlights brighter.");
+            public static readonly GUIContent liftLabel = L10n.TextContent("Lift", "Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.", null, null);
+            public static readonly GUIContent gammaLabel = L10n.TextContent("Gamma", "Use this to control and apply a hue to the mid-range tones with a power function.", null, null);
+            public static readonly GUIContent gainLabel = L10n.TextContent("Gain", "Use this to increase and apply a hue to the signal and make highlights brighter.", null, null);
         }
 
         SerializedDataParameter m_Lift;

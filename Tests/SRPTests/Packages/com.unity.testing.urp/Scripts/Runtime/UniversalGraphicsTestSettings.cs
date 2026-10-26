@@ -4,9 +4,7 @@ using UnityEngine.TestTools.Graphics;
 public class UniversalGraphicsTestSettings : GraphicsTestSettings
 {
     public int WaitFrames = 0;
-    public bool XRCompatible = true;
     public bool gpuDrivenCompatible = true;
-    public bool CheckMemoryAllocation = true;
 
     [System.Serializable]
     public enum RenderBackendCompatibility
@@ -16,9 +14,6 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
         RenderGraphAndNonRenderGraph
     }
     public RenderBackendCompatibility renderBackendCompatibility = RenderBackendCompatibility.RenderGraphAndNonRenderGraph;
-
-    // Minimum threshold for image comparison on AMD GPUs due to platform-specific rendering precision differences
-    public float amdMinThreshold = 0.002f;
 
     [HideInInspector]
     public bool SetBackBufferResolution = false;

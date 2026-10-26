@@ -134,9 +134,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             get
             {
                 if (surfaceType == SurfaceType.Transparent)
-                    return $"{RenderType.Transparent}";
+                    return $"{UnityEditor.ShaderGraph.RenderType.Transparent}";
                 else
-                    return $"{RenderType.Opaque}";
+                    return $"{UnityEditor.ShaderGraph.RenderType.Opaque}";
             }
         }
 

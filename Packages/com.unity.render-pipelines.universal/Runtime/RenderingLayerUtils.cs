@@ -94,10 +94,17 @@ namespace UnityEngine.Rendering.Universal
         public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), maskSize); }
         internal static void SetupProperties(RasterCommandBuffer cmd, MaskSize maskSize)
         {
-            int bits = GetBits(maskSize);
+            cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaxInt, (int)GetMaxInt(maskSize));
+        }
 
-            uint maxInt = bits != 32 ? (1u << bits) - 1u : uint.MaxValue;
-            cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaxInt, (int)maxInt);
+        /// <summary>
+        /// The mask holding every bit a rendering layers texture of that size can store. Single source of truth: the
+        /// enum to bit count mapping lives in GetBits, deriving it from the enum ordinal breaks when a value is inserted.
+        /// </summary>
+        internal static uint GetMaxInt(MaskSize maskSize)
+        {
+            int bits = GetBits(maskSize);
+            return bits != 32 ? (1u << bits) - 1u : uint.MaxValue;
         }
 
         /// <summary>
@@ -123,16 +130,24 @@ namespace UnityEngine.Rendering.Universal
         /// Masks rendering layers with those that available in urp global settings.
         /// </summary>
         public static uint ToValidRenderingLayers(uint renderingLayers)
-        {
-            if (UniversalRenderPipelineGlobalSettings.instance)
-            {
-                uint validRenderingLayers = RenderingLayerMask.GetDefinedRenderingLayersCombinedMaskValue();
-                return validRenderingLayers & renderingLayers;
-            }
-            return renderingLayers;
-        }
+            => ToValidRenderingLayers(renderingLayers, GetValidRenderingLayersMask());
 
-        static MaskSize GetMaskSize(int bits)
+        /// <summary>
+        /// Masks rendering layers with an already resolved valid mask, see GetValidRenderingLayersMask.
+        /// </summary>
+        internal static uint ToValidRenderingLayers(uint renderingLayers, uint validRenderingLayers)
+            => validRenderingLayers & renderingLayers;
+
+        /// <summary>
+        /// The mask of the rendering layers defined in the project. Invariant for a frame, and resolving it crosses to
+        /// native twice, so hoist it out of per light loops rather than calling the single argument overload per light.
+        /// </summary>
+        internal static uint GetValidRenderingLayersMask()
+            => UniversalRenderPipelineGlobalSettings.instance
+                ? RenderingLayerMask.GetDefinedRenderingLayersCombinedMaskValue()
+                : uint.MaxValue;
+
+        internal static MaskSize GetMaskSize(int bits)
         {
             int bytes = (bits + 7) / 8;
             switch (bytes)

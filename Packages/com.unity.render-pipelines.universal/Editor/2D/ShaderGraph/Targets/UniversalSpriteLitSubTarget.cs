@@ -97,6 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteLitPasses.Lit(target) },
                         { SpriteLitPasses.Normal(target) },
+                        { SpriteLitPasses.RenderingLayerMask(target) },
                         // Currently neither of these passes (selection/picking) can be last for the game view for
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
@@ -191,6 +192,51 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (target.disableTint)
                     result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
+                SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor RenderingLayerMask(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Rendering Layer Mask",
+                    referenceName = "SHADERPASS_2D",
+                    lightMode = "RenderingLayerMask",
+                    useInPreview = true,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Lit,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = Universal2DSubTargetDescriptors.RenderStateCollections.RenderingLayerMask,
+                    pragmas = CorePragmas._2DDefault,
+                    defines = new DefineCollection(),
+                    keywords = SpriteLitKeywords.Lit,
+                    includes = SpriteLitIncludes.RenderingLayerMask,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                if (target.disableTint)
+                    result.defines.Add(Canvas.ShaderGraph.CanvasSubTarget<Target>.CanvasKeywords.DisableTint, 1);
+
+                if(target.sort3DAs2DCompatible)
+                    result.defines.Add(Universal2DSubTargetDescriptors.Keywords.Sort3DAs2DCompatible, 1);
 
                 SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
 
@@ -326,6 +372,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteLitPass.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteNormalPass.hlsl";
             const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteForwardPass.hlsl";
+            const string kRenderingLayerMaskPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/RenderingLayerMaskPass.hlsl";
 
             public static IncludeCollection Lit = new IncludeCollection
             {
@@ -352,6 +399,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteNormalPass, IncludeLocation.Postgraph },
 
+            };
+
+            public static IncludeCollection RenderingLayerMask = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kRenderingLayerMaskPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Forward = new IncludeCollection

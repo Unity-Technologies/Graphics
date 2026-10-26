@@ -1,4 +1,4 @@
-# Add
+# Add Operator
 
 Menu Path : **Operator > Math > Arithmetic > Add**
 

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Pool;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -53,13 +51,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// </summary>
     /*public*/ partial class GraphTraverser
     {
-        ObjectPool<Deque<TaskNode>> m_TaskDequePool = new(() => new Deque<TaskNode>());
-        ObjectPool<HashSet<TaskNodeId>> m_TaskVisitedPool = new(() => new HashSet<TaskNodeId>());
-
-        ObjectPool<Deque<DataNode>> m_DataDequePool = new(() => new Deque<DataNode>());
-        ObjectPool<HashSet<DataNodeId>> m_DataVisitedPool = new(() => new HashSet<DataNodeId>());
-        HashSet<DataNodeId> m_DataVisited;
-        HashSet<TaskNodeId> m_TaskVisited;
+        readonly TraversalPools<DataNodeId> m_DataPools = new();
+        readonly TraversalPools<TaskNodeId> m_TaskPools = new();
 
         private IReadOnlyGraph m_Graph;
 
@@ -82,17 +75,23 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         /// <summary>
-        /// Specifies the order for traversing the graph.
+        /// Specifies how the graph is traversed.
         /// </summary>
-        public enum TraversalOrder
+        public enum TraversalMethod
         {
             /// <summary>
-            /// Traverses in the depth-first order
+            /// Depth-first traversal. Each node is visited before its descendants.
             /// </summary>
-            DepthFirst,
+            DepthFirstPre,
 
             /// <summary>
-            /// Traverses in the breadth-first order
+            /// Depth-first traversal. Each node is visited after all its reachable descendants.
+            /// Correctly handles DAGs where a descendant is reachable from multiple ancestors.
+            /// </summary>
+            DepthFirstPost,
+
+            /// <summary>
+            /// Breadth-first traversal. Nodes are visited level by level, shallowest first.
             /// </summary>
             BreadthFirst,
         }
@@ -116,25 +115,21 @@ namespace Unity.GraphCommon.LowLevel.Editor
             /// <param name="traverser">The <see cref="GraphTraverser"/> to use.</param>
             /// <param name="data">Whether to acquire a visited set for data nodes.</param>
             /// <param name="task">Whether to acquire a visited set for task nodes.</param>
-            /// <exception cref="Exception">Thrown if a context is already active (nested contexts are not allowed).</exception>
+            /// <exception cref="InvalidOperationException">Thrown if a context is already active (nested contexts are not allowed).</exception>
             public SharedVisitedContext(GraphTraverser traverser, bool data, bool task)
             {
+                // Validate both up-front so a throw cannot leak an already-acquired set.
+                if (data && traverser.m_DataPools.SharedVisited != null ||
+                    task && traverser.m_TaskPools.SharedVisited != null)
+                    throw new InvalidOperationException("Cannot have nested SharedVisitedContext");
+
                 m_GraphTraverser = traverser;
                 m_Data = data;
                 m_Task = task;
                 if (m_Data)
-                {
-                    if(m_GraphTraverser.m_DataVisited != null)
-                        throw new Exception("Cannot have nested SharedVisitedContext");
-                    m_GraphTraverser.m_DataVisited = m_GraphTraverser.m_DataVisitedPool.Get();
-                }
-
+                    traverser.m_DataPools.AcquireSharedVisited();
                 if (m_Task)
-                {
-                    if(m_GraphTraverser.m_TaskVisited != null)
-                        throw new Exception("Cannot have nested SharedVisitedContext");
-                    m_GraphTraverser.m_TaskVisited = m_GraphTraverser.m_TaskVisitedPool.Get();
-                }
+                    traverser.m_TaskPools.AcquireSharedVisited();
             }
 
             /// <summary>
@@ -143,18 +138,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             public void Dispose()
             {
                 if (m_Data)
-                {
-                    m_GraphTraverser.m_DataVisited.Clear();
-                    m_GraphTraverser.m_DataVisitedPool.Release(m_GraphTraverser.m_DataVisited);
-                    m_GraphTraverser.m_DataVisited = null;
-                }
-
+                    m_GraphTraverser.m_DataPools.ReleaseSharedVisited();
                 if (m_Task)
-                {
-                    m_GraphTraverser.m_TaskVisited.Clear();
-                    m_GraphTraverser.m_TaskVisitedPool.Release(m_GraphTraverser.m_TaskVisited);
-                    m_GraphTraverser.m_TaskVisited = null;
-                }
+                    m_GraphTraverser.m_TaskPools.ReleaseSharedVisited();
             }
         }
     }

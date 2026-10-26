@@ -104,6 +104,10 @@ namespace UnityEngine.PathTracing.Core
         private readonly TextureSlotAllocator _albedoTextureAllocator;
         private readonly TextureSlotAllocator _emissionTextureAllocator;
         private readonly TextureSlotAllocator _transmissionTextureAllocator;
+
+        // Avoid overflowing the graphics ring buffer when adding textures to the atlases.
+        private const int k_TextureFlushThreshold = 128;
+        private int _textureBlitsSinceLastFlush;
         public RenderTexture AlbedoTextures => _albedoTextureAllocator.Texture;
         public RenderTexture EmissionTextures => _emissionTextureAllocator.Texture;
         public RenderTexture TransmissionTextures => _transmissionTextureAllocator.Texture;
@@ -567,6 +571,12 @@ namespace UnityEngine.PathTracing.Core
             {
                 location = allocator.AddTexture(texture, scale, offset);
             }
+
+            if (++_textureBlitsSinceLastFlush >= k_TextureFlushThreshold)
+            {
+                GL.Flush();
+                _textureBlitsSinceLastFlush = 0;
+            }
         }
 
         private void RemoveTextureIfPresent(TextureType textureType, ref TextureSlotAllocator.TextureLocation location)
@@ -645,7 +655,10 @@ namespace UnityEngine.PathTracing.Core
             if (_planeMesh == null)
                 _planeMesh = CreateQuadMesh();
 
-            Debug.Assert(metaPassIndex != -1, "Users of MaterialPool are expected to only pass in materials which have a metapass.");
+            Debug.Assert(metaPassIndex != -1, $"Users of MaterialPool are expected to only pass in materials which have a metapass. Material: '{material.name}'.", material);
+#if UNITY_EDITOR
+            Debug.Assert(UnityEditor.ShaderUtil.IsPassCompiled(material, metaPassIndex) || !UnityEditor.ShaderUtil.allowAsyncCompilation, "Users of MaterialPool are expected to ensure that the metapass shader is ready to be used.");
+#endif
 
             cmd.DrawMesh(_planeMesh, Matrix4x4.identity, material, 0, metaPassIndex, properties);
 
@@ -662,6 +675,11 @@ namespace UnityEngine.PathTracing.Core
             var emission = MaterialAspectOracle.GetEmission(material, emissionMode);
             descriptor.EmissionType = emission.Type;
             descriptor.EmissionColor = emission.Color;
+
+            // In gamma space, the emission color property holds a gamma-encoded value.
+            if (emission.Type == MaterialPropertyType.Color && QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                descriptor.EmissionColor = emission.Color * emission.Color;
+
             if (emission.Type == MaterialPropertyType.Texture)
             {
                 descriptor.Emission = EvaluateMetaPass(material, TextureType.Emission);

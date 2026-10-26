@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering
         SceneCullingMask = 1 << 12,
         RenderingEnabled = 1 << 13,
         GPUComponent = 1 << 14,
+        StaticBatchSubMeshCount = 1 << 15,
     }
 
     internal struct GPUComponent
@@ -112,6 +113,7 @@ namespace UnityEngine.Rendering
         public NativeArray<EntityId> materialIDs;
         public NativeArray<RangeInt> subMaterialRanges;
         public NativeArray<ushort> subMeshStartIndices;
+        public NativeArray<ushort> staticBatchSubMeshCounts;
         public NativeArray<AABB> localBounds;
         public NativeArray<InternalMeshRendererSettings> rendererSettings;
         public NativeArray<EntityId> parentLODGroupIDs;
@@ -165,6 +167,7 @@ namespace UnityEngine.Rendering
         public JaggedSpan<EntityId> materialIDs; // Buffer indexed using subMaterialRanges
         public JaggedSpan<RangeInt> subMaterialRanges;
         public JaggedSpan<ushort> subMeshStartIndices;
+        public JaggedSpan<ushort> staticBatchSubMeshCounts;
         public JaggedSpan<AABB> localBounds;
         public JaggedSpan<InternalMeshRendererSettings> rendererSettings;
         public JaggedSpan<EntityId> parentLODGroupIDs;
@@ -210,6 +213,7 @@ namespace UnityEngine.Rendering
             materialIDs = new JaggedSpan<EntityId>(componentMask.HasAnyBit(MeshRendererComponentMask.Material) ? initialCapacity : 0, allocator);
             subMaterialRanges = new JaggedSpan<RangeInt>(componentMask.HasAnyBit(MeshRendererComponentMask.Material) ? initialCapacity : 0, allocator);
             subMeshStartIndices = new JaggedSpan<ushort>(componentMask.HasAnyBit(MeshRendererComponentMask.SubMeshStartIndex) ? initialCapacity : 0, allocator);
+            staticBatchSubMeshCounts = new JaggedSpan<ushort>(componentMask.HasAnyBit(MeshRendererComponentMask.StaticBatchSubMeshCount) ? initialCapacity : 0, allocator);
             localBounds = new JaggedSpan<AABB>(componentMask.HasAnyBit(MeshRendererComponentMask.LocalBounds) ? initialCapacity : 0, allocator);
             rendererSettings = new JaggedSpan<InternalMeshRendererSettings>(componentMask.HasAnyBit(MeshRendererComponentMask.RendererSettings) ? initialCapacity : 0, allocator);
             parentLODGroupIDs = new JaggedSpan<EntityId>(componentMask.HasAnyBit(MeshRendererComponentMask.ParentLODGroup) ? initialCapacity : 0, allocator);
@@ -245,6 +249,7 @@ namespace UnityEngine.Rendering
             materialIDs.Dispose();
             subMaterialRanges.Dispose();
             subMeshStartIndices.Dispose();
+            staticBatchSubMeshCounts.Dispose();
             localBounds.Dispose();
             rendererSettings.Dispose();
             parentLODGroupIDs.Dispose();
@@ -276,6 +281,7 @@ namespace UnityEngine.Rendering
         public NativeArray<short> GetLightmapIndexSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.Lightmap) ? lightmapIndices[index] : default;
         public NativeArray<int> GetRendererPrioritySectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.RendererPriority) ? rendererPriorities[index] : default;
         public NativeArray<ushort> GetSubMeshStartIndexSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.SubMeshStartIndex) ? subMeshStartIndices[index] : default;
+        public NativeArray<ushort> GetStaticBatchSubMeshCountSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.StaticBatchSubMeshCount) ? staticBatchSubMeshCounts[index] : default;
         public NativeArray<InternalMeshRendererSettings> GetRendererSettingsSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.RendererSettings) ? rendererSettings[index] : default;
         public NativeArray<EntityId> GetParentLODGroupIDSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.ParentLODGroup) ? parentLODGroupIDs[index] : default;
         public NativeArray<byte> GetLODMaskSectionOrDefault(int index) => HasAnyComponent(MeshRendererComponentMask.LODMask) ? lodMasks[index] : default;
@@ -337,6 +343,16 @@ namespace UnityEngine.Rendering
             else
             {
                 Assert.IsTrue(!section.subMeshStartIndices.IsCreated);
+            }
+
+            if (HasAnyComponent(MeshRendererComponentMask.StaticBatchSubMeshCount))
+            {
+                Assert.IsTrue(section.instanceIDs.Length == section.staticBatchSubMeshCounts.Length);
+                staticBatchSubMeshCounts.Add(section.staticBatchSubMeshCounts);
+            }
+            else
+            {
+                Assert.IsTrue(!section.staticBatchSubMeshCounts.IsCreated);
             }
 
             if (HasAnyComponent(MeshRendererComponentMask.LocalBounds))
@@ -485,6 +501,9 @@ namespace UnityEngine.Rendering
                 return;
 
             if (!ValidateEmptyOrSameLayout(MeshRendererComponentMask.SubMeshStartIndex, subMeshStartIndices, instanceIDs))
+                return;
+
+            if (!ValidateEmptyOrSameLayout(MeshRendererComponentMask.StaticBatchSubMeshCount, staticBatchSubMeshCounts, instanceIDs))
                 return;
 
             if (!ValidateEmptyOrSameLayout(MeshRendererComponentMask.LocalBounds, localBounds, instanceIDs))

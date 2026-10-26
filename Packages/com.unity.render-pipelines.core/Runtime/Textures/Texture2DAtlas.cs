@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using System;
 
 namespace UnityEngine.Rendering
 {
@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
             public AtlasNode m_BottomChild = null;
             public Vector4 m_Rect = new Vector4(0, 0, 0, 0); // x,y is width and height (scale) z,w offset into atlas (offset)
 
-            public AtlasNode Allocate(ref ObjectPool<AtlasNode> pool, int width, int height, bool powerOfTwoPadding)
+            public AtlasNode Allocate(ref UnityEngine.Pool.ObjectPool<AtlasNode> pool, int width, int height, bool powerOfTwoPadding)
             {
                 // not a leaf node, try children
                 if (m_RightChild != null)
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            public void Release(ref ObjectPool<AtlasNode> pool)
+            public void Release(ref UnityEngine.Pool.ObjectPool<AtlasNode> pool)
             {
                 if (m_RightChild != null)
                 {
@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         private int m_Width;
         private int m_Height;
         private bool powerOfTwoPadding;
-        private ObjectPool<AtlasNode> m_NodePool;
+        private UnityEngine.Pool.ObjectPool<AtlasNode> m_NodePool;
 
         public AtlasAllocator(int width, int height, bool potPadding)
         {
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering
             m_Width = width;
             m_Height = height;
             powerOfTwoPadding = potPadding;
-            m_NodePool = new ObjectPool<AtlasNode>(_ => { }, _ => { });
+            m_NodePool = new UnityEngine.Pool.ObjectPool<AtlasNode>(() => new AtlasNode(), _ => { }, _ => { });
         }
 
         public bool Allocate(ref Vector4 result, int width, int height)
@@ -213,18 +213,15 @@ namespace UnityEngine.Rendering
             CubeTo2DOctahedralSingleChannel,
         }
 
-        /// <summary>
-        /// Texture is not on the GPU or is not up to date.
-        /// </summary>
-        private protected const int kGPUTexInvalid = 0;
-        /// <summary>
-        /// Texture Mip0 is on the GPU and up to date.
-        /// </summary>
-        private protected const int kGPUTexValidMip0 = 1;
-        /// <summary>
-        /// Texture and all mips are on the GPU and up to date.
-        /// </summary>
-        private protected const int kGPUTexValidMipAll = 2;
+        private enum GPUTextureState
+        {
+            // Texture is not on the GPU or is not up to date.
+            Invalid = 0,
+            // Texture Mip0 is on the GPU and up to date.
+            ValidMip0 = 1,
+            // Texture and all mips are on the GPU and up to date.
+            ValidMipAll = 2,
+        }
 
         /// <summary>
         /// The texture for the atlas.
@@ -249,7 +246,8 @@ namespace UnityEngine.Rendering
         bool m_IsAtlasTextureOwner = false;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<TextureIdentifier, (Vector4 scaleOffset, Vector2Int size)> m_AllocationCache = new();
-        private Dictionary<TextureIdentifier, int> m_IsGPUTextureUpToDate = new();
+        private Dictionary<TextureIdentifier, GPUTextureState> m_GPUTextureStates = new();
+        private Dictionary<TextureIdentifier, int> m_RTUpdateCounts = new();
         private Dictionary<TextureIdentifier, int> m_TextureHashes = new();
 
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
@@ -329,7 +327,9 @@ namespace UnityEngine.Rendering
             m_AtlasAllocator.Reset();
             m_AllocationCache.Clear();
 
-            m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
+            m_GPUTextureStates.Clear(); // mark all GPU textures as invalid.
+            m_RTUpdateCounts.Clear();
+            m_TextureHashes.Clear();
         }
 
         /// <summary>
@@ -347,7 +347,9 @@ namespace UnityEngine.Rendering
                 Blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
             }
 
-            m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
+            m_GPUTextureStates.Clear(); // mark all GPU textures as invalid.
+            m_RTUpdateCounts.Clear();
+            m_TextureHashes.Clear();
         }
 
         /// <summary>
@@ -439,14 +441,65 @@ namespace UnityEngine.Rendering
         /// <param name="mipAreValid">Texture has valid mip maps.</param>
         private protected void MarkGPUTextureValid(TextureIdentifier identifier, bool mipAreValid = false)
         {
-            m_IsGPUTextureUpToDate[identifier] = (mipAreValid) ? kGPUTexValidMipAll : kGPUTexValidMip0;
+            m_GPUTextureStates[identifier] = (mipAreValid) ? GPUTextureState.ValidMipAll : GPUTextureState.ValidMip0;
         }
 
         /// <summary>
         /// Mark texture invalid on the GPU.
         /// </summary>
         /// <param name="identifier">Texture identifier.</param>
-        private protected void MarkGPUTextureInvalid(TextureIdentifier identifier) => m_IsGPUTextureUpToDate[identifier] = kGPUTexInvalid;
+        private protected void MarkGPUTextureInvalid(TextureIdentifier identifier)
+        {
+            m_GPUTextureStates[identifier] = GPUTextureState.Invalid;
+
+            m_RTUpdateCounts.Remove(identifier);
+            m_TextureHashes.Remove(identifier);
+        }
+
+        // Describes our copy of the texture, not the source: false means the slot was never uploaded, or a
+        // re-layout or clear invalidated it, even when the source texture itself has not changed.
+        private bool IsGPUTextureValid(TextureIdentifier identifier, bool needMips)
+        {
+            if (!m_GPUTextureStates.TryGetValue(identifier, out var state))
+                return false;
+
+            return state == GPUTextureState.ValidMipAll || (!needMips && state == GPUTextureState.ValidMip0);
+        }
+
+        private static int GetRenderTextureVersion(RenderTexture rtA, RenderTexture rtB)
+        {
+            if (rtA != null && rtB != null)
+                return HashCode.Combine(rtA.updateCount, rtB.updateCount);
+
+            // At least one is a render texture, or the caller would not be on this path.
+            return (int)(rtA != null ? rtA.updateCount : rtB.updateCount);
+        }
+
+        // Render textures carry a version, so a moved version is the signal that the source changed. A missing
+        // record means the slot was never filled or was emptied, which always needs an upload.
+        private bool NeedsRenderTextureUpload(TextureIdentifier identifier, int version, bool needMips)
+        {
+            if (!m_RTUpdateCounts.TryGetValue(identifier, out int recorded) || recorded != version)
+            {
+                m_RTUpdateCounts[identifier] = version;
+                return true;
+            }
+
+            // The source has not moved, but our copy can still be stale after a re-layout or a clear.
+            return !IsGPUTextureValid(identifier, needMips);
+        }
+
+        // Regular textures carry no version, so a changed import hash is the only signal that the source changed.
+        private bool NeedsTextureUpload(TextureIdentifier identifier, int textureHash, bool needMips)
+        {
+            if (!m_TextureHashes.TryGetValue(identifier, out int recorded) || recorded != textureHash)
+            {
+                m_TextureHashes[identifier] = textureHash;
+                return true;
+            }
+
+            return !IsGPUTextureValid(identifier, needMips);
+        }
 
         /// <summary>
         /// Blit 2D texture into the atlas.
@@ -659,6 +712,9 @@ namespace UnityEngine.Rendering
                 // texture is up to date
                 MarkGPUTextureValid(instanceID, true);
                 m_TextureHashes[instanceID] = CoreUtils.GetTextureHash(texture);
+
+                if (texture is RenderTexture rt)
+                    m_RTUpdateCounts[instanceID] = (int)rt.updateCount;
             }
 
             return allocated;
@@ -707,7 +763,6 @@ namespace UnityEngine.Rendering
                 scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
                 m_AllocationCache[identifier] = (scaleOffset, new Vector2Int(width, height));
                 MarkGPUTextureInvalid(identifier); // the texture data haven't been uploaded
-                m_TextureHashes[identifier] = -1;
                 return true;
             }
             else
@@ -850,42 +905,21 @@ namespace UnityEngine.Rendering
         /// <param name="texture">Source texture.</param>
         /// <param name="needMips">Texture uses mips.</param>
         /// <returns>True if texture needs update, false otherwise.</returns>
+        /// <remarks>This call is not side effect free: it refreshes the cached render texture
+        /// update count as it compares it, so two consecutive calls do not necessarily return the same value.</remarks>
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
-            RenderTexture rt = texture as RenderTexture;
             var key = GetTextureIdentifier(texture);
-            int textureHash = CoreUtils.GetTextureHash(texture);
 
-            // Update the render texture if needed
-            if (rt != null)
-            {
-                int updateCount;
-                if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
-                {
-                    if (rt.updateCount != updateCount)
-                    {
-                        m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
-                        return true;
-                    }
-                }
-                else
-                {
-                    m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
-                }
-            }
-            // In case the texture settings/import settings have changed, we need to update it
-            else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
-            {
-                m_TextureHashes[key] = textureHash;
-                return true;
-            }
-            // For regular textures, values == 0 means that their GPU data needs to be updated (either because
-            // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
-            // are valid for the texture if we need them
-            else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
-                return value == kGPUTexInvalid || (needMips && value == kGPUTexValidMip0);
+            if (!m_AllocationCache.ContainsKey(key))
+                return false;
 
-            return false;
+            // Render textures are versioned by updateCount, everything else by its import hash. The two paths are
+            // disjoint: a render texture is never hash checked, and a regular texture has no version to compare.
+            if (texture is RenderTexture rt)
+                return NeedsRenderTextureUpload(key, (int)rt.updateCount, needMips);
+
+            return NeedsTextureUpload(key, CoreUtils.GetTextureHash(texture), needMips);
         }
 
         /// <summary>
@@ -909,20 +943,21 @@ namespace UnityEngine.Rendering
         /// <param name="updateCount">The update count.</param>
         /// <param name="needMips">Texture uses mips.</param>
         /// <returns>True if slot needs update, false otherwise.</returns>
+        /// <remarks>This call is not side effect free: it refreshes the cached update count as it
+        /// compares it, so two consecutive calls do not necessarily return the same value.</remarks>
         public virtual bool NeedsUpdate(TextureIdentifier identifier, int updateCount, bool needMips = false)
         {
-            int atlasUpdateCount;
-            if (m_IsGPUTextureUpToDate.TryGetValue(identifier, out atlasUpdateCount))
+            if (!m_AllocationCache.ContainsKey(identifier))
+                return false;
+
+            // Deliberately not NeedsRenderTextureUpload: callers of this overload upload outside the atlas, so it
+            // never learns which mip levels they wrote and cannot honour needMips or read a meaningful GPU state.
+            // A missing count is the only record that the slot was never filled, which is why
+            // MarkGPUTextureInvalid removes it.
+            if (!m_RTUpdateCounts.TryGetValue(identifier, out int recorded) || recorded != updateCount)
             {
-                if (updateCount != atlasUpdateCount)
-                {
-                    m_IsGPUTextureUpToDate[identifier] = updateCount;
-                    return true;
-                }
-            }
-            else
-            {
-                m_IsGPUTextureUpToDate[identifier] = updateCount;
+                m_RTUpdateCounts[identifier] = updateCount;
+                return true;
             }
 
             return false;
@@ -935,53 +970,22 @@ namespace UnityEngine.Rendering
         /// <param name="textureB">Source texture B.</param>
         /// <param name="needMips">Texture uses mips.</param>
         /// <returns>True if texture needs update, false otherwise.</returns>
+        /// <remarks>This call is not side effect free: it refreshes the cached render texture
+        /// update count as it compares it, so two consecutive calls do not necessarily return the same value.</remarks>
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;
             var key = GetTextureIdentifier(textureA, textureB);
-            int textureHash = GetTextureHash(textureA, textureB);
 
-            // Update the render texture if needed
+            if (!m_AllocationCache.ContainsKey(key))
+                return false;
+
+            // Same disjoint split as the single texture overload, except the version has to describe both sources.
             if (rtA != null || rtB != null)
-            {
-                int updateCount;
-                if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
-                {
-                    if (rtA != null && rtB != null && Math.Min(rtA.updateCount, rtB.updateCount) != updateCount)
-                    {
-                        m_IsGPUTextureUpToDate[key] = (int)Math.Min(rtA.updateCount, rtB.updateCount);
-                        return true;
-                    }
-                    else if (rtA != null && rtA.updateCount != updateCount)
-                    {
-                        m_IsGPUTextureUpToDate[key] = (int)rtA.updateCount;
-                        return true;
-                    }
-                    else if (rtB != null && rtB.updateCount != updateCount)
-                    {
-                        m_IsGPUTextureUpToDate[key] = (int)rtB.updateCount;
-                        return true;
-                    }
-                }
-                else
-                {
-                    m_IsGPUTextureUpToDate[key] = textureHash;
-                }
-            }
-            // In case the texture settings/import settings have changed, we need to update it
-            else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
-            {
-                m_TextureHashes[key] = textureHash;
-                return true;
-            }
-            // For regular textures, values == 0 means that their GPU data needs to be updated (either because
-            // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
-            // are valid for the texture if we need them
-            else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
-                return value == kGPUTexInvalid || (needMips && value == kGPUTexValidMip0);
+                return NeedsRenderTextureUpload(key, GetRenderTextureVersion(rtA, rtB), needMips);
 
-            return false;
+            return NeedsTextureUpload(key, GetTextureHash(textureA, textureB), needMips);
         }
 
         /// <summary>
@@ -1056,6 +1060,7 @@ namespace UnityEngine.Rendering
             isUploadNeeded = true;
             scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
             m_AllocationCache.Add(key, (scaleBias, new Vector2Int(width, height)));
+            MarkGPUTextureInvalid(key); // the texture data haven't been uploaded
             return true;
         }
     }

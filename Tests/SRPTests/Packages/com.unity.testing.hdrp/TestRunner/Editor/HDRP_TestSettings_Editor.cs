@@ -17,12 +17,10 @@ public class HDRP_TestSettings_Editor : Editor
     SerializedProperty captureFramerate;
     SerializedProperty waitFrames;
     SerializedProperty ImageComparisonSettings;
-    SerializedProperty xrCompatible;
     SerializedProperty xrThresholdMultiplier;
     SerializedProperty gpuDrivenCompatible;
     SerializedProperty waitForFrameCountMultiple;
     SerializedProperty frameCountMultiple;
-    SerializedProperty checkMemoryAllocation;
     SerializedProperty renderPipelineAsset;
     SerializedProperty forceCameraRenderDuringSetup;
     SerializedProperty containsVFX;
@@ -34,12 +32,10 @@ public class HDRP_TestSettings_Editor : Editor
         captureFramerate = serializedObject.FindProperty("captureFramerate");
         waitFrames = serializedObject.FindProperty("waitFrames");
         ImageComparisonSettings = serializedObject.FindProperty("ImageComparisonSettings");
-        xrCompatible = serializedObject.FindProperty("xrCompatible");
         xrThresholdMultiplier = serializedObject.FindProperty("xrThresholdMultiplier");
         gpuDrivenCompatible = serializedObject.FindProperty("gpuDrivenCompatible");
         waitForFrameCountMultiple = serializedObject.FindProperty("waitForFrameCountMultiple");
         frameCountMultiple = serializedObject.FindProperty("frameCountMultiple");
-        checkMemoryAllocation = serializedObject.FindProperty("checkMemoryAllocation");
         renderPipelineAsset = serializedObject.FindProperty("renderPipelineAsset");
         forceCameraRenderDuringSetup = serializedObject.FindProperty("forceCameraRenderDuringSetup");
         containsVFX = serializedObject.FindProperty("containsVFX");
@@ -55,13 +51,7 @@ public class HDRP_TestSettings_Editor : Editor
 
 
 
-        EditorGUILayout.PropertyField(xrCompatible);
-        if(xrCompatible.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(xrThresholdMultiplier);
-            EditorGUI.indentLevel--;
-        }
+        EditorGUILayout.PropertyField(xrThresholdMultiplier);
 
         EditorGUILayout.PropertyField(gpuDrivenCompatible);
 
@@ -74,7 +64,6 @@ public class HDRP_TestSettings_Editor : Editor
         }
 
 
-        EditorGUILayout.PropertyField(checkMemoryAllocation);
         EditorGUILayout.PropertyField(renderPipelineAsset);
         EditorGUILayout.PropertyField(forceCameraRenderDuringSetup);
 

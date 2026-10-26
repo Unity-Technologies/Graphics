@@ -5,13 +5,21 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-#if defined(_LIGHT_COOKIES)
-    #ifndef REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
-        #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR 1
+#if !defined(_LIGHT_COOKIES_KEYWORD_DECLARED)
+    #if !defined(_LIGHT_COOKIES)
+        static const bool _LIGHT_COOKIES = 0;
+    #elif DEFINED_NONZERO(_LIGHT_COOKIES)
+        #undef _LIGHT_COOKIES
+        #define _LIGHT_COOKIES 1
     #endif
 #endif
 
+bool LightCookiesAvailable()
+{
+    return _LIGHT_COOKIES;
+}
 
 float2 ComputeLightCookieUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, uint2 uvWrap)
 {
@@ -66,52 +74,58 @@ float2 ComputeLightCookieUVPoint(float4x4 worldToLight, float3 samplePositionWS,
     return positionAtlasUV;
 }
 
-
-
 real3 SampleMainLightCookie(float3 samplePositionWS)
 {
-    if(!IsMainLightCookieEnabled())
-        return real3(1,1,1);
+    real3 cookie = real3(1, 1, 1);
 
-    float2 uv = ComputeLightCookieUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
-    real4 color = SampleMainLightCookieTexture(uv);
+    if ((_LIGHT_COOKIES) && IsMainLightCookieEnabled())
+    {
+        float2 uv = ComputeLightCookieUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
+        real4 color = SampleMainLightCookieTexture(uv);
 
-    return IsMainLightCookieTextureRGBFormat() ? color.rgb
-             : IsMainLightCookieTextureAlphaFormat() ? color.aaa
-             : color.rrr;
+        cookie = IsMainLightCookieTextureRGBFormat() ? color.rgb
+                 : IsMainLightCookieTextureAlphaFormat() ? color.aaa
+                 : color.rrr;
+    }
+
+    return cookie;
 }
 
 real3 SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
-    if(!IsLightCookieEnabled(perObjectLightIndex))
-        return real3(1,1,1);
+    real3 cookie = real3(1, 1, 1);
 
-    int lightType     = GetLightCookieLightType(perObjectLightIndex);
-    int isSpot        = lightType == URP_LIGHT_TYPE_SPOT;
-    int isDirectional = lightType == URP_LIGHT_TYPE_DIRECTIONAL;
-
-    float4x4 worldToLight = GetLightCookieWorldToLightMatrix(perObjectLightIndex);
-    float4 uvRect = GetLightCookieAtlasUVRect(perObjectLightIndex);
-
-    float2 uv;
-    if(isSpot)
+    if ((_LIGHT_COOKIES) && IsLightCookieEnabled(perObjectLightIndex))
     {
-        uv = ComputeLightCookieUVSpot(worldToLight, samplePositionWS, uvRect);
-    }
-    else if(isDirectional)
-    {
-        uv = ComputeLightCookieUVDirectional(worldToLight, samplePositionWS, uvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
-    }
-    else
-    {
-        uv = ComputeLightCookieUVPoint(worldToLight, samplePositionWS, uvRect);
+        int lightType = GetLightCookieLightType(perObjectLightIndex);
+        int isSpot = lightType == URP_LIGHT_TYPE_SPOT;
+        int isDirectional = lightType == URP_LIGHT_TYPE_DIRECTIONAL;
+
+        float4x4 worldToLight = GetLightCookieWorldToLightMatrix(perObjectLightIndex);
+        float4 uvRect = GetLightCookieAtlasUVRect(perObjectLightIndex);
+
+        float2 uv;
+        if (isSpot)
+        {
+            uv = ComputeLightCookieUVSpot(worldToLight, samplePositionWS, uvRect);
+        }
+        else if (isDirectional)
+        {
+            uv = ComputeLightCookieUVDirectional(worldToLight, samplePositionWS, uvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
+        }
+        else
+        {
+            uv = ComputeLightCookieUVPoint(worldToLight, samplePositionWS, uvRect);
+        }
+
+        real4 color = SampleAdditionalLightsCookieAtlasTexture(uv);
+
+        cookie = IsAdditionalLightsCookieAtlasTextureRGBFormat() ? color.rgb
+                : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? color.aaa
+                : color.rrr;
     }
 
-    real4 color = SampleAdditionalLightsCookieAtlasTexture(uv);
-
-    return IsAdditionalLightsCookieAtlasTextureRGBFormat() ? color.rgb
-            : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? color.aaa
-            : color.rrr;
+    return cookie;
 }
 
 #endif //UNIVERSAL_LIGHT_COOKIE_INCLUDED

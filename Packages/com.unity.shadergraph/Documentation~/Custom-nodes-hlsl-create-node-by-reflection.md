@@ -42,11 +42,11 @@ To specify a provider key value, in the HLSL include file, precede the function 
 ///</funchints>
 ```
 
-By default, when you specify a provider key, Unity places the reflected node in the **Reflected by Path** category and uses its corresponding function name to identify it. However, you can use additional function hints to the HLSL include file to use custom category and node display names. For more details, refer to the next section.
+By default, as soon as you specify a provider key, Unity places the reflected node in the **Reflected by Path** category and uses its corresponding function name to identify it. However, you can use [additional reflection hints](Custom-nodes-hlsl-reflection-hints-reference.md) to the HLSL include file to specify custom category and node display names, and more. For more details, refer to the next section.
 
 ## Further customize the reflected node
 
-To further customize the behavior and appearance of the reflected function node and its parameters in Shader Graph, you have to precede the function with a list of hints in the HLSL include file.
+To further customize the behavior and appearance of the reflected function node and its parameters in Shader Graph, you have to precede the function with a list of [reflection hints](Custom-nodes-hlsl-reflection-hints-reference.md) in the HLSL include file.
 
 There are two types of hints:
 * Function hints for the function node as a whole.
@@ -129,3 +129,4 @@ float3 MyCustomFunction(
 
 - [Introduction to HLSL in Shader Graph](Custom-nodes-hlsl-introduction.md)
 - [Node Reference sample](Shader-Graph-Sample-Node-Reference.md): in the `Utility` folder, refer to the `ReflectedFunction` graph.
+- [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)

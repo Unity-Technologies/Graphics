@@ -10,7 +10,7 @@ VaryingsDepthOnlyParticle DepthOnlyVertex(AttributesDepthOnlyParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.vertex.xyz);
     output.clipPos = vertexInput.positionCS;
 
     #if defined(_ALPHATEST_ON)
@@ -47,7 +47,7 @@ half DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
             float3 blendUv = float3(0,0,0);
         #endif
 
-        half4 albedo = BlendTexture(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, blendUv) * baseColor;
+        half4 albedo = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), uv, blendUv) * baseColor;
         half4 colorAddSubDiff = half4(0, 0, 0, 0);
         #if defined (_COLORADDSUBDIFF_ON)
             colorAddSubDiff = _BaseColorAddSubDiff;

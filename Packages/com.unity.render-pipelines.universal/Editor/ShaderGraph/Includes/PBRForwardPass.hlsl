@@ -1,9 +1,15 @@
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/VolumetricFogBlendMode.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
 
     #ifdef _NORMALMAP
         // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
@@ -24,56 +30,59 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = input.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS);
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS) : float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
     #endif
-    #if defined(LIGHTMAP_ON)
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
     inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
     inputData.vertexSH = input.sh;
     #endif
 
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
-
-    inputData.positionCS = input.positionCS;
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
-void InitializeBakedGIData(Varyings input, inout InputData inputData)
+void InitializeBakedGIData(Varyings input, inout InputData inputData, bool isSurfaceTypeTransparent)
 {
-#if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
-#elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(input.sh,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        input.positionCS.xy,
-        input.probeOcclusion,
-        inputData.shadowMask);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#endif
+    GIParams giParams = (GIParams)0;
+
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
+    giParams.staticLightmapUV = input.staticLightmapUV;
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
+    giParams.vertexSH = input.sh;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #ifdef USE_APV_PROBE_OCCLUSION
+    giParams.vertexProbeOcclusion = input.probeOcclusion;
+    #endif
+
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = input.positionCS.xy;
+    giParams.isSurfaceTypeTransparent = isSurfaceTypeTransparent;
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
 }
 
 PackedVaryings vert(Attributes input)
@@ -99,9 +108,9 @@ void frag(
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #if defined(_SURFACE_TYPE_TRANSPARENT)
-    bool isTransparent = true;
+    bool isSurfaceTypeTransparent = true;
 #else
-    bool isTransparent = false;
+    bool isSurfaceTypeTransparent = false;
 #endif
 
 #if defined(_ALPHATEST_ON)
@@ -112,9 +121,7 @@ void frag(
     half alpha = half(1.0);
 #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
@@ -156,16 +163,19 @@ void frag(
 
     surface.albedo = AlphaModulate(surface.albedo, surface.alpha);
 
-#if defined(_DBUFFER)
+#if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif
 
-    InitializeBakedGIData(unpacked, inputData);
+    InitializeBakedGIData(unpacked, inputData, isSurfaceTypeTransparent);
 
-    half4 color = UniversalFragmentPBR(inputData, surface);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface, unpacked.normalWS);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, unpacked.positionCS));
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
+    color.rgb = MixVolumetricFog(color.rgb, color.a, VolumetricFogBlendModeFromDefines(), false, unpacked.positionCS);
+#endif
 
-    color.a = OutputAlpha(color.a, isTransparent);
+    color.a = OutputAlpha(color.a, isSurfaceTypeTransparent);
 
     outColor = color;
 

@@ -53,9 +53,9 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 	uint cellDataSize = _LightPerCellCount + CELL_META_DATA_SIZE; // Each cell contains a number of lights plus meta data counting the number of each light type.
 
     // Diagonal direction of the cluster
-    float3 bottomCorner = _MinClusterPos + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
+    float3 bottomCorner = _MinClusterPos.xyz + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
     // Let's compute the position of this cell
-    float3 cellCenterPosition = bottomCorner + (_MaxClusterPos - _MinClusterPos) * targetCellIndex / (float3)CLUSTER_SIZE;
+    float3 cellCenterPosition = bottomCorner + (_MaxClusterPos.xyz - _MinClusterPos.xyz) * targetCellIndex / (float3)CLUSTER_SIZE;
 
     // The actual light count that intersects with this cell
     uint currentLightCount = 0;

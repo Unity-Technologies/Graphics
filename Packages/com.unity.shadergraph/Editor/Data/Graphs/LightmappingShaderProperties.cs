@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             internal override bool canPromoteToFinalShader => false;
 
-            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+            internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
             {
                 // no declaration from ShaderGraph side -- declared by SRP internal include files
             }

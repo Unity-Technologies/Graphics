@@ -1,0 +1,138 @@
+using System.Collections;
+using System.Runtime.InteropServices;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
+
+namespace UnityEngine.Rendering.HighDefinition.Tests
+{
+    // NOTE: Important! IgnoreGraphicsTest uses a pattern to ignore all Unity-scenes found which name matches that pattern.
+    // That means that, you can filter-out more than one test without realizing if not careful (i.e. the pattern '5011_VolumetricClouds'
+    // will filter-out the tests 5011_VolumetricClouds, 5011_VolumetricCloudsShadows and 5011_VolumetricCloudsShadowsBake).
+    // To avoid this, add an extra '$' character to the end of your pattern to make it a strict-match.
+    [MockHmdSetup]
+    [TestFixtureSource(
+        typeof(HighDefinitionTestFixtureData),
+        nameof(HighDefinitionTestFixtureData.FixtureParams)
+    )]
+    public class PostProcessingTests : HdrpTestsBase
+    {
+        public PostProcessingTests(GpuResidentDrawerContext grdContext) : base(grdContext) { }
+
+        [UnityTest]
+        [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
+        [Timeout(450 * 1000)]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit$",
+            "Noisy result in Linux + VK..",
+            GraphicsDeviceType.Vulkan,
+            RuntimePlatform.LinuxEditor
+        )]
+        [IgnoreGraphicsTest(
+            "4096_DRS-TAAU-Hardware$",
+            "Very small fringing across edges. Maybe a sampling artifact? Bug: https://jira.unity3d.com/browse/UUM-155362",
+            GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "4101_FP16Alpha$",
+            "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155399",
+            GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "4105_LensFlareScreenSpace$",
+            "(Intel Mac) Lens-flare behaviour seems to be different from all the other platforms.",
+            GraphicsDeviceType.Metal, Architecture.X64
+        )]
+        [IgnoreGraphicsTest(
+            "4106_DRS-TAAU-AfterPost$",
+            "Very small fringing across edges. Maybe a sampling artifact?",
+            GraphicsDeviceType.Metal
+        )]
+        [TestOnlySupportedOn(
+            "4107_DRS-FSR2-Hardware",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4108_DRS-FSR2-Software",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4109_DRS-FSR2-AfterPost",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4110_DRS-FSR2-With-CustomPass",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4088_DRS-DLSS-Hardware",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4089_DRS-DLSS-Software",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4103_DRS-DLSS-AfterPost",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+        )]
+        [TestOnlySupportedOn(
+            "4111_DRS-DLSS-With-CustomPass",
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only, and needs an NVIDIA GPU.
+            GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer,
+            GraphicsVendor.Nvidia
+        )]
+        [TestOnlySupportedOn(
+            "4113_DRS-MetalFXTemporal-Hardware|4114_DRS-MetalFXSpatial-Hardware",
+            "Platform not supported", // MetalFX is Metal on Apple platforms only
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer
+        )]
+        [IgnoreGraphicsTest(
+            "4113_DRS-MetalFXTemporal-Hardware",
+            "MetalFX Temporal is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXTemporalSupport.TemporalUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4114_DRS-MetalFXSpatial-Hardware",
+            "MetalFX Spatial is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXSpatialSupport.SpatialUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4014_PrecomputedVelocityAlembic",
+            "https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [TestNotSupportedOn(
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
+            "Not XR compatible", XrDevice.Any
+        )]
+        public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
+        {
+            yield return HDRP_GraphicTestRunner.Run(testCase);
+        }
+
+    }
+}

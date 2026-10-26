@@ -94,6 +94,16 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _cameraSortingLayerTexture;
 
+        /// <summary>
+        /// Rendering Layers Texture. Can be written to by the Light2D pass.
+        /// </summary>
+        public TextureHandle renderingLayersTexture
+        {
+            get => CheckAndGetTextureHandle(ref _renderingLayersTexture);
+            internal set => CheckAndSetTextureHandle(ref _renderingLayersTexture, value);
+        }
+        private TextureHandle _renderingLayersTexture;
+
         /// <inheritdoc />
         public override void Reset()
         {
@@ -101,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
             _shadowDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;
             _cameraSortingLayerTexture = TextureHandle.nullHandle;
+            _renderingLayersTexture = TextureHandle.nullHandle;
 
             for (int i = 0; i < _cameraNormalsTexture.Length; i++)
                 _cameraNormalsTexture[i] = TextureHandle.nullHandle;

@@ -28,12 +28,20 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
+            #pragma multi_compile_fragment _ _EXPOSURE
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+
+            #if defined(_EXPOSURE)
+            #define FLARE_APPLY_EXPOSURE(color) ClampExposed((color) * GetPreExposureMultiplier())
+            #endif
 
             #define FLARE_ADDITIVE_BLEND
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
@@ -65,12 +73,20 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
+            #pragma multi_compile_fragment _ _EXPOSURE
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+
+            #if defined(_EXPOSURE)
+            #define FLARE_APPLY_EXPOSURE(color) ClampExposed((color) * GetPreExposureMultiplier())
+            #endif
 
             #define FLARE_SCREEN_BLEND
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
@@ -102,12 +118,20 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
+            #pragma multi_compile_fragment _ _EXPOSURE
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+
+            #if defined(_EXPOSURE)
+            #define FLARE_APPLY_EXPOSURE(color) ClampExposed((color) * GetPreExposureMultiplier())
+            #endif
 
             #define FLARE_PREMULTIPLIED_BLEND
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
@@ -139,12 +163,20 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 
             #pragma multi_compile _ FLARE_HAS_OCCLUSION
 
+            #pragma multi_compile_fragment _ _EXPOSURE
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+
+            #if defined(_EXPOSURE)
+            #define FLARE_APPLY_EXPOSURE(color) ClampExposed((color) * GetPreExposureMultiplier())
+            #endif
 
             #define FLARE_LERP_BLEND
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"

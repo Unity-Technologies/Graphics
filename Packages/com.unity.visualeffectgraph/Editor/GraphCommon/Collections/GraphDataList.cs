@@ -64,12 +64,36 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// <typeparam name="T">The type of the graph data elements.</typeparam>
     /// <typeparam name="TCacheInfo">The type of the cached information.</typeparam>
     [Serializable]
-    class GraphDataList<T> : ICountable, IEnumerable<T> where T : struct
+    class GraphDataList<T> : ICountable, IVersioned, IEnumerable<T> where T : struct
     {
         [SerializeField]
-        T[] m_Items = new T[0];
+        T[] m_Items = Array.Empty<T>();
 
-        public int Count { get; private set; }
+        [SerializeField]
+        bool[] m_Alive = Array.Empty<bool>();
+
+        [SerializeField]
+        int m_LiveCount;
+
+        [SerializeField]
+        int m_SlotCount;
+
+        /// <summary>
+        /// Gets the number of live (non-removed) elements in the collection.
+        /// </summary>
+        public int Count => m_LiveCount;
+
+        /// <summary>
+        /// The version of the collection, incremented on every mutation. Starts at 1u, 0u is reserved for invalid.
+        /// </summary>
+        public uint Version { get; private set; } = 1u;
+
+        /// <summary>
+        /// Gets the high-water mark of allocated slots. Valid <see cref="GraphDataId.Index"/>
+        /// values for this collection are in the range [0, SlotCount). Slots remain reserved
+        /// after <see cref="Remove"/> so that ids stay stable for parallel cache structures.
+        /// </summary>
+        public int SlotCount => m_SlotCount;
 
         /// <summary>
         /// Gets or sets the capacity of the collection.
@@ -79,8 +103,9 @@ namespace Unity.GraphCommon.LowLevel.Editor
             get => m_Items.Length;
             set
             {
-                Debug.Assert(value >= Count);
+                Debug.Assert(value >= m_SlotCount);
                 Array.Resize(ref m_Items, value);
+                Array.Resize(ref m_Alive, value);
             }
         }
 
@@ -94,7 +119,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
             get
             {
                 int index = id.Index;
-                Debug.Assert(index < Count);
+                Debug.Assert(index < m_SlotCount);
+                Debug.Assert(m_Alive[index]);
                 return ref m_Items[index];
             }
         }
@@ -112,11 +138,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// Initializes a new instance of the <see cref="GraphDataList{T, TCacheInfo}"/> class by copying another instance.
         /// </summary>
         /// <param name="list">The instance to copy.</param>
-        /// <param name="copyCache">Whether to copy cache information.</param>
-        public GraphDataList(GraphDataList<T> list, bool copyCache = true) : this(list.Count)
+        public GraphDataList(GraphDataList<T> list) : this(list.m_SlotCount)
         {
-            Count = list.Count;
-            Array.Copy(list.m_Items, m_Items, Count);
+            m_SlotCount = list.m_SlotCount;
+            m_LiveCount = list.m_LiveCount;
+            Array.Copy(list.m_Items, m_Items, m_SlotCount);
+            Array.Copy(list.m_Alive, m_Alive, m_SlotCount);
         }
 
         /// <summary>
@@ -124,7 +151,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// </summary>
         public void Clear()
         {
-            Count = 0;
+            Array.Clear(m_Items, 0, m_SlotCount);
+            Array.Clear(m_Alive, 0, m_SlotCount);
+            m_SlotCount = 0;
+            m_LiveCount = 0;
+            Version = 1u;
         }
 
         /// <summary>
@@ -133,6 +164,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
         public void Release()
         {
             m_Items = new T[0];
+            m_Alive = new bool[0];
+            m_SlotCount = 0;
+            m_LiveCount = 0;
+            Version = 1u;
         }
 
         /// <summary>
@@ -142,13 +177,60 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <returns>A reference to the allocated element.</returns>
         public ref T Allocate(out GraphDataId id)
         {
-            if (Count >= Capacity)
+            if (m_SlotCount >= Capacity)
             {
-                Grow(Count + 1);
+                Grow(m_SlotCount + 1);
             }
 
-            id = new GraphDataId(Count++);
-            return ref this[id];
+            id = new GraphDataId(m_SlotCount);
+            m_Alive[m_SlotCount] = true;
+            m_SlotCount++;
+            m_LiveCount++;
+            Version++;
+            return ref m_Items[id.Index];
+        }
+
+        /// <summary>
+        /// Marks the element at the specified identifier as removed. The slot remains reserved
+        /// so that the identifier indices of other elements stay stable.
+        /// </summary>
+        /// <param name="id">The identifier of the element to remove.</param>
+        public void Remove(GraphDataId id)
+        {
+            int index = id.Index;
+            Debug.Assert(index >= 0 && index < m_SlotCount);
+            Debug.Assert(m_Alive[index]);
+            m_Alive[index] = false;
+            m_Items[index] = default;
+            Version++;
+            m_LiveCount--;
+        }
+
+        /// <summary>
+        /// Returns true if the element at the specified identifier is alive (allocated and not removed).
+        /// </summary>
+        /// <param name="id">The identifier to test.</param>
+        public bool IsAlive(GraphDataId id)
+        {
+            int index = id.Index;
+            return (uint)index < (uint)m_SlotCount && m_Alive[index];
+        }
+
+        /// <summary>
+        /// Returns true if the element at the specified raw slot index is alive (allocated and not removed).
+        /// </summary>
+        /// <param name="slot">The zero-based slot index. Must be in <c>[0, SlotCount)</c>.</param>
+        public bool IsAliveAtSlot(int slot) => (uint)slot < (uint)m_SlotCount && m_Alive[slot];
+
+        /// <summary>
+        /// Gets a reference to the element at the specified raw slot index. The slot must be alive.
+        /// </summary>
+        /// <param name="slot">The zero-based slot index.</param>
+        public ref T AtSlot(int slot)
+        {
+            Debug.Assert(slot >= 0 && slot < m_SlotCount);
+            Debug.Assert(m_Alive[slot]);
+            return ref m_Items[slot];
         }
 
         /// <summary>
@@ -160,12 +242,14 @@ namespace Unity.GraphCommon.LowLevel.Editor
             Capacity = Math.Max(2 * Capacity, minCapacity);
         }
 
-        public IEnumerator<T> GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new Enumerator(this);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
 
-        struct Enumerator : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>
         {
             GraphDataList<T> m_List;
+            readonly uint m_StartVersion;
             int m_Index;
 
             public T Current => m_List.m_Items[m_Index];
@@ -174,12 +258,22 @@ namespace Unity.GraphCommon.LowLevel.Editor
             public Enumerator(GraphDataList<T> list)
             {
                 m_List = list;
+                m_StartVersion = m_List.Version;
                 m_Index = -1;
             }
 
             public bool MoveNext()
             {
-                return ++m_Index < m_List.Count;
+                if (m_StartVersion != m_List.Version)
+                {
+                    throw new InvalidOperationException("Collection was modified during enumeration.");
+                }
+                while (++m_Index < m_List.m_SlotCount)
+                {
+                    if (m_List.m_Alive[m_Index])
+                        return true;
+                }
+                return false;
             }
 
             public void Reset()

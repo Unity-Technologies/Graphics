@@ -886,6 +886,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
+        // Reset both "already rendered" flags so the next pipeline tick re-renders the probe
+        // regardless of realtime mode. Used after AllocTexture replaces the underlying texture
+        // due to a pipeline format change (UUM-109705) — without this an OnEnable or already-
+        // rendered OnDemand probe would keep an empty texture.
+        internal void RequestRerenderForFormatChange()
+        {
+            wasRenderedAfterOnEnable = false;
+            m_WasRenderedSinceLastOnDemandRequest = false;
+        }
+
 
         internal void TryUpdateLuminanceSHL2ForNormalization()
         {

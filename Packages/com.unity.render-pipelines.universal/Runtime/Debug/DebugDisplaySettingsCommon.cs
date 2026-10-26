@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
                     displayName = $"Open {panelName} Tab...",
                     action = () =>
                     {
-                        DebugManager.instance.RequestEditorWindowPanel(panelName);
+                        DebugManager.instance.RequestPanelSelection(panelName);
                     }
                 };
             }
@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdrawMode(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMaxOverdrawCount(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateBatchingTypeViewEnabled(renderingSettingsData),
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem> { AddGoToSectionContextMenuItem("Rendering") }
                 });

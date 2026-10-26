@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using System.Text;
 using UnityEditor.VFX;
 
@@ -15,7 +17,7 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.sheet.expressions.Length; i++)
             {
                 var expr = assetDesc.sheet.expressions[i];
-                sb.AppendLine($"      Expression {i}: {expr.op}");
+                sb.AppendLine($"      Expression {i}: Op={expr.op}, Data={FormatExpressionData(expr)}");
             }
         }
         else
@@ -29,7 +31,7 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.sheet.expressionsPerSpawnEventAttribute.Length; i++)
             {
                 var expr = assetDesc.sheet.expressionsPerSpawnEventAttribute[i];
-                sb.AppendLine($"      Expression {i}: {expr.op}");
+                sb.AppendLine($"      Expression {i}: Op={expr.op}, Data={FormatExpressionData(expr)}");
             }
         }
         else
@@ -43,7 +45,7 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.sheet.values.Length; i++)
             {
                 var value = assetDesc.sheet.values[i];
-                sb.AppendLine($"      Value {i}: {value} - {value.expressionIndex}");
+                sb.AppendLine($"      Value {i}: ExpressionIndex={value.expressionIndex}, Value={FormatValueContainer(value)}");
             }
         }
         else
@@ -57,10 +59,13 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.sheet.exposed.Length; i++)
             {
                 var value = assetDesc.sheet.exposed[i];
-                sb.AppendLine($"      Exposed Value {i}: {value.mapping}");
+                sb.AppendLine($"      Exposed Value {i}: Name={value.mapping.name}, Index={value.mapping.index}, Space={value.space}");
             }
         }
-
+        else
+        {
+            sb.AppendLine("    Exposed Values: null");
+        }
 
         if (assetDesc.systemDesc != null)
         {
@@ -71,6 +76,7 @@ static class VisualEffectAssetDescExtensions
                 sb.AppendLine($"    System {i}:");
                 sb.AppendLine($"      Name: {systemDesc.name}");
                 sb.AppendLine($"      Type: {systemDesc.type}");
+                sb.AppendLine($"      Capacity: {systemDesc.capacity}");
                 sb.AppendLine($"      Flags: {systemDesc.flags}");
                 sb.AppendLine($"      Layer: {systemDesc.layer}");
 
@@ -102,13 +108,27 @@ static class VisualEffectAssetDescExtensions
                     sb.AppendLine("      Values: null");
                 }
 
+                if (systemDesc.instanceSplitDescs != null)
+                {
+                    sb.AppendLine($"      InstanceSplits Count: {systemDesc.instanceSplitDescs.Length}");
+                    for (int j = 0; j < systemDesc.instanceSplitDescs.Length; j++)
+                    {
+                        var splitDesc = systemDesc.instanceSplitDescs[j];
+                        sb.AppendLine($"        InstanceSplit {j}: Values= {{{string.Join(", ", splitDesc.values)}}}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine("      InstanceSplits: null");
+                }
+
                 if (systemDesc.tasks != null)
                 {
                     sb.AppendLine($"      Tasks Count: {systemDesc.tasks.Length}");
                     for (int j = 0; j < systemDesc.tasks.Length; j++)
                     {
                         var task = systemDesc.tasks[j];
-                        sb.AppendLine($"        Task {j}: Type={task.type}, ShaderSourceIndex={task.shaderSourceIndex}");
+                        sb.AppendLine($"        Task {j}: Type={task.type}, ShaderSourceIndex={task.shaderSourceIndex}, InstanceSplitIndex={task.instanceSplitIndex}, ModelId={task.modelId}, UsesMaterialVariant={task.usesMaterialVariant}");
                         sb.AppendLine($"        Processor: {task.processor?.GetType().Name ?? "None"}");
 
                         //Add task buffers mapping
@@ -126,6 +146,20 @@ static class VisualEffectAssetDescExtensions
                             sb.AppendLine("          Task Buffers: null");
                         }
 
+                        if (task.temporaryBuffers != null)
+                        {
+                            sb.AppendLine($"          Task Temporary Buffers Count: {task.temporaryBuffers.Length}");
+                            for (int k = 0; k < task.temporaryBuffers.Length; k++)
+                            {
+                                var tempMapping = task.temporaryBuffers[k];
+                                sb.AppendLine($"            Task Temporary Buffer {k}: Name={tempMapping.mapping.name}, Index={tempMapping.mapping.index}, PastFrameIndex={tempMapping.pastFrameIndex}, PerCameraBuffer={tempMapping.perCameraBuffer}");
+                            }
+                        }
+                        else
+                        {
+                            sb.AppendLine("          Task Temporary Buffers: null");
+                        }
+
                         if (task.values != null)
                         {
                             sb.AppendLine($"          Task Values Count: {task.values.Length}");
@@ -138,6 +172,20 @@ static class VisualEffectAssetDescExtensions
                         else
                         {
                             sb.AppendLine("          Task Values: null");
+                        }
+
+                        if (task.parameters != null)
+                        {
+                            sb.AppendLine($"          Task Parameters Count: {task.parameters.Length}");
+                            for (int k = 0; k < task.parameters.Length; k++)
+                            {
+                                var param = task.parameters[k];
+                                sb.AppendLine($"            Task Parameter {k}: Name={param.name}, Index={param.index}");
+                            }
+                        }
+                        else
+                        {
+                            sb.AppendLine("          Task Parameters: null");
                         }
                     }
                 }
@@ -159,9 +207,9 @@ static class VisualEffectAssetDescExtensions
             {
                 var eventDesc = assetDesc.eventDesc[i];
                 sb.AppendLine($"    Event {i}: Name={eventDesc.name}");
-                sb.AppendLine($"      Init Systems Count: {eventDesc.initSystems?.Length ?? 0}");
-                sb.AppendLine($"      Start Systems Count: {eventDesc.startSystems?.Length ?? 0}");
-                sb.AppendLine($"      Stop Systems Count: {eventDesc.stopSystems?.Length ?? 0}");
+                sb.AppendLine($"      Init Systems: {{{string.Join(", ", eventDesc.initSystems ?? Array.Empty<uint>())}}}");
+                sb.AppendLine($"      Start Systems: {{{string.Join(", ", eventDesc.startSystems ?? Array.Empty<uint>())}}}");
+                sb.AppendLine($"      Stop Systems: {{{string.Join(", ", eventDesc.stopSystems ?? Array.Empty<uint>())}}}");
             }
         }
         else
@@ -174,16 +222,8 @@ static class VisualEffectAssetDescExtensions
             sb.AppendLine("  GPU Buffer Descriptions:");
             for (int i = 0; i < assetDesc.gpuBufferDesc.Length; i++)
             {
-                var bufferDesc = assetDesc.gpuBufferDesc[i];
-                sb.AppendLine($"    Buffer {i}: Target={bufferDesc.target}, Size={bufferDesc.size}, Capacity={bufferDesc.capacity}, Stride={bufferDesc.stride}");
-                if (bufferDesc.layout != null && bufferDesc.layout.Length > 0)
-                {
-                    sb.AppendLine($"      Layout elements Count: {bufferDesc.layout.Length}");
-                    foreach (var layoutDesc in bufferDesc.layout)
-                    {
-                        sb.AppendLine($"        Name={layoutDesc.name}, Type={layoutDesc.type}, Offset (bucket, structure, element) ={layoutDesc.offset.bucket}, {layoutDesc.offset.structure}, {layoutDesc.offset.element}");
-                    }
-                }
+                sb.AppendLine($"    Buffer {i}:");
+                AppendGpuBufferDesc(sb, "      ", assetDesc.gpuBufferDesc[i]);
             }
         }
         else
@@ -197,10 +237,14 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.cpuBufferDesc.Length; i++)
             {
                 var bufferDesc = assetDesc.cpuBufferDesc[i];
-                sb.AppendLine($"    Buffer {i}: Capacity={bufferDesc.capacity}, Stride={bufferDesc.stride}");
-                foreach (var layoutDesc in bufferDesc.layout)
+                sb.AppendLine($"    Buffer {i}: DebugName={bufferDesc.debugName}, Capacity={bufferDesc.capacity}, Stride={bufferDesc.stride}, HasInitialData={bufferDesc.initialData != null}");
+                if (bufferDesc.layout != null && bufferDesc.layout.Length > 0)
                 {
-                    sb.AppendLine($"        Name={layoutDesc.name}, Type={layoutDesc.type}, Offset (bucket, structure, element) ={layoutDesc.offset.bucket}, {layoutDesc.offset.structure}, {layoutDesc.offset.element}");
+                    sb.AppendLine($"      Layout elements Count: {bufferDesc.layout.Length}");
+                    foreach (var layoutDesc in bufferDesc.layout)
+                    {
+                        sb.AppendLine($"        Name={layoutDesc.name}, Type={layoutDesc.type}, Offset (bucket, structure, element) ={layoutDesc.offset.bucket}, {layoutDesc.offset.structure}, {layoutDesc.offset.element}");
+                    }
                 }
             }
         }
@@ -215,8 +259,8 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.temporaryBufferDesc.Length; i++)
             {
                 var tempBufferDesc = assetDesc.temporaryBufferDesc[i];
-                var bufferDesc = tempBufferDesc.desc;
-                sb.AppendLine($"    Buffer {i}: FrameCount={tempBufferDesc.frameCount},Target={bufferDesc.target}, Size={bufferDesc.size}, Capacity={bufferDesc.capacity}, Stride={bufferDesc.stride}");
+                sb.AppendLine($"    Buffer {i}: FrameCount={tempBufferDesc.frameCount}");
+                AppendGpuBufferDesc(sb, "      ", tempBufferDesc.desc);
             }
         }
         else
@@ -230,7 +274,7 @@ static class VisualEffectAssetDescExtensions
             for (int i = 0; i < assetDesc.shaderSourceDesc.Length; i++)
             {
                 var shaderDesc = assetDesc.shaderSourceDesc[i];
-                sb.AppendLine($"    Shader {i}: Name={shaderDesc.name}, Compute={shaderDesc.compute}");
+                sb.AppendLine($"    Shader {i}: Name={shaderDesc.name}, Compute={shaderDesc.compute}, SourceLength={shaderDesc.source?.Length ?? 0}");
             }
         }
         else
@@ -240,7 +284,43 @@ static class VisualEffectAssetDescExtensions
 
         sb.AppendLine($"  Renderer Settings: ShadowCastingMode={assetDesc.rendererSettings.shadowCastingMode}, MotionVectorGenerationMode={assetDesc.rendererSettings.motionVectorGenerationMode}");
         sb.AppendLine($"  Instancing Disabled Reason: {assetDesc.instancingDisabledReason}");
+        sb.AppendLine($"  Compilation Mode: {assetDesc.compilationMode}");
 
         return sb.ToString();
+    }
+
+    static void AppendGpuBufferDesc(StringBuilder sb, string indent, VFXGPUBufferDesc bufferDesc)
+    {
+        sb.AppendLine($"{indent}DebugName={bufferDesc.debugName}, Target={bufferDesc.target}, Size={bufferDesc.size}, Capacity={bufferDesc.capacity}, Stride={bufferDesc.stride}, Mode={bufferDesc.mode}");
+        if (bufferDesc.layout != null && bufferDesc.layout.Length > 0)
+        {
+            sb.AppendLine($"{indent}Layout elements Count: {bufferDesc.layout.Length}");
+            foreach (var layoutDesc in bufferDesc.layout)
+            {
+                sb.AppendLine($"{indent}  Name={layoutDesc.name}, Type={layoutDesc.type}, Offset (bucket, structure, element) ={layoutDesc.offset.bucket}, {layoutDesc.offset.structure}, {layoutDesc.offset.element}");
+            }
+        }
+    }
+
+    // VFXExpressionDesc.data is a fixed buffer, only reachable from unsafe code.
+    static unsafe string FormatExpressionData(VFXExpressionDesc expr)
+    {
+        return $"[{expr.data[0]}, {expr.data[1]}, {expr.data[2]}, {expr.data[3]}]";
+    }
+
+    // VFXExpressionValueContainerDesc only exposes its payload on its generic subclasses
+    // (VFXExpressionValueContainerDesc<T>.value or VFXExpressionObjectValueContainerDesc<T>.entityId),
+    // so the concrete value is read back via reflection to keep this dump type-agnostic.
+    static string FormatValueContainer(VFXExpressionValueContainerDesc value)
+    {
+        var valueField = value.GetType().GetField("value", BindingFlags.Public | BindingFlags.Instance);
+        if (valueField != null)
+            return valueField.GetValue(value)?.ToString() ?? "null";
+
+        var entityIdField = value.GetType().GetField("entityId", BindingFlags.Public | BindingFlags.Instance);
+        if (entityIdField != null)
+            return entityIdField.GetValue(value)?.ToString() ?? "null";
+
+        return "<unknown>";
     }
 }

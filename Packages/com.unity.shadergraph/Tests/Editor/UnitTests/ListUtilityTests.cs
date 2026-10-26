@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
@@ -42,17 +43,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void ListSlice()
+        public void ListEnumerateRange()
         {
-            Assert.IsTrue(ListEquals(GetList().Slice(2, 5).ToList(), 2, 3, 4));
-            Assert.IsTrue(ListEquals(GetList().Slice(0, 1).ToList(), 0));
-            Assert.IsTrue(ListEquals(GetList().Slice(7, 10).ToList(), 7, 8, 9));
-            Assert.IsTrue(ListEquals(GetList().Slice(0, 10).ToList(), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+            Assert.IsTrue(ListEquals(GetList().EnumerateRange(2, 3).ToList(), 2, 3, 4));
+            Assert.IsTrue(ListEquals(GetList().EnumerateRange(0, 1).ToList(), 0));
+            Assert.IsTrue(ListEquals(GetList().EnumerateRange(7, 3).ToList(), 7, 8, 9));
+            Assert.IsTrue(ListEquals(GetList().EnumerateRange(0, 10).ToList(), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
 
-            Assert.IsFalse(GetList().Slice(0, 0).Any());
-            Assert.IsFalse(GetList().Slice(5, 5).Any());
-            Assert.IsFalse(GetList().Slice(10, 10).Any());
-            Assert.IsFalse(GetList().Slice(6, 4).Any());
+            Assert.IsFalse(GetList().EnumerateRange(0, 0).Any());
+            Assert.IsFalse(GetList().EnumerateRange(5, 0).Any());
+            Assert.IsFalse(GetList().EnumerateRange(10, 0).Any());
+            Assert.IsFalse(GetEmptyList().EnumerateRange(0, 0).Any());
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => GetList().EnumerateRange(-1, 2));
+            Assert.Throws<ArgumentOutOfRangeException>(() => GetList().EnumerateRange(6, -1));
+            Assert.Throws<ArgumentException>(() => GetList().EnumerateRange(7, 10));
+            Assert.Throws<ArgumentException>(() => GetList().EnumerateRange(11, 0));
+            Assert.Throws<ArgumentException>(() => GetList().EnumerateRange(5, int.MaxValue));
         }
 
         [Test]
@@ -107,6 +114,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var list = GetEmptyList();
                 Assert.IsTrue(list.RemoveAllFromRange(x => true, 0, 0) == 0);
                 Assert.IsTrue(ListEquals(list));
+            }
+            {
+                var list = GetList();
+                Assert.Throws<ArgumentException>(() => list.RemoveAllFromRange(x => true, 5, int.MaxValue));
+                Assert.IsTrue(ListEquals(list, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
             }
         }
     }

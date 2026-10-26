@@ -104,6 +104,10 @@ namespace UnityEngine.Rendering.Tests
             if (!SystemInfo.supportsGpuRecorder)
                 yield break;
 
+            // UGK-2993
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
+                IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch.");
+
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSampleWithObject_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);
 
@@ -129,6 +133,10 @@ namespace UnityEngine.Rendering.Tests
             if (!SystemInfo.supportsGpuRecorder)
                 yield break;
 
+            // UGK-2993
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.Switch)
+                IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch.");
+
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSample_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);
 
@@ -139,6 +147,14 @@ namespace UnityEngine.Rendering.Tests
             // The sampler should be recorded on the GPU after the command buffer is executed on render thread.
             // Need at least 4 frames of wait.
             yield return WaitForRecorderSample(commandBuffer, recorder, k_SampledFrames);
+        }
+
+        // Assert.Ignore records its reason in the NUnit result XML but not in the player log, which is what
+        // device jobs leave behind, so mirror it there first.
+        static void IgnoreWithLog(string reason)
+        {
+            Debug.Log($"[ProfilingSamplerWithCommandBufferTests] Skipping: {reason}");
+            Assert.Ignore(reason);
         }
     }
 }

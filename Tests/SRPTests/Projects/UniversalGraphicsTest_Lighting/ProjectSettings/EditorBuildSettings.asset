@@ -57,6 +57,12 @@ EditorBuildSettings:
     path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
     guid: 362b9a0c21a9b4e798504044c7604e80
   - enabled: 1
+    path: Assets/Scenes/056_Lighting_Falloff_Quadratic.unity
+    guid: 12641eb34e1878947862d8b2400d8ed6
+  - enabled: 1
+    path: Assets/Scenes/056_Lighting_Falloff_Quadratic_deferred.unity
+    guid: 9729d2c1246947449b888799ef1a8725
+  - enabled: 1
     path: Assets/Scenes/060_Deferred_GBuffer.unity
     guid: f42c387ccdc6840159743027165e1b7c
   - enabled: 1
@@ -68,6 +74,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/060_Deferred_GBuffer_SM_RL.unity
     guid: 2ee4b403aeaa260459292449c493f70f
+  - enabled: 1
+    path: Assets/Scenes/060_Deferred_Exposure.unity
+    guid: 215510a745579424c804781171e144a5
   - enabled: 1
     path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
     guid: f5310a9ab278ec748b2091bf7ba966a7
@@ -110,15 +119,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/148_Lighting_LightLayers_deferred.unity
     guid: 4978d640e872ce74bb4412e77a67d88b
-  - enabled: 1
-    path: Assets/Scenes/150_Lighting_EnlightenEmission.unity
-    guid: b2a47910b2788df489a1f84de6e4486c
-  - enabled: 1
-    path: Assets/Scenes/151_Lighting_EnlightenLights.unity
-    guid: a1c09e3c33ec7fc4084de318357c2fa0
-  - enabled: 1
-    path: Assets/Scenes/152_Lighting_EnlightenEnvironment.unity
-    guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec
   - enabled: 1
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
@@ -173,5 +173,30 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/240_Lighting_Bicubic_Sampling.unity
     guid: 9c375b78be67ea4428234deee1bfc581
-  m_configObjects: {}
+  - enabled: 1
+    path: Assets/Scenes/251_SurfaceCache_URP_GI.unity
+    guid: 65ae1e88ab84475c910dd1ea003c1c69
+  - enabled: 1
+    path: Assets/Scenes/260_Exposure_Unlit.unity
+    guid: 72047ec85654a6c4c98e59bb11a9dcef
+  - enabled: 1
+    path: Assets/Scenes/261_Exposure_RealtimeLight.unity
+    guid: 8d04cf48bca4faf4192220f2dd68e5a2
+  - enabled: 1
+    path: Assets/Scenes/262_Exposure_Reflections.unity
+    guid: 126ce24e33ffd6240ace4e5f6c56b076
+  - enabled: 1
+    path: Assets/Scenes/262_Exposure_Reflections_perObject_Probes.unity
+    guid: 84a0424e624d7c7478827e5b0dbfd8c0
+  - enabled: 1
+    path: Assets/Scenes/263_Exposure_BakedLights.unity
+    guid: 331296e7b68bb754fa8a50eb1e295559
+  - enabled: 1
+    path: Assets/Scenes/264_Exposure_Emission_APV.unity
+    guid: 40cbf8515a073e74ca57552ec4a26aec
+  - enabled: 1
+    path: Assets/Scenes/353_LightProbeUsageOff.unity
+    guid: 2933fd527d4464c46953f2a7c025e3c6
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8, type: 2}
   m_UseUCBPForAssetBundles: 0

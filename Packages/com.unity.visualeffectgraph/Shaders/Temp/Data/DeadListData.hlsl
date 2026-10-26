@@ -26,7 +26,7 @@ struct VFXDeadListData
         if (threadIndex < deadCount)
         {
             uint deadIndex;
-            counter.DoInterlockedAdd(0, -1, deadIndex);
+            DoInterlockedAdd(counter, 0, -1, deadIndex);
             success = buffer.LoadData(particleIndex, deadIndex - 1);
         }
         return success;
@@ -35,7 +35,7 @@ struct VFXDeadListData
     bool DeleteIndex(uint index)
     {
         uint deadIndex;
-        counter.DoInterlockedAdd(0, 1, deadIndex);
+        DoInterlockedAdd(counter, 0, 1, deadIndex);
 
         return buffer.StoreData(index, deadIndex);
     }

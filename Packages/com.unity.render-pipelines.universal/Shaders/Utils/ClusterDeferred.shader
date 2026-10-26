@@ -52,12 +52,13 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Defines
-            #define _CLUSTER_LIGHT_LOOP
-            #define _LIT
+            #define _CLUSTER_LIGHT_LOOP 1
+            #define _LIT 1
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -67,7 +68,9 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
@@ -115,12 +118,13 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Defines
-            #define _CLUSTER_LIGHT_LOOP
-            #define _SIMPLELIT
+            #define _CLUSTER_LIGHT_LOOP 1
+            #define _SIMPLELIT 1
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -130,7 +134,9 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
@@ -171,6 +177,7 @@ Shader "Hidden/Universal Render Pipeline/ClusterDeferred"
 
             // -------------------------------------
             // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _EXPOSURE
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"

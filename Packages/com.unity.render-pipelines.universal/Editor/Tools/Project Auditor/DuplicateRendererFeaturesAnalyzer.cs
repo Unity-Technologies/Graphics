@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             "Remove duplicate renderer features that are marked with DisallowMultipleRendererFeature attribute"
         )
         {
-            DefaultSeverity = Severity.Error,
+            DefaultSeverity = Severity.Major,
         };
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()

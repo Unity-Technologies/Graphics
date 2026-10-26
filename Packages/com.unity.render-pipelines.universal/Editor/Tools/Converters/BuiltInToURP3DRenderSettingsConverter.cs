@@ -9,7 +9,7 @@ using ShadowQuality = UnityEngine.ShadowQuality;
 namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
-    [URPHelpURL("features/rp-converter")]
+    [URPHelpURL("urp/features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [BatchModeConverterClassInfo("BuiltInToURP", "RenderSettings")]
     [ElementInfo(Name = "Rendering Settings",
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
 
-            using (ListPool<ScriptableRendererData>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<ScriptableRendererData>.Get(out var tmp))
             {
                 var renderingPath = tier.renderingPath;
                 var renderingMode = GetEquivalentRenderMode(renderingPath);
@@ -134,6 +134,11 @@ namespace UnityEditor.Rendering.Universal
             urpAsset.supportsAdditionalLightShadows = shadows != ShadowQuality.Disable;
             urpAsset.additionalLightsShadowmapResolution =
                 GetEquivalentAdditionalLightAtlasShadowResolution((int)shadowResolution);
+
+            // Light Falloff
+            UniversalRenderPipelineGlobalSettings.Ensure();
+            if (EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<URPLightFalloffSettings, UniversalRenderPipeline>(out var lightFalloffSettings))
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
 
             // Reflection Probes
             urpAsset.reflectionProbeBlending = reflectionProbeBlending;

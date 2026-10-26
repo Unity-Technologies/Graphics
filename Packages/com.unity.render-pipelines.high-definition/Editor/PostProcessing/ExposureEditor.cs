@@ -104,12 +104,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_CenterAroundTarget);
 
-                    var centerLabel = EditorGUIUtility.TrTextContent("Center", "Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)");
+                    var centerLabel = L10n.TextContent("Center", "Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)", null, null);
                     var centerValue = m_ProceduralCenter.value.vector2Value;
 
                     if (m_CenterAroundTarget.value.boolValue)
                     {
-                        centerLabel = EditorGUIUtility.TrTextContent("Offset", "Sets an offset to the mask center");
+                        centerLabel = L10n.TextContent("Offset", "Sets an offset to the mask center", null, null);
                         m_ProceduralCenter.value.vector2Value = new Vector2(Mathf.Clamp(centerValue.x, -0.5f, 0.5f), Mathf.Clamp(centerValue.y, -0.5f, 0.5f));
                     }
                     else
@@ -120,8 +120,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralCenter, centerLabel);
                     var radiiValue = m_ProceduralRadii.value.vector2Value;
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
-                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
-                    PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
+                    PropertyField(m_ProceduralRadii, L10n.TextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).", null, null));
+                    PropertyField(m_ProceduralSoftness, L10n.TextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask", null, null));
                     PropertyField(m_ProceduralMinIntensity);
                     PropertyField(m_ProceduralMaxIntensity);
 
@@ -137,8 +137,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (mode == (int)ExposureMode.CurveMapping)
                 {
                     PropertyField(m_CurveMap);
-                    PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min"));
-                    PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
+                    PropertyField(m_CurveMin, L10n.TextContent("Limit Min", null, null, null));
+                    PropertyField(m_CurveMax, L10n.TextContent("Limit Max", null, null, null));
                 }
                 else if (!(mode == (int)ExposureMode.AutomaticHistogram && m_HistogramCurveRemapping.value.boolValue))
                 {
@@ -151,24 +151,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (mode == (int)ExposureMode.AutomaticHistogram)
                 {
                     PropertyField(m_HistogramPercentages);
-                    PropertyField(m_HistogramCurveRemapping, EditorGUIUtility.TrTextContent("Use Curve Remapping"));
+                    PropertyField(m_HistogramCurveRemapping, L10n.TextContent("Use Curve Remapping", null, null, null));
                     if (m_HistogramCurveRemapping.value.boolValue)
                     {
                         PropertyField(m_CurveMap);
-                        PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min"));
-                        PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
+                        PropertyField(m_CurveMin, L10n.TextContent("Limit Min", null, null, null));
+                        PropertyField(m_CurveMax, L10n.TextContent("Limit Max", null, null, null));
                     }
                 }
 
-                PropertyField(m_AdaptationMode, EditorGUIUtility.TrTextContent("Mode"));
+                PropertyField(m_AdaptationMode, L10n.TextContent("Mode", null, null, null));
 
                 if (m_AdaptationMode.value.intValue == (int)AdaptationMode.Progressive)
                 {
-                    PropertyField(m_AdaptationSpeedDarkToLight, EditorGUIUtility.TrTextContent("Speed Dark to Light"));
-                    PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
+                    PropertyField(m_AdaptationSpeedDarkToLight, L10n.TextContent("Speed Dark to Light", null, null, null));
+                    PropertyField(m_AdaptationSpeedLightToDark, L10n.TextContent("Speed Light to Dark", null, null, null));
                 }
 
-                PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
+                PropertyField(m_TargetMidGray, L10n.TextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).", null, null));
             }
 
             // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if
@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     lineRect.x -= EditorGUIUtility.labelWidth + 2;
                     lineRect.y += EditorGUIUtility.standardVerticalSpacing;
                     lineRect.width += EditorGUIUtility.labelWidth + 2;
-                    EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
+                    EditorGUI.PropertyField(lineRect, exposureProperty.value, L10n.TextContent(" ", null, null, null));
                 }
             }
         }

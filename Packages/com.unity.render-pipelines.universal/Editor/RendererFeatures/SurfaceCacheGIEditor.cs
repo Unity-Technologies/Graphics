@@ -1,38 +1,15 @@
-#if SURFACE_CACHE
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(SurfaceCacheGIRendererFeature))]
     internal class SurfaceCacheGIEditor : Editor
     {
-        private bool m_IsInitialized;
-
-        // Debug parameters
-        private SerializedProperty _debugEnabled;
-        private SerializedProperty _debugViewMode;
-        private SerializedProperty _debugShowSamplePosition;
-
-        private struct TextContent
-        {
-            public static GUIContent DebugEnabled = EditorGUIUtility.TrTextContent("Debug Enabled", "Enable debug visualization.");
-            public static GUIContent DebugViewMode = EditorGUIUtility.TrTextContent("Debug View Mode", "Debug visualization mode.");
-            public static GUIContent DebugShowSamplePosition = EditorGUIUtility.TrTextContent("Debug Show Sample Position", "Show sample positions in debug view.");
-        }
-
-        private void Init()
-        {
-            m_IsInitialized = true;
-
-            SerializedProperty paramSets = serializedObject.FindProperty("_parameterSet");
-
-            _debugEnabled = paramSets.FindPropertyRelative("DebugEnabled");
-            _debugViewMode = paramSets.FindPropertyRelative("DebugViewMode");
-            _debugShowSamplePosition = paramSets.FindPropertyRelative("DebugShowSamplePosition");
-        }
+        private const string k_UnsupportedRayTracingBackendMessage = "Surface Cache GI will not run on this device because it does not support hardware ray tracing or compute shaders.";
 
         private static bool SceneHasSurfaceCacheGIVolume()
         {
@@ -47,14 +24,29 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            if (!m_IsInitialized)
-                Init();
-
-            if (PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget))
+            SurfaceCacheGIRendererFeature surfaceCacheGIRendererFeature = (SurfaceCacheGIRendererFeature)target;
+            var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+            if (!SurfaceCacheGISupport.IsSupportedByActiveBuildTarget(activeBuildTarget))
             {
-                var surfaceCacheFeature = (SurfaceCacheGIRendererFeature)target;
+                if (surfaceCacheGIRendererFeature.isActive)
+                    EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedErrorMessage, MessageType.Error);
+                else
+                    EditorGUILayout.HelpBox(SurfaceCacheGISupport.k_UnsupportedWarningMessage, MessageType.Warning);
+            }
 
-                EditorGUILayout.HelpBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheFeature.isActive ? MessageType.Error : MessageType.Warning);
+            if (PlayerSettings.GetStaticBatchingForPlatform(activeBuildTarget))
+            {
+                CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
+                    PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
+            }
+            else if (EditorGraphicsSettings.defaultMeshBufferTarget != DefaultMeshBufferTarget.Raw)
+            {
+                CoreEditorUtils.DrawFixMeBox(SurfaceCacheGIRendererFeature.k_MeshBufferTargetErrorMessage, surfaceCacheGIRendererFeature.isActive ? MessageType.Error : MessageType.Warning, "Open", () =>
+                    GraphicsSettingsInspectorUtility.OpenAndScrollToElement(nameof(DefaultMeshBufferTarget)));
+            }
+            else if (!SurfaceCacheGIRendererFeature.HasSupportedRayTracingBackend())
+            {
+                EditorGUILayout.HelpBox(k_UnsupportedRayTracingBackendMessage, MessageType.Warning);
             }
             else if (SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
             {
@@ -66,18 +58,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox("Many Surface Cache settings are controlled via the Volume system. Add a 'Surface Cache Global Illumination' volume override to your scene to adjust these settings per-scene.", MessageType.Info);
             }
-
-            EditorGUILayout.Space();
-
-            // Debug settings
-            EditorGUILayout.LabelField("Debugging", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_debugEnabled, TextContent.DebugEnabled);
-            EditorGUILayout.PropertyField(_debugViewMode, TextContent.DebugViewMode);
-            EditorGUILayout.PropertyField(_debugShowSamplePosition, TextContent.DebugShowSamplePosition);
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }
-
-#endif

@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static GUIContent HelpIcon =>
             helpIcon ??= new GUIContent(EditorGUIUtility.IconContent("_Help").image, "Open Shader Graph User Manual");
 
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName, bool disablePreviewsForTesting = false)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_AssetName = graphName;
             m_MessageManager = messageManager;
-            previewManager = new PreviewManager(graph, messageManager);
+            previewManager = new PreviewManager(graph, messageManager, disablePreviewsForTesting);
             previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
@@ -229,6 +229,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Save As..."), false, () => saveAsRequested());
                     menu.AddItem(new GUIContent("Show In Project"), false, () => showInProjectRequested());
+                    if ((ShaderGraphPreferences.allowShaderInterfaceMode || m_Graph.isShaderInterfaceMode) && !m_Graph.isSubGraph)
+                    {
+                        menu.AddSeparator("");
+                        menu.AddItem(new GUIContent("Shader Interface Mode (Experimental)"), m_Graph.isShaderInterfaceMode,
+                            () => m_Graph.SwitchShaderInterfaceMode(!m_Graph.isShaderInterfaceMode));
+                    }
                     if (!isCheckedOut() && Provider.enabled && Provider.isActive)
                     {
                         menu.AddItem(new GUIContent("Check Out"), false, () =>
@@ -357,7 +363,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
-            if (!m_Graph.isSubGraph)
+            m_BuiltForShaderInterfaceMode = m_Graph.isShaderInterfaceMode;
+
+            // Shader interface mode keeps the target contexts and blocks in the data, but doesn't show or update them.
+            m_HideBlocks = m_Graph.isShaderInterfaceMode;
+            if (!m_Graph.isSubGraph && !m_HideBlocks)
             {
                 AddContexts();
             }
@@ -375,24 +385,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             AddNodes(graph.GetNodes<AbstractMaterialNode>());
-            AddBlocks(graph.GetNodes<BlockNode>());
+            if (!m_HideBlocks)
+                AddBlocks(graph.GetNodes<BlockNode>());
             AddEdges(graph.edges);
             Add(content);
 
             // Active block lists need to be initialized on window start up
             // Do this here to as we cant do this inside GraphData
             // This is due to targets not being deserialized yet
-            var context = new TargetSetupContext();
-            foreach (var target in m_Graph.activeTargets)
+            if (!m_Graph.isShaderInterfaceMode)
             {
-                target.Setup(ref context);
+                var context = new TargetSetupContext();
+                foreach (var target in m_Graph.activeTargets)
+                {
+                    target.Setup(ref context);
+                }
+                var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
+                m_Graph.UpdateActiveBlocks(activeBlocks);
             }
-            var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
-            m_Graph.UpdateActiveBlocks(activeBlocks);
 
             // Graph settings need to be initialized after the target setup
             m_InspectorView.InitializeGraphSettings();
         }
+
+        bool m_BuiltForShaderInterfaceMode;
+        bool m_HideBlocks;
+
+        internal bool isOutOfDateForMode => m_BuiltForShaderInterfaceMode != m_Graph.isShaderInterfaceMode;
 
         private void CreateBlackboard()
         {
@@ -470,7 +489,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SearcherWindow.Show(m_EditorWindow,
                 searcherProvider.LoadSearchWindow(),
-                item => item != null && searcherProvider.OnSearcherSelectEntry(item, displayPosition),
+                item => searcherProvider.OnSearcherSelectEntry(item, displayPosition),
                 displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
         }
 
@@ -490,7 +509,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_InspectorView.HideWindow();
 
-            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible && !m_Graph.isShaderInterfaceMode;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -530,8 +549,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
-            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
+            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this.
+            // Skip while a GradientPicker is open so the inspector rebuild doesn't tear it down.
+            Undo.undoRedoPerformed += (() =>
+            {
+                if (GradientPicker.visible)
+                    return;
+                m_InspectorView?.TriggerInspectorUpdate(graphView?.selection);
+            });
 
             graphView.OnSelectionChange += RecordSelectionHistory;
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler, CustomValidator);
@@ -905,11 +930,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
 
-            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
+            // On undo, defer inspector/selection until after node views are recreated below.
+            if (!wasUndoRedoPerformed && m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
-
-            if (wasUndoRedoPerformed)
-                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
 
             m_GroupHashSet.Clear();
 
@@ -1056,13 +1079,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // If we auto-remove blocks and something has happened to trigger a check (don't re-check constantly)
-            if (m_Graph.checkAutoAddRemoveBlocks && ShaderGraphPreferences.autoAddRemoveBlocks)
+            if (m_Graph.checkAutoAddRemoveBlocks && ShaderGraphPreferences.autoAddRemoveBlocks && !m_Graph.isShaderInterfaceMode)
             {
                 var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
                 m_Graph.AddRemoveBlocksFromActiveList(activeBlocks);
                 m_Graph.checkAutoAddRemoveBlocks = false;
                 // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
                 HandleRemovedNodes(lookupTable);
+            }
+
+            // Restore selection after node views are recreated, so GetElementByGuid resolves.
+            if (wasUndoRedoPerformed)
+            {
+                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
+                m_InspectorView.Update();
             }
 
             UpdateBadges();
@@ -1164,6 +1194,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false, Dictionary<object, GraphElement> lookupTable = null)
         {
+            // Blocks live in the target contexts, which aren't shown in Shader Interface mode.
+            if (node is BlockNode && m_HideBlocks)
+                return;
+
             var materialNode = node;
             Node nodeView;
             if (node is PropertyNode propertyNode)
@@ -1426,6 +1460,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Debug.LogWarning("Target node is null");
                 return null;
             }
+
+            if (targetNode is BlockNode && m_HideBlocks)
+                return null;
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
             IShaderNodeView sourceNodeView = null;
@@ -1630,6 +1667,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void Dispose()
         {
             ShaderGraphPreferences.onZoomStepSizeChanged -= ResetZoom;
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
+                node.UnregisterCallback(OnNodeChanged);
             if (m_GraphView != null)
             {
                 saveRequested = null;

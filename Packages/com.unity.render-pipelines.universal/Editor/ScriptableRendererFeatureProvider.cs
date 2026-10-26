@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -37,6 +38,31 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
+        internal bool IsRendererFeatureObsolete(Type renderFeatureType)
+        {
+            var obsoleteAttribute = renderFeatureType.GetCustomAttribute<ObsoleteAttribute>();
+            return obsoleteAttribute != null && obsoleteAttribute.IsError;
+        }
+
+        internal bool IsRendererFeatureHidden(Type renderFeatureType)
+        {
+            return renderFeatureType.GetCustomAttribute<HideInInspector>(false) != null;
+        }
+
+        internal bool ShouldFilterRendererFeature(Type type, ScriptableRendererData data)
+        {
+            if (!RendererFeatureSupported(type) || type.IsAbstract)
+                return true;
+
+            if (IsRendererFeatureObsolete(type) || IsRendererFeatureHidden(type))
+                return true;
+
+            if (data.DuplicateFeatureCheck(type))
+                return true;
+
+            return false;
+        }
+
         public void CreateComponentTree(List<FilterWindow.Element> tree)
         {
             tree.Add(new FilterWindow.GroupElement(0, "Renderer Features"));
@@ -44,15 +70,8 @@ namespace UnityEditor.Rendering.Universal
             var data = m_Editor.target as ScriptableRendererData;
             foreach (var type in types)
             {
-                // Check to see if the current renderer feature can be used with the current renderer. If the attribute isn't found then its compatible with everything.
-
-                if (!RendererFeatureSupported(type) || type.IsAbstract)
+                if (ShouldFilterRendererFeature(type, data))
                     continue;
-
-                if (data.DuplicateFeatureCheck(type))
-                {
-                    continue;
-                }
 
                 string path = GetMenuNameFromType(type);
                 tree.Add(new FeatureElement

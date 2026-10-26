@@ -7,10 +7,9 @@ using UnityEngine;
 [CustomEditor(typeof(InstallPackage))]
 public class InstallPackageEditor : Editor
 {
-
-    private static ListRequest listRequest;
-    private static AddRequest addRequest;
-    private static InstallPackage mb = null;
+    private ListRequest listRequest;
+    private AddRequest addRequest;
+    private InstallPackage mb = null;
     public override void OnInspectorGUI()
     {
         //base.DrawDefaultInspector();
@@ -22,13 +21,13 @@ public class InstallPackageEditor : Editor
 
     }
 
-    private static void CheckAndInstallSplinePackage()
+    private void CheckAndInstallSplinePackage()
     {
         listRequest = Client.List(true); // Fetches the list of all packages
         EditorApplication.update += OnListRequestProgress;
     }
 
-    private static void OnListRequestProgress()
+    private void OnListRequestProgress()
     {
         if (listRequest.IsCompleted)
         {
@@ -61,7 +60,7 @@ public class InstallPackageEditor : Editor
         }
     }
 
-    private static void OnAddRequestProgress()
+    private void OnAddRequestProgress()
     {
         if (addRequest.IsCompleted)
         {

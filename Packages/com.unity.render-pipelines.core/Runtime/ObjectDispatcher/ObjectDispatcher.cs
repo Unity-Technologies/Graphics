@@ -22,6 +22,24 @@ namespace UnityEngine.InternalBridge
         }
     }
 
+    internal struct TransformDispatchData : IDisposable
+    {
+        UnityEngine.TransformDispatchData _inner;
+
+        public NativeArray<EntityId> transformedID => _inner.transformedID;
+        public NativeArray<Matrix4x4> localToWorldMatrices => _inner.localToWorldMatrices;
+
+        public TransformDispatchData(UnityEngine.TransformDispatchData inner)
+        {
+            _inner = inner;
+        }
+
+        public void Dispose()
+        {
+            _inner.Dispose();
+        }
+    }
+
     internal class ObjectDispatcher : IDisposable
     {
         internal enum TransformTrackingType
@@ -73,6 +91,14 @@ namespace UnityEngine.InternalBridge
         public Component[] GetTransformChangesAndClear<T>(TransformTrackingType trackingType, bool sortByInstanceID = false) where T : Object
         {
             return _inner.GetTransformChangesAndClear(typeof(T), MapPublicToInternal(trackingType), sortByInstanceID);
+        }
+
+        // Ids and matrices rather than Components, for callers that would otherwise read both back off each
+        // Component one at a time.
+        public TransformDispatchData GetTransformChangesAndClear<T>(TransformTrackingType trackingType, Allocator allocator) where T : Object
+        {
+            var innerResult = _inner.GetTransformChangesAndClear(typeof(T), MapPublicToInternal(trackingType), allocator);
+            return new TransformDispatchData(innerResult);
         }
 
         public int maxDispatchHistoryFramesCount

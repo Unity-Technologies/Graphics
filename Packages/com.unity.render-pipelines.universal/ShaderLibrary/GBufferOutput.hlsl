@@ -6,36 +6,13 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
-#define DECL_SV_TARGET(idx) SV_Target##idx
-#define DECL_OPT_GBUFFER_TARGET(type, name, idx) type name : DECL_SV_TARGET(GBUFFER_IDX_AFTER(idx))
-
-// URP GBuffer pass fragment shader output struct.
-struct GBufferFragOutput
-{
-    half4 gBuffer0 : SV_Target0;
-    half4 gBuffer1 : SV_Target1;
-    half4 gBuffer2 : SV_Target2;
-    half4 color    : SV_Target3; // Camera color attachment, used for GI during GBuffer laydown
-
-    #if defined(GBUFFER_FEATURE_DEPTH)
-    DECL_OPT_GBUFFER_TARGET(float, depth, GBUFFER_IDX_R_DEPTH);
-    #endif
-
-    #if defined(GBUFFER_FEATURE_SHADOWMASK)
-    DECL_OPT_GBUFFER_TARGET(half4, shadowMask, GBUFFER_IDX_RGBA_SHADOWMASK);
-    #endif
-
-    #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-    DECL_OPT_GBUFFER_TARGET(uint, meshRenderingLayers, GBUFFER_IDX_R_RENDERING_LAYERS);
-    #endif
-};
-
-#undef DECL_SV_TARGET
-#undef DECL_OPT_GBUFFER_TARGET
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferFragOutput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.deprecated.hlsl"
 
 // Pack SurfaceData into GBuffers.
-GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inputData, half3 globalIllumination)
+GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, bool receiveShadows)
 {
     half3 packedNormalWS = PackGBufferNormal(inputData.normalWS);
 
@@ -43,13 +20,11 @@ GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inp
 
     // SimpleLit does not use _SPECULARHIGHLIGHTS_OFF to disable specular highlights.
 
-    #ifdef _RECEIVE_SHADOWS_OFF
-    materialFlags |= kMaterialFlagReceiveShadowsOff;
-    #endif
+    if (!receiveShadows)
+        materialFlags |= kMaterialFlagReceiveShadowsOff;
 
-    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
-    materialFlags |= kMaterialFlagSubtractiveMixedLighting;
-    #endif
+    if (LightmapAvailable() && MixedLightingSubtractive())
+        materialFlags |= kMaterialFlagSubtractiveMixedLighting;
 
     GBufferFragOutput output;
     output.gBuffer0 = half4(surfaceData.albedo.rgb, PackGBufferMaterialFlags(materialFlags));   // albedo          albedo          albedo          materialFlags   (sRGB rendertarget)
@@ -73,37 +48,41 @@ GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inp
 }
 
 // Pack BRDFData into GBuffers.
-GBufferFragOutput PackGBuffersBRDFData(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half occlusion = 1.0)
+// isSpecularSetup: packs the specular color instead of reflectivity (specular vs metallic workflow).
+// useSpecularHighlights: when false, silences packed specular and flags the surface so the deferred shading pass skips specular.
+GBufferFragOutput PackGBuffersBRDFData(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half occlusion, bool receiveShadows, bool isSpecularSetup, bool useSpecularHighlights)
 {
     half3 packedNormalWS = PackGBufferNormal(inputData.normalWS);
 
     uint materialFlags = 0;
 
-    #ifdef _RECEIVE_SHADOWS_OFF
-    materialFlags |= kMaterialFlagReceiveShadowsOff;
-    #endif
+    if (!receiveShadows)
+        materialFlags |= kMaterialFlagReceiveShadowsOff;
 
     half3 packedSpecular;
 
-    #ifdef _SPECULAR_SETUP
-    materialFlags |= kMaterialFlagSpecularSetup;
-    packedSpecular = brdfData.specular.rgb;
-    #else
-    packedSpecular.r = brdfData.reflectivity;
-    packedSpecular.gb = 0.0;
-    #endif
+    if (isSpecularSetup)
+    {
+        materialFlags |= kMaterialFlagSpecularSetup;
+        packedSpecular = brdfData.specular.rgb;
+    }
+    else
+    {
+        packedSpecular.r = brdfData.reflectivity;
+        packedSpecular.gb = 0.0;
+    }
 
-    #ifdef _SPECULARHIGHLIGHTS_OFF
-    // During the next deferred shading pass, we don't use a shader variant to disable specular calculations.
-    // Instead, we can either silence specular contribution when writing the gbuffer, and/or reserve a bit in the gbuffer
-    // and use this during shading to skip computations via dynamic branching. Fastest option depends on platforms.
-    materialFlags |= kMaterialFlagSpecularHighlightsOff;
-    packedSpecular = 0.0.xxx;
-    #endif
+    if (!useSpecularHighlights)
+    {
+        // During the next deferred shading pass, we don't use a shader variant to disable specular calculations.
+        // Instead, we can either silence specular contribution when writing the gbuffer, and/or reserve a bit in the gbuffer
+        // and use this during shading to skip computations via dynamic branching. Fastest option depends on platforms.
+        materialFlags |= kMaterialFlagSpecularHighlightsOff;
+        packedSpecular = half3(0.0, 0.0, 0.0);
+    }
 
-    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
-    materialFlags |= kMaterialFlagSubtractiveMixedLighting;
-    #endif
+    if (LightmapAvailable() && MixedLightingSubtractive())
+        materialFlags |= kMaterialFlagSubtractiveMixedLighting;
 
     GBufferFragOutput output;
     output.gBuffer0 = half4(brdfData.albedo.rgb, PackGBufferMaterialFlags(materialFlags));  // diffuse           diffuse         diffuse         materialFlags   (sRGB rendertarget)

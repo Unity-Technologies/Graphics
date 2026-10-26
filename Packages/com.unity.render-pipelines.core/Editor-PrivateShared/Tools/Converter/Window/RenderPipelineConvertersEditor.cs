@@ -7,7 +7,7 @@ using UnityEditor.Categorization;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Pool;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
@@ -57,6 +57,15 @@ namespace UnityEditor.Rendering.Converter
         List<Node<ConverterInfo>> m_CoreConvertersList = new ();
         Node<ConverterInfo> currentContainer { get; set; }
         Dictionary<Node<ConverterInfo>, RenderPipelineConverterVisualElement> m_ConvertersVisualElements = new ();
+
+        [SerializeField]
+        private string m_CurrentTab = string.Empty;
+
+        [SerializeField]
+        private int m_SourcePipelineIndex = 0;
+
+        [SerializeField]
+        private int m_DestinationPipelineIndex = 0;
 
         internal static List<Node<ConverterInfo>> CategorizeConverters()
         {
@@ -147,12 +156,14 @@ namespace UnityEditor.Rendering.Converter
 
             var disabledHelpBox = rootVisualElement.Q<HelpBox>("disabledToolHelpBox");
             var convertersMainVE = rootVisualElement.Q<VisualElement>("converterEditorMainVE");
+            var bottomButtonVE = rootVisualElement.Q<VisualElement>("bottomButtonVE");
 
-            if (disabledHelpBox == null || convertersMainVE == null)
+            if (disabledHelpBox == null || convertersMainVE == null || bottomButtonVE == null)
                 return;
 
             disabledHelpBox.style.display = isPlaying ? DisplayStyle.Flex : DisplayStyle.None;
             convertersMainVE.SetEnabled(!isPlaying);
+            bottomButtonVE.SetEnabled(!isPlaying);
         }
 
         public void CreateGUI()
@@ -165,10 +176,10 @@ namespace UnityEditor.Rendering.Converter
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
 
             m_ConvertButton = rootVisualElement.Q<Button>("convertButton");
-            m_ConvertButton.RegisterCallback<ClickEvent>(Convert);
+            m_ConvertButton.clicked += Convert;
 
             m_InitButton = rootVisualElement.Q<Button>("initializeButton");
-            m_InitButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
+            m_InitButton.clicked += InitializeAllActiveConverters;
 
             m_ConvertersVisualElements.Clear();
 
@@ -180,12 +191,22 @@ namespace UnityEditor.Rendering.Converter
             m_SourcePipelineDropDown = rootVisualElement.Q<DropdownField>("sourcePipelineDropDown");
             m_DestinationPipelineDropDown = rootVisualElement.Q<DropdownField>("targetPipelineDropDown");
 
-            using (HashSetPool<string>.Get(out var sourcePipelines))
-            using (HashSetPool<string>.Get(out var dstPipelines))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var sourcePipelines))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var dstPipelines))
             {
-                foreach (var converterNodeCategory in m_CoreConvertersList)
+                int tabIndex = -1;
+                for (int c = 0; c < m_CoreConvertersList.Count; ++c)
                 {
-                    conversionsTabView.Add(new Tab(converterNodeCategory.name));
+                    var converterNodeCategory = m_CoreConvertersList[c];
+                    var tabName = converterNodeCategory.name;
+
+                    if (string.IsNullOrEmpty(m_CurrentTab))
+                        m_CurrentTab = tabName;
+
+                    if (m_CurrentTab == tabName)
+                        tabIndex = c;
+
+                    conversionsTabView.Add(new Tab(tabName));
 
                     foreach (var element in converterNodeCategory.children)
                     {
@@ -197,20 +218,28 @@ namespace UnityEditor.Rendering.Converter
 
                         RenderPipelineConverterVisualElement converterVisualElement = new(element);
                         converterVisualElement.converterSelected += EnableOrDisableConvertButton;
-                        converterVisualElement.converterSelected += EnableOrDisableScanButton;
                         m_ConvertersVisualElements.Add(element, converterVisualElement);
                     }
                 }
 
-                currentContainer = m_CoreConvertersList[0];
+                // Validate and clamp tab index (handles stale/removed categories)
+                if (m_CoreConvertersList.Count == 0)
+                {
+                    Debug.LogWarning("No converter categories found.");
+                    return;
+                }
 
-                conversionsTabView.tabIndex = 0;
+                tabIndex = Math.Clamp(tabIndex, 0, m_CoreConvertersList.Count - 1);
+                currentContainer = m_CoreConvertersList[tabIndex];
+                m_CurrentTab = currentContainer.name;
+
+                conversionsTabView.selectedTabIndex = tabIndex;
 
                 m_SourcePipelineDropDown.choices = sourcePipelines.ToList();
-                m_SourcePipelineDropDown.index = 0;
+                m_SourcePipelineDropDown.index = Math.Max(0, Math.Min(m_SourcePipelineIndex, m_SourcePipelineDropDown.choices.Count - 1));
 
                 m_DestinationPipelineDropDown.choices = dstPipelines.ToList();
-                m_DestinationPipelineDropDown.index = 0;
+                m_DestinationPipelineDropDown.index = Math.Max(0, Math.Min(m_DestinationPipelineIndex, m_DestinationPipelineDropDown.choices.Count - 1));
             }
 
             conversionsTabView.activeTabChanged += (from, to) =>
@@ -222,17 +251,21 @@ namespace UnityEditor.Rendering.Converter
                         currentContainer = converterNodeCategory;
                 }
 
+                m_CurrentTab = to.label;
+
                 ConfigureUI();
             };
 
             m_SourcePipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                m_SourcePipelineIndex = m_SourcePipelineDropDown.index;
+                ConfigureUI();
             });
 
             m_DestinationPipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                m_DestinationPipelineIndex = m_DestinationPipelineDropDown.index;
+                ConfigureUI();
             });
 
             ConfigureUI();
@@ -243,41 +276,15 @@ namespace UnityEditor.Rendering.Converter
         private void ConfigureUI()
         {
             HideUnhideConverters();
-            EnableOrDisableScanButton();
             EnableOrDisableConvertButton();
-        }
-
-        private bool CanEnableScan()
-        {
-            foreach (var child in currentContainer.children)
-            {
-                if (m_ConvertersVisualElements.TryGetValue(child, out var ve))
-                {
-                    if (ve.isSelectedAndEnabled &&
-                        !ve.state.isInitialized)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private bool CanEnableConvert()
         {
-            foreach (var child in currentContainer.children)
+            foreach (var converterVE in selectedConverters)
             {
-                if (m_ConvertersVisualElements.TryGetValue(child, out var ve))
-                {
-                    if (ve.isSelectedAndEnabled &&
-                        ve.state.isInitialized &&
-                        ve.state.selectedItemsCount > 0 &&
-                        ve.state.pending > 0)
-                    {
-                        return true;
-                    }
-                }
+                if (converterVE.state.isInitialized && converterVE.state.selectedPending > 0)
+                    return true;
             }
 
             return false;
@@ -286,11 +293,6 @@ namespace UnityEditor.Rendering.Converter
         private void EnableOrDisableConvertButton()
         {
             m_ConvertButton.SetEnabled(CanEnableConvert());
-        }
-
-        private void EnableOrDisableScanButton()
-        {
-            m_InitButton.SetEnabled(CanEnableScan());
         }
 
         private void HideUnhideConverters()
@@ -344,7 +346,7 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
-        void InitializeAllActiveConverters(ClickEvent evt)
+        void InitializeAllActiveConverters()
         {
             if (EditorApplication.isPlaying) return;
             if (!SaveCurrentSceneAndContinue()) return;
@@ -352,6 +354,30 @@ namespace UnityEditor.Rendering.Converter
             // Gather all the converters that are selected
             var convertersToInitialize = new List<RenderPipelineConverterVisualElement>();
             convertersToInitialize.AddRange(selectedConverters);
+
+            // Check if any converter already has items, and confirm before clearing
+            bool hasExistingItems = false;
+            foreach (var converter in convertersToInitialize)
+            {
+                if (converter.state.isInitialized && converter.state.totalItemsCount > 0)
+                {
+                    hasExistingItems = true;
+                    break;
+                }
+            }
+
+            if (hasExistingItems)
+            {
+                if (!EditorUtility.DisplayDialog(
+                    "Re-scan Converters",
+                    "Re-scanning will erase the current converter state. Do you want to continue?",
+                    "Yes, Re-scan",
+                    "Cancel"))
+                {
+                    // User cancelled
+                    return;
+                }
+            }
 
             int count = convertersToInitialize.Count;
             int iConverterIndex = 0;
@@ -416,7 +442,6 @@ namespace UnityEditor.Rendering.Converter
                 converterVE.Refresh();
             }
 
-            EnableOrDisableScanButton();
             EnableOrDisableConvertButton();
         }
 
@@ -446,9 +471,24 @@ namespace UnityEditor.Rendering.Converter
             public int items_count;
         }
 
-        void Convert(ClickEvent evt)
+        void Convert()
         {
             if (EditorApplication.isPlaying) return;
+
+            // Early out: gather converters with items to convert first
+            List<RenderPipelineConverterVisualElement> convertersToPerformConversion = new ();
+            foreach (var converterVE in selectedConverters)
+            {
+                if (converterVE.state.isInitialized && converterVE.state.selectedPending > 0)
+                {
+                    convertersToPerformConversion.Add(converterVE);
+                }
+            }
+
+            // Nothing to convert - skip scene save dialog and other overhead
+            if (convertersToPerformConversion.Count == 0)
+                return;
+
             if (!ShowIrreversibleChangesDialog()) return;
             // Ask to save save the current open scene and after the conversion is done reload the same scene.
             if (!SaveCurrentSceneAndContinue()) return;
@@ -456,17 +496,6 @@ namespace UnityEditor.Rendering.Converter
             string currentScenePath = SceneManager.GetActiveScene().path;
 
             StringBuilder sb = new StringBuilder("=== Render Pipeline Converters Report ===\n");
-
-            List<RenderPipelineConverterVisualElement> convertersToPerformConversion = new ();
-
-            // Getting all the active converters to use in the cancelable progressbar
-            foreach (var converterVE in selectedConverters)
-            {
-                if (converterVE.state.isInitialized)
-                {
-                    convertersToPerformConversion.Add(converterVE);
-                }
-            }
 
             List<AnalyticContextInfo> contextInfo = new ();
 
@@ -515,7 +544,7 @@ namespace UnityEditor.Rendering.Converter
         {
             menu.AddItem
             (
-                EditorGUIUtility.TrTextContent("Reset"),
+                L10n.TextContent("Reset", null, null, null),
                 false,
                 () =>
                 {

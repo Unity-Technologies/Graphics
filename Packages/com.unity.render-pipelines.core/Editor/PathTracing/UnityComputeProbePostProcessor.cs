@@ -52,6 +52,11 @@ namespace UnityEngine.PathTracing.PostProcessing
 
         public bool ConvertToUnityFormat(IDeviceContext context, BufferSlice<SphericalHarmonicsL2> irradianceIn, BufferSlice<SphericalHarmonicsL2> irradianceOut, int probeCount)
         {
+            return ConvertToUnityFormat(context, irradianceIn, irradianceOut, probeCount, true);
+        }
+
+        public bool ConvertToUnityFormat(IDeviceContext context, BufferSlice<SphericalHarmonicsL2> irradianceIn, BufferSlice<SphericalHarmonicsL2> irradianceOut, int probeCount, bool divideByPI)
+        {
             var unityCtx = context as UnityComputeDeviceContext;
             Debug.Assert(unityCtx != null);
 
@@ -61,7 +66,8 @@ namespace UnityEngine.PathTracing.PostProcessing
                 unityCtx.GetComputeBuffer(irradianceOut.Id),
                 (uint)irradianceIn.Offset,
                 (uint)irradianceOut.Offset,
-                (uint)probeCount);
+                (uint)probeCount,
+                divideByPI);
 
             return true;
         }

@@ -245,6 +245,7 @@ namespace UnityEditor.VFX.UI
             m_SearchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
             m_SearchField.RegisterCallback<KeyDownEvent>(OnKeyDown);
             var searchTextField = m_SearchField.Q<TextField>();
+            searchTextField.maxLength = 128;
             searchTextField.selectAllOnFocus = false;
             searchTextField.selectAllOnMouseUp = false;
 

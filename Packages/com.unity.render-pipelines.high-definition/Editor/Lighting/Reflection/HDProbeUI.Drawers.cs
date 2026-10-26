@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Don't display distanceBasedRoughness if the projection is infinite (as in this case we force distanceBasedRoughness to be 0 in code)
                 if (owner is HDReflectionProbeEditor && !(serialized.proxyVolume.objectReferenceValue == null && serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue == false))
-                    EditorGUILayout.PropertyField(serialized.probeSettings.distanceBasedRoughness, EditorGUIUtility.TrTextContent("Distance Based Roughness", "When enabled, HDRP uses the assigned Proxy Volume to calculate distance based roughness for reflections. This produces more physically-accurate results if the Proxy Volume closely matches the environment."));
+                    EditorGUILayout.PropertyField(serialized.probeSettings.distanceBasedRoughness, L10n.TextContent("Distance Based Roughness", "When enabled, HDRP uses the assigned Proxy Volume to calculate distance based roughness for reflections. This produces more physically-accurate results if the Proxy Volume closely matches the environment.", null, null));
             }
 
             static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
@@ -207,10 +207,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         else
                         {
                             if (ButtonWithDropdownList(
-                                    EditorGUIUtility.TrTextContent(
+                                    L10n.TextContent(
                                         "Bake",
                                         "Bakes Probe's texture, overwriting the existing texture asset (if any)."
-                                    ),
+, null, null                                    ),
                                     k_BakeCustomOptionText,
                                     data =>
                                     {
@@ -249,7 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             // Bake button in non-continous mode
                             if (ButtonWithDropdownList(
-                                    EditorGUIUtility.TrTextContent("Bake"),
+                                    L10n.TextContent("Bake", null, null, null),
                                     k_BakeButtonsText,
                                     data =>
                                     {

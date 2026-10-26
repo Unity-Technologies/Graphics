@@ -60,6 +60,6 @@ namespace UnityEditor.Rendering.Utilities
             return bounds;
         }
 
-        private void OnEnable() => m_IconContent = EditorGUIUtility.TrIconContent(m_IconName, m_Description);
+        private void OnEnable() => m_IconContent = L10n.IconContent(m_IconName, m_Description, null);
     }
 }

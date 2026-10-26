@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.Universal
                 if (description.TryGetProperty("EmissiveFactor", out floatProperty) && floatProperty > 0.0f)
                 {
                     material.EnableKeyword("_EMISSION");
-                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
                 }
             }
             else if (
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.Universal
                 if (floatProperty > 0.0f)
                 {
                     material.EnableKeyword("_EMISSION");
-                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
                 }
             }
 

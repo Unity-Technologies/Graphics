@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
         private class UberPostPassData
         {
             internal TextureHandle destinationTexture;
+            internal Rect viewport;
             internal TextureHandle sourceTexture;
             internal TextureHandle internalLutTexture;
 
@@ -120,20 +121,54 @@ namespace UnityEngine.Rendering.Universal
             var bloomTexture = resourceData.bloom;
 
             TextureHandle destinationTexture;
+            Rect viewport;
+            AccessFlags destinationAccessFlag = AccessFlags.Write;
             if (resourceData.isActiveTargetBackBuffer)
             {
                 destinationTexture = resourceData.backBufferColor;
+
+                // camera.pixelRect is the final output viewport-rect. It offsets the output into the final target.
+                viewport = cameraData.pixelRect;
+                
+                // Full-screen blit to backbuffer with no alpha will overwrite every pixel, so use flag
+                // WriteAll for the compiler to set load op DontCare later and skip the color load
+                if (cameraData.isDefaultViewport && !cameraData.isAlphaOutputEnabled)
+                    destinationAccessFlag = AccessFlags.WriteAll;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh) // Not a full-screen blit
+                    destinationAccessFlag = AccessFlags.Write;
+#endif
             }
             else
             {
                 //Due to camera stacking we could be rendering to a persistent texture that is not the backbuffer
-                destinationTexture = resourceData.destinationCameraColor.IsValid() ?
-                    resourceData.destinationCameraColor
+                if (resourceData.destinationCameraColor.IsValid())
+                {
+                    destinationTexture = resourceData.destinationCameraColor;
+                }
+                else
+                {
                     //TODO here we don't seem to apply PostProcessUtils.CreateCompatibleTexture. This seems completely out of sync with the other post process passes.
                     //However, changing it, breaks some tests because rendering with the color and depth after this pass when MSAA is on leads to mismatch.
                     //It seems completely arbitrary that we continue to write out color with MSAA if no other pp pass has been applied earlier.
-                    : renderGraph.CreateTexture(sourceTexture, _CameraColorAfterPostProcessingName);
+                    var desc = renderGraph.GetTextureDesc(sourceTexture);
+                    desc.name = _CameraColorAfterPostProcessingName;
+                    desc.clearBuffer = false;
+                    destinationTexture = renderGraph.CreateTexture(desc);
+                }
                 resourceData.destinationCameraColor = TextureHandle.nullHandle;
+
+                // The intermediate target has no viewport rect, the viewport covers the whole target. Two cases:
+                // 1. URP internal intermediate color target: the viewport size is baked into the target size on
+                //    allocation, so its offset is always 0 and its size matches the viewport size. The overlay
+                //    cameras inherit the base viewport, a necessary limitation since the target covers only the
+                //    base viewport area.
+                // 2. Pass custom color target: a pass can swap cameraColor to a custom texture of any size. URP RG
+                //    uses resourceData to pass the targets between passes, so the size must be read from the
+                //    render graph texture itself (UUM-145833).
+                var destinationDesc = destinationTexture.GetDescriptor(renderGraph);
+                viewport = new Rect(0, 0, destinationDesc.width, destinationDesc.height);
             }
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>(passName, out var passData, profilingSampler))
@@ -145,11 +180,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                    passSupportsFoveation &= !Experimental.Rendering.XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                    // Also skip when requested by XR plugin to allow Direct mode on the device for faster performance
+                    passSupportsFoveation &= (Experimental.Rendering.XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0 && !cameraData.xr.skipFDMForFinalPasses;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -157,7 +193,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destinationTexture;
-                builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
+                passData.viewport = viewport;
+                builder.SetRenderAttachment(destinationTexture, 0, destinationAccessFlag);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
@@ -253,6 +290,11 @@ namespace UnityEngine.Rendering.Universal
                         {
                             case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                             case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
+                            case TonemappingMode.AgX:
+                                material.EnableKeyword(ShaderKeywordStrings.TonemapAgX);
+                                Tonemapping.GetAgXCurveConstants(data.tonemapping.agxContrast.value, data.tonemapping.agxMidGrey.value, out float agxToeA, out float agxSlope);
+                                material.SetVector(ShaderConstants._AgxParams, new Vector4(data.tonemapping.agxContrast.value, data.tonemapping.agxMidGrey.value, agxToeA, agxSlope));
+                                break;
                             default: break; // None
                         }
                     }
@@ -260,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
                     if(PostProcessUtils.RequireHDROutput(cameraData))
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
+                        RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
                     }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -272,10 +314,10 @@ namespace UnityEngine.Rendering.Universal
 
                     // Done with Uber, blit it
                     if (cameraData.xr.enabled && cameraData.xr.hasValidVisibleMesh)
-                        PostProcessUtils.ScaleViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
+                        PostProcessUtils.SetViewportAndDrawVisibilityMesh(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.viewport);
                     else
 #endif
-                        PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, material, data.isActiveTargetBackBuffer);
+                        PostProcessUtils.SetViewportAndBlit(context, data.sourceTexture, data.destinationTexture, material, data.viewport);
                 });
             }
 
@@ -412,7 +454,8 @@ namespace UnityEngine.Rendering.Universal
                     float dirtRatio = dirtTexture.width / (float)dirtTexture.height;
                     float screenRatio = srcDesc.width / (float)srcDesc.height;
                     dirtScaleOffset = new Vector4(1f, 1f, 0f, 0f);
-                    dirtIntensity = bloom.dirtIntensity.value;
+                    // Must match _DIRT variant stripping in ShaderBuildPreprocessor.
+                    dirtIntensity = bloom.dirtTexture.value == null ? 0f : bloom.dirtIntensity.value;
 
                     if (dirtRatio > screenRatio)
                     {
@@ -535,7 +578,7 @@ namespace UnityEngine.Rendering.Universal
                     Vector2 center = vignetteParams2;
                     var xrLayout = XRSystem.currentLayout;
 
-                    if (xrLayout != null && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                    if (xrPass.isQuadViewInnerPass)
                     {
                         // Second pass (inner views): Reuse the cached peripheral vignette center
                         // This ensures vignette is calculated in the outer UV space after remapping
@@ -580,7 +623,7 @@ namespace UnityEngine.Rendering.Universal
                     // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
                     center = xrPass.ApplyXRViewCenterOffset(center);
                 }
-                if (xrPass != null && xrPass.singlePassEnabled && xrPass.viewCount > 1 && xrPass.multipassId == 1 && xrPass.isLastCameraPass)
+                if (xrPass != null && xrPass.isQuadViewInnerPass)
                 {
                     // In quad view we need to also apply the aspect ratio correction to the vignette as the UV remapping will cause it to be stretched/squashed if not corrected
                     aspectRatio *= xrPass.uvScales.y / xrPass.uvScales.x;
@@ -690,6 +733,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
             public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
+
+            public static readonly int _AgxParams = Shader.PropertyToID("_AgxParams");
 
             // Uber Lut
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");

@@ -17,8 +17,8 @@ using UnityEngine.Playables;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [MockHmdSetup(99)]
-    [AssetBundleSetup]
+    [MockHmdSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXRuntimeTests
     {
         AssetBundle m_AssetBundle;
@@ -538,6 +538,8 @@ namespace UnityEngine.VFX.Test
 //See UUM-6235
 #if !(VFX_TESTS_HAS_URP && UNITY_STANDALONE_OSX)
         //@gabriel: See VFXG-414, the following test is inspecting the instancing status of the test 025_ShaderKeywords.
+        // Editor-only: players hit UUM-149622 and the 025 scene is stripped from player builds
+        [UnityPlatform(RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor)]
         [UnityTest]
         public IEnumerator Load_Keyword_Scene_With_Instancing()
         {
@@ -832,13 +834,6 @@ namespace UnityEngine.VFX.Test
         [UnityTest, Description("Cover internal behavior linked to readback of alive particle count")]
         public IEnumerator Verify_AliveParticleCount_Readback([ValueSource(nameof(kVerify_AliveParticleCount_ReadbackCase))] string currentName)
         {
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-        if (System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
-        {
-            Assert.Ignore("See UUM-140411");
-        }
-#endif
-
             //Prepare
             SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/Readback_ParticleCount.unity");
             yield return null;

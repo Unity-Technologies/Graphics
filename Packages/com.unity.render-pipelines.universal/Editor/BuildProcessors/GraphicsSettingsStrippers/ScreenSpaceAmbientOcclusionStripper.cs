@@ -8,15 +8,6 @@ namespace UnityEditor.Rendering
     {
         public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
 
-        static bool RequiresBlueNoiseResources(ScreenSpaceAmbientOcclusion occlusion)
-        {
-#if MODERN_SSAO
-            return true;
-#else
-            return occlusion.settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
-#endif
-        }
-
         public bool CanRemoveSettings(ScreenSpaceAmbientOcclusionBlueNoiseResources resources)
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings) && !urpShaderStrippingSettings.stripUnusedVariants)
@@ -29,8 +20,8 @@ namespace UnityEditor.Rendering
 
                 foreach (var rendererFeature in rendererData.rendererFeatures)
                 {
-                    if (rendererFeature is ScreenSpaceAmbientOcclusion { isActive: true } occlusion
-                        && RequiresBlueNoiseResources(occlusion))
+                    // The volume can switch the noise method at runtime, so keep the textures for any active feature.
+                    if (rendererFeature is ScreenSpaceAmbientOcclusion { isActive: true })
                         return false;
                 }
             }

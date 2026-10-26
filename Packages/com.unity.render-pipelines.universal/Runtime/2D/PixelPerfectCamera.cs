@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera")]
     [RequireComponent(typeof(Camera))]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
+    [Icon("Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/PixelPerfectCamera.png")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {
@@ -338,9 +339,11 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 var targetTexture = m_Camera.targetTexture;
-                return targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+                return targetTexture == null ? screenRTSize : new Vector2Int(targetTexture.width, targetTexture.height);
             }
         }
+
+        Vector2Int screenRTSize => RenderingUtils.GetScreenBackbufferSize(m_Camera);
 
         // Snap camera position to pixels using Camera.worldToCameraMatrix.
         void PixelSnap()
@@ -437,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var targetTexture = m_Camera.targetTexture;
-            Vector2Int rtSize = targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+            Vector2Int rtSize = targetTexture == null ? screenRTSize : new Vector2Int(targetTexture.width, targetTexture.height);
 
             if (rtSize.x < refResolutionX || rtSize.y < refResolutionY)
             {

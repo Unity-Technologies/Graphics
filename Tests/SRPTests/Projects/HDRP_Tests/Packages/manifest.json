@@ -1,10 +1,11 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "dependencies": {
     "com.unity.collections": "1.4.0",
-    "com.unity.external.test-protocol": "2.0.0-exp.2",
-    "com.unity.ide.rider": "3.0.16",
-    "com.unity.ide.visualstudio": "2.0.22",
+    "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
+    "com.unity.ide.rider": "file:../../../../../ShadowPackages/com.unity.ide.rider",
+    "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",
     "com.unity.render-pipelines.core": "file:../../../../../Packages/com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../../../Packages/com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
@@ -27,6 +28,7 @@
     "com.unity.modules.imageconversion": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.metalfx": "1.0.0",
     "com.unity.modules.nvidia": "1.0.0",
     "com.unity.modules.particlesystem": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
@@ -47,14 +49,9 @@
     "com.unity.modules.vehicles": "1.0.0",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.test-profiler": "file:../../../../../ShadowPackages/com.unity.test-profiler",
+    "com.unity.yamato": "file:../../../../../ShadowPackages/com.unity.yamato"
   },
-  "disableProjectUpdate": true,
-  "testables": [
-    "com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.high-definition",
-    "com.unity.testing.hdrp",
-    "com.unity.testing.xr",
-    "com.unity.shadergraph"
-  ]
+  "disableProjectUpdate": true
 }

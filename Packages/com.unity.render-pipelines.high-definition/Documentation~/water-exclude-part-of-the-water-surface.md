@@ -18,25 +18,20 @@ The water excluder is a child GameObject of the boat so that the excluder moves 
 
 ## Set up exclusion in your project
 
-To use water exclusion, you need to enable it in the following locations:
+Water exclusion is enabled by default. For most projects, you don't need additional configuration.
 
-- Enable exclusion in a scene in the HDRP Asset:
+To check water exclusion is enabled or to re-enable it, follow these steps:
 
-1. Select the HDRP Asset in the Project window.
-2. In the Inspector, go to **Rendering** > **Water** > **Exclusion.**
-3. Enable **Exclusion**.
-
-- Enable exclusion for all Cameras in the Frame Settings: 
-
-1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
-2. Go to the **Frame Settings (Default Values)** > **Camera** section. 
-3. In the **Rendering** section, enable **Water Exclusion**.
+1. In the **Project** window, select the HDRP Asset.
+2. In the **Inspector**, go to **Rendering** > **Water** > **Exclusion** and verify that **Exclusion** is enabled.
+3. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
+4. In **Frame Settings (Default Values)** > **Camera** > **Rendering**, verify that **Water Exclusion** is enabled.
 
 To override the Frame Settings for an individual Camera:
 
-1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector.
-2. Go to the **Rendering** section and enable **Custom Frame Settings**. This exposes the Frame Settings Overrides, which you can use to customize this Camera.
-3. In the **Frame Setting Overrides** section, open the **Rendering** drop-down
+1. In the **Scene** view or **Hierarchy** window, select a camera to view its properties in the **Inspector** window.
+2. In the **Rendering** section, enable **Custom Frame Settings**. Unity displays the **Frame Settings Overrides** section.
+3. In the **Frame Settings Overrides** section, open the **Rendering** dropdown.
 4. Enable **Water Exclusion**.
 
 ## Create a water excluder

@@ -14,7 +14,7 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.VFXToolbox
 {
-    [ScriptedImporter(1, "vf", -802)]
+    [ScriptedImporter(1, "vf", -802, AllowCaching = true)]
     class VectorFieldImporter : ScriptedImporter
     {
         public enum VectorFieldOutputFormat

@@ -24,6 +24,7 @@
 
     // Keywords
     #pragma multi_compile _ _DECAL_LAYERS
+    #pragma multi_compile_fragment _ _EXPOSURE
 
     ${VFXIncludeRP("VFXDecalVaryings.template")}
 
@@ -59,7 +60,7 @@
 
         PrepareSurfaceAndInputData(i, surfaceData, decalSurfaceData, inputData);
 
-        outEmissive.rgb = decalSurfaceData.emissive;
+        outEmissive.rgb = ClampExposed(inputData.preExposureMultiplier * decalSurfaceData.emissive);
         outEmissive.a = decalSurfaceData.baseColor.a;
     }
     ENDHLSL

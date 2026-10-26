@@ -4,6 +4,38 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Converter
 {
+    /// <summary>
+    /// Constants for GlobalObjectId.identifierType values
+    /// </summary>
+    internal static class GlobalObjectIdentifierType
+    {
+        /// <summary>
+        /// Null object identifier
+        /// </summary>
+        public const int Null = 0;
+
+        /// <summary>
+        /// Imported asset (prefab asset in project)
+        /// </summary>
+        public const int ImportedAsset = 1;
+
+        /// <summary>
+        /// Scene object (object instance in scene or prefab instance)
+        /// </summary>
+        public const int SceneObject = 2;
+
+        /// <summary>
+        /// Source asset identifier
+        /// </summary>
+        public const int SourceAsset = 3;
+
+        /// <summary>
+        /// Built-in asset
+        /// </summary>
+        public const int BuiltInAsset = 4;
+    }
+
+
     [Serializable]
     internal class RenderPipelineConverterAssetItem : IRenderPipelineConverterItem
     {
@@ -47,8 +79,21 @@ namespace UnityEditor.Rendering.Converter
             set => m_Info = value;
         }
 
-        public bool isEnabled { get; set; } = true;
-        public string isDisabledMessage { get; set; } = string.Empty;
+        [SerializeField]
+        private bool m_IsEnabled = true;
+        public bool isEnabled
+        {
+            get => m_IsEnabled;
+            set => m_IsEnabled = value;
+        }
+
+        [SerializeField]
+        private string m_IsDisabledMessage = string.Empty;
+        public string isDisabledMessage
+        {
+            get => m_IsDisabledMessage;
+            set => m_IsDisabledMessage = value;
+        }
 
         public Texture2D icon
         {
@@ -100,7 +145,7 @@ namespace UnityEditor.Rendering.Converter
 
                 // If the object was not loaded, it is probably part of an unopened scene or prefab;
                 // if so, then the solution is to first load the scene here.
-                var objIsInSceneOrPrefab = globalId.identifierType == 2; // 2 is IdentifierType.kSceneObject
+                var objIsInSceneOrPrefab = globalId.identifierType == GlobalObjectIdentifierType.SceneObject;
                 if (!obj &&
                     objIsInSceneOrPrefab)
                 {

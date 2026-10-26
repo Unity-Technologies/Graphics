@@ -44,13 +44,11 @@ namespace UnityEditor.VFX.UI
             {
                 RegisterCallback<MouseDownEvent>(OnMouseDown);
 
-                m_TextField = new TextField { name = "textField"};
-                Add(m_TextField);
-                m_TextField.style.display = DisplayStyle.None;
-                m_TextField.selectAllOnMouseUp = false;
-
-                m_TextField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
-                m_TextField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
+                var textField = new TextField { name = "textField"};
+                Add(textField);
+                textField.style.display = DisplayStyle.None;
+                textField.selectAllOnMouseUp = false;
+                SetTextField(textField);
             }
 
             this.attribute = attribute;
@@ -112,10 +110,15 @@ namespace UnityEditor.VFX.UI
             this.m_Pill.icon = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, $"Editor/UIResources/VFX/types/{s_TypeToIconPath[newType]}@2x.png"));
         }
 
-        public override void OpenTextEditor()
+        public override bool OpenTextEditor()
         {
-            base.OpenTextEditor();
-            m_Pill.style.display = DisplayStyle.None;
+            if (base.OpenTextEditor())
+            {
+                m_Pill.style.display = DisplayStyle.None;
+                return true;
+            }
+
+            return false;
         }
 
         protected override void CleanupNameField()
@@ -124,17 +127,16 @@ namespace UnityEditor.VFX.UI
             m_Pill.style.display = DisplayStyle.Flex;
         }
 
-        protected override void OnEditTextSucceed(FocusOutEvent evt)
+        protected override void OnEditTextSucceed(TextField textField)
         {
-            if (m_TextField.style.display == DisplayStyle.Flex
-                && text != m_TextField.value
-                && View.controller.graph.TryRenameCustomAttribute(text, m_TextField.value))
+            if (text != textField.value
+                && View.controller.graph.TryRenameCustomAttribute(text, textField.value))
             {
-                attribute.title = m_TextField.value;
-                text = m_TextField.value;
+                attribute.title = textField.value;
+                text = textField.value;
             }
 
-            base.OnEditTextSucceed(evt);
+            base.OnEditTextSucceed(textField);
         }
 
         private bool IsModelUsingAttribute(VFXModel model)

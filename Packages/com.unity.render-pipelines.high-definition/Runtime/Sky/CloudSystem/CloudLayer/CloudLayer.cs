@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -110,6 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable]
         public class CloudMap
         {
+            [NoAutoStaticsCleanup]
             internal static Texture s_DefaultTexture = null;
 
             /// <summary>Texture used to render the clouds.</summary>
@@ -264,13 +266,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hash;
             }
 
-#if UNITY_EDITOR
-            [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-            static void ResetStaticsOnLoad()
+            internal static void ResetDefaultTexture()
             {
                 s_DefaultTexture = null;
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>(out var runtimeTextures))
+                {
+                    s_DefaultTexture = runtimeTextures.defaultCloudMap;
+                }
             }
-#endif
         }
 
         /// <summary>Layer A.</summary>
@@ -340,17 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>CloudLayerRenderer type.</returns>
         public override Type GetCloudRendererType() { return typeof(CloudLayerRenderer); }
 
-        /// <summary>
-        /// Called though reflection by the VolumeManager.
-        /// </summary>
-        static void Init()
-        {
-            CloudMap.s_DefaultTexture = null;
-
-            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>(out var runtimeTextures))
-            {
-                CloudMap.s_DefaultTexture = runtimeTextures.defaultCloudMap;
-            }
-        }
+        // Invoked via reflection by VolumeManager.InitializeVolumeComponents()
+        static void Init() => CloudMap.ResetDefaultTexture();
     }
 }

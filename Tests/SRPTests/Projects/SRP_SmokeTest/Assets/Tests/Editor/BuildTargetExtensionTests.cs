@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.Tests
             SetBuildSettingsScene(buildScenes);
             SetUpInclusion(inclusion);
 
-            using (ListPool<RenderPipelineAsset>.Get(out var rpAssets))
+            using (UnityEngine.Pool.ListPool<RenderPipelineAsset>.Get(out var rpAssets))
             {
                 var result = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(rpAssets);
                 Assert.AreEqual(rpAssets.Count != 0, result);
@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.Tests
                 QualitySettings.TryExcludePlatformAt(activeBuildTargetGroupName,level, out var _);
             }
 
-            using (ListPool<RenderPipelineAsset>.Get(out var rpAssets))
+            using (UnityEngine.Pool.ListPool<RenderPipelineAsset>.Get(out var rpAssets))
             {
                 Assert.IsTrue(buildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets));
                 Assert.AreEqual(1, rpAssets.Count);

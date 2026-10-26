@@ -18,6 +18,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Gradient m_DefaultValue = new Gradient();
 
+        [SerializeField]
+        bool m_IsShowingGradientEditor;
+
+        GradientSlotControlView m_View;
+
         public GradientInputMaterialSlot()
         {
         }
@@ -44,7 +49,15 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new GradientSlotControlView(this);
+            m_View = new GradientSlotControlView(this, m_IsShowingGradientEditor);
+            return m_View;
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            if (m_View != null)
+                m_IsShowingGradientEditor = m_View.isShowingGradientEditor;
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)

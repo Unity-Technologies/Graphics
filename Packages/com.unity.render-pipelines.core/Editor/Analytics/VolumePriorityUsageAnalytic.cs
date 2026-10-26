@@ -3,8 +3,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering;
-using static UnityEngine.Analytics.IAnalytic;
-using Scene = UnityEditor.SearchService.SceneSearch;
 
 namespace UnityEditor.Rendering.Analytics
 {
@@ -18,7 +16,7 @@ namespace UnityEditor.Rendering.Analytics
         {
             public Analytic(Volume volume, string guid)
             {
-                using (GenericPool<Data>.Get(out var data))
+                using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.volume_name = Hash128.Compute(volume.name).ToString();
                     data.scene_name = guid;
@@ -53,12 +51,11 @@ namespace UnityEditor.Rendering.Analytics
             if (volume == null)
                 return;
 
-            var sceneGUID = EditorSceneManager.GetActiveScene().GetGUID();
-            GUID guid = new GUID(sceneGUID);
-            if (guid.Empty())
+            var sceneGuid = EditorSceneManager.GetActiveScene().guid;
+            if (sceneGuid.Empty())
                 return;
 
-            Analytic analytic = new Analytic(volume, sceneGUID);
+            Analytic analytic = new Analytic(volume, sceneGuid.ToString());
             AnalyticsUtils.SendData(analytic);
 
         }

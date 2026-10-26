@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Serialization;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace UnityEngine.Rendering
 {
@@ -61,6 +59,18 @@ namespace UnityEngine.Rendering
                 if (entry.camera == camera)
                 {
                     // Restore debug settings to the camera
+#if UNITY_EDITOR
+                    if (camera.cameraType == CameraType.SceneView)
+                    {
+                        FrameSettingsHistory.RegisterDebug(null, true);
+                        var container = FrameSettingsHistory.sceneViewFrameSettingsContainer;
+                        var history = container.frameSettingsHistory;
+                        history.debug = entry.debugSettings;
+                        container.frameSettingsHistory = history;
+                        return true;
+                    }
+#endif
+
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                     {
                         var container = additionalCameraData as IFrameSettingsHistoryContainer;
@@ -73,19 +83,26 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            // All scene view will share the same debug FrameSettings, even if HDAdditionalCameraData is present
+            // Check for SceneView FIRST before checking HDAdditionalCameraData to ensure correct container registration
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                var debugData = FrameSettingsHistory.RegisterDebug(null, true);
+                m_FrameSettingsData.registeredCameras.Add(new RegisteredCameraEntry
+                {
+                    camera = camera,
+                    debugSettings = FrameSettingsHistory.sceneViewFrameSettingsContainer.frameSettingsHistory.debug
+                });
+                return true;
+            }
+#endif
+
             if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdAdditionalCameraData))
             {
                 var debugData = FrameSettingsHistory.RegisterDebug(hdAdditionalCameraData);
                 m_FrameSettingsData.registeredCameras.Add(new RegisteredCameraEntry { camera = camera });
                 DebugManager.instance.RegisterData(debugData);
-                return true;
-            }
-
-            // All scene view will share the same debug FrameSettings as the HDAdditionalData might not be present
-            if (camera.cameraType == CameraType.SceneView)
-            {
-                var debugData = FrameSettingsHistory.RegisterDebug(null, true);
-                m_FrameSettingsData.registeredCameras.Add(new RegisteredCameraEntry { camera = camera });
                 return true;
             }
 
@@ -134,10 +151,22 @@ namespace UnityEngine.Rendering
                 // Store debug settings for serialization
                 foreach (var entry in data.m_FrameSettingsData.registeredCameras)
                 {
-                    if (entry.camera != null && entry.camera.TryGetComponent<HDAdditionalCameraData>(out var hdAdditionalCameraData))
+                    if (entry.camera != null)
                     {
-                        var container = hdAdditionalCameraData as IFrameSettingsHistoryContainer;
-                        entry.debugSettings = container.frameSettingsHistory.debug;
+#if UNITY_EDITOR
+                        if (entry.camera.cameraType == CameraType.SceneView)
+                        {
+                            var container = FrameSettingsHistory.sceneViewFrameSettingsContainer;
+                            entry.debugSettings = container.frameSettingsHistory.debug;
+                            continue;
+                        }
+#endif
+
+                        if (entry.camera.TryGetComponent<HDAdditionalCameraData>(out var hdAdditionalCameraData))
+                        {
+                            var container = hdAdditionalCameraData as IFrameSettingsHistoryContainer;
+                            entry.debugSettings = container.frameSettingsHistory.debug;
+                        }
                     }
                 }
 
@@ -154,13 +183,34 @@ namespace UnityEngine.Rendering
                 base.Dispose();
             }
 
+            static readonly string k_DebugOverridesMessage = "Debug overrides cannot force-enable unsupported features - they can only override values within the constraints of your current pipeline configuration.";
+            static readonly string k_CameraNeedsToRenderMessage = "Values might not be fully updated if the camera you are inspecting is not rendered.";
+
             DebugUI.CameraSelector m_CameraSelector;
-            Dictionary<Camera, List<DebugUI.Widget>> m_FrameSettingsWidgets = new ();
+            DebugUI.MessageBox m_HelpBox;
+            DebugUI.MessageBox m_HelpBoxCameraNeedsToRender;
+            Dictionary<Camera, List<DebugUI.Widget>> m_FrameSettingsWidgets = new();
             public SettingsPanel(DebugDisplaySettingsCamera data)
                 : base(data)
             {
                 m_CameraSelector = WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh());
                 AddWidget(m_CameraSelector);
+
+                m_HelpBox = new DebugUI.MessageBox
+                {
+                    displayName = k_DebugOverridesMessage,
+                    style = DebugUI.MessageBox.Style.Warning,
+                    isHiddenCallback = () => data.m_FrameSettingsData.selectedCamera == null
+                };
+                AddWidget(m_HelpBox);
+
+                m_HelpBoxCameraNeedsToRender = new DebugUI.MessageBox
+                {
+                    displayName = k_CameraNeedsToRenderMessage,
+                    style = DebugUI.MessageBox.Style.Warning,
+                    isHiddenCallback = () => data.m_FrameSettingsData.selectedCamera == null
+                };
+                AddWidget(m_HelpBoxCameraNeedsToRender);
 
                 if (GetOrCreateFrameSettingsWidgets(out var frameSettingsWidgets))
                 {
@@ -184,8 +234,14 @@ namespace UnityEngine.Rendering
                 if (!m_FrameSettingsWidgets.TryGetValue(camera, out widgets))
                 {
                     widgets ??= new List<DebugUI.Widget>();
-                    var hdAdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                    var panelContent = FrameSettingsHistory.GenerateFrameSettingsPanelContent(hdAdditionalCameraData);
+                    var container = camera.GetComponent<HDAdditionalCameraData>() as IFrameSettingsHistoryContainer;
+
+#if UNITY_EDITOR
+                    if (camera.cameraType == CameraType.SceneView)
+                        container = FrameSettingsHistory.sceneViewFrameSettingsContainer;
+#endif
+
+                    var panelContent = FrameSettingsHistory.GenerateFrameSettingsPanelContent(container);
                     foreach (var foldout in panelContent)
                     {
                         widgets.Add(foldout);
@@ -206,6 +262,12 @@ namespace UnityEngine.Rendering
                 panel.children.Clear();
                 AddWidget(m_CameraSelector);
                 panel.children.Add(m_CameraSelector);
+
+                AddWidget(m_HelpBox);
+                panel.children.Add(m_HelpBox);
+
+                AddWidget(m_HelpBoxCameraNeedsToRender);
+                panel.children.Add(m_HelpBoxCameraNeedsToRender);
 
                 bool needsRefresh = GetOrCreateFrameSettingsWidgets(out var frameSettingsWidgets);
                 if (needsRefresh)

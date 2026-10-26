@@ -1,19 +1,18 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 
 #pragma kernel FilterTemporally
 
 #include "Common.hlsl"
 #include "RingBuffer.hlsl"
 #include "PatchUtil.hlsl"
-#include "TemporalFiltering.hlsl"
 
 StructuredBuffer<uint> _RingConfigBuffer;
 StructuredBuffer<SphericalHarmonics::RGBL1> _InputPatchIrradiances;
-StructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _InputOutputPatchIrradiances;
 
 uint _RingConfigOffset;
-float _ShortHysteresis;
+float _TemporalSmoothing;
 
 [numthreads(64, 1, 1)]
 void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
@@ -21,12 +20,26 @@ void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
     if (!RingBuffer::IsPositionInUse(_RingConfigBuffer, _RingConfigOffset, patchIdx))
         return;
 
-    const SphericalHarmonics::RGBL1 newIrradiance = _InputPatchIrradiances[patchIdx];
-    const SphericalHarmonics::RGBL1 oldIrradiance = _InputOutputPatchIrradiances[patchIdx];
+    PatchUtil::IrradianceState irradianceState = _PatchStatistics[patchIdx].irradianceState;
 
-    const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
-    const uint updateCount = PatchUtil::GetUpdateCount(_PatchStatistics[patchIdx].counters);
-    SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(_ShortHysteresis, updateCount, stats.variance, stats.mean, newIrradiance, oldIrradiance);
+    SphericalHarmonics::RGBL1 output = (SphericalHarmonics::RGBL1)0;
+    if (PatchUtil::GetUpdateCount(irradianceState) != 0)
+    {
+        float weight;
+        if (!PatchUtil::GetIsTemporalInitialized(irradianceState))
+        {
+            PatchUtil::SetIsTemporalInitialized(irradianceState, true);
+            _PatchStatistics[patchIdx].irradianceState = irradianceState;
+            weight = 0;
+        }
+        else
+        {
+            weight = lerp(0.9f, 0.95f, _TemporalSmoothing);
+        }
+        const SphericalHarmonics::RGBL1 newIrradiance = _InputPatchIrradiances[patchIdx];
+        const SphericalHarmonics::RGBL1 oldIrradiance = _InputOutputPatchIrradiances[patchIdx];
+        output = SphericalHarmonics::Lerp(newIrradiance, oldIrradiance, weight);;
+    }
 
     _InputOutputPatchIrradiances[patchIdx] = output;
 }

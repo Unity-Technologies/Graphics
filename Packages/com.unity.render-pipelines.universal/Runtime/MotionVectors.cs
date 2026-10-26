@@ -34,6 +34,20 @@ namespace UnityEngine.Rendering.Universal
         Vector3 m_previousWorldSpaceCameraPos;
         Vector3 m_previousPreviousWorldSpaceCameraPos;
 
+        // Per-view array form of the scalar camera-position history above, consumed by the upscaler IO
+        // (io.worldSpaceCameraPositions is a Vector3[] — per-view so XR-capable pipelines can supply distinct per-eye
+        // positions). NOT independent data: the scalars remain the authoritative store; these are filled by replicating
+        // them across views (URP currently has only a mono camera position, so every view gets the same value — a known
+        // XR limitation; true per-eye positions would derive from the per-view view matrices). Kept as reusable
+        // per-camera buffers, resized only on view-count change, so populating the array doesn't allocate per frame and
+        // stays valid from render-graph record to execute. Upscaling-only state.
+        Vector3[] m_WorldSpaceCameraPosViews;
+        Vector3[] m_PreviousWorldSpaceCameraPosViews;
+        Vector3[] m_PreviousPreviousWorldSpaceCameraPosViews;
+
+        // Resolution tracking for DRS support in upscaling framework
+        Vector2Int m_previousPreUpscaleResolution;
+
         #endregion
 
         #region Constructors
@@ -132,6 +146,28 @@ namespace UnityEngine.Rendering.Universal
             get => m_previousPreviousWorldSpaceCameraPos;
         }
 
+        /// <summary>
+        /// Previous frame's pre-upscale resolution.
+        /// Used by temporal upscalers to detect resolution changes for history management.
+        /// </summary>
+        internal Vector2Int previousPreUpscaleResolution
+        {
+            get => m_previousPreUpscaleResolution;
+            set => m_previousPreUpscaleResolution = value;
+        }
+
+        static Vector3[] EnsureViewBuffer(ref Vector3[] buffer, int viewCount)
+        {
+            if (buffer == null || buffer.Length < viewCount)
+                buffer = new Vector3[viewCount];
+            return buffer;
+        }
+
+        // Per-view camera-position buffers for the upscaler IO, reused across frames (no per-frame GC alloc). The caller
+        // fills them each frame; length == viewCount (callers use io.numActiveViews as the authoritative per-view count).
+        internal Vector3[] GetWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_WorldSpaceCameraPosViews, viewCount);
+        internal Vector3[] GetPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousWorldSpaceCameraPosViews, viewCount);
+        internal Vector3[] GetPreviousPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousPreviousWorldSpaceCameraPosViews, viewCount);
         #endregion
 
         public void Reset()
@@ -160,6 +196,8 @@ namespace UnityEngine.Rendering.Universal
             m_worldSpaceCameraPos = Vector3.zero;
             m_previousWorldSpaceCameraPos = Vector3.zero;
             m_previousPreviousWorldSpaceCameraPos = Vector3.zero;
+
+            m_previousPreUpscaleResolution = Vector2Int.zero;
         }
 
         static private int GetXRMultiPassId(XRPass xr)
@@ -175,10 +213,18 @@ namespace UnityEngine.Rendering.Universal
         {
             int eyeIndex = GetXRMultiPassId(cameraData.xr);
 
-            // XR multipass renders the frame twice, avoid updating camera history twice.
-            bool isNewFrame = (eyeIndex == 0);
+            // Engine motion vector frame index: advances once per logical frame / editor repaint,
+            // and is stable across duplicate renders of the same camera within one frame.
+            int frameIndex = Unity.RenderPipelines.Core.Runtime.Shared.RendererUpdateManagerBridge.GetMotionVectorFrameIndex();
 
-            int frameIndex = Time.frameCount;
+            // XR multipass renders the frame twice, avoid updating camera history twice.
+            bool isNewFrame = (eyeIndex == 0) && (m_LastFrameIndex[0] != frameIndex);
+
+            // Reset independent of isNewFrame: aspectChanged alone (e.g. viewport resize) can re-enter the loop below without a new frameIndex.
+            if (eyeIndex == 0)
+            {
+                m_numPreviousViews = 0;
+            }
 
             // Update per-frame data once regardless of how many eyes are being rendered
             if (isNewFrame)
@@ -207,8 +253,6 @@ namespace UnityEngine.Rendering.Universal
                 m_previousPreviousWorldSpaceCameraPos = m_previousWorldSpaceCameraPos;
                 m_previousWorldSpaceCameraPos = m_worldSpaceCameraPos;
                 m_worldSpaceCameraPos = worldSpaceCameraPos;
-
-                m_numPreviousViews = 0;
             }
 
             // A camera could be rendered multiple times per frame, only update the view projections if needed
@@ -267,26 +311,25 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Set global motion vector matrix GPU constants.
+        // The non jittered matrices of the view being rendered, for the global shader variables fill.
+        internal Matrix4x4 GetViewProjectionNoJitter(XRPass xr) => viewProjectionStereo[GetXRMultiPassId(xr)];
+        internal Matrix4x4 GetPreviousViewProjectionNoJitter(XRPass xr) => previousViewProjectionStereo[GetXRMultiPassId(xr)];
+
+        // Set global motion vector matrix GPU constants. XR single pass only: outside it, the two matrices go through
+        // the global shader variables uploader instead, filled at record time from the getters above.
         public void SetGlobalMotionMatrices(RasterCommandBuffer cmd, XRPass xr)
         {
-            var passID = GetXRMultiPassId(xr);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                var viewStartIndex = xr.viewCount * passID;
+                var viewStartIndex = xr.viewCount * GetXRMultiPassId(xr);
 
                 Array.Copy(previousViewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
                 cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, m_stagingMatrixArray);
                 Array.Copy(viewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
                 cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, m_stagingMatrixArray);
             }
-            else
 #endif
-            {
-                cmd.SetGlobalMatrix(ShaderPropertyId.previousViewProjectionNoJitter, previousViewProjectionStereo[passID]);
-                cmd.SetGlobalMatrix(ShaderPropertyId.viewProjectionNoJitter, viewProjectionStereo[passID]);
-            }
         }
     }
 }

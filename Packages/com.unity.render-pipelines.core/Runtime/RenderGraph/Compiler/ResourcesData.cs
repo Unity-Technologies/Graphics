@@ -36,7 +36,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public readonly bool isImported; // Imported graph resource
         public bool memoryLess; // Never create the texture on GPU if it is allocated/freed within a renderpass
+        public int lastGraphicsUsePassID; // Last non culled pass using this resource on the graphics queue, -1 if none
+        public int lastAsyncComputeUsePassID; // Last non culled pass using this resource on the async compute queue, -1 if none
         public int tag;
+
+        // True when at least one non-culled async compute pass touches this resource, whether or not graphics passes
+        // use it as well. These are pooled separately from resources only ever used on the graphics queue.
+        // See RenderGraphResource.CreatePooledGraphicsResource().
+        public readonly bool usedByAsyncComputePass => lastAsyncComputeUsePassID >= 0;
 
         public readonly int width;
         public readonly int height;
@@ -61,7 +68,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
-            memoryLess = false;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
+
+            // Check if imported texture is memoryless
+            memoryLess = desc.memoryless != RenderTextureMemoryless.None;
 
             width = info.width;
             height = info.height;
@@ -93,6 +104,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
 
             width = -1;
             height = -1;
@@ -124,6 +137,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
 
             width = -1;
             height = -1;
@@ -150,6 +165,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             firstUsePassID = -1;
             lastUsePassID = -1;
             lastWritePassID = -1;
+            lastGraphicsUsePassID = -1;
+            lastAsyncComputeUsePassID = -1;
             textureUVOrigin = TextureUVOriginSelection.Unknown;
         }
     }
@@ -158,6 +175,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     internal struct ResourceVersionedData
     {
         public bool written; // This version of the resource is written by a pass (external resources may never be written by the graph for example)
+        public bool countedAsUnused;
         public int writePassId; // Index in the pass array of the pass writing this specific version. If any, there is always a single index as the version differs when a resource is written several times.
         public int numReaders; // Number of other passes reading this version
 
@@ -229,17 +247,20 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<ResourceVersionedData>[] versionedData;     // Packed versioned data (sparse)
         public NativeList<ResourceReaderData>[] readerData;           // Partially packed reader data (semi-sparse)
 
+#if UNITY_ENABLE_CHECKS
         public DynamicArray<Name>[] resourceNames;
+#endif
 
         public ResourcesData()
         {
             unversionedData = new NativeList<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
             versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
             readerData = new NativeList<ResourceReaderData>[(int)RenderGraphResourceType.Count];
+#if UNITY_ENABLE_CHECKS
             resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
-
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
-                resourceNames[t] = new DynamicArray<Name>(0); // T in NativeList<T> cannot contain managed types, so the names are stored separately
+                resourceNames[t] = new DynamicArray<Name>(NativePassCompiler.k_EstimatedPassCount, false);
+#endif
         }
 
         public void Clear()
@@ -254,8 +275,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 if (readerData[t].IsCreated)
                     readerData[t].Clear();
-
-                resourceNames[t].Clear();
             }
         }
 
@@ -279,14 +298,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // We don't clear the list as we reinitialize it right after
                 AllocateAndResizeNativeListIfNeeded(ref unversionedData[t], numResources, NativeArrayOptions.UninitializedMemory);
 
-                resourceNames[t].Resize(numResources, true);
+#if UNITY_ENABLE_CHECKS
+                resourceNames[t].Clear();
+#endif
 
                 if (numResources > 0) // Null Resource
                 {
                     var nullResource = new ResourceUnversionedData();
                     nullResource.InitializeNullResource();
                     unversionedData[t][0] = nullResource;
-                    resourceNames[t][0] = new Name("");
+#if UNITY_ENABLE_CHECKS
+                    resourceNames[t].Add(new Name(""));
+#endif
                 }
 
                 // Compute allocation sizes and populate unversionedData in a single pass
@@ -299,7 +322,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var h = new ResourceHandle(r, resourceType, false);
                     var rll = resources.GetResourceLowLevel(h);
-                    resourceNames[t][r] = new Name(rll.GetName());
+#if UNITY_ENABLE_CHECKS
+                    resourceNames[t].Add(new Name(rll.GetName()));
+#endif
 
                     // Initialize unversionedData based on resource type
                     switch (t)

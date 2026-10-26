@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions">The toggle action</param>
         public static void AddAdvancedPropertiesBoolMenuItem(this GenericMenu menu, Func<bool> hasMoreOptions, Action toggleMoreOptions)
         {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Advanced Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
+            menu.AddItem(L10n.TextContent("Show All Advanced Properties", null, null, null), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
         }
 
         /// <summary>

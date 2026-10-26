@@ -2,6 +2,12 @@
 
 Supply shaders with essential data such as constants, mesh attributes, gradients, matrices, deformation, PBR parameters, scene details, and texture sampling options.
 
+## 2D
+
+| **Topic** | **Description** |
+|-----------|-----------------|
+| [Light Texture](light-texture-node.md) | Outputs a shape light texture from the 2D Renderer for use in Sprite Custom Lit or Sprite Unlit shaders. |
+
 ## Basic
 
 | **Topic**                    | **Description**                                                      |
@@ -68,7 +74,7 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 
 | **Topic**                                       | **Description**                                                                                                                           |
 |-------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [Sprite Skinning Node](Sprite-Skinning-Node.md) | Applies Vertex Skinning on Sprites. Only works with the [2D Animation](https://docs.unity3d.com/Packages/com.unity.2d.animation@latest/). |
+| [Sprite Skinning Node](Sprite-Skinning-Node.md) | Applies Vertex Skinning on sprites. Only works with the [2D Animation](https://docs.unity3d.com/Packages/com.unity.2d.animation@latest/). |
 
 ## PBR
 
@@ -82,6 +88,7 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | **Topic**                                    | **Description**                                                              |
 |----------------------------------------------|------------------------------------------------------------------------------|
 | [Camera](Camera-Node.md)                     | Provides access to various parameters of the current Camera.                 |
+| [Fetch Scene Depth](Fetch-Scene-Depth-Node.md) | Provides access to the current pixel's depth value using a depth input attachment. |
 | [Fog](Fog-Node.md)                           | Provides access to the Scene's Fog parameters.                               |
 | [Object](Object-Node.md)                     | Provides access to various parameters of the Object.                         |
 | [Scene Color](Scene-Color-Node.md)           | Provides access to the current Camera's color buffer.                        |
@@ -93,7 +100,9 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 
 | **Topic**                                                         | **Description**                                                                                   |
 |-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [Calculate Level Of Detail Texture 2D](Calculate-Level-Of-Detail-Texture-2D-Node.md) | Calculates the mip level of a Texture 2D sample, in clamped or unclamped mode.    |
 | [Cubemap Asset](Cubemap-Asset-Node.md)                            | Defines a constant Cubemap Asset for use in the shader.                                           |
+| [Gather Texture 2D](Gather-Texture-2D-Node.md)                    | Samples the red channel of four neighboring pixels around a sample point for custom blending.     |
 | [Sample Cubemap](Sample-Cubemap-Node.md)                          | Samples a Cubemap and returns a Vector 4 color value for use in the shader.                       |
 | [Sample Reflected Cubemap Node](Sample-Reflected-Cubemap-Node.md) | Samples a Cubemap with reflected vector and returns a Vector 4 color value for use in the shader. |
 | [Sample Texture 2D](Sample-Texture-2D-Node.md)                    | Samples a Texture 2D and returns a color value for use in the shader.                             |
@@ -113,3 +122,6 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 | [Element Texture UV](element-texture-uv-node.md) | Provides the texture coordinates (UV) typically used to sample the texture assigned to a UI element. |
 | [Element Layout UV](element-layout-uv-node.md) | Provides the layout UV coordinates within a UI element's layout rectangle. |
 | [Element Texture Size](element-texture-size-node.md) | Provides the size of the texture assigned to a UI element. |
+| [Element Tint](element-tint-node.md) | Provides the tint color (vertex color combined with the dynamic color) of a UI element. |
+| [Element Opacity](element-opacity-node.md) | Provides the opacity of a UI element. |
+| [SDF Text Parameters](sdf-text-parameters-node.md) | Provides the outline, shadow, dilate, and sharpness parameters of the current SDF text element. |

@@ -108,6 +108,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.alphaMode = (AlphaMode)evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Automatic Opacity", new UnityEngine.UIElements.Toggle() { value = uiData.automaticOpacity }, (evt) =>
+            {
+                if (Equals(uiData.automaticOpacity, evt.newValue))
+                    return;
+
+                registerUndo("Change Automatic Opacity");
+                uiData.automaticOpacity = evt.newValue;
+                onChange();
+            });
         }
     }
 }

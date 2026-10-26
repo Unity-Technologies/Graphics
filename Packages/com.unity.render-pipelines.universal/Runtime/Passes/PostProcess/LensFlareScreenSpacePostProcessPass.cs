@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
                         new Vector4(
                             lensFlareScreenSpace.samples.value,
                             lensFlareScreenSpace.sampleDimmer.value,
-                            lensFlareScreenSpace.chromaticAbberationIntensity.value,
+                            lensFlareScreenSpace.chromaticAberrationIntensity.value,
                             0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
                         new Vector4(
                             lensFlareScreenSpace.streaksIntensity.value,

@@ -1,4 +1,4 @@
-# Main Camera
+# Main Camera Operator
 
 Menu Path : **Operator > BuiltIn > Main Camera**
 

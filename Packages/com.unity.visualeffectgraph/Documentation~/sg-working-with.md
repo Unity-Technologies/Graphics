@@ -46,8 +46,9 @@ To make a visual effect with Shader Graph:
 
 
 1. Open your Visual Effect Graph in the Visual Effect Graph window. If you do not have a Visual Effect Graph, go to **Create** > **Visual Effects** > **Visual Effect Graph** to create a new one.
-2. In the interface for output contexts, assign your compatible Shader Graph to the **Shader Graph** property on . To do this, either search for the Shader Graph directly in the Asset Picker, or drag the Shader Graph sub-asset to the **Shader Graph** slot (**Note**: Shader Graphs only appear in VFX Asset Picker search results if they have **Support VFX Graph** enabled):
-![Drag Shader the Graph sub-asset to VFX Shader Graph slot](./Images/vfx-graph-shader-graph-output.gif)
+2. In the interface for output contexts, assign your compatible Shader Graph to the **Shader Graph** property.
+   To do this, either search for the Shader Graph directly in the Asset Picker, or drag the Shader Graph sub-asset to the **Shader Graph** slot (**Note**: Shader Graphs only appear in VFX Asset Picker search results if they have **Support VFX Graph** enabled).
+   Alternatively, to create a new Shader Graph asset, select **New**. This opens the [Shader Graph template browser](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/template-browser.html), filtered to show only templates that support the Visual Effect Graph.
 3. Click on the output Context to view it in the Inspector.
 
 You can make changes to the Shader Graph's Surface Options in the output context.

@@ -182,7 +182,7 @@ PlayerSettings:
   androidSplitApplicationBinary: 0
   keepLoadedShadersAlive: 0
   StripUnusedMeshComponents: 1
-  strictShaderVariantMatching: 0
+  strictShaderVariantMatching: 1
   VertexChannelCompressionMask: 4054
   iPhoneSdkVersion: 988
   iOSSimulatorArchitecture: 0

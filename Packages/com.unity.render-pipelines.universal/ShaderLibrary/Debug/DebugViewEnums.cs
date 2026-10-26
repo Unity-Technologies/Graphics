@@ -121,6 +121,13 @@ namespace UnityEngine.Rendering.Universal
         /// Displays the active STP debug view.
         /// </summary>
         STP,
+
+        /// <summary>
+        /// Displays a texture provided by a renderer feature through the debug handler.
+        /// Not selectable in the Rendering Debugger; it activates while a texture is provided.
+        /// </summary>
+        [HideInInspector]
+        Custom,
     }
 
     /// <summary>

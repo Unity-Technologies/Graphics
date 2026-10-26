@@ -13,3 +13,7 @@ This node lets you apply Linear Blend Vertex Skinning, and only works with the [
 | Position  | Output     | Vector3 | Vertex | Outputs the skinned vertex position. |
 | Normal    | Output     | Vector3 | Vertex | Outputs the skinned vertex normal. |
 | Tangent   | Output     | Vector3 | Vertex | Outputs the skinned vertex tangent. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

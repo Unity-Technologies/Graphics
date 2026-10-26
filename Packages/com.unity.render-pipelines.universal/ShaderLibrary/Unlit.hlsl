@@ -11,11 +11,11 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     half3 albedo = surfaceData.albedo;
 
     #if defined(DEBUG_DISPLAY)
-    half4 debugColor;
+    float4 debugColor;
 
     if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
-        return debugColor;
+        return half4(debugColor);
     }
     #endif
 

@@ -5,6 +5,9 @@
 // Unity Engine built-in shader input variables.
 // URP package specific shader input variables are defined in .universal/ShaderLibrary/Input.hlsl
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalShaderVariables.hlsl"
+
 #if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(UNITY_COMPILER_DXC)))
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
@@ -38,14 +41,6 @@
 
 // ----------------------------------------------------------------------------
 
-// Time values from Unity
-float4 _Time; // (t/20, t, t*2, t*3)
-float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
-float4 _TimeParameters; // t, sin(t), cos(t)
-float4 _LastTimeParameters; // t, sin(t), cos(t)
-
 #if !defined(USING_STEREO_MATRICES)
 float3 _WorldSpaceCameraPos;
 #endif
@@ -56,39 +51,12 @@ float3 _WorldSpaceCameraPos;
 // w = 1/far plane
 float4 _ProjectionParams;
 
-// x = width
-// y = height
-// z = 1 + 1.0/width
-// w = 1 + 1.0/height
-float4 _ScreenParams;
-
-// Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-// x = 1-far/near
-// y = far/near
-// z = x/far
-// w = y/far
-// or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
-// x = -1+far/near
-// y = 1
-// z = x/far
-// w = 1/far
-float4 _ZBufferParams;
-
-// x = orthographic camera's width
-// y = orthographic camera's height
-// z = unused
-// w = 1.0 if camera is ortho, 0.0 if perspective
-float4 unity_OrthoParams;
-
 // scaleBias.x = flipSign
 // scaleBias.y = scale
 // scaleBias.z = bias
 // scaleBias.w = unused
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
-
-// { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-uniform float4 _RTHandleScale;
 
 float4 unity_CameraWorldClipPlanes[6];
 
@@ -134,10 +102,12 @@ float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
 float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube0_Rotation;
+float4 unity_SpecCube0_Exposure;        // Only the x value is used
 float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
 float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube1_Rotation;
+float4 unity_SpecCube1_Exposure;        // Only the x value is used
 
 // Lightmap block feature
 float4 unity_LightmapST;
@@ -167,19 +137,31 @@ float4 unity_MotionVectorsParams;
 
 // Sprite.
 float4 unity_SpriteColor;
-//X : FlipX
-//Y : FlipY
-//Z : Reserved for future use.
-//W : Reserved for future use.
+//X : FatVertexStride (6) | FlipY (1) | FlipX (1)
+//Y : Reserved for gpu-driven.
+//Z : Sprite Skinning Bone Matrix Offset.
+//W : Unified Compute Vertex Pull Offset.
 float4 unity_SpriteProps;
 CBUFFER_END
 
+static const uint unity_SpriteInternal = asuint(unity_SpriteProps.x);
+
 static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
 
-#endif // UNITY_DOTS_INSTANCING_ENABLED
+static const uint unity_LightProbeUsage = asuint(unity_RenderingLayer.z);
+
+#endif // !DOTS_INSTANCING_ON
 
 // The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
 uint unity_RendererUserValuesPropertyEntry;
+
+// Dummy declaration like above so Shader.PropertyToID("unity_LightProbeUsagePropertyEntry") works.
+uint unity_LightProbeUsagePropertyEntry;
+
+// Must be a macro: unity_LightProbeUsage is overridden by macros in UnityInstancing.hlsl /
+// UniversalDOTSInstancing.hlsl that are included after this file. A function would bind to the
+// static-const fallback at parse time and miss the per-instance override.
+#define IsLightProbeSamplingEnabled() (unity_LightProbeUsage != 0u)
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)
@@ -218,9 +200,6 @@ float4x4 glstate_matrix_transpose_modelview0;
 // ----------------------------------------------------------------------------
 
 real4 glstate_lightmodel_ambient;
-real4 unity_AmbientSky;
-real4 unity_AmbientEquator;
-real4 unity_AmbientGround;
 real4 unity_IndirectSpecColor;
 float4 unity_FogParams;
 real4  unity_FogColor;
@@ -242,19 +221,19 @@ real4 unity_ShadowColor;
 
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
-SAMPLER(samplerunity_SpecCube0);
+#define samplerunity_SpecCube0 sampler_TrilinearClamp
 TEXTURECUBE(unity_SpecCube1);
-SAMPLER(samplerunity_SpecCube1);
+#define samplerunity_SpecCube1 sampler_TrilinearClamp
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
-SAMPLER(samplerunity_Lightmap);
+#define samplerunity_Lightmap sampler_LinearClamp
 TEXTURE2D_ARRAY(unity_Lightmaps);
-SAMPLER(samplerunity_Lightmaps);
+#define samplerunity_Lightmaps sampler_LinearClamp
 
 // Dynamic lightmap
 TEXTURE2D(unity_DynamicLightmap);
-SAMPLER(samplerunity_DynamicLightmap);
+#define samplerunity_DynamicLightmap sampler_LinearClamp
 // TODO ENLIGHTEN: Instanced GI
 
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
@@ -265,9 +244,9 @@ TEXTURE2D(unity_DynamicDirectionality);
 // TEXTURE2D_ARRAY(unity_DynamicDirectionality);
 
 TEXTURE2D(unity_ShadowMask);
-SAMPLER(samplerunity_ShadowMask);
+#define samplerunity_ShadowMask sampler_LinearClamp
 TEXTURE2D_ARRAY(unity_ShadowMasks);
-SAMPLER(samplerunity_ShadowMasks);
+#define samplerunity_ShadowMasks sampler_LinearClamp
 
 // Mipmap Streaming Debug
 TEXTURE2D(unity_MipmapStreaming_DebugTex);
@@ -285,8 +264,6 @@ float4x4 _ViewProjMatrixStereo[2];
 #define  _NonJitteredViewProjMatrix _NonJitteredViewProjMatrixStereo[unity_StereoEyeIndex]
 #define  _ViewProjMatrix      _ViewProjMatrixStereo[unity_StereoEyeIndex]
 #else
-float4x4 _PrevViewProjMatrix;         // non-jittered. Motion vectors.
-float4x4 _NonJitteredViewProjMatrix;  // non-jittered.
 float4x4 _ViewProjMatrix; // TODO: URP currently uses unity_MatrixVP, see Input.hlsl
 #endif
 float4x4 _ViewMatrix;
@@ -295,7 +272,6 @@ float4x4 _InvViewProjMatrix;
 float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4   _InvProjParam;
-float4   _ScreenSize;       // {w, h, 1/w, 1/h}
 float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
@@ -308,8 +284,13 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     // | 0 0 0 1 |  | 0 0 x 0 |  | 0 0 x x |
     // Notice that some values are always 0.
     // We can avoid loading and doing math with constants.
+    // But not true under Vulkan swapchain pre-transform: a 90/270 degree rotation swaps rows 0 and 1
+    // (Runtime/GfxDevice/vulkan/VKPreTransform.cpp), moving the scale terms onto _21/_12; exactly
+    // the entries cleared below, which would leave UNITY_MATRIX_P with an all-zero 2x2
+#ifndef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     M._21_41 = 0;
     M._12_42 = 0;
+#endif
     return M;
 }
 

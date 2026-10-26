@@ -15,7 +15,7 @@ real2 Fibonacci2dSeq(real fibN1, real fibN2, uint i)
     // 3 cycles on GCN if 'fibN1' and 'fibN2' are known at compile time.
     // N.b.: According to Swinbank and Pusser [SP06], the uniformity of the distribution
     // can be slightly improved by introducing an offset of 1/N to the Z (or R) coordinates.
-    return real2(i / fibN1 + (0.5 / fibN1), frac(i * (fibN2 / fibN1)));
+    return real2((real)((float)i / fibN1 + (0.5 / fibN1)), (real)frac((float)i * (fibN2 / fibN1)));
 }
 
 #define GOLDEN_RATIO 1.618033988749895
@@ -26,7 +26,7 @@ real2 Golden2dSeq(uint i, real n)
 {
     // GoldenAngle = 2 * Pi * (1 - 1 / GoldenRatio).
     // We can drop the "1 -" part since all it does is reverse the orientation.
-    return real2(i / n + (0.5 / n), frac(i * rcp(GOLDEN_RATIO)));
+    return real2((real)((float)i / n + (0.5 / n)), (real)frac((float)i * rcp(GOLDEN_RATIO)));
 }
 
 static const uint k_FibonacciSeq[] = {
@@ -269,14 +269,14 @@ real2 Fibonacci2d(uint i, uint sampleCount)
                 }
             }
 
-            return Fibonacci2dSeq(fibN1, fibN2, i);
+            return Fibonacci2dSeq((real)fibN1, (real)fibN2, i);
         }
     }
 }
 
 real2 SampleDiskGolden(uint i, uint sampleCount)
 {
-    real2 f = Golden2dSeq(i, sampleCount);
+    real2 f = Golden2dSeq(i, (real)sampleCount);
     return real2(sqrt(f.x), TWO_PI * f.y);
 }
 

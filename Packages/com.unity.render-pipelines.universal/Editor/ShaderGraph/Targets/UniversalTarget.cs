@@ -10,6 +10,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.UIElements;
 #if HAS_VFX_GRAPH
@@ -96,9 +97,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
     internal enum RenderFace
     {
-        Front = 2,      // = CullMode.Back -- render front face only
-        Back = 1,       // = CullMode.Front -- render back face only
-        Both = 0        // = CullMode.Off -- render both faces
+        Front = 2,          // = CullMode.Back -- render front face only
+        Back = 1,           // = CullMode.Front -- render back face only
+        Both = 0            // = CullMode.Off -- render both faces
     }
 
     internal enum AdditionalMotionVectorMode
@@ -106,6 +107,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         None,
         TimeBased,
         Custom
+    }
+
+    [Flags]
+    internal enum DepthStencilPassMask
+    {
+        [InspectorName("Color Pass")]  ColorPass  = 1 << 0,
+        [InspectorName("Depth Prepass")] Prepass  = 1 << 1,
+        [InspectorName("Shadow Pass")] ShadowPass = 1 << 2,
+    }
+
+    internal static class DepthStencilPassMaskExtensions
+    {
+        public static bool Has(this DepthStencilPassMask mask, DepthStencilPassMask flag) => (mask & flag) != 0;
     }
 
     sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX
@@ -201,6 +215,45 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_SupportVFX;
 
+        [SerializeField]
+        bool m_OverrideStencilState = false;
+
+        [SerializeField]
+        uint m_StencilReference = 0;
+
+        [SerializeField]
+        uint m_StencilReadMask = (uint)StencilUsage.UserMask;
+
+        [SerializeField]
+        uint m_StencilWriteMask = (uint)StencilUsage.UserMask;
+
+        [SerializeField]
+        CompareFunction m_StencilCompareFunction = CompareFunction.Always;
+
+        [SerializeField]
+        StencilOp m_StencilPassOperation = StencilOp.Keep;
+
+        [SerializeField]
+        StencilOp m_StencilFailOperation = StencilOp.Keep;
+
+        [SerializeField]
+        StencilOp m_StencilZFailOperation = StencilOp.Keep;
+
+        [SerializeField]
+        CompareFunction m_StencilCompareFunctionBack = CompareFunction.Always;
+
+        [SerializeField]
+        StencilOp m_StencilPassOperationBack = StencilOp.Keep;
+
+        [SerializeField]
+        StencilOp m_StencilFailOperationBack = StencilOp.Keep;
+
+        [SerializeField]
+        StencilOp m_StencilZFailOperationBack = StencilOp.Keep;
+
+        [SerializeField]
+        DepthStencilPassMask m_DepthStencilPassMask = DepthStencilPassMask.ColorPass;
+
         internal override bool ignoreCustomInterpolators => m_ActiveSubTarget.value is UniversalCanvasSubTarget;
         internal override int padCustomInterpolatorLimit => 4;
         internal override bool prefersSpritePreview =>
@@ -221,9 +274,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             get
             {
                 if (surfaceType == SurfaceType.Transparent)
-                    return $"{RenderType.Transparent}";
+                    return $"{UnityEditor.ShaderGraph.RenderType.Transparent}";
                 else
-                    return $"{RenderType.Opaque}";
+                    return $"{UnityEditor.ShaderGraph.RenderType.Opaque}";
             }
         }
 
@@ -290,7 +343,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public RenderFace renderFace
         {
-            get => m_RenderFace;
+            get => (RenderFace)Mathf.Clamp((int)m_RenderFace, (int)RenderFace.Both, (int)RenderFace.Front);
             set => m_RenderFace = value;
         }
 
@@ -363,17 +416,121 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // material may or may not choose to write depth... we should create the depth pass
                     return true;
                 }
+
+                switch (zWriteControl)
+                {
+                    case ZWriteControl.Auto:
+                        return (surfaceType == SurfaceType.Opaque);
+                    case ZWriteControl.ForceDisabled:
+                        return false;
+                    default:
+                        return true;
+                }
+            }
+        }
+
+        // Also required when stencil is stamped in the depth prepass (or may be, under material
+        // override), even if the material never writes depth.
+        public bool needsDepthOnlyPass =>
+            mayWriteDepth || ((overrideStencilState || allowMaterialOverride) && depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
+
+        public bool overrideStencilState
+        {
+            get => m_OverrideStencilState;
+            set => m_OverrideStencilState = value;
+        }
+
+        public uint stencilReference
+        {
+            get => m_StencilReference;
+            set => m_StencilReference = value;
+        }
+
+        public uint stencilReadMask
+        {
+            get => m_StencilReadMask;
+            set => m_StencilReadMask = value;
+        }
+
+        public uint stencilWriteMask
+        {
+            get => m_StencilWriteMask;
+            set => m_StencilWriteMask = value;
+        }
+
+        public CompareFunction stencilCompareFunction
+        {
+            get => m_StencilCompareFunction;
+            set => m_StencilCompareFunction = value;
+        }
+
+        public StencilOp stencilPassOperation
+        {
+            get => m_StencilPassOperation;
+            set => m_StencilPassOperation = value;
+        }
+
+        public StencilOp stencilFailOperation
+        {
+            get => m_StencilFailOperation;
+            set => m_StencilFailOperation = value;
+        }
+
+        public StencilOp stencilZFailOperation
+        {
+            get => m_StencilZFailOperation;
+            set => m_StencilZFailOperation = value;
+        }
+
+        public CompareFunction stencilCompareFunctionBack
+        {
+            get => m_StencilCompareFunctionBack;
+            set => m_StencilCompareFunctionBack = value;
+        }
+
+        public StencilOp stencilPassOperationBack
+        {
+            get => m_StencilPassOperationBack;
+            set => m_StencilPassOperationBack = value;
+        }
+
+        public StencilOp stencilFailOperationBack
+        {
+            get => m_StencilFailOperationBack;
+            set => m_StencilFailOperationBack = value;
+        }
+
+        public StencilOp stencilZFailOperationBack
+        {
+            get => m_StencilZFailOperationBack;
+            set => m_StencilZFailOperationBack = value;
+        }
+
+        public DepthStencilPassMask depthStencilPassMask
+        {
+            get => m_DepthStencilPassMask;
+            set => m_DepthStencilPassMask = value;
+        }
+
+        // On when either field differs from its Auto/LEqual default. Setting true resolves Auto to a
+        // forced state so Write Depth has a concrete value; setting false resets both to defaults.
+        public bool overrideDepthState
+        {
+            get => m_ZWriteControl != ZWriteControl.Auto || m_ZTestMode != ZTestMode.LEqual;
+            set
+            {
+                if (value == overrideDepthState)
+                    return;
+
+                if (value)
+                {
+                    if (m_ZWriteControl == ZWriteControl.Auto)
+                        m_ZWriteControl = m_SurfaceType == SurfaceType.Opaque ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled;
+                }
                 else
                 {
-                    switch (zWriteControl)
-                    {
-                        case ZWriteControl.Auto:
-                            return (surfaceType == SurfaceType.Opaque);
-                        case ZWriteControl.ForceDisabled:
-                            return false;
-                        default:
-                            return true;
-                    }
+                    m_ZWriteControl = ZWriteControl.Auto;
+                    m_ZTestMode = ZTestMode.LEqual;
                 }
             }
         }
@@ -451,9 +608,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
-                | m_ActiveSubTarget.value is UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>);
+            //
+            // ShadowCaster2D opts out for a stronger reason than the others: nothing on the 2D shadow
+            // path reads a normal, a tangent or a colour, and on its projected passes TANGENT is the
+            // geometry generator's payload (role, fanParam, prev.xy) rather than a tangent at all -- so
+            // a Normal or Tangent port there is not merely unused, it invites a silently wrong shadow.
+            // It registers the blocks it does want in its own GetActiveBlocks.
+            //
+            // Light2D opts out too, since its passes never read a normal, a tangent or a base colour.
+            // Any block reported active here is added to the graph when the Material changes (UUM-153138).
+            // It also registers its own blocks in its GetActiveBlocks.
+            bool useCoreBlocks = m_ActiveSubTarget.value is not (UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
+                or UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
+                or UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>
+                or UniversalShadowCaster2DSubTarget
+                or UniversalLight2DSubTarget);
 
             // Core blocks
             if (useCoreBlocks)
@@ -463,7 +632,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     context.AddBlock(BlockFields.VertexDescription.Normal);
                     context.AddBlock(BlockFields.VertexDescription.Tangent);
                 }
-                context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+                if (m_ActiveSubTarget.value is not UniversalUnlitSubTarget { writesColor: false })
+                    context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             }
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -531,7 +701,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                 context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                 {
-					registerUndo("Change Support VFX Graph");
+                    registerUndo("Change Support VFX Graph");
                     m_SupportVFX = m_SupportVFXToggle.value;
                 });
             }
@@ -555,6 +725,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             Always = 8,
         };
 
+        // this is a copy of CompareFunction, but hides the "Disabled" option, which is invalid
+        internal enum CompareFunctionUI
+        {
+            Never = CompareFunction.Never,
+            Less = CompareFunction.Less,
+            Equal = CompareFunction.Equal,
+            LessEqual = CompareFunction.LessEqual,
+            Greater = CompareFunction.Greater,
+            NotEqual = CompareFunction.NotEqual,
+            GreaterEqual = CompareFunction.GreaterEqual,
+            Always = CompareFunction.Always
+        }
+
         public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             // At some point we may want to convert this to be a per-property control
@@ -570,29 +753,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows)
+        public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows, bool writesColor = true)
         {
-            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+            if (writesColor)
             {
-                if (Equals(surfaceType, evt.newValue))
-                    return;
+                context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+                {
+                    if (Equals(surfaceType, evt.newValue))
+                        return;
 
-                registerUndo("Change Surface");
-                surfaceType = (SurfaceType)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Surface");
+                    surfaceType = (SurfaceType)evt.newValue;
+                    onChange();
+                });
 
-            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(alphaMode, evt.newValue))
-                    return;
+                context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
+                {
+                    if (Equals(alphaMode, evt.newValue))
+                        return;
 
-                registerUndo("Change Blend");
-                alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Blend");
+                    alphaMode = (AlphaMode)evt.newValue;
+                    onChange();
+                });
+            }
 
-            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            context.AddProperty("Render Face", "Which faces of the geometry are rendered.", 0, new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
             {
                 if (Equals(renderFace, evt.newValue))
                     return;
@@ -602,25 +788,253 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = zWriteControl }, (evt) =>
+            context.AddProperty("Override Depth", "Enable per-material depth write and depth test settings. When off, the shader uses the surface type's defaults (LEqual, Auto).", 0, new Toggle() { value = overrideDepthState }, (evt) =>
             {
-                if (Equals(zWriteControl, evt.newValue))
+                if (Equals(overrideDepthState, evt.newValue))
                     return;
 
-                registerUndo("Change Depth Write Control");
-                zWriteControl = (ZWriteControl)evt.newValue;
+                registerUndo("Change Override Depth");
+                overrideDepthState = evt.newValue;
                 onChange();
             });
 
-            context.AddProperty("Depth Test", new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)zTestMode }, (evt) =>
+            if (overrideDepthState)
             {
-                if (Equals(zTestMode, evt.newValue))
-                    return;
+                bool writeDepth = zWriteControl != ZWriteControl.ForceDisabled;
+                context.AddProperty("Write Depth", "Enable or disable depth buffer writes.", 1, new Toggle() { value = writeDepth }, (evt) =>
+                {
+                    if (Equals(writeDepth, evt.newValue))
+                        return;
 
-                registerUndo("Change Depth Test");
-                zTestMode = (ZTestMode)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Write Depth");
+                    zWriteControl = evt.newValue ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled;
+                    onChange();
+                });
+
+                context.AddProperty("Depth Test", "The comparison function used for depth testing.", 1, new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)zTestMode }, (evt) =>
+                {
+                    if (Equals(zTestMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Test");
+                    zTestMode = (ZTestMode)evt.newValue;
+                    onChange();
+                });
+            }
+
+            if (((UniversalSubTarget)activeSubTarget).supportsStencilOverride)
+            {
+                context.AddProperty("Override Stencil", "Enable per-material stencil ref, mask, comparison, and operation settings.", 0, new Toggle() { value = overrideStencilState }, (evt) =>
+                {
+                    if (Equals(overrideStencilState, evt.newValue))
+                        return;
+
+                    registerUndo("Change Override Stencil");
+                    overrideStencilState = evt.newValue;
+                    onChange();
+                });
+
+                if (overrideStencilState)
+                {
+                    // Stencil ref:
+                    var stencilRefField = CreateStencilMaskField(stencilReference);
+                    context.AddProperty(BaseShaderGUI.Styles.stencilRef.text, BaseShaderGUI.Styles.stencilRef.tooltip, 1, stencilRefField, (evt) =>
+                    {
+                        uint newValue = ClampToStencilUserMask(evt.newValue);
+                        if (newValue != evt.newValue)
+                            stencilRefField.SetValueWithoutNotify(newValue);
+                        if (Equals(stencilReference, newValue))
+                            return;
+
+                        registerUndo("Change Stencil Ref");
+                        stencilReference = newValue;
+                        onChange();
+                    });
+
+                    // Stencil read mask:
+                    var stencilReadMaskField = CreateStencilMaskField(stencilReadMask);
+                    context.AddProperty(BaseShaderGUI.Styles.stencilReadMask.text, BaseShaderGUI.Styles.stencilReadMask.tooltip, 1, stencilReadMaskField, (evt) =>
+                    {
+                        uint newValue = ClampToStencilUserMask(evt.newValue);
+                        if (newValue != evt.newValue)
+                            stencilReadMaskField.SetValueWithoutNotify(newValue);
+                        if (Equals(stencilReadMask, newValue))
+                            return;
+
+                        registerUndo("Change Stencil Read Mask");
+                        stencilReadMask = newValue;
+                        onChange();
+                    });
+
+                    // Stencil write mask:
+                    var stencilWriteMaskField = CreateStencilMaskField(stencilWriteMask);
+                    context.AddProperty(BaseShaderGUI.Styles.stencilWriteMask.text, BaseShaderGUI.Styles.stencilWriteMask.tooltip, 1, stencilWriteMaskField, (evt) =>
+                    {
+                        uint newValue = ClampToStencilUserMask(evt.newValue);
+                        if (newValue != evt.newValue)
+                            stencilWriteMaskField.SetValueWithoutNotify(newValue);
+                        if (Equals(stencilWriteMask, newValue))
+                            return;
+
+                        registerUndo("Change Stencil Write Mask");
+                        stencilWriteMask = newValue;
+                        onChange();
+                    });
+
+                    int stencilIndentLevel = 1 + (CoreRenderStates.RendersBothFaces(renderFace) ? 1 : 0);
+
+                    if (renderFace != RenderFace.Back)
+                    {
+                        if(CoreRenderStates.RendersBothFaces(renderFace))
+                            context.AddLabel("Front Face", 1);
+
+                        // Stencil comp func:
+                        context.AddProperty(BaseShaderGUI.Styles.stencilCompFunc.text, BaseShaderGUI.Styles.stencilCompFunc.tooltip, stencilIndentLevel, new EnumField(CompareFunctionUI.Always) { value = (CompareFunctionUI)stencilCompareFunction }, (evt) =>
+                        {
+                            if (Equals(stencilCompareFunction, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Comp Func");
+                            stencilCompareFunction = (CompareFunction)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil pass op:
+                        context.AddProperty(BaseShaderGUI.Styles.stencilPassOp.text, BaseShaderGUI.Styles.stencilPassOp.tooltip, stencilIndentLevel + 1, new EnumField(StencilOp.Keep) { value = stencilPassOperation }, (evt) =>
+                        {
+                            if (Equals(stencilPassOperation, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Pass Op");
+                            stencilPassOperation = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil fail op:
+                        context.AddProperty(BaseShaderGUI.Styles.stencilFailOp.text, BaseShaderGUI.Styles.stencilFailOp.tooltip, stencilIndentLevel + 1, new EnumField(StencilOp.Keep) { value = stencilFailOperation }, (evt) =>
+                        {
+                            if (Equals(stencilFailOperation, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Fail Op");
+                            stencilFailOperation = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil z-fail op:
+                        context.AddProperty(BaseShaderGUI.Styles.stencilZFailOp.text, BaseShaderGUI.Styles.stencilZFailOp.tooltip, stencilIndentLevel, new EnumField(StencilOp.Keep) { value = stencilZFailOperation }, (evt) =>
+                        {
+                            if (Equals(stencilZFailOperation, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil ZFail Op");
+                            stencilZFailOperation = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+                    }
+
+                    if (renderFace != RenderFace.Front)
+                    {
+                        if(CoreRenderStates.RendersBothFaces(renderFace))
+                            context.AddLabel("Back Face", 1);
+
+                        // Stencil comp func (back):
+                        context.AddProperty(BaseShaderGUI.Styles.stencilCompFunc.text, BaseShaderGUI.Styles.stencilCompFunc.tooltip, stencilIndentLevel, new EnumField(CompareFunctionUI.Always) { value = (CompareFunctionUI)stencilCompareFunctionBack }, (evt) =>
+                        {
+                            if (Equals(stencilCompareFunctionBack, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Comp Func (Back)");
+                            stencilCompareFunctionBack = (CompareFunction)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil pass op (back):
+                        context.AddProperty(BaseShaderGUI.Styles.stencilPassOp.text, BaseShaderGUI.Styles.stencilPassOp.tooltip, stencilIndentLevel + 1, new EnumField(StencilOp.Keep) { value = stencilPassOperationBack }, (evt) =>
+                        {
+                            if (Equals(stencilPassOperationBack, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Pass Op (Back)");
+                            stencilPassOperationBack = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil fail op (back):
+                        context.AddProperty(BaseShaderGUI.Styles.stencilFailOp.text, BaseShaderGUI.Styles.stencilFailOp.tooltip, stencilIndentLevel + 1, new EnumField(StencilOp.Keep) { value = stencilFailOperationBack }, (evt) =>
+                        {
+                            if (Equals(stencilFailOperationBack, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil Fail Op (Back)");
+                            stencilFailOperationBack = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+
+                        // Stencil z-fail op (back):
+                        context.AddProperty(BaseShaderGUI.Styles.stencilZFailOp.text, BaseShaderGUI.Styles.stencilZFailOp.tooltip, stencilIndentLevel, new EnumField(StencilOp.Keep) { value = stencilZFailOperationBack }, (evt) =>
+                        {
+                            if (Equals(stencilZFailOperationBack, evt.newValue))
+                                return;
+
+                            registerUndo("Change Stencil ZFail Op (Back)");
+                            stencilZFailOperationBack = (StencilOp)evt.newValue;
+                            onChange();
+                        });
+                    }
+                }
+            }
+
+            // Show the "Override Passes" dropdown when it's relevant:
+            if (allowMaterialOverride || overrideStencilState || overrideDepthState)
+            {
+                var stencilPassMaskField = new EnumFlagsField(default(DepthStencilPassMask));
+                var initialMask = depthStencilPassMask;
+                stencilPassMaskField.RegisterCallback<AttachToPanelEvent>(_ => stencilPassMaskField.SetValueWithoutNotify(initialMask));
+
+                context.AddProperty<Enum>("Override Passes", "Selects which passes the depth & stencil overrides apply to.", 0, stencilPassMaskField, (evt) =>
+                {
+                    var newMask = (DepthStencilPassMask)(object)evt.newValue;
+                    if (Equals(depthStencilPassMask, newMask))
+                        return;
+
+                    registerUndo("Change Override Passes");
+                    depthStencilPassMask = newMask;
+                    onChange();
+                });
+
+                // Shadowmap Stencil lives on the URP renderer and can change while this inspector is open.
+                // Re-evaluate when object changes are published (e.g. the user toggling it) so the warning
+                // tracks the renderer setting without requiring a graph edit to rebuild this inspector.
+                if (overrideStencilState && depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
+                {
+                    var warningBox = new HelpBox(EditorUtils.shadowmapStencilWarning, HelpBoxMessageType.Warning);
+
+                    void RefreshWarning() =>
+                        warningBox.style.display =
+                            EditorUtils.AnyActiveRendererHasShadowmapStencil() ? DisplayStyle.None : DisplayStyle.Flex;
+
+                    void OnObjectChanged(ref ObjectChangeEventStream stream) => RefreshWarning();
+
+                    warningBox.RegisterCallback<AttachToPanelEvent>(_ =>
+                    {
+                        RefreshWarning();
+                        ObjectChangeEvents.changesPublished += OnObjectChanged;
+                    });
+                    warningBox.RegisterCallback<DetachFromPanelEvent>(_ =>
+                        ObjectChangeEvents.changesPublished -= OnObjectChanged);
+
+                    context.hierarchy.Add(warningBox);
+                }
+
+                // No ShadowCaster pass is generated when Cast Shadows is off, so a Shadow Pass entry in
+                // the mask overrides nothing. castShadows is graph state, so this rebuilds on change.
+                if (depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass) && !castShadows)
+                {
+                    context.AddHelpBox(MessageType.Warning,
+                        "Shadow Pass override has no effect while Cast Shadows is off.");
+                }
+            }
 
             context.AddProperty("Alpha Clipping", "Avoid using when Alpha and AlphaThreshold are constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask)", 0, new Toggle() { value = alphaClip }, (evt) =>
             {
@@ -663,25 +1077,37 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Additional Motion Vectors", "Specifies how motion vectors for local Shader Graph position modifications are handled (on top of camera, transform, skeletal and Alembic motion vectors).", 0, new EnumField(AdditionalMotionVectorMode.None) { value = additionalMotionVectorMode }, (evt) =>
+            if (writesColor)
             {
-                if (Equals(additionalMotionVectorMode, evt.newValue))
-                    return;
+                context.AddProperty("Additional Motion Vectors", "Specifies how motion vectors for local Shader Graph position modifications are handled (on top of camera, transform, skeletal and Alembic motion vectors).", 0, new EnumField(AdditionalMotionVectorMode.None) { value = additionalMotionVectorMode }, (evt) =>
+                {
+                    if (Equals(additionalMotionVectorMode, evt.newValue))
+                        return;
 
-                registerUndo("Change Additional Motion Vectors");
-                additionalMotionVectorMode = (AdditionalMotionVectorMode)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Additional Motion Vectors");
+                    additionalMotionVectorMode = (AdditionalMotionVectorMode)evt.newValue;
+                    onChange();
+                });
 
-            context.AddProperty(EditorUtils.Styles.alembicMotionVectors.text, EditorUtils.Styles.alembicMotionVectors.tooltip, 0, new Toggle() {value = alembicMotionVectors}, (evt) =>
-            {
-                if (Equals(alembicMotionVectors, evt.newValue))
-                    return;
+                context.AddProperty(EditorUtils.Styles.alembicMotionVectors.text, EditorUtils.Styles.alembicMotionVectors.tooltip, 0, new Toggle() {value = alembicMotionVectors}, (evt) =>
+                {
+                    if (Equals(alembicMotionVectors, evt.newValue))
+                        return;
 
-                registerUndo("Change Alembic Motion Vectors");
-                alembicMotionVectors = evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Alembic Motion Vectors");
+                    alembicMotionVectors = evt.newValue;
+                    onChange();
+                });
+            }
+        }
+
+        static uint ClampToStencilUserMask(uint value) => System.Math.Min(value, (uint)StencilUsage.UserMask);
+
+        static UnsignedIntegerField CreateStencilMaskField(uint value)
+        {
+            // isDelayed so the value commits on Enter/blur, not per keystroke - each change rebuilds the
+            // SG inspector, which would otherwise recreate the field mid-edit and drop keyboard focus.
+            return new UnsignedIntegerField { value = ClampToStencilUserMask(value), isDelayed = true };
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -884,6 +1310,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     var oldSettings = JsonUtility.FromJson<UniversalTargetLegacySerialization>(json);
                     this.m_RenderFace = oldSettings.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                 }
+
                 ChangeVersion(latestVersion);
             }
         }
@@ -945,9 +1372,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             if (target.supportsLodCrossFade)
             {
-                pass.includes.Add(CoreIncludes.LODCrossFade);
                 pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
-                pass.defines.Add(CoreKeywordDescriptors.UseUnityCrossFade, 1);
             }
         }
 
@@ -973,10 +1398,42 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
                     else if (target.alphaMode == AlphaMode.Multiply)
                         pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+
+                    // To composit fog correctly, the material needs to know its blend mode.
+                    if (target.alphaMode == AlphaMode.Additive)
+                        pass.defines.Add(CoreKeywordDescriptors.BlendModeAdditive, 1);
+                    else if (target.alphaMode == AlphaMode.Premultiply)
+                        pass.defines.Add(CoreKeywordDescriptors.BlendModePremultiply, 1);
                 }
             }
 
             AddAlphaClipControlToPass(ref pass, target);
+        }
+
+        internal static void AddStencilStateControlToPass(ref PassDescriptor pass, UniversalTarget target, bool useDefaults = false)
+        {
+            if (target.activeSubTarget is not UniversalSubTarget { supportsStencilOverride: true })
+                return;
+            if (!target.overrideStencilState)
+                return;
+            // With allowMaterialOverride off, the SG-time mask is final: an empty mask means no stencil,
+            // so skip emission. With it on, values come from runtime material uniforms, so always emit.
+            if (!target.allowMaterialOverride && target.depthStencilPassMask == 0)
+                return;
+            pass.renderStates.Add(CoreRenderStates.StencilOverride(target, useDefaults));
+        }
+
+        internal static void AddDepthStateControlToPass(ref PassDescriptor pass, UniversalTarget target, bool useDefaults = false)
+        {
+            if (useDefaults)
+            {
+                pass.renderStates.Add(CoreRenderStates.DefaultZTest);
+                pass.renderStates.Add(CoreRenderStates.DefaultZWrite(target.surfaceType));
+            }
+            else
+            {
+                pass.renderStates.Add(CoreRenderStates.DepthRenderState(target));
+            }
         }
 
         // used by lit/unlit subtargets
@@ -1015,88 +1472,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             AddAlphaClipControlToPass(ref result, target);
             AddLODCrossFadeControlToPass(ref result, target);
-
-            return result;
-        }
-
-        // used by lit/unlit subtargets
-        public static PassDescriptor DepthNormal(UniversalTarget target)
-        {
-            var result = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALS",
-                lightMode = "DepthNormals",
-                useInPreview = true,
-
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
-                keywords = new KeywordCollection(),
-                includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            AddAlphaClipControlToPass(ref result, target);
-            AddLODCrossFadeControlToPass(ref result, target);
-
-            return result;
-        }
-
-        // used by lit/unlit subtargets
-        public static PassDescriptor DepthNormalOnly(UniversalTarget target)
-        {
-            var result = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormalsOnly",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormalsOnly",
-                useInPreview = true,
-
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
-                keywords = new KeywordCollection { CoreKeywordDescriptors.GBufferNormalsOct },
-                includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            AddAlphaClipControlToPass(ref result, target);
-            AddLODCrossFadeControlToPass(ref result, target);
+            AddStencilStateControlToPass(ref result, target,
+                useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
 
             return result;
         }
@@ -1137,6 +1514,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             AddAlphaClipControlToPass(ref result, target);
             AddLODCrossFadeControlToPass(ref result, target);
+            AddStencilStateControlToPass(ref result, target,
+                useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass));
 
             return result;
         }
@@ -1368,7 +1747,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.ScenePicking(target),
+                renderStates = CoreRenderStates.ScenePicking2D,
                 pragmas = CorePragmas._2DDefault,
                 defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
@@ -1485,6 +1864,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly string cullMode = "[" + Property.CullMode + "]";
             public static readonly string zWrite = "[" + Property.ZWrite + "]";
             public static readonly string zTest = "[" + Property.ZTest + "]";
+            public static readonly string stencilRef = "[" + Property.StencilRef + "]";
+            public static readonly string stencilReadMask = "[" + Property.StencilReadMask + "]";
+            public static readonly string stencilWriteMask = "[" + Property.StencilWriteMask + "]";
+            public static readonly string stencilCompFunc = "[" + Property.StencilCompFunc + "]";
+            public static readonly string stencilPassOp = "[" + Property.StencilPassOp + "]";
+            public static readonly string stencilFailOp = "[" + Property.StencilFailOp + "]";
+            public static readonly string stencilZFailOp = "[" + Property.StencilZFailOp + "]";
+            public static readonly string stencilCompFuncBack = "[" + Property.StencilCompFuncBack + "]";
+            public static readonly string stencilPassOpBack = "[" + Property.StencilPassOpBack + "]";
+            public static readonly string stencilFailOpBack = "[" + Property.StencilFailOpBack + "]";
+            public static readonly string stencilZFailOpBack = "[" + Property.StencilZFailOpBack + "]";
+            public static readonly string stencilCompFuncDefault = "[" + Property.StencilCompFuncDefault + "]";
+            public static readonly string stencilPassOpDefault = "[" + Property.StencilPassOpDefault + "]";
+            public static readonly string stencilFailOpDefault = "[" + Property.StencilFailOpDefault + "]";
+            public static readonly string stencilZFailOpDefault = "[" + Property.StencilZFailOpDefault + "]";
+            public static readonly string stencilCompFuncDefaultBack = "[" + Property.StencilCompFuncDefaultBack + "]";
+            public static readonly string stencilPassOpDefaultBack = "[" + Property.StencilPassOpDefaultBack + "]";
+            public static readonly string stencilFailOpDefaultBack = "[" + Property.StencilFailOpDefaultBack + "]";
+            public static readonly string stencilZFailOpDefaultBack = "[" + Property.StencilZFailOpDefaultBack + "]";
         }
 
         // used by sprite targets, NOT used by lit/unlit anymore
@@ -1498,6 +1896,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
+
+        public static bool RendersBothFaces(RenderFace renderFace)
+        {
+            return renderFace == RenderFace.Both;
+        }
 
         public static Cull RenderFaceToCull(RenderFace renderFace)
         {
@@ -1513,6 +1916,45 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return Cull.Back;
         }
 
+        public static RenderStateDescriptor DefaultZWrite(SurfaceType surfaceType) => RenderState.ZWrite(surfaceType == SurfaceType.Opaque ? ZWrite.On : ZWrite.Off);
+
+        public static RenderStateDescriptor DefaultZTest => RenderState.ZTest(ZTest.LEqual);
+
+        public static RenderStateCollection DepthRenderState(UniversalTarget target)
+        {
+            if (target.allowMaterialOverride)
+            {
+                return new RenderStateCollection
+                {
+                    RenderState.ZTest(Uniforms.zTest),
+                    RenderState.ZWrite(Uniforms.zWrite)
+                };
+            }
+
+            var result = new RenderStateCollection
+            {
+                RenderState.ZTest(target.zTestMode.ToString())
+            };
+
+            switch (target.zWriteControl)
+            {
+                case ZWriteControl.Auto:
+                    result.Add(DefaultZWrite(target.surfaceType));
+                    break;
+
+                case ZWriteControl.ForceEnabled:
+                    result.Add(RenderState.ZWrite(ZWrite.On));
+                    break;
+
+                case ZWriteControl.ForceDisabled:
+                default:
+                    result.Add(RenderState.ZWrite(ZWrite.Off));
+                    break;
+            }
+
+            return result;
+        }
+
         // used by lit/unlit subtargets
         public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target, bool blendModePreserveSpecular = false)
         {
@@ -1520,8 +1962,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 return new RenderStateCollection
                 {
-                    RenderState.ZTest(Uniforms.zTest),
-                    RenderState.ZWrite(Uniforms.zWrite),
                     RenderState.Cull(Uniforms.cullMode),
                     RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.srcBlendAlpha, Uniforms.dstBlendAlpha),
                 };
@@ -1530,21 +1970,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 var result = new RenderStateCollection();
 
-                result.Add(RenderState.ZTest(target.zTestMode.ToString()));
-
-                if (target.zWriteControl == ZWriteControl.Auto)
-                {
-                    if (target.surfaceType == SurfaceType.Opaque)
-                        result.Add(RenderState.ZWrite(ZWrite.On));
-                    else
-                        result.Add(RenderState.ZWrite(ZWrite.Off));
-                }
-                else if (target.zWriteControl == ZWriteControl.ForceEnabled)
-                    result.Add(RenderState.ZWrite(ZWrite.On));
-                else
-                    result.Add(RenderState.ZWrite(ZWrite.Off));
-
-                result.Add(RenderState.Cull(RenderFaceToCull(target.renderFace)));
+                result.Add(UberSwitchedCullRenderState(target));
 
                 if (target.surfaceType == SurfaceType.Opaque)
                 {
@@ -1572,9 +1998,112 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     }
                 }
 
-
                 return result;
             }
+        }
+
+        public static RenderStateCollection StencilOverride(UniversalTarget target, bool useDefaults = false)
+        {
+            if (!target.overrideStencilState)
+                return new RenderStateCollection();
+
+            // No-op block: Comp = Always + all ops = Keep makes the stencil block have no visible effect,
+            // regardless of Ref / ReadMask / WriteMask. Used for passes whose bit isn't set in the
+            // SG-time DepthStencilPassMask, so the structure stays uniform across all stencil-overrideable passes.
+            if (useDefaults)
+            {
+                if (target.allowMaterialOverride)
+                {
+                    return new RenderStateCollection
+                    {
+                        RenderState.Stencil(new StencilDescriptor
+                        {
+                            Ref = "0",
+                            ReadMask = "0",
+                            WriteMask = "0",
+                            // Material override owns the cull mode, so always emit both faces -
+                            // the material can pick any RenderFace regardless of the SG-time value.
+                            Comp  = Uniforms.stencilCompFuncDefault,
+                            Pass  = Uniforms.stencilPassOpDefault,
+                            Fail  = Uniforms.stencilFailOpDefault,
+                            ZFail = Uniforms.stencilZFailOpDefault,
+                            CompBack  = Uniforms.stencilCompFuncDefaultBack,
+                            PassBack  = Uniforms.stencilPassOpDefaultBack,
+                            FailBack  = Uniforms.stencilFailOpDefaultBack,
+                            ZFailBack = Uniforms.stencilZFailOpDefaultBack,
+                        }),
+                    };
+                }
+
+                return new RenderStateCollection
+                {
+                    RenderState.Stencil(new StencilDescriptor
+                    {
+                        Ref = "0",
+                        ReadMask = "0",
+                        WriteMask = "0",
+                        Comp  = StencilExtensions.CompFuncToShaderLabString(CompareFunction.Always),
+                        Pass  = StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep),
+                        Fail  = StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep),
+                        ZFail = StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep),
+                        CompBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.CompFuncToShaderLabString(CompareFunction.Always) : null,
+                        PassBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep) : null,
+                        FailBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep) : null,
+                        ZFailBack = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(StencilOp.Keep) : null,
+                    })
+                };
+            }
+
+            if (target.allowMaterialOverride)
+            {
+                return new RenderStateCollection
+                {
+                    RenderState.Stencil(new StencilDescriptor
+                    {
+                        Ref = Uniforms.stencilRef,
+                        ReadMask = Uniforms.stencilReadMask,
+                        WriteMask = Uniforms.stencilWriteMask,
+                        // Material override owns the cull mode, so always emit both faces -
+                        // the material can pick any RenderFace regardless of the SG-time value.
+                        Comp  = Uniforms.stencilCompFunc,
+                        Pass  = Uniforms.stencilPassOp,
+                        Fail  = Uniforms.stencilFailOp,
+                        ZFail = Uniforms.stencilZFailOp,
+                        CompBack  = Uniforms.stencilCompFuncBack,
+                        PassBack  = Uniforms.stencilPassOpBack,
+                        FailBack  = Uniforms.stencilFailOpBack,
+                        ZFailBack = Uniforms.stencilZFailOpBack,
+                    }),
+                };
+            }
+
+            return new RenderStateCollection
+            {
+                RenderState.Stencil(new StencilDescriptor
+                {
+                    Ref = target.stencilReference.ToString(),
+                    ReadMask = target.stencilReadMask.ToString(),
+                    WriteMask = target.stencilWriteMask.ToString(),
+                    Comp  = StencilExtensions.CompFuncToShaderLabString( target.renderFace != RenderFace.Back ? target.stencilCompareFunction : target.stencilCompareFunctionBack),
+                    Pass  = StencilExtensions.StencilOpToShaderLabString(target.renderFace != RenderFace.Back ? target.stencilPassOperation   : target.stencilPassOperationBack),
+                    Fail  = StencilExtensions.StencilOpToShaderLabString(target.renderFace != RenderFace.Back ? target.stencilFailOperation   : target.stencilFailOperationBack),
+                    ZFail = StencilExtensions.StencilOpToShaderLabString(target.renderFace != RenderFace.Back ? target.stencilZFailOperation  : target.stencilZFailOperationBack),
+                    CompBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.CompFuncToShaderLabString(target.stencilCompareFunctionBack) : null,
+                    PassBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(target.stencilPassOperationBack)  : null,
+                    FailBack  = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(target.stencilFailOperationBack)  : null,
+                    ZFailBack = RendersBothFaces(target.renderFace) ? StencilExtensions.StencilOpToShaderLabString(target.stencilZFailOperationBack) : null,
+                })
+            };
+        }
+
+        // used by unlit no-color forward pass (writes depth/stencil only)
+        public static RenderStateCollection ForwardNoColor(UniversalTarget target)
+        {
+            return new RenderStateCollection
+            {
+                UberSwitchedCullRenderState(target),
+                RenderState.ColorMask("ColorMask 0"),
+            };
         }
 
         // used by lit target ONLY
@@ -1587,8 +2116,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             if (target.allowMaterialOverride)
                 return RenderState.Cull(Uniforms.cullMode);
-            else
-                return RenderState.Cull(RenderFaceToCull(target.renderFace));
+            return RenderState.Cull(RenderFaceToCull(target.renderFace));
         }
 
         public static RenderStateCollection MotionVector(UniversalTarget target)
@@ -1624,11 +2152,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var result = new RenderStateCollection
             {
-                { RenderState.ZTest(ZTest.LEqual) },
-                { RenderState.ZWrite(ZWrite.On) },
                 { UberSwitchedCullRenderState(target) },
                 { RenderState.ColorMask("ColorMask 0") },
             };
+
+            if (!target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
+            {
+                result.Add(RenderState.ZTest(ZTest.LEqual));
+                result.Add(RenderState.ZWrite(ZWrite.On));
+            }
+            else
+            {
+                result.Add(DepthRenderState(target));
+            }
+
             return result;
         }
 
@@ -1637,11 +2174,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var result = new RenderStateCollection
             {
-                { RenderState.ZTest(ZTest.LEqual) },
-                { RenderState.ZWrite(ZWrite.On) },
                 { UberSwitchedCullRenderState(target) },
                 { RenderState.ColorMask("ColorMask R") },
             };
+
+            if (!target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass))
+            {
+                result.Add(RenderState.ZTest(ZTest.LEqual));
+                result.Add(RenderState.ZWrite(ZWrite.On));
+            }
+            else
+            {
+                result.Add(DepthRenderState(target));
+            }
 
             return result;
         }
@@ -1651,10 +2196,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var result = new RenderStateCollection
             {
-                { RenderState.ZTest(ZTest.LEqual) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { UberSwitchedCullRenderState(target) }
+                UberSwitchedCullRenderState(target)
             };
+
+            if (!target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass))
+            {
+                result.Add(RenderState.ZTest(ZTest.LEqual));
+                result.Add(RenderState.ZWrite(ZWrite.On));
+            }
+            else
+            {
+                result.Add(DepthRenderState(target));
+            }
 
             return result;
         }
@@ -1679,6 +2232,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        public static RenderStateCollection ScenePicking2D = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+        };
     }
     #endregion
 
@@ -1772,6 +2331,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kFoveatedRenderingKeywords = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
         const string kFoveatedRendering = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl";
         const string kMipmapDebugMacros = "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl";
+        const string kPackNormalsTexture = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl";
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
@@ -1790,7 +2350,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kMipmapDebugMacros, IncludeLocation.Pregraph}
+            { kMipmapDebugMacros, IncludeLocation.Pregraph },
+            { kLODCrossFade, IncludeLocation.Pregraph }
         };
 
         public static readonly IncludeCollection DOTSPregraph = new IncludeCollection
@@ -1843,6 +2404,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { WriteRenderLayersPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
+            { kPackNormalsTexture, IncludeLocation.Pregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1913,11 +2475,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kSelectionPickingPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection LODCrossFade = new IncludeCollection
-        {
-            { kLODCrossFade, IncludeLocation.Pregraph }
         };
 
         public static readonly IncludeCollection GBufferOutputFormat = new IncludeCollection
@@ -2025,6 +2582,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings._ALPHAMODULATE_ON,
             referenceName = ShaderKeywordStrings._ALPHAMODULATE_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor BlendModePremultiply = new KeywordDescriptor()
+        {
+            displayName = "_BLENDMODE_PREMULTIPLY",
+            referenceName = "_BLENDMODE_PREMULTIPLY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor BlendModeAdditive = new KeywordDescriptor()
+        {
+            displayName = "_BLENDMODE_ADDITIVE",
+            referenceName = "_BLENDMODE_ADDITIVE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ReceiveFog = new KeywordDescriptor()
+        {
+            displayName = "_TRANSPARENT_RECEIVE_FOG",
+            referenceName = "_TRANSPARENT_RECEIVE_FOG",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
@@ -2163,15 +2750,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new KeywordEntry() { displayName = "Soft Shadows Medium", referenceName = "SHADOWS_SOFT_MEDIUM" },
                 new KeywordEntry() { displayName = "Soft Shadows High", referenceName = "SHADOWS_SOFT_HIGH" },
             }
-        };
-
-        public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
-        {
-            displayName = "Mixed Lighting Subtractive",
-            referenceName = "_MIXED_LIGHTING_SUBTRACTIVE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
         };
 
         public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
@@ -2341,6 +2919,40 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor VolumetricFog = new KeywordDescriptor()
+        {
+            displayName = "Volumetric Fog",
+            referenceName = "_VOLUMETRIC_FOG",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor FogMode = new KeywordDescriptor()
+        {
+            displayName = "Fog Mode",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Analytic", referenceName = "FOG_ANALYTIC" },
+                new KeywordEntry() { displayName = "Volumetric", referenceName = "FOG_VOLUMETRIC" },
+            }
+        };
+
+        public static readonly KeywordDescriptor LightFalloffQuadratic = new KeywordDescriptor()
+        {
+            displayName = "Light Falloff Quadratic",
+            referenceName = "_LIGHT_FALLOFF_QUADRATIC",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
             displayName = "Cluster Light Loop",
@@ -2348,6 +2960,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment
         };
 
         public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
@@ -2374,16 +2987,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //       when crossfade is active, so all stages are affected by the
             //       LOD_FADE_CROSSFADE keyword.
             scope = KeywordScope.Global
-        };
-
-        public static readonly KeywordDescriptor UseUnityCrossFade = new KeywordDescriptor()
-        {
-            displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
-            referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
@@ -2431,7 +3034,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global
+            scope = KeywordScope.Global,
         };
 
         public static readonly KeywordDescriptor XRMotionVectors = new KeywordDescriptor()
@@ -2456,6 +3059,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "ReflectionProbe Rotation",
             referenceName = ShaderKeywordStrings.ReflectionProbeRotation,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+
+        public static readonly KeywordDescriptor Exposure = new KeywordDescriptor()
+        {
+            displayName = "Exposure",
+            referenceName = ShaderKeywordStrings.Exposure,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
@@ -2495,4 +3107,5 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         };
     }
     #endregion
+
 }

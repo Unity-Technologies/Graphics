@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override string isDisabledMessage => "Converter requires URP with a Renderer 2D. Convert your project to URP to use this converter.";
+        public override string isDisabledMessage => "Converter requires URP with a 2D Renderer. Convert your project to URP to use this converter.";
 
         private bool m_Initialized = false;
 
@@ -69,6 +69,12 @@ namespace UnityEditor.Rendering.Universal
                 InitializeIfNeeded();
                 return m_ContextSearchQueriesAndIds;
             }
+        }
+
+        protected override IEnumerable<Material> GetSourceMaterials()
+        {
+            var urpMaterials = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorMaterials>();
+            return new[] { urpMaterials.defaultMaterial, urpMaterials.simpleLitMaterial };
         }
 
         protected override Dictionary<string, Func<Material>> materialMappings

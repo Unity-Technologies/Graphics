@@ -102,6 +102,13 @@ CBUFFER_START(UnityPerDraw)
     //W : Camera only
     float4 unity_MotionVectorsParams;
 
+    // Sprite.
+    float4 unity_SpriteColor;
+    //X : FlipX
+    //Y : FlipY
+    //Z : Reserved for future use.
+    //W : Reserved for future use.
+    float4 unity_SpriteProps;
 CBUFFER_END
 
 static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
@@ -372,8 +379,13 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     // | 0 0 0 1 |  | 0 0 x 0 |  | 0 0 x x |
     // Notice that some values are always 0.
     // We can avoid loading and doing math with constants.
+    // But not true under Vulkan swapchain pre-transform: a 90/270 degree rotation swaps rows 0 and 1
+    // (Runtime/GfxDevice/vulkan/VKPreTransform.cpp), moving the scale terms onto _21/_12; exactly
+    // the entries cleared below, which would leave UNITY_MATRIX_P with an all-zero 2x2
+#ifndef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     M._21_41 = 0;
     M._12_42 = 0;
+#endif
     return M;
 }
 

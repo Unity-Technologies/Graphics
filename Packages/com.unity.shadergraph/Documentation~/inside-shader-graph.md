@@ -21,3 +21,4 @@ Learn about Shader Graph concepts and features.
 | [Shader Stage](Shader-Stage.md) | Learn about shader stages that apply to specific ports according to their context compatibility. |
 | [Surface options](surface-options.md) | Modify a specific set of properties for certain render pipeline targets. |
 | [Custom Interpolators](Custom-Interpolators.md) | Pass custom data from the vertex context to the fragment context. |
+| [Introduction to particle shaders](Particle-Shaders-Introduction.md) | Learn how a shader graph reads per-particle data, and which prebuilt assets to start from when you create a shader for a particle effect. |

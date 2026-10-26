@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -48,6 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly float k_DefaultOzoneMinimumAltitude = 20.0f * 1000.0f; // 20km
         static readonly float k_DefaultOzoneLayerWidth = 20.0f * 1000.0f; // 20km
 
+        [NoAutoStaticsCleanup]
         internal static Material s_DefaultMaterial = null;
 
         /// <summary> Indicates a preset HDRP uses to simplify the Inspector. </summary>
@@ -626,11 +628,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns> PhysicallyBasedSkyRenderer type. </returns>
         public override Type GetSkyRendererType() { return typeof(PhysicallyBasedSkyRenderer); }
 
-        /// <summary>
-        /// Called though reflection by the VolumeManager.
-        /// </summary>
+        // Invoked via reflection by VolumeManager.InitializeVolumeComponents()
         static void Init()
         {
+            s_DefaultMaterial = null;
+
             if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>(out var materials))
             {
                 s_DefaultMaterial = materials.pbrSkyMaterial;

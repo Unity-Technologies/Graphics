@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.Universal.Tests
         GameObject m_DecalProjector2;
         DecalEntityManager m_EntityManager;
         Shader m_Shader;
+        Material m_Material;
+        Material m_Material2;
 
         [SetUp]
         public void Setup()
@@ -22,6 +24,8 @@ namespace UnityEngine.Rendering.Universal.Tests
         public void Cleanup()
         {
             m_EntityManager.Dispose();
+            Object.DestroyImmediate(m_Material);
+            Object.DestroyImmediate(m_Material2);
             Object.DestroyImmediate(m_DecalProjector);
             Object.DestroyImmediate(m_DecalProjector2);
         }
@@ -29,10 +33,13 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void DecalDestroyEmptyChunk()
         {
+            m_Material = new Material(m_Shader);
+            m_Material2 = new Material(m_Shader);
+
             var decalProjector = m_DecalProjector.AddComponent<DecalProjector>();
-            decalProjector.material = new Material(m_Shader);
+            decalProjector.material = m_Material;
             var decalProjector2 = m_DecalProjector.AddComponent<DecalProjector>();
-            decalProjector2.material = new Material(m_Shader);
+            decalProjector2.material = m_Material2;
 
             var entity = m_EntityManager.CreateDecalEntity(decalProjector);
             var entity2 = m_EntityManager.CreateDecalEntity(decalProjector2);

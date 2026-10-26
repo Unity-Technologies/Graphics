@@ -10,27 +10,27 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Styles
         {
-            public static readonly GUIContent bufferClearColorMode = EditorGUIUtility.TrTextContent("Clear Mode");
-            public static readonly GUIContent bufferClearBackgroundColorHDR = EditorGUIUtility.TrTextContent("Background Color");
-            public static readonly GUIContent bufferClearClearDepth = EditorGUIUtility.TrTextContent("Clear Depth");
-            public static readonly GUIContent volumesLayerMask = EditorGUIUtility.TrTextContent("Volume Layer Mask");
-            public static readonly GUIContent volumesAnchorOverride = EditorGUIUtility.TrTextContent("Volume Anchor Override");
-            public static readonly GUIContent cullingUseOcclusionCulling = EditorGUIUtility.TrTextContent("Occlusion Culling");
-            public static readonly GUIContent cullingCullingMask = EditorGUIUtility.TrTextContent("Culling Mask");
-            public static readonly GUIContent cullingInvertFaceCulling = EditorGUIUtility.TrTextContent("Invert Backface Culling");
-            public static readonly GUIContent frustumAspect = EditorGUIUtility.TrTextContent("Aspect");
-            public static readonly GUIContent frustumFieldOfView = EditorGUIUtility.TrTextContent("Field Of View");
-            public static readonly GUIContent clippingPlanesLabel = EditorGUIUtility.TrTextContent("Clipping Planes");
+            public static readonly GUIContent bufferClearColorMode = L10n.TextContent("Clear Mode", null, null, null);
+            public static readonly GUIContent bufferClearBackgroundColorHDR = L10n.TextContent("Background Color", null, null, null);
+            public static readonly GUIContent bufferClearClearDepth = L10n.TextContent("Clear Depth", null, null, null);
+            public static readonly GUIContent volumesLayerMask = L10n.TextContent("Volume Layer Mask", null, null, null);
+            public static readonly GUIContent volumesAnchorOverride = L10n.TextContent("Volume Anchor Override", null, null, null);
+            public static readonly GUIContent cullingUseOcclusionCulling = L10n.TextContent("Occlusion Culling", null, null, null);
+            public static readonly GUIContent cullingCullingMask = L10n.TextContent("Culling Mask", null, null, null);
+            public static readonly GUIContent cullingInvertFaceCulling = L10n.TextContent("Invert Backface Culling", null, null, null);
+            public static readonly GUIContent frustumAspect = L10n.TextContent("Aspect", null, null, null);
+            public static readonly GUIContent frustumFieldOfView = L10n.TextContent("Field Of View", null, null, null);
+            public static readonly GUIContent clippingPlanesLabel = L10n.TextContent("Clipping Planes", null, null, null);
             public static readonly GUIContent[] clippingPlanes = new[]
             {
-                EditorGUIUtility.TrTextContent("Near"),
-                EditorGUIUtility.TrTextContent("Far"),
+                L10n.TextContent("Near", null, null, null),
+                L10n.TextContent("Far", null, null, null),
             };
-            public static readonly GUIContent frustumFarClipPlane = EditorGUIUtility.TrTextContent("Far Clip Plane"); //alone version
-            public static readonly GUIContent frustumNearClipPlane = EditorGUIUtility.TrTextContent("Near Clip Plane"); //alone version
-            public static readonly GUIContent flipYMode = EditorGUIUtility.TrTextContent("Flip Y");
-            public static readonly GUIContent probeLayerMask = EditorGUIUtility.TrTextContent("Probe Layer Mask");
-            public static readonly GUIContent customRenderingSettings = EditorGUIUtility.TrTextContent("Custom Frame Settings");
+            public static readonly GUIContent frustumFarClipPlane = L10n.TextContent("Far Clip Plane", null, null, null); //alone version
+            public static readonly GUIContent frustumNearClipPlane = L10n.TextContent("Near Clip Plane", null, null, null); //alone version
+            public static readonly GUIContent flipYMode = L10n.TextContent("Flip Y", null, null, null);
+            public static readonly GUIContent probeLayerMask = L10n.TextContent("Probe Layer Mask", null, null, null);
+            public static readonly GUIContent customRenderingSettings = L10n.TextContent("Custom Frame Settings", null, null, null);
         }
 
         public static void Draw(
@@ -43,9 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 | CameraSettingsFields.bufferClearColorMode;
             const CameraSettingsFields volumesFields = CameraSettingsFields.volumesAnchorOverride
                 | CameraSettingsFields.volumesLayerMask;
+            #pragma warning disable CS0618
             const CameraSettingsFields cullingFields = CameraSettingsFields.cullingCullingMask
                 | CameraSettingsFields.cullingInvertFaceCulling
                 | CameraSettingsFields.cullingUseOcclusionCulling;
+            #pragma warning restore CS0618
             const CameraSettingsFields frustumFields = CameraSettingsFields.frustumAspect
                 | CameraSettingsFields.frustumFarClipPlane
                 | CameraSettingsFields.frustumMode
@@ -71,7 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((displayedFields.camera & cullingFields) != 0)
             {
+                #pragma warning disable CS0618
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, Styles.cullingUseOcclusionCulling, displayedFields.camera);
+                #pragma warning restore CS0618
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingCullingMask, serialized.cullingCullingMask, Styles.cullingCullingMask, displayedFields.camera);
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingInvertFaceCulling, serialized.cullingInvertFaceCulling, Styles.cullingInvertFaceCulling, displayedFields.camera);
                 EditorGUILayout.Space();

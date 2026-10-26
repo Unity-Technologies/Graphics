@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -179,6 +180,8 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_AlphaClip", 1.0f);
             }
 
+            UpdateEmissionMode(material);
+
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
@@ -248,6 +251,15 @@ namespace UnityEditor.Rendering.Universal
             {
                 material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
+            }
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
             }
         }
 
@@ -321,9 +333,19 @@ namespace UnityEditor.Rendering.Universal
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != 0;
+            material.globalIlluminationFlags |= shouldEmissionBeEnabled ? MaterialGlobalIlluminationFlags.RealtimeDirectEmission : MaterialGlobalIlluminationFlags.None;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
             MaterialUpgradeUtils.DisableKeywords(material);
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
+            }
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
@@ -400,14 +422,16 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit),
-                    UpdateStandardSurface);
+                RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.ParticlesLit), UpdateStandardSurface);
                 RenameFloat("_Glossiness", "_Smoothness");
             }
 
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
+
+            // Forward the _EMISSION keyword state from old shader to new shader
+            TransferKeyword("_EMISSION");
         }
 
         /// <summary>
@@ -416,8 +440,11 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateStandardSurface(Material material)
         {
+            UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
+            ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
+            FixEmissiveFlags(material);
         }
 
         /// <summary>
@@ -426,8 +453,54 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateUnlit(Material material)
         {
+            UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
+            ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
+            FixEmissiveFlags(material);
+        }
+
+        /// <summary>
+        /// Fixes emission keyword and global illumination flags on the upgraded material.
+        /// Call this in the finalizer after the _EMISSION keyword has been forwarded.
+        /// </summary>
+        /// <param name="material">The upgraded material with the new shader.</param>
+        static void FixEmissiveFlags(Material material)
+        {
+            if (material == null)
+                return;
+
+            // If _EMISSION keyword is enabled, ensure globalIlluminationFlags are set correctly
+            if (material.IsKeywordEnabled("_EMISSION"))
+            {
+                LightingSettings lightingSettingsOrDefaultsFallback = Lightmapping.GetLightingSettingsOrDefaultsFallback();
+#pragma warning disable 618
+                MaterialGlobalIlluminationFlags materialGlobalIlluminationFlags =
+                    MaterialGlobalIlluminationFlags.RealtimeDirectEmission |
+                    (lightingSettingsOrDefaultsFallback.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeIndirectEmission :
+                    (lightingSettingsOrDefaultsFallback.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmission :
+                    MaterialGlobalIlluminationFlags.None));
+#pragma warning restore 618
+                material.globalIlluminationFlags = materialGlobalIlluminationFlags;
+            }
+
+            // Fix emission checkbox appearing enabled after conversion when it was disabled in BiRP.
+            // BiRP Particles that never had emission toggled in inspector have None flags by default,
+            // but the emission checkbox checks if flags != EmissiveIsBlack (see MaterialEditor.EmissionEnabledProperty).
+            // Set EmissiveIsBlack to match what BiRP Standard does when emission is unchecked.
+            else if (material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+        }
+
+        private static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
+            }
         }
 
         /// <summary>
@@ -462,7 +535,11 @@ namespace UnityEditor.Rendering.Universal
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Additive);
                     break;
-                case 5: // sub > none
+                case 5: // sub > transparent with Subtractive color mode
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
+                    material.SetFloat("_Blend", (int)UpgradeBlendMode.Alpha);
+                    material.SetFloat("_ColorMode", 2f); // ParticleGUI.ColorMode.Subtractive
                     break;
                 case 6: // mod > multiply
                     material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");

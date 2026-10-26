@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -853,10 +854,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdatePreviewTexture()
         {
-            if (m_PreviewRenderData.texture == null || !node.previewExpanded)
+            if (!node.previewExpanded)
             {
                 m_PreviewImage.visible = false;
                 m_PreviewImage.image = Texture2D.blackTexture;
+            }
+            else if (m_PreviewRenderData.texture == null)
+            {
+                // Expanded but no texture (e.g. shader failed to compile). Keep visible so the
+                // collapse button (child of m_PreviewImage) stays pickable; tint to clear so nothing renders.
+                m_PreviewImage.visible = true;
+                m_PreviewImage.image = Texture2D.blackTexture;
+                m_PreviewImage.tintColor = Color.clear;
             }
             else
             {

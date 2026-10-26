@@ -1,5 +1,3 @@
-#if SURFACE_CACHE
-
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -8,249 +6,260 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(SurfaceCacheGIVolumeOverride))]
     internal class SurfaceCacheGIVolumeEditor : VolumeComponentEditor
     {
-        protected SerializedDataParameter m_Quality;
+        protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
+        private bool m_QualityDirty = true;
 
-        protected SerializedDataParameter m_MultiBounce;
-        protected SerializedDataParameter m_BouncePatchAllocation;
-        protected SerializedDataParameter m_SampleCount;
+        protected SerializedDataParameter m_Enabled;
+        protected SerializedDataParameter m_Intensity;
 
-        protected SerializedDataParameter m_TemporalSmoothing;
-        protected SerializedDataParameter m_SpatialFilterEnabled;
-        protected SerializedDataParameter m_SpatialSampleCount;
-        protected SerializedDataParameter m_SpatialRadius;
-        protected SerializedDataParameter m_TemporalPostFilter;
+        protected SerializedDataParameter m_LightTransportMultiBounce;
+        protected SerializedDataParameter m_LightTransportBouncePatchAllocation;
+        protected SerializedDataParameter m_LightTransportSampleCount;
+        protected SerializedDataParameter m_LightTransportDefragCount;
+        protected SerializedDataParameter m_LightTransportRenderingLayerMask;
+        protected SerializedDataParameter m_LightTransportWarmUpSampleMultiplier;
+        protected SerializedDataParameter m_LightTransportPunctualLightCandidateCount;
 
-        protected SerializedDataParameter m_LookupSampleCount;
-        protected SerializedDataParameter m_UpsamplingKernelSize;
-        protected SerializedDataParameter m_UpsamplingSampleCount;
+        protected SerializedDataParameter m_PatchFilteringTemporalSmoothing;
+        protected SerializedDataParameter m_PatchFilteringSpatialEnabled;
+        protected SerializedDataParameter m_PatchFilteringSpatialSampleCount;
+        protected SerializedDataParameter m_PatchFilteringSpatialRadius;
+        protected SerializedDataParameter m_PatchFilteringPostTemporalEnabled;
+
+        protected SerializedDataParameter m_ScreenFilteringLookupSampleCount;
+        protected SerializedDataParameter m_ScreenFilteringDenoisingPassCount;
 
         protected SerializedDataParameter m_VolumeSize;
         protected SerializedDataParameter m_VolumeResolution;
         protected SerializedDataParameter m_VolumeCascadeCount;
+        protected SerializedDataParameter m_VolumeDistanceFallback;
+        protected SerializedDataParameter m_VolumePatchWarpingEnabled;
 
-        protected SerializedDataParameter m_CascadeMovement;
+        // The Focus Target is serialized on the owning Volume's GameObject (Volume.m_SceneObjectReference), not in
+        // the profile, so it is edited through this SerializedObject rather than a SerializedDataParameter.
+        const string k_ReferenceProp = "m_SceneObjectReference";
+        const string k_OverrideStateProp = "m_OverrideState";
+        const string k_ValueProp = "m_Value";
+        // Mirror VolumeComponentEditor's override-checkbox gutter so the Focus Target row aligns with parameter rows.
+        const float k_OverrideCheckboxWidth = 14f;
+        const float k_OverrideCheckboxOffset = 9f;
+        SerializedObject m_VolumeSerializedObject;
 
-        protected SerializedDataParameter m_DefragCount;
-
-        struct LightTransportSetting
-        {
-            public bool multiBounce;
-            public bool bouncePatchAllocation;
-            public int sampleCount;
-        }
-
-        struct PatchFilteringSetting
-        {
-            public float temporalSmoothing;
-            public bool spatialFilterEnabled;
-            public int spatialSampleCount;
-            public float spatialRadius;
-            public bool temporalPostFilter;
-        }
-
-        struct ScreenFilteringSetting
-        {
-            public int lookupSampleCount;
-            public float upsamplingKernelSize;
-            public int upsamplingSampleCount;
-        }
-
-        struct QualitySetting
-        {
-            public LightTransportSetting lightTransport;
-            public PatchFilteringSetting patchFiltering;
-            public ScreenFilteringSetting screenFiltering;
-        }
-
-        // Quality preset definitions; indexed by SurfaceCacheGIQuality (Low=0, Medium=1, High=2, Ultra=3).
-        static readonly QualitySetting[] k_QualityPresets =
-        {
-            // Low
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = false, bouncePatchAllocation = false, sampleCount = 1 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.9f, spatialFilterEnabled = false, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = false },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 4, upsamplingKernelSize = 2.0f, upsamplingSampleCount = 1 },
-            },
-            // Medium
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 2 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.8f, spatialFilterEnabled = true, spatialSampleCount = 4, spatialRadius = 1.0f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 6, upsamplingKernelSize = 4.0f, upsamplingSampleCount = 2 },
-            },
-            // High
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 4 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.7f, spatialFilterEnabled = true, spatialSampleCount = 6, spatialRadius = 1.5f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 8, upsamplingKernelSize = 5.0f, upsamplingSampleCount = 4 },
-            },
-            // Ultra
-            new QualitySetting
-            {
-                lightTransport  = new LightTransportSetting  { multiBounce = true, bouncePatchAllocation = true, sampleCount = 8 },
-                patchFiltering  = new PatchFilteringSetting  { temporalSmoothing = 0.6f, spatialFilterEnabled = true, spatialSampleCount = 8, spatialRadius = 2.0f, temporalPostFilter = true },
-                screenFiltering = new ScreenFilteringSetting { lookupSampleCount = 8, upsamplingKernelSize = 7.0f, upsamplingSampleCount = 8 },
-            },
-        };
-
-        static GUIContent s_Quality = EditorGUIUtility.TrTextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.");
-        static GUIContent s_MultiBounce = EditorGUIUtility.TrTextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.");
-        static GUIContent s_BouncePatchAllocation = EditorGUIUtility.TrTextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail");
-        static GUIContent s_SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.");
-        static GUIContent s_TemporalSmoothing = EditorGUIUtility.TrTextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.");
-        static GUIContent s_SpatialFilterEnabled = EditorGUIUtility.TrTextContent("Spatial Filter", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.");
-        static GUIContent s_SpatialSampleCount = EditorGUIUtility.TrTextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.");
-        static GUIContent s_SpatialRadius = EditorGUIUtility.TrTextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.");
-        static GUIContent s_TemporalPostFilter = EditorGUIUtility.TrTextContent("Temporal Post Filter", "Enable temporal post-filtering for additional stability.");
-        static GUIContent s_LookupSampleCount = EditorGUIUtility.TrTextContent("Lookup Sample Count", "Number of samples for screen-space lookups.");
-        static GUIContent s_UpsamplingKernelSize = EditorGUIUtility.TrTextContent("Upsampling Kernel Size", "Kernel size for upsampling filtering.");
-        static GUIContent s_UpsamplingSampleCount = EditorGUIUtility.TrTextContent("Upsampling Sample Count", "Number of samples for upsampling. Higher values improve quality at performance cost.");
-        static GUIContent s_VolumeSize = EditorGUIUtility.TrTextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.");
-        static GUIContent s_VolumeResolution = EditorGUIUtility.TrTextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
-        static GUIContent s_VolumeCascadeCount = EditorGUIUtility.TrTextContent("Cascade Count", "Number of volume cascades. More cascades extend the volume's effective range. Changing at runtime can cause a performance hitch if internal buffers are reallocated.");
-        static GUIContent s_CascadeMovement = EditorGUIUtility.TrTextContent("Cascade Movement", "Enable volume cascades to follow the camera.");
+        static GUIContent s_State = L10n.TextContent("State", "When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.", null, null);
+        static GUIContent s_Intensity = L10n.TextContent("Intensity", "Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.", null, null);
+        static GUIContent s_Quality = L10n.TextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.", null, null);
+        static GUIContent s_LightTransportMultiBounce = L10n.TextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.", null, null);
+        static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
+        static GUIContent s_LightTransportSampleCount = L10n.TextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.", null, null);
+        static GUIContent s_LightTransportWarmUpSampleMultiplier = L10n.TextContent("Warm-up Sample Multiplier", "Boosts the initial sample count on newly revealed surfaces if needed. This stabilizes the image faster when geometry or camera is moving.", null, null);
+        static GUIContent s_LightTransportPunctualLightCandidateCount = L10n.TextContent("Punctual Light Candidate Count", "Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.", null, null);
+        static GUIContent s_PatchFilteringTemporalSmoothing = L10n.TextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.", null, null);
+        static GUIContent s_PatchFilteringSpatialEnabled = L10n.TextContent("Spatial Filtering", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
+        static GUIContent s_PatchFilteringSpatialSampleCount = L10n.TextContent("Spatial Sample Count", "Number of samples for spatial filtering. Higher values improve quality at performance cost.", null, null);
+        static GUIContent s_PatchFilteringSpatialRadius = L10n.TextContent("Spatial Radius", "Radius used for the spatial filtering kernel. Larger values reduces noise but may cause over-blurring.", null, null);
+        static GUIContent s_PatchFilteringPostTemporalEnabled = L10n.TextContent("Temporal Post Filtering", "Enable temporal post-filtering for additional stability.", null, null);
+        static GUIContent s_ScreenFilteringLookupSampleCount = L10n.TextContent("Lookup Sample Count", "Number of samples for screen-space lookups.", null, null);
+        static GUIContent s_ScreenFilteringDenoisingPassCount = L10n.TextContent("Denoising Pass Count", "Number of denoising passes. More passes reduce noise at a performance cost.", null, null);
+        static GUIContent s_VolumeSize = L10n.TextContent("Size", "Size of the surface cache volume in world units. Can be changed at runtime without a performance hitch.", null, null);
+        static GUIContent s_VolumeResolution = L10n.TextContent("Resolution", "Spatial resolution of the volume grid. Higher values improve spatial detail but use more memory. Changing at runtime can cause a performance hitch if internal buffers are reallocated.", null, null);
+        static GUIContent s_VolumeCascadeCount = L10n.TextContent("Cascade Count", "Controls how patch density changes with distance. Higher values result in greater lighting detail up close and lower far away. Lower values evens out the distribution.", null, null);
+        static GUIContent s_VolumeDistanceFallback = L10n.TextContent("Distance Fallback", "When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.", null, null);
+        static GUIContent s_PatchWarping = L10n.TextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.", null, null);
+        static GUIContent s_FocusTarget = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.", null, null);
+        static GUIContent s_FocusTargetProfile = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.", null, null);
+        static GUIContent s_FocusTargetProfileValue = L10n.TextContent("Scene object, set per Volume", null, null, null);
 
         // Section header labels with tooltips
-        static GUIContent s_LightTransportHeader = EditorGUIUtility.TrTextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.");
-        static GUIContent s_PatchFilteringHeader = EditorGUIUtility.TrTextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.");
-        static GUIContent s_ScreenFilteringHeader = EditorGUIUtility.TrTextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.");
-        static GUIContent s_VolumeConfigurationHeader = EditorGUIUtility.TrTextContent("Volume Configuration", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.");
-        static GUIContent s_VolumeBehaviorHeader = EditorGUIUtility.TrTextContent("Volume Behavior", "Controls how the volume cascades move relative to the camera during gameplay.");
-        static GUIContent s_DefragCount = EditorGUIUtility.TrTextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.");
+        static GUIContent s_LightTransportHeader = L10n.TextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.", null, null);
+        static GUIContent s_PatchFilteringHeader = L10n.TextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.", null, null);
+        static GUIContent s_ScreenFilteringHeader = L10n.TextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.", null, null);
+        static GUIContent s_VolumeHeader = L10n.TextContent("Volume", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.", null, null);
+        static GUIContent s_DefragCount = L10n.TextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.", null, null);
+        static GUIContent s_RenderingLayerMask = L10n.TextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.", null, null);
 
         public override void OnEnable()
         {
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
-            m_Quality = Unpack(o.Find(x => x.quality));
-            m_MultiBounce = Unpack(o.Find("m_MultiBounce"));
-            m_BouncePatchAllocation = Unpack(o.Find("m_BouncePatchAllocation"));
-            m_SampleCount = Unpack(o.Find("m_SampleCount"));
-            m_TemporalSmoothing = Unpack(o.Find("m_TemporalSmoothing"));
-            m_SpatialFilterEnabled = Unpack(o.Find("m_SpatialFilterEnabled"));
-            m_SpatialSampleCount = Unpack(o.Find("m_SpatialSampleCount"));
-            m_SpatialRadius = Unpack(o.Find("m_SpatialRadius"));
-            m_TemporalPostFilter = Unpack(o.Find("m_TemporalPostFilter"));
-            m_LookupSampleCount = Unpack(o.Find("m_LookupSampleCount"));
-            m_UpsamplingKernelSize = Unpack(o.Find("m_UpsamplingKernelSize"));
-            m_UpsamplingSampleCount = Unpack(o.Find("m_UpsamplingSampleCount"));
-            m_VolumeSize = Unpack(o.Find("m_VolumeSize"));
-            m_VolumeResolution = Unpack(o.Find("m_VolumeResolution"));
-            m_VolumeCascadeCount = Unpack(o.Find("m_VolumeCascadeCount"));
-            m_CascadeMovement = Unpack(o.Find("m_CascadeMovement"));
-            m_DefragCount = Unpack(o.Find("m_DefragCount"));
+            m_Enabled = Unpack(o.Find(obj => obj.enabled));
+            m_Intensity = Unpack(o.Find(obj => obj.intensity));
+            m_LightTransportMultiBounce = Unpack(o.Find(obj => obj.lightTransportMultiBounce));
+            m_LightTransportBouncePatchAllocation = Unpack(o.Find(obj => obj.lightTransportBouncePatchAllocation));
+            m_LightTransportDefragCount = Unpack(o.Find(obj => obj.lightTransportDefragCount));
+            m_LightTransportRenderingLayerMask = Unpack(o.Find(obj => obj.lightTransportRenderingLayerMask));
+            m_LightTransportSampleCount = Unpack(o.Find(obj => obj.lightTransportSampleCount));
+            m_LightTransportWarmUpSampleMultiplier = Unpack(o.Find(obj => obj.lightTransportWarmupSampleMultiplier));
+            m_LightTransportPunctualLightCandidateCount = Unpack(o.Find(obj => obj.lightTransportPunctualLightCandidateCount));
+            m_PatchFilteringTemporalSmoothing = Unpack(o.Find(obj => obj.patchFilteringTemporalSmoothing));
+            m_PatchFilteringSpatialEnabled = Unpack(o.Find(obj => obj.patchFilteringSpatialEnabled));
+            m_PatchFilteringSpatialSampleCount = Unpack(o.Find(obj => obj.patchFilteringSpatialSampleCount));
+            m_PatchFilteringSpatialRadius = Unpack(o.Find(obj => obj.patchFilteringSpatialRadius));
+            m_PatchFilteringPostTemporalEnabled = Unpack(o.Find(obj => obj.patchFilteringPostTemporalEnabled));
+            m_ScreenFilteringLookupSampleCount = Unpack(o.Find(obj => obj.screenFilteringLookupSampleCount));
+            m_ScreenFilteringDenoisingPassCount = Unpack(o.Find(obj => obj.screenFilteringDenoisingPassCount));
+            m_VolumeSize = Unpack(o.Find(obj => obj.volumeSize));
+            m_VolumeResolution = Unpack(o.Find(obj => obj.volumeResolution));
+            m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
+            m_VolumePatchWarpingEnabled = Unpack(o.Find(obj => obj.volumePatchWarpingEnabled));
+            m_VolumeDistanceFallback = Unpack(o.Find(obj => obj.volumeDistanceFallback));
+
+            // Re-detect preset when property changed
+            ((SurfaceCacheGIVolumeOverride)target).propertyChanged += MarkQualityDirty;
+        }
+
+        public override void OnDisable()
+        {
+            ((SurfaceCacheGIVolumeOverride)target).propertyChanged -= MarkQualityDirty;
+
+            if (m_VolumeSerializedObject != null)
+            {
+                m_VolumeSerializedObject.Dispose();
+                m_VolumeSerializedObject = null;
+            }
         }
 
         public override void OnInspectorGUI()
         {
+            PropertyField(m_Enabled, s_State);
+
+            if (showAdditionalProperties)
+                PropertyField(m_Intensity, s_Intensity);
+
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.
-            EditorGUI.BeginChangeCheck();
-            PropertyField(m_Quality, s_Quality);
-            if (EditorGUI.EndChangeCheck())
+            var quality = (SurfaceCacheGIVolumeOverride.PresetQuality)EditorGUILayout.EnumPopup(s_Quality, m_Quality, (e) => (SurfaceCacheGIVolumeOverride.PresetQuality)e != SurfaceCacheGIVolumeOverride.PresetQuality.Custom, false);
+            if (m_Quality != quality && quality != SurfaceCacheGIVolumeOverride.PresetQuality.Custom)
             {
-                var quality = (SurfaceCacheGIQuality)m_Quality.value.enumValueIndex;
-                if (quality != SurfaceCacheGIQuality.Custom)
-                    ApplyQualityPreset(quality);
+                Undo.RecordObjects(serializedObject.targetObjects, "Applied preset");
+                m_Quality = quality;
+                foreach (var targetObj in serializedObject.targetObjects)
+                {
+                    (targetObj as SurfaceCacheGIVolumeOverride).ApplyPreset(m_Quality);
+                }
+                serializedObject.Update();
             }
+            else if (m_QualityDirty)
+            {
+                m_Quality = (serializedObject.targetObject as SurfaceCacheGIVolumeOverride).GetPresetQuality();
+                m_QualityDirty = false;
+            }
+
+            // Volume Configuration section
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(s_VolumeHeader, EditorStyles.boldLabel);
+            PropertyField(m_VolumeSize, s_VolumeSize);
+            PropertyField(m_VolumeResolution, s_VolumeResolution);
+            PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
+            DrawFocusTarget();
+            PropertyField(m_VolumeDistanceFallback, s_VolumeDistanceFallback);
+            if (showAdditionalProperties)
+                PropertyField(m_VolumePatchWarpingEnabled, s_PatchWarping);
 
             // Light Transport section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_LightTransportHeader, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
-            PropertyField(m_MultiBounce, s_MultiBounce);
-            PropertyField(m_BouncePatchAllocation, s_BouncePatchAllocation);
-            PropertyField(m_SampleCount, s_SampleCount);
-            if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
+            PropertyField(m_LightTransportSampleCount, s_LightTransportSampleCount);
+            PropertyField(m_LightTransportWarmUpSampleMultiplier, s_LightTransportWarmUpSampleMultiplier);
+            PropertyField(m_LightTransportMultiBounce, s_LightTransportMultiBounce);
+            PropertyField(m_LightTransportBouncePatchAllocation, s_LightTransportBouncePatchAllocation);
+            if (showAdditionalProperties)
+            {
+                PropertyField(m_LightTransportPunctualLightCandidateCount, s_LightTransportPunctualLightCandidateCount);
+                PropertyField(m_LightTransportRenderingLayerMask, s_RenderingLayerMask);
+                PropertyField(m_LightTransportDefragCount, s_DefragCount);
+            }
 
             // Patch Filtering section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_PatchFilteringHeader, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
-            PropertyField(m_TemporalSmoothing, s_TemporalSmoothing);
-            PropertyField(m_SpatialFilterEnabled, s_SpatialFilterEnabled);
+            PropertyField(m_PatchFilteringTemporalSmoothing, s_PatchFilteringTemporalSmoothing);
+            PropertyField(m_PatchFilteringSpatialEnabled, s_PatchFilteringSpatialEnabled);
             using (new IndentLevelScope())
             {
-                PropertyField(m_SpatialSampleCount, s_SpatialSampleCount);
-                PropertyField(m_SpatialRadius, s_SpatialRadius);
+                PropertyField(m_PatchFilteringSpatialSampleCount, s_PatchFilteringSpatialSampleCount);
+                PropertyField(m_PatchFilteringSpatialRadius, s_PatchFilteringSpatialRadius);
             }
-            PropertyField(m_TemporalPostFilter, s_TemporalPostFilter);
-            if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
+            if (showAdditionalProperties)
+                PropertyField(m_PatchFilteringPostTemporalEnabled, s_PatchFilteringPostTemporalEnabled);
 
             // Screen Filtering section
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(s_ScreenFilteringHeader, EditorStyles.boldLabel);
+            PropertyField(m_ScreenFilteringLookupSampleCount, s_ScreenFilteringLookupSampleCount);
+            PropertyField(m_ScreenFilteringDenoisingPassCount, s_ScreenFilteringDenoisingPassCount);
+        }
+
+        // Focus Target is bound to the owning Volume's GameObject instead of the shared profile. When editing
+        // the Profile asset there is no GameObject to store Focus Target on and nothing is drawn.
+        void DrawFocusTarget()
+        {
+            const float gutter = k_OverrideCheckboxWidth + k_OverrideCheckboxOffset;
+
+            // When not in scene context, display a read-only UI.
+            if (volume == null)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUIUtility.labelWidth -= gutter + 3 + 3;
+                    // Override checkboxes are shown in Asset editor but not in Graphics Settings - special handling
+                    // needed to align the property label correctly.
+                    if (enableOverrides)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        GUILayout.Space(3f);
+                        GUILayoutUtility.GetRect(gutter, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(false));
+                        EditorGUILayout.LabelField(s_FocusTargetProfile, s_FocusTargetProfileValue);
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField(s_FocusTargetProfile, s_FocusTargetProfileValue);
+                    }
+                    EditorGUIUtility.labelWidth += gutter + 3 + 3;
+                }
+                return;
+            }
+
+            if (m_VolumeSerializedObject == null || m_VolumeSerializedObject.targetObject != volume)
+                m_VolumeSerializedObject = new SerializedObject(volume);
+
+            m_VolumeSerializedObject.Update();
+            var reference = m_VolumeSerializedObject.FindProperty(k_ReferenceProp);
+            var overrideState = reference.FindPropertyRelative(k_OverrideStateProp);
+            var value = reference.FindPropertyRelative(k_ValueProp);
+
             EditorGUI.BeginChangeCheck();
-            PropertyField(m_LookupSampleCount, s_LookupSampleCount);
-            PropertyField(m_UpsamplingKernelSize, s_UpsamplingKernelSize);
-            PropertyField(m_UpsamplingSampleCount, s_UpsamplingSampleCount);
+            EditorGUILayout.BeginHorizontal();
+            // The whole hand-drawn Focus Target row sits 3px left of the generated parameter rows; inset it
+            // so the checkbox, label, and field all line up with the rows above and below.
+            GUILayout.Space(3f);
+
+            float rowHeight = EditorGUI.GetPropertyHeight(value) + EditorGUIUtility.standardVerticalSpacing;
+            var toggleSize = CoreEditorStyles.smallTickbox.CalcSize(GUIContent.none);
+            var toggleRect = GUILayoutUtility.GetRect(gutter, rowHeight, GUILayout.ExpandWidth(false));
+            toggleRect.yMin += rowHeight * 0.5f - toggleSize.y * 0.5f;
+            toggleRect.xMin += k_OverrideCheckboxOffset;
+            overrideState.boolValue = GUI.Toggle(toggleRect, overrideState.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+
+            EditorGUIUtility.labelWidth -= gutter + 3 + 3;
+            using (new EditorGUI.DisabledScope(!overrideState.boolValue))
+            {
+                // GetControlRect reserves the same rect EditorGUILayout.PropertyField uses, so the label/field
+                // split and width stay correct; nudge it up 3px to cancel the vertical offset this custom row adds.
+                Rect fieldRowRect = EditorGUILayout.GetControlRect(GUILayout.ExpandWidth(true));
+                fieldRowRect.y -= 2f;
+                EditorGUI.PropertyField(fieldRowRect, value, s_FocusTarget);
+            }
+            EditorGUIUtility.labelWidth += gutter + 3 + 3;
+
+            EditorGUILayout.EndHorizontal();
             if (EditorGUI.EndChangeCheck())
-                SwitchToCustomIfNeeded();
-
-            // Volume Configuration section (always editable, not affected by quality preset)
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeConfigurationHeader, EditorStyles.boldLabel);
-            PropertyField(m_VolumeSize, s_VolumeSize);
-            PropertyField(m_VolumeResolution, s_VolumeResolution);
-            PropertyField(m_VolumeCascadeCount, s_VolumeCascadeCount);
-
-            // Volume Behavior (always editable, not affected by quality preset)
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_VolumeBehaviorHeader, EditorStyles.boldLabel);
-            PropertyField(m_CascadeMovement, s_CascadeMovement);
-
-            if (showAdditionalProperties)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
-                PropertyField(m_DefragCount, s_DefragCount);
-            }
+                m_VolumeSerializedObject.ApplyModifiedProperties();
         }
 
-        // Switches quality to Custom when the user edits a preset-controlled field while a preset is active.
-        void SwitchToCustomIfNeeded()
+        private void MarkQualityDirty()
         {
-            if ((SurfaceCacheGIQuality)m_Quality.value.enumValueIndex != SurfaceCacheGIQuality.Custom)
-            {
-                m_Quality.value.enumValueIndex = (int)SurfaceCacheGIQuality.Custom;
-                m_Quality.overrideState.boolValue = true;
-            }
-        }
-
-        // Writes preset values into the backing serialized fields so users can inspect them
-        // and use them as a starting point when switching to Custom.
-        void ApplyQualityPreset(SurfaceCacheGIQuality quality)
-        {
-            var settings = k_QualityPresets[(int)quality];
-
-            m_MultiBounce.value.boolValue = settings.lightTransport.multiBounce;
-            m_MultiBounce.overrideState.boolValue = true;
-            m_BouncePatchAllocation.value.boolValue = settings.lightTransport.bouncePatchAllocation;
-            m_BouncePatchAllocation.overrideState.boolValue = true;
-            m_SampleCount.value.intValue = settings.lightTransport.sampleCount;
-            m_SampleCount.overrideState.boolValue = true;
-            m_TemporalSmoothing.value.floatValue = settings.patchFiltering.temporalSmoothing;
-            m_TemporalSmoothing.overrideState.boolValue = true;
-            m_SpatialFilterEnabled.value.boolValue = settings.patchFiltering.spatialFilterEnabled;
-            m_SpatialFilterEnabled.overrideState.boolValue = true;
-            m_SpatialSampleCount.value.intValue = settings.patchFiltering.spatialSampleCount;
-            m_SpatialSampleCount.overrideState.boolValue = true;
-            m_SpatialRadius.value.floatValue = settings.patchFiltering.spatialRadius;
-            m_SpatialRadius.overrideState.boolValue = true;
-            m_TemporalPostFilter.value.boolValue = settings.patchFiltering.temporalPostFilter;
-            m_TemporalPostFilter.overrideState.boolValue = true;
-            m_LookupSampleCount.value.intValue = settings.screenFiltering.lookupSampleCount;
-            m_LookupSampleCount.overrideState.boolValue = true;
-            m_UpsamplingKernelSize.value.floatValue = settings.screenFiltering.upsamplingKernelSize;
-            m_UpsamplingKernelSize.overrideState.boolValue = true;
-            m_UpsamplingSampleCount.value.intValue = settings.screenFiltering.upsamplingSampleCount;
-            m_UpsamplingSampleCount.overrideState.boolValue = true;
+            m_QualityDirty = true;
         }
     }
 }
-
-#endif

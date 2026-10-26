@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Universal.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 using static Unity.Rendering.Universal.ShaderUtils;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
@@ -24,7 +25,7 @@ namespace UnityEditor
         /// Flags for the foldouts used in the base shader GUI.
         /// </summary>
         [Flags]
-        [URPHelpURL("shaders-in-universalrp")]
+        [URPHelpURL("urp/shaders-in-universalrp")]
         protected enum Expandable
         {
             /// <summary>
@@ -46,6 +47,28 @@ namespace UnityEditor
             /// Use this for additional details foldout.
             /// </summary>
             Details = 1 << 3,
+        }
+
+        /// <summary>
+        /// Flags for the stencil surface options sub-foldouts used in the base shader GUI.
+        /// </summary>
+        [Flags]
+        protected enum ExpandableStencilOptions
+        {
+            /// <summary>
+            /// Use this for surface stencil sub-options foldout.
+            /// </summary>
+            StencilOptions = 1 << 0,
+
+            /// <summary>
+            /// Use this for surface stencil front face foldout.
+            /// </summary>
+            FrontFace = 1 << 1,
+
+            /// <summary>
+            /// Use this for surface stencil back face foldout.
+            /// </summary>
+            BackFace = 1 << 2,
         }
 
         /// <summary>
@@ -146,7 +169,7 @@ namespace UnityEditor
         /// <summary>
         /// Container for the text and tooltips used to display the shader.
         /// </summary>
-        protected class Styles
+        protected internal class Styles
         {
             /// <summary>
             /// The names for options available in the SurfaceType enum.
@@ -177,139 +200,201 @@ namespace UnityEditor
             /// The values for options available in the ZTestMode enum.
             /// </summary>
             // Skipping the first entry for ztest (ZTestMode.Disabled is not a valid value)
-            public static readonly int[] ztestValues = ((int[])Enum.GetValues(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode))).Skip(1).ToArray();
+            public static readonly int[] ztestValues = ((int[])Enum.GetValues(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode)))[1..];
 
             /// <summary>
             /// The names for options available in the ZTestMode enum.
             /// </summary>
             // Skipping the first entry for ztest (ZTestMode.Disabled is not a valid value)
-            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode)).Skip(1).ToArray();
+            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode))[1..];
 
             // Categories
             /// <summary>
             /// The text and tooltip for the surface options GUI.
             /// </summary>
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how URP Renders the material on screen.");
+                L10n.TextContent("Surface Options", "Controls how URP Renders the material on screen.", null, null);
 
             /// <summary>
             /// The text and tooltip for the surface inputs GUI.
             /// </summary>
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
-                "These settings describe the look and feel of the surface itself.");
+            public static readonly GUIContent SurfaceInputs = L10n.TextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.", null, null);
 
             /// <summary>
             /// The text and tooltip for the advanced options GUI.
             /// </summary>
-            public static readonly GUIContent AdvancedLabel = EditorGUIUtility.TrTextContent("Advanced Options",
-                "These settings affect behind-the-scenes rendering and underlying calculations.");
+            public static readonly GUIContent AdvancedLabel = L10n.TextContent("Advanced Options",
+                "These settings affect behind-the-scenes rendering and underlying calculations.", null, null);
 
             /// <summary>
             /// The text and tooltip for the Surface Type GUI.
             /// </summary>
-            public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
-                "Select a surface type for your texture. Choose between Opaque or Transparent.");
+            public static readonly GUIContent surfaceType = L10n.TextContent("Surface Type",
+                "Select a surface type for your texture. Choose between Opaque or Transparent.", null, null);
 
             /// <summary>
             /// The text and tooltip for the blending mode GUI.
             /// </summary>
-            public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
-                "Controls how the color of the Transparent surface blends with the Material color in the background.");
+            public static readonly GUIContent blendingMode = L10n.TextContent("Blending Mode",
+                "Controls how the color of the Transparent surface blends with the Material color in the background.", null, null);
 
             /// <summary>
             /// The text and tooltip for the preserve specular lighting GUI.
             /// </summary>
-            public static readonly GUIContent preserveSpecularText = EditorGUIUtility.TrTextContent("Preserve Specular Lighting",
-                "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.");
+            public static readonly GUIContent preserveSpecularText = L10n.TextContent("Preserve Specular Lighting",
+                "Preserves specular lighting intensity and size by not applying transparent alpha to the specular light contribution.", null, null);
+
+#if VOLUMETRIC_FOG
+            /// <summary>
+            /// The text and tooltip for the receive fog GUI.
+            /// </summary>
+            public static readonly GUIContent receiveFogText = L10n.TextContent("Receive Fog",
+                "When enabled, the surface receives fog from the Fog volume override.", null, null);
+#endif
 
             /// <summary>
             /// The text and tooltip for the render face GUI.
             /// </summary>
-            public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
-                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.");
+            public static readonly GUIContent cullingText = L10n.TextContent("Render Face",
+                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.", null, null);
 
             /// <summary>
             /// The text and tooltip for the depth write GUI.
             /// </summary>
-            public static readonly GUIContent zwriteText = EditorGUIUtility.TrTextContent("Depth Write",
-                "Controls whether the shader writes depth.  Auto will write only when the shader is opaque.");
+            public static readonly GUIContent zwriteText = L10n.TextContent("Write Depth",
+                "Enable or disable depth buffer writes.", null, null);
 
             /// <summary>
             /// The text and tooltip for the depth test GUI.
             /// </summary>
-            public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
-                "Specifies the depth test mode.  The default is LEqual.");
+            public static readonly GUIContent ztestText = L10n.TextContent("Depth Test",
+                "Specifies the depth test mode.  The default is LEqual.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the override depth toggle GUI.
+            /// </summary>
+            public static readonly GUIContent overrideDepthText = L10n.TextContent("Override Depth",
+                "Enable per-material depth write and depth test settings. When off, the shader uses the surface type's defaults (LEqual, Auto).", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the override stencil toggle GUI.
+            /// </summary>
+            public static readonly GUIContent overrideStencilText = L10n.TextContent("Override Stencil",
+                "Enable per-material stencil ref, mask, comparison, and operation settings.", null, null);
 
             /// <summary>
             /// The text and tooltip for the alpha clipping GUI.
             /// </summary>
-            public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
-                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas. Avoid using when Alpha is constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask).");
+            public static readonly GUIContent alphaClipText = L10n.TextContent("Alpha Clipping",
+                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas. Avoid using when Alpha is constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask).", null, null);
 
             /// <summary>
             /// The text and tooltip for the alpha clipping threshold GUI.
             /// </summary>
-            public static readonly GUIContent alphaClipThresholdText = EditorGUIUtility.TrTextContent("Threshold",
-                "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.");
+            public static readonly GUIContent alphaClipThresholdText = L10n.TextContent("Threshold",
+                "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.", null, null);
 
             /// <summary>
             /// The text and tooltip for the cast shadows GUI.
             /// </summary>
-            public static readonly GUIContent castShadowText = EditorGUIUtility.TrTextContent("Cast Shadows",
-                "When enabled, this GameObject will cast shadows onto any geometry that can receive them.");
+            public static readonly GUIContent castShadowText = L10n.TextContent("Cast Shadows",
+                "When enabled, this GameObject will cast shadows onto any geometry that can receive them.", null, null);
 
             /// <summary>
             /// The text and tooltip for the receive shadows GUI.
             /// </summary>
-            public static readonly GUIContent receiveShadowText = EditorGUIUtility.TrTextContent("Receive Shadows",
-                "When enabled, other GameObjects can cast shadows onto this GameObject.");
+            public static readonly GUIContent receiveShadowText = L10n.TextContent("Receive Shadows",
+                "When enabled, other GameObjects can cast shadows onto this GameObject.", null, null);
 
             /// <summary>
             /// The text and tooltip for the base map GUI.
             /// </summary>
-            public static readonly GUIContent baseMap = EditorGUIUtility.TrTextContent("Base Map",
-                "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
+            public static readonly GUIContent baseMap = L10n.TextContent("Base Map",
+                "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.", null, null);
 
             /// <summary>
             /// The text and tooltip for the emission map GUI.
             /// </summary>
-            public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
-                "Determines the color and intensity of light that the surface of the material emits.");
+            public static readonly GUIContent emissionMap = L10n.TextContent("Emission Map",
+                "Determines the color and intensity of light that the surface of the material emits.", null, null);
 
             /// <summary>
             /// The text and tooltip for the normal map GUI.
             /// </summary>
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
+                L10n.TextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.", null, null);
 
             /// <summary>
             /// The text and tooltip for the bump scale not supported GUI.
             /// </summary>
             public static readonly GUIContent bumpScaleNotSupported =
-                EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
+                L10n.TextContent("Bump scale is not supported on mobile platforms", null, null, null);
 
             /// <summary>
             /// The text and tooltip for the normals fix now GUI.
             /// </summary>
-            public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
-                "Converts the assigned texture to be a normal map format.");
+            public static readonly GUIContent fixNormalNow = L10n.TextContent("Fix now",
+                "Converts the assigned texture to be a normal map format.", null, null);
 
             /// <summary>
             /// The text and tooltip for the sorting priority GUI.
             /// </summary>
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
-                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
+            public static readonly GUIContent queueSlider = L10n.TextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.", null, null);
 
             /// <summary>
             /// The text and tooltip for the queue control GUI.
             /// </summary>
-            public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
-                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
+            public static readonly GUIContent queueControl = L10n.TextContent("Queue Control",
+                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil reference value GUI.
+            /// </summary>
+            public static readonly GUIContent stencilRef = L10n.TextContent("Stencil Ref",
+                "The reference value used by the stencil compare function and (if Pass is Replace) written to the stencil buffer.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil read mask GUI.
+            /// </summary>
+            public static readonly GUIContent stencilReadMask = L10n.TextContent("Read Mask",
+                "Binary 'AND' mask applied to stencil values before comparison.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil write mask GUI.
+            /// </summary>
+            public static readonly GUIContent stencilWriteMask = L10n.TextContent("Write Mask",
+                "Binary 'AND' mask applied to stencil values before stencil write operation (Pass / Fail / Z fail).", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil compare function GUI.
+            /// </summary>
+            public static readonly GUIContent stencilCompFunc = L10n.TextContent("Compare Function",
+                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil pass operation GUI.
+            /// </summary>
+            public static readonly GUIContent stencilPassOp = L10n.TextContent("Pass",
+                "Operation performed on the stencil buffer when the stencil test passes.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil fail operation GUI.
+            /// </summary>
+            public static readonly GUIContent stencilFailOp = L10n.TextContent("Fail",
+                "Operation performed on the stencil buffer when the stencil test fails.", null, null);
+
+            /// <summary>
+            /// The text and tooltip for the stencil Z fail operation GUI.
+            /// </summary>
+            public static readonly GUIContent stencilZFailOp = L10n.TextContent("Z Fail",
+                "Operation performed on the stencil buffer when the stencil test passes but the depth test fails.", null, null);
 
             /// <summary>
             /// The text and tooltip for the help reference GUI.
             /// </summary>
-            public static readonly GUIContent documentationIcon = EditorGUIUtility.TrIconContent("_Help", $"Open Reference for URP Shaders.");
+            public static readonly GUIContent documentationIcon = L10n.IconContent("_Help", $"Open Reference for URP Shaders.", null);
         }
 
         #endregion
@@ -336,6 +421,10 @@ namespace UnityEditor
         /// </summary>
         protected MaterialProperty preserveSpecProp { get; set; }
 
+#if VOLUMETRIC_FOG
+        MaterialProperty receiveFogProp { get; set; }
+#endif
+
         /// <summary>
         /// The MaterialProperty for cull mode.
         /// </summary>
@@ -360,6 +449,61 @@ namespace UnityEditor
         /// The MaterialProperty for alpha cutoff.
         /// </summary>
         protected MaterialProperty alphaCutoffProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the stencil reference value.
+        /// </summary>
+        protected MaterialProperty stencilRefProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the stencil read mask.
+        /// </summary>
+        protected MaterialProperty stencilReadMaskProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the stencil write mask.
+        /// </summary>
+        protected MaterialProperty stencilWriteMaskProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the front-face stencil comparison function.
+        /// </summary>
+        protected MaterialProperty stencilCompFuncProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the front-face stencil pass operation.
+        /// </summary>
+        protected MaterialProperty stencilPassOpProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the front-face stencil fail operation.
+        /// </summary>
+        protected MaterialProperty stencilFailOpProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the front-face stencil depth-fail operation.
+        /// </summary>
+        protected MaterialProperty stencilZFailOpProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the back-face stencil comparison function.
+        /// </summary>
+        protected MaterialProperty stencilCompFuncBackProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the back-face stencil pass operation.
+        /// </summary>
+        protected MaterialProperty stencilPassOpBackProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the back-face stencil fail operation.
+        /// </summary>
+        protected MaterialProperty stencilFailOpBackProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for the back-face stencil depth-fail operation.
+        /// </summary>
+        protected MaterialProperty stencilZFailOpBackProp { get; set; }
 
         /// <summary>
         /// The MaterialProperty for cast shadows.
@@ -421,6 +565,10 @@ namespace UnityEditor
         // By default, everything is expanded, except advanced
         readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~(uint)Expandable.Advanced);
 
+        // The order of the following lists have to match.
+        static readonly string[] k_emissionOptions = { "Realtime Direct Emission", "Realtime Indirect Emission", "Baked Emission" };
+        static readonly MaterialGlobalIlluminationFlags[] k_emissionOptionsInternal = { MaterialGlobalIlluminationFlags.RealtimeDirectEmission, MaterialGlobalIlluminationFlags.RealtimeIndirectEmission, MaterialGlobalIlluminationFlags.BakedEmission };
+
         #endregion
 
         private const int queueOffsetRange = 50;
@@ -454,12 +602,26 @@ namespace UnityEditor
             surfaceTypeProp = FindProperty(Property.SurfaceType, properties, false);
             blendModeProp = FindProperty(Property.BlendMode, properties, false);
             preserveSpecProp = FindProperty(Property.BlendModePreserveSpecular, properties, false);  // Separate blend for diffuse and specular.
+#if VOLUMETRIC_FOG
+            receiveFogProp = FindProperty(Property.ReceiveFog, properties, false);
+#endif
             cullingProp = FindProperty(Property.CullMode, properties, false);
             zwriteProp = FindProperty(Property.ZWriteControl, properties, false);
             ztestProp = FindProperty(Property.ZTest, properties, false);
             alphaClipProp = FindProperty(Property.AlphaClip, properties, false);
             addPrecomputedVelocityProp = FindProperty(Property.AddPrecomputedVelocity, properties, false);
             xrMotionVectorsPassProp = FindProperty(Property.XrMotionVectorsPass, properties, false);
+            stencilRefProp = FindProperty(Property.StencilRef, properties, false);
+            stencilReadMaskProp = FindProperty(Property.StencilReadMask, properties, false);
+            stencilWriteMaskProp = FindProperty(Property.StencilWriteMask, properties, false);
+            stencilCompFuncProp = FindProperty(Property.StencilCompFunc, properties, false);
+            stencilPassOpProp = FindProperty(Property.StencilPassOp, properties, false);
+            stencilFailOpProp = FindProperty(Property.StencilFailOp, properties, false);
+            stencilZFailOpProp = FindProperty(Property.StencilZFailOp, properties, false);
+            stencilCompFuncBackProp = FindProperty(Property.StencilCompFuncBack, properties, false);
+            stencilPassOpBackProp = FindProperty(Property.StencilPassOpBack, properties, false);
+            stencilFailOpBackProp = FindProperty(Property.StencilFailOpBack, properties, false);
+            stencilZFailOpBackProp = FindProperty(Property.StencilZFailOpBack, properties, false);
 
             // ShaderGraph Lit and Unlit Subtargets only
             castShadowsProp = FindProperty(Property.CastShadows, properties, false);
@@ -503,6 +665,18 @@ namespace UnityEditor
         /// Filter for the surface options, surface inputs, details and advanced foldouts.
         /// </summary>
         protected virtual uint materialFilter => uint.MaxValue;
+
+        /// <summary>
+        /// Draws the Render Face dropdown for the cull mode property.
+        /// </summary>
+        protected virtual void DrawRenderFaceDropdown() => DoEnumPopup<RenderFace>(Styles.cullingText, cullingProp);
+
+        internal static bool CullValueRendersBothFaces(float cullValue)
+        {
+            return (int)cullValue == 0;    // RenderFace.Both / CullMode.Off
+        }
+
+        internal uint m_StencilFoldoutState = 0;
 
         /// <summary>
         /// Draws the GUI for the material.
@@ -571,30 +745,138 @@ namespace UnityEditor
             EditorGUI.EndDisabledGroup();
         }
 
+        // "Override Depth" toggle gating Write Depth + Depth Test, mirroring the Shader Graph target UI.
+        // Derived state (no extra material property): override is "on" iff ZWrite has been moved off Auto
+        // or Depth Test off LEqual. This makes the legacy Auto value map cleanly to Override Depth = off.
+        void DrawDepthOptions(Material material)
+        {
+            if (zwriteProp == null)
+                return;
+
+            bool overrideDepth = IsDepthOverrideActive();
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = zwriteProp.hasMixedValue || (ztestProp != null && ztestProp.hasMixedValue);
+            bool newOverride = EditorGUILayout.Toggle(Styles.overrideDepthText, overrideDepth);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+            {
+                SetDepthOverride(newOverride);
+                overrideDepth = newOverride;
+            }
+
+            if (!overrideDepth)
+                return;
+
+            EditorGUI.indentLevel++;
+            DrawWriteDepthToggle(material);
+            if (ztestProp != null)
+                DoEnumPopup<UniversalTarget.ZTestModeForUI>(Styles.ztestText, ztestProp);
+            EditorGUI.indentLevel--;
+        }
+
+        bool IsDepthOverrideActive()
+        {
+            if (zwriteProp == null)
+                return false;
+            bool zwriteOverridden = (ZWriteControl)zwriteProp.floatValue != ZWriteControl.Auto;
+            bool ztestOverridden = ztestProp != null && (ZTestMode)ztestProp.floatValue != ZTestMode.LEqual;
+            return zwriteOverridden || ztestOverridden;
+        }
+
+        void SetDepthOverride(bool value)
+        {
+            if (value)
+            {
+                // Resolve Auto to a concrete forced state so the Write Depth toggle has something to
+                // bind to; keep the surface-type-appropriate value so the display doesn't jump.
+                if ((ZWriteControl)zwriteProp.floatValue == ZWriteControl.Auto)
+                {
+                    bool isOpaque = surfaceTypeProp == null || (SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Opaque;
+                    zwriteProp.floatValue = (float)(isOpaque ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled);
+                }
+            }
+            else
+            {
+                zwriteProp.floatValue = (float)ZWriteControl.Auto;
+                if (ztestProp != null)
+                    ztestProp.floatValue = (float)ZTestMode.LEqual;
+            }
+        }
+
+        // Write Depth toggle. Auto maps to the surface-appropriate display state (opaque on, transparent
+        // off); the first user edit writes ForceEnabled/ForceDisabled, retiring Auto for that material.
+        void DrawWriteDepthToggle(Material material)
+        {
+            if (zwriteProp == null)
+                return;
+
+            var current = (ZWriteControl)zwriteProp.floatValue;
+            bool surfaceMixed = surfaceTypeProp != null && surfaceTypeProp.hasMixedValue;
+            bool writeDepth;
+            if (current == ZWriteControl.Auto)
+            {
+                bool isOpaque = surfaceTypeProp == null
+                    || (SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Opaque;
+                writeDepth = isOpaque;
+            }
+            else
+            {
+                writeDepth = current == ZWriteControl.ForceEnabled;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            MaterialEditor.BeginProperty(zwriteProp);
+            // Display mixed-value when the underlying ZWriteControl is mixed, OR when it's Auto and the
+            // surface type is mixed (Auto's display depends on surface type, so a mixed surface type
+            // means the resolved bool is also mixed).
+            EditorGUI.showMixedValue = zwriteProp.hasMixedValue || (current == ZWriteControl.Auto && surfaceMixed);
+            bool newValue = EditorGUILayout.Toggle(Styles.zwriteText, writeDepth);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                zwriteProp.floatValue = (float)(newValue ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled);
+            MaterialEditor.EndProperty();
+        }
+
         /// <summary>
         /// Draws the surface options GUI.
         /// </summary>
         /// <param name="material">The material to use.</param>
         public virtual void DrawSurfaceOptions(Material material)
         {
-            DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
-            if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
-            {
-                DoPopup(Styles.blendingMode, blendModeProp, Styles.blendModeNames);
+            // Lit has no _WritesColor (treated as writing color); Unlit emits it (1 = color, 0 = no color).
+            bool writesColor = !material.HasProperty(Property.WritesColor) || material.GetFloat(Property.WritesColor) >= 0.5f;
 
-                if (material.HasProperty(Property.BlendModePreserveSpecular))
+            if (writesColor)
+            {
+                DoEnumPopup<SurfaceType>(Styles.surfaceType, surfaceTypeProp);
+                if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
                 {
-                    BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
-                    var isDisabled = blendMode == BlendMode.Multiply || blendMode == BlendMode.Premultiply;
-                    if (!isDisabled)
-                        DrawFloatToggleProperty(Styles.preserveSpecularText, preserveSpecProp, 1, isDisabled);
+                    DoEnumPopup<BlendMode>(Styles.blendingMode, blendModeProp);
+
+                    if (material.HasProperty(Property.BlendModePreserveSpecular))
+                    {
+                        BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
+                        var isDisabled = blendMode == BlendMode.Multiply || blendMode == BlendMode.Premultiply;
+                        if (!isDisabled)
+                            DrawFloatToggleProperty(Styles.preserveSpecularText, preserveSpecProp, 1, isDisabled);
+                    }
                 }
             }
-            DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
-            DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
 
-            if (ztestProp != null)
-                materialEditor.IntPopupShaderProperty(ztestProp, Styles.ztestText.text, Styles.ztestNames, Styles.ztestValues);
+            DrawRenderFaceDropdown();
+            DrawDepthOptions(material);
+            DrawStencilOptions(material);
+
+            // Warn when the SG baked stencil into the ShadowCaster pass, the material's stencil actually
+            // does something (not the Comp=Always/Keep no-op), and no active URP renderer has shadowmap
+            // stencil enabled. The mask is SG-time and not editable here; the material only sets values.
+            if (material.HasProperty(Property.StencilUsesShadowPass)
+                && HasCustomStencilSettings(material)
+                && !EditorUtils.AnyActiveRendererHasShadowmapStencil())
+            {
+                EditorGUILayout.HelpBox(EditorUtils.shadowmapStencilWarning, MessageType.Warning);
+            }
 
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
 
@@ -603,6 +885,10 @@ namespace UnityEditor
 
             DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
             DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
+#if VOLUMETRIC_FOG
+            if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
+                DrawFloatToggleProperty(Styles.receiveFogText, receiveFogProp);
+#endif
         }
 
         /// <summary>
@@ -637,6 +923,164 @@ namespace UnityEditor
         {
             if (queueOffsetProp != null)
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
+        }
+
+        // True when stencil settings differ from the no-op defaults (Comp=Always, all ops=Keep) on
+        // either face. Ref/ReadMask/WriteMask are ignored: they have no effect while Comp=Always and ops=Keep.
+        private static bool HasCustomStencilSettings(Material material)
+        {
+            return IsStencilFaceActive(material, Property.StencilCompFunc, Property.StencilPassOp, Property.StencilFailOp, Property.StencilZFailOp)
+                || IsStencilFaceActive(material, Property.StencilCompFuncBack, Property.StencilPassOpBack, Property.StencilFailOpBack, Property.StencilZFailOpBack);
+        }
+
+        private static bool IsStencilFaceActive(Material material, string comp, string pass, string fail, string zFail)
+        {
+            if (!material.HasProperty(comp))
+                return false;
+            return (CompareFunction)(int)material.GetFloat(comp) != CompareFunction.Always
+                || (StencilOp)(int)material.GetFloat(pass)  != StencilOp.Keep
+                || (StencilOp)(int)material.GetFloat(fail)  != StencilOp.Keep
+                || (StencilOp)(int)material.GetFloat(zFail) != StencilOp.Keep;
+        }
+
+        private void DrawStencilOptions(Material material)
+        {
+            if (stencilRefProp == null || stencilReadMaskProp == null || stencilWriteMaskProp == null || cullingProp == null)
+                return;
+
+            var filter = (ExpandableStencilOptions)m_StencilFoldoutState;
+
+            // Derived "on" state: any stencil setting differs from the no-op defaults (Comp=Always,
+            // ops=Keep). A purely-derived toggle can't stay on when enabled with no-op values, so the
+            // session foldout bit keeps the controls open once the user toggles it on this inspection.
+            bool sessionExpanded = filter.HasFlag(ExpandableStencilOptions.StencilOptions);
+            bool overrideStencil = HasCustomStencilSettings(material) || sessionExpanded;
+
+            EditorGUI.BeginChangeCheck();
+            bool newOverride = EditorGUILayout.Toggle(Styles.overrideStencilText, overrideStencil);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (newOverride)
+                    m_StencilFoldoutState |= (uint)ExpandableStencilOptions.StencilOptions;
+                else
+                {
+                    m_StencilFoldoutState &= ~(uint)ExpandableStencilOptions.StencilOptions;
+                    ResetStencilToNoOp();
+                }
+                overrideStencil = newOverride;
+            }
+
+            if (!overrideStencil)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            DrawClampedStencilProperty(Styles.stencilRef, stencilRefProp);
+            DrawClampedStencilProperty(Styles.stencilReadMask, stencilReadMaskProp);
+            DrawClampedStencilProperty(Styles.stencilWriteMask, stencilWriteMaskProp);
+
+            var renderFace = (RenderFace)cullingProp.floatValue;
+            bool rendersBothFaces = CullValueRendersBothFaces(cullingProp.floatValue);
+
+            if (renderFace != RenderFace.Back)
+            {
+                bool showFrontOptions = true;
+                if (rendersBothFaces)
+                {
+                    showFrontOptions = filter.HasFlag(ExpandableStencilOptions.FrontFace);
+
+                    EditorGUI.indentLevel++;
+                    showFrontOptions = EditorGUILayout.Foldout(showFrontOptions, "Front Face");
+
+                    if (showFrontOptions)
+                        m_StencilFoldoutState |= (uint)ExpandableStencilOptions.FrontFace;
+                    else
+                        m_StencilFoldoutState &= ~(uint)ExpandableStencilOptions.FrontFace;
+                }
+
+                if (showFrontOptions)
+                {
+                    DoEnumPopup<UniversalTarget.CompareFunctionUI>(Styles.stencilCompFunc, stencilCompFuncProp);
+                    EditorGUI.indentLevel++;
+                    DoEnumPopup<StencilOp>(Styles.stencilPassOp, stencilPassOpProp);
+                    DoEnumPopup<StencilOp>(Styles.stencilFailOp, stencilFailOpProp);
+                    EditorGUI.indentLevel--;
+                    DoEnumPopup<StencilOp>(Styles.stencilZFailOp, stencilZFailOpProp);
+                }
+            }
+
+            if (rendersBothFaces)
+            {
+                EditorGUI.indentLevel--;
+            }
+
+            if (renderFace != RenderFace.Front)
+            {
+                bool showBackOptions = true;
+                if (rendersBothFaces)
+                {
+                    showBackOptions = filter.HasFlag(ExpandableStencilOptions.BackFace);
+
+                    EditorGUI.indentLevel++;
+                    showBackOptions = EditorGUILayout.Foldout(showBackOptions, "Back Face");
+
+                    if (showBackOptions)
+                        m_StencilFoldoutState |= (uint)ExpandableStencilOptions.BackFace;
+                    else
+                        m_StencilFoldoutState &= ~(uint)ExpandableStencilOptions.BackFace;
+                }
+
+                if (showBackOptions)
+                {
+                    DoEnumPopup<UniversalTarget.CompareFunctionUI>(Styles.stencilCompFunc, stencilCompFuncBackProp);
+                    EditorGUI.indentLevel++;
+                    DoEnumPopup<StencilOp>(Styles.stencilPassOp, stencilPassOpBackProp);
+                    DoEnumPopup<StencilOp>(Styles.stencilFailOp, stencilFailOpBackProp);
+                    EditorGUI.indentLevel--;
+                    DoEnumPopup<StencilOp>(Styles.stencilZFailOp, stencilZFailOpBackProp);
+                }
+            }
+
+            if (rendersBothFaces)
+            {
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        void DrawClampedStencilProperty(GUIContent label, MaterialProperty property)
+        {
+            Rect rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+            MaterialEditor.BeginProperty(rect, property);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            int value = EditorGUI.IntField(rect, label, (int)property.floatValue);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                property.floatValue = Mathf.Clamp(value, 0, (int)StencilUsage.UserMask);
+            MaterialEditor.EndProperty();
+        }
+
+        // Resets both faces' stencil compare/op properties to the no-op defaults (Comp=Always, ops=Keep)
+        // so the derived Override Stencil toggle reads as off. Ref/masks are left alone - they have no
+        // effect while Comp=Always.
+        void ResetStencilToNoOp()
+        {
+            SetMaterialPropertyFloat(stencilCompFuncProp, (float)CompareFunction.Always);
+            SetMaterialPropertyFloat(stencilPassOpProp, (float)StencilOp.Keep);
+            SetMaterialPropertyFloat(stencilFailOpProp, (float)StencilOp.Keep);
+            SetMaterialPropertyFloat(stencilZFailOpProp, (float)StencilOp.Keep);
+            SetMaterialPropertyFloat(stencilCompFuncBackProp, (float)CompareFunction.Always);
+            SetMaterialPropertyFloat(stencilPassOpBackProp, (float)StencilOp.Keep);
+            SetMaterialPropertyFloat(stencilFailOpBackProp, (float)StencilOp.Keep);
+            SetMaterialPropertyFloat(stencilZFailOpBackProp, (float)StencilOp.Keep);
+        }
+
+        static void SetMaterialPropertyFloat(MaterialProperty property, float value)
+        {
+            if (property != null)
+                property.floatValue = value;
         }
 
         private void DrawMotionVectorOptions(Material material)
@@ -687,16 +1131,14 @@ namespace UnityEditor
         /// <param name="keyword">The keyword used for emission.</param>
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
-            var emissive = true;
-
             if (!keyword)
             {
                 DrawEmissionTextureProperty();
             }
             else
             {
-                emissive = materialEditor.EmissionEnabledProperty();
-                using (new EditorGUI.DisabledScope(!emissive))
+                DrawEmissionFlags(material);
+                using (new EditorGUI.DisabledScope(material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None))
                 {
                     DrawEmissionTextureProperty();
                 }
@@ -711,10 +1153,35 @@ namespace UnityEditor
                     emissionColorProp.colorValue = Color.white;
             }
 
-            if (emissive)
+            MaterialEditor.FixupEmissiveFlag(material);
+        }
+
+        /// <summary>
+        /// Creates a int flag field for emission flags in globalIlluminationFlags for a given material.
+        /// </summary>
+        /// <param name="material">The material to draw the emission flags field from.</param>
+        protected void DrawEmissionFlags(Material material)
+        {
+            int flags = 0;
+            for (int i = 0; i < k_emissionOptionsInternal.Length; i++)
             {
-                // Change the GI emission flag and fix it up with emissive as black if necessary.
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                if ((material.globalIlluminationFlags & k_emissionOptionsInternal[i]) != MaterialGlobalIlluminationFlags.None)
+                    flags |= 1 << i;
+            }
+            EditorGUI.BeginChangeCheck();
+            flags = EditorGUILayout.MaskField(flags, k_emissionOptions);
+            var globalIlluminationFlags = material.globalIlluminationFlags
+                & ~(MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission | MaterialGlobalIlluminationFlags.RealtimeDirectEmission);
+            for (int i = 0; i < k_emissionOptions.Length; i++)
+            {
+                if ((flags & 1 << i) != 0)
+                    globalIlluminationFlags |= k_emissionOptionsInternal[i];
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(material, $"Modify Emission Flags of {material.name}");
+                material.globalIlluminationFlags = globalIlluminationFlags;
+                EditorUtility.SetDirty(material);
             }
         }
 
@@ -808,6 +1275,15 @@ namespace UnityEditor
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+
+            // Render Face: the engine clamps out-of-range cull values when rendering; mirror that so the inspector agrees.
+            if (material.HasProperty(Property.CullMode))
+            {
+                float cull = material.GetFloat(Property.CullMode);
+                float clampedCull = Mathf.Clamp(cull, (float)RenderFace.Both, (float)RenderFace.Front);
+                if (cull != clampedCull)
+                    material.SetFloat(Property.CullMode, clampedCull);
+            }
         }
 
         internal static void UpdateMotionVectorKeywordsAndPass(Material material)
@@ -875,6 +1351,42 @@ namespace UnityEditor
             }
         }
 #endif
+
+        // Disables DepthNormals / DepthNormalsOnly on transparent materials that opted out
+        // of contributing to Screen Space Reflections, so the SSR transparent prepass skips them.
+        // Opaque materials always keep the passes enabled.
+        internal static void UpdateScreenSpaceReflectionContributeTransparentPassState(Material material)
+        {
+            if (!material.HasProperty(Property.ScreenSpaceReflectionsContributeTransparent))
+                return;
+
+            bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
+            bool contributesToSSR = material.GetFloat(Property.ScreenSpaceReflectionsContributeTransparent) != 0.0f;
+            bool enablePass = !isTransparent || contributesToSSR;
+
+            material.SetShaderPassEnabled("DepthNormals", enablePass);
+            material.SetShaderPassEnabled("DepthNormalsOnly", enablePass);
+        }
+
+        internal static void UpdateScreenSpaceReflectionsKeyword(Material material)
+        {
+            if (!material.HasProperty(Property.ScreenSpaceReflections))
+                return;
+
+            bool receiveOff = material.GetFloat(Property.ScreenSpaceReflections) == 0.0f || ShouldForceReceiveSsrOff(material);
+            CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONS_OFF", receiveOff);
+        }
+
+        // Returns true when the material's Receive SSR toggle should be force-disabled. Without
+        // contributing to the SSR depth prepass, a transparent material would sample the reflection
+        // of whatever sits behind it.
+        internal static bool ShouldForceReceiveSsrOff(Material material)
+        {
+            bool isTransparent = material.renderQueue >= (int)RenderQueue.Transparent;
+            bool contributesToSSR = !material.HasProperty(Property.ScreenSpaceReflectionsContributeTransparent)
+                                    || material.GetFloat(Property.ScreenSpaceReflectionsContributeTransparent) != 0.0f;
+            return isTransparent && !contributesToSSR;
+        }
 
         // this function is shared between ShaderGraph and hand-written GUIs
         internal static void UpdateMaterialRenderQueueControl(Material material)
@@ -947,7 +1459,7 @@ namespace UnityEditor
             if (material.HasProperty(Property.EmissionColor))
                 MaterialEditor.FixupEmissiveFlag(material);
 
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeDirectEmission) != 0;
 
             // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
             // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
@@ -1024,6 +1536,12 @@ namespace UnityEditor
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(Property.SurfaceType);
                 bool zwrite = false;
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT, surfaceType == SurfaceType.Transparent);
+#if VOLUMETRIC_FOG
+                // Derived from the same surface type as _SURFACE_TYPE_TRANSPARENT so the receive-fog
+                // keyword can never be enabled on an opaque material.
+                bool receiveFog = material.HasProperty(Property.ReceiveFog) && material.GetFloat(Property.ReceiveFog) != 0.0f;
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings.TransparentReceiveFog, surfaceType == SurfaceType.Transparent && receiveFog);
+#endif
                 bool alphaToMask = false;
                 if (surfaceType == SurfaceType.Opaque)
                 {
@@ -1139,7 +1657,10 @@ namespace UnityEditor
                         zwrite = false;
                 }
                 SetMaterialZWriteProperty(material, zwrite);
-                material.SetShaderPassEnabled("DepthOnly", zwrite);
+                // A ZWrite-off material still needs DepthOnly if it stamps stencil in the prepass.
+                bool stencilUsesPrepass = material.HasProperty(Property.StencilUsesPrepass)
+                    && material.GetFloat(Property.StencilUsesPrepass) > 0.5f;
+                material.SetShaderPassEnabled("DepthOnly", zwrite || stencilUsesPrepass);
             }
             else
             {
@@ -1154,6 +1675,7 @@ namespace UnityEditor
 
             automaticRenderQueue = renderQueue;
         }
+
 
         /// <summary>
         /// Sets up the blend mode.
@@ -1253,6 +1775,36 @@ namespace UnityEditor
         {
             if (property != null)
                 materialEditor.PopupShaderProperty(property, label, options);
+        }
+
+        /// <summary>
+        /// Helper function to draw an enum popup.
+        /// </summary>
+        /// <typeparam name="T">The enum type whose values populate the popup.</typeparam>
+        /// <param name="label">The label to use.</param>
+        /// <param name="property">The property to display.</param>
+        public void DoEnumPopup<T>(GUIContent label, MaterialProperty property) where T : struct, Enum
+        {
+            if (property == null)
+                return;
+
+            MaterialEditor.BeginProperty(property);
+            materialEditor.BeginAnimatedCheck(property);
+
+            T val = (T)Enum.ToObject(typeof(T), (int)property.floatValue);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            var newValue = (T)EditorGUILayout.EnumPopup(label, val);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck() && (!newValue.Equals(val) || property.hasMixedValue))
+            {
+                materialEditor.RegisterPropertyChangeUndo(label.text);
+                property.floatValue = Convert.ToSingle(newValue);
+            }
+
+            materialEditor.EndAnimatedCheck();
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>

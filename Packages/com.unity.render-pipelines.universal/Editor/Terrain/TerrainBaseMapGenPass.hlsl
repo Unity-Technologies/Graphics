@@ -8,14 +8,6 @@ Varyings Vert(Attributes IN)
     // There are other plenty of other values that the original version computes, but for this
     // pass, we are only interested in a few, so I'm just skipping the rest.
     output.texCoord0.xy = IN.uv0; // uvMainAndLM
-    #if defined(UNIVERSAL_TERRAIN_SPLAT01)
-    output.uvSplat01.xy = TRANSFORM_TEX(IN.uv0, _Splat0);
-    output.uvSplat01.zw = TRANSFORM_TEX(IN.uv0, _Splat1);
-    #endif
-    #if defined(UNIVERSAL_TERRAIN_SPLAT02)
-    output.uvSplat23.xy = TRANSFORM_TEX(IN.uv0, _Splat2);
-    output.uvSplat23.zw = TRANSFORM_TEX(IN.uv0, _Splat3);
-    #endif
 
     return output;
 }

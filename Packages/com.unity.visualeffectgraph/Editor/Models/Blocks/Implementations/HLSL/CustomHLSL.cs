@@ -206,6 +206,8 @@ namespace UnityEditor.VFX.Block
 
         public bool HasShaderFile() => m_ShaderFile != null && !object.ReferenceEquals(m_ShaderFile, null);
 
+        public void ResetHLSLCache() => cachedHLSLCode = null;
+
         public override IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.Default)
         {
             var settings = base.GetSettings(listHidden, flags);

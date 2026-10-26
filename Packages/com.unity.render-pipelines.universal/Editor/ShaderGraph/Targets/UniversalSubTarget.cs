@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph;
 using static Unity.Rendering.Universal.ShaderUtils;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering;
 #if HAS_VFX_GRAPH
 using UnityEditor.VFX;
 #endif
@@ -59,7 +60,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             urpMetadata.shaderID = shaderID;
             urpMetadata.alphaMode = target.alphaMode;
 
-            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit)
+            // ShadowCaster2D and Light2D join the sprite IDs here for the same reason: none of these
+            // settings has a meaning for them. ShadowCaster2D's blend, ColorMask and stencil are the
+            // four-phase shadow handshake and are fixed per pass, and it neither casts nor receives
+            // 3D shadows.
+            if (shaderID != ShaderID.SG_SpriteLit && shaderID != ShaderID.SG_SpriteUnlit &&
+                shaderID != ShaderID.SG_ShadowCaster2D && shaderID != ShaderID.SG_Light2D)
             {
                 urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
                 urpMetadata.surfaceType = target.surfaceType;
@@ -93,6 +99,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 return new UniversalShaderGraphSaveContext { updateMaterials = needsUpdate };
             }
+        }
+
+        internal virtual bool supportsStencilOverride => false;
+
+        // Emits the no-op stencil default properties consumed by passes whose bit isn't set in the
+        // SG-time DepthStencilPassMask. These are HideInInspector and locked to:
+        // Comp = Always (8), Op = Keep (0). Front and back share the same locked values.
+        internal static void AddStencilDefaultProperties(PropertyCollector collector)
+        {
+            const float kCompAlways = (float)CompareFunction.Always;
+            const float kOpKeep = (float)StencilOp.Keep;
+            collector.AddFloatProperty(Property.StencilCompFuncDefault, kCompAlways);
+            collector.AddFloatProperty(Property.StencilPassOpDefault, kOpKeep);
+            collector.AddFloatProperty(Property.StencilFailOpDefault, kOpKeep);
+            collector.AddFloatProperty(Property.StencilZFailOpDefault, kOpKeep);
+            collector.AddFloatProperty(Property.StencilCompFuncDefaultBack, kCompAlways);
+            collector.AddFloatProperty(Property.StencilPassOpDefaultBack, kOpKeep);
+            collector.AddFloatProperty(Property.StencilFailOpDefaultBack, kOpKeep);
+            collector.AddFloatProperty(Property.StencilZFailOpDefaultBack, kOpKeep);
         }
     }
 

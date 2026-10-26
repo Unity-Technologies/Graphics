@@ -1,5 +1,5 @@
-# Output Particle Point
-Menu Path : **Context > Output Particle Point**
+# Output Particle Point Context
+Menu Path : **Context** > **Output Particle Point**
 
 The **Output Particle Point** Context uses points to render a particle system. It always draws points as single pixels regardless of the distance of the particle to the camera or each particle's size and scale attributes.
 

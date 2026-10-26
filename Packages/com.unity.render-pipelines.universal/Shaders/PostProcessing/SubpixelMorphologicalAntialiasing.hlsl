@@ -554,7 +554,11 @@
 #if defined(SMAA_HLSL_4) || defined(SMAA_HLSL_4_1)
 //SamplerState LinearSampler { Filter = MIN_MAG_LINEAR_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };
 //SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; };
-#define SMAATexture2D(tex) TEXTURE2D_X(tex)
+// Use the FLOAT texture variant: on mobile (real==half), TEXTURE2D_X resolves to Texture2D<min16float4>,
+// but the textures SMAA is handed (e.g. the full-precision _BlitTexture color input) are Texture2D<float4>.
+// DXC treats those as distinct types and rejects the call ("no known conversion from 'Texture2D<float4>'
+// to 'Texture2D<min16float4>'"); FXC/HLSLcc silently unified them. Keep the SMAA texture path full-float.
+#define SMAATexture2D(tex) TEXTURE2D_X_FLOAT(tex)
 #define SMAATexture2D_Non_Array(tex) Texture2D tex
 #define SMAATexturePass2D(tex) tex
 #define SMAASampleLevelZero(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, coord, 0)

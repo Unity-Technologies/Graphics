@@ -16,9 +16,6 @@ using Assert = NUnit.Framework.Assert;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    [UnityPlatform(exclude = new RuntimePlatform[] {
-        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
-    })]
     internal class SubWindowTests
     {
         static string kGraphName = "Assets/CommonAssets/Graphs/SubWindow.shadergraph";
@@ -30,7 +27,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void OpenGraphWindow()
         {
             // Open up the window
-            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName))
+            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName, disablePreviewsForTesting: true))
             {
                 Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + kGraphName);
             }
@@ -54,8 +51,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [TearDown]
         public void CloseGraphWindow()
         {
-            m_Window.graphObject = null; // Don't spawn ask-to-save dialog
-            m_Window.Close();
+            if (m_Window != null)
+            {
+                m_Window.DiscardChanges();
+                m_Window.Close();
+            }
+            m_Window = null;
         }
 
         private void ToggleSubWindows(bool showBlackboard, bool showPreview, bool showInspector)
@@ -75,29 +76,29 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // All visible
             ToggleSubWindows(true, true, true);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is not visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.True, "Inspector is not visible when it should be. (1st pass)");
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             // None Visible
             ToggleSubWindows(false, false, false);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard remained visible when it should not be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "Inspector remained visible when it should not be. (2nd pass)");
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             // Blackboard Only
             ToggleSubWindows(true, false, false);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is not visible when it should be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (3rd pass)");
@@ -106,18 +107,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // Preview Only
             ToggleSubWindows(false, true, false);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard remained visible when it should not be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView remained visible when it should not be. (4th pass)");
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             // Inspector Only
             ToggleSubWindows(false, false, true);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard remained visible when it should not be. (5th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (5th pass)");
@@ -141,61 +142,61 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator SubWindowStatusRememberedAfterCloseAndReopen()
         {
-            yield return ToggleSubWindowsThenCloseThenReopen(true, true, true);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(true, true, true));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is NOT visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.True, "InspectorView is NOT visible when it should be. (1st pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(true, true, true);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(true, true, true));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is NOT visible when it should be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.True, "InspectorView is NOT visible when it should be. (2nd pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(true, false, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(true, false, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is NOT visible when it should be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView IS visible when it should not be. (3rd pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(true, false, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(true, false, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.True, "Blackboard is NOT visible when it should be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView IS visible when it should not be. (4th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, true, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, true, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (5th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not be. (5th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView IS visible when it should not be. (5th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, true, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, true, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (6th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not be. (6th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView IS visible when it should not be. (6th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, false, true);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, false, true));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (7th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (7th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.True, "InspectorView IS NOT visible when it should be. (7th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, false, true);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, false, true));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (8th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView is NOT visible when it should not be. (8th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.True, "InspectorView IS NOT visible when it should be. (8th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, false, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, false, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (9th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (9th pass)");
             Assert.That(m_GraphEditorView.Q<InspectorView>().visible, Is.False, "InspectorView IS visible when it should not be. (9th pass)");
 
-            yield return ToggleSubWindowsThenCloseThenReopen(false, false, false);
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures(ToggleSubWindowsThenCloseThenReopen(false, false, false));
 
             Assert.That(m_GraphEditorView.Q<SGBlackboard>().visible, Is.False, "Blackboard IS visible when it should not be. (10th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (10th pass)");

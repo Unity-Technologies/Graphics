@@ -14,8 +14,6 @@ namespace UnityEngine.VFX.Test
         public float fixedTimeStepScale = defaultFixedTimeStepScale;
         public float simulateTime = defaultSimulateTime;
 
-        public bool xrCompatible = true;
-
         VFXGraphicsTestSettings()
         {
             base.ImageComparisonSettings.AverageCorrectnessThreshold = defaultAverageCorrectnessThreshold;

@@ -8,9 +8,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class ProxyVolumeUI
     {
-        internal static GUIContent shapeContent = EditorGUIUtility.TrTextContent("Shape", "The shape of the Proxy.\nInfinite is compatible with any kind of InfluenceShape.");
-        internal static GUIContent boxSizeContent = EditorGUIUtility.TrTextContent("Box Size", "The size of the box.");
-        internal static GUIContent sphereRadiusContent = EditorGUIUtility.TrTextContent("Sphere Radius", "The radius of the sphere.");
+        internal static GUIContent shapeContent = L10n.TextContent("Shape", "The shape of the Proxy.\nInfinite is compatible with any kind of InfluenceShape.", null, null);
+        internal static GUIContent boxSizeContent = L10n.TextContent("Box Size", "The size of the box.", null, null);
+        internal static GUIContent sphereRadiusContent = L10n.TextContent("Sphere Radius", "The radius of the sphere.", null, null);
 
         public static readonly CED.IDrawer SectionShape = CED.Group((serialized, owner) =>
         {

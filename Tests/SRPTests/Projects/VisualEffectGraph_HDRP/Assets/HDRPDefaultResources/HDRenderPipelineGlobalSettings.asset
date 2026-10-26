@@ -198,6 +198,9 @@ MonoBehaviour:
       - rid: 1256477497507971072
       - rid: 1256477497507971073
       - rid: 1256477497507971074
+      - rid: 7182773092357767169
+      - rid: 2350599065980370945
+      - rid: 2350599065980370946
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -254,6 +257,7 @@ MonoBehaviour:
         _skyBoxMesh: {fileID: 4300000, guid: 0529e6c5f6dea8c4a8c2835ed7de57cb, type: 2}
         _sixFaceSkyBoxMesh: {fileID: 4300000, guid: a80925ceebd011741b42509226cefc74, type: 2}
         _buildLightGridShader: {fileID: 7200000, guid: 16e47c1641bd0104e92b624601457bb0, type: 3}
+        _solidColorShader: {fileID: 4800000, guid: 3765a7ac691541038de4d587b94ae768, type: 3}
     - rid: 1256477497507971073
       type: {class: RayTracingRenderPipelineResources, ns: UnityEngine.Rendering.UnifiedRayTracing, asm: Unity.UnifiedRayTracing.Runtime}
       data:
@@ -271,6 +275,15 @@ MonoBehaviour:
       type: {class: ColorCheckerResources, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_ColorCheckerMaterial: {fileID: 2100000, guid: 7a1044256d39dba4aa777255550527bf, type: 2}
+    - rid: 2350599065980370945
+      type: {class: UpscalerReactiveMaskResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 0
+        m_reactiveMaskPS: {fileID: 4800000, guid: a32e79e9a0e86a14894684c864a169a3, type: 3}
+    - rid: 2350599065980370946
+      type: {class: AlphaUpscaler/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_AlphaUpscaleCS: {fileID: 7200000, guid: f10c23179af641eea368ee165b2e97cf, type: 3}
     - rid: 6023113869122600960
       type: {class: RenderingPathFrameSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
@@ -909,3 +922,18 @@ MonoBehaviour:
           - {r: 0.5, g: 0, b: 0.5, a: 1}
           - {r: 0.5, g: 0.5, b: 0.5, a: 1}
           - {r: 0, g: 0, b: 1, a: 1}
+    - rid: 7182773092357767169
+      type: {class: SurfaceCacheRenderPipelineResourceSet, ns: UnityEngine.Rendering, asm: Unity.SurfaceCache.Runtime}
+      data:
+        m_Version: 4
+        m_TemporalFilteringShader: {fileID: 7200000, guid: c23523f04780d754f927b9daf4f975b9, type: 3}
+        m_SpatialFilteringShader: {fileID: 7200000, guid: 63e59de460463bb4c9d64bc58051d12c, type: 3}
+        m_ScrollingShader: {fileID: 7200000, guid: 47bbc3edf61978b498603cc2a1b87eea, type: 3}
+        m_GlobalProbeShader: {fileID: 7200000, guid: 4dccb71ac6af46018e56b6ccc3974c80, type: 3}
+        m_DefragShader: {fileID: 7200000, guid: a183a2d0b1da4904fb3bd71c6111ebb1, type: 3}
+        m_EstimationShader: {fileID: 7200000, guid: 7aa73e4f3b424c41bee95499324c9297, type: 3}
+        m_PunctualLightSamplingShader: {fileID: 7200000, guid: 046dc07e95c240fda3212abb90fcb736, type: 3}
+        m_EvictionShader: {fileID: 7200000, guid: c9f2aeed6ef396f4d9134e4da1edfe19, type: 3}
+        m_PatchAllocationShader: {fileID: 7200000, guid: b271ec1ddd8048458fa529e8e7cfe960, type: 3}
+        m_EmissiveTriangleAdditionComputeShader: {fileID: 7200000, guid: 2e583cebf11e4785b8a5b0d8f7b20ab6, type: 3}
+        m_EmissiveTriangleRemovalComputeShader: {fileID: 7200000, guid: 3d386645a85b4e758a7b7eb1bf87fa24, type: 3}

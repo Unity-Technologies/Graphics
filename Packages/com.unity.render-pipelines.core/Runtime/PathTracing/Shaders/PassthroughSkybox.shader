@@ -47,9 +47,9 @@ Shader "Hidden/PassthroughSkybox"
 
             float4 frag (v2f i) : SV_Target
             {
-                half4 tex = texCUBE (_Tex, i.texcoord);
-                half3 c = DecodeHDR (tex, _Tex_HDR);
-                return half4(c, 1);
+                float4 tex = texCUBE (_Tex, i.texcoord);
+                float3 c = DecodeHDR (tex, _Tex_HDR);
+                return float4(c, 1);
             }
             ENDCG
         }

@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -48,6 +47,11 @@ namespace UnityEngine.Rendering.Universal
             if (UniversalRenderer.IsOffscreenDepthTexture(universalCameraData))
                 return;
 
+            // Only allow in preview cameras via the RenderRequest API (i.e. 'Cameras' overlay in scene view)
+            // Don't allow regular preview cameras (i.e. thumbnails, material previews)
+            if (universalCameraData.isPreviewCamera && !universalCameraData.camera.isProcessingRenderRequest)
+                return;
+
             // Currently no orthographic support, so ignore these cameras.
             if (universalCameraData.camera.orthographic)
                 return;
@@ -59,8 +63,8 @@ namespace UnityEngine.Rendering.Universal
             if (!TryPrepareResources(universalRenderingData.transparentLayerMask, settings))
                 return;
 
-            if (!settings.linearMarching.value && !SystemInfo.supportsComputeShaders)
-                Debug.LogWarning("Screen Space Reflection settings are incompatible with the current platform. Linear Marching must be enabled on platforms without computer shader support. Falling back to linear marching.");
+            if (settings.marchingMethod.value == ScreenSpaceReflectionVolumeSettings.MarchingMethod.Hierarchical && !SystemInfo.supportsComputeShaders)
+                Debug.LogWarning("Screen Space Reflection settings are incompatible with the current platform. Linear Marching Method must be used on platforms without computer shader support. Falling back to Linear marching.");
 
             bool shouldAdd = m_SSRPass.Setup(renderer, m_Material, m_BlitMaterial, afterOpaque, universalRenderingData, universalCameraData.cameraType);
             if (shouldAdd)
@@ -114,4 +118,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

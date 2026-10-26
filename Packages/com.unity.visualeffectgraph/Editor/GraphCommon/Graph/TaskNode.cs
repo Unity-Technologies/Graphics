@@ -1,3 +1,4 @@
+using System;
 
 namespace Unity.GraphCommon.LowLevel.Editor
 {
@@ -70,49 +71,67 @@ namespace Unity.GraphCommon.LowLevel.Editor
         readonly IIndexable<GraphNode<TaskNodeId>, TaskNode> m_NodeConverter;
         readonly GraphNode<TaskNodeId> m_Node;
 
-        readonly Handle<IReadOnlyGraph> m_Graph;
+        readonly IReadOnlyGraph m_Graph;
         readonly TaskNodeInfo m_Info;
 
-        /// <summary>
-        /// Gets the unique identifier for this task node. Returns an invalid ID if the graph is not valid.
-        /// </summary>
-        public TaskNodeId Id => m_Graph.Valid ? m_Info.Id : TaskNodeId.Invalid;
+        TaskNodeInfo Info { get { CheckValid(); return m_Info; } }
+        IReadOnlyGraph Graph { get { CheckValid(); return m_Graph; } }
+        GraphNode<TaskNodeId> Node { get { CheckValid(); return m_Node; } }
 
         /// <summary>
-        /// Gets the task associated with this node. Returns null if the graph is not valid.
+        /// Gets a value indicating whether this task node still refers to a live entry in the graph.
         /// </summary>
-        public ITask Task => m_Graph.Valid ? m_Info.Task : null;
+        public bool IsValid => m_Graph != null && m_Graph.IsValid(m_Info.Id);
 
         /// <summary>
-        /// Gets the name of this node. Returns null if the graph is not valid.
+        /// Gets the unique identifier for this task node.
         /// </summary>
-        public string Name => m_Graph.Valid ? m_Info.Name : null;
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public TaskNodeId Id => Info.Id;
+
+        /// <summary>
+        /// Gets the task associated with this node.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public ITask Task => Info.Task;
+
+        /// <summary>
+        /// Gets the name of this node.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public string Name => Info.Name;
 
         /// <summary>
         /// Gets the parent task nodes connected to this task node.
         /// </summary>
-        public TaskNodeLinks Parents => new(m_NodeConverter, m_Node.Parents);
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public TaskNodeLinks Parents => new(m_NodeConverter, Node.Parents);
 
         /// <summary>
         /// Gets the child task nodes connected to this task node.
         /// </summary>
-        public TaskNodeLinks Children => new(m_NodeConverter, m_Node.Children);
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public TaskNodeLinks Children => new(m_NodeConverter, Node.Children);
+
+        void CheckValid() { if (!IsValid) throw new InvalidOperationException($"TaskNode {m_Info.Id} no longer exists in the graph."); }
 
         /// <summary>
         /// Gets the data nodes used by this task node.
         /// </summary>
-        public DataNodeEnumerable<SubEnumerable<DataNodeId>> DataNodes => m_Graph.Ref.GetDataNodes(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public DataNodeEnumerable DataNodes => Graph.GetDataNodes(Info.Id);
 
         /// <summary>
         /// Gets the data bindings used by this task node.
         /// </summary>
-        public DataBindingEnumerable<SubEnumerable<DataBindingId>> DataBindings => m_Graph.Ref.GetDataBindings(Id);
+        /// <exception cref="InvalidOperationException">Thrown when the task node has been removed from the graph.</exception>
+        public DataBindingEnumerable DataBindings => Graph.GetDataBindings(Info.Id);
 
         internal TaskNode(IIndexable<GraphNode<TaskNodeId>, TaskNode> nodeConverter, GraphNode<TaskNodeId> node, IReadOnlyGraph graph, TaskNodeInfo info)
         {
             m_NodeConverter = nodeConverter;
             m_Node = node;
-            m_Graph = new(graph);
+            m_Graph = graph;
             m_Info = info;
         }
     }
@@ -137,6 +156,8 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <value>The task node at the specified index.</value>
         public TaskNode this[int index] => m_NodeConverter[m_Links[index]];
 
+        internal TaskNodeId GetId(int index) => m_Links[index].Data;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskNodeLinks"/> struct.
         /// </summary>
@@ -149,46 +170,47 @@ namespace Unity.GraphCommon.LowLevel.Editor
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through the task node links.
+        /// Returns an enumerator that iterates through the task node links and throws on
+        /// concurrent modification of the underlying parents/children sublist. Composes the
+        /// version-checked <see cref="GraphNodeLinksEnumerator{T}"/> with the graph-node-to-
+        /// <see cref="TaskNode"/> projection via the node converter.
         /// </summary>
-        /// <returns>An enumerator that can be used to iterate through the task node links.</returns>
-        public LinearEnumerator<TaskNodeLinks, TaskNode> GetEnumerator() => new(this);    }
+        public ResolvingEnumerator<GraphNode<TaskNodeId>, TaskNode, GraphNodeLinksEnumerator<TaskNodeId>> GetEnumerator() =>
+            new(m_NodeConverter, m_Links.GetEnumerator());
+    }
 
     /// <summary>
-    /// Represents an enumerable collection of task nodes.
+    /// Represents an enumerable collection of task nodes. Wraps a <see cref="SubEnumerable{T}"/>
+    /// of <see cref="TaskNodeId"/> and projects each id to a <see cref="TaskNode"/> via a provider.
+    /// Iteration via <c>foreach</c> composes the inner <see cref="VersionedSublistEnumerator{T}"/>,
+    /// so concurrent modification of the backing sublist is detected and throws.
     /// </summary>
-    /// <typeparam name="T">The type of the source collection that contains task node IDs.</typeparam>
-    /*public*/ readonly struct TaskNodeEnumerable<T> : IIndexable<int, TaskNode>, ICountable where T : IIndexable<int, TaskNodeId>, ICountable
+    /*public*/ readonly struct TaskNodeEnumerable : IIndexable<int, TaskNode>, ICountable
     {
         readonly IIndexable<TaskNodeId, TaskNode> m_Provider;
-        readonly T m_IdSource;
+        readonly SubEnumerable<TaskNodeId>        m_IdSource;
 
-        /// <summary>
-        /// Gets the number of task nodes in the collection.
-        /// </summary>
         public int Count => m_IdSource.Count;
 
-        /// <summary>
-        /// Gets the task node at the specified index in the collection.
-        /// </summary>
-        /// <param name="index">The zero-based index of the task node to get.</param>
-        /// <value>The task node at the specified index.</value>
+        /// <remarks>
+        /// Indexed access bypasses the version check (matches the BCL contract). Use
+        /// <c>foreach</c> for the version-checked path.
+        /// </remarks>
         public TaskNode this[int index] => m_Provider[m_IdSource[index]];
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TaskNodeEnumerable{T}"/> struct.
+        /// Gets the id at the specified index, without materializing a <see cref="TaskNode"/>.
+        /// Used by <see cref="GraphSnapshots"/>.
         /// </summary>
-        /// <param name="provider">The provider that can retrieve task nodes by ID.</param>
-        /// <param name="idSource">The source collection of task node IDs.</param>
-        public TaskNodeEnumerable(IIndexable<TaskNodeId, TaskNode> provider, T idSource)
+        internal TaskNodeId GetId(int index) => m_IdSource[index];
+
+        public TaskNodeEnumerable(IIndexable<TaskNodeId, TaskNode> provider, SubEnumerable<TaskNodeId> idSource)
         {
             m_Provider = provider;
             m_IdSource = idSource;
         }
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the task nodes.
-        /// </summary>
-        /// <returns>An enumerator that can be used to iterate through the task nodes.</returns>
-        public LinearEnumerator<TaskNodeEnumerable<T>, TaskNode> GetEnumerator() => new(this);    }
+        public ResolvingEnumerator<TaskNodeId, TaskNode, VersionedSublistEnumerator<TaskNodeId>> GetEnumerator() =>
+            new(m_Provider, m_IdSource.GetEnumerator());
+    }
 }

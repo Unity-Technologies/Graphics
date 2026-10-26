@@ -1,4 +1,4 @@
-# Load Texture2DArray
+# Load Texture2DArray Operator
 
 Menu Path : **Operator > Sampling > Load Texture2DArray**
 

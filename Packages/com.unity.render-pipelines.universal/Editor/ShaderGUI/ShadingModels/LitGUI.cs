@@ -48,74 +48,72 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The text and tooltip for the workflow Mode GUI.
             /// </summary>
-            public static GUIContent workflowModeText = EditorGUIUtility.TrTextContent("Workflow Mode",
-                "Select a workflow that fits your textures. Choose between Metallic or Specular.");
+            public static GUIContent workflowModeText = L10n.TextContent("Workflow Mode",
+                "Select a workflow that fits your textures. Choose between Metallic or Specular.", null, null);
 
             /// <summary>
             /// The text and tooltip for the specular Map GUI.
             /// </summary>
             public static GUIContent specularMapText =
-                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
+                L10n.TextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.", null, null);
 
             /// <summary>
             /// The text and tooltip for the metallic Map GUI.
             /// </summary>
             public static GUIContent metallicMapText =
-                EditorGUIUtility.TrTextContent("Metallic Map", "Sets and configures the map for the Metallic workflow.");
+                L10n.TextContent("Metallic Map", "Sets and configures the map for the Metallic workflow.", null, null);
 
             /// <summary>
             /// The text and tooltip for the smoothness GUI.
             /// </summary>
-            public static GUIContent smoothnessText = EditorGUIUtility.TrTextContent("Smoothness",
-                "Controls the spread of highlights and reflections on the surface.");
+            public static GUIContent smoothnessText = L10n.TextContent("Smoothness",
+                "Controls the spread of highlights and reflections on the surface.", null, null);
 
             /// <summary>
             /// The text and tooltip for the smoothness source GUI.
             /// </summary>
             public static GUIContent smoothnessMapChannelText =
-                EditorGUIUtility.TrTextContent("Source",
-                    "Specifies where to sample a smoothness map from. By default, uses the alpha channel for your map.");
+                L10n.TextContent("Source",
+                    "Specifies where to sample a smoothness map from. By default, uses the alpha channel for your map.", null, null);
 
             /// <summary>
             /// The text and tooltip for the specular Highlights GUI.
             /// </summary>
-            public static GUIContent highlightsText = EditorGUIUtility.TrTextContent("Specular Highlights",
-                "When enabled, the Material reflects the shine from direct lighting.");
+            public static GUIContent highlightsText = L10n.TextContent("Specular Highlights",
+                "When enabled, the Material reflects the shine from direct lighting.", null, null);
 
             /// <summary>
             /// The text and tooltip for the environment Reflections GUI.
             /// </summary>
             public static GUIContent reflectionsText =
-                EditorGUIUtility.TrTextContent("Environment Reflections",
-                    "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
+                L10n.TextContent("Environment Reflections",
+                    "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.", null, null);
 
-#if URP_SCREEN_SPACE_REFLECTION
             /// <summary>
             /// The text and tooltip for the screen space reflections GUI.
             /// </summary>
             public static GUIContent screenSpaceReflectionsText =
-                EditorGUIUtility.TrTextContent("Screen Space Reflections",
-                    "When enabled, the Material samples screen space reflections.");
+                L10n.TextContent("Screen Space Reflections",
+                    "When enabled, the Material samples screen space reflections.", null, null);
 
             /// <summary>
             /// The text and tooltip for the screen space reflections contribute transparent GUI.
             /// </summary>
             public static GUIContent screenSpaceReflectionsContributeTransparentText =
-                EditorGUIUtility.TrTextContent("Contribute Screen Space Reflections",
-                    "When enabled, this Material will contribute to screen space reflections. This will include the object in the transparency-depth prepass.");
-#endif
+                L10n.TextContent("Contribute Screen Space Reflections",
+                    "When enabled, this Material will contribute to screen space reflections. This will include the object in the transparency-depth prepass.", null, null);
 
             /// <summary>
             /// The text and tooltip for the height map GUI.
             /// </summary>
-            public static GUIContent heightMapText = EditorGUIUtility.TrTextContent("Height Map",
-                "Defines a Height Map that will drive a parallax effect in the shader making the surface seem displaced.");
+            public static GUIContent heightMapText = L10n.TextContent("Height Map",
+                "Defines a Height Map that will drive a parallax effect in the shader making the surface seem displaced.", null, null);
 
             /// <summary>
             /// The text and tooltip for the occlusion map GUI.
             /// </summary>
-            public static GUIContent occlusionText = EditorGUIUtility.TrTextContent("Occlusion Map",
-                "Sets an occlusion map to simulate shadowing from ambient lighting.");
+            public static GUIContent occlusionText = L10n.TextContent("Occlusion Map",
+                "Sets an occlusion map to simulate shadowing from ambient lighting.", null, null);
 
             /// <summary>
             /// The names for smoothness alpha options available for metallic workflow.
@@ -130,24 +128,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The text and tooltip for the enabling/disabling clear coat GUI.
             /// </summary>
-            public static GUIContent clearCoatText = EditorGUIUtility.TrTextContent("Clear Coat",
+            public static GUIContent clearCoatText = L10n.TextContent("Clear Coat",
                 "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
-                "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
+                "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.", null, null);
 
             /// <summary>
             /// The text and tooltip for the clear coat Mask GUI.
             /// </summary>
-            public static GUIContent clearCoatMaskText = EditorGUIUtility.TrTextContent("Mask",
+            public static GUIContent clearCoatMaskText = L10n.TextContent("Mask",
                 "Specifies the amount of the coat blending." +
                 "\nActs as a multiplier of the clear coat map mask value or as a direct mask value if no map is specified." +
-                "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.");
+                "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.", null, null);
 
             /// <summary>
             /// The text and tooltip for the clear coat smoothness GUI.
             /// </summary>
-            public static GUIContent clearCoatSmoothnessText = EditorGUIUtility.TrTextContent("Smoothness",
+            public static GUIContent clearCoatSmoothnessText = L10n.TextContent("Smoothness",
                 "Specifies the smoothness of the coating." +
-                "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.");
+                "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.", null, null);
         }
 
         /// <summary>
@@ -238,7 +236,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// </summary>
             public MaterialProperty reflections;
 
-#if URP_SCREEN_SPACE_REFLECTION
             /// <summary>
             /// The MaterialProperty for screen space reflections.
             /// </summary>
@@ -248,7 +245,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// The MaterialProperty for screen space reflections contribute transparent.
             /// </summary>
             public MaterialProperty screenSpaceReflectionsContributeTransparent;
-#endif
 
             /// <summary>
             /// The MaterialProperty for enabling/disabling clear coat.
@@ -294,10 +290,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
-#if URP_SCREEN_SPACE_REFLECTION
-                screenSpaceReflections = BaseShaderGUI.FindProperty("_ScreenSpaceReflections", properties, false);
-                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty("_ScreenSpaceReflectionsContributeTransparent", properties, false);
-#endif
+                screenSpaceReflections = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflections, properties, false);
+                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflectionsContributeTransparent, properties, false);
                 clearCoat = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
                 clearCoatMap = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
                 clearCoatMask = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
@@ -501,14 +495,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (material.HasProperty("_EnvironmentReflections"))
                 CoreUtils.SetKeyword(material, "_ENVIRONMENTREFLECTIONS_OFF",
                     material.GetFloat("_EnvironmentReflections") == 0.0f);
-#if URP_SCREEN_SPACE_REFLECTION
-            if (material.HasProperty("_ScreenSpaceReflections"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONS_OFF",
-                    material.GetFloat("_ScreenSpaceReflections") == 0.0f);
-            if (material.HasProperty("_ScreenSpaceReflectionsContributeTransparent"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF",
-                    material.GetFloat("_ScreenSpaceReflectionsContributeTransparent") == 0.0f && material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent);
-#endif
+            BaseShaderGUI.UpdateScreenSpaceReflectionsKeyword(material);
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
             if (material.HasProperty("_OcclusionMap"))
                 CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
 

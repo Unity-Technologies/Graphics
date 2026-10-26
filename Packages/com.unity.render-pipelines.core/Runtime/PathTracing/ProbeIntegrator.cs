@@ -218,7 +218,8 @@ namespace UnityEngine.PathTracing.Integration
             GraphicsBuffer radianceShl2,
             uint radianceOffset,
             GraphicsBuffer expansionBuffer,
-            GraphicsBuffer reductionBuffer)
+            GraphicsBuffer reductionBuffer,
+            bool hasTerrains)
         {
             // Zero initialize output buffer
             const uint floatsPerSH = 27;
@@ -226,6 +227,7 @@ namespace UnityEngine.PathTracing.Integration
 
             float environmentIntensityMultiplier = ignoreEnvironment ? 0.0f : 1.0f;
             Util.SetEmissiveSamplingKeyword(cmd, _resourceLibrary.IndirectShader, emissiveSamplingMode);
+            Util.SetTerrainRayMarchingKeyword(cmd, _resourceLibrary.IndirectShader, hasTerrains);
             DispatchRadianceEstimationKernel(cmd, _resourceLibrary.IndirectShader, world, positionOffset, positionCount, bounceCount, sampleOffset, sampleCount, lightSamplingMode, risCandidateCount, maxLightsInAnyCell, environmentIntensityMultiplier, radianceShl2, radianceOffset, expansionBuffer, reductionBuffer);
         }
 
@@ -243,14 +245,17 @@ namespace UnityEngine.PathTracing.Integration
             GraphicsBuffer radianceShl2,
             uint radianceOffset,
             GraphicsBuffer expansionBuffer,
-            GraphicsBuffer reductionBuffer)
+            GraphicsBuffer reductionBuffer,
+            bool hasTerrains)
         {
             // Zero initialize output buffer
             const uint floatsPerSH = 27;
             cmd.SetBufferData(radianceShl2, new float[positionCount * floatsPerSH]);
 
             float environmentIntensityMultiplier = ignoreEnvironment ? 0.0f : 1.0f;
+            Util.SetTerrainRayMarchingKeyword(cmd, _resourceLibrary.DirectStochasticLightShader, hasTerrains);
             DispatchRadianceEstimationKernel(cmd, _resourceLibrary.DirectStochasticLightShader, world, positionOffset, positionCount, 0, sampleOffset, sampleCount, lightSamplingMode, risCandidateCount, maxLightsInAnyCell, environmentIntensityMultiplier, radianceShl2, radianceOffset, expansionBuffer, reductionBuffer);
+            Util.SetTerrainRayMarchingKeyword(cmd, _resourceLibrary.DirectDirectionalAndEnviromentShader, hasTerrains);
             DispatchRadianceEstimationKernel(cmd, _resourceLibrary.DirectDirectionalAndEnviromentShader, world, positionOffset, positionCount, 0, sampleOffset, sampleCount, LightSamplingMode.Uniform, risCandidateCount, maxLightsInAnyCell, environmentIntensityMultiplier, radianceShl2, radianceOffset, expansionBuffer, reductionBuffer);
         }
 
@@ -264,7 +269,8 @@ namespace UnityEngine.PathTracing.Integration
             GraphicsBuffer validity,
             uint validityOffset,
             GraphicsBuffer expansionBuffer,
-            GraphicsBuffer reductionBuffer)
+            GraphicsBuffer reductionBuffer,
+            bool hasTerrains)
         {
             var validityShader = _resourceLibrary.ValidityShader;
 
@@ -273,6 +279,7 @@ namespace UnityEngine.PathTracing.Integration
             Util.BindMaterialsAndTextures(cmd, validityShader, world);
             SamplingResources.Bind(cmd, _samplingResources);
 
+            Util.SetTerrainRayMarchingKeyword(cmd, validityShader, hasTerrains);
             DispatchProbeKernel(cmd, validityShader, positionOffset, positionCount, sampleOffset, sampleCount, 1, ShaderProperties.Validity, validity, validityOffset, expansionBuffer, reductionBuffer,
                 0, false, 0);
         }
@@ -290,7 +297,8 @@ namespace UnityEngine.PathTracing.Integration
             GraphicsBuffer occlusion,
             uint occlusionOffset,
             GraphicsBuffer expansionBuffer,
-            GraphicsBuffer reductionBuffer)
+            GraphicsBuffer reductionBuffer,
+            bool hasTerrains)
         {
             var occlusionShader = _resourceLibrary.OcclusionShader;
 
@@ -302,6 +310,7 @@ namespace UnityEngine.PathTracing.Integration
             occlusionShader.SetIntParam(cmd, ShaderProperties.PerProbeLightIndicesOffset, (int)perProbeLightIndicesOffset);
             occlusionShader.SetIntParam(cmd, ShaderProperties.MaxLightsPerProbe, (int)maxLightsPerProbe);
 
+            Util.SetTerrainRayMarchingKeyword(cmd, occlusionShader, hasTerrains);
             DispatchProbeKernel(cmd, occlusionShader, positionOffset, positionCount, sampleOffset, sampleCount, maxLightsPerProbe, ShaderProperties.Occlusion, occlusion, occlusionOffset, expansionBuffer, reductionBuffer,
                 0, false, 0);
         }

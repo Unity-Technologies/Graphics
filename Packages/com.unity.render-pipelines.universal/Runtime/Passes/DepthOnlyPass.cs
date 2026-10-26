@@ -95,8 +95,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled)
                 {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }

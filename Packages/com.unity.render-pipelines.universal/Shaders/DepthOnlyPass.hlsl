@@ -2,11 +2,11 @@
 #define UNIVERSAL_DEPTH_ONLY_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SpecGloss.hlsl"
 
-#if defined(_PARALLAXMAP) && defined(_ALPHATEST_ON)
+#if FEATURES_PARALLAXMAP && defined(_ALPHATEST_ON)
 #define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
 #endif
 
@@ -64,17 +64,19 @@ half DepthOnlyFragment(Varyings input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    #if defined(_PARALLAXMAP) && defined(_ALPHATEST_ON)
-        ApplyPerPixelDisplacement(input.viewDirTS, input.uv);
-    #endif
+#if FEATURES_PARALLAXMAP && defined(_ALPHATEST_ON)
+    ApplyPerPixelDisplacement(input.viewDirTS, input.uv);
+#endif
 
     #if defined(_ALPHATEST_ON)
-        Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+        half albedoAlpha = SampleBaseMap(input.uv).a;
+        half alpha = albedoAlpha * _BaseColor.a;
+        if (UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha())
+            alpha = _BaseColor.a;
+        AlphaDiscard(alpha, _Cutoff);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE)
-        LODFadeCrossFade(input.positionCS);
-    #endif
+    LODFadeCrossFade(input.positionCS);
 
     return input.positionCS.z;
 }

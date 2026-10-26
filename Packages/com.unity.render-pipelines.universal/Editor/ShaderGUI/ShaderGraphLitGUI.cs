@@ -13,6 +13,15 @@ namespace UnityEditor
 
         MaterialProperty[] properties;
 
+        // Hidden when the material exposes no surface options.
+        protected override void DrawRenderFaceDropdown()
+        {
+            if (surfaceTypeProp == null)
+                return;
+
+            DoEnumPopup<UnityEditor.Rendering.Universal.ShaderGraph.RenderFace>(Styles.cullingText, cullingProp);
+        }
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
@@ -31,7 +40,7 @@ namespace UnityEditor
         {
             // newly created materials should initialize the globalIlluminationFlags (default is off)
             if (updateType == MaterialUpdateType.CreatedNewMaterial)
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
 
             bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
@@ -40,6 +49,9 @@ namespace UnityEditor
 #if ENABLE_VR && ENABLE_XR_MODULE
             BaseShaderGUI.UpdateXRMotionVectorKeywordsAndPass(material);
 #endif
+
+            BaseShaderGUI.UpdateScreenSpaceReflectionsKeyword(material);
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
         }
 
         public override void ValidateMaterial(Material material)
@@ -73,14 +85,14 @@ namespace UnityEditor
         public override void DrawAdvancedOptions(Material material)
         {
             // Always show the queue control field.  Only show the render queue field if queue control is set to user override
-            DoPopup(Styles.queueControl, queueControlProp, Styles.queueControlNames);
+            DoEnumPopup<QueueControl>(Styles.queueControl, queueControlProp);
             if (material.HasProperty(Property.QueueControl) && material.GetFloat(Property.QueueControl) == (float)QueueControl.UserOverride)
                 materialEditor.RenderQueueField();
             base.DrawAdvancedOptions(material);
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
             materialEditor.DoubleSidedGIField();
-            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
+            DrawEmissionFlags(material);
         }
     }
 } // namespace UnityEditor

@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Block
 
         internal static bool IsShaderCompilableName(string name)
         {
-            return s_NameValidationRegex.IsMatch(name);
+            return !string.IsNullOrEmpty(name.Trim(' ', '_')) && s_NameValidationRegex.IsMatch(name);
         }
     }
 }

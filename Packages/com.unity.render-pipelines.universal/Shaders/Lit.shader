@@ -22,7 +22,7 @@ Shader "Universal Render Pipeline/Lit"
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [ToggleOff] _EnvironmentReflections("Environment Reflections", Float) = 1.0
         [ToggleOff] _ScreenSpaceReflections("Screen Space Reflections", Float) = 1.0
-        [ToggleOff] _ScreenSpaceReflectionsContributeTransparent("Screen Space Reflections Contribute Transparent", Float) = 1.0
+        [ToggleUI] _ScreenSpaceReflectionsContributeTransparent("Screen Space Reflections Contribute Transparent", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -49,6 +49,7 @@ Shader "Universal Render Pipeline/Lit"
         // Blending state
         _Surface("__surface", Float) = 0.0
         _Blend("__blend", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 1.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
@@ -142,7 +143,9 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ META_QUEST_LIGHTUNROLL
 #endif
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
@@ -154,8 +157,12 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_IRRADIANCE
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile _ _LIGHT_LAYERS
-            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile _ _EXPOSURE
 #if defined(UNITY_PLATFORM_META_QUEST)
             #pragma multi_compile _ META_QUEST_ORTHO_PROJ
             #pragma multi_compile _ META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP
@@ -170,9 +177,9 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile_fragment _ REFLECTION_PROBE_ROTATION
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
@@ -297,8 +304,9 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+            #pragma multi_compile _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
@@ -406,7 +414,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SCREENSPACEREFLECTIONS_OFF
-            #pragma shader_feature_local_fragment _SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF
 
             // -------------------------------------
             // Unity defined keywords
@@ -454,13 +461,16 @@ Shader "Universal Render Pipeline/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
-            #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
             #pragma shader_feature EDITOR_VISUALIZATION
+
+            // Required for SampleEmission to sample the emission; GI extraction gates emission
+            // by the material's GI flags instead of the keyword.
+            #define _EMISSION 1
 
             // -------------------------------------
             // Includes
@@ -495,7 +505,7 @@ Shader "Universal Render Pipeline/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
@@ -518,7 +528,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl"
             ENDHLSL
         }
 
@@ -545,7 +555,7 @@ Shader "Universal Render Pipeline/Lit"
             #define APPLICATION_SPACE_WARP_MOTION 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl"
             ENDHLSL
         }
     }

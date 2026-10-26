@@ -1,5 +1,3 @@
-// ------------------------------------------
-// No shadows
 Shader "Universal Render Pipeline/Particles/Lit"
 {
     Properties
@@ -33,6 +31,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
         // Hidden properties - Generic
         _Surface("__surface", Float) = 0.0
         _Blend("__mode", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 1.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
@@ -67,10 +66,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
     }
 
     HLSLINCLUDE
-
-    //Particle shaders rely on "write" to CB syntax which is not supported by DXC
-    #pragma never_use_dxc
-
     ENDHLSL
 
     SubShader
@@ -135,7 +130,9 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
@@ -143,10 +140,15 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_REFLECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DEPTH_AS_INPUT_ATTACHMENT _DEPTH_AS_INPUT_ATTACHMENT_MSAA
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _VOLUMETRIC_FOG
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
+            #pragma multi_compile_fragment _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ _LIGHT_LAYERS
-            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+            #pragma multi_compile _ _EXPOSURE
 #if defined(UNITY_PLATFORM_META_QUEST)
             #pragma multi_compile _ META_QUEST_ORTHO_PROJ
             #pragma multi_compile _ META_QUEST_NO_SPOTLIGHTS_LIGHT_LOOP
@@ -228,8 +230,10 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+            #pragma multi_compile _ _EXPOSURE
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
             // Unity defined keywords
@@ -288,6 +292,54 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthOnlyPass.hlsl"
             ENDHLSL
         }
+
+        // ------------------------------------------------------------------
+        //  Shadow Caster pass.
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+
+            // -------------------------------------
+            // Render State Commands
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex ShadowCasterParticlesVertex
+            #pragma fragment ShadowCasterParticlesFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _ALPHATEST_ON
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesShadowCasterPass.hlsl"
+            ENDHLSL
+        }
         // This pass is used when drawing to a _CameraNormalsTexture texture
         Pass
         {
@@ -323,6 +375,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
             // Includes
@@ -449,7 +502,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Includes
@@ -459,6 +512,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
         }
     }
 
-    Fallback "Universal Render Pipeline/Particles/Simple Lit"
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesLitShader"
 }

@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
         string sourceCode { get; set; }
         string customCode { get; }
         bool HasShaderFile();
+        void ResetHLSLCache();
     }
 
     class VFXShaderWriter

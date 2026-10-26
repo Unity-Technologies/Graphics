@@ -31,6 +31,10 @@ To create a custom shader graph template, follow these steps:
 
 1. Optional: Set the metadata that describes the template in the template browser: **Name**, **Category**, **Description**, **Icon**, and **Thumbnail**.
 
+1. Select the **Apply** button to save the template settings.
+
+   Alternatively, select the **Revert** button to discard your changes and restore the previous settings.
+
 > [!NOTE]
 > By default, when you convert an existing shader graph asset into a template, you can no longer assign it to any materials through the [Material Inspector](https://docs.unity3d.com/Manual/class-Material.html). However, it remains active for materials that were already using it. To make the shader graph asset available again for any materials, enable the **Expose As Shader** option in the shader graph asset Inspector.
 

@@ -1,0 +1,594 @@
+/* Tabbed-app styling for the UI Toolkit Shaders sample.
+
+   A non-scrolling, full-panel layout: a soft Warped Gradient backdrop fills the panel
+   (toned down by a dark scrim laid over it); a left side panel holds a vertical list of
+   tab buttons; a content pane on the right shows exactly one page at a time
+   (display flex/none). The theme is a cohesive dark slate with a single cyan/blue accent.
+
+   Every shader face carries a background-color so UITK emits the mesh quad the
+   ShaderGraph material draws onto (the shader then overrides the fill). */
+
+.root {
+    flex-grow: 1;
+    flex-direction: column;
+    background-color: rgb(12, 14, 19);
+}
+
+/* ====================================================================== */
+/* Full-panel backdrop + scrim                                            */
+/* ====================================================================== */
+
+/* The Warped Gradient shader draws here. Absolutely positioned to cover the whole panel
+   and sit behind the chrome without participating in the flex layout. A dark base color
+   seeds the mesh quad and keeps the panel calm if the shader ever fails to load. */
+.background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(12, 14, 19);
+}
+
+/* A dark scrim over the backdrop so the soft gradient recedes and the foreground cards
+   and shaders pop. ~82% opaque deep slate, with a faint accent-tinted vignette via border. */
+.background-scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(11, 13, 18, 0.82);
+}
+
+/* ---- App chrome: side panel + content, laid out as a row ---- */
+.app {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+/* ====================================================================== */
+/* Left side panel                                                        */
+/* ====================================================================== */
+
+.side-panel {
+    width: 216px;
+    flex-shrink: 0;
+    flex-direction: column;
+    padding: 18px 14px 16px 16px;
+    background-color: rgba(18, 21, 30, 0.92);
+    border-right-width: 1px;
+    border-right-color: rgba(120, 170, 220, 0.16);
+}
+
+/* ---- Brand block (mark + title + subtitle) ---- */
+.brand {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 22px;
+    flex-shrink: 0;
+}
+
+.brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    margin-right: 11px;
+    flex-shrink: 0;
+    background-color: rgb(86, 178, 255);
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(40, 110, 180, 0.9);
+}
+
+.brand-text {
+    flex-direction: column;
+    flex-shrink: 1;
+}
+
+.side-title {
+    color: rgb(238, 242, 248);
+    font-size: 17px;
+    -unity-font-style: bold;
+    flex-shrink: 0;
+}
+
+.side-subtitle {
+    color: rgb(120, 132, 150);
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+/* Each tab is a Toggle whose visible face is a child element (a Toggle's own box does
+   not host a custom-material draw, but a plain child element does). The shader face,
+   an accent bar and the text label all stack inside it. */
+.tab {
+    height: 44px;
+    flex-shrink: 0;
+    margin: 0 0 7px 0;
+    border-radius: 9px;
+    overflow: hidden;
+    justify-content: center;
+}
+
+/* The Tab Button shader face fills the tab. A background-color seeds the mesh quad the
+   shader draws onto; the controller drives _RectSize, isOn/_IsOn and _State onto it.
+   The shader currently renders fairly flat in UITK, so the .tab--active styling below
+   is what makes the selected tab unmistakable. */
+.tab-face {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 9px;
+    overflow: hidden;
+    background-color: rgba(34, 39, 52, 0.55);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.0);
+}
+
+/* A thin accent bar pinned to the left edge of the tab; hidden until the tab is active. */
+.tab-accent {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 8px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* The tab label sits ON TOP of the flat Tab Button shader, whose off-state renders a light
+   grey pill. A light text outline keeps the dark label readable against that light fill, the
+   blue active fill, AND the dark panel if the shader material ever fails to load. */
+.tab-label {
+    color: rgb(22, 24, 30);
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    padding-left: 16px;
+    -unity-text-outline-width: 0.7px;
+    -unity-text-outline-color: rgba(240, 244, 250, 0.55);
+}
+
+/* Hide the Toggle's default checkmark/label internals so only our face/label show. */
+.tab .unity-toggle__input {
+    display: none;
+}
+
+/* Hover: a subtle lift so tabs feel responsive even with the flat shader. */
+.tab:hover .tab-face {
+    background-color: rgba(48, 56, 74, 0.7);
+    border-color: rgba(120, 170, 220, 0.18);
+}
+
+.tab:hover .tab-label {
+    color: rgb(22, 24, 30);
+}
+
+/* ---- Active tab (radio selection) ----
+   Driven by the controller toggling the --active class. This is the source of truth
+   for "which tab is selected" and is intentionally bold/bright so selection reads
+   regardless of how the Tab Button shader renders. */
+.tab--active .tab-face {
+    background-color: rgba(52, 120, 198, 0.6);
+    border-width: 2px;
+    border-color: rgb(86, 178, 255);
+}
+
+.tab--active .tab-accent {
+    background-color: rgb(86, 178, 255);
+}
+
+.tab--active .tab-label {
+    color: rgb(16, 18, 24);
+}
+
+/* Pushes the side footer to the bottom of the panel. */
+.side-spacer {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 8px;
+}
+
+.side-footer {
+    color: rgb(96, 106, 122);
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: rgba(120, 170, 220, 0.12);
+    flex-shrink: 0;
+}
+
+/* ====================================================================== */
+/* Content pane + pages                                                   */
+/* ====================================================================== */
+
+.content {
+    flex-grow: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* A page fills the content pane. The controller shows exactly one (display: flex)
+   and hides the rest (display: none). */
+.page {
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 20px 26px 16px 26px;
+}
+
+.page-title {
+    color: rgb(245, 247, 250);
+    font-size: 23px;
+    -unity-font-style: bold;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+/* Per-page description, pinned at the BOTTOM of every page. Muted so it sits quietly
+   under the content, on the dark page background where it stays legible. A faint top
+   rule separates it from the content above. */
+.page-desc {
+    color: rgb(150, 160, 176);
+    font-size: 12px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    flex-shrink: 0;
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top-width: 1px;
+    border-top-color: rgba(120, 170, 220, 0.12);
+}
+
+/* ====================================================================== */
+/* All Samples page: header + responsive grid (ported from the showcase)  */
+/* ====================================================================== */
+
+.header {
+    flex-direction: column;
+    flex-shrink: 0;
+    padding-bottom: 12px;
+}
+
+.header-label {
+    color: rgb(245, 247, 250);
+    font-size: 23px;
+    -unity-font-style: bold;
+    margin-bottom: 9px;
+}
+
+.progress-track {
+    height: 5px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background-color: rgb(72, 199, 142);
+}
+
+/* A 6 x N board built from explicit row containers. Fully responsive: the grid fills
+   all space below the header, the rows share its height equally, and the 6 cells share
+   each row's width equally. Swatches then grow to fill their cell. */
+.grid {
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 2px 0 0 0;
+}
+
+.grid-row {
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: stretch;
+}
+
+.cell {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-shrink: 1;
+    margin: 5px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+/* The button-shaped face. Grows to fill the cell above the footer, so the shader
+   renders into as large an area as possible. Carries the shared card chrome:
+   subtle rounded border so each swatch reads as a tile even before the shader paints. */
+.swatch {
+    flex-grow: 1;
+    min-height: 44px;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* A solid background ensures UITK generates a mesh quad for the ShaderGraph material
+   to draw onto. The shader overrides it. */
+.swatch--live {
+    background-color: rgb(28, 31, 39);
+}
+
+/* TODO swatches render the Simple Button material, so they also need a quad; the
+   slightly lighter base just shows through if a material ever fails to load. */
+.swatch--todo {
+    background-color: rgba(40, 44, 53, 0.6);
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ---- Cell footer (dot + name) ----
+   The name caption lives here, on the dark page background, so it stays legible against
+   any swatch fill (the on-swatch label has been removed for exactly this reason). */
+.cell-footer {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: center;
+    margin-top: 7px;
+    padding-left: 1px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 4px;
+    margin-right: 7px;
+    flex-shrink: 0;
+}
+
+.dot--done {
+    background-color: rgb(72, 199, 142);
+}
+
+.dot--todo {
+    background-color: rgb(96, 100, 108);
+}
+
+.cell-name {
+    color: rgb(206, 212, 222);
+    font-size: 11px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* ====================================================================== */
+/* Category pages (Buttons / Indicators / Progress Bars): larger swatches  */
+/* ====================================================================== */
+
+/* A row of feature swatches sharing the remaining height. */
+.feature-row {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+/* A swatch plus its caption, laid out as a column that shares the row width. */
+.feature-wrap {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-shrink: 1;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    margin: 6px 12px 6px 0;
+}
+
+/* Wider items (bars) take twice the room of a square swatch. */
+.feature-wrap--wide {
+    flex-grow: 2;
+}
+
+/* The shader face. A solid background seeds the mesh quad for the ShaderGraph material,
+   and the card chrome (rounded border) frames it consistently with the grid swatches. */
+.feature-swatch {
+    flex-grow: 1;
+    min-height: 80px;
+    max-height: 210px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgb(26, 29, 37);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Bars read better in a shorter box. */
+.feature-swatch--bar {
+    max-height: 70px;
+}
+
+/* Circular loaders/spinners (e.g. Simple Loading) read best in a fixed square,
+   centered in their column so the spinner stays round rather than stretched. */
+.feature-swatch--square {
+    flex-grow: 0;
+    width: 180px;
+    height: 180px;
+    max-height: 180px;
+    align-self: center;
+}
+
+.caption {
+    color: rgb(214, 220, 230);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    margin-top: 9px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* ====================================================================== */
+/* Interactive page                                                       */
+/* ====================================================================== */
+
+.interactive-row {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+/* Each control group sits in its own card so the page reads as two distinct demos. */
+.interactive-block {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-direction: column;
+    justify-content: center;
+    margin: 4px 18px 4px 0;
+    padding: 18px 20px;
+    border-radius: 12px;
+    background-color: rgba(22, 25, 34, 0.7);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.block-label {
+    color: rgb(220, 226, 236);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+/* The Tab Button toggle row inside the Interactive page. These three toggles are
+   INDEPENDENT (not a radio group): each shows its own on/off state.
+
+   The Tab Button shader renders fairly flat in UITK and overdraws the face's
+   background-color, so it cannot carry the selection cue. Instead the visible
+   on/off indicator lives entirely in USS, on elements the shader does NOT paint over:
+   a border on the Toggle box itself, an opacity shift, and an accent bar sibling that
+   stacks on TOP of the shader face. This mirrors the side-NAV .tab--active pattern. */
+.demo-tab-row {
+    flex-direction: row;
+    align-items: stretch;
+    height: 84px;
+    flex-shrink: 0;
+}
+
+/* Base = the UNSELECTED (off) look: recessed and dimmed, no accent border.
+   The whole toggle fades back so selected siblings clearly pop in front of it. */
+.demo-tab {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0 8px 0 0;
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0.5;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(10, 12, 17, 0);
+}
+
+.demo-tab-face {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: rgb(28, 31, 39);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+/* The on-accent bar: pinned to the bottom edge, a sibling of the face so it draws ON TOP
+   of the flat shader (the face is overdrawn, this bar is not). Hidden until the toggle is on. */
+.demo-tab-accent {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.demo-tab .unity-toggle__input {
+    display: none;
+}
+
+/* Hover: a subtle lift so the toggles feel responsive even with the flat shader.
+   Applies to both states; the on-state hover below brightens the accent border further. */
+.demo-tab:hover {
+    opacity: 0.72;
+    border-color: rgba(120, 170, 220, 0.35);
+}
+
+/* ---- ON state (independent per toggle) ----
+   Driven by the controller toggling the --on class whenever a toggle's value changes
+   (and once on build to match the initial values). A bright cyan border wraps the whole
+   toggle, full opacity brings it forward, and the accent bar lights up. Unmistakably selected. */
+.demo-tab--on {
+    opacity: 1;
+    border-width: 3px;
+    border-color: rgb(0, 194, 255);
+    background-color: rgba(0, 170, 255, 0.18);
+}
+
+.demo-tab--on .demo-tab-accent {
+    background-color: rgb(0, 194, 255);
+}
+
+.demo-tab--on:hover {
+    opacity: 1;
+    border-color: rgb(140, 205, 255);
+}
+
+.slider {
+    flex-shrink: 0;
+    margin-bottom: 14px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Click-to-zoom overlay (Backgrounds page): a scrimmed lightbox showing one */
+/* example at near-full size. Built by the controller; click closes it.     */
+/* ------------------------------------------------------------------------ */
+
+.zoom-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(4, 6, 10, 0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-frame {
+    width: 76%;
+    height: 80%;
+}
+
+.zoom-swatch {
+    flex-grow: 1;
+    border-radius: 14px;
+}
+
+.zoom-caption {
+    -unity-text-align: middle-center;
+    color: rgb(215, 218, 226);
+    font-size: 15px;
+    margin-top: 10px;
+}

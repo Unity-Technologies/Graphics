@@ -10,10 +10,10 @@ namespace UnityEditor.VFX.SDF
     {
         internal static class Styles
         {
-            internal static readonly GUIContent wireframeToggle = EditorGUIUtility.TrTextContent("Wireframe", "Show wireframe");
-            internal static readonly GUIContent orthographicToggle = EditorGUIUtility.TrTextContent("Orthographic view");
-            internal static readonly GUIContent showActualBox = EditorGUIUtility.TrTextContent("Show Actual Box");
-            internal static readonly GUIContent showDesiredBox = EditorGUIUtility.TrTextContent("Show Desired Box");
+            internal static readonly GUIContent wireframeToggle = L10n.TextContent("Wireframe", "Show wireframe", null, null);
+            internal static readonly GUIContent orthographicToggle = L10n.TextContent("Orthographic view", null, null, null);
+            internal static readonly GUIContent showActualBox = L10n.TextContent("Show Actual Box", null, null, null);
+            internal static readonly GUIContent showDesiredBox = L10n.TextContent("Show Desired Box", null, null, null);
 
             internal static GUIStyle preSlider = "preSlider";
         }

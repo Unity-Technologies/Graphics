@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     class AttributeDataDescriptionWriter : IDataDescriptionWriter<AttributeData>
@@ -52,7 +50,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
         }
 
-        public bool WriteView(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView, DataView writtenDataView, string name, string sourceName, CompilationContext context)
+        public bool WriteView(ShaderWriter shaderWriter, DataView dataView, DataNode dataNode, string name, string sourceName, CompilationContext context)
         {
             var variableName = "data";
 
@@ -67,32 +65,32 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock();
 
             var attributeSourceManager = context.data.Get<AttributeSourceManager>();
-            if (attributeSourceManager != null && attributeSourceManager.TryGetAttributeSource(usedDataView.Id, out var attributeSource))
+            if (attributeSourceManager != null && attributeSourceManager.TryGetAttributeSource(dataView.Id, out var attributeSource))
             {
                 // TODO: Detach attribute sources from attribute buffers?
                 // That would allow multiple attribute sources for each attribute buffer, overloading the methods
                 // If detached, the attribute set to be used would be included on each attributeSource (.AttributeSet)
                 var attributeSourceTypename = attributeSource.ToString();
-                //if (readDataView.Children.Count > 0)
                 {
                     shaderWriter.NewLine();
                     shaderWriter.WriteLine($"void LoadData(out {attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
                     shaderWriter.WriteLine($"{variableName}.Init();");
-                    foreach (var attributeDataView in readDataView.Children)
+                    foreach (var attributeDataView in dataView.Children)
                     {
+                        if (!dataNode.Reads(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"{variableName}.{attribute.Name} = buffer.Load_{attribute.Name}(index);");
                     }
                     shaderWriter.CloseBlock();
                 }
-                //if (writtenDataView.Children.Count > 0)
                 {
                     shaderWriter.NewLine();
                     shaderWriter.WriteLine($"void StoreData({attributeSourceTypename} {variableName}, uint index)");
                     shaderWriter.OpenBlock();
-                    foreach (var attributeDataView in writtenDataView.Children)
+                    foreach (var attributeDataView in dataView.Children)
                     {
+                        if (!dataNode.Writes(attributeDataView.Id)) continue;
                         var attribute = (attributeDataView.SubDataKey as AttributeKey).Attribute;
                         shaderWriter.WriteLine($"buffer.Store_{attribute.Name}({variableName}.{attribute.Name}, index);");
                     }
@@ -103,25 +101,6 @@ namespace Unity.GraphCommon.LowLevel.Editor
             shaderWriter.CloseBlock(false);
             shaderWriter.WriteLine(";", ShaderWriter.WriteLineOptions.NoIndent);
             return true;
-        }
-
-        public void DefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void UndefineResourceUsage(ShaderWriter shaderWriter, DataView usedDataView, DataView readDataView,
-            DataView writtenDataView)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IEnumerable<(string, string)> GetUsedResources(string name, DataView usedDataView)
-        {
-            string attributeBufferType = "ByteAddressBuffer"; //TODO: How can we determine if it is read or read/write? Probably related to DefineResourceUsage method
-            string attributeBufferName = $"_{name}";
-            yield return (attributeBufferType, attributeBufferName);
         }
     }
 }

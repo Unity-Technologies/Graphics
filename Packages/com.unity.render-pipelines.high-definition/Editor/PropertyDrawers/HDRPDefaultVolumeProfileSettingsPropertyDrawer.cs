@@ -12,11 +12,11 @@ namespace UnityEditor.Rendering.HighDefinition
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDRPDefaultVolumeProfileSettingsPropertyDrawer : DefaultVolumeProfileSettingsPropertyDrawer
     {
-        protected override GUIContent defaultVolumeProfileAssetLabel => EditorGUIUtility.TrTextContent("Default Profile",
-            "Settings that will be applied project-wide to all Volumes by default when HDRP is active.");
+        protected override GUIContent defaultVolumeProfileAssetLabel => L10n.TextContent("Default Profile",
+            "Settings that will be applied project-wide to all Volumes by default when HDRP is active.", null, null);
 
-        protected override GUIContent volumeInfoBoxLabel => EditorGUIUtility.TrTextContent(
-            "The values in the Default Volume can be overridden by a Volume Profile assigned to HDRP asset and Volumes inside scenes.");
+        protected override GUIContent volumeInfoBoxLabel => L10n.TextContent(
+            "The values in the Default Volume can be overridden by a Volume Profile assigned to HDRP asset and Volumes inside scenes.", null, null, null);
 
         protected override VisualElement CreateHeader()
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override VisualElement CreateAssetFieldUI()
         {
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
-            return DrawDefaultVolumeObjectField<HDRenderPipeline, HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
+            return DrawDefaultVolumeObjectField<HDRenderPipeline, HDRenderPipelineAsset, HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
         }
 
         public class HDRPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu2<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>

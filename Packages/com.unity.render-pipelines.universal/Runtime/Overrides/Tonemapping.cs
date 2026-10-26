@@ -24,6 +24,12 @@ namespace UnityEngine.Rendering.Universal
         /// Note that if you use this tonemapper all the grading operations will be done in the ACES color spaces for optimal precision and results.
         /// </summary>
         ACES, // ACES Filmic reference tonemapper (custom approximation)
+
+        /// <summary>
+        /// Use this option for a natural, filmic look. AgX handles bright, saturated colors
+        /// gracefully: highlights roll off smoothly toward white while keeping their hue stable.
+        /// </summary>
+        AgX, // AgX tonemapper
     }
 
     /// <summary>
@@ -176,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="BoolParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("post-processing-tonemapping")]
+    [URPHelpURL("urp/post-processing-tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -199,6 +205,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Use the ACES preset for HDR displays.")]
         public HDRACESPresetParameter acesPreset = new HDRACESPresetParameter(HDRACESPreset.ACES1000Nits);
+
+        /// <summary>
+        /// AgX only: contrast of the tone curve. Higher values deepen shadows and brighten highlights.
+        /// </summary>
+        [Tooltip("Contrast of the AgX tone curve. Higher values deepen shadows and brighten highlights.")]
+        public ClampedFloatParameter agxContrast = new ClampedFloatParameter(1.193f, 0.5f, 3.0f);
+
+        /// <summary>
+        /// AgX only: the screen brightness that a mid-grey (18%) subject maps to. Higher lifts the whole image.
+        /// </summary>
+        [Tooltip("The screen brightness that a mid-grey (18%) subject maps to. Raise it to lighten the overall image, lower it to darken.")]
+        public ClampedFloatParameter agxMidGrey = new ClampedFloatParameter(0.18f, 0.10f, 0.30f);
 
         /// <summary>
         /// Specify how much hue to preserve. Values closer to 0 are likely to preserve hue. As values get closer to 1, Unity doesn't correct hue shifts.
@@ -241,6 +259,22 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive() => mode.value != TonemappingMode.None;
+
+        /// <summary>
+        /// Precomputes the AgX tone-curve constants (mirrors the toe math in AgxAdjustableCurve, Color.hlsl).
+        /// They depend only on the artist parameters, so the shader need not recompute them per pixel.
+        /// </summary>
+        /// <param name="contrast">The AgX tone-curve contrast (<see cref="agxContrast"/>).</param>
+        /// <param name="midGrey">The output value input mid-grey (0.18) maps to (<see cref="agxMidGrey"/>).</param>
+        /// <param name="toeA">Output: the toe denominator constant.</param>
+        /// <param name="slope">Output: the curve slope at the mid-grey crossover.</param>
+        internal static void GetAgXCurveConstants(float contrast, float midGrey, out float toeA, out float slope)
+        {
+            const float inCrossover = 0.18f;
+            float cPow = Mathf.Pow(inCrossover, contrast);
+            toeA = cPow * (1f - midGrey) / midGrey;
+            slope = (contrast * Mathf.Pow(inCrossover, contrast - 1f) * toeA) / ((cPow + toeA) * (cPow + toeA));
+        }
 
         /// <summary>
         /// Tells if the post process can run the effect on-tile or if it needs a full pass.

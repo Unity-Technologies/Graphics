@@ -17,22 +17,22 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
-            public static readonly string isGlobalDropdownTooltip = L10n.Tr("Global Volumes affect the Camera wherever the Camera is in the Scene. Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.");
-            public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
-            public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");
-            public static readonly GUIContent capsuleBoxCollider = EditorGUIUtility.TrTextContent("Add a Capsule Collider");
-            public static readonly GUIContent meshBoxCollider = EditorGUIUtility.TrTextContent("Add a Mesh Collider");
-            public static readonly GUIContent addColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent disableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Global Volumes do not need a collider. Disable or remove the collider.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent physicsBackendDisabledMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes are unavailable when the Physics GameObject SDK is set to None. Either choose a different Physics SDK in Project Settings > Physics, or set the Mode to Global.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent physicsModuleDisabledMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes are unavailable without the Physics module. Enable the Physics module, or set the Mode to Global.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent enableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn);
-            public static readonly GUIContent newLabel = EditorGUIUtility.TrTextContent("New", "Create a new profile.");
-            public static readonly GUIContent saveLabel = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
-            public static readonly GUIContent cloneLabel = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
-            public static readonly GUIContent enableAll = EditorGUIUtility.TrTextContent("Enable All");
-            public static readonly GUIContent disableAll = EditorGUIUtility.TrTextContent("Disable All");
-            public static readonly GUIContent removeAll = EditorGUIUtility.TrTextContent("Remove All");
+            public static readonly string isGlobalDropdownTooltip = L10n.Tr("Global Volumes affect the Camera wherever the Camera is in the Scene. Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.", null);
+            public static readonly GUIContent addBoxCollider = L10n.TextContent("Add a Box Collider", null, null, null);
+            public static readonly GUIContent sphereBoxCollider = L10n.TextContent("Add a Sphere Collider", null, null, null);
+            public static readonly GUIContent capsuleBoxCollider = L10n.TextContent("Add a Capsule Collider", null, null, null);
+            public static readonly GUIContent meshBoxCollider = L10n.TextContent("Add a Mesh Collider", null, null, null);
+            public static readonly GUIContent addColliderFixMessage = L10n.TextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Warning, null);
+            public static readonly GUIContent disableColliderFixMessage = L10n.TextContentWithIcon("Global Volumes do not need a collider. Disable or remove the collider.", MessageType.Warning, null);
+            public static readonly GUIContent physicsBackendDisabledMessage = L10n.TextContentWithIcon("Local Volumes are unavailable when the Physics GameObject SDK is set to None. Either choose a different Physics SDK in Project Settings > Physics, or set the Mode to Global.", MessageType.Warning, null);
+            public static readonly GUIContent physicsModuleDisabledMessage = L10n.TextContentWithIcon("Local Volumes are unavailable without the Physics module. Enable the Physics module, or set the Mode to Global.", MessageType.Warning, null);
+            public static readonly GUIContent enableColliderFixMessage = L10n.TextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", MessageType.Warning, null);
+            public static readonly GUIContent newLabel = L10n.TextContent("New", "Create a new profile.", null, null);
+            public static readonly GUIContent saveLabel = L10n.TextContent("Save", "Save the instantiated profile", null, null);
+            public static readonly GUIContent cloneLabel = L10n.TextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.", null, null);
+            public static readonly GUIContent enableAll = L10n.TextContent("Enable All", null, null, null);
+            public static readonly GUIContent disableAll = L10n.TextContent("Disable All", null, null, null);
+            public static readonly GUIContent removeAll = L10n.TextContent("Remove All", null, null, null);
         }
 
         SerializedProperty m_IsGlobal;

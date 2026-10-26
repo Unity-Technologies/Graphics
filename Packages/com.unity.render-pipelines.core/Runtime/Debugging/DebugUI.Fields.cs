@@ -584,7 +584,8 @@ namespace UnityEngine.Rendering
 #if ENABLE_RENDERING_DEBUGGER_UI
             protected override VisualElement Create()
             {
-                var maskField = new UIElements.MaskField(displayName, new List<string>(m_RenderingLayersNames), 0);
+                // Use the property so the name cache refreshes when layers were defined after construction.
+                var maskField = new UIElements.MaskField(displayName, new List<string>(renderingLayersNames), 0);
                 maskField.labelElement.AddToClassList("debug-window-search-filter-target");
                 maskField.RegisterCallback<ChangeEvent<int>>(evt =>
                 {
@@ -592,6 +593,12 @@ namespace UnityEngine.Rendering
                 });
                 this.ScheduleTracked(maskField, () => maskField.schedule.Execute(() =>
                 {
+                    if (LayerNamesOutOfDate())
+                    {
+                        Resize();
+                        maskField.choices = new List<string>(m_RenderingLayersNames);
+                    }
+
                     var value = GetValue();
                     maskField.SetValueWithoutNotify(Convert.ToInt32(value));
                 })
@@ -621,6 +628,24 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            private bool LayerNamesOutOfDate()
+            {
+                if (m_DefinedRenderingLayersCount != RenderingLayerMask.GetDefinedRenderingLayerCount())
+                    return true;
+
+                if (m_RenderingLayersNames.Length != maxRenderingLayerCount)
+                    return true;
+
+                for (int i = 0; i < m_RenderingLayersNames.Length; i++)
+                {
+                    var definedLayerName = RenderingLayerMask.RenderingLayerToName(i);
+                    if (!string.IsNullOrEmpty(definedLayerName) && m_RenderingLayersNames[i] != definedLayerName)
+                        return true;
+                }
+
+                return false;
+            }
+
             private void Resize()
             {
                 m_DefinedRenderingLayersCount = RenderingLayerMask.GetDefinedRenderingLayerCount();
@@ -635,33 +660,28 @@ namespace UnityEngine.Rendering
                     m_RenderingLayersNames[i] = definedLayerName;
                 }
 
-                // Foldout + Color for each layer
+                // Foldout + Color for each layer. Only shown when the field provides layer color accessors.
                 m_RenderingLayersColors.Clear();
-                var layersColor = new DebugUI.Foldout()
+                if (getRenderingLayerColor != null && setRenderingLayerColor != null)
                 {
-                    nameAndTooltip = s_RenderingLayerColors,
-                    flags = Flags.EditorOnly,
-                    parent = this,
-                };
-                m_RenderingLayersColors.Add(layersColor);
-
-                for (int i = 0; i < m_RenderingLayersNames.Length; i++)
-                {
-                    var index = i; // capture the variable for the color field index
-                    layersColor.children.Add(new DebugUI.ColorField
+                    var layersColor = new DebugUI.Foldout()
                     {
-                        displayName = m_RenderingLayersNames[index],
-                        getter = () =>
+                        nameAndTooltip = s_RenderingLayerColors,
+                        flags = Flags.EditorOnly,
+                        parent = this,
+                    };
+                    m_RenderingLayersColors.Add(layersColor);
+
+                    for (int i = 0; i < m_RenderingLayersNames.Length; i++)
+                    {
+                        var index = i; // capture the variable for the color field index
+                        layersColor.children.Add(new DebugUI.ColorField
                         {
-                            Assert.IsNotNull(getRenderingLayerColor, "Please specify a method for getting the rendering layer color");
-                            return getRenderingLayerColor(index);
-                        },
-                        setter = value =>
-                        {
-                            Assert.IsNotNull(setRenderingLayerColor, "Please specify a method for setting the rendering layer color");
-                            setRenderingLayerColor(value, index);
-                        }
-                    });
+                            displayName = m_RenderingLayersNames[index],
+                            getter = () => getRenderingLayerColor(index),
+                            setter = value => setRenderingLayerColor(value, index)
+                        });
+                    }
                 }
 
                 GenerateQueryPath();
@@ -794,8 +814,8 @@ namespace UnityEngine.Rendering
                 if (enumType == null || !enumType.IsEnum)
                     throw new ArgumentException($"{nameof(enumType)} must not be null and it must be an Enum type");
 
-                using (ListPool<GUIContent>.Get(out var tmpNames))
-                using (ListPool<int>.Get(out var tmpValues))
+                using (UnityEngine.Pool.ListPool<GUIContent>.Get(out var tmpNames))
+                using (UnityEngine.Pool.ListPool<int>.Get(out var tmpValues))
                 {
                     var enumEntries = enumType.GetFields(BindingFlags.Public | BindingFlags.Static)
                         .Where(fieldInfo => !fieldInfo.IsDefined(typeof(ObsoleteAttribute)) && !fieldInfo.IsDefined(typeof(HideInInspector)));
@@ -1787,19 +1807,67 @@ namespace UnityEngine.Rendering
             /// <inheritdoc/>
             protected override VisualElement Create()
             {
-                var container = new UIElements.Foldout()
-                {
-                    text = displayName
-                };
-                container.AddToClassList("debug-window-objectlistfield");
-                container.Q(className: "unity-foldout__text").AddToClassList("debug-window-search-filter-target");
+                // Capture the context locally: m_Context is mutated each time ToVisualElement is called,
+                // so if the same widget is rendered into multiple panels (e.g. editor window + runtime overlay),
+                // it would otherwise reflect whichever panel was created last by the time Sync ticks.
+                var context = m_Context;
 
-                // TODO: Allow selection
-                foreach (var o in GetValue())
+                var container = new UIElements.Foldout { text = displayName };
+                container.AddToClassList("debug-window-objectlistfield");
+                container.Q(className: "unity-foldout__text")?.AddToClassList("debug-window-search-filter-target");
+
+                // One-way data -> UI sync.
+                //
+                // The widget is read-only by design: it lives inside the Volume debug Table which is
+                // marked isReadOnly = true, cascading a disabled-state to every cell. There is no
+                // UI -> data path (no ChangeEvent handler on inner fields, no setter on the outer field).
+                //
+                // On each 100ms tick: re-reads GetValue(), updates existing child fields in place via
+                // SetValueWithoutNotify, and only allocates / removes children when the non-null count changes.
+                void SyncToUI()
                 {
-                    var child = new Label(o.name);
+                    var values = GetValue();
+                    int count = values?.Length ?? 0;
+                    // When the source pads with trailing nulls (e.g. pool-rented interpolated VolumeParameters),
+                    // hide them. Interior nulls are still rendered as disabled slots.
+                    if (trimTrailingNulls)
+                    {
+                        while (count > 0 && values[count - 1] == null)
+                            count--;
+                    }
+                    for (int i = 0; i < count; i++)
+                    {
+                        var child = values[i];
+                        BaseField<Object> field;
+                        if (i < container.childCount)
+                        {
+                            field = (BaseField<Object>)container[i];
+                            field.SetValueWithoutNotify(child);
+                        }
+                        else
+                        {
+                            field = null;
+#if UNITY_EDITOR
+                            if (context == Context.Editor)
+                                field = new UnityEditor.UIElements.ObjectField { objectType = child != null ? child.GetType() : typeof(Object) };
+#endif
+                            field ??= new RuntimeObjectField(string.Empty, new Label());
+                            field.AddToClassList("debug-window-objectfield");
+                            container.Add(field);
+
+                            // Defer first set so the ObjectField's picker UI initializes first.
+                            var capturedChild = child;
+                            field.schedule.Execute(() => field.SetValueWithoutNotify(capturedChild));
+                        }
+                        // Null entries render as disabled slots so the displayed shape matches the source array.
+                        field.SetEnabled(child != null);
+                    }
+                    while (container.childCount > count)
+                        container.RemoveAt(container.childCount - 1);
                 }
 
+                SyncToUI();
+                this.ScheduleTracked(container, context, () => container.schedule.Execute(SyncToUI).Every(100));
                 return container;
             }
 #endif
@@ -1808,6 +1876,10 @@ namespace UnityEngine.Rendering
             /// Objects type.
             /// </summary>
             public Type type = typeof(Object);
+
+            // When true, trailing null entries are hidden. Used for sources that pad their array
+            // (e.g. pool-rented interpolated VolumeParameter values).
+            internal bool trimTrailingNulls = false;
         }
 
         /// <summary>

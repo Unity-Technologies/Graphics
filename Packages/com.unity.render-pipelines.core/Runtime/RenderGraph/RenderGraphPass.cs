@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public List<ResourceHandle> implicitReadsList = new List<ResourceHandle>();
 
 #if UNITY_ENABLE_CHECKS
-        public RenderGraph.DebugData.PassScriptInfo debugScriptInfo { get; set; }
+        public RenderGraph.DebugData.ScriptInfo debugScriptInfo { get; set; }
 #endif
 
         public RenderGraphPass()

@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Tests
 {
@@ -65,28 +64,28 @@ namespace UnityEditor.Rendering.Tests
         {
             new TestCaseData("integer", 1)
                 .Returns(new string[] { "{\"myData.integer\":\"1\"}" })
-                .SetName("Given an int field, the nested column is generated correctly"),
+                .SetName("{m}(Given an int field, the nested column is generated correctly)"),
             new TestCaseData("floatNumber", 1.5f)
                 .Returns(new string[] { "{\"myData.floatNumber\":\"1.5\"}" })
-                .SetName("Given a float field, the nested column is generated correctly"),
+                .SetName("{m}(Given a float field, the nested column is generated correctly)"),
             new TestCaseData("doubleNumber", 1.2)
                 .Returns(new string[] { "{\"myData.doubleNumber\":\"1.2\"}" })
-                .SetName("Given a double field, the nested column is generated correctly"),
+                .SetName("{m}(Given a double field, the nested column is generated correctly)"),
             new TestCaseData("boolean", true)
                 .Returns(new string[] { "{\"myData.boolean\":\"True\"}" })
-                .SetName("Given a bool field, the nested column is generated correctly"),
+                .SetName("{m}(Given a bool field, the nested column is generated correctly)"),
             new TestCaseData("test", "Hello World")
                 .Returns(new string[] { "{\"myData.test\":\"Hello World\"}" })
-                .SetName("Given a string field, the nested column is generated correctly"),
+                .SetName("{m}(Given a string field, the nested column is generated correctly)"),
             new TestCaseData("array", new int[] { 1,2,3} )
                 .Returns(new string[] { "{\"myData.array\":\"[1,2,3]\"}" })
-                .SetName("Given an array of ints field, the nested column is generated correctly"),
+                .SetName("{m}(Given an array of ints field, the nested column is generated correctly)"),
             new TestCaseData("diffEnum", TestObject.TestDiffEnum.b)
                 .Returns(new string[] { "{\"myData.diffEnum\":\"b\"}" })
-                .SetName("Given an enum field, the nested column is generated correctly"),
+                .SetName("{m}(Given an enum field, the nested column is generated correctly)"),
              new TestCaseData("innerStruct", new TestObject.InnerTestStruct{ myValue = 5 } )
                 .Returns(new string[] { "{\"myData.innerStruct.myValue\":\"5\"}" })
-                .SetName("Given an inner struct field, the nested column is generated correctly"),
+                .SetName("{m}(Given an inner struct field, the nested column is generated correctly)"),
         };
 
         private void SetValue(TestObject current, string fieldName, object value)
@@ -106,28 +105,28 @@ namespace UnityEditor.Rendering.Tests
         {
             new TestCaseData("integer", 1)
                 .Returns(new string[] { "{\"integer\":\"1\"}" })
-                .SetName("Given an int field, the nested column is generated correctly"),
+                .SetName("{m}(Given an int field, the nested column is generated correctly)"),
             new TestCaseData("floatNumber", 1.5f)
                 .Returns(new string[] { "{\"floatNumber\":\"1.5\"}" })
-                .SetName("Given a float field, the nested column is generated correctly"),
+                .SetName("{m}(Given a float field, the nested column is generated correctly)"),
             new TestCaseData("doubleNumber", 1.2)
                 .Returns(new string[] { "{\"doubleNumber\":\"1.2\"}" })
-                .SetName("Given a double field, the nested column is generated correctly"),
+                .SetName("{m}(Given a double field, the nested column is generated correctly)"),
             new TestCaseData("boolean", true)
                 .Returns(new string[] { "{\"boolean\":\"True\"}" })
-                .SetName("Given a bool field, the nested column is generated correctly"),
+                .SetName("{m}(Given a bool field, the nested column is generated correctly)"),
             new TestCaseData("test", "Hello World")
                 .Returns(new string[] { "{\"test\":\"Hello World\"}" })
-                .SetName("Given a string field, the nested column is generated correctly"),
+                .SetName("{m}(Given a string field, the nested column is generated correctly)"),
             new TestCaseData("array", new int[] { 1,2,3} )
                 .Returns(new string[] { "{\"array\":\"[1,2,3]\"}" })
-                .SetName("Given an array of ints field, the nested column is generated correctly"),
+                .SetName("{m}(Given an array of ints field, the nested column is generated correctly)"),
             new TestCaseData("diffEnum", TestObject.TestDiffEnum.b)
                 .Returns(new string[] { "{\"diffEnum\":\"b\"}" })
-                .SetName("Given an enum field, the nested column is generated correctly"),
+                .SetName("{m}(Given an enum field, the nested column is generated correctly)"),
              new TestCaseData("innerStruct", new TestObject.InnerTestStruct{ myValue = 5 } )
                 .Returns(new string[] { "{\"innerStruct.myValue\":\"5\"}" })
-                .SetName("Given an inner struct field, the nested column is generated correctly"),
+                .SetName("{m}(Given an inner struct field, the nested column is generated correctly)"),
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDatasWithDefault))]
@@ -141,7 +140,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GivenAnObjectWithSerializableFields_WhenAllFieldsAreRequested_AllOfThemAreReturnedCorrectly()
         {
-            using (ListPool<string>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
             {
                 foreach (var testCase in s_TestCaseDatas)
                 {

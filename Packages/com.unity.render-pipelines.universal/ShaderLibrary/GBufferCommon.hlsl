@@ -4,7 +4,7 @@
 #define UNIVERSAL_GBUFFERCOMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 // Material flags:
 
@@ -23,11 +23,7 @@
     #define GBUFFER_FEATURE_DEPTH 1
 #endif
 
-#if defined(SHADOWS_SHADOWMASK)
-    #define GBUFFER_FEATURE_SHADOWMASK 1
-#elif !defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-    #define GBUFFER_FEATURE_SHADOWMASK 1
-#elif defined(_DEFERRED_MIXED_LIGHTING)
+#if defined(SHADOWS_SHADOWMASK) || defined(LIGHTMAP_SHADOW_MIXING) || defined(_DEFERRED_MIXED_LIGHTING)
     #define GBUFFER_FEATURE_SHADOWMASK 1
 #endif
 
@@ -115,30 +111,11 @@ uint UnpackGBufferMaterialFlags(float packedMaterialFlags)
     return uint((packedMaterialFlags * half(255.0)) + half(0.5));
 }
 
-#if defined(_GBUFFER_NORMALS_OCT)
-
+// In deferred rendering the normals texture aliases the normals GBuffer, so the two must share one packing.
 half3 PackGBufferNormal(half3 normalWS)
-{
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms.
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0, +1]
-    return half3(PackFloat2To888(remappedOctNormalWS));               // values between [ 0, +1]
-}
+{ return PackNormalWSToTexture(normalWS); }
 
 half3 UnpackGBufferNormal(half3 packedNormalWS)
-{
-    half2 remappedOctNormalWS = half2(Unpack888ToFloat2(packedNormalWS));// values between [ 0, +1]
-    half2 octNormalWS = remappedOctNormalWS.xy * half(2.0) - half(1.0);  // values between [-1, +1]
-    return half3(UnpackNormalOctQuadEncode(octNormalWS));                // values between [-1, +1]
-}
-
-#else
-
-half3 PackGBufferNormal(half3 normalWS)
-{ return normalWS; }                                                      // values between [-1, +1]
-
-half3 UnpackGBufferNormal(half3 packedNormalWS)
-{ return packedNormalWS; }                                                // values between [-1, +1]
-
-#endif
+{ return UnpackNormalWSFromTexture(packedNormalWS); }
 
 #endif

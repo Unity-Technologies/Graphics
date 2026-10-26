@@ -24,33 +24,6 @@ EditorBuildSettings:
     path: Assets/Scenes/076_Dithering.unity
     guid: 49c136c02b1ebe640834a557f6baeef3
   - enabled: 1
-    path: Assets/Scenes/077_GradingChannelMixerLDR.unity
-    guid: e4d45947c95a67a41b393c5fe823891b
-  - enabled: 1
-    path: Assets/Scenes/079_GradingColorAdjustmentsLDR.unity
-    guid: d37e4ef718eada94db246dbd8ef33205
-  - enabled: 1
-    path: Assets/Scenes/081_GradingColorCurvesLDR.unity
-    guid: c4dab86134e72034aac45c19df32ceb7
-  - enabled: 1
-    path: Assets/Scenes/083_GradingLiftGammaGainLDR.unity
-    guid: 61718ed79ced0044fbfabd6ef7861a15
-  - enabled: 1
-    path: Assets/Scenes/085_GradingShadowsMidtonesHighlightsLDR.unity
-    guid: b8fbc679adfaed54ea1d4121a8564c81
-  - enabled: 1
-    path: Assets/Scenes/087_GradingSplitToningLDR.unity
-    guid: 9e7523551cb924341a7dd2c98d773076
-  - enabled: 1
-    path: Assets/Scenes/089_GradingWhiteBalanceLDR.unity
-    guid: 507fe0226a0388c4898d134f829a4b28
-  - enabled: 1
-    path: Assets/Scenes/091_TonemappingNeutralLDR.unity
-    guid: d0fe400c29908d94e9cd70045224370d
-  - enabled: 1
-    path: Assets/Scenes/093_TonemappingACESLDR.unity
-    guid: 46788dd77b1c63144b05ad4e2bbe58d5
-  - enabled: 1
     path: Assets/Scenes/095_CameraMotionBlur.unity
     guid: 9e498e31909a6427582110fd758d2f9d
   - enabled: 1
@@ -114,6 +87,9 @@ EditorBuildSettings:
     path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
     guid: aee9f891d65e44daf811d30053402efd
   - enabled: 1
+    path: Assets/Scenes/146_MSAA_TileOnly_RenderToBackbuffer.unity
+    guid: 243b969502624f699ba8e17007f8f2ec
+  - enabled: 1
     path: Assets/Scenes/150_TAA.unity
     guid: 3b35fafd77d2d4677aeb56ab2ba0f743
   - enabled: 1
@@ -174,6 +150,9 @@ EditorBuildSettings:
     path: Assets/Scenes/202_Lens_Flare_Data_Driven_Occlusion.unity
     guid: 4ef59c3ae21f842c5858909f4d07493f
   - enabled: 1
+    path: Assets/Scenes/203_Lens_Flare_Data_Driven_Occlusion_Ortho.unity
+    guid: b2d7ac8631fbd4450b7398b72b21df30
+  - enabled: 1
     path: Assets/Scenes/241_MultiCamMotionBlur.unity
     guid: 743d01f5817f118469f5095b0192f5ce
   - enabled: 1
@@ -216,19 +195,34 @@ EditorBuildSettings:
     path: Assets/Scenes/282_AlphaOutput_RGBA8_Stack_RenderScale_Up_FSR.unity
     guid: 33738bb1cfc644b2882c51fa88268a4f
   - enabled: 1
+    path: Assets/Scenes/283_AlphaOutput_RGBA8_RenderScale_Up_STP.unity
+    guid: febbdb38e483470cb3c6b69d4d9704dc
+  - enabled: 1
+    path: Assets/Scenes/284_CameraColorSwap_HalfRes_RT.unity
+    guid: a3f52c81d94e4b7f8a1c6d2e0b9f4712
+  - enabled: 1
     path: Assets/Scenes/373_HDROutput_ColorGamut.unity
     guid: cef44dde9c315e54fa9e5cfe6a04edbb
   - enabled: 1
     path: Assets/Scenes/374_HDROutput_PassOrder.unity
     guid: 8bf4b7781b2a77a4987ae2a487e42414
   - enabled: 1
-    path: Assets/Scenes/375_HDROutput_UpscalingFilters.unity
+    path: Assets/Scenes/375_HDROutput_FSR.unity
     guid: d80ab5b588fd1d64ca39e584b8eeb483
   - enabled: 1
     path: Assets/Scenes/380_STP.unity
     guid: 2b1e933506b286343a1128073e1d94e4
   - enabled: 1
+    path: Assets/Scenes/383_MetalFXTemporal.unity
+    guid: abd4369c35404404a11568277f67cbe3
+  - enabled: 1
+    path: Assets/Scenes/384_MetalFXSpatial.unity
+    guid: f64d38949bf34c27bd42190361ebdfd4
+  - enabled: 1
     path: Assets/Scenes/400_OcclusionCulling_RenderScale.unity
     guid: f1830625a97eb7246a86205545f61297
-  m_configObjects: {}
-  m_UseUCBPForAssetBundles: 0
+  - enabled: 1
+    path: Assets/Scenes/1104_CopyDepth_DynamicResolution.unity
+    guid: cefc068a9cdac384e84b8f6a537ab43c
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8, type: 2}

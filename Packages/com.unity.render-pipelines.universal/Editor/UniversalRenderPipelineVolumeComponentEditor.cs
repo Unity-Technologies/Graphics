@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             var typeNameString = new StringBuilder();
 
             foreach (var type in types)
-                typeNameString.AppendFormat("\"{0}\" ", type.Name);
+                typeNameString.AppendFormat("\"{0}\" ", type.GetCustomAttribute<DisallowMultipleRendererFeature>()?.customTitle ?? type.Name);
 
             return typeNameString.ToString();
         }
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
                 ? urpAsset.scriptableRendererData.rendererFeatures
                 : null;
 
-            using (HashSetPool<Type>.Get(out var missingFeatureTypes))
+            using (UnityEngine.Pool.HashSetPool<Type>.Get(out var missingFeatureTypes))
             {
                 foreach (var elem in m_FeatureAttribute.TargetFeatureTypes)
                     missingFeatureTypes.Add(elem);

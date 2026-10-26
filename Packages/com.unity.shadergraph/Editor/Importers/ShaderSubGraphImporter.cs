@@ -20,7 +20,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(30, Extension, -905)]
+    [ScriptedImporter(31, Extension, -905, AllowCaching = true)]
     [CoreRPHelpURL("Sub-graph", "com.unity.shadergraph")]
     class ShaderSubGraphImporter : ScriptedImporter
     {
@@ -265,6 +265,7 @@ namespace UnityEditor.ShaderGraph
 
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
+            asset.hasPromotedPropertiesInInspector = false;
             foreach (var node in nodes)
             {
                 if (node is SubGraphNode subGraphNode)
@@ -272,6 +273,13 @@ namespace UnityEditor.ShaderGraph
                     var subGraphGuid = subGraphNode.subGraphGuid;
                     if (childrenSet.Add(subGraphGuid))
                         subGraphNode.CollectShaderKeywords(keywordCollector, GenerationMode.ForReals);
+
+                    if (!asset.hasPromotedPropertiesInInspector
+                        && subGraphNode.asset != null
+                        && subGraphNode.asset.hasPromotedPropertiesInInspector)
+                    {
+                        asset.hasPromotedPropertiesInInspector = true;
+                    }
                 }
                 else
                 {
@@ -343,8 +351,19 @@ namespace UnityEditor.ShaderGraph
             // If we are importing an older file that has not had categories generated for it yet, include those now.
             foreach(var prop in graph.properties)
             {
-                if (prop != null && (prop.promoteToFinalShader || orderedProperties.Contains(prop)))
+                if (prop == null)
                     continue;
+
+                if (prop.promoteToFinalShader)
+                {
+                    if (prop.GetDefaultHLSLDeclaration() != HLSLDeclaration.Global)
+                        asset.hasPromotedPropertiesInInspector = true;
+                    continue;
+                }
+
+                if(orderedProperties.Contains(prop))
+                    continue;
+
                 orderedProperties.Add(prop);
             }
 
@@ -387,10 +406,22 @@ namespace UnityEditor.ShaderGraph
                 foreach (var output in asset.vtFeedbackVariables)
                     arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single)} {output}_out");
 
-                // Create the function prototype from the arguments
-                sb.AppendLine("void {0}({1})"
-                    , asset.functionName
-                    , arguments.Aggregate((current, next) => $"{current}, {next}"));
+                if (asset.hasPromotedPropertiesInInspector)
+                {
+                    sb.AppendLine("void {0}({1}"
+                        , asset.functionName
+                        , string.Join(", ", arguments));
+                    sb.AppendLine("#ifdef HAVE_VFX_MODIFICATION");
+                    sb.AppendLine(", GraphProperties PROP");
+                    sb.AppendLine("#endif");
+                    sb.AppendLine(")");
+                }
+                else
+                {
+                    sb.AppendLine("void {0}({1})"
+                        , asset.functionName
+                        , string.Join(", ", arguments));
+                }
 
                 // now generate the function
                 using (sb.BlockScope())

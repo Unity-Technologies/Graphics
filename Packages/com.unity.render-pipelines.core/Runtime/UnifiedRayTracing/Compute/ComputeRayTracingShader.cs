@@ -130,14 +130,23 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmd.DispatchCompute(m_Shader, m_KernelIndex, (int)workgroupsX, (int)workgroupsY, (int)workgroupsZ);
         }
 
+        [System.Obsolete("Use DispatchIndirect instead. #from(6000.7)")]
         public void Dispatch(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer)
+        {
+            DispatchIndirect(cmd, scratchBuffer, argsBuffer);
+        }
+
+        public void DispatchIndirect(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer)
         {
             Utils.CheckArgIsNotNull(cmd, nameof(cmd));
             GraphicsBuffer.Target requiredFlags = GraphicsBuffer.Target.IndirectArguments | GraphicsBuffer.Target.Structured;
             Utils.CheckArg((argsBuffer.target & requiredFlags) == requiredFlags, "argsBuffer.target must have both Target.IndirectArguments and Target.Structured set");
 
             SetIndirectDispatchDimensions(cmd, argsBuffer);
-            DispatchIndirect(cmd, scratchBuffer, argsBuffer);
+
+            cmd.SetComputeBufferParam(m_Shader, m_KernelIndex, SID._UnifiedRT_Stack, scratchBuffer);
+            cmd.SetComputeBufferParam(m_Shader, m_KernelIndex, SID._UnifiedRT_DispatchDims, argsBuffer);
+            cmd.DispatchCompute(m_Shader, m_KernelIndex, m_DispatchBuffer, 0);
         }
 
         internal void SetIndirectDispatchDimensions(CommandBuffer cmd, GraphicsBuffer argsBuffer)
@@ -145,13 +154,6 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             cmd.SetComputeBufferParam(m_Shader, m_ComputeIndirectDispatchDimsKernelIndex, SID._UnifiedRT_DispatchDims, argsBuffer);
             cmd.SetComputeBufferParam(m_Shader, m_ComputeIndirectDispatchDimsKernelIndex, SID._UnifiedRT_DispatchDimsInWorkgroups, m_DispatchBuffer);
             cmd.DispatchCompute(m_Shader, m_ComputeIndirectDispatchDimsKernelIndex, 1, 1, 1);
-        }
-
-        internal void DispatchIndirect(CommandBuffer cmd, GraphicsBuffer scratchBuffer, GraphicsBuffer argsBuffer)
-        {
-            cmd.SetComputeBufferParam(m_Shader, m_KernelIndex, SID._UnifiedRT_Stack, scratchBuffer);
-            cmd.SetComputeBufferParam(m_Shader, m_KernelIndex, SID._UnifiedRT_DispatchDims, argsBuffer);
-            cmd.DispatchCompute(m_Shader, m_KernelIndex, m_DispatchBuffer, 0);
         }
 
         public ulong GetTraceScratchBufferRequiredSizeInBytes(uint width, uint height, uint depth)

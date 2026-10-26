@@ -18,8 +18,8 @@ using UnityEditor;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [MockHmdSetup(99)]
-    [AssetBundleSetup]
+    [MockHmdSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXStressTests
     {
 

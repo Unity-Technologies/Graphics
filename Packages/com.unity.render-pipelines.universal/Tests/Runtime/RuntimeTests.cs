@@ -14,6 +14,9 @@ class RuntimeTests
     Camera camera;
     RenderPipelineAsset currentAssetGraphics;
     RenderPipelineAsset currentAssetQuality;
+    RenderTexture m_Destination;
+    GameObject m_TargetLight;
+    GameObject m_AnotherLight;
 
     [SetUp]
     public void Setup()
@@ -30,6 +33,14 @@ class RuntimeTests
         GraphicsSettings.defaultRenderPipeline = currentAssetGraphics;
         QualitySettings.renderPipeline = currentAssetQuality;
         Object.DestroyImmediate(go);
+        Object.DestroyImmediate(m_TargetLight);
+        Object.DestroyImmediate(m_AnotherLight);
+        if (m_Destination != null)
+        {
+            m_Destination.Release();
+            Object.DestroyImmediate(m_Destination);
+            m_Destination = null;
+        }
     }
 
     static readonly (int tier, string textTier)[] k_ShadowResolutions =
@@ -56,13 +67,15 @@ class RuntimeTests
             expectedResolution = urpAsset.additionalLightsShadowResolutionTierHigh;
 
         // Create two lights to test that setting the tier on the target light does not affect another light
-        var targetLight = new GameObject("targetLight").AddComponent<Light>();
+        m_TargetLight = new GameObject("targetLight");
+        var targetLight = m_TargetLight.AddComponent<Light>();
         targetLight.type = LightType.Point;
         targetLight.shadows = LightShadows.Soft;
         var targetData = targetLight.gameObject.AddComponent<UniversalAdditionalLightData>();
         targetData.additionalLightsShadowResolutionTier = testData.tier;
 
-        var anotherLight = new GameObject("anotherLight").AddComponent<Light>();
+        m_AnotherLight = new GameObject("anotherLight");
+        var anotherLight = m_AnotherLight.AddComponent<Light>();
         anotherLight.type = LightType.Point;
         anotherLight.shadows = LightShadows.Soft;
         var anotherData = anotherLight.gameObject.AddComponent<UniversalAdditionalLightData>();
@@ -70,33 +83,24 @@ class RuntimeTests
         anotherData.additionalLightsShadowResolutionTier = UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium;
 
         // Trigger a frame render to ensure URP processes the light data
+        m_Destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB,
+            CoreUtils.GetDefaultDepthOnlyFormat());
         var rr = new RenderPipeline.StandardRequest
         {
-            destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB,
-                CoreUtils.GetDefaultDepthOnlyFormat())
+            destination = m_Destination
         };
         RenderPipeline.SubmitRenderRequest(camera, rr);
 
         yield return null;
 
-        try
-        {
-            int actualResolution = urpAsset.GetAdditionalLightsShadowResolution(targetData.additionalLightsShadowResolutionTier);
-            int actualOtherResolution = urpAsset.GetAdditionalLightsShadowResolution(anotherData.additionalLightsShadowResolutionTier);
+        int actualResolution = urpAsset.GetAdditionalLightsShadowResolution(targetData.additionalLightsShadowResolutionTier);
+        int actualOtherResolution = urpAsset.GetAdditionalLightsShadowResolution(anotherData.additionalLightsShadowResolutionTier);
 
-            Assert.AreEqual(expectedResolution, actualResolution,
-                $"URP should resolve {testData.textTier} tier to {expectedResolution} resolution for targetLight");
+        Assert.AreEqual(expectedResolution, actualResolution,
+            $"URP should resolve {testData.textTier} tier to {expectedResolution} resolution for targetLight");
 
-            Assert.AreEqual(urpAsset.additionalLightsShadowResolutionTierMedium, actualOtherResolution,
-                $"URP should resolve Medium tier to {urpAsset.additionalLightsShadowResolutionTierMedium} resolution for anotherLight");
-
-        }
-        finally
-        {
-
-            Object.DestroyImmediate(targetLight.gameObject);
-            Object.DestroyImmediate(anotherLight.gameObject);
-        }
+        Assert.AreEqual(urpAsset.additionalLightsShadowResolutionTierMedium, actualOtherResolution,
+            $"URP should resolve Medium tier to {urpAsset.additionalLightsShadowResolutionTierMedium} resolution for anotherLight");
     }
 
     // When URP pipeline is active, lightsUseLinearIntensity must match active color space.
@@ -106,8 +110,9 @@ class RuntimeTests
         AssetCheck();
 
         var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
-        rr.destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB,
-                    CoreUtils.GetDefaultDepthOnlyFormat());
+        m_Destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB,
+            CoreUtils.GetDefaultDepthOnlyFormat());
+        rr.destination = m_Destination;
         rr.mipLevel = 0;
         rr.slice = 0;
         rr.face = CubemapFace.Unknown;
@@ -122,13 +127,13 @@ class RuntimeTests
     // When switching to Built-in it sets "" as global shader tag.
 #if UNITY_EDITOR // TODO This API call does not reset in player
     [UnityTest]
-    [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-122594")]
     public IEnumerator PipelineSetsAndRestoreGlobalShaderTagCorrectly()
     {
         AssetCheck();
 
         var rr = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
-        rr.destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, CoreUtils.GetDefaultDepthOnlyFormat());
+        m_Destination = new RenderTexture(128, 128, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, CoreUtils.GetDefaultDepthOnlyFormat());
+        rr.destination = m_Destination;
         rr.mipLevel = 0;
         rr.slice = 0;
         rr.face = CubemapFace.Unknown;

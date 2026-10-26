@@ -72,14 +72,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
             }
 
-#if URP_SCREEN_SPACE_REFLECTION
             bool useSSR = data.screenSpaceReflectionHdl.IsValid();
             cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceReflection, useSSR);
             if (useSSR)
             {
                 cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflection, data.screenSpaceReflectionHdl);
+
+                if (data.screenSpaceReflectionRayDistanceHdl.IsValid())
+                    cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.screenSpaceReflectionRayDistanceHdl);
             }
-#endif
 
             cmd.DrawRendererList(rendererList);
 
@@ -101,9 +102,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal RendererListHandle objectsWithErrorRendererListHdl;
 
             internal TextureHandle screenSpaceIrradianceHdl;
-#if URP_SCREEN_SPACE_REFLECTION
             internal TextureHandle screenSpaceReflectionHdl;
-#endif
+            internal TextureHandle screenSpaceReflectionRayDistanceHdl;
         }
 
         private void InitRendererLists( ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, uint batchLayerMask = uint.MaxValue)
@@ -162,8 +162,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.screenSpaceIrradianceHdl = irradianceTexture;
                 builder.UseTexture(irradianceTexture, AccessFlags.Read);
             }
+            if (resourceData.exposureMultiplier.IsValid())
+            {
+                builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+            }
 
-#if URP_SCREEN_SPACE_REFLECTION
             TextureHandle ssrTexture = resourceData.ssrTexture;
             if (ssrTexture.IsValid())
             {
@@ -174,7 +177,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 passData.screenSpaceReflectionHdl = TextureHandle.nullHandle;
             }
-#endif
+
+            TextureHandle ssrRayDistanceTexture = resourceData.ssrRayDistanceTexture;
+            if (ssrRayDistanceTexture.IsValid())
+            {
+                passData.screenSpaceReflectionRayDistanceHdl = ssrRayDistanceTexture;
+                builder.UseTexture(ssrRayDistanceTexture, AccessFlags.Read);
+            }
+            else
+            {
+                passData.screenSpaceReflectionRayDistanceHdl = TextureHandle.nullHandle;
+            }
 
             RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
@@ -192,6 +205,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (useCameraRenderingLayersTexture)
                     builder.SetGlobalTextureAfterPass(resourceData.renderingLayersTexture, s_CameraRenderingLayersTextureID);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                builder.EnableFoveatedRasterization(
+                    cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+            }
+#endif
 
             builder.AllowGlobalStateModification(true);
 

@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: Exposure
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
     m_Value: 4
@@ -119,19 +118,15 @@ MonoBehaviour:
   adaptationSpeedDarkToLight:
     m_OverrideState: 1
     m_Value: 3
-    min: 0.001
   adaptationSpeedLightToDark:
     m_OverrideState: 1
     m_Value: 3
-    min: 0.001
   weightTextureMask:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 1
     m_Value: {x: 0, y: 33}
-    min: 0
-    max: 100
   histogramUseCurveRemapping:
     m_OverrideState: 0
     m_Value: 0
@@ -156,7 +151,6 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
-    min: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -80,9 +80,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
-#if ENABLE_UPSCALER_FRAMEWORK
+        // Persistent work buffers for FlattenRenderRequestGraph to avoid per-frame allocations
+        readonly List<int> m_RenderRequestIndicesToRender = new List<int>(256);
+        readonly List<int> m_VisitStatus = new List<int>(256);
+
         internal Upscaling upscaling;
-#endif
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
@@ -434,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
-        ObjectPool<HDCullingResults> m_CullingResultsPool = new ObjectPool<HDCullingResults>((cullResult) => cullResult.Reset(), null, false);
+        UnityEngine.Pool.ObjectPool<HDCullingResults> m_CullingResultsPool = new UnityEngine.Pool.ObjectPool<HDCullingResults>(() => new HDCullingResults(), (cullResult) => cullResult.Reset(), null, null, false);
 
         // RENDER GRAPH
         RenderGraph m_RenderGraph = new RenderGraph("HDRP");
@@ -515,19 +517,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
-            DebugManager.instance.RefreshEditor();
+            DebugManager.instance.RecreateDebugUI();
             m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
-            m_DebugDisplaySettings.resetAction = () =>
-            {
-                m_DebugDisplaySettings = DebugDisplaySerializer.GetOrCreate<DebugDisplaySettings>();
-
-                // This is not a debug property owned by `DebugData`, it is a static property on `Texture`.
-                // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
-                // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
-                Texture.streamingTextureDiscardUnusedMips = false;
-            };
 
             m_ValidAPI = true;
+            apvIsEnabled = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
             SetRenderingFeatures();
 
@@ -676,11 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            apvIsEnabled = m_Asset != null && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
-
-            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
-            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
-            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
@@ -716,6 +705,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_ENABLE_CHECKS
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
+
+            // Most HDRP debug state lives in m_DebugDisplaySettings, which is not an IDebugDisplaySettings, which the
+            // hide functionality relies on. For simplicity, just opt out of proving the hide button functionality.
+            Unity.RenderPipelines.Core.Runtime.Shared.RenderingDebuggerBridge.SetSupportsHidingDebugOverlays(false);
 #endif
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
@@ -759,9 +752,8 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
             VrsInitializeResources();
-#if ENABLE_UPSCALER_FRAMEWORK
+
             upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions);
-#endif
 
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
@@ -819,39 +811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
             QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
-            {
-                reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation,
-                defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (m_Asset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0),
-                lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
-                lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
-                lightProbeProxyVolumes = true,
-                motionVectors = true,
-                receiveShadows = false,
-                reflectionProbes = false,
-                rendererPriority = true,
-                overridesFog = true,
-                overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false,
-                enlighten = true
-                ,
-                overridesLODBias = true
-                ,
-                overridesMaximumLODLevel = true
-                ,
-                overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                ,
-                overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
-                ,
-                ambientProbeBaking = false
-                ,
-                defaultReflectionProbeBaking = false
-                ,
-                rendersUIOverlay = true,
-                supportsHDR = true,
-                supportsClouds = true
-            };
+            InitializeSupportedRenderingFeatures(m_Asset);
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
@@ -867,7 +827,42 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
 #endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            m_DebugDisplaySettings.amdDebugView.Reset();
+#endif
             HDDynamicResolutionPlatformCapabilities.SetupFeatures();
+        }
+
+        internal static void InitializeSupportedRenderingFeatures(HDRenderPipelineAsset hdrpAsset)
+        {
+            bool apvIsEnabled = hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
+            SupportedRenderingFeatures.active.reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation;
+            SupportedRenderingFeatures.active.defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly;
+            SupportedRenderingFeatures.active.mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0);
+            SupportedRenderingFeatures.active.lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime;
+            SupportedRenderingFeatures.active.lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional;
+            SupportedRenderingFeatures.active.lightProbeProxyVolumes = true;
+            SupportedRenderingFeatures.active.motionVectors = true;
+            SupportedRenderingFeatures.active.receiveShadows = false;
+            SupportedRenderingFeatures.active.reflectionProbes = false;
+            SupportedRenderingFeatures.active.rendererPriority = true;
+            SupportedRenderingFeatures.active.overridesFog = true;
+            SupportedRenderingFeatures.active.overridesOtherLightingSettings = true;
+            SupportedRenderingFeatures.active.editableMaterialRenderQueue = false;
+            SupportedRenderingFeatures.active.enlighten = true;
+            SupportedRenderingFeatures.active.overridesLODBias = true;
+            SupportedRenderingFeatures.active.overridesMaximumLODLevel = true;
+            SupportedRenderingFeatures.active.overridesShadowmask = true; // Don't display the shadow mask UI in Quality Setting
+            SupportedRenderingFeatures.active.overridesRealtimeReflectionProbes = true; // Don't display the real time reflection probes checkbox UI in Quality Setting
+            SupportedRenderingFeatures.active.ambientProbeBaking = false;
+            SupportedRenderingFeatures.active.defaultReflectionProbeBaking = false;
+            SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            SupportedRenderingFeatures.active.supportsHDR = true;
+            SupportedRenderingFeatures.active.supportsClouds = true;
+            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
+            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
         }
 
         bool CheckAPIValidity()
@@ -992,6 +987,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnsetRenderingFeatures();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_WarnedOrthographicXRCameras.Clear();
+#endif
+
             if (!m_ValidAPI)
                 return;
 
@@ -1056,6 +1055,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             CleanupPostProcess();
+            if (upscaling != null)
+            {
+                var upscalerCmd = CommandBufferPool.Get("Upscaler Dispose");
+                upscaling.Dispose(upscalerCmd);
+                Graphics.ExecuteCommandBuffer(upscalerCmd);
+                CommandBufferPool.Release(upscalerCmd);
+            }
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
@@ -1397,6 +1403,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
         }
 
+        // Last (requested, clamped) forced render percentages we warned about; NaN means none. Keying on both values
+        // (rather than a once-ever bool) warns on each new out-of-range value without spamming per frame, and the
+        // clamped key also catches a quality-mode change that moves the supported range under an unchanged forced value.
+        float m_LastWarnedForcedScale = float.NaN;
+        float m_LastWarnedClampedScale = float.NaN;
+
         void SetupPartnerUpscalers(
             in HDAdditionalCameraData hdCam,
             Camera camera,
@@ -1410,16 +1422,14 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCam.cameraCanRenderDLSS = false;
             hdCam.cameraCanRenderFSR2 = false;
             hdCam.cameraCanRenderSTP = false;
-#if ENABLE_UPSCALER_FRAMEWORK
             hdCam.cameraCanRenderIUpscaler = false;
             hdCam.cameraIUpscalerIsTemporalUpscaler = false;
-#endif
 
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
 
-            var upscalerNames = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
-            if (upscalerNames == null || upscalerNames.Count == 0)
+            var advancedUpscalers = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+            if (advancedUpscalers == null || advancedUpscalers.Count == 0)
                 return;
 
             // STP cannot support dynamic resolution when hardware support is not available.
@@ -1430,10 +1440,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // External upscaler priority system: we pick the first upscaler in the pre sorted priority list to activate for the frame.
             bool found = false;
-            for (int i = 0; i < upscalerNames.Count && !found; ++i)
+            for (int i = 0; i < advancedUpscalers.Count && !found; ++i)
             {
-                var name = upscalerNames[i];
-                switch(name)
+                var advancedUpscaler = advancedUpscalers[i];
+                switch(advancedUpscaler)
                 {
                     case "DLSS":
                         hdCam.cameraCanRenderDLSS = HDDynamicResolutionPlatformCapabilities.DLSSDetected && hdCam.allowDeepLearningSuperSampling;
@@ -1464,32 +1474,40 @@ namespace UnityEngine.Rendering.HighDefinition
                         found = hdCam.cameraCanRenderSTP;
                         break;
 
-#if ENABLE_UPSCALER_FRAMEWORK
                     default:
                     {
-                        // The upscaler name should be an IUpscaler
-                        IUpscaler optActiveIUpscaler = this.upscaling.activeUpscaler;
+                        // The upscaler ID should be an IUpscaler
+                        IUpscaler optActiveIUpscaler = upscaling.activeUpscaler;
 
 
-                        // TODO (Apoorva): Make this condition dynamic from the IUpscaler interface, so that an
-                        // individual upscaling package can decide whether it is supported in the current config.
-                        bool isSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
+                        // Support is decided by DRS mode + device capability, not per-upscaler, since any IUpscaler rides
+                        // the DynamicResolutionHandler. Software DRS is always renderable via HDRP's RTHandle
+                        // reference-size model (the viewport scales within a max-size allocation, no device support
+                        // needed); hardware DRS needs device support; a user-forced fixed resolution is always
+                        // renderable. The only unsupported case is hardware DRS requested on a device that can't do it.
+                        bool isSupported = (drsSettings.dynResType == DynamicResolutionType.Software)
+                            || ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported)
+                            || drsSettings.forceResolution;
                         if (isSupported)
                         {
-                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.name)
+                            if (optActiveIUpscaler == null || advancedUpscaler != optActiveIUpscaler.upscalerId)
                             {
                                 // The active upscaler should be an IUpscaler, but it isn't currently set active in the
                                 // upscaling manager.
-                                bool ok = this.upscaling.SetActiveUpscaler(name);
+                                bool ok = upscaling.SetActiveUpscaler(advancedUpscaler);
                                 if (!ok)
                                 {
                                     Debug.LogWarning(
-                                        $"Upscaler with name '{name}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
+                                        $"Upscaler with ID '{advancedUpscaler}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
+
+                                    // Clear the stale previously-active upscaler so the block below skips this entry
+                                    // and the priority loop falls through to the next candidate.
+                                    optActiveIUpscaler = null;
                                 }
                                 else
                                 {
                                     // The upscaler was successfully set. Get a handle to it.
-                                    optActiveIUpscaler = this.upscaling.activeUpscaler;
+                                    optActiveIUpscaler = upscaling.activeUpscaler;
                                     Debug.Assert(optActiveIUpscaler != null);
                                 }
                             }
@@ -1499,12 +1517,91 @@ namespace UnityEngine.Rendering.HighDefinition
                                 hdCam.cameraCanRenderIUpscaler = true;
                                 hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.isTemporal;
                                 found = true;
+
+                                // If the upscaler exposes a render-resolution range, drive the DynamicResolutionHandler
+                                // within it by overriding the project's min/max percentages, so its scaler varies the
+                                // resolution within the upscaler's bounds. A single-resolution quality mode (constraint != Range)
+                                // is left to the fixed-mode path.
+                                Rect drsViewport = xrPass != null && xrPass.enabled
+                                    ? xrPass.GetViewport()
+                                    : new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                                var displayResolution = new Vector2Int((int)drsViewport.width, (int)drsViewport.height);
+
+                                var upscalerOptions = upscaling.GetGlobalOptions(optActiveIUpscaler);
+
+                                // Acquire the context for the upscaler to ensure it's created for future use
+                                upscaling.AcquireContext(EntityId.ToULong(camera.GetEntityId()), optActiveIUpscaler, upscalerOptions, displayResolution);
+
+                                var resInfo = optActiveIUpscaler.GetResolutionInfo(displayResolution, upscalerOptions);
+                                if (resInfo.constraint == UpscalerResolutionConstraint.Range)
+                                {
+                                    // Guard the divisor so a degenerate viewport can't write NaN percentages into the
+                                    // DynamicResolutionHandler (leave the project defaults in that case).
+                                    if (drsViewport.width > 0.0f && drsViewport.height > 0.0f)
+                                    {
+                                        outDrsSettings.maxPercentage = Mathf.Min((float)resInfo.maxResolution.x / drsViewport.width, (float)resInfo.maxResolution.y / drsViewport.height) * 100.0f;
+                                        outDrsSettings.minPercentage = Mathf.Max((float)resInfo.minResolution.x / drsViewport.width, (float)resInfo.minResolution.y / drsViewport.height) * 100.0f;
+
+                                        // A forced render percentage bypasses the handler's min/max clamp (it only clamps
+                                        // forced values to the hard [0.1, 1.5]), so clamp it into the upscaler's range
+                                        // here. Otherwise a forced scale below the upscaler's hard minimum reaches the
+                                        // upscaler and e.g. DLSS rejects it and renders a black screen. The reference
+                                        // size alone isn't enough: the forced percentage also drives the actual render
+                                        // scale and the hardware ScalableBufferManager factor.
+                                        if (outDrsSettings.forceResolution)
+                                        {
+                                            float requestedPercentage = outDrsSettings.forcedPercentage;
+                                            float clampedPercentage = Mathf.Clamp(requestedPercentage, outDrsSettings.minPercentage, outDrsSettings.maxPercentage);
+                                            outDrsSettings.forcedPercentage = clampedPercentage;
+
+                                            if (Debug.isDebugBuild)
+                                            {
+                                                if (clampedPercentage != requestedPercentage)
+                                                {
+                                                    // Re-warn when the requested forced value OR the clamp target changes.
+                                                    // Keyed by value so a steady situation does not spam per frame.
+                                                    if (!Mathf.Approximately(m_LastWarnedForcedScale, requestedPercentage)
+                                                        || !Mathf.Approximately(m_LastWarnedClampedScale, clampedPercentage))
+                                                    {
+                                                        m_LastWarnedForcedScale = requestedPercentage;
+                                                        m_LastWarnedClampedScale = clampedPercentage;
+                                                        Debug.LogWarning(
+                                                            $"Forced Render Scale {requestedPercentage / 100.0f:0.00} is outside {optActiveIUpscaler.name}'s " +
+                                                            $"supported range [{outDrsSettings.minPercentage / 100.0f:0.00}..{outDrsSettings.maxPercentage / 100.0f:0.00}] and was " +
+                                                            $"clamped to {clampedPercentage / 100.0f:0.00}. Keep Force Screen Percentage within the upscaler's range.");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    // In range: reset so a later out-of-range value (or range change) warns again.
+                                                    m_LastWarnedForcedScale = float.NaN;
+                                                    m_LastWarnedClampedScale = float.NaN;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (resInfo.constraint == UpscalerResolutionConstraint.Fixed)
+                                {
+                                    // Fixed quality mode (e.g. DLSS presets like Ultra Performance or DLAA, FSR2 presets): the upscaler's
+                                    // native feature is created for exactly this render resolution, so force the
+                                    // DynamicResolutionHandler to render at it. Otherwise the scene renders at the project
+                                    // DRS resolution while the upscaler consumes only its optimal-sized sub-rect, giving a
+                                    // zoomed/incorrect image.
+                                    if (drsViewport.width > 0.0f && drsViewport.height > 0.0f)
+                                    {
+                                        float qualityModePercentage = Mathf.Min(
+                                            (float)resInfo.qualityModeResolution.x / drsViewport.width,
+                                            (float)resInfo.qualityModeResolution.y / drsViewport.height) * 100.0f;
+                                        outDrsSettings.forceResolution = true;
+                                        outDrsSettings.forcedPercentage = qualityModePercentage;
+                                    }
+                                }
                             }
                         }
                     }
                     break;
-#endif // ENABLE_UPSCALER_FRAMEWORK
-                } // switch(upscalerNames[i])
+                } // switch(advancedUpscalers[i])
             }
         }
 
@@ -1550,16 +1647,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void FlattenRenderRequestGraph(List<RenderRequest> requests, List<int> renderIndices)
         {
-            using (ListPool<int>.Get(out List<int> visitStatus))
-            {
-                // mark everything as "not visited"
-                for (int i = 0; i < requests.Count; ++i)
-                    visitStatus.Add(0);
+            m_VisitStatus.Clear();
 
-                // iterate in request order (recursively visits dependencies first)
-                for (int i = 0; i < requests.Count; ++i)
-                    VisitRenderRequestRecursive(requests, visitStatus, i, renderIndices);
-            }
+            // mark everything as "not visited"
+            for (int i = 0; i < requests.Count; ++i)
+                m_VisitStatus.Add(0);
+
+            // iterate in request order (recursively visits dependencies first)
+            for (int i = 0; i < requests.Count; ++i)
+                VisitRenderRequestRecursive(requests, m_VisitStatus, i, renderIndices);
         }
 
         class HDCullingResults
@@ -1577,7 +1673,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (decalCullResults != null)
                     decalCullResults.Clear();
                 else
-                    decalCullResults = GenericPool<DecalSystem.CullResult>.Get();
+                    decalCullResults = UnityEngine.Pool.GenericPool<DecalSystem.CullResult>.Get();
             }
         }
 
@@ -1617,7 +1713,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var needCulling = true;
 
                 // In XR multipass, culling results can be shared if the pass has the same culling id
-                if (xrPass.multipassId > 0)
+                if (!xrPass.isFirstCameraPass)
                 {
                     foreach (var req in renderRequests)
                     {
@@ -1716,10 +1812,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     depthId = targetDepthId,
                     face = cubemapFace
                 },
-                dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                dependsOnRenderRequestIndices = UnityEngine.Pool.ListPool<int>.Get(),
                 index = renderRequests.Count,
                 cameraSettings = CameraSettings.From(hdCamera),
-                viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
+                viewDependentProbesData = UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
                 cullingResultIsShared = cullingResultIsShared,
                 xrPass = xrPass
                 // TODO: store DecalCullResult
@@ -1732,6 +1828,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DetermineVisibleProbesForRequest(in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
         {
             var cullingResults = request.cullingResults;
+            var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
             // Add visible probes to list
             // Reflection probes
             for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
@@ -1751,17 +1848,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalReflectionData.IsTurnedOff())
                     continue;
 
+                SyncRealtimeProbeTextureFormat(additionalReflectionData, probeFormat);
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
 
             // Planar probes
             for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
             {
-                if (cullingResults.hdProbeCullingResults.visibleProbes[i].IsTurnedOff())
+                var planarProbe = cullingResults.hdProbeCullingResults.visibleProbes[i];
+                if (planarProbe.IsTurnedOff())
                     continue;
 
-                AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request, renderRequestIndicesWhereTheProbeIsVisible);
+                SyncRealtimeProbeTextureFormat(planarProbe, probeFormat);
+                AddVisibleProbeVisibleIndexIfUpdateIsRequired(planarProbe, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
+        }
+
+        // Keep the realtime texture in sync with the current pipeline format. Without this, an
+        // OnDemand probe whose format mismatches the reflection probe atlas (e.g. after a
+        // QualityLevel switch that changes reflectionProbeFormat) would never get its texture
+        // reallocated, mismatch the atlas, and eventually crash in
+        // RendererScene::NotifyInvisible (UUM-109705). When the format actually changes we also
+        // force a re-render so the freshly-allocated texture isn't left empty (the original
+        // repro symptom is a black game view).
+        void SyncRealtimeProbeTextureFormat(HDProbe probe, GraphicsFormat probeFormat)
+        {
+            if (probe.mode != ProbeSettings.Mode.Realtime)
+                return;
+            if (probe.realtimeTexture != null && probe.realtimeTexture.graphicsFormat != probeFormat)
+                probe.RequestRerenderForFormatChange();
+            probe.AllocTexture(probeFormat);
         }
 
         void AddVisibleProbeVisibleIndexIfUpdateIsRequired(HDProbe probe, in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
@@ -1769,9 +1885,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Don't add it if it has already been updated this frame or not a real time probe
             // TODO: discard probes that are baked once per frame and already baked this frame
             if (!probe.requiresRealtimeUpdate)
-                return;
-
-            if (probe.IsTurnedOff())
                 return;
 
             var viewerTransform = request.hdCamera.camera.transform;
@@ -1784,7 +1897,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
             {
-                visibleInIndices = ListPool<(int index, float weight)>.Get();
+                visibleInIndices = UnityEngine.Pool.ListPool<(int index, float weight)>.Get();
                 renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
             }
 
@@ -1970,10 +2083,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera = hdCamera,
                     cullingResults = _cullingResults,
                     clearCameraSettings = true,
-                    dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                    dependsOnRenderRequestIndices = UnityEngine.Pool.ListPool<int>.Get(),
                     index = renderRequests.Count,
                     cameraSettings = cameraSettings[j],
-                    viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
+                    viewDependentProbesData = UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
                     xrPass =  XRSystem.emptyPass,
                     // TODO: store DecalCullResult
                 };
@@ -2077,7 +2190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         hdParentCamera = visibleInRenderRequest.hdCamera;
 
-                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                        var renderDatas = UnityEngine.Pool.ListPool<HDProbe.RenderData>.Get();
 
                         s_TempGenerateProbeRenderRequestsList.Clear();
                         s_TempGenerateProbeRenderRequestsList.Add(visibility);
@@ -2098,7 +2211,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
                         }
 
-                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        UnityEngine.Pool.ListPool<HDProbe.RenderData>.Release(renderDatas);
                     }
                 }
                 else
@@ -2115,10 +2228,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (visibleInOneViewer)
                     {
-                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                        var renderDatas = UnityEngine.Pool.ListPool<HDProbe.RenderData>.Get();
                         AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
                             cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderRequests, renderContext);
-                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        UnityEngine.Pool.ListPool<HDProbe.RenderData>.Release(renderDatas);
                     }
                 }
             }
@@ -2150,8 +2263,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (renderRequest.clearCameraSettings)
                 renderRequest.hdCamera.camera.targetTexture = null;
 
-            ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-            ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
+            UnityEngine.Pool.ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+            UnityEngine.Pool.ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
 
             // Culling results can be shared between render requests: clear only when required
             if (!renderRequest.cullingResultIsShared)
@@ -2170,6 +2283,23 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         // Throttle logging for WaterUpdate. Remove when FrameDebugger is improved to handle variable updates.
         double m_RealtimeSinceLastLogUpdateWaterSurfaces;
+#endif
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        [NoAutoStaticsCleanup]
+        static HashSet<EntityId> s_WarnedOrthographicXRCameras = new HashSet<EntityId>();
+
+        static void WarnIfOrthographicXRCamera(Camera camera, XRPass xrPass)
+        {
+            if (!xrPass.enabled || !camera.orthographic || !s_WarnedOrthographicXRCameras.Add(camera.GetEntityId()))
+                return;
+
+            Debug.LogWarning(
+                $"Camera '{camera.name}' has its projection set as Orthographic while XR rendering is enabled. " +
+                "This is not supported on XR and may produce artifacts at runtime. " +
+                "Please change the projection setting to Perspective to avoid issues.",
+                camera);
+        }
 #endif
 
         /// <summary>
@@ -2194,11 +2324,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RequireOffscreenUICoverPrepass = HDROutputForMainDisplayIsActive() && SupportedRenderingFeatures.active.rendersUIOverlay && !CoreUtils.IsScreenFullyCoveredByCameras(cameras);
             m_OffscreenUIRenderedInCurrentFrame = false;
 
-            // Reallocate the offscreen UI buffer when the resolution changes.
-            ReAllocateOffscreenUIColorBufferIfNeeded();
-
             if (!m_ValidAPI || cameraCount == 0)
                 return;
+
+            // Reallocate the offscreen UI buffer when the resolution changes.
+            ReAllocateOffscreenUIColorBufferIfNeeded();
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -2240,8 +2370,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
 #if UNITY_EDITOR
-                // Disable water updates while in the FrameDebugger until it can be improved.
-                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger.
+                // TODO: Disable water updates while in the FrameDebugger until it can be improved.
+                // Intermittent blit/CPU-readback events cause flicker in the FrameDebugger which uses redraws for data gathering.
                 // NOTE: This means those events cannot be debugged with the FrameDebugger for now.
                 if (FrameDebugger.enabled)
                 {
@@ -2274,6 +2404,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            m_DebugDisplaySettings.amdDebugView.Update();
+#endif
 
             if (DebugManager.instance.isAnyDebugUIActive)
             {
@@ -2289,11 +2422,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var xrLayout = XRSystem.NewLayout();
 
             // This syntax is awful and hostile to debugging, please don't use it...
-            using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
-            using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
-            using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
-            using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
-            using (ListPool<CubemapFace>.Get(out List<CubemapFace> cameraCubemapFaces))
+            using (UnityEngine.Pool.ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
+            using (UnityEngine.Pool.DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
+            using (UnityEngine.Pool.ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
+            using (UnityEngine.Pool.ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
+            using (UnityEngine.Pool.ListPool<CubemapFace>.Get(out List<CubemapFace> cameraCubemapFaces))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
                 foreach (var c in cameras)
@@ -2350,6 +2483,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 #endif
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    WarnIfOrthographicXRCamera(camera, xrPass);
+#endif
+
                     bool cameraRequestedDynamicRes = false;
                     HDAdditionalCameraData hdCam = null;
                     var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
@@ -2396,11 +2533,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynResHandler.runUpscalerFilterOnFullResolution =
                         (
                             hdCam != null &&
-                            (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP
-#if ENABLE_UPSCALER_FRAMEWORK
-                            || hdCam.cameraCanRenderIUpscaler
-#endif
-                            )
+                            (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP || hdCam.cameraCanRenderIUpscaler)
                         )
                         || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
@@ -2418,24 +2551,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, cameraCubemapFaces, renderContext);
 
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
-                    ListPool<(int index, float weight)>.Release(pair.Value);
+                    UnityEngine.Pool.ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
-                using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
+                m_RenderRequestIndicesToRender.Clear();
+
+                // Flatten the render requests graph in an array that guarantee dependency constraints
+                FlattenRenderRequestGraph(renderRequests, m_RenderRequestIndicesToRender);
+
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                 {
-                    // Flatten the render requests graph in an array that guarantee dependency constraints
-                    FlattenRenderRequestGraph(renderRequests, renderRequestIndicesToRender);
-
-                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
+                    // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
+                    // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
                     {
-                        // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
-                        // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
-                        {
-                            Vector2Int maxSize = new Vector2Int(1, 1);
+                        Vector2Int maxSize = new Vector2Int(1, 1);
 
-                            for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
-                            {
-                                var renderRequestIndex = renderRequestIndicesToRender[i];
+                        for (int i = 0; i < m_RenderRequestIndicesToRender.Count; ++i)
+                        {
+                            var renderRequestIndex = m_RenderRequestIndicesToRender[i];
                                 var renderRequest = renderRequests[renderRequestIndex];
                                 var hdCamera = renderRequest.hdCamera;
 
@@ -2449,13 +2582,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
-                        ScriptableRenderContext.PushDisableApiRenderers();
+                    ScriptableRenderContext.PushDisableApiRenderers();
 
-                        // Execute render request graph, in reverse order
-                        for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
-                        {
-                            bool isLast = i == renderRequestIndicesToRender.Count - 1;
-                            var renderRequestIndex = renderRequestIndicesToRender[i];
+                    // Execute render request graph, in reverse order
+                    for (int i = 0; i < m_RenderRequestIndicesToRender.Count; ++i)
+                    {
+                        bool isLast = i == m_RenderRequestIndicesToRender.Count - 1;
+                        var renderRequestIndex = m_RenderRequestIndicesToRender[i];
                             var renderRequest = renderRequests[renderRequestIndex];
                             renderRequest.isLast = isLast;
 
@@ -2511,10 +2644,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
                                 EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
-                        }
-
-                        ScriptableRenderContext.PopDisableApiRenderers();
                     }
+
+                    ScriptableRenderContext.PopDisableApiRenderers();
                 }
             }
 
@@ -2526,7 +2658,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderGraph.EndFrame();
             XRSystem.EndLayout();
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // Clean up expired upscaler contexts (unused for > 400 frames)
             if (upscaling != null)
             {
@@ -2535,7 +2666,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-#endif
 
             EndContextRendering(renderContext, cameras);
         }
@@ -2758,8 +2888,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetHDRState(hdCamera);
 
-            using (ListPool<RTHandle>.Get(out var aovBuffers))
-            using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
+            using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovBuffers))
+            using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
             {
                 aovRequest.AllocateTargetTexturesIfRequired(ref aovBuffers, ref aovCustomPassBuffers);
 
@@ -2938,7 +3068,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Error while building Render Graph.");
                     Debug.LogException(e);
                 }
-            } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
+            } // using (UnityEngine.Pool.ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3057,12 +3187,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool currentAntiAliasingValue = currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing);
                 bool antiAliasingValue = currentAntiAliasingValue && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2;
 
-#if ENABLE_UPSCALER_FRAMEWORK
                 if(additionalCameraData.cameraIUpscalerIsTemporalUpscaler)
                 {
                     antiAliasingValue = antiAliasingValue && !additionalCameraData.cameraCanRenderIUpscaler;
                 }
-#endif
 
                 currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, antiAliasingValue);
             }
@@ -3221,7 +3349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
                     // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
+                    decalCullRequest = UnityEngine.Pool.GenericPool<DecalSystem.CullRequest>.Get();
                     DecalSystem.instance.CurrentCamera = camera;
                     DecalSystem.instance.BeginCull(decalCullRequest);
                 }
@@ -3268,7 +3396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (decalCullRequest != null)
                 {
                     decalCullRequest.Clear();
-                    GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
+                    UnityEngine.Pool.GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
                 }
 
                 return true;
@@ -3505,7 +3633,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReAllocateOffscreenUIColorBufferIfNeeded()
         {
-            if (m_OffscreenUIColorBuffer.IsValueCreated)
+            if (m_OffscreenUIColorBuffer != null && m_OffscreenUIColorBuffer.IsValueCreated)
             {
                 if (Screen.width != m_OffscreenUIColorBuffer.Value.rt.width || Screen.height != m_OffscreenUIColorBuffer.Value.rt.height)
                 {

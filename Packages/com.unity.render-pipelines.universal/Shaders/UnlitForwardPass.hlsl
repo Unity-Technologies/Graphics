@@ -1,13 +1,12 @@
-
 #ifndef URP_UNLIT_FORWARD_PASS_INCLUDED
 #define URP_UNLIT_FORWARD_PASS_INCLUDED
 
 #include "UnlitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitFeatures.hlsl"
 
 struct Attributes
 {
@@ -25,7 +24,6 @@ struct Attributes
 struct Varyings
 {
     float2 uv : TEXCOORD0;
-    float fogCoord : TEXCOORD1;
     float4 positionCS : SV_POSITION;
 
     #if defined(DEBUG_DISPLAY)
@@ -58,6 +56,8 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 Varyings UnlitPassVertex(Attributes input)
@@ -72,11 +72,6 @@ Varyings UnlitPassVertex(Attributes input)
 
     output.positionCS = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-    #if defined(_FOG_FRAGMENT)
-    output.fogCoord = vertexInput.positionVS.z;
-    #else
-    output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
 
     #if defined(DEBUG_DISPLAY)
     // normalWS and tangentWS already normalize.
@@ -106,62 +101,39 @@ void UnlitPassFragment(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+    half4 texColor = SampleBaseMap(uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
 
     alpha = AlphaDiscard(alpha, _Cutoff);
-    color = AlphaModulate(color, alpha);
+    if (UseAlphaModulate())
+        color = ApplyAlphaModulate(color, alpha);
 
-#ifdef LOD_FADE_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
 
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
 #ifdef _DBUFFER
-    ApplyDecalToBaseColor(input.positionCS, color);
+    if (!IsSurfaceTypeTransparent())
+        ApplyDecalToBaseColor(input.positionCS, color);
 #endif
 
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
-#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
-    finalColor.rgb *= aoFactor.directAmbientOcclusion;
-#endif
-
-    half fogFactor = 0;
-#if defined(_FOG_FRAGMENT)
-    bool anyFogEnabled = false;
-    
-    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
-    if (FOG_LINEAR)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP_KEYWORD_DECLARED)
-    if (FOG_EXP)
-        anyFogEnabled = true;
-    #endif
-    
-    #if defined(FOG_EXP2_KEYWORD_DECLARED)
-    if (FOG_EXP2)
-        anyFogEnabled = true;
-    #endif
-    
-    if (anyFogEnabled)
+    if (ScreenSpaceOcclusionAvailable() && !IsSurfaceTypeTransparent())
     {
-        float viewZ = -input.fogCoord;
-        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV, IsSurfaceTypeTransparent());
+        finalColor.rgb *= aoFactor.directAmbientOcclusion;
     }
-#else // #if defined(_FOG_FRAGMENT)
-    fogFactor = input.fogCoord;
-#endif // #if defined(_FOG_FRAGMENT)
-    finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
+
+    finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.positionCS, inputData.preExposureMultiplier));
+#if defined(_TRANSPARENT_RECEIVE_FOG)
+    if (IsSurfaceTypeTransparent())
+        finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, UseAlphaPremultiply(), input.positionCS);
+#endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 
     outColor = finalColor;

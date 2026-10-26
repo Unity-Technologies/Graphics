@@ -23,12 +23,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
-#if URP_SCREEN_SPACE_REFLECTION
         /// <summary>
         /// Used to indicate whether transparent objects should receive screen space reflections or not.
         /// </summary>
         public bool shouldTransparentsReceiveSSR { get; set; }
-#endif
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -93,9 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
             m_ShouldTransparentsReceiveShadows = false;
-#if URP_SCREEN_SPACE_REFLECTION
             shouldTransparentsReceiveSSR = false;
-#endif
 
             if (stencilState.enabled)
             {
@@ -161,16 +157,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle albedoHdl;
             internal TextureHandle depthHdl;
             internal TextureHandle screenSpaceIrradianceHdl;
-#if URP_SCREEN_SPACE_REFLECTION
             internal TextureHandle screenSpaceReflectionHdl;
-#endif
+            internal TextureHandle screenSpaceReflectionRayDistanceHdl;
 
             internal UniversalCameraData cameraData;
+            internal UniversalShadowData shadowData;
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
-#if URP_SCREEN_SPACE_REFLECTION
             internal bool shouldTransparentsReceiveSSR;
-#endif
             internal uint batchLayerMask;
             internal bool isActiveTargetBackBuffer;
             internal RendererListHandle rendererListHdl;
@@ -186,14 +180,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData, uint batchLayerMask, bool isActiveTargetBackBuffer = false)
+        internal void InitPassData(UniversalCameraData cameraData, UniversalShadowData shadowData, ref PassData passData, uint batchLayerMask, bool isActiveTargetBackBuffer = false)
         {
             passData.cameraData = cameraData;
+            passData.shadowData = shadowData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
-#if URP_SCREEN_SPACE_REFLECTION
             passData.shouldTransparentsReceiveSSR = shouldTransparentsReceiveSSR;
-#endif
             passData.batchLayerMask = batchLayerMask;
             passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
         }
@@ -250,6 +243,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             bool disableZWrite = CanDisableZWrite(cameraData, m_IsOpaque);
 
@@ -257,7 +251,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 builder.UseAllGlobalTextures(true);
 
-                InitPassData(cameraData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
+                InitPassData(cameraData, shadowData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
 
                 if (colorTarget.IsValid())
                 {
@@ -267,9 +261,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (depthTarget.IsValid())
                 {
-                    var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
+                    // Priming disables ZWrite, but the pass may still write stencil into the shared
+                    // depth-stencil attachment, so it must be read-write, not read-only.
                     passData.depthHdl = depthTarget;
-                    builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
+                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
                 }
 
                 if (mainShadowsTexture.IsValid())
@@ -288,7 +283,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(irradianceTexture, AccessFlags.Read);
                 }
 
-#if URP_SCREEN_SPACE_REFLECTION
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
+
                 TextureHandle ssrTexture = resourceData.ssrTexture;
                 if (ssrTexture.IsValid())
                 {
@@ -299,7 +298,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     passData.screenSpaceReflectionHdl = TextureHandle.nullHandle;
                 }
-#endif
+
+                TextureHandle ssrRayDistanceTexture = resourceData.ssrRayDistanceTexture;
+                if (ssrRayDistanceTexture.IsValid())
+                {
+                    passData.screenSpaceReflectionRayDistanceHdl = ssrRayDistanceTexture;
+                    builder.UseTexture(ssrRayDistanceTexture, AccessFlags.Read);
+                }
+                else
+                {
+                    passData.screenSpaceReflectionRayDistanceHdl = TextureHandle.nullHandle;
+                }
 
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
@@ -321,8 +330,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -336,10 +345,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    // Currently we only need to call this additional pass when the user
-                    // doesn't want transparent objects to receive shadows
+                    // Currently we only need to call this when the user doesn't want transparent objects to receive shadows
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
-                        TransparentSettingsPass.ExecutePass(context.cmd);
+                    {
+                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData.emptyAdditionalLightShadowsBuffer);
+                    }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
 
@@ -350,14 +361,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                         context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
                     }
 
-#if URP_SCREEN_SPACE_REFLECTION
                     bool useSSR = data.screenSpaceReflectionHdl.IsValid() && (data.isOpaque || data.shouldTransparentsReceiveSSR);
                     context.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceReflection, useSSR);
                     if (useSSR)
                     {
                         context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflection, data.screenSpaceReflectionHdl);
+
+                        if (data.screenSpaceReflectionRayDistanceHdl.IsValid())
+                            context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.screenSpaceReflectionRayDistanceHdl);
                     }
-#endif
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });
@@ -406,8 +418,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 UniversalLightData lightData = frameData.Get<UniversalLightData>();
+                UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-                InitPassData(cameraData, ref passData.basePassData, batchLayerMask);
+                InitPassData(cameraData, shadowData, ref passData.basePassData, batchLayerMask);
 
                 passData.maskSize = maskSize;
 
@@ -416,9 +429,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
 
                 bool disableZWrite = CanDisableZWrite(cameraData, passData.basePassData.isOpaque);
-                var depthAccessFlags = (disableZWrite) ? AccessFlags.Read : AccessFlags.ReadWrite;
+                // Priming disables ZWrite, but the pass may still write stencil into the shared
+                // depth-stencil attachment, so it must be read-write, not read-only.
                 passData.basePassData.depthHdl = depthTarget;
-                builder.SetRenderAttachmentDepth(depthTarget, depthAccessFlags);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
+
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
 
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, AccessFlags.Read);
@@ -455,8 +474,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -472,7 +491,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
-                        TransparentSettingsPass.ExecutePass(context.cmd);
+                    {
+                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData.emptyAdditionalLightShadowsBuffer);
+                    }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));
 

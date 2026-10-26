@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Categorization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
     [PipelineConverter("Built-in", "Universal Render Pipeline (2D Renderer)")]
     [BatchModeConverterClassInfo("BuiltInToURP2D", "RenderSettings2D")]
     [ElementInfo(Name = "Rendering Settings",
-                 Order = int.MinValue,
+                 Order = int.MinValue + 1,
                  Description = "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings to match the equivalent settings from the Built-in Render Pipeline.")]
     class BuiltInToURP2DRenderSettingsConverter : RenderSettingsConverter
     {
@@ -61,7 +62,7 @@ namespace UnityEditor.Rendering.Universal
             defaultIndex = 0;
 
 
-            using (ListPool<ScriptableRendererData>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<ScriptableRendererData>.Get(out var tmp))
             {
                 tmp.Add(CreateRenderer2DDataAsset());
 

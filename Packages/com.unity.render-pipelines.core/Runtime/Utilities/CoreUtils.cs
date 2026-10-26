@@ -1989,7 +1989,7 @@ namespace UnityEngine.Rendering
                 return false;
 
             bool isScreenFullyCovered = false;
-            using (ListPool<Rect>.Get(out var cameraRects))
+            using (UnityEngine.Pool.ListPool<Rect>.Get(out var cameraRects))
             {
                 // We don't need to exclude stacked cameras for the input camera list because the overlay camera have the same viewport with its base camera.
                 foreach (var camera in cameras)

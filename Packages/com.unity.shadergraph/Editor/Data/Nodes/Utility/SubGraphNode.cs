@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
         List<string> m_DropdownSelectedEntries = new List<string>();
 
         public override string documentationURL =>
-            Documentation.GetPageLink(string.IsNullOrEmpty(m_SubGraph.documentationPath)? "Sub-graph-Node" : m_SubGraph.documentationPath);
+            Documentation.GetPageLink(asset == null || string.IsNullOrEmpty(asset.documentationPath) ? "Sub-graph-Node" : asset.documentationPath);
 
         public string subGraphGuid
         {
@@ -248,14 +248,13 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
-            var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
-
             if (asset == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
 
+                var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
+                var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -264,13 +263,14 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
+            var precisionToken = asset.outputGraphPrecision.ToGenericString();
             var inputVariableName = $"_{GetVariableNameForNode()}";
 
             GenerationUtils.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
             // declare output variables
             foreach (var outSlot in asset.outputs)
-                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(outputPrecision), GetVariableNameForSlot(outSlot.id));
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(precisionToken), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
             foreach (AbstractShaderProperty prop in asset.inputs)
@@ -318,8 +318,20 @@ namespace UnityEditor.ShaderGraph
                 firstArg = false;
                 sb.Append(arg);
             }
-            sb.Append(");");
-            sb.AppendNewLine();
+
+            if (asset.hasPromotedPropertiesInInspector)
+            {
+                sb.AppendNewLine();
+                sb.AppendLine("#ifdef HAVE_VFX_MODIFICATION");
+                sb.AppendLine(", PROP");
+                sb.AppendLine("#endif");
+                sb.AppendLine(");");
+            }
+            else
+            {
+                sb.Append(");");
+                sb.AppendNewLine();
+            }
         }
 
         public void OnEnable()
@@ -676,6 +688,9 @@ namespace UnityEditor.ShaderGraph
         internal HashSet<string> UsedReferenceNames()
         {
             HashSet<string> usedNames = new();
+
+            if (asset == null)
+                return usedNames;
 
             foreach (var property in this.asset.nodeProperties)
                 if (property.promoteToFinalShader)

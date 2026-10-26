@@ -2,7 +2,6 @@
 #define UNIVERSAL_COPY_DEPTH_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
 #if defined(_DEPTH_MSAA_2)
     #define MSAA_SAMPLES 2
@@ -32,6 +31,9 @@
     DEPTH_TEXTURE_MS(_CameraDepthAttachment, MSAA_SAMPLES);
 #endif
 
+float2 _CopyDepthSourceUsedSize;
+float _CopyDepthYFlip;
+
 #if UNITY_REVERSED_Z
     #define DEPTH_DEFAULT_VALUE 1.0
     #define DEPTH_OP min
@@ -39,6 +41,35 @@
     #define DEPTH_DEFAULT_VALUE 0.0
     #define DEPTH_OP max
 #endif
+
+struct Attributes
+{
+    uint vertexID : SV_VertexID;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct Varyings
+{
+    float4 positionCS : SV_POSITION;
+    float2 srcCoord   : TEXCOORD0;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+Varyings Vert(Attributes input)
+{
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    output.positionCS = pos;
+
+    float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+    uv.y = (_CopyDepthYFlip > 0.0) ? (1.0 - uv.y) : uv.y;
+    output.srcCoord = uv * _CopyDepthSourceUsedSize;
+
+    return output;
+}
 
 float SampleDepth(float2 pixelCoords) 
 {
@@ -62,7 +93,7 @@ float frag(Varyings input) : SV_Target
 #endif
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SampleDepth(input.positionCS.xy);
+    return SampleDepth(input.srcCoord);
 }
 
 #endif

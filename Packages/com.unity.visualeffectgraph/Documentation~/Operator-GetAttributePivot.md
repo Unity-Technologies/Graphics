@@ -1,4 +1,4 @@
-# Get Attribute: pivot
+# Get Attribute: pivot Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: pivot**
 

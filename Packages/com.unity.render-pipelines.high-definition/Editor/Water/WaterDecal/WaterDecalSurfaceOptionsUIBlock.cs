@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Options");
+            public static GUIContent header { get; } = L10n.TextContent("Surface Options", null, null, null);
 
             public static GUIContent affectsDeformationText = new GUIContent("Affect Deformation", "When enabled, this decal can affect deformation.");
             public static GUIContent affectsFoamText = new GUIContent("Affect Foam", "When enabled, this decal can affect foam.");

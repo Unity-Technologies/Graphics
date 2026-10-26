@@ -1,4 +1,4 @@
-# AnimationCurve
+# AnimationCurve Operator
 
 Menu Path : **Operator > Inline > AnimationCurve**
 

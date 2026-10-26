@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         private class PostProcessingFinalSetupPassData
         {
             internal TextureHandle destinationTexture;
+            internal Rect viewport;
             internal TextureHandle sourceTexture;
             internal Material material;
             internal UniversalCameraData cameraData;
@@ -74,6 +75,8 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>(passName, out var passData, profilingSampler))
             {
                 passData.destinationTexture = destinationTexture;
+                // This is a pass just before the final pass. The viewport must match the intermediate target.
+                passData.viewport = new Rect(0, 0, scalingSetupDesc.width, scalingSetupDesc.height);
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
@@ -89,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
                     Material material = data.material;
                     material.shaderKeywords = null;
 
-                    bool hdrColorEncoding = data.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding);
+                    bool hdrColorEncoding = (data.hdrOperations & HDROutputUtils.Operation.ColorEncoding) != 0;
                     bool isFxaaEnabled = PostProcessUtils.IsFxaaEnabled(cameraData);
                     bool isFsrEnabled = PostProcessUtils.IsFsrEnabled(cameraData);
 
@@ -107,8 +110,7 @@ namespace UnityEngine.Rendering.Universal
 
                     material.SetVector(ShaderConstants._SourceSize, PostProcessUtils.CalcShaderSourceSize(data.sourceTexture));
 
-                    const bool isFinalPass = false; // This is a pass just before final pass. Viewport must match intermediate target.
-                    PostProcessUtils.ScaleViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.cameraData, data.material, isFinalPass);
+                    PostProcessUtils.SetViewportAndBlit(context, data.sourceTexture, data.destinationTexture, data.material, data.viewport);
                 });
             }
 

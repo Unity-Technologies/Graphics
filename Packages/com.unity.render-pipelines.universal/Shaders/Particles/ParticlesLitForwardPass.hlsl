@@ -3,40 +3,54 @@
 
 #include "ParticlesLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitFeatures.hlsl"
+
+// Realtime shadows are never sampled when Receive Shadows is off at compile time;
+// drop the vertex shadow-coord interpolator.
+#if _RECEIVE_SHADOWS_OFF_STATICALLY_ENABLED
+    #undef USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
+#endif
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+    if (UseNormalMap())
+    {
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+    }
+    else
+    {
+        inputData.normalWS = input.normalWS.xyz;
+    }
 #else
     half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
 
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz);
 #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -72,17 +86,14 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
     half fogFactor = 0.0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -112,8 +123,8 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.projectedPosition = vertexInput.positionNDC;
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 
     return output;
@@ -128,14 +139,22 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InitParticleParams(input, particleParams);
 
     SurfaceData surfaceData;
-    InitializeParticleLitSurfaceData(particleParams, surfaceData);
+    InitializeParticleLitSurfaceData(particleParams, surfaceData,
+        UseAlphaPremultiply(), UseMetallicSpecGlossMap(), UseEmission(),
+        UseNormalMap(), UseAlphaModulate());
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.texcoord, _BaseMap);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData,
+        IsSpecularSetup(), UseSpecularHighlights(), UseAlphaPremultiply(),
+        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections(), input.normalWS.xyz);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
+#if defined(_TRANSPARENT_RECEIVE_FOG)
+    if (IsSurfaceTypeTransparent())
+        color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, UseAlphaPremultiply(), input.clipPos);
+#endif
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     return color;

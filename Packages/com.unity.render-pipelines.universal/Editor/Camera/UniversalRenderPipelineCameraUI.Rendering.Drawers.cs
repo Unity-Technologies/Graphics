@@ -41,6 +41,12 @@ namespace UnityEditor.Rendering.Universal
                 (serialized, owner) => !serialized.renderPostProcessing.boolValue && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None,
                 (serialized, owner) => EditorGUILayout.HelpBox(Styles.disabledPostprocessingAntiAliasWarning, MessageType.Warning));
 
+            private static readonly CED.IDrawer XRAntialiasingInfoDrawer = CED.Conditional(
+                (serialized, owner) => UniversalRenderPipelineAssetUI.IsAndroidXRTargetted()
+                    && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None,
+                (serialized, owner) => UniversalRenderPipelineAssetUI.DrawXRProjectValidationInfoBox(
+                    Styles.xrAntialiasingInfo, Styles.xrAntialiasingInfoButton));
+
             private static readonly CED.IDrawer MSAAWarningDrawer = CED.Conditional(
                 (serialized, owner) => (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset asset && asset.msaaSampleCount > 1) && serialized.baseCameraSettings.allowMSAA.boolValue == true && (AntialiasingMode)serialized.antialiasing.intValue == AntialiasingMode.TemporalAntiAliasing,
                 (serialized, owner) => EditorGUILayout.HelpBox(Styles.MSAAWarning, MessageType.Warning));
@@ -73,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
                 PostProcessingAAWarningDrawer,
                 DisabledPostProcessingAAWarningDrawer,
                 MSAAWarningDrawer,
+                XRAntialiasingInfoDrawer,
                 CED.Conditional(
                     (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues,
                     CED.Group(
@@ -248,11 +255,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     // FSR overrides TAA CAS settings. Disable this setting when FSR is enabled.
                     bool disableSharpnessControl = UniversalRenderPipeline.asset != null
-#if ENABLE_UPSCALER_FRAMEWORK
-                        ? (UniversalRenderPipeline.asset.upscalerName == UniversalRenderPipeline.k_UpscalerName_FSR1)
-#else
-                        ? (UniversalRenderPipeline.asset.upscalingFilter == UpscalingFilterSelection.FSR)
-#endif
+                        ? UniversalRenderPipeline.asset.IsUpscalerUsed(UniversalRenderPipeline.k_UpscalerId_FSR1)
                         : false;
                     using var disable = new EditorGUI.DisabledScope(disableSharpnessControl);
 
@@ -312,7 +315,9 @@ namespace UnityEditor.Rendering.Universal
             
             static void OcclusionCullingWithWarningTileOnlyMode(UniversalRenderPipelineSerializedCamera serialized, Editor owner)
             {
+                #pragma warning disable CS0618
                 DisplayTileOnlyModeWarning(serialized.baseCameraSettings.occlusionCulling, p => p.boolValue, CameraUI.Rendering.Styles.occlusionCulling, serialized);
+                #pragma warning restore CS0618
             }
         }
     }

@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
                 port.SetLabelWidth(labelWidth + Mathf.Max(0, port.provider.depth - 1) * PropertyRM.depthOffset);
             }
             // Adjust the field size to the maximum number of digits
-            if (controller.valueFilter == VFXValueFilter.Range)
+            if (controller.canHaveValueFilter && controller.valueFilter == VFXValueFilter.Range)
             {
                 var maxValue = (float)Convert.ChangeType(controller.maxValue, typeof(float));
                 var minValue = (float)Convert.ChangeType(controller.minValue, typeof(float));

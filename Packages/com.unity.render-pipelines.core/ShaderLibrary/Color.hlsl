@@ -272,11 +272,8 @@ float3 LMSToLinear(float3 x)
     return mul(LMS_2_LIN_MAT, x);
 }
 
-// Hue, Saturation, Value
-// Ranges:
-//  Hue [0.0, 1.0]
-//  Sat [0.0, 1.0]
-//  Lum [0.0, HALF_MAX]
+// Input should be non-negative.
+// NOTE: Backwards compatibility. Additive error desaturates the darkest colors.
 real3 RgbToHsv(real3 c)
 {
     const real4 K = real4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -287,6 +284,41 @@ real3 RgbToHsv(real3 c)
     return real3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
+// Convert RGB color to HSV (Hue, Saturation, Value) color.
+// Input should be non-negative.
+// NOTE: Half math is accurate for 8-bit colors. Use the float overload above 8-bit.
+half3 RgbToHsv2(half3 c)
+{
+    half4 p = lerp(half4(c.bg, -1.0, 2.0 / 3.0), half4(c.gb, 0.0, -1.0 / 3.0), step(c.b, c.g));
+    half4 q = lerp(half4(p.xyw, c.r), half4(c.r, p.yzx), step(p.x, c.r));
+    half d = q.x - min(q.w, q.y);
+
+    // Clamp the divisors, 'x + e' would desaturate the darkest colors.
+    // Scaling by 1/6 after the divide keeps 6 * d from overflowing half on HDR input.
+    return half3(abs(q.z + (q.w - q.y) / max(d, HALF_MIN) * (1.0 / 6.0)), // Hue = sector offset + sector position
+                 d / max(q.x, HALF_MIN),                                  // Sat = Delta / Cmax
+                 q.x);                                                    // Val = Cmax
+}
+
+// Convert RGB color to HSV (Hue, Saturation, Value) color.
+// Input should be non-negative.
+// Ranges:
+//  Hue [0.0, 1.0) - wraps, 0.0 and 1.0 are both red
+//  Sat [0.0, 1.0]
+//  Val [0.0, input max channel]
+float3 RgbToHsv2(float3 c)
+{
+    float4 p = lerp(float4(c.bg, -1.0, 2.0 / 3.0), float4(c.gb, 0.0, -1.0 / 3.0), step(c.b, c.g)); // p = (max(g,b), min(g,b), offsets)
+    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));                       // q = (Cmax, min(g,b), offset, remaining channel)
+    float d = q.x - min(q.w, q.y);                                                                 // Delta = Cmax - Cmin
+
+    // Clamp the divisors, 'x + e' would desaturate the darkest colors.
+    return float3(abs(q.z + (q.w - q.y) / max(d, FLT_MIN) * (1.0 / 6.0)), // Hue = sector offset + sector position
+                 d / max(q.x, FLT_MIN),                                   // Sat = Delta / Cmax
+                 q.x);                                                    // Val = Cmax
+}
+
+// Convert HSV color to RGB color.
 real3 HsvToRgb(real3 c)
 {
     const real4 K = real4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -294,7 +326,48 @@ real3 HsvToRgb(real3 c)
     return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
 }
 
+// Convert HSV color to RGB color.
+// NOTE: Half math is accurate for 8-bit colors. Use the float overload above 8-bit.
+half3 HsvToRgb2(half3 c)
+{
+    half3 p = abs(frac(c.xxx + half3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    return c.z * lerp((half3)1.0, saturate(p - 1.0), c.y);
+}
+
+// Convert HSV color to RGB color.
+// Ranges:
+//  Hue [0.0, 1.0) - wraps, 0.0 and 1.0 are both red
+//  Sat [0.0, 1.0]
+//  Val [0.0, +inf)
+float3 HsvToRgb2(float3 c)
+{
+    float3 p = abs(frac(c.xxx + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    return c.z * lerp((float3)1.0, saturate(p - 1.0), c.y);
+}
+
+// Wraps value into [low, hi]
+// NOTE: Backwards compatibility. Use explicit half/float instead.
 real RotateHue(real value, real low, real hi)
+{
+    return (value < low)
+            ? value + hi
+            : (value > hi)
+                ? value - hi
+                : value;
+}
+
+// Wraps value into [low, hi]
+half RotateHue2(half value, half low, half hi)
+{
+    return (value < low)
+            ? value + hi
+            : (value > hi)
+                ? value - hi
+                : value;
+}
+
+// Wraps value into [low, hi]
+float RotateHue2(float value, float low, float hi)
 {
     return (value < low)
             ? value + hi
@@ -711,6 +784,83 @@ float3 AcesTonemap(float3 aces)
     return linearCV;
 
 #endif
+}
+
+// AgX inset/outset matrices (Rec.2020 working space, folded to Rec.709 in/out). Fixed and not exposed.
+//
+// Source: Troy Sobotka's geometric AgX construction (github.com/sobotka/SB2383-Configuration-Generation),
+// as used by Blender (EaryChow's AgX_LUT_Gen) and Godot. These are Godot's Rec.2020 pair, which matches
+// Blender's default look.
+//
+// Reconstructed from components (built in Rec.2020 primaries + D65, with the Rec.709<->Rec.2020 basis change
+// folded in so the shader input/output stays Rec.709):
+//     inset  = xyz2rgb_2020 * NPM(insetPrimaries)  * M_709to2020
+//     outset = M_2020to709  * inverse(xyz2rgb_2020 * NPM(outsetPrimaries))
+// Each inset primary is the Rec.2020 primary rotated about D65 by insetRotate (a small per-primary Abney hue
+// correction, not a look control) and pulled toward D65 by insetScale. The outset uses its own scale with no
+// rotation and is then inverted (chroma restoration); it is deliberately not the inverse of the inset - that
+// asymmetry is the AgX look. NPM = SMPTE RP 177 normalised primary matrix. Blender/Godot parameters:
+//     insetScale  = (0.3297, 0.2805, 0.1248)
+//     insetRotate = (2.14, -1.23, -3.05) degrees
+//     outsetScale = (0.3232, 0.2833, 0.0374)
+// Baked to the constants below (no runtime generation); the constructed matrices were cross-checked against
+// the reference / Godot pairs.
+//
+// Row-major for mul(M, v); row sums == 1 keep neutrals neutral. real3x3 so the mul runs in half on mobile.
+static const real3x3 AGX_INSET_MAT = real3x3(
+    0.544814746488245,  0.373787398372697,  0.0813978551390581,
+    0.140416948464053,  0.754137554567394,  0.105445496968552,
+    0.0888104196149096, 0.178871756420858,  0.732317823964232);
+
+static const real3x3 AGX_OUTSET_MAT = real3x3(
+     1.96488741169489,   -0.855988495690215,  -0.108898916004672,
+    -0.299313364904742,   1.32639796461980,   -0.0270845997150571,
+    -0.164352742528393,  -0.238183969428088,   1.40253671195648);
+
+// Adjustable AgX tone curve. Linear-space (no log2); the shoulder retargets to outputMax so one curve serves
+// SDR and HDR. x is per-channel linear (post-inset); outCrossover is the output value that input mid-grey
+// (0.18) maps to. toeA/slope are curve constants that depend only on contrast + outCrossover (passed in so
+// they are not recomputed per pixel).
+// CONTRACT: toeA and slope MUST be produced by Tonemapping.GetAgXCurveConstants(contrast, outCrossover) for the
+// same (contrast, outCrossover) passed here — the toe/shoulder halves only meet continuously at mid-grey when
+// all three agree. Do not compute them independently.
+real3 AgxAdjustableCurve(real3 x, real outputMax, real contrast, real outCrossover, real toeA, real slope)
+{
+    const real inCrossover = 0.18;  // input middle grey (toe/shoulder split)
+    const real white       = 16.29; // input white point (~2^4.026)
+
+    // Free, and required for fp16: the shoulder hits outputMax exactly at white and only grows linearly past
+    // it, so AgxTonemap's min() was already flattening that range. Unclamped, pow(x, contrast) overflows half
+    // (x ~= 41 at contrast 3) and NaNs the toe — which the lerp below evaluates for every pixel.
+    x = min(x, white);
+
+    real shoulderMax = outputMax - outCrossover;
+    real w = ((white - inCrossover) * (white - inCrossover) / shoulderMax) * slope;
+
+    // Shoulder for x >= mid-grey (compresses toward outputMax), toe below.
+    real3 s = x - inCrossover;
+    real3 slopeS = slope * s;
+    s = slopeS * (1.0 + s / w) / (1.0 + slopeS / shoulderMax) + outCrossover;
+
+    real3 t = pow(x, contrast);
+    t = t / (t + toeA);
+
+    return lerp(t, s, step(inCrossover, x));
+}
+
+// AgX tonemapping (inset -> adjustable curve -> outset). Rec.709 linear in/out (out may exceed 1 up to
+// outputMax on the HDR path). outputMax is the output ceiling in paper-white units (1 = SDR); contrast and
+// outCrossover are the exposed controls. Runs in half on mobile.
+real3 AgxTonemap(real3 color, real outputMax, real contrast, real outCrossover, real toeA, real slope)
+{
+    color = max((0.0).xxx, color);
+    color = mul(AGX_INSET_MAT, color);
+    color = AgxAdjustableCurve(color, outputMax, contrast, outCrossover, toeA, slope);
+    // Redundant with the curve's white-point clamp; kept as a backstop if the toeA/slope CONTRACT is broken.
+    color = min(outputMax.xxx, color);
+    color = mul(AGX_OUTSET_MAT, color);
+
+    return max((0.0).xxx, color);
 }
 
 // RGBM encode/decode

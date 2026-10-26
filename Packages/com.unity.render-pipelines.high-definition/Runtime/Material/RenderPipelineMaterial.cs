@@ -1,8 +1,10 @@
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Scripting;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [Preserve]
+    [RequireDerived]
     class RenderPipelineMaterial : Object
     {
         // GBuffer management

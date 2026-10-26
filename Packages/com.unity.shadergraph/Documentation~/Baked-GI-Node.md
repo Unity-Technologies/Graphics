@@ -38,3 +38,7 @@ void Unity_BakedGI_float(float3 Position, float3 Normal, float2 StaticUV, float2
     Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, false);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

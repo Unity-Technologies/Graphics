@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering
             try
             {
                 // Store per source file path the generator definitions
-                sourceGenerators = DictionaryPool<string, List<ShaderTypeGenerator>>.Get();
+                sourceGenerators = UnityEngine.Pool.DictionaryPool<string, List<ShaderTypeGenerator>>.Get();
 
                 // Extract all types with the GenerateHLSL tag
                 foreach (var type in TypeCache.GetTypesWithAttribute<GenerateHLSL>())
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering
                     var attr = type.GetCustomAttributes(typeof(GenerateHLSL), false).First() as GenerateHLSL;
                     if (!sourceGenerators.TryGetValue(attr.sourcePath, out var generators))
                     {
-                        generators = ListPool<ShaderTypeGenerator>.Get();
+                        generators = UnityEngine.Pool.ListPool<ShaderTypeGenerator>.Get();
                         sourceGenerators.Add(attr.sourcePath, generators);
                     }
 
@@ -46,8 +46,8 @@ namespace UnityEditor.Rendering
                 if (sourceGenerators != null)
                 {
                     foreach (var pair in sourceGenerators)
-                        ListPool<ShaderTypeGenerator>.Release(pair.Value);
-                    DictionaryPool<string, List<ShaderTypeGenerator>>.Release(sourceGenerators);
+                        UnityEngine.Pool.ListPool<ShaderTypeGenerator>.Release(pair.Value);
+                    UnityEngine.Pool.DictionaryPool<string, List<ShaderTypeGenerator>>.Release(sourceGenerators);
                 }
             }
         }

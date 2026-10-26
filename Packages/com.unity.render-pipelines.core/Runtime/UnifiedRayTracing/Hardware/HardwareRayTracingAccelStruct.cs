@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using RayTracingMode = UnityEngine.Experimental.Rendering.RayTracingMode;
+
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
     internal sealed class HardwareRayTracingAccelStruct : IRayTracingAccelStruct
@@ -71,7 +73,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             Utils.CheckArgIsNotNull(proceduralInstance.aabbBuffer, "proceduralInstanceDesc.aabbBuffer");
 
-            var instanceDesc = new RayTracingAABBsInstanceConfig(proceduralInstance.aabbBuffer, (int)proceduralInstance.aabbCount, false, null);
+            var instanceDesc = new RayTracingAABBsInstanceConfig(proceduralInstance.aabbBuffer, (int)proceduralInstance.aabbCount, RayTracingMode.Static, null);
             instanceDesc.mask = proceduralInstance.mask;
             int instanceHandle = accelStruct.AddInstance(instanceDesc, proceduralInstance.localToWorldMatrix, proceduralInstance.instanceID);
 

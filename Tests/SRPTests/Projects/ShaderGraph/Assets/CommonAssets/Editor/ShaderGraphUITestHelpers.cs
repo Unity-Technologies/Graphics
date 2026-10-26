@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +10,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.UnitTests;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.StyleSheets;
 using UIECursor = UnityEngine.UIElements.Cursor;
@@ -100,5 +102,24 @@ namespace UnityEditor.ShaderGraph.UnitTests
             return screenPosition;
         }
 
+        // Yields one frame with LogAssert failing-message suppression; silences the unpredictable repaint-time assert in Image.OnGenerateVisualContent (Modules/UIElements/Core/Controls/Image.cs).
+        public static IEnumerator SuppressLogFailures()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            try { yield return null; }
+            finally { LogAssert.ignoreFailingMessages = false; }
+        }
+
+        // Same as above for a nested coroutine that spans multiple frames.
+        public static IEnumerator SuppressLogFailures(IEnumerator inner)
+        {
+            LogAssert.ignoreFailingMessages = true;
+            try
+            {
+                while (inner.MoveNext())
+                    yield return inner.Current;
+            }
+            finally { LogAssert.ignoreFailingMessages = false; }
+        }
     }
 }

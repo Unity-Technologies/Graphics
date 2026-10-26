@@ -39,8 +39,9 @@
             </r:HeaderFoldout>
         </ui:TwoPaneSplitView>
     </ui:TwoPaneSplitView>
-    <ui:VisualElement name="empty-state-message">
+    <ui:VisualElement name="empty-state-message" style="flex-direction:column;">
         <ui:TextElement/>
+        <ui:Label name="empty-state-message-learn-more"/>
     </ui:VisualElement>
     <ui:VisualElement name="footer-container">
         <ui:Label text="Label" name="status-label"/>

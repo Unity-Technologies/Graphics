@@ -48,8 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Scatter);
             PropertyField(m_Tint);
 
-            PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
-            PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
+            PropertyField(m_DirtTexture, L10n.TextContent("Texture", null, null, null));
+            PropertyField(m_DirtIntensity, L10n.TextContent("Intensity", null, null, null));
 
             using (new QualityScope(this))
             {

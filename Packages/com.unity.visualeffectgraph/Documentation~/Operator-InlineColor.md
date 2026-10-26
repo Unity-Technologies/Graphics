@@ -1,4 +1,4 @@
-# Color
+# Color Operator
 
 Menu Path : **Operator > Inline > Color**
 

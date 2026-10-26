@@ -2,40 +2,54 @@
 #define SG_TERRAIN_PBRGBUFFERPASS_INC
 
 #include "TerrainVert.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
+    inputData.positionCS = input.positionCS;
 
-    half3 SH = 0.0h;
-    CalculateTerrainNormalWS(input, surfaceDescription, inputData);
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = input.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    half3 geometricNormalWS;
+    CalculateTerrainNormalWS(input, surfaceDescription, inputData, geometricNormalWS);
+
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, SH, inputData.normalWS);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, SH, inputData.normalWS);
-#endif
+    GIParams giParams = (GIParams)0;
+
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
+    giParams.staticLightmapUV = input.staticLightmapUV;
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
+    giParams.vertexSH = input.sh;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = input.positionCS.xy;
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
+
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
     #endif
-    #if defined(LIGHTMAP_ON)
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
     inputData.staticLightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = input.sh;
@@ -63,11 +77,21 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     #endif
 #endif
 
+    float2 splatUV = (unpacked.texCoord0.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+    half splatWeight = dot(SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV), 1.0h);
+#ifdef TERRAIN_SPLAT_ADDPASS
+    clip(splatWeight <= 0.005h ? -1.0h : 1.0h);
+#endif
+
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 #ifdef _TERRAIN_SG_ALPHA_CLIP
-    half alpha = AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-#else
+    AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+#endif
+
+#ifdef TERRAIN_SPLAT_BASEPASS
     half alpha = 1.0;
+#else
+    half alpha = splatWeight;
 #endif
 
     InputData inputData;
@@ -104,14 +128,14 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
 
     // Baked lighting.
-    half4 color;
+    URP_LIGHT_ACCUM4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     color.rgb = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                         inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS,
                                         inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
     color.a = alpha;
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, unpacked.positionCS);
 
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
@@ -123,7 +147,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     inputData.normalWS = inputData.normalWS * alpha;
     surfaceDescription.Smoothness *= alpha;
 
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, color.rgb, surfaceDescription.Occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), surfaceDescription.Occlusion);
 }
 
 #endif

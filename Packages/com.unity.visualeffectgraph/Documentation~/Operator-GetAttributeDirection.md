@@ -1,4 +1,4 @@
-# Get Attribute: direction
+# Get Attribute: direction Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: direction**
 

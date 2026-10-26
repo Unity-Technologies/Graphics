@@ -1,15 +1,24 @@
 {
+  "registry": "https://invalid.invalid",
   "enableLockFile": false,
   "disableProjectUpdate": true,
   "dependencies": {
+    "com.unity.2d.animation": "file:../../../../../ShadowPackages/com.unity.2d.animation",
+    "com.unity.2d.aseprite": "file:../../../../../ShadowPackages/com.unity.2d.aseprite",
+    "com.unity.2d.common": "file:../../../../../ShadowPackages/com.unity.2d.common",
+    "com.unity.2d.physics": "file:../../../../../ShadowPackages/com.unity.2d.physics",
+    "com.unity.2d.psdimporter": "file:../../../../../ShadowPackages/com.unity.2d.psdimporter",
     "com.unity.2d.sprite": "1.0.0",
+    "com.unity.2d.spriteshape": "file:../../../../../ShadowPackages/com.unity.2d.spriteshape",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.cinemachine": "3.1.6",
+    "com.unity.2d.tilemap.extras": "file:../../../../../ShadowPackages/com.unity.2d.tilemap.extras",
+    "com.unity.2d.tooling": "file:../../../../../ShadowPackages/com.unity.2d.tooling",
+    "com.unity.cinemachine": "6.6.0",
     "com.unity.ext.nunit": "1.0.0",
-    "com.unity.external.test-protocol": "2.0.0-exp.2",
+    "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
     "com.unity.feature.2d": "file:../../../../../Packages/com.unity.feature.2d",
-    "com.unity.ide.rider": "3.0.38",
-    "com.unity.ide.visualstudio": "2.0.25",
+    "com.unity.ide.rider": "file:../../../../../ShadowPackages/com.unity.ide.rider",
+    "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",
     "com.unity.render-pipelines.core": "file:../../../../../Packages/com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../../../Packages/com.unity.render-pipelines.universal",
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
@@ -36,6 +45,7 @@
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.physics2d": "1.0.0",
     "com.unity.modules.screencapture": "1.0.0",
+    "com.unity.modules.spritemask": "1.0.0",
     "com.unity.modules.terrain": "1.0.0",
     "com.unity.modules.terrainphysics": "1.0.0",
     "com.unity.modules.tilemap": "1.0.0",
@@ -51,12 +61,8 @@
     "com.unity.modules.vehicles": "1.0.0",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
-  },
-  "testables": [
-    "com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.universal",
-    "com.unity.testing.xr",
-    "com.unity.testing.urp"
-  ]
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.test-profiler": "file:../../../../../ShadowPackages/com.unity.test-profiler",
+    "com.unity.yamato": "file:../../../../../ShadowPackages/com.unity.yamato"
+  }
 }

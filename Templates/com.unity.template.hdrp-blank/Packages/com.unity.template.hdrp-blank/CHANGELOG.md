@@ -4,6 +4,35 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [17.3.0] - 2026-09-15
+
+- Upgraded to Unity 6000.7.0b1
+- Disabled static batching
+
+## [17.2.4] - 2026-08-07
+
+### Changed
+- Bump SRP packages to 17.7.0
+- Fixed outdated icon warning
+
+## [17.2.2] - 2026-06-03
+
+### Changed
+- Renamed HDRP Assets and made performant asset more adapted to handheld devices. 
+
+## [17.2.1] - 2026-05-29
+
+### Changed
+- Fixed an issue where the missing DataStore library folder caused import issues when creating templates.
+
+## [17.2.0] - 2026-04-29
+
+### Added
+- Added support for fast enter playmode [COPT-3751]
+
+### Changed
+- Upgraded version to 6000.6.0a5
+
 ## [17.1.0] - 2025-12-23
 
 ### Changed

@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
 
         class DefaultVirtualOffset : VirtualOffsetBaker
         {
-            static int k_MaxProbeCountPerBatch = 65535;
+            static readonly int k_MaxProbeCountPerBatch = 65535;
 
             static readonly int _Probes = Shader.PropertyToID("_Probes");
             static readonly int _Offsets = Shader.PropertyToID("_Offsets");
@@ -61,28 +61,29 @@ namespace UnityEngine.Rendering
                 public float validityThreshold;
             };
 
-            int batchPosIdx;
-            NativeArray<Vector3> positions;
-            NativeArray<Vector3> results;
-            Dictionary<int, TouchupsPerCell> cellToVolumes;
-            ProbeData[] probeData;
-            Vector3[] batchResult;
+            int m_BatchPosIdx;
+            NativeArray<Vector3> m_Positions;
+            NativeArray<Vector3> m_Results;
+            Dictionary<int, TouchupsPerCell> m_CellToVolumes;
+            ProbeData[] m_ProbeData;
+            Vector3[] m_BatchResult;
 
-            float scaleForSearchDist;
-            float rayOriginBias;
-            float geometryBias;
-            float validityThreshold;
+            float m_ScaleForSearchDist;
+            float m_RayOriginBias;
+            float m_GeometryBias;
+            float m_ValidityThreshold;
 
             // Output buffer
-            public override NativeArray<Vector3> offsets => results;
+            public override NativeArray<Vector3> offsets => m_Results;
 
-            private AccelStructAdapter m_AccelerationStructure;
-            private GraphicsBuffer probeBuffer;
-            private GraphicsBuffer offsetBuffer;
-            private GraphicsBuffer scratchBuffer;
+            AccelStructAdapter m_AccelerationStructure;
+            GraphicsBuffer m_ProbeBuffer;
+            GraphicsBuffer m_OffsetBuffer;
+            GraphicsBuffer m_ScratchBuffer;
+            bool m_HasTerrains;
 
-            public override ulong currentStep => (ulong)batchPosIdx;
-            public override ulong stepCount => batchResult == null ? 0 : (ulong)positions.Length;
+            public override ulong currentStep => (ulong)m_BatchPosIdx;
+            public override ulong stepCount => m_BatchResult == null ? 0 : (ulong)m_Positions.Length;
 
             public override void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> probePositions)
             {
@@ -90,48 +91,48 @@ namespace UnityEngine.Rendering
                 if (!voSettings.useVirtualOffset)
                     return;
 
-                batchPosIdx = 0;
-                scaleForSearchDist = voSettings.searchMultiplier;
-                rayOriginBias = voSettings.rayOriginBias;
-                geometryBias = voSettings.outOfGeoOffset;
-                validityThreshold = voSettings.validityThreshold;
+                m_BatchPosIdx = 0;
+                m_ScaleForSearchDist = voSettings.searchMultiplier;
+                m_RayOriginBias = voSettings.rayOriginBias;
+                m_GeometryBias = voSettings.outOfGeoOffset;
+                m_ValidityThreshold = voSettings.validityThreshold;
 
-                results = new NativeArray<Vector3>(probePositions.Length, Allocator.Persistent);
-                cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
+                m_Results = new NativeArray<Vector3>(probePositions.Length, Allocator.Persistent);
+                m_CellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
 
-                if (scaleForSearchDist == 0.0f)
+                if (m_ScaleForSearchDist == 0.0f)
                 {
                     if (hasAppliers)
-                        DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, results, cellToVolumes);
+                        DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, m_Results, m_CellToVolumes);
                     return;
                 }
 
-                positions = probePositions;
-                probeData = new ProbeData[k_MaxProbeCountPerBatch];
-                batchResult = new Vector3[k_MaxProbeCountPerBatch];
+                m_Positions = probePositions;
+                m_ProbeData = new ProbeData[k_MaxProbeCountPerBatch];
+                m_BatchResult = new Vector3[k_MaxProbeCountPerBatch];
 
                 var computeBufferTarget = GraphicsBuffer.Target.CopyDestination | GraphicsBuffer.Target.CopySource
                     | GraphicsBuffer.Target.Structured;
 
                 // Create acceletation structure
-                m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask);
+                m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask, out m_HasTerrains);
                 var virtualOffsetShader = s_TracingContext.shaderVO;
 
-                probeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
-                offsetBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<Vector3>());
-                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), virtualOffsetShader,
+                m_ProbeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
+                m_OffsetBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<Vector3>());
+                m_ScratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), virtualOffsetShader,
                     (uint)k_MaxProbeCountPerBatch, 1, 1);
 
                 var cmd = new CommandBuffer();
-                m_AccelerationStructure.Build(cmd, ref scratchBuffer);
+                m_AccelerationStructure.Build(cmd, ref m_ScratchBuffer);
                 Graphics.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
 
-            static AccelStructAdapter BuildAccelerationStructure(int mask)
+            static AccelStructAdapter BuildAccelerationStructure(int mask, out bool hasTerrains)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
-                var contributors = m_BakingBatch.contributors;
+                var contributors = s_BakingBatch.contributors;
 
                 foreach (var renderer in contributors.renderers)
                 {
@@ -142,7 +143,7 @@ namespace UnityEngine.Rendering
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
-                    if (renderer.component is SkinnedMeshRenderer)
+                    if (renderer.component is not MeshRenderer)
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;
@@ -154,6 +155,7 @@ namespace UnityEngine.Rendering
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
+                hasTerrains = false;
 #if ENABLE_TERRAIN_MODULE
                 foreach (var terrain in contributors.terrains)
                 {
@@ -161,7 +163,21 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
+                    hasTerrains = true;
+
+                    ExtractTerrainData(terrain.component, out var heightData, out var heightmapResolution,
+                        out var heightmapScale, out var holeData, out var holeResolution);
+
+                    accelStruct.AddTerrainInstance(
+                        EntityId.ToULong(terrain.component.GetEntityId()),
+                        heightData,
+                        heightmapResolution,
+                        heightmapScale,
+                        holeData,
+                        holeResolution,
+                        terrain.component.transform.localToWorldMatrix,
+                        0xFFFFFFFF,  // materialID
+                        1); // renderingLayerMask
                 }
 #endif
 
@@ -173,26 +189,26 @@ namespace UnityEngine.Rendering
                 if (currentStep >= stepCount)
                     return true;
 
-                float minBrickSize = m_ProfileInfo.minBrickSize;
+                float minBrickSize = s_ProfileInfo.minBrickSize;
 
                 // Prepare batch
                 int probeCountInBatch = 0;
                 do
                 {
-                    int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
+                    int subdivLevel = s_BakingBatch.GetSubdivLevelAt(m_Positions[m_BatchPosIdx]);
                     var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                    var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.kBrickCellCount;
-                    var distanceSearch = scaleForSearchDist * searchDistance;
+                    var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.k_BrickCellCount;
+                    var distanceSearch = m_ScaleForSearchDist * searchDistance;
 
-                    int cellIndex = PosToIndex(m_ProfileInfo.PositionToCell(positions[batchPosIdx]));
-                    if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
+                    int cellIndex = PosToIndex(s_ProfileInfo.PositionToCell(m_Positions[m_BatchPosIdx]));
+                    if (m_CellToVolumes.TryGetValue(cellIndex, out var volumes))
                     {
                         bool adjusted = false;
                         foreach (var (touchup, obb, center, offset) in volumes.appliers)
                         {
-                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                            if (touchup.ContainsPoint(obb, center, m_Positions[m_BatchPosIdx]))
                             {
-                                results[batchPosIdx] = offset;
+                                m_Results[m_BatchPosIdx] = offset;
                                 adjusted = true;
                                 break;
                             }
@@ -203,27 +219,27 @@ namespace UnityEngine.Rendering
 
                         foreach (var (touchup, obb, center) in volumes.overriders)
                         {
-                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                            if (touchup.ContainsPoint(obb, center, m_Positions[m_BatchPosIdx]))
                             {
-                                rayOriginBias = touchup.rayOriginBias;
-                                geometryBias = touchup.geometryBias;
-                                validityThreshold = 1.0f - touchup.virtualOffsetThreshold;
+                                m_RayOriginBias = touchup.rayOriginBias;
+                                m_GeometryBias = touchup.geometryBias;
+                                m_ValidityThreshold = 1.0f - touchup.virtualOffsetThreshold;
                                 break;
                             }
                         }
                     }
 
-                    probeData[probeCountInBatch++] = new ProbeData
+                    m_ProbeData[probeCountInBatch++] = new ProbeData
                     {
-                        position = positions[batchPosIdx],
-                        originBias = rayOriginBias,
+                        position = m_Positions[m_BatchPosIdx],
+                        originBias = m_RayOriginBias,
                         tMax = distanceSearch,
-                        geometryBias = geometryBias,
-                        validityThreshold = validityThreshold,
-                        probeIndex = batchPosIdx,
+                        geometryBias = m_GeometryBias,
+                        validityThreshold = m_ValidityThreshold,
+                        probeIndex = m_BatchPosIdx,
                     };
                 }
-                while (++batchPosIdx < positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
+                while (++m_BatchPosIdx < m_Positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
 
                 if (probeCountInBatch == 0)
                     return true;
@@ -231,19 +247,25 @@ namespace UnityEngine.Rendering
                 // Execute job
                 var cmd = new CommandBuffer();
                 var virtualOffsetShader = s_TracingContext.shaderVO;
-                m_AccelerationStructure.Bind(cmd, "_AccelStruct", virtualOffsetShader);
-                virtualOffsetShader.SetBufferParam(cmd, _Probes, probeBuffer);
-                virtualOffsetShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
+                virtualOffsetShader.SetKeyword(cmd, virtualOffsetShader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), m_HasTerrains);
 
-                cmd.SetBufferData(probeBuffer, probeData);
-                virtualOffsetShader.Dispatch(cmd, scratchBuffer, (uint)probeCountInBatch, 1, 1);
+                m_AccelerationStructure.Bind(cmd, "_AccelStruct", virtualOffsetShader);
+                if (m_HasTerrains)
+                    m_AccelerationStructure.BindTerrainResources(cmd, virtualOffsetShader);
+                virtualOffsetShader.SetBufferParam(cmd, _Probes, m_ProbeBuffer);
+                virtualOffsetShader.SetBufferParam(cmd, _Offsets, m_OffsetBuffer);
+
+                cmd.SetBufferData(m_ProbeBuffer, m_ProbeData);
+                virtualOffsetShader.Dispatch(cmd, m_ScratchBuffer, (uint)probeCountInBatch, 1, 1);
 
                 Graphics.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                offsetBuffer.GetData(batchResult);
+                m_OffsetBuffer.GetData(m_BatchResult);
                 for (int i = 0; i < probeCountInBatch; i++)
-                    results[probeData[i].probeIndex] = batchResult[i];
+                {
+                    m_Results[m_ProbeData[i].probeIndex] = m_BatchResult[i];
+                }
 
                 cmd.Dispose();
                 return true;
@@ -251,16 +273,16 @@ namespace UnityEngine.Rendering
 
             public override void Dispose()
             {
-                if (results.IsCreated)
-                    results.Dispose();
+                if (m_Results.IsCreated)
+                    m_Results.Dispose();
 
-                if (batchResult == null)
+                if (m_BatchResult == null)
                     return;
 
                 m_AccelerationStructure.Dispose();
-                probeBuffer.Dispose();
-                offsetBuffer.Dispose();
-                scratchBuffer?.Dispose();
+                m_ProbeBuffer.Dispose();
+                m_OffsetBuffer.Dispose();
+                m_ScratchBuffer?.Dispose();
             }
         }
 
@@ -275,17 +297,17 @@ namespace UnityEngine.Rendering
             if (!m_BakingSet.HasBeenBaked())
                 return;
 
-            globalBounds = prv.globalBounds;
-            CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize(), prv.ProbeOffset());
-            cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
+            s_GlobalBounds = prv.globalBounds;
+            CellCountInDirections(out s_MinCellPosition, out s_MaxCellPosition, prv.MaxBrickSize(), prv.ProbeOffset());
+            s_CellCount = s_MaxCellPosition + Vector3Int.one - s_MinCellPosition;
 
-            m_BakingBatch = new BakingBatch(cellCount, ProbeReferenceVolume.instance);
-            m_ProfileInfo = new ProbeVolumeProfileInfo();
+            s_BakingBatch = new BakingBatch(s_CellCount, ProbeReferenceVolume.instance);
+            s_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 
             var positionList = new NativeList<Vector3>(Allocator.Persistent);
             Dictionary<int, int> positionToIndex = new();
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in ProbeReferenceVolume.instance.m_Cells.Values)
             {
                 var bakingCell = ConvertCellToBakingCell(cell.desc, cell.data);
 
@@ -298,41 +320,59 @@ namespace UnityEngine.Rendering
                 {
                     var pos = bakingCell.probePositions[i];
                     int brickSubdiv = bakingCell.bricks[i / 64].subdivisionLevel;
-                    int probeHash = m_BakingBatch.GetProbePositionHash(pos);
+                    int probeHash = s_BakingBatch.GetProbePositionHash(pos);
 
                     if (positionToIndex.TryGetValue(probeHash, out var index))
                     {
                         indices[i] = index;
-                        int oldBrickLevel = m_BakingBatch.uniqueBrickSubdiv[probeHash];
+                        int oldBrickLevel = s_BakingBatch.uniqueBrickSubdiv[probeHash];
                         if (brickSubdiv < oldBrickLevel)
-                            m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                            s_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                     }
                     else
                     {
                         positionToIndex[probeHash] = uniqueIndex;
                         indices[i] = uniqueIndex;
-                        m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                        s_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                         positionList.Add(pos);
                         uniqueIndex++;
                     }
                 }
 
                 bakingCell.probeIndices = indices;
-                m_BakingBatch.cells.Add(bakingCell);
+                s_BakingBatch.cells.Add(bakingCell);
 
                 // We need to force rebuild debug stuff.
                 cell.debugProbes = null;
             }
 
-            VirtualOffsetBaker job = virtualOffsetOverride ?? new DefaultVirtualOffset();
+            VirtualOffsetBaker job = s_VirtualOffsetOverride ?? new DefaultVirtualOffset();
             job.Initialize(m_BakingSet, positionList.AsArray());
 
             while (job.currentStep < job.stepCount)
-                job.Step();
-
-            foreach (var cell in m_BakingBatch.cells)
             {
+                if (!job.Step())
+                    break;
+            }
+
+            for (int c = 0; c < s_BakingBatch.cells.Count; ++c)
+            {
+                job.Step();
+            }
+
+            for (int c = 0; c < s_BakingBatch.cells.Count; ++c)
+            {
+                var cell = s_BakingBatch.cells[c];
                 int numProbes = cell.probePositions.Length;
+
+                // Might have no offset vectors, if the previous bake wasn't using virtual offsets.
+                // If so, initialize them so the user can still preview what the offsets will do.
+                if (cell.offsetVectors == null)
+                {
+                    cell.offsetVectors = new Vector3[numProbes];
+                    s_BakingBatch.cells[c] = cell;
+                }
+
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = cell.probeIndices[i];
@@ -344,28 +384,31 @@ namespace UnityEngine.Rendering
 
             // Unload it all as we are gonna load back with newly written cells.
             foreach (var sceneData in prv.perSceneDataList)
+            {
                 prv.AddPendingSceneRemoval(sceneData.sceneGUID);
+            }
 
             // Make sure unloading happens.
             prv.PerformPendingOperations();
 
             // Validate baking cells size before writing
-            var bakingCellsArray = m_BakingBatch.cells.ToArray();
+            var bakingCellsArray = s_BakingBatch.cells.ToArray();
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
-            var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
-            var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            GetOptionalFeaturesFromCells(bakingCellsArray, out var hasVirtualOffsets, out var hasRenderingLayers);
 
             if (ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
             {
                 // Write back the assets.
-                WriteBakingCells(m_BakingSet, bakingCellsArray);
+                WriteBakingCells(m_BakingSet, bakingCellsArray, m_BakingSet.bakedLayerMasks);
             }
 
-            m_BakingBatch?.Dispose();
-            m_BakingBatch = null;
+            s_BakingBatch?.Dispose();
+            s_BakingBatch = null;
 
             foreach (var data in prv.perSceneDataList)
+            {
                 data.ResolveCellData();
+            }
 
             // We can now finally reload.
             AssetDatabase.SaveAssets();
@@ -403,8 +446,8 @@ namespace UnityEngine.Rendering
 
                 hasAppliers |= mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset;
 
-                Vector3Int min = Vector3Int.Max(m_ProfileInfo.PositionToCell(adjustment.aabb.min), minCellPosition);
-                Vector3Int max = Vector3Int.Min(m_ProfileInfo.PositionToCell(adjustment.aabb.max), maxCellPosition);
+                Vector3Int min = Vector3Int.Max(s_ProfileInfo.PositionToCell(adjustment.aabb.min), s_MinCellPosition);
+                Vector3Int max = Vector3Int.Min(s_ProfileInfo.PositionToCell(adjustment.aabb.max), s_MaxCellPosition);
 
                 for (int x = min.x; x <= max.x; x++)
                 {
@@ -414,7 +457,7 @@ namespace UnityEngine.Rendering
                         {
                             var cell = PosToIndex(new Vector3Int(x, y, z));
                             if (!cellToVolumes.TryGetValue(cell, out var volumes))
-                                cellToVolumes[cell] = volumes = new TouchupsPerCell() { appliers = new(), overriders = new() };
+                                cellToVolumes[cell] = volumes = new TouchupsPerCell { appliers = new(), overriders = new() };
 
                             if (mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset)
                                 volumes.appliers.Add((volume, adjustment.obb, volume.transform.position, volume.GetVirtualOffset()));
@@ -433,8 +476,8 @@ namespace UnityEngine.Rendering
         {
             for (int i = 0; i < positions.Length; i++)
             {
-                var cellPos = m_ProfileInfo.PositionToCell(positions[i]);
-                cellPos.Clamp(minCellPosition, maxCellPosition);
+                var cellPos = s_ProfileInfo.PositionToCell(positions[i]);
+                cellPos.Clamp(s_MinCellPosition, s_MaxCellPosition);
                 int cellIndex = PosToIndex(cellPos);
                 if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
                 {
@@ -452,25 +495,69 @@ namespace UnityEngine.Rendering
 
         enum InstanceFlags
         {
-            DIRECT_RAY_VIS_MASK = 1,
-            INDIRECT_RAY_VIS_MASK = 2,
-            SHADOW_RAY_VIS_MASK = 4,
+            DirectRayVisMask = 1 << 0,
+            IndirectRayVisMask = 1 << 1,
+            ShadowRayVisMask = 1 << 2,
         }
 
-        private static uint GetInstanceMask(ShadowCastingMode shadowMode)
+        static uint GetInstanceMask(ShadowCastingMode shadowMode)
         {
             uint instanceMask = 0u;
 
             if (shadowMode != ShadowCastingMode.Off)
-                instanceMask |= (uint)InstanceFlags.SHADOW_RAY_VIS_MASK;
+                instanceMask |= (uint)InstanceFlags.ShadowRayVisMask;
 
             if (shadowMode != ShadowCastingMode.ShadowsOnly)
             {
-                instanceMask |= (uint)InstanceFlags.DIRECT_RAY_VIS_MASK;
-                instanceMask |= (uint)InstanceFlags.INDIRECT_RAY_VIS_MASK;
+                instanceMask |= (uint)InstanceFlags.DirectRayVisMask;
+                instanceMask |= (uint)InstanceFlags.IndirectRayVisMask;
             }
 
             return instanceMask;
+        }
+
+        static void ExtractTerrainData(
+            Terrain terrain,
+            out short[] heightData,
+            out int heightmapResolution,
+            out Unity.Mathematics.float3 heightmapScale,
+            out byte[] holeData,
+            out int holeResolution)
+        {
+            var terrainData = terrain.terrainData;
+            heightmapResolution = terrainData.heightmapResolution;
+            heightmapScale = new Unity.Mathematics.float3(
+                terrainData.heightmapScale.x,
+                terrainData.heightmapScale.y,
+                terrainData.heightmapScale.z);
+
+            var heights = terrainData.GetHeights(0, 0, heightmapResolution, heightmapResolution);
+            heightData = new short[heightmapResolution * heightmapResolution];
+            for (int y = 0; y < heightmapResolution; y++)
+            {
+                for (int x = 0; x < heightmapResolution; x++)
+                {
+                    int idx = y * heightmapResolution + x;
+                    heightData[idx] = (short)(heights[y, x] * 32766.0f);
+                }
+            }
+
+            // Extract holes if present
+            holeData = null;
+            holeResolution = 0;
+            if (terrainData.holesResolution > 0)
+            {
+                holeResolution = terrainData.holesResolution;
+                var holes = terrainData.GetHoles(0, 0, holeResolution, holeResolution);
+                holeData = new byte[holeResolution * holeResolution];
+                for (int y = 0; y < holeResolution; y++)
+                {
+                    for (int x = 0; x < holeResolution; x++)
+                    {
+                        holeData[y * holeResolution + x] = holes[y, x] ? (byte)1 : (byte)0;
+                    }
+                }
+            }
         }
 
         static uint[] GetMaterialIndices(Renderer renderer)

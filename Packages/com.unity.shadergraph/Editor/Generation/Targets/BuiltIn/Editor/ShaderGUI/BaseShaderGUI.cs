@@ -56,31 +56,31 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Built-In RP renders the Material on a screen.");
+                L10n.TextContent("Surface Options", "Controls how Built-In RP renders the Material on a screen.", null, null);
 
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
-                "These settings describe the look and feel of the surface itself.");
+            public static readonly GUIContent SurfaceInputs = L10n.TextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.", null, null);
 
-            public static readonly GUIContent AdvancedLabel = EditorGUIUtility.TrTextContent("Advanced Options",
-                "These settings affect behind-the-scenes rendering and underlying calculations.");
+            public static readonly GUIContent AdvancedLabel = L10n.TextContent("Advanced Options",
+                "These settings affect behind-the-scenes rendering and underlying calculations.", null, null);
 
-            public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
-                "Select a surface type for your texture. Choose between Opaque or Transparent.");
-            public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
-                "Controls how the color of the Transparent surface blends with the Material color in the background.");
-            public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
-                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.");
-            public static readonly GUIContent zwriteText = EditorGUIUtility.TrTextContent("Depth Write",
-                "Controls whether the shader writes depth.  Auto will write only when the shader is opaque.");
-            public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
-                "Specifies the depth test mode.  The default is LEqual.");
-            public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
-                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
+            public static readonly GUIContent surfaceType = L10n.TextContent("Surface Type",
+                "Select a surface type for your texture. Choose between Opaque or Transparent.", null, null);
+            public static readonly GUIContent blendingMode = L10n.TextContent("Blending Mode",
+                "Controls how the color of the Transparent surface blends with the Material color in the background.", null, null);
+            public static readonly GUIContent cullingText = L10n.TextContent("Render Face",
+                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.", null, null);
+            public static readonly GUIContent zwriteText = L10n.TextContent("Depth Write",
+                "Controls whether the shader writes depth.  Auto will write only when the shader is opaque.", null, null);
+            public static readonly GUIContent ztestText = L10n.TextContent("Depth Test",
+                "Specifies the depth test mode.  The default is LEqual.", null, null);
+            public static readonly GUIContent alphaClipText = L10n.TextContent("Alpha Clipping",
+                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.", null, null);
 
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
-                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
-            public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
-                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
+            public static readonly GUIContent queueSlider = L10n.TextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.", null, null);
+            public static readonly GUIContent queueControl = L10n.TextContent("Queue Control",
+                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.", null, null);
         }
 
         public bool m_FirstTimeApply = true;

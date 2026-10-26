@@ -1,4 +1,5 @@
 #include "Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "VectorLogic.hlsl"
 
 // This compression assumes a few things:
@@ -17,6 +18,7 @@ namespace IrradianceCompression
         const float3 multiplier = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, sqrt(3.0f) / 4.0f * rcp(irradiance.l0));
         const float3 addend = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, 0.5f);
 
+        UNITY_UNROLL // To get rid of some shader warnings on some platforms
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = irradiance.l1s[i] * multiplier + addend;
     }
@@ -26,27 +28,39 @@ namespace IrradianceCompression
         const float3 multiplier = 4.0f / sqrt(3.0f) * irradiance.l0;
         const float3 addend = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, -0.5f);
 
+        UNITY_UNROLL // To get rid of some shader warnings on some platforms
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = (irradiance.l1s[i] + addend) * multiplier;
     }
 
-    SphericalHarmonics::RGBL1 LoadAndDecompress(Texture2D<float3> l0, Texture2D<float3> l10, Texture2D<float3> l11, Texture2D<float3> l12, uint2 pos)
+    SphericalHarmonics::RGBL1 LoadAndDecompress(
+        TYPED_TEXTURE2D_X(float3, l0),
+        TYPED_TEXTURE2D_X(float3, l10),
+        TYPED_TEXTURE2D_X(float3, l11),
+        TYPED_TEXTURE2D_X(float3, l12),
+        uint2 pos)
     {
         SphericalHarmonics::RGBL1 result;
-        result.l0 = l0[pos];
-        result.l1s[0] = l10[pos];
-        result.l1s[1] = l11[pos];
-        result.l1s[2] = l12[pos];
+        result.l0 = l0[COORD_TEXTURE2D_X(pos)];
+        result.l1s[0] = l10[COORD_TEXTURE2D_X(pos)];
+        result.l1s[1] = l11[COORD_TEXTURE2D_X(pos)];
+        result.l1s[2] = l12[COORD_TEXTURE2D_X(pos)];
         IrradianceCompression::Decompress(result);
         return result;
     }
 
-    void CompressAndStore(SphericalHarmonics::RGBL1 irradiance, RWTexture2D<float3> l0, RWTexture2D<float3> l10, RWTexture2D<float3> l11, RWTexture2D<float3> l12, uint2 pos)
+    void CompressAndStore(
+        SphericalHarmonics::RGBL1 irradiance,
+        RW_TEXTURE2D_X(float3, l0),
+        RW_TEXTURE2D_X(float3, l10),
+        RW_TEXTURE2D_X(float3, l11),
+        RW_TEXTURE2D_X(float3, l12),
+        uint2 pos)
     {
         IrradianceCompression::Compress(irradiance);
-        l0[pos] = irradiance.l0;
-        l10[pos] = irradiance.l1s[0];
-        l11[pos] = irradiance.l1s[1];
-        l12[pos] = irradiance.l1s[2];
+        l0[COORD_TEXTURE2D_X(pos)] = irradiance.l0;
+        l10[COORD_TEXTURE2D_X(pos)] = irradiance.l1s[0];
+        l11[COORD_TEXTURE2D_X(pos)] = irradiance.l1s[1];
+        l12[COORD_TEXTURE2D_X(pos)] = irradiance.l1s[2];
     }
 }

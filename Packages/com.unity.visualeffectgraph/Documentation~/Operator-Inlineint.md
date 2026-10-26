@@ -1,4 +1,4 @@
-# int
+# int Operator
 
 Menu Path : **Operator > Inline > int**
 

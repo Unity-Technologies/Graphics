@@ -164,8 +164,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 displayName = "DecalMesh BiasType",
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
-                enumNames = { "Depth Bias", "View Bias" },
-                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
+                enumNames = new() { "Depth Bias", "View Bias" },
+                enumValues = new() { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
                 hidden = true
             });
 
@@ -351,6 +351,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
+                    // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+
                     // Collections
                     renderStates = DecalRenderStates.ScenePicking,
                     pragmas = pragma,
@@ -359,6 +362,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     structs = CoreStructCollections.Default,
                     fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -375,6 +381,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
@@ -385,6 +392,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 keywords = DecalKeywords.DBufferProjector,
                 defines = DecalDefines.Projector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ForwardEmissiveProjector = new PassDescriptor()
@@ -400,6 +410,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.ForwardOnlyEmissive,
 
                 //Fields
@@ -412,6 +423,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ScreenSpaceProjector = GetScreenSpaceProjector(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceProjector);
@@ -431,6 +445,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                     // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
                     validPixelBlocks = DecalBlockMasks.Fragment,
 
                     //Fields
@@ -443,6 +458,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     defines = DecalDefines.ProjectorWithEmission,
                     keywords = keywords,
                     includes = DecalIncludes.ScreenSpace,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -459,6 +477,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
@@ -471,6 +490,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.GBufferProjector,
                 includes = DecalIncludes.GBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor DBufferMesh = new PassDescriptor()
@@ -486,6 +508,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
@@ -499,6 +522,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.Mesh,
                 keywords = DecalKeywords.DBufferMesh,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ForwardEmissiveMesh = new PassDescriptor()
@@ -514,6 +540,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
@@ -527,6 +554,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
 
             public static PassDescriptor ScreenSpaceMesh = GetScreenSpaceMesh(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceMesh);
@@ -546,6 +576,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                     // Port mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
                     validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                     //Fields
@@ -558,6 +589,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     defines = DecalDefines.MeshWithEmission,
                     keywords = keywords,
                     includes = DecalIncludes.ScreenSpace,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
                 };
             }
 
@@ -574,6 +608,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                 //Fields
@@ -586,6 +621,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.GBufferMesh,
                 includes = DecalIncludes.GBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common,
             };
         }
         #endregion
@@ -913,7 +951,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Descriptors.AffectsNormal, 1, new FieldCondition(AffectsNormal, true) },
                 { Descriptors.AffectsNormalBlend, 1, new FieldCondition(AffectsNormalBlend, true) },
                 { Descriptors.AffectsMAOS, 1, new FieldCondition(AffectsMAOS, true) },
-                { CoreKeywordDescriptors.UseUnityCrossFade, 1, new FieldCondition(Fields.LodCrossFade, true) }
             };
 
             public static DefineCollection MeshEmission = new DefineCollection
@@ -966,17 +1003,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection ForwardEmissiveProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection ScreenSpaceMeshGl = new KeywordCollection
@@ -987,8 +1028,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.UseLegacyLightmaps },
                 { CoreKeywordDescriptors.LightmapBicubicSampling },
                 { CoreKeywordDescriptors.ReflectionProbeRotation },
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
@@ -1008,13 +1051,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ClusterLightLoop },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { Descriptors.DecalsNormalBlend },
                 { Descriptors.DecalLayers },
@@ -1022,6 +1068,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferMesh = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -1031,7 +1078,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
                 { Descriptors.DecalsNormalBlend },
                 { Descriptors.DecalLayers },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
@@ -1041,6 +1088,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },

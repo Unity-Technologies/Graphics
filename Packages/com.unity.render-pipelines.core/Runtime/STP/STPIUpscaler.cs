@@ -1,8 +1,8 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Scripting;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,10 +14,10 @@ using UnityEditor;
 #endif
 static class RegisterSTP
 {
-    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
+    static RegisterSTP() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.registeredId, STPIUpscaler.registeredName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.upscalerName);
+    static void InitRuntime() => UpscalerRegistry.Register<STPIUpscaler, STPOptions>(STPIUpscaler.registeredId, STPIUpscaler.registeredName);
 }
 
 /// <summary>
@@ -34,8 +34,15 @@ public class STPUpscalerContext : IUpscalerContext
     /// <inheritdoc/>
     public int lastUsedFrame { get; set; }
 
+    /// <summary>
+    /// The STP history state this context owns, carried across frames so STP can reproject previous frames.
+    /// </summary>
     public STP.HistoryContext historyContext => m_HistoryContext;
 
+    /// <summary>
+    /// Creates a context holding fresh STP history for the given display resolution.
+    /// </summary>
+    /// <param name="displayResolution">The display (post-upscale) resolution this context is created for.</param>
     public STPUpscalerContext(Vector2Int displayResolution)
     {
         m_HistoryContext = new STP.HistoryContext();
@@ -61,30 +68,42 @@ public class STPUpscalerContext : IUpscalerContext
     }
 }
 
+/// <summary>
+/// Spatial-Temporal Post-processing (STP) exposed as an <see cref="IUpscaler"/>.
+/// </summary>
+#if UNITY_EDITOR
+[UpscalerUnsupportedBuildTarget(graphicsDeviceTypes = new[] { GraphicsDeviceType.OpenGLES3 })]
+#endif
+[Preserve]
 public class STPIUpscaler : AbstractUpscaler
 {
-    public static readonly string upscalerName = "Spatial-Temporal Post-Processing";
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
+    public static readonly string registeredId = "unity.stp";
+    /// <summary>Display name for this upscaler.</summary>
+    public static readonly string registeredName = "Spatial-Temporal Post-Processing";
 
-    STPOptions m_Options; // contains injection point (for HDRP at this time)
     private const string k_UpscaledColorTargetName = "_UpscaledCameraColor";
 
-    public STPIUpscaler(STPOptions optionsIn)
-    {
-        m_Options = optionsIn;
-    }
-
-    public override UpscalerOptions options => m_Options;
-
-    public override string name => upscalerName;
-
+    /// <inheritdoc/>
+    public override string upscalerId => registeredId;
+    /// <inheritdoc/>
+    public override string name => registeredName;
+    /// <inheritdoc/>
+    public override bool isSupportedOnDevice => STP.IsSupported();
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => true;
+    /// <inheritdoc/>
+    public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Stencil;
 
+    /// <inheritdoc/>
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
     {
         return new STPUpscalerContext(displayResolution);
     }
 
+    /// <inheritdoc/>
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
         UpscalingIO io = frameData.Get<UpscalingIO>();
@@ -140,10 +159,16 @@ public class STPIUpscaler : AbstractUpscaler
             config.nearPlane = io.nearClipPlane;
             config.farPlane = io.farClipPlane;
 
-            // TODO (Apoorva): Support stencil masking. URP doesn't support this, HDRP does. We should add support for
-            // both.
-            config.inputStencil = TextureHandle.nullHandle;
-            config.stencilMask = 0;
+            if (io.reactiveMask.IsValid())
+            {
+                config.inputStencil = io.reactiveMask;
+                config.stencilMask = 0x1;
+            }
+            else
+            {
+                config.inputStencil = TextureHandle.nullHandle;
+                config.stencilMask = 0;
+            }
 
             // TODO (Apoorva): Add support for debug views.
             config.debugView = TextureHandle.nullHandle;
@@ -157,12 +182,12 @@ public class STPIUpscaler : AbstractUpscaler
                 STP.HistoryUpdateInfo info;
                 info.preUpscaleSize = io.preUpscaleResolution;
                 info.postUpscaleSize = io.postUpscaleResolution;
-                info.useHwDrs = io.enableHwDrs;
+                info.useHwDrs = io.dynamicResolution == DynamicResolutionType.Hardware;
                 info.useTexArray = io.enableTexArray;
                 hasValidHistory = upscalerContext.historyContext.Update(ref info);
             }
             config.historyContext = upscalerContext.historyContext;
-            config.enableHwDrs = io.enableHwDrs;
+            config.enableHwDrs = io.dynamicResolution == DynamicResolutionType.Hardware;
             config.hasValidHistory = !io.resetHistory && hasValidHistory;
 
 
@@ -203,4 +228,3 @@ public class STPIUpscaler : AbstractUpscaler
         io.cameraColor = outputColor;
     }
 }
-#endif

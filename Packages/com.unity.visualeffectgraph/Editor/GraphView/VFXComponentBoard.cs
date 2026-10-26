@@ -163,7 +163,7 @@ namespace UnityEditor.VFX.UI
 
             m_PlayRateMenu = this.Query<DropdownField>("play-rate-menu");
             m_PlayRateMenu.choices = VisualEffectControl.setPlaybackValues.Select(x => x.ToString()).ToList();
-            m_PlayRateMenu.formatListItemCallback = x => $"{x} %";
+            m_PlayRateMenu.formatListItemCallback = x => $"{x}%";
             m_PlayRateMenu.formatSelectedValueCallback = x => "Set";
             m_PlayRateMenu.RegisterValueChangedCallback(SetPlayRate);
 
@@ -805,6 +805,7 @@ namespace UnityEditor.VFX.UI
         {
             AddToClassList("row");
             m_EventName = this.Query<TextField>("event-name");
+            m_EventName.maxLength = 256;
             m_EventName.isDelayed = true;
             m_EventName.RegisterCallback<ChangeEvent<string>>(OnChangeName);
             m_EventSend = this.Query<Button>("event-send");

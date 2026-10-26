@@ -284,4 +284,13 @@ class EditorTests
             }
         }
     }
+
+    [Test]
+    public void MaterialPostprocessor_MissingMaterial_DoesNotThrow()
+    {
+        var imported = new[] { "Assets/DoesNotExist.mat" };
+        var none = new string[0];
+
+        Assert.DoesNotThrow(() => UnityEditor.Rendering.Universal.MaterialPostprocessor.OnPostprocessAllAssets(imported, none, none, none));
+    }
 }

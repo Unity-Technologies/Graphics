@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (2D Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP2D", "Shader2D")]
     [ElementInfo(Name = "Material Shader Converter",
                  Order = 100,
                  Description = "Converts references to Built-In shaders to URP (2D) shaders.")]
@@ -25,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override string isDisabledMessage => "Converter requires URP with a Renderer 2D. Convert your project to URP to use this converter.";
+        public override string isDisabledMessage => "Converter requires URP with a 2D Renderer. Convert your project to URP to use this converter.";
 
 
         protected override List<MaterialUpgrader> upgraders

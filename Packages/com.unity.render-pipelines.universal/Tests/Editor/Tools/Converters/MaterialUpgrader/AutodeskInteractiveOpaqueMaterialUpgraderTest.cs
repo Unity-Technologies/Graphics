@@ -97,7 +97,7 @@ class AutodeskInteractiveOpaqueMaterialUpgraderTest : MaterialUpgraderTestBase<A
             {
                 material.SetFloat("_Mode", 0.0f); // opaque
                 material.SetColor("_EmissionColor", Color.green);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {

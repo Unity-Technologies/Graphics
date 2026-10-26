@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -15,4 +14,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

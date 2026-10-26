@@ -1,4 +1,4 @@
-# Output ShaderGraph Mesh
+# Output Particle ShaderGraph Mesh Context
 
 Menu Path : **Context > Output Particle ShaderGraph Mesh**
 
@@ -10,7 +10,7 @@ This output is similar to [Output Particle Mesh](Context-OutputParticleMesh.md).
 
 | Setting | Type | Description |
 | ------- | ---- | ----------- |
-| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) Unity uses to render particles this output produces. When you are assigning a Shader Graph to this property, the Inspector exposes all the Surface Options from the Shader Graph which allows you to edit the Shader Graph properties inside the Inspector for the Context.<br />The Context properties are populated with compatible exposed input from the Shader Graph.<br />For more information on the Surface Options this adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html). |
+| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) Unity uses to render particles this output produces. When you assign a Shader Graph to this property, the Inspector exposes all the Surface Options from the Shader Graph which allows you to edit the Shader Graph properties inside the Inspector for the Context.<br />The Context properties are populated with compatible exposed input from the Shader Graph.<br />For more information on the Surface Options this adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html).<br />To create a new Shader Graph asset instead of assigning an existing one, select **New**. This opens the [Shader Graph template browser](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/template-browser.html), filtered to show only templates that support the Visual Effect Graph. |
 | **Mesh Count**   | uint (slider)       | **(Inspector)** The number of different meshes to use with this output (from 1 to 4). You can select a mesh for a particle by index. This uses the particle's *meshIndex* attribute. |
 | **Lod**          | bool                | **(Inspector)** Indicates whether the particle mesh uses [levels of details](https://docs.unity3d.com/Manual/LevelOfDetail.html) (LOD).If you enable this setting, the Context bases mesh selection on the particle's apparent size on screen. To specify values for the LOD mesh selection, use the **Lod Values** property. |
 

@@ -5,11 +5,19 @@ namespace UnityEngine.Rendering.Universal.Tests
     [TestFixture]
     class LightTests
     {
+        GameObject m_LightObject;
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(m_LightObject);
+        }
+
         [Test]
         public void TestMainLightRenderingLayerMaskSyncWithUniversalLightAndShadowLayers()
         {
-            var lightObject = new GameObject("Light");
-            var light = lightObject.AddComponent<Light>();
+            m_LightObject = new GameObject("Light");
+            var light = m_LightObject.AddComponent<Light>();
             var lightData = light.GetUniversalAdditionalLightData();
 
             lightData.renderingLayers = (1 << 1);
@@ -30,8 +38,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             lightData.renderingLayers = (1 << 5);
             lightData.shadowRenderingLayers = (1 << 6);
             Assert.AreEqual(light.renderingLayerMask, (int)lightData.shadowRenderingLayers);
-
-            Object.DestroyImmediate(lightObject);
         }
     }
 }

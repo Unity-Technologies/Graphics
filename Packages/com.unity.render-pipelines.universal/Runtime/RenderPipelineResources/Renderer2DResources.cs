@@ -22,47 +22,30 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_LightShader, value, nameof(m_LightShader));
         }
 
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Projected.shader")]
-        Shader m_ProjectedShadowShader;
-        internal Shader projectedShadowShader
+        [SerializeField, ResourcePath("Shaders/2D/RenderingLayerMask.shader")]
+        Shader m_RenderingLayerMaskShader;
+
+        internal Shader renderingLayerMaskShader
         {
-            get => m_ProjectedShadowShader;
-            set => this.SetValueAndNotify(ref m_ProjectedShadowShader, value, nameof(m_ProjectedShadowShader));
+            get => m_RenderingLayerMaskShader;
+            set => this.SetValueAndNotify(ref m_RenderingLayerMaskShader, value, nameof(m_RenderingLayerMaskShader));
         }
 
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Shadow-Sprite.shader")]
-        Shader m_SpriteShadowShader;
+        // The single 2D shadow shader. It declares all five shadow pass roles -- Self,
+        // UnshadowMark, UnshadowUnmark, ProjectedSelf and ProjectedUnshadow -- so one shader serves
+        // the caster silhouette and the projected body alike, and the SHADOW_SPRITE_CASTER material
+        // keyword selects sprite semantics over geometry within the caster passes.
+        //
+        // The separate m_SpriteShadowShader / m_ProjectedShadowShader (and before them
+        // m_GeometryShadowShader) were merged into this one. Declaring every role on a single shader
+        // is what lets one custom Material assigned to ShadowCaster2D.material satisfy every phase.
+        [SerializeField, ResourcePath("Shaders/2D/Shadow2D.shader")]
+        Shader m_ShadowShader;
 
-        internal Shader spriteShadowShader
+        internal Shader shadowShader
         {
-            get => m_SpriteShadowShader;
-            set => this.SetValueAndNotify(ref m_SpriteShadowShader, value, nameof(m_SpriteShadowShader));
-        }
-
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
-        Shader m_SpriteUnshadowShader;
-
-        internal Shader spriteUnshadowShader
-        {
-            get => m_SpriteUnshadowShader;
-            set => this.SetValueAndNotify(ref m_SpriteUnshadowShader, value, nameof(m_SpriteUnshadowShader));
-        }
-
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Shadow-Geometry.shader")]
-        Shader m_GeometryShadowShader;
-        internal Shader geometryShadowShader
-        {
-            get => m_GeometryShadowShader;
-            set => this.SetValueAndNotify(ref m_GeometryShadowShader, value, nameof(m_GeometryShadowShader));
-        }
-
-        [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
-        Shader m_GeometryUnshadowShader;
-
-        internal Shader geometryUnshadowShader
-        {
-            get => m_GeometryUnshadowShader;
-            set => this.SetValueAndNotify(ref m_GeometryUnshadowShader, value, nameof(m_GeometryUnshadowShader));
+            get => m_ShadowShader;
+            set => this.SetValueAndNotify(ref m_ShadowShader, value, nameof(m_ShadowShader));
         }
 
         [SerializeField,ResourcePath("Shaders/Utils/CopyDepth.shader")]

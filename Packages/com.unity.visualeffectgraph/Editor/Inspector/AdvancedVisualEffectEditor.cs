@@ -739,7 +739,10 @@ namespace UnityEditor.VFX
 
         private void AutoAttachToSelection()
         {
-            if ((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>() is VisualEffect visualEffect)
+            var gameObject = Selection.activeObject as GameObject;
+            if (gameObject == null || PrefabUtility.IsPartOfPrefabAsset(gameObject))
+                return;
+            if (gameObject.GetComponent<VisualEffect>() is VisualEffect visualEffect)
             {
                 foreach (var window in VFXViewWindow.GetAllWindows())
                 {

@@ -86,6 +86,11 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
         }
 
+        public void WriteVariableDeclaration(string type, string name, bool isStatic = false)
+        {
+            WriteLine($"{(isStatic ? "static " : "")}{type} {name};");
+        }
+
         public void OpenBlock(bool newLine = true)
         {
             WriteLine("{", newLine ? WriteLineOptions.None : WriteLineOptions.NoNewLine);
@@ -103,6 +108,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         {
             //Debug.Assert(IndentLevel == 0); TODO: Move the assert to compute only ?
             WriteLine($"#include \"{filePath}\"");
+        }
+
+        public void IncludeFileWithPragmas(string filePath)
+        {
+            //Debug.Assert(IndentLevel == 0); TODO: Move the assert to compute only ?
+            WriteLine($"#include_with_pragmas \"{filePath}\"");
         }
 
         public void Pragma(string pragma)

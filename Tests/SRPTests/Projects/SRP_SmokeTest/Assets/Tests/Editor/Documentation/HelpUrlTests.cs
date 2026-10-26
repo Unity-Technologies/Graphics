@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.Tests.Documentation
             DocumentationUtils.TryGetHelpURL(renderPipelineType, out string url);
 
             if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset)
-                Assert.True(url.Contains("com.unity.render-pipelines.universal"));
+                Assert.True(url.Contains("/Documentation/Manual/")); // URP documentation lives in the Unity Manual.
             else if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset)
                 Assert.True(url.Contains("com.unity.render-pipelines.high-definition"));
 

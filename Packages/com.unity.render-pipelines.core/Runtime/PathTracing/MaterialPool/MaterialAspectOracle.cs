@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 
@@ -30,7 +29,7 @@ namespace UnityEngine.PathTracing.Core
 
     internal static class MaterialAspectOracle
     {
-        // See gi::HasBakedEmissive in Materials.cpp
+        // See gi::HasBakedEmission in Materials.cpp
         public static MaterialPropertyDesc GetEmission(Material mat, EmissionMode emissionMode)
         {
             var emissiveFlags = mat.globalIlluminationFlags;
@@ -42,8 +41,8 @@ namespace UnityEngine.PathTracing.Core
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
             }
 
-            bool isBaked = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.BakedEmissive);
-            bool isRealtime = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.RealtimeEmissive);
+            bool isBaked = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.BakedEmission);
+            bool isRealtime = emissiveFlags.HasFlag(MaterialGlobalIlluminationFlags.RealtimeIndirectEmission);
 
             bool emissionEnabled = false;
             switch (emissionMode)
@@ -64,12 +63,6 @@ namespace UnityEngine.PathTracing.Core
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
             }
 
-            // If the material has an emission keyword, but it is disabled, there is no emission
-            if (IsMaterialWithEmissionKeyword(mat) && !EnumerableArrayContains(mat.shaderKeywords, "_EMISSION"))
-            {
-                return new MaterialPropertyDesc { Type = MaterialPropertyType.None, Color = float3.zero };
-            }
-
             // If we have reached this point, the material should be emissive.
             // First we check for an emissive texture, and use that if it exists
             if (HasEmissionMap(mat))
@@ -78,7 +71,7 @@ namespace UnityEngine.PathTracing.Core
             }
 
             // Otherwise, if the material only has an emissive color, we use that
-            if (mat.HasProperty(SID.EmissionColor))
+            if (mat.HasColor(SID.EmissionColor))
             {
                 return new MaterialPropertyDesc { Type = MaterialPropertyType.Color, Color = ToFloat3(mat.GetColor(SID.EmissionColor)) };
             }
@@ -86,15 +79,6 @@ namespace UnityEngine.PathTracing.Core
             // If we found neither property, we assume that the material has an unusual meta pass implementation,
             // which will render the emission - thus we use texture mode
             return new MaterialPropertyDesc { Type = MaterialPropertyType.Texture, Color = float3.zero };
-        }
-
-        private static bool EnumerableArrayContains(IEnumerable<string> array, string value)
-        {
-            foreach (string element in array)
-                if (EqualityComparer<string>.Default.Equals(element, value))
-                    return true;
-
-            return false;
         }
 
         // Check if a material has a property with a specific Shaderlab property flag
@@ -119,7 +103,7 @@ namespace UnityEngine.PathTracing.Core
         public static TransmissionDesc GetTransmission(Material mat)
         {
             // Full RGB transmission
-            bool hasRGBTransparencyTexture = mat.HasProperty(SID.TransparencyLm) && mat.GetTexture(SID.TransparencyLm) != null;
+            bool hasRGBTransparencyTexture = mat.HasTexture(SID.TransparencyLm) && mat.GetTexture(SID.TransparencyLm) != null;
             if (hasRGBTransparencyTexture)
             {
                 return new TransmissionDesc
@@ -133,7 +117,7 @@ namespace UnityEngine.PathTracing.Core
 
             // Alpha-only transmission, alpha from main texture (if exists)
             bool isOnTransparentQueue = mat.renderQueue >= (int)RenderQueue.AlphaTestRenderQueue && mat.renderQueue < (int)RenderQueue.OverlayRenderQueue;
-            bool hasMainTexture = MaterialHasPropertyWithFlag(mat, ShaderPropertyFlags.MainTexture) || mat.HasProperty(SID.MainTex);
+            bool hasMainTexture = MaterialHasPropertyWithFlag(mat, ShaderPropertyFlags.MainTexture) || mat.HasTexture(SID.MainTex);
             if (isOnTransparentQueue && hasMainTexture)
             {
                 return new TransmissionDesc
@@ -151,22 +135,17 @@ namespace UnityEngine.PathTracing.Core
 
         private static bool HasEmissionMap(Material mat)
         {
-            return (mat.HasProperty(SID.EmissionMap) && mat.GetTexture(SID.EmissionMap) != null)
-                && (!mat.HasProperty(SID.UseEmissiveMap) || mat.GetInt(SID.UseEmissiveMap) == 1);
-        }
-
-        private static bool IsMaterialWithEmissionKeyword(Material mat)
-        {
-            return EnumerableArrayContains(mat.shader.keywordSpace.keywordNames, "_EMISSION");
+            return (mat.HasTexture(SID.EmissionMap) && mat.GetTexture(SID.EmissionMap) != null)
+                && (!mat.HasInt(SID.UseEmissiveMap) || mat.GetInt(SID.UseEmissiveMap) == 1);
         }
 
         public static float GetAlpha(Material mat)
         {
-            if (mat.HasProperty(SID.BaseColor))
+            if (mat.HasColor(SID.BaseColor))
             {
                 return mat.GetColor(SID.BaseColor).a;
             }
-            else if (mat.HasProperty(SID.Color))
+            else if (mat.HasColor(SID.Color))
             {
                 return mat.GetColor(SID.Color).a;
             }
@@ -176,7 +155,9 @@ namespace UnityEngine.PathTracing.Core
                 {
                     if (mat.shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainColor))
                     {
-                        return mat.GetColor(mat.shader.GetPropertyNameId(i)).a;
+                        int nameId = mat.shader.GetPropertyNameId(i);
+                        if (mat.HasColor(nameId))
+                            return mat.GetColor(nameId).a;
                     }
                 }
 
@@ -190,16 +171,16 @@ namespace UnityEngine.PathTracing.Core
             if (!alphaTestQueue)
                 return false;
 
-            return mat.HasProperty(SID.Cutoff) || mat.HasProperty(SID.AlphaTestRef);
+            return mat.HasFloat(SID.Cutoff) || mat.HasFloat(SID.AlphaTestRef);
         }
 
         public static float GetAlphaCutoff(Material mat)
         {
-            if (mat.HasProperty(SID.Cutoff))
+            if (mat.HasFloat(SID.Cutoff))
             {
                 return mat.GetFloat(SID.Cutoff);
             }
-            else if (mat.HasProperty(SID.AlphaTestRef))
+            else if (mat.HasFloat(SID.AlphaTestRef))
             {
                 return mat.GetFloat(SID.AlphaTestRef);
             }

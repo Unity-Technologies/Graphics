@@ -15,10 +15,10 @@ namespace UnityEditor.Rendering.Analytics
         {
             public Analytic(Volume volume, VolumeProfile volumeProfile)
             {
-                using (GenericPool<Data>.Get(out var data))
+                using (UnityEngine.Pool.GenericPool<Data>.Get(out var data))
                 {
                     data.volume_name = Hash128.Compute(volume.name).ToString();
-                    data.scene_name = EditorSceneManager.GetActiveScene().GetGUID();
+                    data.scene_name = EditorSceneManager.GetActiveScene().guid.ToString();
                     data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetEntityId()));
                     m_Data = data;
                 }

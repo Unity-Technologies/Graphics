@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEditor.EditorTools;
 using UnityEngine.Assertions;
@@ -27,7 +26,6 @@ namespace UnityEditor
         bool m_EnableClickCatcher = false;
         bool m_FoldoutPreset = true;
 
-        VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
 
         SerializedProperty m_DistanceProperty;
@@ -106,7 +104,7 @@ namespace UnityEditor
                     rollChanged = EditorGUI.EndChangeCheck();
                 }
                 EditorGUILayout.Space();
-                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, EditorGUIUtility.TrTextContent("")));
+                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, L10n.TextContent("", null, null, null)));
                 float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(angleRect, LightAnchorStyles.angleSubContent, angles);
@@ -325,23 +323,14 @@ namespace UnityEditor
             // Setup event to keep track of EditorTool state
             ToolManager.activeToolChanged += EditorToolsOnactiveToolChanged;
 
-            // Get a reference to the GameView
-            // TODO: This currently only works with a single Game View
-            var gameViews = Resources.FindObjectsOfTypeAll<EditorWindow>()
-                .Where(w => w.GetType().FullName == "UnityEditor.GameView")
-                .ToArray();
-            var gameView = gameViews.First();
-
             // We create an invisible VisualElement that gets overlayed onto the Game View to intercept mouse clicks
             // when the editor tool is active
-            m_GameViewRootElement = gameView.rootVisualElement;
             m_ClickCatcher = new VisualElement();
             m_ClickCatcher.style.flexGrow = 1;
 
             // Determine if the editor tool is already active (this helps keep our state when swapping between
             // different light objects directly, or after an assembly reload)
-            var anchorTools = Resources.FindObjectsOfTypeAll<LightAnchorEditorTool>()
-                .ToArray();
+            var anchorTools = Resources.FindObjectsOfTypeAll<LightAnchorEditorTool>();
             if (anchorTools.Length > 0)
             {
                 var anchorTool = anchorTools[0];
@@ -366,10 +355,24 @@ namespace UnityEditor
         void OnDisable()
         {
             // cleanup our click catcher element
+            EditorApplication.update -= AttachClickCatcher;
             m_ClickCatcher?.RemoveFromHierarchy();
 
             // unsubscribe from EditorTool event
             ToolManager.activeToolChanged -= EditorToolsOnactiveToolChanged;
+        }
+
+        // A Game View can be opened or closed at any time, so its root element is resolved on demand
+        // TODO: This currently only works with a single Game View
+        static VisualElement FindGameViewRootElement()
+        {
+            foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+            {
+                if (window != null && window.GetType().FullName == "UnityEditor.GameView")
+                    return window.rootVisualElement;
+            }
+
+            return null;
         }
 
         void EnableClickCatcher(bool enable)
@@ -377,15 +380,31 @@ namespace UnityEditor
             // adds or removes the click catcher element to the Game View as needed
             if (enable)
             {
-                m_GameViewRootElement.Add(m_ClickCatcher);
+                AttachClickCatcher();
             }
             else
             {
+                EditorApplication.update -= AttachClickCatcher;
                 if (m_ClickCatcher != null)
                 {
                     m_ClickCatcher.RemoveFromHierarchy();
                 }
             }
+        }
+
+        // Opening a Game View raises no tool event, so when none exists yet keep trying until one does
+        void AttachClickCatcher()
+        {
+            EditorApplication.update -= AttachClickCatcher;
+
+            var gameViewRootElement = FindGameViewRootElement();
+            if (gameViewRootElement == null)
+            {
+                EditorApplication.update += AttachClickCatcher;
+                return;
+            }
+
+            gameViewRootElement.Add(m_ClickCatcher);
         }
 
         void UpdateCache()
@@ -584,24 +603,24 @@ namespace UnityEditor
         static public float presetButtonCount = 9f;
         static public GUIStyle centeredLabel = GUI.skin.GetStyle("Label");
         static public string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/";
-        static public GUIContent presetTextureRimLeft = EditorGUIUtility.TrTextContent("", "Rim Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Left", ".png", false));
-        static public GUIContent presetTextureKickLeft = EditorGUIUtility.TrTextContent("", "Kick Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Left", ".png", false));
-        static public GUIContent presetTextureBounceLeft = EditorGUIUtility.TrTextContent("", "Bounce Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Left", ".png", false));
-        static public GUIContent presetTextureFillLeft = EditorGUIUtility.TrTextContent("", "Fill Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Left", ".png", false));
-        static public GUIContent presetTextureHair = EditorGUIUtility.TrTextContent("", "Hair", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetHair", ".png", false));
-        static public GUIContent presetTextureFillRight = EditorGUIUtility.TrTextContent("", "Fill Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false));
-        static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
-        static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
-        static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
-        static public GUIContent distanceProperty = EditorGUIUtility.TrTextContent("Distance", "Controls how far 'back', the light is placed from its anchor");
-        static public GUIContent upDirectionProperty = EditorGUIUtility.TrTextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
-        static public GUIContent anchorPositionOverrideProperty = EditorGUIUtility.TrTextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.");
-        static public GUIContent anchorPositionOffsetProperty = EditorGUIUtility.TrTextContent("Anchor Position Offset", "Specifies the anchor position offset relative to the anchor position override.");
+        static public GUIContent presetTextureRimLeft = L10n.TextContentWithIcon("", "Rim Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Left", ".png", false), null);
+        static public GUIContent presetTextureKickLeft = L10n.TextContentWithIcon("", "Kick Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Left", ".png", false), null);
+        static public GUIContent presetTextureBounceLeft = L10n.TextContentWithIcon("", "Bounce Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Left", ".png", false), null);
+        static public GUIContent presetTextureFillLeft = L10n.TextContentWithIcon("", "Fill Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Left", ".png", false), null);
+        static public GUIContent presetTextureHair = L10n.TextContentWithIcon("", "Hair", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetHair", ".png", false), null);
+        static public GUIContent presetTextureFillRight = L10n.TextContentWithIcon("", "Fill Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false), null);
+        static public GUIContent presetTextureBounceRight = L10n.TextContentWithIcon("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false), null);
+        static public GUIContent presetTextureKickRight = L10n.TextContentWithIcon("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false), null);
+        static public GUIContent presetTextureRimRight = L10n.TextContentWithIcon("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false), null);
+        static public GUIContent distanceProperty = L10n.TextContent("Distance", "Controls how far 'back', the light is placed from its anchor", null, null);
+        static public GUIContent upDirectionProperty = L10n.TextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.", null, null);
+        static public GUIContent anchorPositionOverrideProperty = L10n.TextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.", null, null);
+        static public GUIContent anchorPositionOffsetProperty = L10n.TextContent("Anchor Position Offset", "Specifies the anchor position offset relative to the anchor position override.", null, null);
         static public GUIContent[] angleSubContent = new[]
         {
-            EditorGUIUtility.TrTextContent("Orbit"),
-            EditorGUIUtility.TrTextContent("Elevation"),
-            EditorGUIUtility.TrTextContent("Roll")
+            L10n.TextContent("Orbit", null, null, null),
+            L10n.TextContent("Elevation", null, null, null),
+            L10n.TextContent("Roll", null, null, null)
         };
         static public Color totalTransparentColor = new Color(0, 0, 0, 0);
         static public Color hoverColor = new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f);

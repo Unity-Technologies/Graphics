@@ -146,6 +146,12 @@ namespace UnityEngine.PathTracing.Integration
             Util.SetEmissiveSamplingKeyword(cmd, _directionalAndEnvironmentShader, emissiveSamplingMode);
         }
 
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _stochasticLightShader, hasTerrains);
+            Util.SetTerrainRayMarchingKeyword(cmd, _directionalAndEnvironmentShader, hasTerrains);
+        }
+
         public void Prepare(IRayTracingShader stochasticLightShader, IRayTracingShader directionalAndEnvironmentShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
         {
             _stochasticLightShader = stochasticLightShader;
@@ -272,14 +278,14 @@ namespace UnityEngine.PathTracing.Integration
                 {
                     _stochasticLightShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.LightIndexInCell, lightIndexInCell);
                     cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                    _stochasticLightShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                    _stochasticLightShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                     cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
                 }
 
                 // directional and environment pass
                 _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _directionalAndEnvironmentShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
-                _directionalAndEnvironmentShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _directionalAndEnvironmentShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
             }
         }
 
@@ -324,6 +330,11 @@ namespace UnityEngine.PathTracing.Integration
         public void SetupLightSamplingKeywords(CommandBuffer cmd, EmissiveSamplingMode emissiveSamplingMode)
         {
             Util.SetEmissiveSamplingKeyword(cmd, _accumulationShader, emissiveSamplingMode);
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -419,7 +430,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
 
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -457,6 +468,11 @@ namespace UnityEngine.PathTracing.Integration
         {
             Util.SetLightSamplingKeyword(cmd, _accumulationShader, lightSamplingMode);
             Util.SetEmissiveSamplingKeyword(cmd, _accumulationShader, emissiveSamplingMode);
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -550,7 +566,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -591,6 +607,11 @@ namespace UnityEngine.PathTracing.Integration
         public void Dispose()
         {
             _accumulationDispatchBuffer?.Dispose();
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -679,7 +700,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -708,6 +729,11 @@ namespace UnityEngine.PathTracing.Integration
         public void Dispose()
         {
             _accumulationDispatchBuffer?.Dispose();
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -794,7 +820,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -823,6 +849,11 @@ namespace UnityEngine.PathTracing.Integration
         public void Dispose()
         {
             _accumulationDispatchBuffer?.Dispose();
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader normalizationShader, ComputeShader expansionHelpers, SamplingResources samplingResources, RTHandle emptyExposureTexture)
@@ -912,7 +943,7 @@ namespace UnityEngine.PathTracing.Integration
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.SampleOffset, (int)currentSampleCountPerTexel);
                 _accumulationShader.SetIntParam(cmd, LightmapIntegratorShaderIDs.MaxLocalSampleCount, (int)sampleCountToTakePerTexel);
                 cmd.BeginSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
-                _accumulationShader.Dispatch(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
+                _accumulationShader.DispatchIndirect(cmd, traceScratchBuffer, _accumulationDispatchBuffer);
                 cmd.EndSample(LightmapIntegratorShaderIDs.k_AccumulationExpanded);
             }
         }
@@ -943,6 +974,11 @@ namespace UnityEngine.PathTracing.Integration
 
         public GBufferDebug()
         {
+        }
+
+        public void SetTerrainKeyword(CommandBuffer cmd, bool hasTerrains)
+        {
+            Util.SetTerrainRayMarchingKeyword(cmd, _accumulationShader, hasTerrains);
         }
 
         public void Prepare(IRayTracingShader accumulationShader, ComputeShader expansionHelpers)
@@ -982,7 +1018,7 @@ namespace UnityEngine.PathTracing.Integration
             // Its time to repopulate the indirect dispatch buffers. Use the compacted size for this.
             ExpansionHelpers.PopulateAccumulationIndirectDispatch(cmd, _expansionHelpers, _populateAccumulationDispatchKernel, expandedSampleWidth, compactedGbufferLength, _accumulationDispatchBuffer);
             cmd.BeginSample(LightmapIntegratorShaderIDs.k_GBufferDebug);
-            _accumulationShader.Dispatch(cmd, null, _accumulationDispatchBuffer);
+            _accumulationShader.DispatchIndirect(cmd, null, _accumulationDispatchBuffer);
             cmd.EndSample(LightmapIntegratorShaderIDs.k_GBufferDebug);
         }
     }

@@ -14,7 +14,11 @@ CBUFFER_START(InstanceOcclusionCullerShaderVariables)
     int _BoundingSphereInstanceDataAddress;
     int _DebugCounterIndex;
     int _InstanceMultiplierShift;
+    int _LocalBoundsInstanceDataAddress;
+    int _ObjectToWorldInstanceDataAddress;
     int _InstanceOcclusionCullerPad0;
+    int _InstanceOcclusionCullerPad1;
+    int _InstanceOcclusionCullerPad2;
 CBUFFER_END
 
 

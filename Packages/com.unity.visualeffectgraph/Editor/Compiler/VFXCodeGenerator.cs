@@ -229,7 +229,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             VFXTask task,
             VFXCompilationMode compilationMode,
             VFXTaskCompiledData taskData,
-            HashSet<string> dependencies,
+            HashSet<GUID> dependencies,
             bool forceShadeDebugSymbols,
             Cache codeGeneratorCache,
             out List<string> errors)
@@ -238,7 +238,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!string.IsNullOrEmpty(task.templatePath))
             {
                 templatePath = $"{task.templatePath}.template";
-                dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
+                var templateGuid = AssetDatabase.GUIDFromAssetPath(templatePath);
+                if (!templateGuid.Empty())
+                    dependencies.Add(templateGuid);
             }
 
             return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols, codeGeneratorCache, out errors);
@@ -250,22 +252,53 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (settings.Length > 0)
             {
                 comment = "";
-                int hash = 0;
+                var hash = new Hash128();
                 foreach (var setting in settings.Where(x => x.valid))
                 {
-                    var value = setting.value;
-                    hash = (hash * 397) ^ (value?.GetHashCode() ?? 1);
+                    AppendStableSetting(ref hash, setting.value);
                     if (setting.visibility.HasFlag(VFXSettingAttribute.VisibleFlags.InGeneratedCodeComments))
                     {
                         comment += setting + " ";
                     }
                 }
-                functionName = $"{block.GetType().Name}_{hash:X}";
+                functionName = $"{block.GetType().Name}_{hash}";
             }
             else
             {
                 comment = null;
                 functionName = block.GetType().Name;
+            }
+        }
+
+        static void AppendStableSetting(ref Hash128 hash, object value)
+        {
+            switch (value)
+            {
+                case null:
+                    hash.Append(0);
+                    break;
+                case string s:
+                    hash.Append(s);
+                    break;
+                case UnityEngine.Object o:
+                    // Stable asset identity (GUID + local file id) — never the instance id.
+                    if (o != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(o, out var guid, out long fileId))
+                    {
+                        hash.Append(guid);
+                        hash.Append(ref fileId);
+                    }
+                    else
+                    {
+                        hash.Append(o != null ? o.name : "\0null");
+                    }
+                    break;
+                default:
+                    // Non-primitive value types aren't blittable for Hash128.Append(ref); serialize their content.
+                    var type = value.GetType();
+                    hash.Append(type.IsValueType && !type.IsPrimitive && !type.IsEnum
+                        ? JsonUtility.ToJson(value)
+                        : Convert.ToString(value, CultureInfo.InvariantCulture));
+                    break;
             }
         }
 
@@ -535,7 +568,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             string templatePath,
             VFXCompilationMode compilationMode,
             VFXTaskCompiledData taskData,
-            HashSet<string> dependencies,
+            HashSet<GUID> dependencies,
             bool enableShaderDebugSymbols,
             Cache codeGeneratorCache,
             out List<string> errors)

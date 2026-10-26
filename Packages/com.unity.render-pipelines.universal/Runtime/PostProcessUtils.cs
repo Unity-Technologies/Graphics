@@ -43,14 +43,22 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="filterMode">Texture filtering mode.</param>
         /// <returns>Texture compatible with post-processing effects.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureHandle source, string name, bool clear, FilterMode filterMode)
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureHandle source, string name, bool clear, FilterMode filterMode
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             var desc = source.GetDescriptor(renderGraph);
             MakeCompatible(ref desc);
             desc.name = name;
             desc.clearBuffer = clear;
             desc.filterMode = filterMode;
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(desc, file, line);
+#else
             return renderGraph.CreateTexture(desc);
+#endif
         }
 
         /// <summary>
@@ -63,13 +71,21 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="filterMode">Texture filtering mode.</param>
         /// <returns>Texture compatible with post-processing effects.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, FilterMode filterMode)
+        internal static TextureHandle CreateCompatibleTexture(RenderGraph renderGraph, in TextureDesc desc, string name, bool clear, FilterMode filterMode
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            , [CallerFilePath] string file = "", [CallerLineNumber] int line = 0
+#endif
+            )
         {
             var descCompatible = GetCompatibleDescriptor(desc);
             descCompatible.name = name;
             descCompatible.clearBuffer = clear;
             descCompatible.filterMode = filterMode;
+#if !CORE_PACKAGE_DOCTOOLS && UNITY_ENABLE_CHECKS
+            return renderGraph.CreateTexture(descCompatible, file, line);
+#else
             return renderGraph.CreateTexture(descCompatible);
+#endif
         }
 
         /// <summary>
@@ -246,13 +262,8 @@ namespace UnityEngine.Rendering.Universal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsFsrEnabled(UniversalCameraData cameraData)
         {
-            return ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) &&
-#if ENABLE_UPSCALER_FRAMEWORK
-                (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1)
-#else
-                (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)
-#endif
-            );
+            return (cameraData.imageScalingMode == ImageScalingMode.Upscaling) &&
+                (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1);
         }
 
 #region HDR Output
@@ -350,52 +361,19 @@ namespace UnityEngine.Rendering.Universal
             SetGlobalShaderSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
         }
 
-        internal static void ScaleViewport(RasterCommandBuffer cmd, RTHandle dest, UniversalCameraData cameraData, bool isActiveTargetBackBuffer)
-        {
-            RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                cameraTarget = cameraData.xr.renderTarget;
-#endif
-            if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
-            {
-                if (!isActiveTargetBackBuffer)
-                {
-                    // Inside the camera stack the target is the shared intermediate target, which can be scaled with render scale.
-                    // camera.pixelRect is the viewport of the final target in pixels, so it cannot be used for the intermediate target.
-                    // On intermediate target allocation the viewport size is baked into the target size.
-                    // Which means the intermediate target does not have a viewport rect. Its offset is always 0 and its size matches viewport size.
-                    // The overlay cameras inherit the base viewport, so they cannot have a different viewport,
-                    // a necessary limitation since the target covers only the base viewport area.
-                    // The offsetting is finally done by the final output viewport-rect to the final target.
-                    // Note: effectively this is setting a fullscreen viewport for the intermediate target.
-                    var targetWidth = cameraData.cameraTargetDescriptor.width;
-                    var targetHeight = cameraData.cameraTargetDescriptor.height;
-                    var targetViewportInPixels = new Rect(
-                        0,
-                        0,
-                        targetWidth,
-                        targetHeight);
-                    cmd.SetViewport(targetViewportInPixels);
-                }
-                else
-                    cmd.SetViewport(cameraData.pixelRect);
-            }
-        }
-
-        internal static void ScaleViewportAndBlit(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isActiveTargetBackBuffer)
+        internal static void SetViewportAndBlit(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, Material material, in Rect viewport)
         {
             Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, sourceTexture, destTexture);
-            ScaleViewport(context.cmd, destTexture, cameraData, isActiveTargetBackBuffer);
+            context.cmd.SetViewport(viewport);
 
             Blitter.BlitTexture(context.cmd, sourceTexture, scaleBias, material, 0);
         }
 
-        internal static void ScaleViewportAndDrawVisibilityMesh(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, bool isActiveTargetBackBuffer)
+        internal static void SetViewportAndDrawVisibilityMesh(RasterGraphContext context, in TextureHandle sourceTexture, in TextureHandle destTexture, UniversalCameraData cameraData, Material material, in Rect viewport)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(context, sourceTexture, destTexture);
-            ScaleViewport(context.cmd, destTexture, cameraData, isActiveTargetBackBuffer);
+            context.cmd.SetViewport(viewport);
 
             // Set property block for blit shader
             MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();

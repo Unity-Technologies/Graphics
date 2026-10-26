@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Main Mapping Configuration");
+            public static GUIContent header { get; } = L10n.TextContent("Main Mapping Configuration", null, null, null);
 
             public static GUIContent mappingModeText = new GUIContent("Mapping Mode");
             public static GUIContent planarSpaceText = new GUIContent("Planar Space");

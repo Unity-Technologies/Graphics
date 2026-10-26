@@ -231,12 +231,14 @@ namespace UnityEditor.Rendering
 
             m_SidePanelPassTexts.Clear();
 
-            void CreateTextElement(VisualElement parent, string text, string className = null)
+            void CreateTextElement(VisualElement parent, string text, string className = null, string name = null)
             {
                 var textElement = new TextElement();
                 textElement.text = text;
                 if (className != null)
                     textElement.AddToClassList(className);
+                if (name != null)
+                    textElement.name = name;
                 parent.Add(textElement);
             }
 
@@ -275,16 +277,11 @@ namespace UnityEditor.Rendering
                         CreateTextElement(passItem, "Native Pass was created from Raster Render Pass.");
                     else if (nativePassInfo.mergedPassIds.Count > 1)
                         CreateTextElement(passItem, $"Native Pass was created by merging {nativePassInfo.mergedPassIds.Count} Raster Render Passes.");
+                }
 
-                    CreateTextElement(passItem, "Pass break reasoning", Classes.kSubHeaderText);
-                    CreateTextElement(passItem, nativePassInfo.passBreakReasoning);
-                }
-                else
-                {
-                    CreateTextElement(passItem, "Pass break reasoning", Classes.kSubHeaderText);
-                    string msg = k_PassTypeNamesNotMergedMessage[(int)firstPassData.type];
-                    CreateTextElement(passItem, msg);
-                }
+                CreateTextElement(passItem, "Pass break reasoning", Classes.kSubHeaderText);
+                string msg = nativePassInfo != null ? nativePassInfo.passBreakReasoning : k_PassTypeNamesNotMergedMessage[(int)firstPassData.type];
+                CreateTextElement(passItem, msg, name: $"{firstPassData.name}_Pass Break Reason");
 
                 if (nativePassInfo != null)
                 {

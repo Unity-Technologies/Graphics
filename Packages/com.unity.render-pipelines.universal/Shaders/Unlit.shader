@@ -9,6 +9,7 @@ Shader "Universal Render Pipeline/Unlit"
         // BlendMode
         _Surface("__surface", Float) = 0.0
         _Blend("__mode", Float) = 0.0
+        _ReceiveFog("__receiveFog", Float) = 0.0
         _Cull("__cull", Float) = 2.0
         [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
@@ -20,6 +21,8 @@ Shader "Universal Render Pipeline/Unlit"
         [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
         [HideInInspector] _AddPrecomputedVelocity("_AddPrecomputedVelocity", Float) = 0.0
         [HideInInspector] _XRMotionVectorsPass("_XRMotionVectorsPass", Float) = 1.0
+
+        [ToggleUI] _ScreenSpaceReflectionsContributeTransparent("Screen Space Reflections Contribute Transparent", Float) = 1.0
 
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
@@ -73,8 +76,11 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            #pragma multi_compile_fragment _FOG_ANALYTIC _FOG_VOLUMETRIC
+            #pragma shader_feature_local_fragment _TRANSPARENT_RECEIVE_FOG
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _EXPOSURE
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
 
@@ -270,7 +276,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl"
             ENDHLSL
         }
 
@@ -297,7 +303,7 @@ Shader "Universal Render Pipeline/Unlit"
             #define APPLICATION_SPACE_WARP_MOTION 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ObjectMotionVectors.hlsl"
             ENDHLSL
         }
     }

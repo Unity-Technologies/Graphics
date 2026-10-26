@@ -130,19 +130,19 @@ namespace UnityEditor.Rendering.HighDefinition
             // Sky
             UpdateSkyAndFogIntPopupData();
 
-            using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky Type", "Specifies the type of sky this Volume uses."), this))
+            using (var scope = new OverridablePropertyScope(m_SkyType, L10n.TextContent("Sky Type", "Specifies the type of sky this Volume uses.", null, null), this))
             {
                 if (scope.displayed)
                     EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), scope.label);
             }
 
-            using (var scope = new OverridablePropertyScope(m_CloudType, EditorGUIUtility.TrTextContent("Background Clouds", "Specifies the type of background cloud this Volume uses."), this))
+            using (var scope = new OverridablePropertyScope(m_CloudType, L10n.TextContent("Background Clouds", "Specifies the type of background cloud this Volume uses.", null, null), this))
             {
                 if (scope.displayed)
                     EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), scope.label);
             }
 
-            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode", "Specifies how the global ambient probe is computed. Dynamic will use the currently displayed sky and static will use the sky setup in the environment lighting panel."));
+            PropertyField(m_SkyAmbientMode, L10n.TextContent("Ambient Mode", "Specifies how the global ambient probe is computed. Dynamic will use the currently displayed sky and static will use the sky setup in the environment lighting panel.", null, null));
 
             var staticLightingSky = SkyManager.GetStaticLightingSky();
             if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)
@@ -159,23 +159,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Planet
-            PropertyField(m_PlanetRadius, EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the planet in kilometers. This is distance from the center of the planet to the sea level."));
+            PropertyField(m_PlanetRadius, L10n.TextContent("Radius", "Sets the radius of the planet in kilometers. This is distance from the center of the planet to the sea level.", null, null));
             PropertyField(m_RenderingSpace);
 
             if (m_RenderingSpace.value.intValue == (int)RenderingSpace.World && BeginAdditionalPropertiesScope())
             {
-                PropertyField(m_CenterMode, EditorGUIUtility.TrTextContent("Center", "The center is used when defining where the planets surface is. In automatic mode, the surface is at the world's origin and the center is derived from the planet radius."));
+                PropertyField(m_CenterMode, L10n.TextContent("Center", "The center is used when defining where the planets surface is. In automatic mode, the surface is at the world's origin and the center is derived from the planet radius.", null, null));
                 if (m_CenterMode.value.intValue == (int)VisualEnvironment.PlanetMode.Manual)
                 {
                     using (new IndentLevelScope())
-                        PropertyField(m_PlanetCenter, EditorGUIUtility.TrTextContent("Position", "Sets the world-space position of the planet's center in kilometers."));
+                        PropertyField(m_PlanetCenter, L10n.TextContent("Position", "Sets the world-space position of the planet's center in kilometers.", null, null));
                 }
                 EndAdditionalPropertiesScope();
             }
 
             // Wind
-            PropertyField(m_WindOrientation, EditorGUIUtility.TrTextContent("Global Orientation", "Controls the orientation of the wind relative to the X world vector."));
-            PropertyField(m_WindSpeed, EditorGUIUtility.TrTextContent("Global Speed", "Controls the global wind speed in kilometers per hour."));
+            PropertyField(m_WindOrientation, L10n.TextContent("Global Orientation", "Controls the orientation of the wind relative to the X world vector.", null, null));
+            PropertyField(m_WindSpeed, L10n.TextContent("Global Speed", "Controls the global wind speed in kilometers per hour.", null, null));
 
             if (m_WindSpeed.overrideState.boolValue && m_WindSpeed.value.floatValue != 0.0f && SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
                 EditorGUILayout.HelpBox("Wind animations in the scene view are only supported when \"Always Refresh\" is enabled.", MessageType.Info);

@@ -1,4 +1,3 @@
-#if URP_SCREEN_SPACE_REFLECTION
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,12 +7,12 @@ using static UnityEngine.Rendering.Universal.ScreenSpaceReflectionVolumeSettings
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScreenSpaceReflectionVolumeSettings))]
-    class ScreenSpaceReflectionEditor : VolumeComponentEditor
+    class ScreenSpaceReflectionEditor : UniversalRenderPipelineVolumeComponentEditor
     {
         // Serialized properties, performance settings
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_UpscalingMethod;
-        SerializedDataParameter m_LinearMarching;
+        SerializedDataParameter m_MarchingMethod;
         SerializedDataParameter m_HitRefinementSteps;
         SerializedDataParameter m_FinalThicknessMultiplier;
         SerializedDataParameter m_MaxRayLength;
@@ -23,14 +22,21 @@ namespace UnityEditor.Rendering.Universal
 
         // Serialized properties, authoring settings
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_ReflectionStrength;
+        SerializedDataParameter m_ClampReflectedColor;
+        SerializedDataParameter m_MaxColorValue;
         SerializedDataParameter m_AfterOpaque;
-        SerializedDataParameter m_RoughReflections;
+        SerializedDataParameter m_RoughnessFilter;
         SerializedDataParameter m_RoughnessScale;
+        SerializedDataParameter m_ContactHardeningScale;
+        SerializedDataParameter m_ContactDistanceBias;
         SerializedDataParameter m_MinimumSmoothness;
         SerializedDataParameter m_SmoothnessFadeStart;
         SerializedDataParameter m_NormalFade;
         SerializedDataParameter m_ScreenEdgeFade;
         SerializedDataParameter m_ReflectSky;
+        SerializedDataParameter m_TemporalFiltering;
+        SerializedDataParameter m_BaseBlendFactor;
 
         PerformancePreset m_CurrentPreset = PerformancePreset.Custom;
         bool m_IgnorePresetChange = false;
@@ -38,16 +44,23 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<ScreenSpaceReflectionVolumeSettings>(serializedObject);
 
             m_Mode = Unpack(o.Find(x => x.mode));
+            m_ReflectionStrength = Unpack(o.Find(x => x.reflectionStrength));
+            m_ClampReflectedColor = Unpack(o.Find(x => x.clampReflectedColor));
+            m_MaxColorValue = Unpack(o.Find(x => x.maxColorValue));
             m_Resolution = Unpack(o.Find(x => x.resolution));
             m_UpscalingMethod = Unpack(o.Find(x => x.upscalingMethod));
-            m_LinearMarching = Unpack(o.Find(x => x.linearMarching));
+            m_MarchingMethod = Unpack(o.Find(x => x.marchingMethod));
             m_HitRefinementSteps = Unpack(o.Find(x => x.hitRefinementSteps));
             m_FinalThicknessMultiplier = Unpack(o.Find(x => x.finalThicknessMultiplier));
-            m_RoughReflections = Unpack(o.Find(x => x.roughReflections));
+            m_RoughnessFilter = Unpack(o.Find(x => x.roughnessFilter));
             m_RoughnessScale = Unpack(o.Find(x => x.roughnessScale));
+            m_ContactHardeningScale = Unpack(o.Find(x => x.contactHardeningScale));
+            m_ContactDistanceBias = Unpack(o.Find(x => x.contactDistanceBias));
             m_MinimumSmoothness = Unpack(o.Find(x => x.minimumSmoothness));
             m_SmoothnessFadeStart =  Unpack(o.Find(x => x.smoothnessFadeStart));
             m_NormalFade = Unpack(o.Find(x => x.normalFade));
@@ -57,6 +70,8 @@ namespace UnityEditor.Rendering.Universal
             m_RayLengthFade = Unpack(o.Find(x => x.rayLengthFade));
             m_MaxRaySteps = Unpack(o.Find(x => x.maxRaySteps));
             m_ObjectThickness = Unpack(o.Find(x => x.objectThickness));
+            m_TemporalFiltering = Unpack(o.Find(x => x.temporalFiltering));
+            m_BaseBlendFactor = Unpack(o.Find(x => x.baseBlendFactor));
 
             // Determine current preset
             DetectCurrentPreset();
@@ -91,7 +106,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Quality Preset Selection
             EditorGUI.BeginChangeCheck();
-            var qualityTextContent = EditorGUIUtility.TrTextContent("Performance Preset", "Select the quality vs. performance preset or use Custom for manual settings");
+            var qualityTextContent = L10n.TextContent("Performance Preset", "Select the quality vs. performance preset or use Custom for manual settings", null, null);
             var newPreset = (PerformancePreset)EditorGUILayout.EnumPopup(qualityTextContent, m_CurrentPreset);
             if (EditorGUI.EndChangeCheck() && newPreset != m_CurrentPreset)
             {
@@ -105,10 +120,10 @@ namespace UnityEditor.Rendering.Universal
             PropertyField(m_UpscalingMethod);
             PropertyField(m_MaxRaySteps);
             PropertyField(m_ObjectThickness);
-            PropertyField(m_LinearMarching);
-            if (m_LinearMarching.value.boolValue)
+            PropertyField(m_MarchingMethod);
+            if (m_MarchingMethod.value.enumValueIndex == (int)MarchingMethod.Linear)
             {
-                using (new EditorGUI.DisabledScope(!m_LinearMarching.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_MarchingMethod.overrideState.boolValue))
                 {
                     using (new IndentLevelScope())
                     {
@@ -122,12 +137,29 @@ namespace UnityEditor.Rendering.Universal
             // Authoring related settings (not part of preset).
             DrawHeader("Visual Quality");
             PropertyField(m_Mode);
-            PropertyField(m_RoughReflections);
-            if (m_RoughReflections.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
+            PropertyField(m_ReflectionStrength);
+            PropertyField(m_ClampReflectedColor);
+            if (m_ClampReflectedColor.value.boolValue)
             {
-                using (new EditorGUI.DisabledScope(!m_RoughReflections.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_ClampReflectedColor.overrideState.boolValue))
                 {
-                    PropertyField(m_RoughnessScale);
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_MaxColorValue);
+                    }
+                }
+            }
+            PropertyField(m_RoughnessFilter);
+            if (m_RoughnessFilter.value.enumValueIndex != (int)RoughReflectionsQuality.Disabled)
+            {
+                using (new EditorGUI.DisabledScope(!m_RoughnessFilter.overrideState.boolValue))
+                {
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_RoughnessScale);
+                        PropertyField(m_ContactHardeningScale);
+                        PropertyField(m_ContactDistanceBias);
+                    }
                 }
             }
 
@@ -136,22 +168,33 @@ namespace UnityEditor.Rendering.Universal
             m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinimumSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
             PropertyField(m_ScreenEdgeFade);
             PropertyField(m_NormalFade);
-            if (m_LinearMarching.value.boolValue)
+            if (m_MarchingMethod.value.enumValueIndex == (int)MarchingMethod.Linear)
             {
-                using (new EditorGUI.DisabledScope(!m_LinearMarching.overrideState.boolValue))
+                using (new EditorGUI.DisabledScope(!m_MarchingMethod.overrideState.boolValue))
                 {
                     PropertyField(m_RayLengthFade);
                     m_RayLengthFade.value.floatValue = Mathf.Min(m_MaxRayLength.value.floatValue, m_RayLengthFade.value.floatValue);
                 }
             }
             PropertyField(m_ReflectSky);
+            PropertyField(m_TemporalFiltering);
+            if (m_TemporalFiltering.value.boolValue)
+            {
+                using (new EditorGUI.DisabledScope(!m_TemporalFiltering.overrideState.boolValue))
+                {
+                    using (new IndentLevelScope())
+                    {
+                        PropertyField(m_BaseBlendFactor);
+                    }
+                }
+            }
         }
 
         void DetectCurrentPreset()
         {
             for (int i = 0; i < k_PerformancePresets.Length; i++)
             {
-                if (MatchesPreset(k_PerformancePresets[i]))
+                if (MatchesPreset(in k_PerformancePresets[i]))
                 {
                     m_CurrentPreset = (PerformancePreset)i;
                     return;
@@ -161,11 +204,11 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Ignores authoring and debugging settings.
-        bool MatchesPreset(PerformancePresetValues preset)
+        bool MatchesPreset(in PerformancePresetValues preset)
         {
             return m_Resolution.value.enumValueFlag == (int)preset.resolution &&
                    m_UpscalingMethod.value.enumValueFlag == (int)preset.upscalingMethod &&
-                   m_LinearMarching.value.boolValue == preset.linearMarching &&
+                   m_MarchingMethod.value.enumValueFlag == (int)preset.marchingMethod &&
                    m_HitRefinementSteps.value.intValue == preset.hitRefinementSteps &&
                    Mathf.Approximately(m_FinalThicknessMultiplier.value.floatValue, preset.finalThicknessMultiplier) &&
                    Mathf.Approximately(m_MaxRayLength.value.floatValue, preset.maxRayLength) &&
@@ -180,14 +223,14 @@ namespace UnityEditor.Rendering.Universal
 
             m_IgnorePresetChange = true;
 
-            var settings = k_PerformancePresets[(int)preset];
+            ref readonly var settings = ref k_PerformancePresets[(int)preset];
 
             m_Resolution.overrideState.boolValue = true;
             m_Resolution.value.intValue = (int)settings.resolution;
             m_UpscalingMethod.value.enumValueIndex = (int)settings.upscalingMethod;
             m_UpscalingMethod.overrideState.boolValue = true;
-            m_LinearMarching.value.boolValue = settings.linearMarching;
-            m_LinearMarching.overrideState.boolValue = true;
+            m_MarchingMethod.value.enumValueIndex = (int)settings.marchingMethod;
+            m_MarchingMethod.overrideState.boolValue = true;
             m_HitRefinementSteps.value.intValue = settings.hitRefinementSteps;
             m_HitRefinementSteps.overrideState.boolValue = true;
             m_FinalThicknessMultiplier.value.floatValue = settings.finalThicknessMultiplier;
@@ -203,4 +246,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-#endif

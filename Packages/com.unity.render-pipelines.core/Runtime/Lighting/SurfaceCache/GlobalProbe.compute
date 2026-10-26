@@ -1,0 +1,50 @@
+#pragma kernel Update
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Common.hlsl"
+#include "PatchUtil.hlsl"
+#include "GlobalProbe.hlsl"
+
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _GlobalProbe;
+TextureCube<float3> _EnvironmentCubemap;
+SamplerState sampler_EnvironmentCubemap;
+float _EnvironmentIntensityMultiplier;
+
+#define SAMPLE_COUNT 32
+
+groupshared SphericalHarmonics::RGBL1 lds_samples[SAMPLE_COUNT];
+
+[numthreads(SAMPLE_COUNT, 1, 1)]
+void Update(uint threadId : SV_GroupIndex, uint directionIdx : SV_GroupID)
+{
+    QrngKronecker2D rng;
+    rng.Init(42, threadId.x);
+
+    const float3 hemisphereDirection = GlobalProbe::DirectionIndexToDirection(directionIdx, PatchUtil::volumeAngularResolution);
+    const float3 rayDirection = UniformHemisphereSample(rng.GetSample(0), hemisphereDirection);
+    const float3 radiance = _EnvironmentIntensityMultiplier * _EnvironmentCubemap.SampleLevel(sampler_EnvironmentCubemap, rayDirection, 0);
+
+    lds_samples[threadId.x].l0 = radiance * SphericalHarmonics::y0;
+    lds_samples[threadId.x].l1s[0] = radiance * SphericalHarmonics::y1Constant * rayDirection.y;
+    lds_samples[threadId.x].l1s[1] = radiance * SphericalHarmonics::y1Constant * rayDirection.z;
+    lds_samples[threadId.x].l1s[2] = radiance * SphericalHarmonics::y1Constant * rayDirection.x;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Simple in-group reduction.
+    for (uint stride = (SAMPLE_COUNT >> 1); 0 < stride; stride >>= 1)
+    {
+        if (threadId.x < stride)
+            SphericalHarmonics::AddMut(lds_samples[threadId.x], lds_samples[threadId.x + stride]);
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if (threadId.x == 0)
+    {
+        const float reciprocalProbabilityDensity = 2.0f * PI;
+        const float normalizationFactor = reciprocalProbabilityDensity / float(SAMPLE_COUNT);
+        SphericalHarmonics::MulMut(lds_samples[0], normalizationFactor);
+        SphericalHarmonics::CosineConvolve(lds_samples[0]);
+        _GlobalProbe[directionIdx] = lds_samples[0];
+    }
+}

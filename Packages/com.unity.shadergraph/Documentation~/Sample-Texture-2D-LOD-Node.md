@@ -58,3 +58,7 @@ float _SampleTexture2DLOD_G = _SampleTexture2DLOD_RGBA.g;
 float _SampleTexture2DLOD_B = _SampleTexture2DLOD_RGBA.b;
 float _SampleTexture2DLOD_A = _SampleTexture2DLOD_RGBA.a;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

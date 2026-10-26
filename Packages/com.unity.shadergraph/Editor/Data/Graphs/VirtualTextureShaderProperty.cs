@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
 
-        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
         {
             int numLayers = value.layers.Count;
             if (numLayers > 0)
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         builder.Append(",");
                         builder.Append("TEXTURETYPE_");
-                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
+                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpperInvariant());
                     }
                     builder.Append(")");
                     builder.AppendNewLine();

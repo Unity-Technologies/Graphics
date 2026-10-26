@@ -5,6 +5,26 @@ using UnityEngine;
 namespace Unity.GraphCommon.LowLevel.Editor
 {
     /// <summary>
+    /// Abstraction of a "list of lists" — a collection that exposes multiple
+    /// independently-versioned sublists, each indexable by <c>[listIndex, itemIndex]</c>.
+    /// </summary>
+    /// <typeparam name="T">The element type stored in each sublist.</typeparam>
+    /*public*/ interface IMultiList<T> : IIndexable<int, int, T>
+    {
+        /// <summary>The number of sublists.</summary>
+        int ListCount { get; }
+
+        /// <summary>The number of items currently in the specified sublist.</summary>
+        int CountInList(int listIndex);
+
+        /// <summary>
+        /// Returns the version of the specified sublist. Implementations must bump this value
+        /// on every mutation that affects the sublist's content or count.
+        /// </summary>
+        uint GetListVersion(int listIndex);
+    }
+
+    /// <summary>
     /// A Linearized List of Lists
     /// </summary>
     /// <remarks>
@@ -14,26 +34,25 @@ namespace Unity.GraphCommon.LowLevel.Editor
     /// - Random insert/remove O(n)all items contiguous in memory
     /// </remarks>
     [Serializable]
-    class LinearMultiList<T> : IIndexable<int, int, T>
+    class LinearMultiList<T> : IMultiList<T>
     {
         [SerializeField]
         List<int> m_ListOffsets = new();
         [SerializeField]
         List<int> m_ListCounts = new();
         [SerializeField]
+        List<uint> m_ListVersions = new();
+        [SerializeField]
         List<T> m_Items = new();
 
-        /// <summary>
-        /// Gets the number of lists in the collection.
-        /// </summary>
+        /// <inheritdoc cref="IMultiList{T}"/>
         public int ListCount => m_ListOffsets.Count;
 
-        /// <summary>
-        /// Gets the number of items in the specified list.
-        /// </summary>
-        /// <param name="listIndex">The index of the list.</param>
-        /// <returns>The number of items in the list.</returns>
+        /// <inheritdoc cref="IMultiList{T}"/>
         public int CountInList(int listIndex) => GetCount(listIndex);
+
+        /// <inheritdoc cref="IMultiList{T}"/>
+        public uint GetListVersion(int listIndex) => m_ListVersions[listIndex];
 
         /// <summary>
         /// Gets or sets the item at the specified list and item indices.
@@ -53,6 +72,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             {
                 int flatIndex = GetFlatIndex(listIndex, itemIndex);
                 m_Items[flatIndex] = value;
+                m_ListVersions[listIndex]++;
             }
         }
 
@@ -69,12 +89,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
         /// <param name="capacity">The initial capacity of the list. Default is 0.</param>
         public void AddList(int capacity = 0)
         {
-            m_Items.Capacity = m_Items.Count + capacity;
             for (int i = 0; i < capacity; ++i)
                 m_Items.Add(default);
 
             m_ListOffsets.Add(m_Items.Count);
             m_ListCounts.Add(0);
+            m_ListVersions.Add(1u);
         }
 
         /// <summary>
@@ -88,6 +108,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
 
             m_ListOffsets.Add(m_Items.Count);
             m_ListCounts.Add(m_Items.Count - oldCount);
+            m_ListVersions.Add(1u);
         }
 
         /// <summary>
@@ -107,6 +128,10 @@ namespace Unity.GraphCommon.LowLevel.Editor
             m_ListOffsets.RemoveAt(m_ListOffsets.Count - 1);
 
             m_ListCounts.RemoveAt(listIndex);
+
+            m_ListVersions.RemoveAt(listIndex);
+            for (var i = listIndex; i < m_ListVersions.Count; ++i)
+                m_ListVersions[i]++;
         }
 
         /// <summary>
@@ -133,6 +158,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
 
             m_ListCounts[listIndex]++;
+            m_ListVersions[listIndex]++;
 
             return index;
         }
@@ -158,6 +184,22 @@ namespace Unity.GraphCommon.LowLevel.Editor
             m_Items[lastIndex] = default;
 
             m_ListCounts[listIndex] = count - 1;
+            m_ListVersions[listIndex]++;
+        }
+
+        /// <summary>
+        /// Removes all items from the specified list, leaving it empty while retaining its capacity.
+        /// </summary>
+        /// <param name="listIndex">The index of the list to clear.</param>
+        public void ClearList(int listIndex)
+        {
+            var offset = GetOffset(listIndex);
+            var count = GetCount(listIndex);
+            for (int i = 0; i < count; ++i)
+                m_Items[offset + i] = default;
+
+            m_ListCounts[listIndex] = 0;
+            m_ListVersions[listIndex]++;
         }
 
         /// <summary>
@@ -173,7 +215,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
             var count = GetCount(listIndex);
             for (int i = 0; i < count; ++i)
             {
-                if (m_Items[offset + i].Equals(value))
+                if (EqualityComparer<T>.Default.Equals(m_Items[offset + i], value))
                 {
                     itemIndex = i;
                     return true;
@@ -181,6 +223,22 @@ namespace Unity.GraphCommon.LowLevel.Editor
             }
             itemIndex = -1;
             return false;
+        }
+
+        /// <summary>
+        /// Replaces the contents of this list with a deep copy of <paramref name="other"/>.
+        /// </summary>
+        /// <param name="other">The source list to copy from.</param>
+        public void CopyFrom(LinearMultiList<T> other)
+        {
+            m_ListOffsets.Clear();
+            m_ListOffsets.AddRange(other.m_ListOffsets);
+            m_ListCounts.Clear();
+            m_ListCounts.AddRange(other.m_ListCounts);
+            m_Items.Clear();
+            m_Items.AddRange(other.m_Items);
+            m_ListVersions.Clear();
+            m_ListVersions.AddRange(other.m_ListVersions);
         }
 
         /// <summary>
@@ -200,6 +258,7 @@ namespace Unity.GraphCommon.LowLevel.Editor
                 oldOffset = m_ListOffsets[listIndex];
                 newOffset += count;
                 m_ListOffsets[listIndex] = newOffset;
+                m_ListVersions[listIndex]++;
             }
             m_Items.RemoveRange(newOffset, oldOffset - newOffset);
         }
@@ -244,7 +303,25 @@ namespace Unity.GraphCommon.LowLevel.Editor
             return offset + itemIndex;
         }
 
-    /// <summary>
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new();
+            sb.AppendLine("LinearMultiList:");
+            for (int i = 0; i < ListCount; i++ )
+            {
+                Sublist subList = this[i];
+                sb.AppendLine();
+                sb.Append($"List {i} :");
+                foreach (var item in subList)
+                {
+                    sb.Append($"{item} ");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Represents a view of a single list within the <see cref="LinearMultiList{T}"/>.
         /// </summary>
         public struct Sublist
@@ -288,10 +365,12 @@ namespace Unity.GraphCommon.LowLevel.Editor
             public T this[int index] => Owner[ListIndex, index];
 
             /// <summary>
-            /// Returns an enumerator that iterates through the items in this list.
+            /// Returns an enumerator that iterates through the items in this list and throws
+            /// <see cref="System.InvalidOperationException"/> if the sublist is mutated during
+            /// enumeration (per-sublist version check).
             /// </summary>
             /// <returns>An enumerator that can be used to iterate through the items.</returns>
-            public ListRangeEnumerator<T> GetEnumerator() => new(Owner.m_Items, Owner.GetOffset(ListIndex), Owner.GetCount(ListIndex));
+            public VersionedSublistEnumerator<T> GetEnumerator() => new(Owner, ListIndex, Owner.GetCount(ListIndex));
         }
 
         /// <summary>

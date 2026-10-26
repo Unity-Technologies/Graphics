@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -25,7 +24,12 @@ namespace UnityEngine.Experimental.Rendering
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
-        internal bool isLastCameraPass;
+        internal bool hasMotionVectorStencil;
+        internal uint motionVectorStencilValue;
+        internal uint motionVectorStencilMask;
+        internal bool isTemporalPixelSynthesisActive;
+        internal bool skipFDMForFinalPasses;
+        internal XRLayoutType xrLayoutType;
         internal Vector4 uvScales;
         internal Vector4 uvOffsets;
 
@@ -55,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Views = new List<XRView>(2);
             m_OcclusionMesh = new XROcclusionMesh(this);
             m_VisibleMesh = new XRVisibleMesh(this);
-            isLastCameraPass = true;    // default to last camera pass when creating from default constructor
+            xrLayoutType = XRLayoutType.Unknown;
             uvScales = Vector4.one;
             uvOffsets = Vector4.zero;
         }
@@ -67,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns> Default XRPass created from createInfo descriptor. </returns>
         public static XRPass CreateDefault(XRPassCreateInfo createInfo)
         {
-            XRPass pass = GenericPool<XRPass>.Get();
+            XRPass pass = UnityEngine.Pool.GenericPool<XRPass>.Get();
             pass.InitBase(createInfo);
             return pass;
         }
@@ -78,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering
         virtual public void Release()
         {
             m_VisibleMesh.Dispose();
-            GenericPool<XRPass>.Release(this);
+            UnityEngine.Pool.GenericPool<XRPass>.Release(this);
         }
 
         /// <summary>
@@ -132,14 +136,79 @@ namespace UnityEngine.Experimental.Rendering
         public bool spaceWarpRightHandedNDC { get; private set; }
 
         /// <summary>
+        /// If true, the runtime requests a stencil aspect on the motion-vector target, to be written by the
+        /// render pipeline and consumed by Temporal Pixel Synthesis.
+        /// </summary>
+        public bool hasMotionVectorStencil { get; private set; }
+
+        /// <summary>
+        /// Reference stencil value for the Temporal Pixel Synthesis exclusion test.
+        /// Pixels where <c>(stencilBuffer &amp; motionVectorStencilMask) == motionVectorStencilValue</c>
+        /// are excluded from temporal pixel synthesis. Constraint: <c>(value &amp; mask) == value</c>.
+        /// </summary>
+        public uint motionVectorStencilValue { get; private set; }
+
+        /// <summary>
+        /// Bitmask of stencil bits tested by Temporal Pixel Synthesis. Must be non-zero when
+        /// <see cref="hasMotionVectorStencil"/> is true, and must not overlap pipeline-private stencil bits.
+        /// </summary>
+        public uint motionVectorStencilMask { get; private set; }
+
+        /// <summary>
+        /// True when Temporal Pixel Synthesis is active for this pass. The render pipeline uses this to
+        /// suppress its own temporal resolve (TAA/STP), jitter, and upscaling, because the compositor
+        /// becomes the resolver.
+        /// </summary>
+        public bool isTemporalPixelSynthesisActive { get; private set; }
+
+        /// <summary>
+        /// When true, the Fragment Density Map (FDM) is not attached to the FinalBlit and UberPost passes.
+        /// Set by platform-specific XR features (e.g., Meta Quest) to allow the GPU driver to use Direct
+        /// rendering mode instead of Binning mode, reducing overhead from tile-incompatible post effects.
+        /// </summary>
+        public bool skipFDMForFinalPasses { get; private set; }
+
+        /// <summary>
         /// If true, is the first pass of a xr camera
         /// </summary>
         public bool isFirstCameraPass => multipassId == 0;
 
         /// <summary>
-        /// If true, is the last pass of a xr camera
+        /// XR rendering mode.
         /// </summary>
-        public bool isLastCameraPass { get; private set; }
+        public XRLayoutType xrLayoutType { get; private set; }
+
+        /// <summary>
+        /// Gets the total number of rendering passes required for the camera this frame,
+        /// inferred from the XR layout type.
+        /// </summary>
+        public int totalCameraPasses
+        {
+            get
+            {
+                switch (xrLayoutType)
+                {
+                    case XRLayoutType.TwoPassStereo:
+                    case XRLayoutType.TwoPassQuadViews:
+                        return 2;
+
+                    // All other supported modes are single-pass
+                    case XRLayoutType.SinglePassStereo:
+                    default:
+                        return 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// If true, this is the last rendering pass for the current camera.
+        /// </summary>
+        public bool isLastCameraPass => multipassId == totalCameraPasses - 1;
+
+        /// <summary>
+        /// Returns true when this pass renders the inner (foveal) views of a Quad View layout.
+        /// </summary>
+        public bool isQuadViewInnerPass => xrLayoutType == XRLayoutType.TwoPassQuadViews && isLastCameraPass;
 
         /// <summary>
         /// The scale factors used to map the current view's UV coordinates to the
@@ -584,10 +653,15 @@ namespace UnityEngine.Experimental.Rendering
             motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
             hasMotionVectorPass = createInfo.hasMotionVectorPass;
             spaceWarpRightHandedNDC = createInfo.spaceWarpRightHandedNDC;
+            hasMotionVectorStencil = createInfo.hasMotionVectorStencil;
+            motionVectorStencilValue = createInfo.motionVectorStencilValue;
+            motionVectorStencilMask = createInfo.motionVectorStencilMask;
+            isTemporalPixelSynthesisActive = createInfo.isTemporalPixelSynthesisActive;
+            skipFDMForFinalPasses = createInfo.skipFDMForFinalPasses;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
-            isLastCameraPass = createInfo.isLastCameraPass;
+            xrLayoutType = createInfo.xrLayoutType;
             uvScales = createInfo.uvScales;
             uvOffsets = createInfo.uvOffsets;
         }

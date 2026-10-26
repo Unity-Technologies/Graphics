@@ -46,30 +46,30 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.ContactShadows);
 
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State", "When enabled, HDRP processes Contact Shadows for this Volume."));
+            PropertyField(m_Enable, L10n.TextContent("State", "When enabled, HDRP processes Contact Shadows for this Volume.", null, null));
 
             if (!m_Enable.value.hasMultipleDifferentValues)
             {
-                PropertyField(m_DirectionalOnly, EditorGUIUtility.TrTextContent("Directional Only", "Only cast contact shadow on the main directional light of the scene. Enabling this option accelerate the evaluation of contact shadow and reduces the memory overhead."));
-                PropertyField(m_HalfResolution, EditorGUIUtility.TrTextContent("Half Resolution", "Evaluate the contact shadow using half the resolution of the screen. Reduces the memory consumption and increases performance at the cost of shadow sharpness."));
-                PropertyField(m_Length, EditorGUIUtility.TrTextContent("Length", "Controls the length of the rays HDRP uses to calculate Contact Shadows. Uses meters."));
-                PropertyField(m_DistanceScaleFactor, EditorGUIUtility.TrTextContent("Distance Scale Factor", "Dampens the scale up effect HDRP process with distance from the Camera."));
+                PropertyField(m_DirectionalOnly, L10n.TextContent("Directional Only", "Only cast contact shadow on the main directional light of the scene. Enabling this option accelerate the evaluation of contact shadow and reduces the memory overhead.", null, null));
+                PropertyField(m_HalfResolution, L10n.TextContent("Half Resolution", "Evaluate the contact shadow using half the resolution of the screen. Reduces the memory consumption and increases performance at the cost of shadow sharpness.", null, null));
+                PropertyField(m_Length, L10n.TextContent("Length", "Controls the length of the rays HDRP uses to calculate Contact Shadows. Uses meters.", null, null));
+                PropertyField(m_DistanceScaleFactor, L10n.TextContent("Distance Scale Factor", "Dampens the scale up effect HDRP process with distance from the Camera.", null, null));
                 m_MinDistance.value.floatValue = Mathf.Clamp(m_MinDistance.value.floatValue, 0.0f, m_MaxDistance.value.floatValue);
-                PropertyField(m_MinDistance, EditorGUIUtility.TrTextContent("Min Distance", "Sets the distance from the camera at which HDRP begins to fade in Contact Shadows. Uses meters."));
-                PropertyField(m_MaxDistance, EditorGUIUtility.TrTextContent("Max Distance", "Sets the distance from the Camera at which HDRP begins to fade out Contact Shadows. Uses meters."));
+                PropertyField(m_MinDistance, L10n.TextContent("Min Distance", "Sets the distance from the camera at which HDRP begins to fade in Contact Shadows. Uses meters.", null, null));
+                PropertyField(m_MaxDistance, L10n.TextContent("Max Distance", "Sets the distance from the Camera at which HDRP begins to fade out Contact Shadows. Uses meters.", null, null));
                 m_FadeInDistance.value.floatValue = Mathf.Clamp(m_FadeInDistance.value.floatValue, 0.0f, m_MaxDistance.value.floatValue);
-                PropertyField(m_FadeInDistance, EditorGUIUtility.TrTextContent("Fade In Distance", "Sets the distance over which HDRP fades Contact Shadows in when past the Min Distance. Uses meters."));
-                PropertyField(m_FadeDistance, EditorGUIUtility.TrTextContent("Fade Out Distance", "Sets the distance over which HDRP fades Contact Shadows out when at the Max Distance. Uses meters."));
-                PropertyField(m_Opacity, EditorGUIUtility.TrTextContent("Opacity", "Controls the opacity of the Contact Shadow."));
-                PropertyField(m_Bias, EditorGUIUtility.TrTextContent("Bias", "Controls the bias applied to the screen space ray cast to get contact shadows. Increasing this value can help with self-intersection issues, but can lead to detached contact shadows."));
-                PropertyField(m_Thickness, EditorGUIUtility.TrTextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows."));
+                PropertyField(m_FadeInDistance, L10n.TextContent("Fade In Distance", "Sets the distance over which HDRP fades Contact Shadows in when past the Min Distance. Uses meters.", null, null));
+                PropertyField(m_FadeDistance, L10n.TextContent("Fade Out Distance", "Sets the distance over which HDRP fades Contact Shadows out when at the Max Distance. Uses meters.", null, null));
+                PropertyField(m_Opacity, L10n.TextContent("Opacity", "Controls the opacity of the Contact Shadow.", null, null));
+                PropertyField(m_Bias, L10n.TextContent("Bias", "Controls the bias applied to the screen space ray cast to get contact shadows. Increasing this value can help with self-intersection issues, but can lead to detached contact shadows.", null, null));
+                PropertyField(m_Thickness, L10n.TextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows.", null, null));
 
                 base.OnInspectorGUI();
 
                 using (new IndentLevelScope())
                 using (new QualityScope(this))
                 {
-                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
+                    PropertyField(m_SampleCount, L10n.TextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting.", null, null));
                 }
             }
         }

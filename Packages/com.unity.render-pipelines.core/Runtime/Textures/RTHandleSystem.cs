@@ -843,14 +843,27 @@ namespace UnityEngine.Rendering
 
             if (isShadowMap)
             {
-                //This is the same "magic" behavior like setting the desc.colorFormat = RenderTextureFormat.Shadowmap
-                //We elevate the magic to here to only use the explict properties (graphicsFormat, depthStencilFormat, ShadowSamplingMode) from now.
-                int depthBits = GraphicsFormatUtility.GetDepthBits(format);
-                if (depthBits < 16) depthBits = 16;
+                // If the user requested a stencil buffer, respect that choice
+                if (format is GraphicsFormat.S8_UInt
+                    or GraphicsFormat.D16_UNorm_S8_UInt
+                    or GraphicsFormat.D24_UNorm_S8_UInt
+                    or GraphicsFormat.D32_SFloat_S8_UInt)
+                {
+                    depthStencilFormat = format;
+                    stencilFormat = (memoryless != RenderTextureMemoryless.None) ? GraphicsFormat.None : GetStencilFormat(format);
+                }
+                // Otherwise, just use an appropriate depth-only format
+                else
+                {
+                    //This is the same "magic" behavior like setting the desc.colorFormat = RenderTextureFormat.Shadowmap
+                    //We elevate the magic to here to only use the explict properties (graphicsFormat, depthStencilFormat, ShadowSamplingMode) from now.
+                    int depthBits = GraphicsFormatUtility.GetDepthBits(format);
+                    if (depthBits < 16) depthBits = 16;
 
-                depthStencilFormat = GraphicsFormatUtility.GetDepthStencilFormat(depthBits, 0);
+                    depthStencilFormat = GraphicsFormatUtility.GetDepthStencilFormat(depthBits, 0);
+                    stencilFormat = GraphicsFormat.None;
+                }
                 colorFormat = GraphicsFormat.None;
-                stencilFormat = GraphicsFormat.None;
                 shadowSamplingMode = ShadowSamplingMode.CompareDepths;
 
                 fullName = CoreUtils.GetRenderTargetAutoName(width, height, slices, RenderTextureFormat.Shadowmap, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples);

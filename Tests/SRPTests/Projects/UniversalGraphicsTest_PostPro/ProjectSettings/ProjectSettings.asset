@@ -475,33 +475,7 @@ PlayerSettings:
       m_SubKind:
   m_BuildTargetBatching: []
   m_BuildTargetShaderSettings: []
-  m_BuildTargetGraphicsJobs:
-  - m_BuildTarget: MacStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: Switch
-    m_GraphicsJobs: 0
-  - m_BuildTarget: MetroSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: AppleTVSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: BJMSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: LinuxStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: PS4Player
-    m_GraphicsJobs: 0
-  - m_BuildTarget: iOSSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: WindowsStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: XboxOnePlayer
-    m_GraphicsJobs: 0
-  - m_BuildTarget: LuminSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: AndroidPlayer
-    m_GraphicsJobs: 0
-  - m_BuildTarget: WebGLSupport
-    m_GraphicsJobs: 0
+  m_BuildTargetGraphicsJobs: []
   m_BuildTargetGraphicsJobMode:
   - m_BuildTarget: PS4Player
     m_GraphicsJobMode: 0
@@ -705,9 +679,13 @@ PlayerSettings:
   scriptingDefineSymbols:
     : LWRP_DEBUG_STATIC_POSTFX
     Android: LWRP_DEBUG_STATIC_POSTFX
+    GameCoreScarlett: LWRP_DEBUG_STATIC_POSTFX
+    GameCoreXboxOne: LWRP_DEBUG_STATIC_POSTFX
     Nintendo Switch: LWRP_DEBUG_STATIC_POSTFX
     PS4: LWRP_DEBUG_STATIC_POSTFX
+    PS5: LWRP_DEBUG_STATIC_POSTFX
     Standalone: LWRP_DEBUG_STATIC_POSTFX
+    Switch2: LWRP_DEBUG_STATIC_POSTFX
     WebGL: LWRP_DEBUG_STATIC_POSTFX
     Windows Store Apps: LWRP_DEBUG_STATIC_POSTFX
     XboxOne: LWRP_DEBUG_STATIC_POSTFX
@@ -716,6 +694,15 @@ PlayerSettings:
   additionalCompilerArguments:
     Standalone:
     - -warnaserror+
+    - -warnaserror-:CS0618
+    - -warnaserror-:UAC0005
+    - -warnaserror-:UAC0007
+    - -warnaserror-:UAC0020
+    - -warnaserror-:UAL0010
+    - -warnaserror-:UAL0011
+    - -warnaserror-:UAL0012
+    - -warnaserror-:UAL0013
+    - -warnaserror-:UAL0014
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

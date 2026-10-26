@@ -1,6 +1,6 @@
-# Output Particle Forward Decal
+# Output Particle Forward Decal Context
 
-Menu Path : **Context > Output Particle Forward Decal**
+Menu Path : **Context** > **Output Particle Forward Decal**
 
 The **Output Particle Forward Decal** Context renders a particle system using a decal. A decal is a box into which the Visual Effect Graph projects a texture. Unity then renders the texture on any intersecting geometry along its xy plane. This means decal particles that don’t intersect any geometry are not visible. Note that although they are not visible, they still contribute to the resource intensity required to simulate and render the system.
 

@@ -1,13 +1,13 @@
-#if MODERN_SSAO
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Screen Space Ambient Occlusion (SSAO) history for temporal filtering.
-    /// Holds the SSAO accumulation texture from the previous frame.
+    /// Uses double buffering so the previous frame can be sampled while the current frame is written.
+    /// The history stores packed depth (RG), AO (B), and a normalized accumulated frame count (A) in an RGBA8 texture.
     /// </summary>
-    public sealed class SSAOHistory : CameraHistoryItem
+    internal sealed class SSAOHistory : CameraHistoryItem
     {
         private int[] m_AccumulationTextureIds = new int[2];
         private int[] m_AccumulationVersions = new int[2];
@@ -52,13 +52,39 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Get the SSAO history write target for the current frame.
+        /// </summary>
+        /// <param name="eyeIndex">Eye index for XR multi-pass.</param>
+        /// <returns>Current frame RTHandle for SSAO history writes.</returns>
+        public RTHandle GetCurrentTexture(int eyeIndex = 0)
+        {
+            if ((uint)eyeIndex >= m_AccumulationTextureIds.Length)
+                return null;
+
+            return GetCurrentFrameRT(m_AccumulationTextureIds[eyeIndex]);
+        }
+
+        /// <summary>
+        /// Get the SSAO history read target from the previous frame.
+        /// </summary>
+        /// <param name="eyeIndex">Eye index for XR multi-pass.</param>
+        /// <returns>Previous frame RTHandle for SSAO history reads.</returns>
+        public RTHandle GetPreviousTexture(int eyeIndex = 0)
+        {
+            if ((uint)eyeIndex >= m_AccumulationTextureIds.Length)
+                return null;
+
+            return GetPreviousFrameRT(m_AccumulationTextureIds[eyeIndex]);
+        }
+
+        /// <summary>
         /// Get SSAO accumulation texture.
         /// </summary>
         /// <param name="eyeIndex">Eye index for XR multi-pass.</param>
         /// <returns>Current frame RTHandle for SSAO accumulation texture.</returns>
         public RTHandle GetAccumulationTexture(int eyeIndex = 0)
         {
-            return GetCurrentFrameRT(m_AccumulationTextureIds[eyeIndex]);
+            return GetCurrentTexture(eyeIndex);
         }
 
         /// <summary>
@@ -76,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
         /// Set SSAO accumulation texture version.
         /// </summary>
         /// <param name="eyeIndex">Eye index for XR multi-pass.</param>
-        /// <param name="version">Version to set (typically Time.frameCount).</param>
+        /// <param name="version">Version to set (the motion vector frame index).</param>
         internal void SetAccumulationVersion(int eyeIndex, int version)
         {
             m_AccumulationVersions[eyeIndex] = version;
@@ -85,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
         // Check if the SSAO accumulation texture is valid.
         private bool IsValid()
         {
-            return GetAccumulationTexture(0) != null;
+            return GetCurrentTexture(0) != null;
         }
 
         // True if the desc changed, graphicsFormat etc.
@@ -96,10 +122,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void Alloc(ref RenderTextureDescriptor desc, bool xrMultipassEnabled)
         {
-            AllocHistoryFrameRT(m_AccumulationTextureIds[0], 1, ref desc, m_AccumulationNames[0]);
+            AllocHistoryFrameRT(m_AccumulationTextureIds[0], 2, ref desc, m_AccumulationNames[0]);
 
             if (xrMultipassEnabled)
-                AllocHistoryFrameRT(m_AccumulationTextureIds[1], 1, ref desc, m_AccumulationNames[1]);
+                AllocHistoryFrameRT(m_AccumulationTextureIds[1], 2, ref desc, m_AccumulationNames[1]);
 
             m_Descriptor = desc;
             m_DescKey = Hash128.Compute(ref desc);
@@ -110,15 +136,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraDesc">Camera render texture descriptor.</param>
         /// <param name="downsample">Whether SSAO is running at half resolution.</param>
-        /// <param name="supportsR8">Whether the platform supports R8 render texture format.</param>
         /// <param name="enableRandomWrite">Whether the resource requires enableRandomWrite.</param>
         /// <returns>SSAO history render texture descriptor.</returns>
-        internal static RenderTextureDescriptor GetHistoryDescriptor(ref RenderTextureDescriptor cameraDesc, bool downsample, bool supportsR8, bool enableRandomWrite)
+        internal static RenderTextureDescriptor GetHistoryDescriptor(ref RenderTextureDescriptor cameraDesc, bool downsample, bool enableRandomWrite)
         {
             int downsampleDivider = downsample ? 2 : 1;
 
             RenderTextureDescriptor ssaoDesc = cameraDesc;
-            ssaoDesc.colorFormat = supportsR8 ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
+            ssaoDesc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
             ssaoDesc.depthStencilFormat = GraphicsFormat.None;
             ssaoDesc.msaaSamples = 1;
             ssaoDesc.width /= downsampleDivider;
@@ -133,16 +158,15 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraData">Camera data providing the render texture descriptor.</param>
         /// <param name="downsample">Whether SSAO is running at half resolution.</param>
-        /// <param name="supportsR8">Whether the platform supports R8 render texture format.</param>
         /// <param name="enableRandomWrite">Whether the resource requires enableRandomWrite.</param>
         /// <param name="xrMultipassEnabled">Whether XR multi-pass is enabled.</param>
         /// <returns>True if the RTHandles were reallocated.</returns>
-        internal bool Update(UniversalCameraData cameraData, bool downsample, bool supportsR8, bool enableRandomWrite, bool xrMultipassEnabled = false)
+        internal bool Update(UniversalCameraData cameraData, bool downsample, bool enableRandomWrite, bool xrMultipassEnabled = false)
         {
             ref RenderTextureDescriptor cameraDesc = ref cameraData.cameraTargetDescriptor;
             if (cameraDesc.width > 0 && cameraDesc.height > 0 && cameraDesc.graphicsFormat != GraphicsFormat.None)
             {
-                var ssaoDesc = GetHistoryDescriptor(ref cameraDesc, downsample, supportsR8, enableRandomWrite);
+                var ssaoDesc = GetHistoryDescriptor(ref cameraDesc, downsample, enableRandomWrite);
 
                 Camera camera = cameraData.camera;
                 bool isPreview = camera.cameraType == CameraType.Preview;
@@ -161,4 +185,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

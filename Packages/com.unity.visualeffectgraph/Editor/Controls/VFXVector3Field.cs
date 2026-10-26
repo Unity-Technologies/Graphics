@@ -65,9 +65,9 @@ namespace UnityEditor.VFX.UI
             get => m_Fields[0].showMixedValue;
             set
             {
-                foreach (var field in m_Fields)
+                foreach (var componentField in m_Fields)
                 {
-                    field.showMixedValue = value;
+                    componentField.showMixedValue = value;
                 }
                 ValueToGUI(true);
             }

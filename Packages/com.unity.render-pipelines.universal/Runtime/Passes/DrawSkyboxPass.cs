@@ -12,6 +12,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public partial class DrawSkyboxPass : ScriptableRenderPass
     {
+        // Pre-exposes the built-in skybox shaders (see Skybox*.shader in DefaultResourcesExtra).
+        private const string k_PreExposeSkyKeyword = "PRE_EXPOSE_SKY";
+
         /// <summary>
         /// Creates a new <c>DrawSkyboxPass</c> instance.
         /// </summary>
@@ -51,8 +54,9 @@ namespace UnityEngine.Rendering.Universal
             return skyRendererListHandle;
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, XRPass xr, RendererList rendererList)
+        private static void ExecutePass(RasterCommandBuffer cmd, XRPass xr, RendererList rendererList, bool renderExposure)
         {
+            CoreUtils.SetKeyword(cmd, k_PreExposeSkyKeyword, renderExposure);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
                 cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
@@ -63,6 +67,7 @@ namespace UnityEngine.Rendering.Universal
             if (xr.enabled && xr.singlePassEnabled)
                 cmd.SetSinglePassStereo(SinglePassStereoMode.None);
 #endif
+            CoreUtils.SetKeyword(cmd, k_PreExposeSkyKeyword, false);
         }
 
         private class PassData
@@ -70,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
             internal XRPass xr;
             internal RendererListHandle skyRendererListHandle;
             internal Material material;
+            internal bool applyExposure; // Off while capturing the environment reflection from the skybox, so the capture stays un-exposed.
         }
 
         private void InitPassData(ref PassData passData, in XRPass xr, in RendererListHandle handle)
@@ -99,6 +105,14 @@ namespace UnityEngine.Rendering.Universal
                 var skyRendererListHandle = CreateSkyBoxRendererList(renderGraph, cameraData);
                 InitPassData(ref passData, cameraData.xr, skyRendererListHandle);
                 passData.material = skyboxMaterial;
+
+                passData.applyExposure = GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting) && exposureSetting.UseExposure &&
+                    !(cameraData.cameraType == CameraType.Reflection && cameraData.camera.reflectionProbeRendered == null);
+
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
                 builder.UseRendererList(skyRendererListHandle);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.ReadWrite);
@@ -108,8 +122,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -117,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data.xr, data.skyRendererListHandle);
+                    ExecutePass(context.cmd, data.xr, data.skyRendererListHandle, data.applyExposure);
                 });
             }
         }

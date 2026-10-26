@@ -365,10 +365,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_Views != null)
                         Cleanup(cmdBuffer);
 
-                    m_Views = ListPool<ViewState>.Get();
+                    m_Views = UnityEngine.Pool.ListPool<ViewState>.Get();
                     for (int viewId = 0; viewId < cameraViewCount; ++viewId)
                     {
-                        var newView = GenericPool<ViewState>.Get();
+                        var newView = UnityEngine.Pool.GenericPool<ViewState>.Get();
                         newView.Init(m_Device);
                         m_Views.Add(newView);
                     }
@@ -425,10 +425,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var v in m_Views)
                 {
                     v.Cleanup(cmdBuffer);
-                    GenericPool<ViewState>.Release(v);
+                    UnityEngine.Pool.GenericPool<ViewState>.Release(v);
                 }
 
-                ListPool<ViewState>.Release(m_Views);
+                UnityEngine.Pool.ListPool<ViewState>.Release(m_Views);
                 m_Views = null;
                 m_Device = null;
             }
@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var dlssCamera = cameraState.data as DLSSCamera;
                 dlssCamera.Cleanup(m_CommandBuffer);
-                GenericPool<DLSSCamera>.Release(dlssCamera);
+                UnityEngine.Pool.GenericPool<DLSSCamera>.Release(dlssCamera);
                 cameraState.data = null;
             }
             Graphics.ExecuteCommandBuffer(m_CommandBuffer);
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (cameraState == null && dlssActive)
             {
-                dlssCamera = GenericPool<DLSSCamera>.Get();
+                dlssCamera = UnityEngine.Pool.GenericPool<DLSSCamera>.Get();
                 dlssCamera.Init(m_Device);
                 cameraState = m_CameraStates.CreateState(hdCamera.camera);
                 cameraState.data = dlssCamera;

@@ -97,7 +97,7 @@ class AutodeskInteractiveFadeMaterialUpgraderTest : MaterialUpgraderTestBase<Aut
             {
                 material.SetFloat("_Mode", 2.0f); // fade
                 material.SetColor("_EmissionColor", Color.green);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {

@@ -20,8 +20,17 @@ namespace UnityEngine.Rendering.Universal
 
         void TryToSetPersistantShapeData(SpriteSkin spriteSkin, ShadowShape2D persistantShadowShape, bool force)
         {
-            if (spriteSkin != null)
-                persistantShadowShape.SetShape(spriteSkin.outlineVertices, spriteSkin.outlineIndices, ShadowShape2D.OutlineTopology.Lines);
+            if (spriteSkin == null)
+                return;
+
+            // For CPU deformation the outline vertices are backed by a buffer that is only populated after the
+            // first deformation pass has run. Reading it before then hands uninitialized memory to the shadow
+            // shape, so wait until the SpriteSkin reports a completed deformation. OnBeforeRender picks the
+            // shape up on the first frame after that, so nothing is permanently skipped.
+            if (!spriteSkin.HasCurrentDeformedVertices() || spriteSkin.vertexDeformationHash == 0)
+                return;
+
+            persistantShadowShape.SetShape(spriteSkin.outlineVertices, spriteSkin.outlineIndices, ShadowShape2D.OutlineTopology.Lines);
         }
 
         void UpdatePersistantShapeData(SpriteRenderer spriteRenderer)
@@ -69,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
             TryToSetPersistantShapeData(spriteSkin, persistantShadowShape, true);
         }
 
-        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;
             if (spriteSkin != null && spriteSkin.vertexDeformationHash != m_LastDeformedVertexHash)

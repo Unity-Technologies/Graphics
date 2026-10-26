@@ -1,5 +1,8 @@
-#if !PLATFORM_PS5 || UNITY_EDITOR
-#define PLATFORM_SUPPORTS_COMPUTE_BACKEND
+#if INCLUDE_UNIFIED_RAYTRACING_COMPUTE_BACKEND || UNITY_EDITOR
+#define INCLUDE_COMPUTE_BACKEND
+#endif
+#if INCLUDE_UNIFIED_RAYTRACING_HARDWARE_BACKEND || UNITY_EDITOR
+#define INCLUDE_HARDWARE_BACKEND
 #endif
 using System;
 
@@ -26,6 +29,40 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     }
 
     /// <summary>
+    /// Ray tracing capabilities that a <see cref="RayTracingBackend"/> supports.
+    /// </summary>
+    /// <remarks>
+    /// GPUs can support these capabilities independently of each other. Use <see cref="RayTracingContext.GetCapabilities(RayTracingBackend)"/>
+    /// to check the capabilities you intend to use.
+    /// </remarks>
+    [Flags]
+    public enum CapabilityMask
+    {
+        /// <summary>
+        /// Backend not supported.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Creating and dispatching an <see cref="IRayTracingShader"/>.
+        /// </summary>
+        /// <remarks>On the Hardware backend, requires <see cref="SystemInfo.supportsRayTracingShaders"/>.</remarks>
+        RayTracingShaders = 1 << 0,
+
+        /// <summary>
+        /// Dispatching an <see cref="IRayTracingShader"/> with grid dimensions read from a GraphicsBuffer (<see cref="IRayTracingShader.DispatchIndirect"/>).
+        /// </summary>
+        /// <remarks>On the Hardware backend, requires <see cref="SystemInfo.supportsIndirectDispatchRays"/>.</remarks>
+        RayTracingDispatchIndirect = 1 << 1,
+
+        /// <summary>
+        /// Tracing rays inline in compute shaders (ray queries).
+        /// </summary>
+        /// <remarks>On the Hardware backend, requires <see cref="SystemInfo.supportsInlineRayTracing"/>.</remarks>
+        InlineRayTracing = 1 << 2,
+    }
+
+    /// <summary>
     /// Entry point for the UnifiedRayTracing API.
     /// </summary>
     /// <remarks>
@@ -49,14 +86,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             Utils.CheckArgIsNotNull(resources, nameof(resources));
 
-            if (!IsBackendSupported(backend))
-                throw new System.InvalidOperationException("Unsupported backend: " + backend.ToString());
+            Utils.CheckSupport(GetCapabilities(backend) != CapabilityMask.None,
+                "Unsupported backend: " + backend);
 
             BackendType = backend;
+#if INCLUDE_HARDWARE_BACKEND
             if (backend == RayTracingBackend.Hardware)
                 m_Backend = new HardwareRayTracingBackend(resources);
-#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
-            else if (backend == RayTracingBackend.Compute)
+#endif
+#if INCLUDE_COMPUTE_BACKEND
+            if (m_Backend == null && backend == RayTracingBackend.Compute)
                 m_Backend = new ComputeRayTracingBackend(resources);
 #endif
 
@@ -65,11 +104,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         }
 
         /// <summary>
-        /// Creates a RayTracingContext.
+        /// Creates a RayTracingContext, automatically choosing the backend.
         /// </summary>
+        /// <remarks>
+        /// Selects the Hardware backend when the GPU supports <see cref="CapabilityMask.RayTracingShaders"/>, otherwise the Compute backend.
+        /// </remarks>
         /// <param name="resources">The resources (provides the various shaders the context needs to operate).</param>
         /// <exception cref="System.InvalidOperationException">Thrown when no supported backend is available.</exception>
-        public RayTracingContext(RayTracingResources resources) : this(IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute, resources)
+        [Obsolete("This function doesn't check the specific capabillity you might want for the backend. Please use GetCapabilities(...) for a given backend before deciding what to use.", false)]
+        public RayTracingContext(RayTracingResources resources)
+            : this(GetCapabilities(RayTracingBackend.Hardware).HasFlag(CapabilityMask.RayTracingShaders|CapabilityMask.InlineRayTracing) ?
+                RayTracingBackend.Hardware : RayTracingBackend.Compute, resources)
         {
         }
 
@@ -98,17 +143,43 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// Checks if the specified backend is supported on the current GPU.
         /// </summary>
         /// <param name="backend">The backend.</param>
-        /// <returns>Whether the specified bakend is supported.</returns>
+        /// <returns>Whether the specified backend is supported.</returns>
+        [Obsolete("Use GetCapabilities(RayTracingBackend) instead and check the capabilities you intend to use. For the Hardware backend, this method returns true when any hardware ray tracing capability is available, even if the GPU cannot dispatch an IRayTracingShader. #from(6000.7)")]
         static public bool IsBackendSupported(RayTracingBackend backend)
         {
-            if (backend == RayTracingBackend.Hardware)
-                return SystemInfo.supportsRayTracing;
-#if PLATFORM_SUPPORTS_COMPUTE_BACKEND
-            else if (backend == RayTracingBackend.Compute)
-                return SystemInfo.supportsComputeShaders;
+            return GetCapabilities(backend) != CapabilityMask.None;
+        }
+
+        /// <summary>
+        /// Returns the ray tracing capabilities that the specified backend supports in this build and on the current GPU.
+        /// </summary>
+        /// <remarks>
+        /// Check capabilities with <see cref="Enum.HasFlag(Enum)"/>.
+        /// </remarks>
+        /// <param name="backend">The backend.</param>
+        /// <returns>The supported capabilities. <see cref="CapabilityMask.None"/> when the backend is not supported.</returns>
+        static public CapabilityMask GetCapabilities(RayTracingBackend backend)
+        {
+#if INCLUDE_HARDWARE_BACKEND
+            if (backend == RayTracingBackend.Hardware && SystemInfo.supportsRayTracing)
+            {
+                var capabilities = CapabilityMask.None;
+                if (SystemInfo.supportsRayTracingShaders)
+                    capabilities |= CapabilityMask.RayTracingShaders;
+                if (SystemInfo.supportsInlineRayTracing)
+                    capabilities |= CapabilityMask.InlineRayTracing;
+                if (SystemInfo.supportsIndirectDispatchRays)
+                    capabilities |= CapabilityMask.RayTracingDispatchIndirect;
+                return capabilities;
+            }
+#endif
+#if INCLUDE_COMPUTE_BACKEND
+            // The Compute backend implements every feature with regular compute shaders.
+            if (backend == RayTracingBackend.Compute && SystemInfo.supportsComputeShaders)
+                return CapabilityMask.RayTracingShaders | CapabilityMask.InlineRayTracing | CapabilityMask.RayTracingDispatchIndirect;
 #endif
 
-            return false;
+            return CapabilityMask.None;
         }
 
         /// <summary>
@@ -120,6 +191,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// </remarks>
         /// <param name="shader">The ComputeShader or RayTracingShader asset.</param>
         /// <returns>The unified ray tracing shader.</returns>
+        /// <exception cref="System.InvalidOperationException">Thrown when the Hardware backend is used and the GPU cannot dispatch ray tracing shaders. See <see cref="CapabilityMask.RayTracingShaders"/>.</exception>
         public IRayTracingShader CreateRayTracingShader(Object shader) =>
             m_Backend.CreateRayTracingShader(shader, "MainRayGenShader", m_DispatchBuffer);
 
@@ -267,7 +339,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public const GraphicsBuffer.Target ScratchBufferTarget = GraphicsBuffer.Target.Structured;
 
         /// <summary>
-        /// Creates an indirect args buffer suitable for <see cref="IRayTracingShader.Dispatch"/>.
+        /// Creates an indirect args buffer suitable for <see cref="IRayTracingShader.DispatchIndirect"/>.
         /// </summary>
         /// <returns>The scratch buffer.</returns>
         static public GraphicsBuffer CreateDispatchIndirectBuffer()
@@ -292,6 +364,29 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             Utils.CheckArgIsNotNull(shader, nameof(shader));
 
             var sizeInBytes = System.Math.Max(accelStruct.GetBuildScratchBufferRequiredSizeInBytes(), shader.GetTraceScratchBufferRequiredSizeInBytes(dispatchWidth, dispatchHeight, dispatchDepth));
+            if (sizeInBytes == 0)
+                return null;
+
+            return new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)(sizeInBytes / 4), 4);
+        }
+
+        /// <summary>
+        /// Creates a scratch buffer suitable for both <see cref="IRayTracingShader.Dispatch"/> and <see cref="IRayTracingAccelStruct.Build"/>.
+        /// </summary>
+        /// <param name="accelStruct">The acceleration structure that will be passed to <see cref="IRayTracingAccelStruct.Build"/>.</param>
+        /// <param name="context">The <see cref="RayTracingContext"/> used to determine the required trace scratch buffer size.</param>
+        /// <param name="dispatchWidth">Number of threads in the X dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <param name="dispatchHeight">Number of threads in the Y dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <param name="dispatchDepth">Number of threads in the Z dimension that will be passed to <see cref="IRayTracingShader.Dispatch"/>.</param>
+        /// <returns>The scratch buffer.</returns>
+        static public GraphicsBuffer CreateScratchBufferForBuildAndDispatch(
+            IRayTracingAccelStruct accelStruct, RayTracingContext context, uint dispatchWidth, uint dispatchHeight, uint dispatchDepth)
+        {
+            Utils.CheckArgIsNotNull(accelStruct, nameof(accelStruct));
+            Utils.CheckArgIsNotNull(context, nameof(context));
+            Utils.CheckArgIsNotNull(accelStruct, nameof(accelStruct));
+
+            var sizeInBytes = System.Math.Max(accelStruct.GetBuildScratchBufferRequiredSizeInBytes(), context.GetRequiredTraceScratchBufferSizeInBytes(dispatchWidth, dispatchHeight, dispatchDepth));
             if (sizeInBytes == 0)
                 return null;
 

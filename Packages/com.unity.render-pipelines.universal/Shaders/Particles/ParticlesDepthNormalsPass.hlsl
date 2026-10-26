@@ -2,6 +2,8 @@
 #define UNIVERSAL_PARTICLES_LIT_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
 
 VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle input)
 {
@@ -10,12 +12,12 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
+    VertexPositionInputs vertexInput = GetParticleVertexPositionInputs(input.vertex.xyz);
+    VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normal, input.tangent);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-    #if defined(_NORMALMAP)
+    #if FEATURES_NORMALMAP
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
         output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
         output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -30,7 +32,7 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
         output.color = GetParticleColor(input.color);
     #endif
 
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP
         #if defined(_FLIPBOOKBLENDING_ON)
             #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
                 GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
@@ -51,7 +53,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     // Inputs...
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP) || defined(_WRITE_SMOOTHNESS)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP || defined(_WRITE_SMOOTHNESS)
         float2 uv = input.texcoord;
 
         #if defined(_FLIPBOOKBLENDING_ON)
@@ -65,7 +67,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     #if defined(_ALPHATEST_ON)
         half4 vertexColor = input.color;
         half4 baseColor = _BaseColor;
-        half4 albedo = BlendTexture(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, blendUv) * baseColor;
+        half4 albedo = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), uv, blendUv) * baseColor;
 
         half4 colorAddSubDiff = half4(0, 0, 0, 0);
         #if defined(_COLORADDSUBDIFF_ON)
@@ -77,31 +79,28 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     #endif
 
     // Normals...
-    #ifdef _NORMALMAP
-        half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
-        float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
-    #else
-        float3 normalWS = input.normalWS;
+    half3 normalWS = input.normalWS.xyz;
+
+    #if FEATURES_NORMALMAP
+    if (UseNormalMap())
+    {
+        half3 normalTS = half3(0.0, 0.0, 1.0);
+    if (UseNormalMap())
+        normalTS = SampleParticleNormalTS(uv, blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), _BumpScale);
+        normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    }
     #endif
 
     half outputAlpha = 0;
+    
     #if defined(_WRITE_SMOOTHNESS)
-        #if defined(_METALLICSPECGLOSSMAP)
-            outputAlpha = BlendTexture(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), uv, blendUv).a * _Smoothness;
-        #else
-            outputAlpha = _Smoothness;
-        #endif
+        half glossMapAlpha = UseMetallicSpecGlossMap()
+            ? BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_MetallicGlossMap), uv, blendUv).a
+            : half(1.0);
+        outputAlpha = glossMapAlpha * _Smoothness;
     #endif
-
-    // Output...
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        return half4(packedNormalWS, outputAlpha);
-    #else
-        return half4(NormalizeNormalPerPixel(normalWS), outputAlpha);
-    #endif
+    
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), outputAlpha);
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_DEPTH_NORMALS_PASS_INCLUDED

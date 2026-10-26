@@ -3,7 +3,7 @@ using System.IO;
 
 namespace UnityEditor.Rendering.UnifiedRayTracing
 {
-    [ScriptedImporter(1, "urtshader")]
+    [ScriptedImporter(1, "urtshader", AllowCaching = true)]
     internal class UnifiedRTShaderImporter : ScriptedImporter
     {
         public override void OnImportAsset(AssetImportContext ctx)

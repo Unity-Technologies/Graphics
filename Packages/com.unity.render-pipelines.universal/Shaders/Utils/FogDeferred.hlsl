@@ -4,6 +4,8 @@
 #define UNIVERSAL_FOG_DEFERRED
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 
 struct Attributes
 {
@@ -38,12 +40,15 @@ half4 Frag(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     GBufferData gBufferData = UnpackGBuffers(input.positionCS.xy);
-    float viewZ = LinearEyeDepth(gBufferData.depth, _ZBufferParams); // TODO: This wont work for orthographic camera!
-    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-    half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    half fogIntensity = ComputeFogIntensity(fogFactor);
 
-    return half4(unity_FogColor.rgb, fogIntensity);
+    // Device depth to view-space eye depth, correct for both perspective and orthographic.
+    float viewZ = IsPerspectiveProjection() ? LinearEyeDepth(gBufferData.depth, _ZBufferParams)
+                                            : LinearDepthToEyeDepth(gBufferData.depth);
+    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    half fogIntensity = DistanceFogOcclusionFactor(nearToFarZ);
+
+    // TODO: a perspective/ortho multi_compile would drop this per-pixel branch.
+    return half4(ClampExposed(unity_FogColor.rgb * GetPreExposureMultiplier()), fogIntensity);
 }
 
 #endif

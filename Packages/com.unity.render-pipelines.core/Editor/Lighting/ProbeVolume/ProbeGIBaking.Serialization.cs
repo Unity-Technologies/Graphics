@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
-
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
-using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
+using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
 using StreamableCellDesc = UnityEngine.Rendering.ProbeVolumeStreamableAsset.StreamableCellDesc;
 
@@ -48,9 +47,9 @@ namespace UnityEngine.Rendering
             public NativeArray<byte> probeOcclusion;
         }
 
-        internal const string kAPVStreamingAssetsPath = "APVStreamingAssets";
+        internal const string k_APVStreamingAssetsPath = "APVStreamingAssets";
 
-        static CellCounts m_TotalCellCounts;
+        static CellCounts s_TotalCellCounts;
 
         static CellChunkData GetCellChunkData(CellData cellData, int chunkIndex)
         {
@@ -103,12 +102,12 @@ namespace UnityEngine.Rendering
             // When baking a baking set. It is possible that cells layout has changed (min and max position of cells in the set).
             // If this is the case then the cell index for a given position will change.
             // Because of this, when doing partial bakes, we need to generate a remapping table of the old cells to the new layout in order to be able to update existing data.
-            Dictionary<int, int> oldToNewCellRemapping = new Dictionary<int, int>();
+            var oldToNewCellRemapping = new Dictionary<int, int>();
 
             if (isBakingSubset)
             {
                 // Layout has changed but is still compatible. Remap all cells that are not part of the bake.
-                if (minCellPosition != m_BakingSet.minCellPosition || maxCellPosition != m_BakingSet.maxCellPosition)
+                if (s_MinCellPosition != m_BakingSet.minCellPosition || s_MaxCellPosition != m_BakingSet.maxCellPosition)
                 {
                     var alreadyBakedCells = m_BakingSet.cellDescs;
                     var newCells = new SerializedDictionary<int, CellDesc>();
@@ -135,11 +134,11 @@ namespace UnityEngine.Rendering
             bool needRemap = cellRemapTable.Count != 0;
 
             // Build lists of scene GUIDs and assign baking set to the PerSceneData.
-            var bakedSceneGUIDList = new List<string>();
+            var bakedSceneGuidList = new List<GUID>();
             foreach (var data in bakedSceneDataList)
             {
                 Debug.Assert(ProbeVolumeBakingSet.SceneHasProbeVolumes(data.sceneGUID));
-                bakedSceneGUIDList.Add(data.sceneGUID);
+                bakedSceneGuidList.Add(data.sceneGUID);
 
                 if (m_BakingSet != data.serializedBakingSet)
                 {
@@ -148,44 +147,46 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            var currentPerSceneCellList = m_BakingSet.perSceneCellLists; // Cell lists from last baking.
-            m_BakingSet.perSceneCellLists = new SerializedDictionary<string, List<int>>();
+            var previousPerSceneCellData = m_BakingSet.perSceneCellData;
+            m_BakingSet.perSceneCellData = new Dictionary<GUID, List<int>>();
 
             // Partial baking: Copy over scene cell lists for scenes not being baked.
             // Layout change: Remap indices.
-            foreach (var scene in currentPerSceneCellList)
+            foreach (var scene in previousPerSceneCellData)
             {
                 // Scene is not baked. Remap if needed or add it back to the baking set.
-                if (!bakedSceneGUIDList.Contains(scene.Key))
+                if (!bakedSceneGuidList.Contains(scene.Key))
                 {
                     if (needRemap)
                     {
                         var newCellList = new List<int>();
                         foreach (var cell in scene.Value)
+                        {
                             newCellList.Add(cellRemapTable[cell]);
+                        }
 
-                        m_BakingSet.perSceneCellLists.Add(scene.Key, newCellList);
+                        m_BakingSet.perSceneCellData.Add(scene.Key, newCellList);
                     }
                     else
                     {
-                        m_BakingSet.perSceneCellLists.Add(scene.Key, scene.Value);
+                        m_BakingSet.perSceneCellData.Add(scene.Key, scene.Value);
                     }
                 }
             }
 
             // Allocate baked cells to the relevant scenes cell list.
-            foreach (var cell in m_BakedCells.Values)
+            foreach (var cell in s_BakedCells.Values)
             {
-                foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
+                foreach (var scene in s_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a probe volume in it?
-                    if (bakedSceneGUIDList.Contains(scene))
+                    if (bakedSceneGuidList.Contains(scene))
                     {
                         List<int> indexList;
-                        if (!m_BakingSet.perSceneCellLists.TryGetValue(scene, out indexList))
+                        if (!m_BakingSet.perSceneCellData.TryGetValue(scene, out indexList))
                         {
                             indexList = new List<int>();
-                            m_BakingSet.perSceneCellLists.Add(scene, indexList);
+                            m_BakingSet.perSceneCellData.Add(scene, indexList);
                         }
 
                         indexList.Add(cell.index);
@@ -209,13 +210,13 @@ namespace UnityEngine.Rendering
                 // Resolve all unloaded scene cells in CPU memory. This will allow us to extract them into BakingCells in order to have the full list for writing.
                 // Other cells should already be in the baked cells list.
                 var loadedSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
-                foreach(var sceneGUID in m_BakingSet.sceneGUIDs)
+                foreach (var sceneGuid in m_BakingSet.scenesInBakingSet)
                 {
                     // If a scene was baked
-                    if (m_BakingSet.perSceneCellLists.TryGetValue(sceneGUID, out var cellList))
+                    if (m_BakingSet.perSceneCellData.TryGetValue(sceneGuid, out var cellList))
                     {
                         // And the scene is not in the baked subset
-                        if (cellList.Count != 0 && !partialBakeSceneList.Contains(sceneGUID))
+                        if (cellList.Count != 0 && !s_PartialBakeSceneList.Contains(sceneGuid))
                         {
                             // Resolve its data in CPU memory.
                             bool resolved = m_BakingSet.ResolveCellData(cellList);
@@ -241,9 +242,9 @@ namespace UnityEngine.Rendering
         {
             if (c == 0)
             {
-                m_BakedCells.Clear();
-                m_CellPosToIndex.Clear();
-                m_CellsToDilate.Clear();
+                s_BakedCells.Clear();
+                s_CellPosToIndex.Clear();
+                s_CellsToDilate.Clear();
             }
 
             bool hasRenderingLayers = renderingLayerMasks.IsCreated;
@@ -252,7 +253,7 @@ namespace UnityEngine.Rendering
             bool hasSkyDirection = skyDirection.IsCreated;
             bool hasProbeOcclusion = probeOcclusion.IsCreated;
 
-            var cell = m_BakingBatch.cells[c];
+            var cell = s_BakingBatch.cells[c];
             int numProbes = cell.probePositions.Length;
             Debug.Assert(numProbes > 0);
 
@@ -278,22 +279,22 @@ namespace UnityEngine.Rendering
                 cell.minSubdiv = Mathf.Min(cell.minSubdiv, subdivLevel);
 
                 int uniqueProbeIndex = positionRemap[cell.probeIndices[i]];
-                cell.SetBakedData(m_BakingSet, m_BakingBatch, localTouchupVolumes, i, uniqueProbeIndex,
+                cell.SetBakedData(m_BakingSet, s_BakingBatch, localTouchupVolumes, i, uniqueProbeIndex,
                     sh[uniqueProbeIndex], validity[uniqueProbeIndex], renderingLayerMasks, virtualOffsets, skyOcclusion, skyDirection, probeOcclusion);
             }
 
             ComputeValidityMasks(cell);
 
-            m_BakedCells[cell.index] = cell;
-            m_CellsToDilate[cell.index] = cell;
-            m_CellPosToIndex.Add(cell.position, cell.index);
+            s_BakedCells[cell.index] = cell;
+            s_CellsToDilate[cell.index] = cell;
+            s_CellPosToIndex.Add(cell.position, cell.index);
         }
 
         static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
         {
             var prv = ProbeReferenceVolume.instance;
-            int cellSizeInBricks = m_ProfileInfo.cellSizeInBricks;
-            int entrySubdivLevel = Mathf.Min(m_ProfileInfo.simplificationLevels, prv.GetGlobalIndirectionEntryMaxSubdiv());
+            int cellSizeInBricks = s_ProfileInfo.cellSizeInBricks;
+            int entrySubdivLevel = Mathf.Min(s_ProfileInfo.simplificationLevels, prv.GetGlobalIndirectionEntryMaxSubdiv());
             int indirectionEntrySizeInBricks = ProbeReferenceVolume.CellSize(entrySubdivLevel);
             int numOfIndirectionEntriesPerCellDim = cellSizeInBricks / indirectionEntrySizeInBricks;
 
@@ -314,13 +315,13 @@ namespace UnityEngine.Rendering
                     for (int z = 0; z < numOfIndirectionEntriesPerCellDim; ++z)
                     {
                         Vector3Int entryPositionInBricks = cellPosInBricks + new Vector3Int(x, y, z) * indirectionEntrySizeInBricks;
-                        Bounds entryBoundsInBricks = new Bounds();
+                        var entryBoundsInBricks = new Bounds();
                         entryBoundsInBricks.min = entryPositionInBricks;
                         entryBoundsInBricks.max = entryPositionInBricks + new Vector3Int(indirectionEntrySizeInBricks, indirectionEntrySizeInBricks, indirectionEntrySizeInBricks);
 
-                        int minSubdiv = m_ProfileInfo.maxSubdivision;
+                        int minSubdiv = s_ProfileInfo.maxSubdivision;
                         bool touchedBrick = false;
-                        foreach (Brick b in cell.bricks)
+                        foreach (var b in cell.bricks)
                         {
                             if (b.subdivisionLevel < minSubdiv)
                             {
@@ -340,7 +341,7 @@ namespace UnityEngine.Rendering
                         prv.ComputeEntryMinMax(ref cell.indirectionEntryInfo[i], cell.bricks);
                         int brickCount = ProbeReferenceVolume.GetNumberOfBricksAtSubdiv(cell.indirectionEntryInfo[i]);
 
-                        totalIndexChunks += Mathf.CeilToInt((float)brickCount / ProbeBrickIndex.kIndexChunkSize);
+                        totalIndexChunks += Mathf.CeilToInt((float)brickCount / ProbeBrickIndex.k_IndexChunkSize);
 
                         i++;
                     }
@@ -381,12 +382,12 @@ namespace UnityEngine.Rendering
             shaderCoeffsL1BL1Rz[offset + 0] = SHFloatToByte(sh[2, 1]); shaderCoeffsL1BL1Rz[offset + 1] = SHFloatToByte(sh[2, 2]); shaderCoeffsL1BL1Rz[offset + 2] = SHFloatToByte(sh[2, 3]); shaderCoeffsL1BL1Rz[offset + 3] = SHFloatToByte(sh[0, 3]);
         }
 
-        static void WriteToShaderCoeffsL2(in SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3, int offset)
+        static void WriteToShaderCoeffsL2(in SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL20, NativeArray<byte> shaderCoeffsL21, NativeArray<byte> shaderCoeffsL22, NativeArray<byte> shaderCoeffsL23, int offset)
         {
-            shaderCoeffsL2_0[offset + 0] = SHFloatToByte(sh[0, 4]); shaderCoeffsL2_0[offset + 1] = SHFloatToByte(sh[0, 5]); shaderCoeffsL2_0[offset + 2] = SHFloatToByte(sh[0, 6]); shaderCoeffsL2_0[offset + 3] = SHFloatToByte(sh[0, 7]);
-            shaderCoeffsL2_1[offset + 0] = SHFloatToByte(sh[1, 4]); shaderCoeffsL2_1[offset + 1] = SHFloatToByte(sh[1, 5]); shaderCoeffsL2_1[offset + 2] = SHFloatToByte(sh[1, 6]); shaderCoeffsL2_1[offset + 3] = SHFloatToByte(sh[1, 7]);
-            shaderCoeffsL2_2[offset + 0] = SHFloatToByte(sh[2, 4]); shaderCoeffsL2_2[offset + 1] = SHFloatToByte(sh[2, 5]); shaderCoeffsL2_2[offset + 2] = SHFloatToByte(sh[2, 6]); shaderCoeffsL2_2[offset + 3] = SHFloatToByte(sh[2, 7]);
-            shaderCoeffsL2_3[offset + 0] = SHFloatToByte(sh[0, 8]); shaderCoeffsL2_3[offset + 1] = SHFloatToByte(sh[1, 8]); shaderCoeffsL2_3[offset + 2] = SHFloatToByte(sh[2, 8]);
+            shaderCoeffsL20[offset + 0] = SHFloatToByte(sh[0, 4]); shaderCoeffsL20[offset + 1] = SHFloatToByte(sh[0, 5]); shaderCoeffsL20[offset + 2] = SHFloatToByte(sh[0, 6]); shaderCoeffsL20[offset + 3] = SHFloatToByte(sh[0, 7]);
+            shaderCoeffsL21[offset + 0] = SHFloatToByte(sh[1, 4]); shaderCoeffsL21[offset + 1] = SHFloatToByte(sh[1, 5]); shaderCoeffsL21[offset + 2] = SHFloatToByte(sh[1, 6]); shaderCoeffsL21[offset + 3] = SHFloatToByte(sh[1, 7]);
+            shaderCoeffsL22[offset + 0] = SHFloatToByte(sh[2, 4]); shaderCoeffsL22[offset + 1] = SHFloatToByte(sh[2, 5]); shaderCoeffsL22[offset + 2] = SHFloatToByte(sh[2, 6]); shaderCoeffsL22[offset + 3] = SHFloatToByte(sh[2, 7]);
+            shaderCoeffsL23[offset + 0] = SHFloatToByte(sh[0, 8]); shaderCoeffsL23[offset + 1] = SHFloatToByte(sh[1, 8]); shaderCoeffsL23[offset + 2] = SHFloatToByte(sh[2, 8]);
         }
 
         static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz, int offset)
@@ -396,22 +397,22 @@ namespace UnityEngine.Rendering
             sh[2, 1] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 0]); sh[2, 2] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 1]); sh[2, 3] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 2]); sh[0, 3] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 3]);
         }
 
-        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3, int offset)
+        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL20, NativeArray<byte> shaderCoeffsL21, NativeArray<byte> shaderCoeffsL22, NativeArray<byte> shaderCoeffsL23, int offset)
         {
-            sh[0, 4] = SHByteToFloat(shaderCoeffsL2_0[offset + 0]); sh[0, 5] = SHByteToFloat(shaderCoeffsL2_0[offset + 1]); sh[0, 6] = SHByteToFloat(shaderCoeffsL2_0[offset + 2]); sh[0, 7] = SHByteToFloat(shaderCoeffsL2_0[offset + 3]);
-            sh[1, 4] = SHByteToFloat(shaderCoeffsL2_1[offset + 0]); sh[1, 5] = SHByteToFloat(shaderCoeffsL2_1[offset + 1]); sh[1, 6] = SHByteToFloat(shaderCoeffsL2_1[offset + 2]); sh[1, 7] = SHByteToFloat(shaderCoeffsL2_1[offset + 3]);
-            sh[2, 4] = SHByteToFloat(shaderCoeffsL2_2[offset + 0]); sh[2, 5] = SHByteToFloat(shaderCoeffsL2_2[offset + 1]); sh[2, 6] = SHByteToFloat(shaderCoeffsL2_2[offset + 2]); sh[2, 7] = SHByteToFloat(shaderCoeffsL2_2[offset + 3]);
-            sh[0, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 0]); sh[1, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 1]); sh[2, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 2]);
+            sh[0, 4] = SHByteToFloat(shaderCoeffsL20[offset + 0]); sh[0, 5] = SHByteToFloat(shaderCoeffsL20[offset + 1]); sh[0, 6] = SHByteToFloat(shaderCoeffsL20[offset + 2]); sh[0, 7] = SHByteToFloat(shaderCoeffsL20[offset + 3]);
+            sh[1, 4] = SHByteToFloat(shaderCoeffsL21[offset + 0]); sh[1, 5] = SHByteToFloat(shaderCoeffsL21[offset + 1]); sh[1, 6] = SHByteToFloat(shaderCoeffsL21[offset + 2]); sh[1, 7] = SHByteToFloat(shaderCoeffsL21[offset + 3]);
+            sh[2, 4] = SHByteToFloat(shaderCoeffsL22[offset + 0]); sh[2, 5] = SHByteToFloat(shaderCoeffsL22[offset + 1]); sh[2, 6] = SHByteToFloat(shaderCoeffsL22[offset + 2]); sh[2, 7] = SHByteToFloat(shaderCoeffsL22[offset + 3]);
+            sh[0, 8] = SHByteToFloat(shaderCoeffsL23[offset + 0]); sh[1, 8] = SHByteToFloat(shaderCoeffsL23[offset + 1]); sh[2, 8] = SHByteToFloat(shaderCoeffsL23[offset + 2]);
         }
 
         static void ReadFullFromShaderCoeffsL0L1L2(ref SphericalHarmonicsL2 sh,
             NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz,
-            NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3,
+            NativeArray<byte> shaderCoeffsL20, NativeArray<byte> shaderCoeffsL21, NativeArray<byte> shaderCoeffsL22, NativeArray<byte> shaderCoeffsL23,
             int probeIdx)
         {
             ReadFromShaderCoeffsL0L1(ref sh, shaderCoeffsL0L1Rx, shaderCoeffsL1GL1Ry, shaderCoeffsL1BL1Rz, probeIdx * 4);
-            if (shaderCoeffsL2_0.Length > 0)
-                ReadFromShaderCoeffsL2(ref sh, shaderCoeffsL2_0, shaderCoeffsL2_1, shaderCoeffsL2_2, shaderCoeffsL2_3, probeIdx * 4);
+            if (shaderCoeffsL20.Length > 0)
+                ReadFromShaderCoeffsL2(ref sh, shaderCoeffsL20, shaderCoeffsL21, shaderCoeffsL22, shaderCoeffsL23, probeIdx * 4);
 
         }
 
@@ -452,23 +453,23 @@ namespace UnityEngine.Rendering
         // Returns index in the GPU layout of probe of coordinate (x, y, z) in the brick at brickIndex for a DataLocation of size locSize
         static int GetProbeGPUIndex(int brickIndex, int x, int y, int z, Vector3Int locSize)
         {
-            Vector3Int locSizeInBrick = locSize / ProbeBrickPool.kBrickProbeCountPerDim;
+            Vector3Int locSizeInBrick = locSize / ProbeBrickPool.k_BrickProbeCountPerDim;
 
             int bx = brickIndex % locSizeInBrick.x;
             int by = (brickIndex / locSizeInBrick.x) % locSizeInBrick.y;
             int bz = ((brickIndex / locSizeInBrick.x) / locSizeInBrick.y) % locSizeInBrick.z;
 
             // In probes
-            int ix = bx * ProbeBrickPool.kBrickProbeCountPerDim + x;
-            int iy = by * ProbeBrickPool.kBrickProbeCountPerDim + y;
-            int iz = bz * ProbeBrickPool.kBrickProbeCountPerDim + z;
+            int ix = bx * ProbeBrickPool.k_BrickProbeCountPerDim + x;
+            int iy = by * ProbeBrickPool.k_BrickProbeCountPerDim + y;
+            int iz = bz * ProbeBrickPool.k_BrickProbeCountPerDim + z;
 
             return ix + locSize.x * (iy + locSize.y * iz);
         }
 
         static BakingCell ConvertCellToBakingCell(CellDesc cellDesc, CellData cellData)
         {
-            BakingCell bc = new BakingCell
+            var bc = new BakingCell
             {
                 position = cellDesc.position,
                 index = cellDesc.index,
@@ -485,7 +486,6 @@ namespace UnityEngine.Rendering
             bool hasSkyOcclusion = cellData.skyOcclusionDataL0L1.Length > 0;
             bool hasSkyShadingDirection = cellData.skyShadingDirectionIndices.Length > 0;
             bool hasProbeOcclusion = cellData.scenarios.TryGetValue(m_BakingSet.lightingScenario, out var scenarioData) && scenarioData.probeOcclusion.Length > 0;
-
 
             // Runtime Cell arrays may contain padding to match chunk size
             // so we use the actual probe count for these arrays.
@@ -520,11 +520,11 @@ namespace UnityEngine.Rendering
                     if (probeIndex >= probeCount)
                         break;
 
-                    for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                    for (int z = 0; z < ProbeBrickPool.k_BrickProbeCountPerDim; z++)
                     {
-                        for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                        for (int y = 0; y < ProbeBrickPool.k_BrickProbeCountPerDim; y++)
                         {
-                            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                            for (int x = 0; x < ProbeBrickPool.k_BrickProbeCountPerDim; x++)
                             {
                                 var remappedIndex = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
 
@@ -546,7 +546,9 @@ namespace UnityEngine.Rendering
                                 }
 
                                 for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
+                                {
                                     bc.validityNeighbourMask[l, probeIndex] = cellChunkData.validityNeighMaskData[remappedIndex];
+                                }
                                 if (hasSkyOcclusion)
                                     ReadFromShaderCoeffsSkyOcclusion(ref bc.skyOcclusionDataL0L1[probeIndex], cellChunkData.skyOcclusionDataL0L1, remappedIndex);
                                 if (hasSkyShadingDirection)
@@ -579,8 +581,8 @@ namespace UnityEngine.Rendering
         static BakingCell MergeCells(BakingCell dst, BakingCell srcCell)
         {
             int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
-            bool hasRenderingLayers = m_BakingSet.useRenderingLayers;
-            bool hasVirtualOffsets = s_BakeData.virtualOffsetJob.offsets.IsCreated;
+            bool hasRenderingLayers = s_BakeData.layerMaskJob.renderingLayerMasks.IsCreated;
+            bool hasVirtualOffsets = s_BakeData.virtualOffsetJob?.offsets.IsCreated ?? false;
             bool hasSkyOcclusion = s_BakeData.skyOcclusionJob.occlusion.IsCreated;
             bool hasSkyShadingDirection = s_BakeData.skyOcclusionJob.shadingDirections.IsCreated;
             bool hasProbeOcclusion = s_BakeData.lightingJob.occlusion.IsCreated;
@@ -621,9 +623,9 @@ namespace UnityEngine.Rendering
                 return 0;
             });
 
-            BakingCell outCell = new BakingCell();
+            var outCell = new BakingCell();
 
-            int numberOfProbes = consolidatedBricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
+            int numberOfProbes = consolidatedBricks.Count * ProbeBrickPool.k_BrickProbeCountTotal;
             outCell.index = dst.index;
             outCell.position = dst.position;
             outCell.bricks = new Brick[consolidatedBricks.Count];
@@ -648,29 +650,34 @@ namespace UnityEngine.Rendering
             {
                 var b = consolidatedBricks[i];
                 int brickIndexInSource = b.Item2;
+                var sourceCell = consideredCells[b.Item3];
 
-                outCell.bricks[i] = consideredCells[b.Item3].bricks[brickIndexInSource];
+                outCell.bricks[i] = sourceCell.bricks[brickIndexInSource];
 
-                for (int p = 0; p < ProbeBrickPool.kBrickProbeCountTotal; ++p)
+                for (int p = 0; p < ProbeBrickPool.k_BrickProbeCountTotal; ++p)
                 {
-                    int outIdx = i * ProbeBrickPool.kBrickProbeCountTotal + p;
-                    int srcIdx = brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p;
-                    outCell.probePositions[outIdx] = consideredCells[b.Item3].probePositions[srcIdx];
-                    outCell.sh[outIdx] = consideredCells[b.Item3].sh[srcIdx];
-                    outCell.validity[outIdx] = consideredCells[b.Item3].validity[srcIdx];
+                    int outIdx = i * ProbeBrickPool.k_BrickProbeCountTotal + p;
+                    int srcIdx = brickIndexInSource * ProbeBrickPool.k_BrickProbeCountTotal + p;
+                    outCell.probePositions[outIdx] = sourceCell.probePositions[srcIdx];
+                    outCell.sh[outIdx] = sourceCell.sh[srcIdx];
+                    outCell.validity[outIdx] = sourceCell.validity[srcIdx];
                     for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
-                        outCell.validityNeighbourMask[l, outIdx] = consideredCells[b.Item3].validityNeighbourMask[l, srcIdx];
+                    {
+                        outCell.validityNeighbourMask[l, outIdx] = sourceCell.validityNeighbourMask[l, srcIdx];
+                    }
+                    // A source cell baked while an optional feature was disabled has no data for it, so
+                    // write the same neutral values that WriteBakingCells uses for such cells.
                     if (hasProbeOcclusion)
-                        outCell.probeOcclusion[outIdx] = consideredCells[b.Item3].probeOcclusion[srcIdx];
+                        outCell.probeOcclusion[outIdx] = sourceCell.probeOcclusion?.Length > 0 ? sourceCell.probeOcclusion[srcIdx] : Vector4.one;
                     if (hasRenderingLayers)
-                        outCell.layerValidity[outIdx] = consideredCells[b.Item3].layerValidity[srcIdx];
+                        outCell.layerValidity[outIdx] = sourceCell.layerValidity?.Length > 0 ? sourceCell.layerValidity[srcIdx] : (byte)0xFF;
                     if (hasSkyOcclusion)
-                        outCell.skyOcclusionDataL0L1[outIdx] = consideredCells[b.Item3].skyOcclusionDataL0L1[srcIdx];
+                        outCell.skyOcclusionDataL0L1[outIdx] = sourceCell.skyOcclusionDataL0L1?.Length > 0 ? sourceCell.skyOcclusionDataL0L1[srcIdx] : Vector4.zero;
                     if (hasSkyShadingDirection)
-                        outCell.skyShadingDirectionIndices[outIdx] = consideredCells[b.Item3].skyShadingDirectionIndices[srcIdx];
+                        outCell.skyShadingDirectionIndices[outIdx] = sourceCell.skyShadingDirectionIndices?.Length > 0 ? sourceCell.skyShadingDirectionIndices[srcIdx] : (byte)255;
                     if (hasVirtualOffsets)
-                        outCell.offsetVectors[outIdx] = consideredCells[b.Item3].offsetVectors[srcIdx];
-                    outCell.touchupVolumeInteraction[outIdx] = consideredCells[b.Item3].touchupVolumeInteraction[srcIdx];
+                        outCell.offsetVectors[outIdx] = sourceCell.offsetVectors?.Length > 0 ? sourceCell.offsetVectors[srcIdx] : Vector3.zero;
+                    outCell.touchupVolumeInteraction[outIdx] = sourceCell.touchupVolumeInteraction[srcIdx];
                 }
             }
             return outCell;
@@ -688,12 +695,12 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < numberOfCells; ++i)
                 {
-                    if (m_BakedCells.ContainsKey(cells[i]))
+                    if (s_BakedCells.ContainsKey(cells[i]))
                     {
                         var cell = m_BakingSet.GetCellDesc(cells[i]);
 
                         // This can happen if doing a partial bake before ever doing a full bake.
-                        if (cell == null || !m_BakedCells.ContainsKey(cell.index))
+                        if (cell == null || !s_BakedCells.ContainsKey(cell.index))
                             continue;
 
                         var cellData = m_BakingSet.GetCellData(cells[i]);
@@ -703,8 +710,8 @@ namespace UnityEngine.Rendering
                             continue;
 
                         BakingCell bc = ConvertCellToBakingCell(cell, cellData);
-                        bc = MergeCells(m_BakedCells[cell.index], bc);
-                        m_BakedCells[cell.index] = bc;
+                        bc = MergeCells(s_BakedCells[cell.index], bc);
+                        s_BakedCells[cell.index] = bc;
                     }
                 }
             }
@@ -713,13 +720,13 @@ namespace UnityEngine.Rendering
             // This allows us to have the full set of cells ready for writing all at once.
             foreach (var cell in m_BakingSet.cellDescs.Values)
             {
-                if (!m_BakedCells.ContainsKey(cell.index))
+                if (!s_BakedCells.ContainsKey(cell.index))
                 {
                     var cellData = m_BakingSet.GetCellData(cell.index);
                     if (cellData == null)
                         continue;
 
-                    m_BakedCells.Add(cell.index, ConvertCellToBakingCell(cell, cellData));
+                    s_BakedCells.Add(cell.index, ConvertCellToBakingCell(cell, cellData));
                 }
             }
         }
@@ -743,6 +750,24 @@ namespace UnityEngine.Rendering
 
             return supportPositionChunkSize + supportValidityChunkSize +
                    supportOffsetsChunkSize + supportLayerMaskChunkSize + supportTouchupChunkSize;
+        }
+
+        /// <summary>
+        /// Determines which optional features the baking cells contain data for. Used instead of the
+        /// baking set settings, which can be modified while a bake is in progress.
+        /// </summary>
+        /// <param name="bakingCells">Array of baking cells to inspect</param>
+        /// <param name="hasVirtualOffsets">Whether any cell has virtual offset data</param>
+        /// <param name="hasRenderingLayers">Whether any cell has rendering layer data</param>
+        static void GetOptionalFeaturesFromCells(BakingCell[] bakingCells, out bool hasVirtualOffsets, out bool hasRenderingLayers)
+        {
+            hasVirtualOffsets = false;
+            hasRenderingLayers = false;
+            for (var i = 0; i < bakingCells.Length; ++i)
+            {
+                hasVirtualOffsets |= bakingCells[i].offsetVectors?.Length > 0;
+                hasRenderingLayers |= bakingCells[i].layerValidity?.Length > 0;
+            }
         }
 
         /// <summary>
@@ -802,20 +827,18 @@ namespace UnityEngine.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        static unsafe bool WriteBakingCells(ProbeVolumeBakingSet bakingSet, BakingCell[] bakingCells)
+        static unsafe bool WriteBakingCells(ProbeVolumeBakingSet bakingSet, BakingCell[] bakingCells, Unity.Mathematics.uint4 bakedRegionMasks)
         {
             bakingSet.GetBlobFileNames(bakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename,
                                        out var cellOptionalDataFilename, out var cellProbeOcclusionDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
             bakingSet.cellDescs = new SerializedDictionary<int, CellDesc>();
-            bakingSet.bakedMinDistanceBetweenProbes = m_ProfileInfo.minDistanceBetweenProbes;
-            bakingSet.bakedSimplificationLevels = m_ProfileInfo.simplificationLevels;
-            bakingSet.bakedProbeOffset = m_ProfileInfo.probeOffset;
+            bakingSet.bakedMinDistanceBetweenProbes = s_ProfileInfo.minDistanceBetweenProbes;
+            bakingSet.bakedSimplificationLevels = s_ProfileInfo.simplificationLevels;
+            bakingSet.bakedProbeOffset = s_ProfileInfo.probeOffset;
             bakingSet.bakedProbeOcclusion = false;
-            bakingSet.bakedSkyOcclusion = bakingSet.skyOcclusion;
-            bakingSet.bakedSkyShadingDirection = bakingSet.bakedSkyOcclusion && bakingSet.skyOcclusionShadingDirection;
-            bakingSet.bakedMaskCount = bakingSet.useRenderingLayers ? APVDefinitions.probeMaxRegionCount : 1;
-            bakingSet.bakedLayerMasks = bakingSet.ComputeRegionMasks();
+            bakingSet.bakedSkyOcclusion = false;
+            bakingSet.bakedSkyShadingDirection = false;
 
             var cellSharedDataDescs = new SerializedDictionary<int, StreamableCellDesc>();
             var cellL0L1DataDescs = new SerializedDictionary<int, StreamableCellDesc>();
@@ -824,20 +847,20 @@ namespace UnityEngine.Rendering
             var cellBricksDescs = new SerializedDictionary<int, StreamableCellDesc>();
             var cellSupportDescs = new SerializedDictionary<int, StreamableCellDesc>();
 
-            var voSettings = bakingSet.settings.virtualOffsetSettings;
-            bool hasVirtualOffsets = voSettings.useVirtualOffset;
-            bool handlesSkyOcclusion = bakingSet.bakedSkyOcclusion;
-            bool handlesSkyShading = bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyShadingDirection;
-            bool hasRenderingLayers = bakingSet.useRenderingLayers;
-            int validityRegionCount = bakingSet.bakedMaskCount;
+            bool hasVirtualOffsets = false;
+            bool hasRenderingLayers = false;
 
             for (var i = 0; i < bakingCells.Length; ++i)
             {
                 AnalyzeBrickForIndirectionEntries(ref bakingCells[i]);
                 var bakingCell = bakingCells[i];
 
-                // If any cell had probe occlusion, the baking set has probe occlusion.
+                // If any cell has data for an optional feature, the baking set has that feature.
                 bakingSet.bakedProbeOcclusion |= bakingCell.probeOcclusion?.Length > 0;
+                bakingSet.bakedSkyOcclusion |= bakingCell.skyOcclusionDataL0L1?.Length > 0;
+                bakingSet.bakedSkyShadingDirection |= bakingCell.skyShadingDirectionIndices?.Length > 0;
+                hasVirtualOffsets |= bakingCell.offsetVectors?.Length > 0;
+                hasRenderingLayers |= bakingCell.layerValidity?.Length > 0;
 
                 bakingSet.cellDescs.Add(bakingCell.index, new CellDesc
                 {
@@ -853,12 +876,23 @@ namespace UnityEngine.Rendering
 
                 bakingSet.maxSHChunkCount = Mathf.Max(bakingSet.maxSHChunkCount, bakingCell.shChunkCount);
 
-                m_TotalCellCounts.Add(new CellCounts
+                s_TotalCellCounts.Add(new CellCounts
                 {
                     bricksCount = bakingCell.bricks.Length,
                     chunksCount = bakingCell.shChunkCount
                 });
             }
+
+            // A custom SkyOcclusionBaker can produce shading directions without occlusion data, but they
+            // are only written to disk when occlusion data is present.
+            bakingSet.bakedSkyShadingDirection &= bakingSet.bakedSkyOcclusion;
+
+            bakingSet.bakedMaskCount = hasRenderingLayers ? APVDefinitions.probeMaxRegionCount : 1;
+            bakingSet.bakedLayerMasks = hasRenderingLayers ? bakedRegionMasks : new Unity.Mathematics.uint4(0xFFFFFFFF, 0, 0, 0);
+
+            bool handlesSkyOcclusion = bakingSet.bakedSkyOcclusion;
+            bool handlesSkyShading = bakingSet.bakedSkyShadingDirection;
+            int validityRegionCount = bakingSet.bakedMaskCount;
 
             // All per probe data is stored per chunk and contiguously for each cell.
             // This is done so that we can stream from disk one cell at a time by group of chunks.
@@ -870,7 +904,7 @@ namespace UnityEngine.Rendering
             var L0L1R1xChunkSize = sizeof(ushort) * 4 * chunkSizeInProbes; // 4 ushort components per probe
             var L1ChunkSize = sizeof(byte) * 4 * chunkSizeInProbes; // 4 components per probe
             var L0L1ChunkSize = L0L1R1xChunkSize + 2 * L1ChunkSize;
-            var L0L1TotalSize = m_TotalCellCounts.chunksCount * L0L1ChunkSize;
+            var L0L1TotalSize = s_TotalCellCounts.chunksCount * L0L1ChunkSize;
             using var probesL0L1 = new NativeArray<byte>(L0L1TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             bakingSet.L0ChunkSize = L0L1R1xChunkSize;
@@ -880,14 +914,14 @@ namespace UnityEngine.Rendering
             // L2 Data: 15 Coeffs stored in 4 byte4 textures.
             var L2TextureChunkSize = 4 * sizeof(byte) * chunkSizeInProbes; // 4 byte component per probe
             var L2ChunkSize = L2TextureChunkSize * 4; // 4 Textures for all L2 data.
-            var L2TotalSize = m_TotalCellCounts.chunksCount * L2ChunkSize; // 4 textures
+            var L2TotalSize = s_TotalCellCounts.chunksCount * L2ChunkSize; // 4 textures
             using var probesL2 = new NativeArray<byte>(L2TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             bakingSet.L2TextureChunkSize = L2TextureChunkSize;
 
             // Probe occlusion data
             int probeOcclusionChunkSize = bakingSet.bakedProbeOcclusion ? sizeof(byte) * 4 * chunkSizeInProbes : 0; // 4 unorm per probe
-            int probeOcclusionTotalSize = m_TotalCellCounts.chunksCount * probeOcclusionChunkSize;
+            int probeOcclusionTotalSize = s_TotalCellCounts.chunksCount * probeOcclusionChunkSize;
             using var probeOcclusion = new NativeArray<byte>(probeOcclusionTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             bakingSet.ProbeOcclusionChunkSize = probeOcclusionChunkSize;
@@ -898,11 +932,11 @@ namespace UnityEngine.Rendering
             bakingSet.sharedSkyShadingDirectionIndicesChunkSize = handlesSkyShading ? sizeof(byte) * chunkSizeInProbes : 0;
             bakingSet.sharedDataChunkSize = bakingSet.sharedValidityMaskChunkSize + bakingSet.sharedSkyOcclusionL0L1ChunkSize + bakingSet.sharedSkyShadingDirectionIndicesChunkSize;
 
-            var sharedDataTotalSize = m_TotalCellCounts.chunksCount * bakingSet.sharedDataChunkSize;
+            var sharedDataTotalSize = s_TotalCellCounts.chunksCount * bakingSet.sharedDataChunkSize;
             using var sharedData = new NativeArray<byte>(sharedDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // Brick data
-            using var bricks = new NativeArray<Brick>(m_TotalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var bricks = new NativeArray<Brick>(s_TotalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData - use pure helper function for calculation
             bakingSet.supportPositionChunkSize = UnsafeUtility.SizeOf<Vector3>() * chunkSizeInProbes;
@@ -912,7 +946,7 @@ namespace UnityEngine.Rendering
             bakingSet.supportLayerMaskChunkSize = hasRenderingLayers ? UnsafeUtility.SizeOf<byte>() * chunkSizeInProbes : 0;
 
             bakingSet.supportDataChunkSize = CalculateSupportDataChunkSize(chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers);
-            long supportDataTotalSize = (long)m_TotalCellCounts.chunksCount * bakingSet.supportDataChunkSize;
+            long supportDataTotalSize = (long)s_TotalCellCounts.chunksCount * bakingSet.supportDataChunkSize;
             using var supportData = new NativeArray<byte>((int)supportDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = bakingSet.GetBakingHashCode();
@@ -936,16 +970,24 @@ namespace UnityEngine.Rendering
                 var cellDesc = bakingSet.cellDescs[bakingCell.index];
                 var chunksCount = cellDesc.shChunkCount;
 
-                cellSharedDataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * bakingSet.sharedDataChunkSize, elementCount = chunksCount });
-                cellL0L1DataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * L0L1ChunkSize, elementCount = chunksCount });
-                cellL2DataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * L2ChunkSize, elementCount = chunksCount });
-                cellProbeOcclusionDataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * probeOcclusionChunkSize, elementCount = chunksCount });
-                cellBricksDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.bricksCount * sizeof(Brick), elementCount = cellDesc.bricksCount });
-                cellSupportDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * bakingSet.supportDataChunkSize, elementCount = chunksCount });
+                cellSharedDataDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.chunksCount * bakingSet.sharedDataChunkSize, elementCount = chunksCount });
+                cellL0L1DataDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.chunksCount * L0L1ChunkSize, elementCount = chunksCount });
+                cellL2DataDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.chunksCount * L2ChunkSize, elementCount = chunksCount });
+                cellProbeOcclusionDataDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.chunksCount * probeOcclusionChunkSize, elementCount = chunksCount });
+                cellBricksDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.bricksCount * sizeof(Brick), elementCount = cellDesc.bricksCount });
+                cellSupportDescs.Add(bakingCell.index, new StreamableCellDesc { offset = startCounts.chunksCount * bakingSet.supportDataChunkSize, elementCount = chunksCount });
 
                 sceneStateHash = sceneStateHash * 23 + bakingCell.GetBakingHashCode();
 
                 var inputProbesCount = bakingCell.probePositions.Length;
+
+                // Cells loaded from a previous bake may lack data for optional features that other cells
+                // have (e.g. when partially baking after a settings change); neutral values are written instead.
+                bool cellHasProbeOcclusion = bakingCell.probeOcclusion?.Length > 0;
+                bool cellHasSkyOcclusion = bakingCell.skyOcclusionDataL0L1?.Length > 0;
+                bool cellHasSkyDirection = bakingCell.skyShadingDirectionIndices?.Length > 0;
+                bool cellHasRenderingLayers = bakingCell.layerValidity?.Length > 0;
+                bool cellHasVirtualOffsets = bakingCell.offsetVectors?.Length > 0;
 
                 int shidx = 0;
 
@@ -982,20 +1024,20 @@ namespace UnityEngine.Rendering
                     NativeArray<byte> regionChunkTarget = supportData.GetSubArray(layerOffset + chunkIndex * bakingSet.supportLayerMaskChunkSize, bakingSet.supportLayerMaskChunkSize).Reinterpret<byte>(1);
                     NativeArray<Vector3> offsetChunkTarget = supportData.GetSubArray(offsetsOffset + chunkIndex * bakingSet.supportOffsetsChunkSize, bakingSet.supportOffsetsChunkSize).Reinterpret<Vector3>(1);
 
-                    NativeArray<byte> probesTargetL2_0 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 0 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
-                    NativeArray<byte> probesTargetL2_1 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 1 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
-                    NativeArray<byte> probesTargetL2_2 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 2 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
-                    NativeArray<byte> probesTargetL2_3 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 3 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL20 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 0 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL21 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 1 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL22 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 2 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL23 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 3 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
 
                     NativeArray<byte> probeOcclusionTarget = probeOcclusion.GetSubArray(probeOcclusionChunkOffset + chunkIndex * bakingSet.ProbeOcclusionChunkSize, bakingSet.ProbeOcclusionChunkSize);
 
                     for (int brickIndex = 0; brickIndex < bakingSet.chunkSizeInBricks; brickIndex++)
                     {
-                        for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                        for (int z = 0; z < ProbeBrickPool.k_BrickProbeCountPerDim; z++)
                         {
-                            for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                            for (int y = 0; y < ProbeBrickPool.k_BrickProbeCountPerDim; y++)
                             {
-                                for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                                for (int x = 0; x < ProbeBrickPool.k_BrickProbeCountPerDim; x++)
                                 {
                                     int index = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
 
@@ -1005,10 +1047,12 @@ namespace UnityEngine.Rendering
                                     if (shidx >= inputProbesCount)
                                     {
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
-                                        WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+                                        WriteToShaderCoeffsL2(blackSH, probesTargetL20, probesTargetL21, probesTargetL22, probesTargetL23, index * 4);
 
                                         for (int l = 0; l < validityRegionCount; l++)
+                                        {
                                             validityNeighboorMaskChunkTarget[index * validityRegionCount + l] = 0;
+                                        }
                                         if (bakingSet.bakedSkyOcclusion)
                                         {
                                             WriteToShaderSkyOcclusion(Vector4.zero, skyOcclusionL0L1ChunkTarget, index * 4);
@@ -1036,31 +1080,33 @@ namespace UnityEngine.Rendering
                                         ref var sh = ref bakingCell.sh[shidx];
 
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
-                                        WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+                                        WriteToShaderCoeffsL2(sh, probesTargetL20, probesTargetL21, probesTargetL22, probesTargetL23, index * 4);
 
                                         for (int l = 0; l < validityRegionCount; l++)
+                                        {
                                             validityNeighboorMaskChunkTarget[index * validityRegionCount + l] = bakingCell.validityNeighbourMask[l, shidx];
+                                        }
                                         if (bakingSet.bakedSkyOcclusion)
                                         {
-                                            WriteToShaderSkyOcclusion(bakingCell.skyOcclusionDataL0L1[shidx], skyOcclusionL0L1ChunkTarget, index * 4);
+                                            WriteToShaderSkyOcclusion(cellHasSkyOcclusion ? bakingCell.skyOcclusionDataL0L1[shidx] : Vector4.zero, skyOcclusionL0L1ChunkTarget, index * 4);
                                             if (bakingSet.bakedSkyShadingDirection)
                                             {
-                                                skyShadingIndicesChunkTarget[index] = bakingCell.skyShadingDirectionIndices[shidx];
+                                                skyShadingIndicesChunkTarget[index] = cellHasSkyDirection ? bakingCell.skyShadingDirectionIndices[shidx] : (byte)255;
                                             }
                                         }
 
                                         if (bakingSet.bakedProbeOcclusion)
                                         {
-                                            WriteToShaderProbeOcclusion(bakingCell.probeOcclusion[shidx], probeOcclusionTarget, index * 4);
+                                            WriteToShaderProbeOcclusion(cellHasProbeOcclusion ? bakingCell.probeOcclusion[shidx] : Vector4.one, probeOcclusionTarget, index * 4);
                                         }
 
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
                                         touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
                                         if (hasRenderingLayers)
-                                            regionChunkTarget[index] = bakingCell.layerValidity[shidx];
+                                            regionChunkTarget[index] = cellHasRenderingLayers ? bakingCell.layerValidity[shidx] : (byte)0xFF;
                                         if (hasVirtualOffsets)
-                                            offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
+                                            offsetChunkTarget[index] = cellHasVirtualOffsets ? bakingCell.offsetVectors[shidx] : Vector3.zero;
                                     }
                                     shidx++;
                                 }
@@ -1077,7 +1123,7 @@ namespace UnityEngine.Rendering
 
                 bricks.GetSubArray(startCounts.bricksCount, cellDesc.bricksCount).CopyFrom(bakingCell.bricks);
 
-                startCounts.Add(new CellCounts()
+                startCounts.Add(new CellCounts
                 {
                     bricksCount = cellDesc.bricksCount,
                     chunksCount = cellDesc.shChunkCount
@@ -1137,18 +1183,18 @@ namespace UnityEngine.Rendering
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);
 
-            var bakingSetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(bakingSet));
+            var bakingSetGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(bakingSet));
 
             bakingSet.scenarios[bakingSet.lightingScenario] = new ProbeVolumeBakingSet.PerScenarioDataInfo
             {
                 sceneHash = sceneStateHash,
-                cellDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellL0L1DataDescs, L0L1ChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellDataFilename)),
-                cellOptionalDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellL2DataDescs, L2ChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellOptionalDataFilename)),
-                cellProbeOcclusionDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellProbeOcclusionDataDescs, probeOcclusionChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellProbeOcclusionDataFilename)),
+                cellDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellL0L1DataDescs, L0L1ChunkSize, bakingSetGuid, AssetDatabase.AssetPathToGUID(cellDataFilename)),
+                cellOptionalDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellL2DataDescs, L2ChunkSize, bakingSetGuid, AssetDatabase.AssetPathToGUID(cellOptionalDataFilename)),
+                cellProbeOcclusionDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellProbeOcclusionDataDescs, probeOcclusionChunkSize, bakingSetGuid, AssetDatabase.AssetPathToGUID(cellProbeOcclusionDataFilename)),
             };
-            bakingSet.cellSharedDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellSharedDataDescs, bakingSet.sharedDataChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellSharedDataFilename));
-            bakingSet.cellBricksDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellBricksDescs, sizeof(Brick), bakingSetGUID, AssetDatabase.AssetPathToGUID(cellBricksDataFilename));
-            bakingSet.cellSupportDataAsset = new ProbeVolumeStreamableAsset(kAPVStreamingAssetsPath, cellSupportDescs, bakingSet.supportDataChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellSupportDataFilename));
+            bakingSet.cellSharedDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellSharedDataDescs, bakingSet.sharedDataChunkSize, bakingSetGuid, AssetDatabase.AssetPathToGUID(cellSharedDataFilename));
+            bakingSet.cellBricksDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellBricksDescs, sizeof(Brick), bakingSetGuid, AssetDatabase.AssetPathToGUID(cellBricksDataFilename));
+            bakingSet.cellSupportDataAsset = new ProbeVolumeStreamableAsset(k_APVStreamingAssetsPath, cellSupportDescs, bakingSet.supportDataChunkSize, bakingSetGuid, AssetDatabase.AssetPathToGUID(cellSupportDataFilename));
 
             EditorUtility.SetDirty(bakingSet);
 
@@ -1166,25 +1212,25 @@ namespace UnityEngine.Rendering
             var L0L1R1xChunkSize = sizeof(ushort) * 4 * chunkSizeInProbes; // 4 ushort components per probe
             var L1ChunkSize = sizeof(byte) * 4 * chunkSizeInProbes; // 4 components per probe
             var L0L1ChunkSize = L0L1R1xChunkSize + 2 * L1ChunkSize;
-            var L0L1TotalSize = m_TotalCellCounts.chunksCount * L0L1ChunkSize;
+            var L0L1TotalSize = s_TotalCellCounts.chunksCount * L0L1ChunkSize;
             using var probesL0L1 = new NativeArray<byte>(L0L1TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellOptionalData
             // L2 Data: 15 Coeffs stored in 4 byte4 textures.
             var L2ChunkSize = 4 * sizeof(byte) * chunkSizeInProbes; // 4 byte component per probe
-            var L2TotalSize = m_TotalCellCounts.chunksCount * L2ChunkSize * 4; // 4 textures
+            var L2TotalSize = s_TotalCellCounts.chunksCount * L2ChunkSize * 4; // 4 textures
             using var probesL2 = new NativeArray<byte>(L2TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // Probe occlusion data
             var probeOcclusionChunkSize = m_BakingSet.ProbeOcclusionChunkSize;
-            var probeOcclusionTotalSize = m_TotalCellCounts.chunksCount * probeOcclusionChunkSize;
+            var probeOcclusionTotalSize = s_TotalCellCounts.chunksCount * probeOcclusionChunkSize;
             using var probeOcclusion = new NativeArray<byte>(probeOcclusionTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSharedData
             var sharedValidityMaskChunkSize = m_BakingSet.sharedValidityMaskChunkSize;
             var sharedSkyOcclusionL0L1ChunkSize = m_BakingSet.sharedSkyOcclusionL0L1ChunkSize;
             var sharedSkyShadingDirectionIndicesChunkSize = m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize;
-            var sharedDataTotalSize = m_TotalCellCounts.chunksCount * m_BakingSet.sharedDataChunkSize;
+            var sharedDataTotalSize = s_TotalCellCounts.chunksCount * m_BakingSet.sharedDataChunkSize;
             using var sharedData = new NativeArray<byte>(sharedDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // We don't want to overwrite validity data
@@ -1224,15 +1270,15 @@ namespace UnityEngine.Rendering
                 probesTargetL1GL1Ry.CopyFrom(scenarioData.shL1GL1RyData);
                 probesTargetL1BL1Rz.CopyFrom(scenarioData.shL1BL1RzData);
 
-                NativeArray<byte> probesTargetL2_0 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 0, L2ChunkSize * shChunksCount);
-                NativeArray<byte> probesTargetL2_1 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 1, L2ChunkSize * shChunksCount);
-                NativeArray<byte> probesTargetL2_2 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 2, L2ChunkSize * shChunksCount);
-                NativeArray<byte> probesTargetL2_3 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 3, L2ChunkSize * shChunksCount);
+                NativeArray<byte> probesTargetL20 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 0, L2ChunkSize * shChunksCount);
+                NativeArray<byte> probesTargetL21 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 1, L2ChunkSize * shChunksCount);
+                NativeArray<byte> probesTargetL22 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 2, L2ChunkSize * shChunksCount);
+                NativeArray<byte> probesTargetL23 = probesL2.GetSubArray(L2chunkBaseOffset + shChunksCount * L2ChunkSize * 3, L2ChunkSize * shChunksCount);
 
-                probesTargetL2_0.CopyFrom(scenarioData.shL2Data_0);
-                probesTargetL2_1.CopyFrom(scenarioData.shL2Data_1);
-                probesTargetL2_2.CopyFrom(scenarioData.shL2Data_2);
-                probesTargetL2_3.CopyFrom(scenarioData.shL2Data_3);
+                probesTargetL20.CopyFrom(scenarioData.shL2Data_0);
+                probesTargetL21.CopyFrom(scenarioData.shL2Data_1);
+                probesTargetL22.CopyFrom(scenarioData.shL2Data_2);
+                probesTargetL23.CopyFrom(scenarioData.shL2Data_3);
 
                 if (probeOcclusionChunkSize != 0)
                 {

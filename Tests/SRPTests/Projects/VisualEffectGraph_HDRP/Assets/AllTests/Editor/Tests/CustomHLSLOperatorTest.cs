@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Test
                                "}\r\n" +
                                $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}_Wrapper(float4x4 mat, float3 vec)\r\n" +
                                "{\r\n" +
-                               $"\tfloat3 var_2 = 	Transform_65810E99_{CustomHLSL.ReturnFunctionSuffix}(mat, vec);\r\n" +
+                               $"\tfloat3 var_2 = 	Transform_234976C1_{CustomHLSL.ReturnFunctionSuffix}(mat, vec);\r\n" +
                                "\treturn var_2;\r\n" +
                                "}\r\n";
             Assert.AreEqual(expectedCode, hlslExpression.customCode);
@@ -900,8 +900,7 @@ float3 DummyFunction()
             }
             else
             {
-                using var customLogHandler = new CustomLogHandler();
-                customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
+                LogAssert.Expect(LogType.Error, new Regex(@".*Unity cannot compile the VisualEffectAsset.*"));
                 VFXTestCommon.ReimportVFXGraph(graph);
             }
 

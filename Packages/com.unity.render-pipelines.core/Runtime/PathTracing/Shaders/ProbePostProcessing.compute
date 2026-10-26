@@ -22,6 +22,7 @@ uint g_SecondaryInputOffset;
 uint g_OutputOffset;
 uint g_ProbeCount;
 float g_Scale;
+float g_ConventionDivisor;
 
 [numthreads(64, 1, 1)]
 void ConvolveRadianceToIrradiance(in uint3 gidx: SV_DispatchThreadID)
@@ -90,19 +91,19 @@ void ConvertToUnityFormat(in uint3 gidx: SV_DispatchThreadID)
         const uint l22Index = l00Index + 8;
 
         // L0
-        g_OutputShl2[l00Index] = (l00 * SH_L0_NORMALIZATION) / PI;
+        g_OutputShl2[l00Index] = (l00 * SH_L0_NORMALIZATION) / g_ConventionDivisor;
 
         // L1
-        g_OutputShl2[l1_1Index] = (l10 * SH_L1_NORMALIZATION) / PI;
-        g_OutputShl2[l10Index] = (l11 * SH_L1_NORMALIZATION) / PI;
-        g_OutputShl2[l11Index] = (l1_1 * SH_L1_NORMALIZATION) / PI;
+        g_OutputShl2[l1_1Index] = (l10 * SH_L1_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l10Index] = (l11 * SH_L1_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l11Index] = (l1_1 * SH_L1_NORMALIZATION) / g_ConventionDivisor;
 
         // L2
-        g_OutputShl2[l2_2Index] = (l2_2 * SH_L2_2_NORMALIZATION) / PI;
-        g_OutputShl2[l2_1Index] = (l2_1 * SH_L2_1_NORMALIZATION) / PI;
-        g_OutputShl2[l20Index] = (l20 * SH_L20_NORMALIZATION) / PI;
-        g_OutputShl2[l21Index] = (l21 * SH_L21_NORMALIZATION) / PI;
-        g_OutputShl2[l22Index] = (l22 * SH_L22_NORMALIZATION) / PI;
+        g_OutputShl2[l2_2Index] = (l2_2 * SH_L2_2_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l2_1Index] = (l2_1 * SH_L2_1_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l20Index] = (l20 * SH_L20_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l21Index] = (l21 * SH_L21_NORMALIZATION) / g_ConventionDivisor;
+        g_OutputShl2[l22Index] = (l22 * SH_L22_NORMALIZATION) / g_ConventionDivisor;
     }
 }
 

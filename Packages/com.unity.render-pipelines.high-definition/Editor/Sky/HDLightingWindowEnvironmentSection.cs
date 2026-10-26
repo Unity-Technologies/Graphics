@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var labelRect = GUILayoutUtility.GetRect(GUIContent.none, Styles.inspectorTitle, GUILayout.ExpandWidth(true));
-            var label = EditorGUIUtility.TrTextContent("Environment (HDRP)", "Sky lighting environment for active Scene");
+            var label = L10n.TextContent("Environment (HDRP)", "Sky lighting environment for active Scene", null, null);
 
             toggleValue = (bool)k_FoldoutTitlebar.Invoke(null, new object[] { labelRect, label, toggleValue, true });
 
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 //cannot use SerializeProperty due to logic in the property
                 var profile = m_SerializedActiveSceneLightingSky.volumeProfile;
-                var newProfile = EditorGUILayout.ObjectField(EditorGUIUtility.TrTextContent("Profile"), profile, typeof(VolumeProfile), allowSceneObjects: false) as VolumeProfile;
+                var newProfile = EditorGUILayout.ObjectField(L10n.TextContent("Profile", null, null, null), profile, typeof(VolumeProfile), allowSceneObjects: false) as VolumeProfile;
                 if (profile != newProfile)
                 {
                     m_SerializedActiveSceneLightingSky.volumeProfile = newProfile;
@@ -173,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 using (new EditorGUI.DisabledScope(m_SkyClassNames.Count == 1)) // Only "None"
                 {
-                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.skyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky", "Specify which kind of sky you want to use for static ambient in the referenced profile for active scene."));
+                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.skyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), L10n.TextContent("Static Lighting Sky", "Specify which kind of sky you want to use for static ambient in the referenced profile for active scene.", null, null));
                 }
 
                 if (m_SkyClassNames.Count > 1 && m_SerializedActiveSceneLightingSky.skyUniqueID.intValue > 0)
@@ -181,12 +181,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 using (new EditorGUI.DisabledScope(m_CloudClassNames.Count == 1)) // Only "None"
                 {
-                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Background Clouds", "Specify which kind of background clouds you want to use for static ambient in the referenced profile for active scene."));
+                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), L10n.TextContent("Static Lighting Background Clouds", "Specify which kind of background clouds you want to use for static ambient in the referenced profile for active scene.", null, null));
                 }
 
                 using (new EditorGUI.DisabledScope(m_SerializedActiveSceneLightingSky.volumeProfile == null))
                 {
-                    EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
+                    EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, L10n.TextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene.", null, null));
                 }
 
                 EditorGUILayout.Space();

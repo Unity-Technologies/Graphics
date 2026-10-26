@@ -33,6 +33,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var listView = new ReorderableListView<SwitchNode.EntryCase>(node.m_cases, "Conditions");
 
+            listView.OnCanAddCallback = () => node.m_cases.Count < SwitchNode.kMaxCases;
+
             listView.OnNewItemCallback +=
                 () => new SwitchNode.EntryCase { comparisonType = ComparisonType.Equal, threshold = node.m_cases.Count };
 

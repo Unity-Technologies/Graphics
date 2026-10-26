@@ -4,6 +4,7 @@
 
 #include "GeometryPoolDefs.cs.hlsl"
 #include "GeometryPool.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common/VertexAttributeDecode.hlsl"
 
 #define GROUP_SIZE_X 256
 #define GROUP_SIZE_X_HALF (GROUP_SIZE_X >> 1)
@@ -30,12 +31,17 @@ void MainUpdateIndexBuffer32(uint3 dispatchThreadID : SV_DispatchThreadID, int3 
 
 groupshared uint _ldsIndexCache[GROUP_SIZE_X_HALF + 1];
 
-
 [numthreads(GROUP_SIZE_X,1,1)]
 void MainUpdateIndexBuffer16(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
-    if (groupIndex < (GROUP_SIZE_X_HALF + 1))
-        _ldsIndexCache[groupIndex] = _InputIndexBuffer.Load((GROUP_SIZE_X_HALF * (groupID.x) + groupIndex + (uint)(_InputIBBaseOffset + _DispatchIndexOffset) / 2) << 2u);
+    uint uintPos = GROUP_SIZE_X_HALF * groupID.x + groupIndex + (uint)(_InputIBBaseOffset + _DispatchIndexOffset) / 2;
+    uint indexPos = uintPos * 2;   // There are two indices per word
+
+    if (groupIndex < (GROUP_SIZE_X_HALF + 1) && indexPos < (uint)(_InputIBBaseOffset + _InputIBCount))
+    {
+        uint bytePos = uintPos << 2u;
+        _ldsIndexCache[groupIndex] = _InputIndexBuffer.Load(bytePos);
+    }
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -58,15 +64,23 @@ int _OutputVBOffset;
 
 int _InputPosBufferStride;
 int _InputPosBufferOffset;
+int _InputPosBufferFormat;
+int _InputPosBufferDimension;
 
 int _InputUv0BufferStride;
 int _InputUv0BufferOffset;
+int _InputUv0BufferFormat;
+int _InputUv0BufferDimension;
 
 int _InputUv1BufferStride;
 int _InputUv1BufferOffset;
+int _InputUv1BufferFormat;
+int _InputUv1BufferDimension;
 
 int _InputNormalBufferStride;
 int _InputNormalBufferOffset;
+int _InputNormalBufferFormat;
+int _InputNormalBufferDimension;
 
 ByteAddressBuffer _PosBuffer;
 ByteAddressBuffer _Uv0Buffer;
@@ -90,16 +104,16 @@ void MainUpdateVertexBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
     GeoPoolVertex vtx = (GeoPoolVertex)0;
 
     if (_AttributesMask & GEOPOOLVERTEXATTRIBS_POSITION)
-        vtx.pos = asfloat(_PosBuffer.Load3(_InputPosBufferOffset + (inputVertexOffset * _InputPosBufferStride)));
+        vtx.pos = LoadVertexAttribute(_PosBuffer, _InputPosBufferOffset + (inputVertexOffset * _InputPosBufferStride), _InputPosBufferFormat, _InputPosBufferDimension).xyz;
 
     if (_AttributesMask & GEOPOOLVERTEXATTRIBS_UV0)
-        vtx.uv0.xy = asfloat(_Uv0Buffer.Load2(_InputUv0BufferOffset + (inputVertexOffset * _InputUv0BufferStride)));
+        vtx.uv0.xy = LoadVertexAttribute(_Uv0Buffer, _InputUv0BufferOffset + (inputVertexOffset * _InputUv0BufferStride), _InputUv0BufferFormat, _InputUv0BufferDimension).xy;
 
     if (_AttributesMask & GEOPOOLVERTEXATTRIBS_UV1)
-        vtx.uv1.xy = asfloat(_Uv1Buffer.Load2(_InputUv1BufferOffset + (inputVertexOffset * _InputUv1BufferStride)));
+        vtx.uv1.xy = LoadVertexAttribute(_Uv1Buffer, _InputUv1BufferOffset + (inputVertexOffset * _InputUv1BufferStride), _InputUv1BufferFormat, _InputUv1BufferDimension).xy;
 
     if (_AttributesMask & GEOPOOLVERTEXATTRIBS_NORMAL)
-        vtx.N = asfloat(_NormalBuffer.Load3(_InputNormalBufferOffset + (inputVertexOffset * _InputNormalBufferStride)));
+        vtx.N = LoadVertexAttribute(_NormalBuffer, _InputNormalBufferOffset + (inputVertexOffset * _InputNormalBufferStride), _InputNormalBufferFormat, _InputNormalBufferDimension).xyz;
 
     uint outputVertexOffset = _DispatchVertexOffset + (int)dispatchThreadID.x;
     GeometryPool::StoreVertex(_OutputVBOffset + outputVertexOffset, vtx, _OutputVBSize, _OutputVB);

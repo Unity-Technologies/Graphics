@@ -25,7 +25,8 @@ Varyings CommonLitVertex(Attributes input)
     o.normalWS = TransformObjectToWorldDir(input.normal);
 #endif
     o.uv = input.uv;
-    o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
+    float4 ndc = o.positionCS * 0.5;
+    o.lightingUV = half2((float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w) / o.positionCS.w);
     return o;
 }
 

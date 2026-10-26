@@ -121,9 +121,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool config = ValidateHighQualityLineRenderingConfiguration(m_BuildData.renderPipelineAssets);
                 validConfiguration &= config;
             }
-            
+
             {
                 bool config = ValidateGraphicsCompositorConfiguration(m_BuildData.renderPipelineAssets);
+                validConfiguration &= config;
+            }
+
+            {
+                bool config = ValidateScreenSpaceGlobalIlluminationConfiguration(m_BuildData.renderPipelineAssets);
                 validConfiguration &= config;
             }
 
@@ -157,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void LogIncludedAssets(List<HDRenderPipelineAsset> assetsList)
         {
-            using (GenericPool<StringBuilder>.Get(out var assetsIncluded))
+            using (UnityEngine.Pool.GenericPool<StringBuilder>.Get(out var assetsIncluded))
             {
                 assetsIncluded.Clear();
 
@@ -483,6 +488,28 @@ namespace UnityEditor.Rendering.HighDefinition
             return isValidConfiguration;
         }
 
+        internal static bool ValidateScreenSpaceGlobalIlluminationConfiguration(List<HDRenderPipelineAsset> assetsList)
+        {
+            if (!EditorGraphicsSettings.ShouldValidateGraphicsForActiveBuildTarget())
+                return true;
+
+            bool isValidConfiguration = true;
+            var validationSettings = HDProjectSettings.validationSettings;
+            foreach (var hdrpAsset in assetsList)
+            {
+                if (hdrpAsset != null)
+                {
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportSSGI && !validationSettings.k_ScreenSpaceGlobalIllumination_Recommended)
+                    {
+                        Debug.LogWarning($"HDRP Build Validation - Screen Space Global Illumination: Enabled for the active platform. {HDRenderPipelineUI.Styles.featureNotRecommendedWarning}\nAsset: {AssetDatabase.GetAssetPath(hdrpAsset)}", hdrpAsset);
+                        isValidConfiguration = false;
+                    }
+                }
+            }
+
+            return isValidConfiguration;
+        }
+
         internal static void ConfigureMinimumMaxLoDValueForAllQualitySettings()
         {
             int GetMinimumMaxLoDValue(HDRenderPipelineAsset asset)
@@ -519,7 +546,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static void GatherShaderFeatures(BuildTarget buildTarget)
         {
             s_SupportedFeaturesList.Clear();
-            using (ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
+            using (UnityEngine.Pool.ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
             {
                 bool buildingForHDRP = buildTarget.TryGetRenderPipelineAssets(hdrpAssets);
                 if (buildingForHDRP)

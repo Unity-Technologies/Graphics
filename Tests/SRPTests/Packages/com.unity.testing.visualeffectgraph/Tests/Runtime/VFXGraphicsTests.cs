@@ -67,8 +67,7 @@ namespace UnityEngine.VFX.Test
 
             if (XRGraphicsAutomatedTests.enabled)
             {
-                bool xrCompatible = vfxTestSettingsInScene != null ? vfxTestSettingsInScene.xrCompatible : true;
-                Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(xrCompatible, 0, imageComparisonSettings);
+                Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(0, imageComparisonSettings);
 
 #if VFX_TESTS_HAS_HDRP
 #pragma warning disable CS0618

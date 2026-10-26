@@ -20,8 +20,11 @@ half4 SampleScreenSpaceReflection(float2 normalizedScreenSpaceUV, float3 positio
     if (fade > 1e-3)
     {
         // Map roughness to mip level to get blur.
-        float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness);
+        float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness, uv);
         reflColor = SAMPLE_TEXTURE2D_X_LOD(_ScreenSpaceReflectionTexture, sampler_TrilinearClamp, uv, mipLevel);
+        if (reflColor.a > 0)
+            reflColor.rgb *= rcp(reflColor.a);
+
         reflColor.a *= fade;
     }
 

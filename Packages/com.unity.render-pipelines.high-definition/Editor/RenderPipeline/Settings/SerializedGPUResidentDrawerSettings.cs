@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty smallMeshScreenPercentage;
         public SerializedProperty enableOcclusionCullingInCameras;
         public SerializedProperty useDepthPrepassForOccluders;
+        public SerializedProperty shadowSmallMeshScreenPercentages;
 
         public SerializedGPUResidentDrawerSettings(SerializedProperty root)
         {
@@ -17,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             smallMeshScreenPercentage = root.Find((GlobalGPUResidentDrawerSettings s) => s.smallMeshScreenPercentage);
             enableOcclusionCullingInCameras = root.Find((GlobalGPUResidentDrawerSettings s) => s.enableOcclusionCullingInCameras);
             useDepthPrepassForOccluders = root.Find((GlobalGPUResidentDrawerSettings s) => s.useDepthPrepassForOccluders);
+            shadowSmallMeshScreenPercentages = root.Find((GlobalGPUResidentDrawerSettings s) => s.shadowSmallMeshScreenPercentages);
         }
     }
 }

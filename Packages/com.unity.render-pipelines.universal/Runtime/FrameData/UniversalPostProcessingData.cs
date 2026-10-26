@@ -38,12 +38,15 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool supportDataDrivenLensFlare;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         /// <summary>
         /// Returns null if there isn't an active upscaler
         /// </summary>
         internal IUpscaler activeUpscaler;
-#endif
+
+        /// <summary>
+        /// True when the active upscaler is one of the built-in embedded upscalers.
+        /// </summary>
+        internal bool activeUpscalerIsEmbedded;
 
         /// <summary>
         /// Empty function added for the IDisposable interface.
@@ -56,10 +59,8 @@ namespace UnityEngine.Rendering.Universal
             useFastSRGBLinearConversion = false;
             supportScreenSpaceLensFlare = false;
             supportDataDrivenLensFlare = false;
-
-#if ENABLE_UPSCALER_FRAMEWORK
             activeUpscaler = null;
-#endif
+            activeUpscalerIsEmbedded = false;
         }
     }
 }

@@ -241,6 +241,14 @@ float DecodeDepth(float depth)
 #endif
 }
 
+float VFXGetLinearEyeDepth(float depth, bool ortho, float n, float f)
+{
+    if (!ortho)
+        return n * f / (depth * (n - f) + f);
+    else
+        return n + depth * (f - n);
+}
+
 float SampleSDF(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
     return SampleTexture(s, coords, level).x;

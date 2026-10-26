@@ -1,0 +1,130 @@
+using System.Collections;
+using System.Runtime.InteropServices;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine.Rendering;
+
+namespace UnityEngine.Rendering.HighDefinition.Tests
+{
+    // NOTE: Important! IgnoreGraphicsTest uses a pattern to ignore all Unity-scenes found which name matches that pattern.
+    // That means that, you can filter-out more than one test without realizing if not careful (i.e. the pattern '5011_VolumetricClouds'
+    // will filter-out the tests 5011_VolumetricClouds, 5011_VolumetricCloudsShadows and 5011_VolumetricCloudsShadowsBake).
+    // To avoid this, add an extra '$' character to the end of your pattern to make it a strict-match.
+    [MockHmdSetup]
+    [TestFixtureSource(
+        typeof(HighDefinitionTestFixtureData),
+        nameof(HighDefinitionTestFixtureData.FixtureParams)
+    )]
+    public class RenderingFeaturesTests : HdrpTestsBase
+    {
+        public RenderingFeaturesTests(GpuResidentDrawerContext grdContext) : base(grdContext) { }
+
+        [UnityTest]
+        [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/9x_Other/^[0-9]+")]
+        [Timeout(450 * 1000)]
+        [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155364")]
+        [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image. Bug: https://jira.unity3d.com/browse/UUM-155365")]
+        [IgnoreGraphicsTest(
+            "9703_SampleColorBuffer_InjectionPoints_Scaling$",
+            "Small differences in texture-sampling. Could be related to the forced-trilinear issue? Bug: https://jira.unity3d.com/browse/UUM-155366",
+            GraphicsDeviceType.Metal
+        )]
+        [TestNotSupportedOn(
+            "9704_CustomPass_VRS$",
+            "VRS not supported",
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "9910_GlobalMipBias$",
+            "Needs further investigation.",
+            GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "9920_WaterSurface$",
+            "Diverges in the wave-modifier edges. Bug: https://jira.unity3d.com/browse/UUM-155367",
+            GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "9922_WaterPrefab$",
+            "Minor divergence across the waves' crests.",
+            GraphicsDeviceType.Metal
+        )]
+        [IgnoreGraphicsTest(
+            "9001_LODTransition",
+            "Failing with GpuResidentDrawer",
+            RuntimePlatform.OSXEditor,
+            Architecture.X64,
+            GpuResidentDrawerContext.GRDEnabled
+        )]
+        [IgnoreGraphicsTest(
+            "9950-LineRendering",
+            "Failing with GpuResidentDrawer",
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64,
+            GpuResidentDrawerContext.GRDEnabled
+        )]
+        [IgnoreGraphicsTest(
+            "9304_MotionVectorsPrecomputedAndCustomVelocity",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater$",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9921_UnderWater_Back",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9950-LineRendering",
+            "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "9001_LODTransition",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOn-DefferedDecal-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "9301_MotionVectorsOff-Forward-Static",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOff-Deffered-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D12
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOff-DefferedDecal-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-150493",
+            RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor
+        )]
+        [TestNotSupportedOn(
+            "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
+            "Not XR compatible",
+            StereoRenderingContext.StereoEnabled
+        )]
+        [TestNotSupportedOn(
+            "9305|9401|9700|9702|9704|9800|9901|9902|993[012]",
+            "Not XR compatible", XrDevice.Any
+        )]
+        public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
+        {
+            yield return HDRP_GraphicTestRunner.Run(testCase);
+        }
+
+    }
+}

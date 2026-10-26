@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -25,7 +26,7 @@ namespace Unity.Rendering.Universal.Tests
     {
         protected readonly GpuResidentDrawerGlobalContext gpuResidentDrawerContext;
         protected readonly GpuResidentDrawerContext requestedGRDContext;
-        protected readonly GpuResidentDrawerContext previousGRDContext;
+        protected readonly Dictionary<IGPUResidentRenderPipeline, GPUResidentDrawerMode> previousDrawerModes;
 
         public UniversalGraphicsTestBase(GpuResidentDrawerContext grdContext)
         {
@@ -33,7 +34,7 @@ namespace Unity.Rendering.Universal.Tests
 
             gpuResidentDrawerContext = GlobalContextManager.Get<GpuResidentDrawerGlobalContext>();
 
-            previousGRDContext = (GpuResidentDrawerContext)gpuResidentDrawerContext.Current;
+            previousDrawerModes = gpuResidentDrawerContext.CaptureDrawerModes();
 
             gpuResidentDrawerContext.Activate(requestedGRDContext);
         }
@@ -75,6 +76,21 @@ namespace Unity.Rendering.Universal.Tests
 #if ENABLE_VR
             XRGraphicsAutomatedTests.running = false;
 #endif
+
+            // Ignored tests load no scene, so the drawer state reflects an unrelated quality level
+            if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Skipped)
+                return;
+
+            Assert.That(
+                gpuResidentDrawerContext.IsDrawerCreated,
+                Is.EqualTo(requestedGRDContext == GpuResidentDrawerContext.GRDEnabled),
+                () =>
+                {
+                    gpuResidentDrawerContext.IsDrawerSupportedByCurrentPipeline(out var unsupportedReason);
+                    return $"GPU Resident Drawer instance did not match the {requestedGRDContext} fixture while the scene rendered." +
+                        (string.IsNullOrEmpty(unsupportedReason) ? string.Empty : " " + unsupportedReason);
+                }
+            );
         }
 
         [OneTimeTearDown]
@@ -82,7 +98,7 @@ namespace Unity.Rendering.Universal.Tests
         {
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
 
-            gpuResidentDrawerContext.Activate(previousGRDContext);
+            gpuResidentDrawerContext.RestoreDrawerModes(previousDrawerModes);
         }
     }
 

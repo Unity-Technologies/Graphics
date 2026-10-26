@@ -67,21 +67,44 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="vertices">The vertices used to create the shadow geometry.</param>
         /// <param name="indices">The indices used to create the shadow geometry (Lines topology) </param>
         /// <param name="radii">The radius at the vertex. Can be used to describe a capsule.</param>
-        /// <param name="transform"> The transform used to create the shadow geometry.</param>
+        /// <param name="outputTransform"> The transform applied after creating the shadow geometry.</param>
         /// <param name="windingOrder">The winding order of the supplied geometry.</param>
         /// <param name="allowContraction">Specifies if the ShadowCaster2D is allowed to contract the supplied shape(s).</param>
         /// <param name="createInteriorGeometry">Specifies if the ShadowCaster2D should create interior geometry. Required for shadow casters that do not use renderers as their source.</param>
-        public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, Matrix4x4 transform, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false);
+        public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, Matrix4x4 outputTransform, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false);
+
 
         /// <summary>
         /// SetShape creates shadow geometry using the supplied geometry
         /// </summary>
         /// <param name="vertices">The vertices used to create the shadow geometry.</param>
         /// <param name="indices">The indices used to create the shadow geometry (Lines topology) </param>
-        /// <param name="outlineTopology">The settings to create the renderer with.</param>
+        /// <param name="radii">The radius at the vertex. Can be used to describe a capsule.</param>
         /// <param name="windingOrder">The winding order of the supplied geometry.</param>
         /// <param name="allowContraction">Specifies if the ShadowCaster2D is allowed to contract the supplied shape(s).</param>
         /// <param name="createInteriorGeometry">Specifies if the ShadowCaster2D should create interior geometry. Required for shadow casters that do not use renderers as their source.</param>
-        public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, OutlineTopology outlineTopology, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false);
+        /// <param name="inWorldSpace"> Specifies if the ShadowCaster2D has its vertices in world space </param>
+        public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false, bool inWorldSpace = false);
+
+        /// <summary>
+        /// SetShape creates shadow geometry using the supplied geometry
+        /// </summary>
+        /// <param name="vertices">The vertices used to create the shadow geometry.</param>
+        /// <param name="indices">The indices used to create the shadow geometry (Lines topology) </param>
+        /// <param name="outlineTopology"> The topology of the input geometry.</param>
+        /// <param name="windingOrder">The winding order of the supplied geometry.</param>
+        /// <param name="allowContraction">Specifies if the ShadowCaster2D is allowed to contract the supplied shape(s).</param>
+        /// <param name="createInteriorGeometry">Specifies if the ShadowCaster2D should create interior geometry. Required for shadow casters that do not use renderers as their source.</param>
+        /// <param name="inWorldSpace"> Specifies if the ShadowCaster2D has its vertices in world space </param>
+        public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, OutlineTopology outlineTopology, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false, bool inWorldSpace = false);
+
+
+        /// <summary>
+        /// SetShapeDirect creates shadow geometry using the supplied lines. Fast path for pre-processed shadow geometry - skips edge processing, winding validation, and clipping.
+        /// </summary>
+        /// <param name="vertices">The vertices used to create the shadow geometry.</param>
+        /// <param name="indices">The indices used to create the shadow geometry (Lines topology) </param>
+        /// <param name="inWorldSpace"> Specifies if the ShadowCaster2D has its vertices in world space </param>
+        public abstract void SetShapeDirect(NativeArray<Vector3> vertices, NativeArray<int> indices, bool inWorldSpace = false);
     }
 }

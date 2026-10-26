@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             bool foveatedRendering = xr.supportsFoveatedRendering;
-            bool nonUniformFoveatedRendering = foveatedRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+            bool nonUniformFoveatedRendering = foveatedRendering && (XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) != 0;
 
             if (foveatedRendering)
             {
@@ -160,8 +160,8 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                 {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -201,6 +201,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderGraphMotionVectorGlobalMatrices(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
+            // Under XR single pass the shaders resolve _NonJitteredViewProjMatrix and _PrevViewProjMatrix onto the per
+            // eye Stereo arrays (see USING_STEREO_MATRICES in UnityInput.hlsl), and this pass is what sets those
+            // arrays. On every other path the two names resolve to the global shader variables, filled at record time,
+            // so nothing is recorded here.
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (!cameraData.xr.enabled || !cameraData.xr.singlePassEnabled)
+                return;
+
             if (cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
             {
                 using (var builder = renderGraph.AddRasterRenderPass<MotionMatrixPassData>(s_SetMotionMatrixProfilingSampler.name, out var passData, s_SetMotionMatrixProfilingSampler))
@@ -215,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
                     });
                 }
             }
+#endif
         }
     }
 }

@@ -142,7 +142,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(2, initializes[0].GetType().GetField("capacity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(initializes[0]));
             Assert.AreEqual(2, initializes[1].GetType().GetField("capacity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(initializes[1]));
 
-            graph.RecompileIfNeeded();
+            VFXTestCommon.ReimportVFXGraph(graph);
 
             var gameObj = new GameObject("CreateAssetAndComponentToCopyPastPerfomedWell");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using System.Linq;
@@ -194,12 +194,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // className include the additional "/"
         static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className = "")
         {
+            if (type == null)
+                return;
+
             var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
                 return;
 
-            using (ListPool<(GUIContent, int)>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<(GUIContent, int)>.Get(out var tmp))
             {
                 var fields = type.GetFields();
                 var localIndex = 0;
@@ -303,8 +306,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     bsdfDataType = materialType.GetNestedType("BSDFData")
 
                 };
-                numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
-                numBSDFDataFields += item.bsdfDataType.GetFields().Length;
+
+                if (item.surfaceDataType != null)
+                    numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
+                if (item.bsdfDataType != null)
+                    numBSDFDataFields += item.bsdfDataType.GetFields().Length;
                 materialItems.Add(item);
             }
 
@@ -404,6 +410,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // specific shader parameters
                 foreach (MaterialItem materialItem in materialItems)
                 {
+                    if (materialItem.surfaceDataType == null)
+                        continue;
+
                     generateHLSLAttribute = materialItem.surfaceDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
@@ -462,8 +471,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void FillMaterialsInfos(List<MaterialItem> materialItems)
         {
-            using (ListPool<GUIContent>.Get(out var debugViewMaterialStringsList))
-            using (ListPool<int>.Get(out var debugViewMaterialValuesList))
+            using (UnityEngine.Pool.ListPool<GUIContent>.Get(out var debugViewMaterialStringsList))
+            using (UnityEngine.Pool.ListPool<int>.Get(out var debugViewMaterialValuesList))
             {
                 // First element is a reserved location and should not be used (allow to track error)
                 // Special case for None since it cannot be inferred from SurfaceData/BuiltinData

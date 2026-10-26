@@ -87,9 +87,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 
                 if (supportLighting)
-                    includes.Add(kPassForward, IncludeLocation.Postgraph);
+                    includes.Add(kPassForward, IncludeLocation.Postgraph, true);
                 else
-                    includes.Add(kPassForwardUnlit, IncludeLocation.Postgraph);
+                    includes.Add(kPassForwardUnlit, IncludeLocation.Postgraph, true);
 
                 return includes;
             }

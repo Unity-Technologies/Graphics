@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine.Rendering.Sampling;
 using UnityEngine.Rendering.UnifiedRayTracing;
-using Unity.Collections;
 
 namespace UnityEngine.Rendering
 {
@@ -41,10 +41,10 @@ namespace UnityEngine.Rendering
             /// </summary>
             public abstract void Dispose();
 
-            internal NativeArray<uint> encodedDirections;
-            internal void Encode() { encodedDirections = EncodeShadingDirection(shadingDirections); }
+            internal NativeArray<uint> m_EncodedDirections;
+            internal void Encode() { m_EncodedDirections = EncodeShadingDirection(shadingDirections); }
 
-            static int k_MaxProbeCountPerBatch = 65535;
+            static readonly int k_MaxProbeCountPerBatch = 65535;
             static readonly int _SkyShadingPrecomputedDirection = Shader.PropertyToID("_SkyShadingPrecomputedDirection");
             static readonly int _SkyShadingDirections = Shader.PropertyToID("_SkyShadingDirections");
             static readonly int _SkyShadingIndices = Shader.PropertyToID("_SkyShadingIndices");
@@ -131,89 +131,90 @@ namespace UnityEngine.Rendering
             static readonly int _BakeSkyShadingDirection = Shader.PropertyToID("_BakeSkyShadingDirection");
             static readonly int _SobolBuffer = Shader.PropertyToID("_SobolMatricesBuffer");
 
-            int skyOcclusionBackFaceCulling;
-            float skyOcclusionAverageAlbedo;
-            int probeCount;
-            ulong step;
+            int m_SkyOcclusionBackFaceCulling;
+            float m_SkyOcclusionAverageAlbedo;
+            int m_ProbeCount;
+            ulong m_Step;
 
             // Input data
-            NativeArray<Vector3> probePositions;
-            int currentJob;
-            int sampleIndex;
-            int batchIndex;
+            NativeArray<Vector3> m_ProbePositions;
+            int m_CurrentJob;
+            int m_SampleIndex;
+            int m_BatchIndex;
 
             public BakeJob[] jobs;
 
             // Output buffers
-            GraphicsBuffer occlusionOutputBuffer;
-            GraphicsBuffer shadingDirectionBuffer;
-            NativeArray<Vector4> occlusionResults;
-            NativeArray<Vector3> directionResults;
+            GraphicsBuffer m_OcclusionOutputBuffer;
+            GraphicsBuffer m_ShadingDirectionBuffer;
+            NativeArray<Vector4> m_OcclusionResults;
+            NativeArray<Vector3> m_DirectionResults;
 
-            public override NativeArray<Vector4> occlusion => occlusionResults;
-            public override NativeArray<Vector3> shadingDirections => directionResults;
+            public override NativeArray<Vector4> occlusion => m_OcclusionResults;
+            public override NativeArray<Vector3> shadingDirections => m_DirectionResults;
 
             AccelStructAdapter m_AccelerationStructure;
-            GraphicsBuffer scratchBuffer;
-            GraphicsBuffer probePositionsBuffer;
-            GraphicsBuffer sobolBuffer;
+            GraphicsBuffer m_ScratchBuffer;
+            GraphicsBuffer m_ProbePositionsBuffer;
+            GraphicsBuffer m_SobolBuffer;
+            bool m_HasTerrains;
 
-            public override ulong currentStep => step;
-            public override ulong stepCount => (ulong)probeCount;
+            public override ulong currentStep => m_Step;
+            public override ulong stepCount => (ulong)m_ProbeCount;
 
             public override void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> positions)
             {
-                skyOcclusionAverageAlbedo = bakingSet.skyOcclusionAverageAlbedo;
-                skyOcclusionBackFaceCulling = 0; // see PR #40707
+                m_SkyOcclusionAverageAlbedo = bakingSet.skyOcclusionAverageAlbedo;
+                m_SkyOcclusionBackFaceCulling = 0; // see PR #40707
 
-                currentJob = 0;
-                sampleIndex = 0;
-                batchIndex = 0;
+                m_CurrentJob = 0;
+                m_SampleIndex = 0;
+                m_BatchIndex = 0;
 
-                step = 0;
-                probeCount = bakingSet.skyOcclusion ? positions.Length : 0;
-                probePositions = positions;
+                m_Step = 0;
+                m_ProbeCount = bakingSet.skyOcclusion ? positions.Length : 0;
+                m_ProbePositions = positions;
 
                 if (stepCount == 0)
                     return;
 
                 // Allocate array storing results
-                occlusionResults = new NativeArray<Vector4>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                m_OcclusionResults = new NativeArray<Vector4>(m_ProbeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 if (bakingSet.skyOcclusionShadingDirection)
-                    directionResults = new NativeArray<Vector3>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                    m_DirectionResults = new NativeArray<Vector3>(m_ProbeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
                 // Create acceleration structure
-                m_AccelerationStructure = BuildAccelerationStructure();
+                m_AccelerationStructure = BuildAccelerationStructure(out m_HasTerrains);
                 var skyOcclusionShader = s_TracingContext.shaderSO;
                 bool skyDirection = shadingDirections.IsCreated;
 
-                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
-                probePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
-                occlusionOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector4>());
-                shadingDirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<Vector3>());
-                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), skyOcclusionShader, (uint)batchSize, 1, 1);
+                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, m_ProbeCount);
+                m_ProbePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
+                m_OcclusionOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector4>());
+                m_ShadingDirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<Vector3>());
+                m_ScratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), skyOcclusionShader, (uint)batchSize, 1, 1);
 
                 var buildCmd = new CommandBuffer();
-                m_AccelerationStructure.Build(buildCmd, ref scratchBuffer);
+                m_AccelerationStructure.Build(buildCmd, ref m_ScratchBuffer);
                 Graphics.ExecuteCommandBuffer(buildCmd);
                 buildCmd.Dispose();
 
                 int sobolBufferSize = (int)(SobolData.SobolDims * SobolData.SobolSize);
-                sobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
-                sobolBuffer.SetData(SobolData.SobolMatrices);
+                m_SobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
+                m_SobolBuffer.SetData(SobolData.SobolMatrices);
             }
 
-            static AccelStructAdapter BuildAccelerationStructure()
+            static AccelStructAdapter BuildAccelerationStructure(out bool hasTerrains)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
-                var contributors = m_BakingBatch.contributors;
+                var contributors = s_BakingBatch.contributors;
 
                 foreach (var renderer in contributors.renderers)
                 {
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
-                    if (renderer.component is SkinnedMeshRenderer)
+                    if (renderer.component is not MeshRenderer)
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;
@@ -226,11 +227,28 @@ namespace UnityEngine.Rendering
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }
 
+                hasTerrains = false;
 #if ENABLE_TERRAIN_MODULE
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
-                    accelStruct.AddInstance(EntityId.ToULong(terrain.component.GetEntityId()), terrain.component, new uint[1] { mask }, new uint[1] { 0 }, new bool[1] { true }, 1);
+
+                    hasTerrains = true;
+
+                    ExtractTerrainData(terrain.component, out var heightData, out var heightmapResolution,
+                        out var heightmapScale, out var holeData, out var holeResolution);
+
+                    accelStruct.AddTerrainInstance(
+                        EntityId.ToULong(terrain.component.GetEntityId()),
+                        heightData,
+                        heightmapResolution,
+                        heightmapScale,
+                        holeData,
+                        holeResolution,
+                        terrain.component.transform.localToWorldMatrix,
+                        0,           // materialID
+                        1,
+                        mask); // renderingLayerMask
                 }
 #endif
 
@@ -242,40 +260,43 @@ namespace UnityEngine.Rendering
                 if (currentStep >= stepCount)
                     return true;
 
-                ref var job = ref jobs[currentJob];
+                ref var job = ref jobs[m_CurrentJob];
                 if (job.probeCount == 0)
                 {
-                    currentJob++;
+                    m_CurrentJob++;
                     return true;
                 }
 
                 var cmd = new CommandBuffer();
                 var skyOccShader = s_TracingContext.shaderSO;
+                skyOccShader.SetKeyword(cmd, skyOccShader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), m_HasTerrains);
 
                 // Divide the job into batches of 128k probes to reduce memory usage.
                 int batchCount = CoreUtils.DivRoundUp(job.probeCount, k_MaxProbeCountPerBatch);
 
-                int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
+                int batchOffset = m_BatchIndex * k_MaxProbeCountPerBatch;
                 int batchSize = Mathf.Min(job.probeCount - batchOffset, k_MaxProbeCountPerBatch);
 
-                if (sampleIndex == 0)
+                if (m_SampleIndex == 0)
                 {
-                    cmd.SetBufferData(probePositionsBuffer, probePositions.GetSubArray(job.startOffset + batchOffset, batchSize));
+                    cmd.SetBufferData(m_ProbePositionsBuffer, m_ProbePositions.GetSubArray(job.startOffset + batchOffset, batchSize));
                 }
 
                 s_TracingContext.BindSamplingTextures(cmd);
                 m_AccelerationStructure.Bind(cmd, "_AccelStruct", skyOccShader);
+                if (m_HasTerrains)
+                    m_AccelerationStructure.BindTerrainResources(cmd, skyOccShader);
 
                 skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, shadingDirections.IsCreated ? 1 : 0);
-                skyOccShader.SetIntParam(cmd, _BackFaceCulling, skyOcclusionBackFaceCulling);
-                skyOccShader.SetFloatParam(cmd, _AverageAlbedo, skyOcclusionAverageAlbedo);
+                skyOccShader.SetIntParam(cmd, _BackFaceCulling, m_SkyOcclusionBackFaceCulling);
+                skyOccShader.SetFloatParam(cmd, _AverageAlbedo, m_SkyOcclusionAverageAlbedo);
 
                 skyOccShader.SetFloatParam(cmd, _OffsetRay, k_SkyOcclusionOffsetRay);
-                skyOccShader.SetBufferParam(cmd, _ProbePositions, probePositionsBuffer);
-                skyOccShader.SetBufferParam(cmd, _SkyOcclusionOut, occlusionOutputBuffer);
-                skyOccShader.SetBufferParam(cmd, _SkyShadingOut, shadingDirectionBuffer);
+                skyOccShader.SetBufferParam(cmd, _ProbePositions, m_ProbePositionsBuffer);
+                skyOccShader.SetBufferParam(cmd, _SkyOcclusionOut, m_OcclusionOutputBuffer);
+                skyOccShader.SetBufferParam(cmd, _SkyShadingOut, m_ShadingDirectionBuffer);
 
-                skyOccShader.SetBufferParam(cmd, _SobolBuffer, sobolBuffer);
+                skyOccShader.SetBufferParam(cmd, _SobolBuffer, m_SobolBuffer);
 
                 skyOccShader.SetIntParam(cmd, _SampleCount, job.skyOcclusionBakingSamples);
                 skyOccShader.SetIntParam(cmd, _MaxBounces, job.skyOcclusionBakingBounces);
@@ -283,28 +304,28 @@ namespace UnityEngine.Rendering
                 // Sample multiple paths in one step
                 for (int i = 0; i < k_SampleCountPerStep; i++)
                 {
-                    skyOccShader.SetIntParam(cmd, _SampleId, sampleIndex);
-                    skyOccShader.Dispatch(cmd, scratchBuffer, (uint)batchSize, 1, 1);
-                    sampleIndex++;
+                    skyOccShader.SetIntParam(cmd, _SampleId, m_SampleIndex);
+                    skyOccShader.Dispatch(cmd, m_ScratchBuffer, (uint)batchSize, 1, 1);
+                    m_SampleIndex++;
 
                     Graphics.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
                     // If we computed all the samples for this batch, continue with the next one
-                    if (sampleIndex >= job.skyOcclusionBakingSamples)
+                    if (m_SampleIndex >= job.skyOcclusionBakingSamples)
                     {
                         FetchResults(in job, batchOffset, batchSize);
 
-                        batchIndex++;
-                        sampleIndex = 0;
-                        if (batchIndex >= batchCount)
+                        m_BatchIndex++;
+                        m_SampleIndex = 0;
+                        if (m_BatchIndex >= batchCount)
                         {
-                            currentJob++;
-                            batchIndex = 0;
+                            m_CurrentJob++;
+                            m_BatchIndex = 0;
                         }
 
                         // Progress bar
-                        step += (ulong)batchSize;
+                        m_Step += (ulong)batchSize;
                         break;
                     }
                 }
@@ -315,13 +336,13 @@ namespace UnityEngine.Rendering
 
             void FetchResults(in BakeJob job, int batchOffset, int batchSize)
             {
-                var batchOcclusionResults = occlusionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
-                var req1 = AsyncGPUReadback.RequestIntoNativeArray(ref batchOcclusionResults, occlusionOutputBuffer, batchSize * 4 * sizeof(float), 0);
+                var batchOcclusionResults = m_OcclusionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
+                var req1 = AsyncGPUReadback.RequestIntoNativeArray(ref batchOcclusionResults, m_OcclusionOutputBuffer, batchSize * 4 * sizeof(float), 0);
 
-                if (directionResults.IsCreated)
+                if (m_DirectionResults.IsCreated)
                 {
-                    var batchDirectionResults = directionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
-                    var req2 = AsyncGPUReadback.RequestIntoNativeArray(ref batchDirectionResults, shadingDirectionBuffer, batchSize * 3 * sizeof(float), 0);
+                    var batchDirectionResults = m_DirectionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
+                    var req2 = AsyncGPUReadback.RequestIntoNativeArray(ref batchDirectionResults, m_ShadingDirectionBuffer, batchSize * 3 * sizeof(float), 0);
 
                     req2.WaitForCompletion();
                 }
@@ -335,16 +356,16 @@ namespace UnityEngine.Rendering
                 if (m_AccelerationStructure == null)
                     return;
 
-                occlusionOutputBuffer?.Dispose();
-                shadingDirectionBuffer?.Dispose();
+                m_OcclusionOutputBuffer?.Dispose();
+                m_ShadingDirectionBuffer?.Dispose();
 
-                scratchBuffer?.Dispose();
-                probePositionsBuffer?.Dispose();
-                sobolBuffer?.Dispose();
+                m_ScratchBuffer?.Dispose();
+                m_ProbePositionsBuffer?.Dispose();
+                m_SobolBuffer?.Dispose();
 
-                occlusionResults.Dispose();
-                if (directionResults.IsCreated)
-                    directionResults.Dispose();
+                m_OcclusionResults.Dispose();
+                if (m_DirectionResults.IsCreated)
+                    m_DirectionResults.Dispose();
 
                 m_AccelerationStructure.Dispose();
             }

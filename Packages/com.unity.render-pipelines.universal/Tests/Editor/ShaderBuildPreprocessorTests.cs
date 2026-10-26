@@ -25,10 +25,7 @@ namespace ShaderStrippingAndPrefiltering
             internal List<ScriptableRendererFeature> rendererFeatures;
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
-#if SURFACE_CACHE
             internal bool containsSurfaceCache;
-#endif
-            internal bool everyRendererHasSSAO;
             internal bool everyRendererHasSSR;
 
             internal ShaderFeatures defaultURPAssetFeatures
@@ -111,11 +108,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromAsset()
             {
-#if SURFACE_CACHE
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSAO, out everyRendererHasSSR);
-#else
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out everyRendererHasSSAO, out everyRendererHasSSR);
-#endif
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSR);
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRenderer(RendererRequirements rendererRequirements, ShaderFeatures urpAssetShaderFeatures)
@@ -244,6 +237,7 @@ namespace ShaderStrippingAndPrefiltering
 
         private RenderPipelineAsset m_PreviousRenderPipelineAssetGraphicsSettings;
         private RenderPipelineAsset m_PreviousRenderPipelineAssetQualitySettings;
+        private UnityEditor.Rendering.DefaultMeshBufferTarget m_PreviousDefaultMeshBufferTarget;
         private TestHelper m_TestHelper;
 
         [OneTimeSetUp]
@@ -253,9 +247,11 @@ namespace ShaderStrippingAndPrefiltering
 
             m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.defaultRenderPipeline;
             m_PreviousRenderPipelineAssetQualitySettings = QualitySettings.renderPipeline;
+            m_PreviousDefaultMeshBufferTarget = UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget;
 
             GraphicsSettings.defaultRenderPipeline = null;
             QualitySettings.renderPipeline = null;
+            UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget = UnityEditor.Rendering.DefaultMeshBufferTarget.Raw;
         }
 
         [SetUp]
@@ -274,6 +270,7 @@ namespace ShaderStrippingAndPrefiltering
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
+            UnityEditor.Rendering.EditorGraphicsSettings.defaultMeshBufferTarget = m_PreviousDefaultMeshBufferTarget;
             GraphicsSettings.defaultRenderPipeline = m_PreviousRenderPipelineAssetGraphicsSettings;
             QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetQualitySettings;
         }
@@ -411,6 +408,30 @@ namespace ShaderStrippingAndPrefiltering
             actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
             expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.HdrGrading;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+        }
+
+        // ShaderFeatures.LightFalloffQuadratic - _LIGHT_FALLOFF_QUADRATIC
+        [Test]
+        public void TestGetSupportedShaderFeaturesFromAsset_LightFalloff()
+        {
+            var lightFalloffSettings = GraphicsSettings.GetRenderPipelineSettings<URPLightFalloffSettings>();
+            LightFalloffMode previousLightFalloffMode = lightFalloffSettings.lightFalloffMode;
+            try
+            {
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.InverseSquared;
+                ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+                lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
+                actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.LightFalloffQuadratic;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+            }
+            finally
+            {
+                lightFalloffSettings.lightFalloffMode = previousLightFalloffMode;
+            }
         }
 
         [Test]
@@ -1004,15 +1025,9 @@ namespace ShaderStrippingAndPrefiltering
             ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.decalLayers = true;
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque | ShaderFeatures.DecalScreenSpace |
                        ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
                        ShaderFeatures.OpaqueWriteRenderingLayers;
-#else
-            expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.DecalScreenSpace |
-                       ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
-                       ShaderFeatures.OpaqueWriteRenderingLayers;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             m_TestHelper.rendererFeatures.Remove(ssaoFeature);
@@ -1064,21 +1079,13 @@ namespace ShaderStrippingAndPrefiltering
 
             RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
             ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             ShaderFeatures expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#else
-            ShaderFeatures expected = ShaderFeatures.ScreenSpaceOcclusion;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             ((ScreenSpaceAmbientOcclusion)m_TestHelper.rendererFeatures[0]).settings.AfterOpaque = true;
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
-#if MODERN_SSAO
             expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#else
-            expected = ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
-#endif
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
             // Disabled feature
@@ -1099,7 +1106,6 @@ namespace ShaderStrippingAndPrefiltering
         }
 #pragma warning restore CS0618
 
-#if SURFACE_CACHE
         // Surface Cache Global Illumination...
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_SurfaceCacheGI()
@@ -1124,9 +1130,7 @@ namespace ShaderStrippingAndPrefiltering
 
             Object.DestroyImmediate(surfaceCacheFeature);
         }
-#endif
 
-#if URP_SCREEN_SPACE_REFLECTION
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_ScreenSpaceReflection()
         {
@@ -1150,7 +1154,6 @@ namespace ShaderStrippingAndPrefiltering
 
             Object.DestroyImmediate(ssrFeature);
         }
-#endif
 
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_Decals()

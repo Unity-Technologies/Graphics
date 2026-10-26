@@ -64,9 +64,9 @@ namespace UnityEngine.Rendering
             };
         }
 
-        internal void Dispose(JobHandle job)
+        internal JobHandle Dispose(JobHandle job)
         {
-            planes.Dispose(job);
+            return planes.Dispose(job);
         }
 
         internal static ReceiverPlanes Create(in BatchCullingContext cc, Allocator allocator)
@@ -232,10 +232,9 @@ namespace UnityEngine.Rendering
         public NativeList<PlanePacket4> planePackets;
         public NativeList<SplitInfo> splitInfos;
 
-        internal void Dispose(JobHandle job)
+        internal JobHandle Dispose(JobHandle job)
         {
-            planePackets.Dispose(job);
-            splitInfos.Dispose(job);
+            return JobHandle.CombineDependencies(planePackets.Dispose(job), splitInfos.Dispose(job));
         }
 
         internal static FrustumPlaneCuller Create(in BatchCullingContext cc, NativeArray<Plane> receiverPlanes, in ReceiverSphereCuller receiverSphereCuller, Allocator allocator)
@@ -344,9 +343,9 @@ namespace UnityEngine.Rendering
             };
         }
 
-        internal void Dispose(JobHandle job)
+        internal JobHandle Dispose(JobHandle job)
         {
-            splitInfos.Dispose(job);
+            return splitInfos.Dispose(job);
         }
 
         internal bool UseReceiverPlanes()

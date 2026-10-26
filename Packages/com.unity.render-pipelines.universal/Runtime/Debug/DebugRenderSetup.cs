@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering.Universal
     class DebugRenderSetup : IDisposable
     {
         private readonly DebugHandler m_DebugHandler;
-        private readonly FilteringSettings m_FilteringSettings;
-        private readonly int m_Index;
+        private FilteringSettings m_FilteringSettings;
+        private int m_Index;
         private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.materialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.renderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.lightingSettings;
@@ -72,6 +72,13 @@ namespace UnityEngine.Rendering.Universal
             m_Index = index;
         }
 
+        // Only the index and filtering settings vary; the rest is read from the handler while recording.
+        internal void Reuse(int index, FilteringSettings filteringSettings)
+        {
+            m_FilteringSettings = filteringSettings;
+            m_Index = index;
+        }
+
         internal void CreateRendererList(
             RenderGraph renderGraph,
             ref CullingResults cullResults,
@@ -99,6 +106,14 @@ namespace UnityEngine.Rendering.Universal
                 DrawingSettings modifiedDrawingSettings = drawingSettings;
 
                 modifiedDrawingSettings.overrideMaterial = replacementMaterial;
+                modifiedDrawingSettings.overrideMaterialPassIndex = 0;
+                return modifiedDrawingSettings;
+            }
+
+            if (m_DebugHandler.IsBatchingTypeViewActive)
+            {
+                DrawingSettings modifiedDrawingSettings = drawingSettings;
+                modifiedDrawingSettings.overrideMaterial = m_DebugHandler.BatchingTypeDebugMaterial;
                 modifiedDrawingSettings.overrideMaterialPassIndex = 0;
                 return modifiedDrawingSettings;
             }
@@ -140,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Disable culling to see all lines
                     renderStateBlock.rasterState = new RasterState(
-                        cullingMode: CullMode.Off        
+                        cullingMode: CullMode.Off
                     );
 
                     renderStateBlock.mask = RenderStateMask.Raster;

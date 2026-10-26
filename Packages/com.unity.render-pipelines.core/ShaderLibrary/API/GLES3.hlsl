@@ -31,6 +31,14 @@
 #define UNITY_UNROLLX(_x)   [unroll(_x)]
 #define UNITY_LOOP          [loop]
 
+// In situations where buffer accesses are correctly guarded by an
+// out of bounds check, Unity may perform branch flattening in such
+// a way that the out of bounds access happens regardless. This is
+// valid in some languages (e.g. HLSL) but not in others (e.g. MSL)
+// where it causes undefined behavior. See UUM-126860 for more
+// details. As a workaround you may use this macro.
+#define UNITY_OUT_OF_BOUNDS_BRANCH [branch]
+
 // GLES 3.1 + AEP shader feature https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html
 #if (SHADER_TARGET >= 50)
 #define GLES3_1_AEP 1
@@ -46,6 +54,9 @@
 #if !defined(UNITY_PLATFORM_WEBGL)
 #define LIGHT_SHADOWS_NO_CBUFFER
 #endif
+
+// Keep in sync with RenderingUtils.useStructuredBuffer on the C# side.
+#define API_PREFERS_UBO_OVER_SSBO
 
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0

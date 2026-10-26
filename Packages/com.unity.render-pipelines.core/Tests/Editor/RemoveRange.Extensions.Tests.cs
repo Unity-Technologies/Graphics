@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Tests
         bool ItemInRangeAreRemovedAfterRemoveRange<TList>(TList list, int startIndex, int count)
             where TList : IList<int>
         {
-            using (ListPool<int>.Get(out var copy))
+            using (UnityEngine.Pool.ListPool<int>.Get(out var copy))
             { 
                 copy.AddRange(list);
 
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatas))]
         public void ItemInRangeAreRemovedAfterRemoveRangeForList(int[] ints, int startIndex, int count)
         {
-            using (GenericPool<SimpleList>.Get(out var copy))
+            using (UnityEngine.Pool.GenericPool<SimpleList>.Get(out var copy))
             {
                 copy.AddRange(ints);
                 Assert.IsTrue(ItemInRangeAreRemovedAfterRemoveRange<IList<int>>(copy as IList<int>, startIndex, count));
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatas))]
         public void ItemInRangeAreRemovedAfterRemoveRangeForSimpleList(int[] ints, int startIndex, int count)
         {
-            using (ListPool<int>.Get(out var copy))
+            using (UnityEngine.Pool.ListPool<int>.Get(out var copy))
             {
                 copy.AddRange(ints);
                 Assert.IsTrue(ItemInRangeAreRemovedAfterRemoveRange<List<int>>(copy, startIndex, count));
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatasExceptions))]
         public Type ExceptionsAreCorrectForList(int[] ints, int startIndex, int count)
         {
-            using (ListPool<int>.Get(out var copy))
+            using (UnityEngine.Pool.ListPool<int>.Get(out var copy))
             {
                 copy.AddRange(ints);
                 return ExceptionsAreCorrect(copy, startIndex, count).GetType();
@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatasExceptions))]
         public Type ExceptionsAreCorrectForSimpleList(int[] ints, int startIndex, int count)
         {
-            using (GenericPool<SimpleList>.Get(out var copy))
+            using (UnityEngine.Pool.GenericPool<SimpleList>.Get(out var copy))
             {
                 copy.AddRange(ints);
                 return ExceptionsAreCorrect(copy, startIndex, count).GetType();

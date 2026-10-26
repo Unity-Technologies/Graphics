@@ -5,14 +5,11 @@
 
 #include "Packages/com.unity.render-pipelines.universal-config/Runtime/ShaderConfig.cs.hlsl"
 
-#define MAX_VISIBLE_LIGHTS_UBO  32
-#define MAX_VISIBLE_LIGHTS_SSBO 256
-
-// Keep in sync with RenderingUtils.useStructuredBuffer
-#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
+// Defines URP_LIGHT_ACCUM3/4 (float when _EXPOSURE is enabled, else half). Needed by InputData.bakedGI below.
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalShaderVariables.hlsl"
 
 // Must match: UniversalRenderPipeline.maxVisibleAdditionalLights
 #if defined(SHADER_API_MOBILE) && defined(SHADER_API_GLES30)
@@ -48,11 +45,12 @@ struct InputData
     half3   viewDirectionWS;
     float4  shadowCoord;
     half    fogCoord;
-    half3   vertexLighting;
-    half3   bakedGI;
+    URP_LIGHT_ACCUM3 vertexLighting;
+    URP_LIGHT_ACCUM3 bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
     half3x3 tangentToWorld;
+    float   preExposureMultiplier;
 
 #if defined(DEBUG_DISPLAY)
     half2   dynamicLightmapUV;
@@ -97,28 +95,13 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-half4 _GlossyEnvironmentColor;
-half4 _SubtractiveShadowColor;
-
-half4 _GlossyEnvironmentCubeMap_HDR;
 TEXTURECUBE(_GlossyEnvironmentCubeMap);
-SAMPLER(sampler_GlossyEnvironmentCubeMap);
+#define sampler_GlossyEnvironmentCubeMap sampler_TrilinearClamp
 
 #define _InvCameraViewProj unity_MatrixInvVP
-float4 _ScaledScreenParams;
-
-// x = Mip Bias
-// y = 2.0 ^ [Mip Bias]
-float2 _GlobalMipBias;
 
 // 1.0 if it's possible for AlphaToMask to be enabled for this draw and 0.0 otherwise
 float _AlphaToMaskAvailable;
-
-float4 _MainLightPosition;
-// In Forward+, .a stores whether the main light is using subtractive mixed mode.
-half4 _MainLightColor;
-half4 _MainLightOcclusionProbes;
-uint _MainLightLayerMask;
 
 // x: SSAO Enabled/Disabled (Needed for situations when OFF keyword is stripped out but feature disabled in runtime)
 // yz are currently unused
@@ -131,21 +114,8 @@ half4 _AmbientOcclusionParam;
 // w: is currently unused
 half4 _ScreenSpaceReflectionParam;
 
-half4 _AdditionalLightsCount;
-
-uint _RenderingLayerMaxInt;
-
-// Screen coord override.
-float4 _ScreenCoordScaleBias;
-float4 _ScreenSizeOverride;
-
-uint _EnableProbeVolumes;
 
 #if USE_CLUSTER_LIGHT_LOOP
-float4 _FPParams0;
-float4 _FPParams1;
-float4 _FPParams2;
-
 #define URP_FP_ZBIN_SCALE (_FPParams0.x)
 #define URP_FP_ZBIN_OFFSET (_FPParams0.y)
 #define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
@@ -156,6 +126,7 @@ float4 _FPParams2;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 #define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
 #define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+#define URP_FP_TILE_COUNT_Y ((uint)_FPParams2.z)
 #define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
 
 #define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
@@ -163,34 +134,42 @@ float4 _FPParams2;
 
 #endif
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-StructuredBuffer<LightData> _AdditionalLightsBuffer;
-StructuredBuffer<int> _AdditionalLightsIndices;
-#else
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
 // In Forward+, .a stores whether the light is using subtractive mixed mode.
-half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
+float4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
-#endif
+
+// Keeping mask buffer outside of AdditionalLights due to padding issue (std140 vs Metal MSL)
+// We want uint[] but the Unity API does not support it.
+float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS];
 
 #if USE_CLUSTER_LIGHT_LOOP
 
+// Forward+ cluster data (Z-bins and per-tile light masks).
+#if defined(API_PREFERS_UBO_OVER_SSBO)
 CBUFFER_START(urp_ZBinBuffer)
         float4 urp_ZBins[MAX_ZBIN_VEC4S];
 CBUFFER_END
 CBUFFER_START(urp_TileBuffer)
         float4 urp_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
+#define LoadZBin(index)     Select4(asuint(urp_ZBins[(index) / 4]), (index) % 4)
+#define LoadTileWord(index) Select4(asuint(urp_Tiles[(index) / 4]), (index) % 4)
+#else
+StructuredBuffer<uint> urp_ZBins;
+StructuredBuffer<uint> urp_Tiles;
+#define LoadZBin(index)     urp_ZBins[(index)]
+#define LoadTileWord(index) urp_Tiles[(index)]
+#endif
 
 TEXTURE2D(urp_ReflProbes_Atlas);
 float urp_ReflProbes_Count;
@@ -206,6 +185,7 @@ float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the 
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
 float4 urp_ReflProbes_Rotation[MAX_REFLECTION_PROBES];
+float4 urp_ReflProbes_ExposureMultipliers[MAX_REFLECTION_PROBES];
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif

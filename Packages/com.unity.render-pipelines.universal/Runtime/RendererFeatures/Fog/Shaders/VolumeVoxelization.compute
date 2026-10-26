@@ -1,0 +1,78 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel VolumeVoxelization
+
+#define GROUP_SIZE 8
+
+CBUFFER_START(VolumeVoxelizationConstants)
+    float4x4 _VBufferCoordToViewDirWS;
+    float4   _DepthDecodingParams;
+    float4   _VBufferSize;            // (w, h, 1/w, 1/h)
+    float4   _CameraPositionWS;       // xyz = world-space camera position
+    float4   _VolumetricFogScattering;    // rgb = extinction * albedo
+    float    _VolumetricFogDensity;
+    int      _VolumetricFogDensityMode;   // 0 = constant, 1 = height falloff, 2 = 3D texture
+    float    _VolumetricFogBaseHeight;    // height up to which the fog stays at full density
+    float2   _VolumetricFogExponents;     // x = 1/H, y = H
+    float    _VolumetricFogDensityTextureTiling; // texture repetitions per world-space meter
+    float    _CameraNearPlane;
+    uint     _VBufferSliceCount;
+    float    _VBufferRcpSliceCount;
+CBUFFER_END
+
+#define VOLUMETRIC_FOG_DENSITY_MODE_HEIGHT  1
+#define VOLUMETRIC_FOG_DENSITY_MODE_TEXTURE 2
+
+// Red channel modulates the fog density; tiled across world space in Texture mode.
+TEXTURE3D(_VolumetricFogDensityTexture);
+
+// RGB = scattering, A = extinction
+RW_TEXTURE3D(float4, _VBufferDensity);
+
+// Fills the V-buffer with the fog's scattering (rgb) and extinction (a) at every voxel.
+// Each thread owns one screen-space column and walks all depth slices, seeding each
+// voxel with the global fog values scaled by the height-fog falloff.
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 voxelCoord = dispatchThreadId.xy;
+
+    if (voxelCoord.x >= (uint)_VBufferSize.x || voxelCoord.y >= (uint)_VBufferSize.y)
+        return;
+
+    // World-space view ray through the column center, starting at the near plane.
+    float3 F = normalize(mul(-float4(0.5 * _VBufferSize.x, 0.5 * _VBufferSize.y, 1, 1), _VBufferCoordToViewDirWS).xyz);
+    float2 centerCoord = voxelCoord + float2(0.5, 0.5);
+    float3 rayDirWS = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS).xyz;
+    float3 dirWS  = rayDirWS * rsqrt(dot(rayDirWS, rayDirWS));
+    float  tStart = _CameraNearPlane / dot(F, dirWS);
+
+    for (uint slice = 0; slice < _VBufferSliceCount; slice++)
+    {
+        // Slices are distributed logarithmically, so the center is the midpoint of the
+        // slice's decoded near and far depths.
+        float e0 = slice * _VBufferRcpSliceCount;
+        float t0 = max(tStart, DecodeLogarithmicDepthGeneralized(e0, _DepthDecodingParams));
+        float t1 = max(tStart, DecodeLogarithmicDepthGeneralized(e0 + _VBufferRcpSliceCount, _DepthDecodingParams));
+        float3 voxelCenterWS = _CameraPositionWS.xyz + 0.5 * (t0 + t1) * dirWS;
+
+        // Seed with the global fog values. In Height and Texture modes they are attenuated by the
+        // height-fog multiplier so that density falls off exponentially above _VolumetricFogBaseHeight;
+        // Texture mode additionally modulates them by a 3D texture that tiles across world space; in
+        // Constant mode the density is uniform.
+        float densityMultiplier = 1.0;
+        if (_VolumetricFogDensityMode == VOLUMETRIC_FOG_DENSITY_MODE_HEIGHT || _VolumetricFogDensityMode == VOLUMETRIC_FOG_DENSITY_MODE_TEXTURE)
+            densityMultiplier = ComputeHeightFogMultiplier(voxelCenterWS.y, _VolumetricFogBaseHeight, _VolumetricFogExponents);
+        if (_VolumetricFogDensityMode == VOLUMETRIC_FOG_DENSITY_MODE_TEXTURE)
+            densityMultiplier *= SAMPLE_TEXTURE3D_LOD(_VolumetricFogDensityTexture, sampler_LinearRepeat, voxelCenterWS * _VolumetricFogDensityTextureTiling, 0).r;
+
+        float3 scattering = _VolumetricFogScattering.rgb * densityMultiplier;
+        float  extinction = _VolumetricFogDensity * densityMultiplier;
+
+        _VBufferDensity[uint3(voxelCoord, slice)] = float4(scattering, extinction);
+    }
+}

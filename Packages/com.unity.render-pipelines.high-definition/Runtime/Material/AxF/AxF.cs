@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Scripting;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Main structure that store the user data (i.e user input of master node in material graph)
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
+        [Preserve]
         public struct SurfaceData
         {
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -142,6 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //-----------------------------------------------------------------------------
 
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
+        [Preserve]
         public struct BSDFData
         {
             public float ambientOcclusion;

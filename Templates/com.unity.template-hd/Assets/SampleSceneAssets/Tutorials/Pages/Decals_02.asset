@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Decals_02
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Inspect the Decals
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 3ce24392a19ec32408d871e7d9fd3a18, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 3ce24392a19ec32408d871e7d9fd3a18, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,34 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Inspect the Decals
+        m_Untranslated: 
       Text:
-        m_Untranslated: "Let's see how decals can dramatically improve the look of
-          simple surfaces.\n\r\n1. In the <i>Hierarchy,</i> select <b>Structure</b>
-          > <b>Decals.</b>\r\n\r\n2. In its <i>Inspector,</i> toggle the GameObject
-          <b>off</b> and <b>on.</b> \n\nSee how the decals add variations on the
-          concrete surfaces and break up the texture tiling. \n\n3. Select <b>Structure</b>
-          > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11).</b>\n\n4. In
-          its <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order
-          to simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use
-          <b>Decal Layers</b> to specify which surfaces should be affected by which
-          decals.\n\n\u2022 Use a custom <b>Pivot</b> to override the origin of the
-          projection.\n\n\u2022 Reduce the <b>Draw Distance</b> on Decals to minimize
-          their performance impact."
+        m_Untranslated: "Let's see how decals can dramatically improve the look of simple surfaces.\n\r\n1. In the <i>Hierarchy,</i> select <b>Structure</b> > <b>Decals.</b>\r\n\r\n2. In its <i>Inspector,</i> toggle the GameObject <b>off</b> and <b>on.</b> \n\nSee how the decals add variations on the concrete surfaces and break up the texture tiling. \n\n3. Select <b>Structure</b> > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11).</b>\n\n4. In its <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order to simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use <b>Decal Layers</b> to specify which surfaces should be affected by which decals.\n\n\u2022 Use a custom <b>Pivot</b> to override the origin of the projection.\n\n\u2022 Reduce the <b>Draw Distance</b> on Decals to minimize their performance impact."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -84,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

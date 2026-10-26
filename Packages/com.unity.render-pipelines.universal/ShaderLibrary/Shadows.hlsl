@@ -1,28 +1,198 @@
 #ifndef UNIVERSAL_SHADOWS_INCLUDED
 #define UNIVERSAL_SHADOWS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
-#include "Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "Shadows.deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lightmaps.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShadowSamplingData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/PCSS.hlsl"
 
-#define MAX_SHADOW_CASCADES 4
-
-#if !defined(_RECEIVE_SHADOWS_OFF)
-    #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
-        #define MAIN_LIGHT_CALCULATE_SHADOWS
-
-        #if defined(_MAIN_LIGHT_SHADOWS) || (defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT))
-            #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
-        #endif
-    #endif
-
-    #if defined(_ADDITIONAL_LIGHT_SHADOWS)
-        #define ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+#if !defined(_ADDITIONAL_LIGHT_SHADOWS_KEYWORD_DECLARED)
+    #if !defined(_ADDITIONAL_LIGHT_SHADOWS)
+        static const bool _ADDITIONAL_LIGHT_SHADOWS = 0;
+    #elif DEFINED_NONZERO(_ADDITIONAL_LIGHT_SHADOWS)
+        #undef _ADDITIONAL_LIGHT_SHADOWS
+        #define _ADDITIONAL_LIGHT_SHADOWS 1
     #endif
 #endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_KEYWORD_DECLARED)
+    #if !defined(_MAIN_LIGHT_SHADOWS)
+        static const bool _MAIN_LIGHT_SHADOWS = 0;
+    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS)
+        #undef _MAIN_LIGHT_SHADOWS
+        #define _MAIN_LIGHT_SHADOWS 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_CASCADE_KEYWORD_DECLARED)
+    #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+        static const bool _MAIN_LIGHT_SHADOWS_CASCADE = 0;
+    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_CASCADE)
+        #undef _MAIN_LIGHT_SHADOWS_CASCADE
+        #define _MAIN_LIGHT_SHADOWS_CASCADE 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_SCREEN_KEYWORD_DECLARED)
+    #if !defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+        static const bool _MAIN_LIGHT_SHADOWS_SCREEN = 0;
+    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_SCREEN)
+        #undef _MAIN_LIGHT_SHADOWS_SCREEN
+        #define _MAIN_LIGHT_SHADOWS_SCREEN 1
+    #endif
+#endif
+
+#if !defined(_SHADOWS_SOFT_LOW_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_SOFT_LOW)
+        static const bool _SHADOWS_SOFT_LOW = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_SOFT_LOW)
+        #undef _SHADOWS_SOFT_LOW
+        #define _SHADOWS_SOFT_LOW 1
+    #endif
+#endif
+
+#if !defined(_SHADOWS_SOFT_MEDIUM_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_SOFT_MEDIUM)
+        static const bool _SHADOWS_SOFT_MEDIUM = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_SOFT_MEDIUM)
+        #undef _SHADOWS_SOFT_MEDIUM
+        #define _SHADOWS_SOFT_MEDIUM 1
+    #endif
+#endif
+
+#if !defined(_SHADOWS_SOFT_HIGH_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_SOFT_HIGH)
+        static const bool _SHADOWS_SOFT_HIGH = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_SOFT_HIGH)
+        #undef _SHADOWS_SOFT_HIGH
+        #define _SHADOWS_SOFT_HIGH 1
+    #endif
+#endif
+
+#if !defined(_SHADOWS_SOFT_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_SOFT)
+        static const bool _SHADOWS_SOFT = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_SOFT)
+        #undef _SHADOWS_SOFT
+        #define _SHADOWS_SOFT 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
+    #if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
+        static const bool _MAIN_LIGHT_SHADOWS_SOFT_PCSS = 0;
+    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
+        #undef _MAIN_LIGHT_SHADOWS_SOFT_PCSS
+        #define _MAIN_LIGHT_SHADOWS_SOFT_PCSS 1
+    #endif
+#endif
+
+#if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
+    #if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
+        static const bool _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS = 0;
+    #elif DEFINED_NONZERO(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
+        #undef _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS
+        #define _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS 1
+    #endif
+#endif
+
+// 1 when the soft-shadow quality keywords are runtime-branching: all qualities then share one
+// variant, so filtering must use the single-body filter instead of the per-quality unrolled ones.
+#if defined(_SHADOWS_SOFT_LOW_KEYWORD_DECLARED) && (_SHADOWS_SOFT_LOW_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
+    #define SHADOWS_SOFT_DYNAMIC_BRANCH 1
+#else
+    #define SHADOWS_SOFT_DYNAMIC_BRANCH 0
+#endif
+
+#if !defined(SHADOWS_SHADOWMASK_KEYWORD_DECLARED)
+    #if !defined(SHADOWS_SHADOWMASK)
+        static const bool SHADOWS_SHADOWMASK = 0;
+    #elif DEFINED_NONZERO(SHADOWS_SHADOWMASK)
+        #undef SHADOWS_SHADOWMASK
+        #define SHADOWS_SHADOWMASK 1
+    #endif
+#endif
+
+#if !defined(LIGHTMAP_SHADOW_MIXING_KEYWORD_DECLARED)
+    #if !defined(LIGHTMAP_SHADOW_MIXING)
+        static const bool LIGHTMAP_SHADOW_MIXING = 0;
+    #elif DEFINED_NONZERO(LIGHTMAP_SHADOW_MIXING)
+        #undef LIGHTMAP_SHADOW_MIXING
+        #define LIGHTMAP_SHADOW_MIXING 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_KEYWORD_DECLARED) || (_MAIN_LIGHT_SHADOWS_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_SPECIALIZED_VARIANTS)
+    #if defined(_MAIN_LIGHT_SHADOWS) && !defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR 1
+    #endif
+#endif
+
+#if !defined(_MAIN_LIGHT_SHADOWS_SCREEN_KEYWORD_DECLARED) || (_MAIN_LIGHT_SHADOWS_SCREEN_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_SPECIALIZED_VARIANTS)
+    #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR 1
+    #endif
+#endif
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) || (_MAIN_LIGHT_SHADOWS_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING) || (_MAIN_LIGHT_SHADOWS_SCREEN_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 1
+#else
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
+#endif
+
+bool ShadowCoordInterpolatorAvailable()
+{
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    return _MAIN_LIGHT_SHADOWS || _MAIN_LIGHT_SHADOWS_SCREEN;
+    #else
+    return false;
+    #endif
+}
+
+bool MainLightShadowsAvailable()
+{
+    return _MAIN_LIGHT_SHADOWS || _MAIN_LIGHT_SHADOWS_CASCADE || _MAIN_LIGHT_SHADOWS_SCREEN;
+}
+
+bool MainLightScreenShadowsAvailable()
+{
+    return _MAIN_LIGHT_SHADOWS_SCREEN;
+}
+
+bool AdditionalLightShadowsAvailable()
+{
+    return _ADDITIONAL_LIGHT_SHADOWS;
+}
+
+bool SoftShadowsAvailable()
+{
+    return _SHADOWS_SOFT || _SHADOWS_SOFT_LOW || _SHADOWS_SOFT_MEDIUM || _SHADOWS_SOFT_HIGH;
+}
+
+bool MainLightPCSSAvailable()
+{
+    return _MAIN_LIGHT_SHADOWS_SOFT_PCSS;
+}
+
+bool AdditionalLightPCSSAvailable()
+{
+    return _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS;
+}
+
+// Should match: UnityEngine.Rendering.Universal + 1
+#define SOFT_SHADOW_QUALITY_OFF     half(0)
+#define SOFT_SHADOW_QUALITY_LOW     half(1)
+#define SOFT_SHADOW_QUALITY_MEDIUM  half(2)
+#define SOFT_SHADOW_QUALITY_HIGH    half(3)
+
+// Passed by entry points that have no screen position. Those paths never take the PCSS branch.
+#define INVALID_SHADOW_SCREEN_POS float2(-1.0, -1.0)
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
 // ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
@@ -40,22 +210,58 @@
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS
 #endif
 
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    #if defined(LIGHTMAP_BICUBIC_SAMPLING)
-    #define SAMPLE_SHADOWMASK(uv) SampleLightmapBicubic(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);
-    #else
-    #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);
-    #endif
-#elif !defined (LIGHTMAP_ON)
-    #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
+bool ShadowMaskAvailable()
+{
+    return SHADOWS_SHADOWMASK;
+}
+
+bool LightmapShadowMixingAvailable()
+{
+    return LIGHTMAP_SHADOW_MIXING;
+}
+
+bool BakedShadowsAvailable()
+{
+    return LightmapAvailable() || LightmapShadowMixingAvailable() || ShadowMaskAvailable();
+}
+
+bool MixedLightingSubtractive()
+{
+    return LightmapShadowMixingAvailable() && !ShadowMaskAvailable();
+}
+
+half4 SampleShadowMask(float2 lightmapUV)
+{
+    if (LightmapAvailable())
+    {
+        if (ShadowMaskAvailable())
+        {
+            #if defined(LIGHTMAP_BICUBIC_SAMPLING)
+            return SampleLightmapBicubic(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, lightmapUV SHADOWMASK_SAMPLE_EXTRA_ARGS);
+            #else
+            return SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, lightmapUV SHADOWMASK_SAMPLE_EXTRA_ARGS);
+            #endif
+        }
+        else
+        {
+            return half4(1, 1, 1, 1);
+        }
+    }
+    else
+    {
+        return unity_ProbesOcclusion;
+    }
+}
+
+// Back-compat macro; without a lightmap UV interpolator the uv argument may not exist, so it is discarded.
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    #define SAMPLE_SHADOWMASK(uv) SampleShadowMask(uv)
 #else
-    #define SAMPLE_SHADOWMASK(uv) half4(1, 1, 1, 1);
+    #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
 #endif
 
-#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
-
-#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
-#define CALCULATE_BAKED_SHADOWS
+#if !(defined(_SPOT) || defined(_POINT) || defined(_DIRECTIONAL))
+#define FORWARD_RENDER_PATH
 #endif
 
 TEXTURE2D_X(_ScreenSpaceShadowmapTexture);
@@ -64,52 +270,35 @@ TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
-// GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
-CBUFFER_START(LightShadows)
-#endif
-
-// Last cascade is initialized with a no-op matrix. It always transforms
-// shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
-// branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-float4x4    _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
-float4      _CascadeShadowSplitSpheres0;
-float4      _CascadeShadowSplitSpheres1;
-float4      _CascadeShadowSplitSpheres2;
-float4      _CascadeShadowSplitSpheres3;
-float4      _CascadeShadowSplitSphereRadii;
-
-float4      _MainLightShadowOffset0; // xy: offset0, zw: offset1
-float4      _MainLightShadowOffset1; // xy: offset2, zw: offset3
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
-float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
-
-float4      _AdditionalShadowOffset0; // xy: offset0, zw: offset1
-float4      _AdditionalShadowOffset1; // xy: offset2, zw: offset3
+float4      _MainLightShadowReceiverNormalBias; // world-space receiver normal bias, one component per cascade (all zero in caster mode)
 float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 
-#if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-#if !USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+// Main light PCSS. Loose uniforms until the C# side fills them, then they move into GlobalShaderVariables.hlsl.
+float4      _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
+float4      _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
+float4      _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+float4      _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: TAA frame index)
+
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
 // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
-float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
-float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
-#endif
-#endif
 
+// GLES3 causes a performance regression in some devices when using CBUFFER.
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
+CBUFFER_START(AdditionalLightShadows)
+#endif
+float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
+float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
+float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
+float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
+float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
-
-#if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
-        StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
-    #endif
-#endif
+float4      _AdditionalLightsPCSSScalars;                        // (xy: shadow atlas size in texels, z: TAA frame index, w: unused)
 
 // x: depth bias,
 // y: normal bias,
@@ -134,20 +323,6 @@ half IsPointLight()
 
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
-// Should match: UnityEngine.Rendering.Universal + 1
-#define SOFT_SHADOW_QUALITY_OFF    half(0.0)
-#define SOFT_SHADOW_QUALITY_LOW    half(1.0)
-#define SOFT_SHADOW_QUALITY_MEDIUM half(2.0)
-#define SOFT_SHADOW_QUALITY_HIGH   half(3.0)
-
-struct ShadowSamplingData
-{
-    half4 shadowOffset0;
-    half4 shadowOffset1;
-    float4 shadowmapSize;
-    half softShadowQuality;
-};
-
 ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
@@ -167,7 +342,8 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData(int index)
 {
     ShadowSamplingData shadowSamplingData = (ShadowSamplingData)0;
 
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    if (AdditionalLightShadowsAvailable())
+    {
         // shadowOffsets are used in SampleShadowmapFiltered for low quality soft shadows.
         shadowSamplingData.shadowOffset0 = _AdditionalShadowOffset0;
         shadowSamplingData.shadowOffset1 = _AdditionalShadowOffset1;
@@ -175,7 +351,7 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData(int index)
         // shadowmapSize is used in SampleShadowmapFiltered otherwise.
         shadowSamplingData.shadowmapSize = _AdditionalShadowmapSize;
         shadowSamplingData.softShadowQuality = _AdditionalShadowParams[index].y;
-    #endif
+    }
 
     return shadowSamplingData;
 }
@@ -188,7 +364,6 @@ half4 GetMainLightShadowParams()
     return half4(_MainLightShadowParams);
 }
 
-
 // ShadowParams
 // x: ShadowStrength
 // y: >= 1.0 if shadow is soft, 0.0 otherwise. Higher value for higher quality. (1.0 == low, 2.0 == medium, 3.0 == high)
@@ -196,23 +371,32 @@ half4 GetMainLightShadowParams()
 // w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
 {
-    half4 results;
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            results = _AdditionalShadowParams_SSBO[lightIndex];
-        #else
-            results = _AdditionalShadowParams[lightIndex];
-            // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
-            #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
-                results.w = lightIndex < 0 ? -1 : results.w;
-            #endif
+    // Same defaults as set in AdditionalLightsShadowCasterPass.cs
+    half4 results = half4(0, 0, 0, -1);
+
+    if (AdditionalLightShadowsAvailable())
+    {
+        results = _AdditionalShadowParams[lightIndex];
+        // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
+        #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
+            results.w = lightIndex < 0 ? -1 : results.w;
         #endif
-    #else
-        // Same defaults as set in AdditionalLightsShadowCasterPass.cs
-        return half4(0, 0, 0, -1);
-    #endif
+    }
 
     return results;
+}
+
+float GetMainLightShadowReceiverNormalBias(half4 cascadeWeights)
+{
+    // One-hot cascade weights instead of a dynamic vector component index, which is slow on some mobile GPUs (e.g. PowerVR)
+    return dot(_MainLightShadowReceiverNormalBias, cascadeWeights);
+}
+
+float GetAdditionalLightShadowReceiverNormalBias(int lightIndex)
+{
+    // One-hot light slot weights instead of a dynamic vector component index, which is slow on some mobile GPUs (e.g. PowerVR)
+    float4 lightSlotWeights = float4((uint(lightIndex) & 3u) == uint4(0, 1, 2, 3));
+    return AdditionalLightShadowsAvailable() ? dot(_AdditionalShadowReceiverNormalBias[lightIndex >> 2], lightSlotWeights) : 0.0;
 }
 
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
@@ -221,6 +405,10 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 
     // The stereo transform has to happen after the manual perspective divide
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
+
+#if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+    shadowCoord.xy = RemovePretransformRotation(shadowCoord.xy);
+#endif
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_PointClamp, shadowCoord.xy, unity_StereoEyeIndex).x;
@@ -283,24 +471,74 @@ real SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sample
                 + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
 }
 
-real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+// Separable tent kernel, one axis: 4 fetch columns cover the 7x7 (HIGH) tent; the 5x5 (MEDIUM) tent uses three of
+// them (column 2 gets weight 0). Weights are unnormalized; the caller applies the 1/area factor.
+void SampleShadow_TentAxis(float o, bool high, out float4 weights, out float4 offsets)
 {
-    real attenuation = real(1.0);
+    float mn2 = min(o, 0.0) * min(o, 0.0);
+    float mx2 = max(o, 0.0) * max(o, 0.0);
+    float wOuterL = (0.5 * o - 1.5) * o + 1.125;
+    float wOuterR = (0.5 * o + 1.5) * o + 1.125;
+    float nOuterR = (0.5 * o + 0.5) * o + 0.125;
+    float wInnerL = high ? 5.0 - 2.0 * o - mn2 : 4.0 - o * o;
+    float nInnerL = high ? 3.0 - o - mn2 : 2.0 + o - mx2;
+    float wInnerR = 5.0 + 2.0 * o - mx2;
+    offsets = float4(1.0 - o, nInnerL, 2.0 + o, nOuterR) / float4(wOuterL, wInnerL, wInnerR, wOuterR)
+            + (high ? float4(-3.5, -1.5, 0.5, 2.5) : float4(-2.5, -0.5, 0.5, 1.5));
+    weights = float4(wOuterL, wInnerL, high ? wInnerR : 0.0, wOuterR);
+}
 
-    if (samplingData.softShadowQuality == SOFT_SHADOW_QUALITY_LOW)
+// Soft filter for runtime-selected quality (per-light value, and dynamic-keyword builds).
+half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half quality)
+{
+    half attenuation = 0.0;
+    if (quality < SOFT_SHADOW_QUALITY_MEDIUM)
     {
-        attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+        attenuation = half(SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData));
     }
-    else if(samplingData.softShadowQuality == SOFT_SHADOW_QUALITY_MEDIUM)
+    else
     {
-        attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    }
-    else // SOFT_SHADOW_QUALITY_HIGH
-    {
-        attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    }
+        float4 texelSize = samplingData.shadowmapSize;
+        float2 tentCenter = shadowCoord.xy * texelSize.zw;
+        float2 fetchCenter = floor(tentCenter + 0.5);
+        float2 o = tentCenter - fetchCenter;
 
+        float4 wU, wV, u, v;
+        UNITY_BRANCH
+        if (quality >= SOFT_SHADOW_QUALITY_HIGH)
+        {
+            SampleShadow_TentAxis(o.x, true, wU, u);
+            SampleShadow_TentAxis(o.y, true, wV, v);
+            wV *= 0.081632 * 0.081632;
+            u = fetchCenter.x * texelSize.x + u * texelSize.x;
+            v = fetchCenter.y * texelSize.y + v * texelSize.y;
+        }
+        else
+        {
+            SampleShadow_TentAxis(o.x, false, wU, u);
+            SampleShadow_TentAxis(o.y, false, wV, v);
+            wV *= 0.16 * 0.16;
+            u = fetchCenter.x * texelSize.x + u * texelSize.x;
+            v = fetchCenter.y * texelSize.y + v * texelSize.y;
+        }
+        half4 hwU = half4(wU);
+
+        UNITY_UNROLL for (int j = 0; j < 4; j++)
+        {
+            half4 s;
+            s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
+            s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
+            s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
+            s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
+            attenuation += half(wV[j]) * dot(s, hwU);
+        }
+    }
     return attenuation;
+}
+
+half SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+{
+    return SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowQuality);
 }
 
 real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
@@ -312,15 +550,37 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real attenuation;
     real shadowStrength = shadowParams.x;
 
-    // Quality levels are only for platforms requiring strict static branches
-    #if defined(_SHADOWS_SOFT_LOW)
+#if SHADOWS_SOFT_DYNAMIC_BRANCH
+    half quality = _SHADOWS_SOFT_HIGH   ? SOFT_SHADOW_QUALITY_HIGH
+                 : _SHADOWS_SOFT_MEDIUM ? SOFT_SHADOW_QUALITY_MEDIUM
+                 : _SHADOWS_SOFT_LOW    ? SOFT_SHADOW_QUALITY_LOW
+                 : _SHADOWS_SOFT        ? shadowParams.y
+                 : SOFT_SHADOW_QUALITY_OFF;
+
+    if (quality > SOFT_SHADOW_QUALITY_OFF)
+    {
+        attenuation = SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, quality);
+    }
+    else
+    {
+        attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
+    }
+#else
+    if (_SHADOWS_SOFT_LOW)
+    {
         attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif defined(_SHADOWS_SOFT_MEDIUM)
+    }
+    else if (_SHADOWS_SOFT_MEDIUM)
+    {
         attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif defined(_SHADOWS_SOFT_HIGH)
+    }
+    else if (_SHADOWS_SOFT_HIGH)
+    {
         attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif defined(_SHADOWS_SOFT)
-        if (shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
+    }
+    else if (_SHADOWS_SOFT)
+    {
+        if (shadowParams.y > (half)SOFT_SHADOW_QUALITY_OFF)
         {
             attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
         }
@@ -328,9 +588,13 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
         {
             attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
         }
-    #else
+    }
+    else
+    {
         attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
-    #endif
+    }
+#endif
+
 
     attenuation = LerpWhiteTo(attenuation, shadowStrength);
 
@@ -339,7 +603,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 }
 
-half ComputeCascadeIndex(float3 positionWS)
+half ComputeCascadeIndexAndWeights(float3 positionWS, out half4 cascadeWeights)
 {
     float3 fromCenter0 = positionWS - _CascadeShadowSplitSpheres0.xyz;
     float3 fromCenter1 = positionWS - _CascadeShadowSplitSpheres1.xyz;
@@ -350,95 +614,199 @@ half ComputeCascadeIndex(float3 positionWS)
     half4 weights = half4(distances2 < _CascadeShadowSplitSphereRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
 
+    cascadeWeights = weights;
     return half(4.0) - dot(weights, half4(4, 3, 2, 1));
 }
 
-float4 TransformWorldToShadowCoord(float3 positionWS)
+half ComputeCascadeIndex(float3 positionWS)
 {
-#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    float4 shadowCoord = float4(ComputeNormalizedDeviceCoordinatesWithZ(positionWS, GetWorldToHClipMatrix()), 1.0);
-#else
-    #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
-        half cascadeIndex = ComputeCascadeIndex(positionWS);
-    #else
-        half cascadeIndex = half(0.0);
-    #endif
+    half4 cascadeWeights;
+    return ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
+}
 
-    float4 shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 0.0);
-#endif
+half GetMainLightCascadeIndex(float3 positionWS)
+{
+    return _MAIN_LIGHT_SHADOWS_CASCADE ? ComputeCascadeIndex(positionWS) : 0;
+}
+
+float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent, float3 normalWS)
+{
+    float4 shadowCoord = (float4)0;
+
+    if (_MAIN_LIGHT_SHADOWS_SCREEN && !isSurfaceTypeTransparent)
+    {
+        shadowCoord = float4(ComputeNormalizedDeviceCoordinatesWithZ(positionWS, GetWorldToHClipMatrix()), 1.0);
+    }
+    else
+    {
+        half4 cascadeWeights = half4(1.0, 0.0, 0.0, 0.0);
+        half cascadeIndex = 0;
+        if (_MAIN_LIGHT_SHADOWS_CASCADE)
+            cascadeIndex = ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
+        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
+        shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
+    }
+
     return shadowCoord;
 }
 
-half MainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData)
+half SampleShadowmapPCSSDirectional(float4 shadowCoord, half cascadeIndex, float2 positionSS, half4 shadowParams)
 {
-    #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        return half(1.0);
-    #endif
+    int ci = (int)cascadeIndex;
+    float4 p0 = _MainLightPCSSParams0[ci];
+    float4 p1 = _MainLightPCSSParams1[ci];
+    float4 atlas = _MainLightPCSSAtlas[ci];
 
-#if (UNITY_PLATFORM_META_QUEST) // Avoid shadowmap lookup if coordinates are outside of the shadowmap.
-    if (shadowCoord.z < 0.0 || any(saturate(shadowCoord.xy) != shadowCoord.xy))
+    // Unused cascade slots are zeroed. ComputeCascadeIndex returns MAX_SHADOW_CASCADES outside the
+    // last cascade, which would otherwise run the whole filter against atlas texel (0, 0).
+    if (atlas.z <= 0.0)
         return half(1.0);
-#endif
-    
-    #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
-        return SampleScreenSpaceShadowmap(shadowCoord);
-    #else
-        return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
-    #endif
+
+    half attenuation = SampleShadow_PCSS_Directional(
+        shadowCoord.xyz, positionSS,
+        atlas.zw, atlas.xy, _MainLightPCSSScalars.x,
+        (int)_MainLightPCSSScalars.y, (int)_MainLightPCSSScalars.z,
+        p0.x, p0.y, p0.z, p0.w,
+        p1.x, p1.y, p1.z, p1.w,
+        (uint)_MainLightPCSSScalars.w, 0.0,
+        _MainLightShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
+
+    attenuation = LerpWhiteTo(attenuation, shadowParams.x);
+
+    return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
 }
 
-half MainLightRealtimeShadow(float4 shadowCoord)
+half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool isSurfaceTypeTransparent, half cascadeIndex, float2 positionSS, bool usePCSS)
 {
-    #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        return half(1.0);
-    #endif
+    half result = 1;
 
-    return MainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData());
+#if (UNITY_PLATFORM_META_QUEST) // Avoid shadowmap lookup if coordinates are outside of the shadowmap.
+    bool shadowCoordsValid = !(shadowCoord.z < 0.0 || any(saturate(shadowCoord.xy) != shadowCoord.xy));
+#else
+    bool shadowCoordsValid = true;
+#endif
+
+    if (MainLightShadowsAvailable() && shadowCoordsValid)
+    {
+        if (_MAIN_LIGHT_SHADOWS_SCREEN && !isSurfaceTypeTransparent)
+        {
+            result = SampleScreenSpaceShadowmap(shadowCoord);
+        }
+        else
+        {
+            UNITY_BRANCH
+            if (MainLightPCSSAvailable() && usePCSS)
+                result = SampleShadowmapPCSSDirectional(shadowCoord, cascadeIndex, positionSS, shadowParams);
+            else
+                result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
+        }
+    }
+
+    return result;
+}
+
+half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, ShadowSamplingData shadowSamplingData, bool isSurfaceTypeTransparent)
+{
+    return SampleMainLightRealtimeShadow(shadowCoord, shadowParams, shadowSamplingData, isSurfaceTypeTransparent, half(0.0), INVALID_SHADOW_SCREEN_POS, false);
+}
+
+half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTransparent)
+{
+    return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent);
+}
+
+half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 shadowCoord, float2 positionSS, half4 shadowParams)
+{
+    // Spot and point shadows use a perspective projection.
+    shadowCoord.xyz /= shadowCoord.w;
+
+    float4 pcssParams = _AdditionalLightsPCSSParams[lightIndex];
+    float4 atlas = _AdditionalLightsPCSSAtlas[shadowSliceIndex];
+
+    // A slice with no rectangle was never rendered, for example a culled face of a point light.
+    if (atlas.z <= 0.0)
+        return half(1.0);
+
+    half attenuation = SampleShadow_PCSS_Punctual(
+        shadowCoord.xyz, positionSS,
+        atlas.zw, atlas.xy,
+        pcssParams.x, pcssParams.y,
+        (int)pcssParams.z, (int)pcssParams.w,
+        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalLightsPCSSScalars.xy,
+        (uint)_AdditionalLightsPCSSScalars.z, 0.0,
+        _AdditionalLightsShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
+
+    attenuation = LerpWhiteTo(attenuation, shadowParams.x);
+
+    return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
 }
 
 // returns 0.0 if position is in light's shadow
 // returns 1.0 if position is in light
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData)
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS, float2 positionSS, bool usePCSS)
 {
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    half result = 1.0;
+
+    if (AdditionalLightShadowsAvailable())
+    {
         int shadowSliceIndex = shadowParams.w;
-        if (shadowSliceIndex < 0)
-            return 1.0;
-
-        half isPointLight = shadowParams.z;
-
-        UNITY_BRANCH
-        if (isPointLight)
+        if (shadowSliceIndex >= 0)
         {
-            // This is a point light, we have to find out which shadow slice to sample from
-            const int cubeFaceOffset = CubeMapFaceID(-lightDirection);
-            shadowSliceIndex += cubeFaceOffset;
-        }
-
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex], float4(positionWS, 1.0));
-        #else
-            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+            // Add cube-face offset to shadowSliceIndex when this is a point light.
+            // - FORWARD_RENDER_PATH: Apply offset code behind if-statement, since we determine light type at runtime.
+            // - _POINT: Deferred point path applies offset code unconditionally since we know light type at compile time.
+            // - _SPOT / _DIRECTIONAL: Deferred spot/directional paths skip the offset code entirely.
+        #if defined(FORWARD_RENDER_PATH)
+            half isPointLight = shadowParams.z;
+            UNITY_BRANCH
+            if (isPointLight)
+                shadowSliceIndex += CubeMapFaceID(-lightDirection);
+        #elif defined(_POINT)
+            shadowSliceIndex += CubeMapFaceID(-lightDirection);
         #endif
 
-        return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
-    #else
-        return half(1.0);
-    #endif
+            // Read behind the slice-index guard above, so the bias data may stay stale while the shadowmap is empty
+            positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
+
+            float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+
+            UNITY_BRANCH
+            if (AdditionalLightPCSSAvailable() && usePCSS && shadowParams.y >= SOFT_SHADOW_QUALITY_HIGH)
+                result = SampleShadowmapPCSSPunctual(lightIndex, shadowSliceIndex, shadowCoord, positionSS, shadowParams);
+            else
+                result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
+        }
+    }
+
+    return result;
 }
 
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData, float3 normalWS)
 {
-    #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        return half(1.0);
-    #endif
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, normalWS, INVALID_SHADOW_SCREEN_POS, false);
+}
 
-    return AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, GetAdditionalLightShadowParams(lightIndex), GetAdditionalLightShadowSamplingData(lightIndex));
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS)
+{
+    half result = half(1.0);
+    if (AdditionalLightShadowsAvailable())
+        result = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, GetAdditionalLightShadowParams(lightIndex), GetAdditionalLightShadowSamplingData(lightIndex), normalWS);
+    return result;
+}
+
+float3 GetShadowFadeCameraPositionWS()
+{
+#if defined(USING_STEREO_MATRICES)
+    // Using unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex] directly trips a bug in FXC (X8000 or a stale index).
+    return unity_StereoEyeIndex == 0 ? unity_StereoWorldSpaceCameraPos[0] : unity_StereoWorldSpaceCameraPos[1];
+#else
+    return _WorldSpaceCameraPos;
+#endif
 }
 
 half GetMainLightShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
@@ -447,24 +815,25 @@ half GetMainLightShadowFade(float3 positionWS)
 
 half GetAdditionalLightShadowFade(float3 positionWS)
 {
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    half shadowFade = half(1.0);
+    if (AdditionalLightShadowsAvailable())
+    {
+        float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
         float fade = saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y));
-        return half(fade);
-    #else
-        return half(1.0);
-    #endif
+        shadowFade = half(fade);
+    }
+
+    return shadowFade;
 }
 
 half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
 {
-#if defined(LIGHTMAP_SHADOW_MIXING)
-    return min(lerp(realtimeShadow, 1, shadowFade), bakedShadow);
-#else
-    return lerp(realtimeShadow, bakedShadow, shadowFade);
-#endif
+    if (LightmapShadowMixingAvailable())
+        return min(lerp(realtimeShadow, 1, shadowFade), bakedShadow);
+    else
+        return lerp(realtimeShadow, bakedShadow, shadowFade);
 }
 
 half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels, half4 shadowParams)
@@ -479,60 +848,85 @@ half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels, half4 shadowPar
     return bakedShadow;
 }
 
-half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent, half cascadeIndex, float2 positionSS, bool usePCSS)
 {
     half4 shadowParams = GetMainLightShadowParams();
-    half realtimeShadow = MainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData());
 
-    #ifdef CALCULATE_BAKED_SHADOWS
-        half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels, shadowParams);
-    #else
-        half bakedShadow = half(1.0);
-    #endif
+    // receiveShadows only disables the realtime contribution; the baked shadowmask below still
+    // applies (the material Receive Shadows toggle never affected baked shadows).
+    half bakedShadow = BakedShadowsAvailable() ? BakedShadow(shadowMask, occlusionProbeChannels, shadowParams) : half(1.0);
 
-    #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
-        half shadowFade = GetMainLightShadowFade(positionWS);
-    #else
-        half shadowFade = half(1.0);
-    #endif
+    half realtimeShadow = 1;
+    half shadowFade = 1;
+
+    if (MainLightShadowsAvailable() && receiveShadows)
+    {
+        realtimeShadow = SampleMainLightRealtimeShadow(shadowCoord, shadowParams, GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, cascadeIndex, positionSS, usePCSS);
+        shadowFade = GetMainLightShadowFade(positionWS);
+    }
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent)
+{
+    return MainLightShadow(shadowCoord, positionWS, shadowMask, occlusionProbeChannels, receiveShadows, isSurfaceTypeTransparent, half(0.0), INVALID_SHADOW_SCREEN_POS, false);
+}
+
+half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, bool isSurfaceTypeTransparent, float2 positionSS)
+{
+    return MainLightShadow(shadowCoord, positionWS, shadowMask, occlusionProbeChannels, receiveShadows, isSurfaceTypeTransparent, GetMainLightCascadeIndex(positionWS), positionSS, true);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS, float2 positionSS, bool usePCSS)
 {
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     ShadowSamplingData samplingData = GetAdditionalLightShadowSamplingData(lightIndex);
-    half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData);
-
-    #ifdef CALCULATE_BAKED_SHADOWS
+    // receiveShadows only disables the realtime contribution; the baked shadowmask below still
+    // applies (the material Receive Shadows toggle never affected baked shadows).
+    half bakedShadow = half(1.0);
+    if (BakedShadowsAvailable())
+    {
         // This fading of the baked shadow using the light's shadow strength parameter needs
         // to be guarded against the Real-Time Shadow keyword as _AdditionalShadowParams is
         // only included in URP Shaders and updated when real time additional shadows are enabled.
-        #ifndef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+        if (!(AdditionalLightShadowsAvailable() && receiveShadows))
             shadowParams.x = half(1.0);
-        #endif
-        half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels, shadowParams);
-    #else
-        half bakedShadow = half(1.0);
-    #endif
 
-    #ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-        half shadowFade = GetAdditionalLightShadowFade(positionWS);
-    #else
-        half shadowFade = half(1.0);
-    #endif
+        bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels, shadowParams);
+    }
+
+    half realtimeShadow = 1;
+    half shadowFade = 1;
+
+    if (AdditionalLightShadowsAvailable() && receiveShadows)
+    {
+        realtimeShadow = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData, normalWS, positionSS, usePCSS);
+        shadowFade = GetAdditionalLightShadowFade(positionWS);
+    }
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-float4 GetShadowCoord(VertexPositionInputs vertexInput)
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS)
 {
-#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    return ComputeScreenPos(vertexInput.positionCS);
-#else
-    return TransformWorldToShadowCoord(vertexInput.positionWS);
-#endif
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
+}
+
+float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)
+{
+    float4 result = (float4)0;
+
+    if (_MAIN_LIGHT_SHADOWS_SCREEN && !isSurfaceTypeTransparent)
+    {
+        result = vertexInput.positionNDC;
+    }
+    else
+    {
+        result = TransformWorldToShadowCoord(vertexInput.positionWS, isSurfaceTypeTransparent, normalWS);
+    }
+
+    return result;
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
@@ -574,7 +968,7 @@ float4 ApplyShadowClamping(float4 positionCS)
 // Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
 float GetShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
@@ -594,20 +988,6 @@ half GetMainLightShadowStrength()
     return half(_MainLightShadowData.x);
 }
 
-// Deprecated: Use GetAdditionalLightShadowParams instead.
-half GetAdditionalLightShadowStrenth(int lightIndex)
-{
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
-        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            return half(_AdditionalShadowParams_SSBO[lightIndex].x);
-        #else
-            return half(_AdditionalShadowParams[lightIndex].x);
-        #endif
-    #else
-        return half(1.0);
-    #endif
-}
-
 // Deprecated: Use SampleShadowmap that takes shadowParams instead of strength.
 real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)
 {
@@ -615,19 +995,9 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampl
     return SampleShadowmap(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, shadowParams, isPerspectiveProjection);
 }
 
-// Deprecated: Use AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection) in Shadows.hlsl instead, as it supports Point Light shadows
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
-{
-    return AdditionalLightRealtimeShadow(lightIndex, positionWS, half3(1, 0, 0));
-}
-
 // Deprecated: Use BakedShadow(half4 shadowMask, half4 occlusionProbeChannels, half4 shadowParams) as it supports shadowStrength from the light
 half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
 {
-    #ifndef CALCULATE_BAKED_SHADOWS
-        return half(1.0);
-    #endif
-
     return BakedShadow(shadowMask, occlusionProbeChannels, half4(1,0,0,0));
 }
 

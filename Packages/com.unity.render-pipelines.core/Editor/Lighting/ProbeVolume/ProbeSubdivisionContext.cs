@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using Unity.Collections;
-using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 
-using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
-using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering
 {
@@ -42,7 +38,7 @@ namespace UnityEngine.Rendering
 
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
-                    #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                     var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
 #pragma warning restore CS0618 // Type or member is obsolete
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled)
@@ -117,10 +113,10 @@ namespace UnityEngine.Rendering
                         var cells = ctx.cells.ToList();
 
                         // Remove all the cells that was not updated to prevent ghosting
-                        foreach (var cellBounds in ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Keys.ToList())
+                        foreach (var cellBounds in ProbeReferenceVolume.instance.m_RealtimeSubdivisionInfo.Keys.ToList())
                         {
                             if (!cells.Any(c => c.bounds.Equals(cellBounds)))
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cellBounds);
+                                ProbeReferenceVolume.instance.m_RealtimeSubdivisionInfo.Remove(cellBounds);
                         }
 
                         // Subdivide visible cells
@@ -134,9 +130,9 @@ namespace UnityEngine.Rendering
                             var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors, showProgress, ref canceledByUser);
 
                             if (result.cells.Count != 0)
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;
+                                ProbeReferenceVolume.instance.m_RealtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;
                             else
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cell.bounds);
+                                ProbeReferenceVolume.instance.m_RealtimeSubdivisionInfo.Remove(cell.bounds);
 
                             yield return null;
                         }
@@ -147,8 +143,8 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new ();
-        public List<(Vector3Int position, Bounds bounds)> cells = new ();
+        public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new();
+        public List<(Vector3Int position, Bounds bounds)> cells = new();
         public ProbeVolumeBakingSet bakingSet;
         public ProbeVolumeProfileInfo profile;
 
@@ -159,7 +155,7 @@ namespace UnityEngine.Rendering
             this.bakingSet = bakingSet;
             profile = profileInfo;
             float cellSize = profileInfo.cellSizeInMeters;
-            Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
+            var cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
             var pvList = AdaptiveProbeVolumes.GetProbeVolumeList();
             foreach (var pv in pvList)
@@ -172,7 +168,7 @@ namespace UnityEngine.Rendering
             }
 
             // Generate all the unique cell positions from probe volumes:
-            HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
+            var cellPositions = new HashSet<Vector3Int>();
             foreach (var pv in probeVolumes)
             {
                 // This method generates many cells outside of the probe volumes but it's ok because next step will do obb collision tests between each cell and each probe volumes so we will eliminate them.

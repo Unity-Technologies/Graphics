@@ -82,8 +82,8 @@ Shader "Hidden/UVFallbackBufferGeneration"
 
                 // Use the centroid of the clipped triangle as the UV.
                 float2 center = float2(0, 0);
-                for (uint i = 0; i < resultSize; i++)
-                    center += result[i];
+                for (uint k = 0; k < resultSize; k++)
+                    center += result[k];
                 center /= resultSize;
                 float2 offset = center - floor(texelCenter);
 

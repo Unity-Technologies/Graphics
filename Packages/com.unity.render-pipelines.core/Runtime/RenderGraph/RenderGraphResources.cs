@@ -170,6 +170,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int sharedResourceLastFrameUsed;
         public bool isBackBuffer;
 
+#if UNITY_ENABLE_CHECKS
+        public RenderGraph.DebugData.ScriptInfo debugScriptInfo { get; set; }
+#endif
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Reset(IRenderGraphResourcePool _ = null)
         {
@@ -182,6 +186,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             requestFallBack = false;
             writeCount = 0;
             readCount = 0;
+
+#if UNITY_ENABLE_CHECKS
+            debugScriptInfo = default;
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -216,13 +224,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return requestFallBack && writeCount == 0;
         }
 
-        public virtual void CreatePooledGraphicsResource(int frameIndex, int executionCount) { }
+        public virtual void CreatePooledGraphicsResource(int frameIndex, int executionCount, bool usedByAsyncComputePass) { }
         public virtual void CreateGraphicsResource() { }
         public virtual void UpdateGraphicsResource() { }
         public virtual void ReleasePooledGraphicsResource(int frameIndex, int executionCount) { }
         public virtual void ReleaseGraphicsResource() { }
         public virtual int GetSortIndex() { return 0; }
-        public virtual int GetDescHashCode() { return 0; }
+        public virtual HashFNV1A32 GetDescHash() { return HashFNV1A32.Create(); }
     }
 
     [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
@@ -262,11 +270,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
             graphicsResource = null;
         }
 
-        public override void CreatePooledGraphicsResource(int frameIndex, int executionCount)
+        public override void CreatePooledGraphicsResource(int frameIndex, int executionCount, bool usedByAsyncComputePass)
         {
             Debug.Assert(m_Pool != null, "RenderGraphResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
-            int hashCode = GetDescHashCode();
+            var hash = GetDescHash();
+            // Resource pooling is a problem with async compute because recycling a pooled resource introduces a
+            // hidden data dependency that is not visible to the compiler, causing data races between graphics and compute
+            // queues. In the general case this is solved by the "delayed last use" logic in NativePassCompiler.TryGetDelayedLastUsePassId(),
+            // which delays returning of the resource to the pool to a point where its memory can be safely reused.
+            //
+            // By mixing async usage into the pool hash, we split "graphics queue only" and "touched from async queue"
+            // into two separate pool buckets, across which memory is never shared. This allows graphics-only resources
+            // to be reused safely with each other within a frame without needing to delay their return to the pool.
+            // If we were to NOT do this, the delay logic would have to run for every graphics-only resource as well,
+            // extending their lifetimes in any graph that uses async compute at all and severely reducing the
+            // effectiveness of the pooling.
+            hash.Append(usedByAsyncComputePass);
+            int hashCode = hash.value;
 
             if (graphicsResource != null)
                 throw new InvalidOperationException($"RenderGraphResource: Trying to create an already created resource ({GetName()}). Resource was probably declared for writing more than once in the same pass.");

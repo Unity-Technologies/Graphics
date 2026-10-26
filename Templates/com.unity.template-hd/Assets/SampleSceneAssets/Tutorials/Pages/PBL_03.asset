@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: PBL_03
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: Artificial lights
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: 99419e35c7ef325479035394ca627b72, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: 99419e35c7ef325479035394ca627b72, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,37 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Artificial lights
+        m_Untranslated: 
       Text:
-        m_Untranslated: "1. Expand the GameObject <b>Spotlight_01a.</b>\n\n2. Select
-          <b>Light_Spot_1600lm,</b> the light illuminating the wall, and inspect
-          its properties.\n\nThe intensity of this lamp is <b>1600 Lumen</b> and
-          the temperature is <b>3500 Kelvin.</b> This corresponds to the intensity
-          of a powerful 100W halogen bulb, with a warm tint. \n\nThe intensity of
-          the light bulbs is usually provided by the manufacturer, in Lumen or Candela.\n\nCreating
-          realistic lighting is as simple as looking up bulb values online, or using
-          the handy sliders and presets in the Light's inspector.\n\n\n<b>Expert
-          tips</b>\n\n\u2022 When using Lumens with a Spot light, use the <b>Reflector</b>
-          mode (enabled by default), in order to have a correct simulation of the
-          light intensity based on the cone angle of the Spot light. If you cannot
-          see this checkbox, enable \"Show Additional Properties\" via the 3-dots
-          menu in the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission
-          and Shadow <b>Fade Distance</b> properties as low as possible, so that
-          the light and its shadows disappear beyond a certain distance (in meters)."
+        m_Untranslated: "1. Expand the GameObject <b>Spotlight_01a.</b>\n\n2. Select <b>Light_Spot_1600lm,</b> the light illuminating the wall, and inspect its properties.\n\nThe intensity of this lamp is <b>1600 Lumen</b> and the temperature is <b>3500 Kelvin.</b> This corresponds to the intensity of a powerful 100W halogen bulb, with a warm tint. \n\nThe intensity of the light bulbs is usually provided by the manufacturer, in Lumen or Candela.\n\nCreating realistic lighting is as simple as looking up bulb values online, or using the handy sliders and presets in the Light's inspector.\n\n\n<b>Expert tips</b>\n\n\u2022 When using Lumens with a Spot light, use the <b>Reflector</b> mode (enabled by default), in order to have a correct simulation of the light intensity based on the cone angle of the Spot light. If you cannot see this checkbox, enable \"Show Additional Properties\" via the 3-dots menu in the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission and Shadow <b>Fade Distance</b> properties as low as possible, so that the light and its shadows disappear beyond a certain distance (in meters)."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -87,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

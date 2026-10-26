@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -66,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="background">Style for the background.</param>
         public override void OnMaterialPreviewGUI(MaterialEditor materialEditor, Rect r, GUIStyle background)
         {
-            using (ListPool<DiffusionProfileSettings>.Get(out var overrides))
+            using (UnityEngine.Pool.ListPool<DiffusionProfileSettings>.Get(out var overrides))
             {
                 Material material = materialEditor.target as Material;
                 foreach (var nameID in HDMaterial.GetShaderDiffusionProfileProperties(material.shader))

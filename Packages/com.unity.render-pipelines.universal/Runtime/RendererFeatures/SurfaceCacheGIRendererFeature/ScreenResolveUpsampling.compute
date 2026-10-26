@@ -1,91 +1,180 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
-#pragma kernel Upsample
+#pragma kernel UpsampleMono DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel UpsampleSinglePassStereoInstancing
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#define GROUP_SHARED_CACHE
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
 
-Texture2D<float> _FullResDepths;
-Texture2D<float3> _FullResFlatNormals;
-Texture2D<float3> _FullResShadedNormals;
-Texture2D<float3> _LowResIrradiancesL0;
-Texture2D<float3> _LowResIrradiancesL10;
-Texture2D<float3> _LowResIrradiancesL11;
-Texture2D<float3> _LowResIrradiancesL12;
-RWTexture2D<float4> _FullResIrradiances;
+TYPED_TEXTURE2D_X(float, _FullResDepths);
+TYPED_TEXTURE2D_X(float, _ResultNdcDepths);
+TYPED_TEXTURE2D_X(float3, _FullResFlatNormals);
+TYPED_TEXTURE2D_X(float3, _FullResShadedNormals);
+TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL0);
+TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL10);
+TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL11);
+TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL12);
+RW_TEXTURE2D_X(float4, _FullResIrradiances);
 
-float _FilterRadius;
-uint _SampleCount;
-float4x4 _ClipToWorldTransform;
+float _Intensity;
+float4x4 _ClipToWorldTransforms[2];
+float3 _CameraWorldPos;
 
-[numthreads(16, 16, 1)]
-void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
+#define UPSAMPLE_TILE_SIZE 8
+
+#ifdef GROUP_SHARED_CACHE
+static const int k_CachePixelWidth = UPSAMPLE_TILE_SIZE / lowResScreenScaling + 1;
+static const int k_CachePixelCount = k_CachePixelWidth * k_CachePixelWidth;
+
+// LDS that stores the low resolution data
+groupshared float3 _GroupL0Cache[k_CachePixelCount];
+groupshared float3 _GroupL1Cache[3][k_CachePixelCount];
+groupshared float _GroupDepthCache[k_CachePixelCount];
+groupshared float3 _GroupWorldPosCache[k_CachePixelCount];
+groupshared half3 _GroupFlatNormalsCache[k_CachePixelCount];
+
+void FillUpsampleDataCache(uint groupIndex, uint2 originXY, uint2 lowResSize, float2 rcpFullResSize)
 {
-    uint2 fullRes;
-    _FullResDepths.GetDimensions(fullRes.x, fullRes.y);
+    const int2 accessCoord = int2(groupIndex % k_CachePixelWidth, groupIndex / k_CachePixelWidth);
+    const int2 lowResCoord = clamp(int2(originXY) + accessCoord, 0, int2(lowResSize) - 1);
 
-    if (any(targetPixelPos >= fullRes))
+    const float sampleDepth = _ResultNdcDepths[COORD_TEXTURE2D_X(lowResCoord)];
+    _GroupDepthCache[groupIndex] = sampleDepth;
+    if (sampleDepth == invalidNdcDepth)
         return;
 
-    QrngKronecker2D rng;
-    rng.Init(targetPixelPos, 0);
+    const SphericalHarmonics::RGBL1 contribution = IrradianceCompression::LoadAndDecompress(_LowResIrradiancesL0,
+        _LowResIrradiancesL10, _LowResIrradiancesL11, _LowResIrradiancesL12, lowResCoord);
+    if (all(contribution.l0 == PatchUtil::invalidIrradiance))
+    {
+        // Invalidate with depth as this will be checked first when fetching the samples
+        _GroupDepthCache[groupIndex] = invalidNdcDepth;
+        return;
+    }
 
-    const float ndcDepth = LoadNdcDepth(_FullResDepths, targetPixelPos);
-    if (ndcDepth == invalidNdcDepth)
+    _GroupL0Cache[groupIndex] = contribution.l0;
+    _GroupL1Cache[0][groupIndex] = contribution.l1s[0];
+    _GroupL1Cache[1][groupIndex] = contribution.l1s[1];
+    _GroupL1Cache[2][groupIndex] = contribution.l1s[2];
+
+    const int2 fullResCoord = lowResCoord * lowResScreenScaling;
+    const float2 sampleUvPos = PixelPosToUvPos(fullResCoord, rcpFullResSize);
+    _GroupWorldPosCache[groupIndex] = ComputeWorldSpacePosition(sampleUvPos, sampleDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+    _GroupFlatNormalsCache[groupIndex] = _FullResFlatNormals[COORD_TEXTURE2D_X(fullResCoord)].xyz;
+}
+
+uint GetOffsetToCacheAddress(int2 lowResOrigin, int2 lowResPixelCoord)
+{
+    int2 tapAddress = max(0, lowResPixelCoord - lowResOrigin);
+    return uint(min(tapAddress.x + tapAddress.y * k_CachePixelWidth, k_CachePixelCount - 1));
+}
+#endif
+
+void Upsample(uint2 targetPixelPos, int groupIndex, uint2 groupId)
+{
+    uint2 lowResSize;
+    uint2 fullResSize;
+    GET_TEXTURE2D_X_SIZE(_LowResIrradiancesL0, lowResSize.x, lowResSize.y);
+    GET_TEXTURE2D_X_SIZE(_FullResDepths, fullResSize.x, fullResSize.y);
+
+    const float2 rcpFullResSize = rcp(float2(fullResSize));
+
+    #ifdef GROUP_SHARED_CACHE
+    const uint2 groupOrigin = groupId * UPSAMPLE_TILE_SIZE;
+    const uint2 lowResOrigin = groupOrigin / lowResScreenScaling;
+
+    // Only k_CachePixelCount workers of the UPSAMPLE_TILE_SIZE * UPSAMPLE_TILE_SIZE region do the pre-fetching,
+    // as there are less low res values to fetch than full res pixels to process.
+    if (groupIndex < k_CachePixelCount)
+    {
+        FillUpsampleDataCache(groupIndex, lowResOrigin, lowResSize, rcpFullResSize);
+    }
+    GroupMemoryBarrierWithGroupSync();
+    #endif
+
+    if (any(targetPixelPos >= fullResSize))
         return;
 
-    const float2 targetPixelUv = PixelPosToUvPos(targetPixelPos, rcp(float2(fullRes)));
-    const float3 targetWorldPos = ComputeWorldSpacePosition(targetPixelUv, ndcDepth, _ClipToWorldTransform);
-    const float3 targetWorldFlatNormal = _FullResFlatNormals[targetPixelPos];
-    const int2 targetPixelPosLowRes = int2(targetPixelPos / lowResScreenScaling);
-    const float reciprocalSampleCount = rcp(_SampleCount);
+    const float fullResNDCDepth = LoadNdcDepth(_FullResDepths, targetPixelPos);
+    if (fullResNDCDepth == invalidNdcDepth)
+        return;
+
+    const float2 fullResUvPos = PixelPosToUvPos(targetPixelPos, rcpFullResSize);
+    const float3 fullResWorldPos = ComputeWorldSpacePosition(fullResUvPos, fullResNDCDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+    const float3 fullResWorldFlatNormal = _FullResFlatNormals[COORD_TEXTURE2D_X(targetPixelPos)];
+
+    const float2 targetPixelPosLowResFractional = targetPixelPos / float(lowResScreenScaling);
+    const int2 targetPixelPosLowRes = int2(targetPixelPosLowResFractional);
+
+    // -log(0.5) / 0.01^2, chosen empirically. Geometric interpretation:
+    // At a distance of N from the camera, the falloff rate of the plane distance
+    // weight is such that it has half weight (0.5) at a distance N/100.
+    const float k_PlaneDistanceFalloff = 0.6931472f / (0.01f * 0.01f);
+    const float3 targetToCamera = _CameraWorldPos - fullResWorldPos;
+    const float planeDistanceFalloff = k_PlaneDistanceFalloff * rcp(dot(targetToCamera, targetToCamera));
 
     float weightSum = 0.0f;
     SphericalHarmonics::RGBL1 irradianceSum = (SphericalHarmonics::RGBL1)0;
 
-    for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    // Do manual bilinear filter with bilateral weights
+    UNITY_LOOP
+    for (uint sampleIdx = 0; sampleIdx < 4; ++sampleIdx)
     {
-        const float goldenAngle = 2.39996323f;
-        const float kernelExponent = 0.5f;
-        const float angle = TWO_PI * rng.GetSample(0).x + goldenAngle * sampleIdx;
-        const float radius = pow(float(sampleIdx + 1) * reciprocalSampleCount, kernelExponent) * _FilterRadius;
+        const int2 deltaPixelPosLowRes = int2(sampleIdx & 0x01, (sampleIdx & 0x02) >> 1);
+        const int2 samplePixelPosLowRes = targetPixelPosLowRes + deltaPixelPosLowRes;
 
-        float2 sinCos;
-        sincos(angle, sinCos.x, sinCos.y);
-        const int2 samplePixelPosLowRes = targetPixelPosLowRes + int2(sinCos * radius);
-
-        if(any(VECTOR_LOGIC_OR(samplePixelPosLowRes < 0, int2(fullRes) <= samplePixelPosLowRes)))
+        if(any(VECTOR_LOGIC_OR(samplePixelPosLowRes < 0, int2(lowResSize) <= samplePixelPosLowRes)))
             continue;
 
-        const uint2 samplePixelPosFullRes = samplePixelPosLowRes * lowResScreenScaling;
-        const float sampleDepth = _FullResDepths[samplePixelPosFullRes];
-
-        if (sampleDepth == 0.0f)
+#ifdef GROUP_SHARED_CACHE
+        const uint sampleLDSAddress = GetOffsetToCacheAddress(lowResOrigin, samplePixelPosLowRes);
+        const float sampleDepth = _GroupDepthCache[sampleLDSAddress];
+#else
+        const float sampleDepth = _ResultNdcDepths[COORD_TEXTURE2D_X(samplePixelPosLowRes)];
+#endif
+        if (sampleDepth == invalidNdcDepth)
             continue;
 
-        const float2 sampleUvPosFullRes = (float2(samplePixelPosFullRes) + 0.5f) / float2(fullRes);
-        const float3 sampleWorldPos = ComputeWorldSpacePosition(sampleUvPosFullRes, sampleDepth, _ClipToWorldTransform);
-        const float3 sampleWorldFlatNormal = _FullResFlatNormals[samplePixelPosFullRes].xyz;
-
-        const SphericalHarmonics::RGBL1 contribution = IrradianceCompression::LoadAndDecompress(_LowResIrradiancesL0, _LowResIrradiancesL10, _LowResIrradiancesL11, _LowResIrradiancesL12, samplePixelPosLowRes);
-
-        float weight = 1.0f;
-        weight *= max(0.0f, dot(targetWorldFlatNormal, sampleWorldFlatNormal));
-        const float planeDistance = abs(dot(targetWorldFlatNormal, sampleWorldPos - targetWorldPos));
-
-        const float maxWeight = 32.0f;
-        weight *= min(1.0f / planeDistance, maxWeight);
-
-        // This effectively acts as a fallback in cases where a pixel finds no good samples.
-        weight += 0.01f;
-
+#ifdef GROUP_SHARED_CACHE
+        SphericalHarmonics::RGBL1 contribution;
+        contribution.l0 = _GroupL0Cache[sampleLDSAddress];
+        contribution.l1s[0] = _GroupL1Cache[0][sampleLDSAddress];
+        contribution.l1s[1] = _GroupL1Cache[1][sampleLDSAddress];
+        contribution.l1s[2] = _GroupL1Cache[2][sampleLDSAddress];
+        const float3 sampleWorldPos = _GroupWorldPosCache[sampleLDSAddress];
+        const float3 sampleWorldFlatNormal = _GroupFlatNormalsCache[sampleLDSAddress];
+#else
+        const SphericalHarmonics::RGBL1 contribution = IrradianceCompression::LoadAndDecompress(_LowResIrradiancesL0,
+            _LowResIrradiancesL10, _LowResIrradiancesL11, _LowResIrradiancesL12, samplePixelPosLowRes);
         if (all(contribution.l0 == PatchUtil::invalidIrradiance))
             continue;
+        const int2 samplePixelPosFullRes = samplePixelPosLowRes * lowResScreenScaling;
+        const float2 sampleUvPos = PixelPosToUvPos(samplePixelPosFullRes, rcpFullResSize);
+        const float3 sampleWorldPos = ComputeWorldSpacePosition(sampleUvPos, sampleDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
+        const float3 sampleWorldFlatNormal = _FullResFlatNormals[COORD_TEXTURE2D_X(samplePixelPosFullRes)].xyz;
+#endif
+
+        // The base weight is the bilinear weight
+        const float2 bilinearWeights = 1.0 - abs(float2(samplePixelPosLowRes) - targetPixelPosLowResFractional);
+        float bilinearWeight = bilinearWeights.x * bilinearWeights.y;
+        float weight = bilinearWeight;
+
+        // Normal distance weight
+        weight *= max(0.0f, dot(fullResWorldFlatNormal, sampleWorldFlatNormal));
+
+        // Plane distance weight.
+        const float planeDistance = dot(fullResWorldFlatNormal, sampleWorldPos - fullResWorldPos);
+        weight *= exp(-(planeDistance*planeDistance) * planeDistanceFalloff);
+
+        // This effectively acts as a fallback in cases where a pixel finds no good samples.
+        weight += 0.01f * bilinearWeight;
 
         weightSum += weight;
         SphericalHarmonics::MulAddMut(irradianceSum, weight, contribution);
@@ -95,9 +184,22 @@ void Upsample(uint2 targetPixelPos : SV_DispatchThreadID)
     if (weightSum != 0.0f)
     {
         const SphericalHarmonics::RGBL1 irradiance = SphericalHarmonics::MulPure(irradianceSum, rcp(weightSum));
-        const float3 unpackedNormal = UnpackGBufferNormal(_FullResShadedNormals[targetPixelPos]);
+        const float3 unpackedNormal = UnpackNormalWSFromTexture(_FullResShadedNormals[COORD_TEXTURE2D_X(targetPixelPos)]);
         output = max(0.0f, SphericalHarmonics::Eval(irradiance, unpackedNormal));
     }
 
-    _FullResIrradiances[targetPixelPos] = float4(output, 1);
+    _FullResIrradiances[COORD_TEXTURE2D_X(targetPixelPos)] = float4(output * _Intensity, 1);
+}
+
+[numthreads(UPSAMPLE_TILE_SIZE, UPSAMPLE_TILE_SIZE, 1)]
+void UpsampleMono(uint2 targetPixelPos : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupId : SV_GroupID)
+{
+    Upsample(targetPixelPos, groupIndex, groupId);
+}
+
+[numthreads(UPSAMPLE_TILE_SIZE, UPSAMPLE_TILE_SIZE, 1)]
+void UpsampleSinglePassStereoInstancing(uint3 targetPixelPos : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(targetPixelPos.z);
+    Upsample(targetPixelPos.xy, groupIndex, groupId);
 }

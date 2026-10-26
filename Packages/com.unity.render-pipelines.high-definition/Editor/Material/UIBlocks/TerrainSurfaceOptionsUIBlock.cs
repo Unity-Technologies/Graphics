@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Terrain Options");
+            public static GUIContent optionText { get; } = L10n.TextContent("Terrain Options", null, null, null);
             public static readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
 
             public static readonly GUIContent diffuseTexture = new GUIContent("Diffuse");
@@ -101,7 +101,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 terrain.materialTemplate.HasProperty(HDMaterialProperties.kEnableHeightBlend) &&
                 terrain.materialTemplate.GetFloat(HDMaterialProperties.kEnableHeightBlend) > 0;
 
-            terrainLayer.diffuseTexture = EditorGUILayout.ObjectField(Styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var diffuseTexture = EditorGUILayout.ObjectField(Styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Texture");
+                terrainLayer.diffuseTexture = diffuseTexture;
+            }
+            // Anchor before validation, which may insert help boxes.
+            var diffuseFieldRect = GUILayoutUtility.GetLastRect();
             TerrainLayerUtility.ValidateDiffuseTextureUI(terrainLayer.diffuseTexture);
 
             var diffuseRemapMin = terrainLayer.diffuseRemapMin;
@@ -111,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableDensity = false;
             if (terrainLayer.diffuseTexture != null)
             {
-                var rect = GUILayoutUtility.GetLastRect();
+                var rect = diffuseFieldRect;
                 rect.y += 16 + 4;
                 rect.width = EditorGUIUtility.labelWidth + 64;
                 rect.height = 16;
@@ -138,26 +146,47 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Remap");
                 terrainLayer.diffuseRemapMin = diffuseRemapMin;
                 terrainLayer.diffuseRemapMax = diffuseRemapMax;
             }
 
-            terrainLayer.normalMapTexture = EditorGUILayout.ObjectField(Styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var normalMapTexture = EditorGUILayout.ObjectField(Styles.normalMapTexture, terrainLayer.normalMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Normal Map");
+                terrainLayer.normalMapTexture = normalMapTexture;
+            }
+            // Anchor before validation, which may insert help boxes.
+            var normalMapFieldRect = GUILayoutUtility.GetLastRect();
             TerrainLayerUtility.ValidateNormalMapTextureUI(terrainLayer.normalMapTexture, TerrainLayerUtility.CheckNormalMapTextureType(terrainLayer.normalMapTexture));
 
             if (terrainLayer.normalMapTexture != null)
             {
-                var rect = GUILayoutUtility.GetLastRect();
+                var rect = normalMapFieldRect;
                 rect.y += 16 + 4;
                 rect.width = EditorGUIUtility.labelWidth + 64;
                 rect.height = 16;
 
                 ++EditorGUI.indentLevel;
-                terrainLayer.normalScale = EditorGUI.FloatField(rect, Styles.normalScale, terrainLayer.normalScale);
+                EditorGUI.BeginChangeCheck();
+                var normalScale = EditorGUI.FloatField(rect, Styles.normalScale, terrainLayer.normalScale);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(terrainLayer, "Terrain Layer Normal Scale");
+                    terrainLayer.normalScale = normalScale;
+                }
                 --EditorGUI.indentLevel;
             }
 
-            terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? Styles.maskMapTexture : Styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            EditorGUI.BeginChangeCheck();
+            var maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? Styles.maskMapTexture : Styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map");
+                terrainLayer.maskMapTexture = maskMapTexture;
+            }
             TerrainLayerUtility.ValidateMaskMapTextureUI(terrainLayer.maskMapTexture);
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
@@ -243,6 +272,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObject(terrainLayer, "Terrain Layer Mask Map Remap");
                 terrainLayer.maskMapRemapMin = maskMapRemapMin;
                 terrainLayer.maskMapRemapMax = maskMapRemapMax;
                 terrainLayer.smoothness = smoothness;

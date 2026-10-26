@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
@@ -83,8 +84,16 @@ namespace UnityEditor.VFX.UI
 
             if (createdField.Q<Label>() is { } label)
             {
-                label.RegisterCallback<PointerCaptureEvent>(x => ValueDragStarted());
-                label.RegisterCallback<PointerCaptureOutEvent>(x => ValueDragFinished());
+                var valueAtDragStart = default(U);
+                label.RegisterCallback<PointerCaptureEvent>(x =>
+                {
+                    valueAtDragStart = field.value;
+                    ValueDragStarted();
+                });
+                label.RegisterCallback<PointerCaptureOutEvent>(x =>
+                {
+                    ValueDragFinished(!EqualityComparer<U>.Default.Equals(valueAtDragStart, field.value));
+                });
             }
 
             return createdField as INotifyValueChanged<U>;

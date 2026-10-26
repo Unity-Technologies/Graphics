@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineLightUI
     {
-        [URPHelpURL("light-component")]
+        [URPHelpURL("urp/light-component")]
         enum Expandable
         {
             General = 1 << 0,
@@ -23,7 +23,10 @@ namespace UnityEditor.Rendering.Universal
             Emission = 1 << 2,
             Rendering = 1 << 3,
             Shadows = 1 << 4,
-            LightCookie = 1 << 5
+            LightCookie = 1 << 5,
+#if VOLUMETRIC_FOG
+            Volumetrics = 1 << 6
+#endif
         }
 
         static readonly ExpandedState<Expandable, Light> k_ExpandedState = new(~-1, "URP");
@@ -65,6 +68,11 @@ namespace UnityEditor.Rendering.Universal
                 CED.Group(
                     LightUI.DrawColor,
                     DrawEmissionContent)),
+#if VOLUMETRIC_FOG
+            CED.Conditional(
+                (serializedLight, editor) => !serializedLight.settings.isCompletelyBaked && !serializedLight.settings.isAreaLightType,
+                CED.FoldoutGroup(Styles.VolumetricsHeader, Expandable.Volumetrics, k_ExpandedState, DrawVolumetricsContent)),
+#endif
             CED.FoldoutGroup(LightUI.Styles.renderingHeader,
                 Expandable.Rendering,
                 k_ExpandedState,
@@ -154,7 +162,7 @@ namespace UnityEditor.Rendering.Universal
                 // the current pipeline. Add it to the dropdown, since it
                 // would show up as a blank entry.
                 string currentTitle = ((LightType)selectedLightType).ToString();
-                GUIContent[] titles = Styles.LightTypeTitles.Append(EditorGUIUtility.TrTextContent(currentTitle)).ToArray();
+                GUIContent[] titles = Styles.LightTypeTitles.Append(L10n.TextContent(currentTitle, null, null, null)).ToArray();
                 int[] values = Styles.LightTypeValues.Append(selectedLightType).ToArray();
                 type = EditorGUI.IntPopup(rect, Styles.Type, selectedLightType, titles, values);
             }
@@ -194,19 +202,13 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        internal static void SyncLightAndShadowLayers(UniversalRenderPipelineSerializedLight serializedLight, SerializedProperty serialized)
+        internal static void SyncLightAndShadowLayers(UniversalRenderPipelineSerializedLight serializedLight)
         {
-            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
-            // In mixed state, it makes sense to do it only on Light that links the mode.
-            foreach (var lightTarget in serializedLight.serializedObject.targetObjects)
+            serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties();
+            Undo.RecordObjects(serializedLight.serializedObject.targetObjects, "Sync Light and Shadow Layers");
+            foreach (var additionalData in serializedLight.lightsAdditionalData)
             {
-                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
-                if (additionData.customShadowLayers)
-                    continue;
-
-                Light target = lightTarget as Light;
-                if (target.renderingLayerMask != serialized.intValue)
-                    target.renderingLayerMask = serialized.intValue;
+                additionalData.SyncLightAndShadowLayers();
             }
         }
 
@@ -265,6 +267,19 @@ namespace UnityEditor.Rendering.Universal
             DrawLightCookieContent(serializedLight, owner);
         }
 
+#if VOLUMETRIC_FOG
+        static void DrawVolumetricsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serializedLight.affectsVolumetricFogProp, Styles.VolumetricEnable);
+            using (new EditorGUI.DisabledScope(!serializedLight.affectsVolumetricFogProp.boolValue))
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(serializedLight.volumetricMultiplierProp, Styles.VolumetricMultiplier);
+                EditorGUILayout.PropertyField(serializedLight.volumetricShadowDimmerProp, Styles.VolumetricShadowDimmer);
+            }
+        }
+#endif
+
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             if (serializedLight.settings.light.type != LightType.Rectangle &&
@@ -275,10 +290,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serializedLight.renderingLayers, Styles.RenderingLayers);
                 GUI.enabled = true;
                 if (EditorGUI.EndChangeCheck())
-                {
-                    if (!serializedLight.customShadowLayers.boolValue)
-                        SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                }
+                    SyncLightAndShadowLayers(serializedLight);
                 if (!UniversalRenderPipeline.asset.useRenderingLayers)
                 {
                     CoreEditorUtils.DrawFixMeBox(Styles.RenderingLayersHelpBox, () =>
@@ -355,7 +367,7 @@ namespace UnityEditor.Rendering.Universal
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
                         var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                         var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
-                        if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                        if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                         {
                             isQuest = buildTargetGroup == BuildTargetGroup.Android;
                         }
@@ -384,19 +396,8 @@ namespace UnityEditor.Rendering.Universal
                             using (new EditorGUI.IndentLevelScope())
                                 EditorGUILayout.PropertyField(serializedLight.shadowRenderingLayers, Styles.ShadowLayer);
                         }
-                        // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                         if (EditorGUI.EndChangeCheck())
-                        {
-                            if (serializedLight.customShadowLayers.boolValue)
-                            {
-                                serializedLight.settings.light.renderingLayerMask = serializedLight.shadowRenderingLayers.intValue;
-                            }
-                            else
-                            {
-                                serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties(); // we need to push above modification the modification on object as it is used to sync
-                                SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                            }
-                        }
+                            SyncLightAndShadowLayers(serializedLight);
                     }
                 }
             }
@@ -436,8 +437,20 @@ namespace UnityEditor.Rendering.Universal
                     {
                         using (var checkScope = new EditorGUI.ChangeCheckScope())
                         {
-                            EditorGUILayout.Slider(serializedLight.settings.shadowsBias, 0f, 10f, Styles.ShadowDepthBias);
-                            EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                            GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
+                            UniversalRenderPipelineAssetUI.GetDepthBiasSliderParameters(ShadowUtils.GetConfiguredDepthBiasMode(shadowBiasSettings), Styles.ShadowDepthBias, Styles.ShadowSlopeScaleDepthBias, out GUIContent depthBiasStyle, out float maxDepthBias);
+                            var shadowsBiasProp = serializedLight.settings.shadowsBias;
+                            Rect depthBiasRect = EditorGUILayout.GetControlRect();
+                            using (var propertyScope = new EditorGUI.PropertyScope(depthBiasRect, depthBiasStyle, shadowsBiasProp))
+                            using (new EditorGUI.MixedValueScope(shadowsBiasProp.hasMultipleDifferentValues))
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                float newDepthBias = EditorGUI.Slider(depthBiasRect, propertyScope.content, Mathf.Min(shadowsBiasProp.floatValue, maxDepthBias), 0f, maxDepthBias);
+                                if (EditorGUI.EndChangeCheck())
+                                    shadowsBiasProp.floatValue = newDepthBias;
+                            }
+                            GUIContent normalBiasStyle = UniversalRenderPipelineAssetUI.GetNormalBiasSliderLabel(ShadowUtils.GetConfiguredNormalBiasMode(shadowBiasSettings), Styles.ShadowNormalBiasCaster, Styles.ShadowNormalBiasReceiver);
+                            EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, normalBiasStyle);
                             if (checkScope.changed)
                                 serializedLight.Apply();
                         }

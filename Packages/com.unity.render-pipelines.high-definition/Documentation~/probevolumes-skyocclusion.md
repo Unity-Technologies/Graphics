@@ -21,18 +21,15 @@ When Unity calculates sky occlusion values, Unity treats the surfaces of GameObj
 
 To override the gray color Unity uses, go to **Sky Occlusion Settings** in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.html#sky-occlusion-settings) and adjust **Albedo Override**.
 
+Sky occlusion applies bounced sky lighting twice if you use the deprecated **Progressive CPU** lightmapper. Disable sky occlusion, or use a different lightmapper.
+
 ## Enable sky occlusion
-
-First, enable the GPU lightmapper. Unity doesn't support sky occlusion if you use **Progressive CPU** instead.
-
-1. Go to **Window** &gt; **Rendering** &gt; **Lighting**.
-2. Go to the **Scene** panel.
-3. Set **Lightmapper** to **Progressive GPU**.
 
 To enable sky occlusion, follow these steps: 
 
-1. Go to the **Adaptive Probe Volumes** panel.
-2. Enable **Sky Occlusion**.
+1. Go to **Window** &gt; **Rendering** &gt; **Lighting**.
+2. Go to the **Adaptive Probe Volumes** panel.
+3. Enable **Sky Occlusion**.
 
 To update the lighting data, you must also [bake the Adaptive Probe Volume](probevolumes-use.md#add-and-bake-an-adaptive-probe-volume) after you enable or disable sky occlusion.
 

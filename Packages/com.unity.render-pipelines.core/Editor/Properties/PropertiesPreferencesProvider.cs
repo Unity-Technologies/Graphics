@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering
     {
         class Styles
         {
-            public static readonly GUIContent additionalPropertiesLabel = EditorGUIUtility.TrTextContent("Advanced Properties", "Tells Unity to show or hide Advanced Properties.");
-            public static readonly GUIContent[] additionalPropertiesNames = { EditorGUIUtility.TrTextContent("All Visible"), EditorGUIUtility.TrTextContent("All Hidden") };
+            public static readonly GUIContent additionalPropertiesLabel = L10n.TextContent("Advanced Properties", "Tells Unity to show or hide Advanced Properties.", null, null);
+            public static readonly GUIContent[] additionalPropertiesNames = { L10n.TextContent("All Visible", null, null, null), L10n.TextContent("All Hidden", null, null, null) };
             public static readonly int[] additionalPropertiesValues = { 1, 0 };
         }
 

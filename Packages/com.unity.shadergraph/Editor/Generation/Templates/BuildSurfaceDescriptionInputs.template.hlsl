@@ -59,10 +59,13 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 
 
 #if defined(UNITY_UIE_INCLUDED)
+    // UITK varying layout: texCoord0-3 carry user UV0-UV3 (opt-in via PanelSettings.extraVertexChannels);
+    // texCoord4-7 carry UITK internals (uvClip, typeTexSettings, textCoreLoc+layoutUV, circle).
+    // uv0 strips .zw so the Attributes.uv0 layoutUV pack isn't exposed; uv4-7 stay zero — they're reserved.
     $SurfaceDescriptionInputs.uv0:                                      output.uv0 =                                        float4(input.texCoord0.x, input.texCoord0.y, 0, 0);
-    $SurfaceDescriptionInputs.uv1:                                      output.uv1 =                                        float4(0, 0, 0, 0);
-    $SurfaceDescriptionInputs.uv2:                                      output.uv2 =                                        float4(0, 0, 0, 0);
-    $SurfaceDescriptionInputs.uv3:                                      output.uv3 =                                        float4(0, 0, 0, 0);
+    $SurfaceDescriptionInputs.uv1:                                      output.uv1 =                                        input.texCoord1;
+    $SurfaceDescriptionInputs.uv2:                                      output.uv2 =                                        input.texCoord2;
+    $SurfaceDescriptionInputs.uv3:                                      output.uv3 =                                        input.texCoord3;
     $SurfaceDescriptionInputs.uv4:                                      output.uv4 =                                        float4(0, 0, 0, 0);
     $SurfaceDescriptionInputs.uv5:                                      output.uv5 =                                        float4(0, 0, 0, 0);
     $SurfaceDescriptionInputs.uv6:                                      output.uv6 =                                        float4(0, 0, 0, 0);
@@ -82,12 +85,13 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.VertexID:                                 output.VertexID =                                   input.vertexID;
 
     $SurfaceDescriptionInputs.color:                                    output.color =                                      input.color;
-    $SurfaceDescriptionInputs.uvClip:                                   output.uvClip =                                     input.texCoord0;
-    $SurfaceDescriptionInputs.typeTexSettings:                          output.typeTexSettings =                            input.texCoord1;
-    $SurfaceDescriptionInputs.textCoreLoc:                              output.textCoreLoc =                                input.texCoord3.xy;
-    $SurfaceDescriptionInputs.layoutUV:                                 output.layoutUV =                                   input.texCoord3.zw;
-    
-    $SurfaceDescriptionInputs.circle:                                   output.circle =                                     input.texCoord4;
+    $SurfaceDescriptionInputs.uvClip:                                   output.uvClip =                                     input.texCoord4;
+    $SurfaceDescriptionInputs.typeTexSettings:                          output.typeTexSettings =                            input.texCoord5;
+    $SurfaceDescriptionInputs.textCoreLoc:                              output.textCoreLoc =                                input.texCoord6.xy;
+    $SurfaceDescriptionInputs.layoutUV:                                 output.layoutUV =                                   input.texCoord6.zw;
+    $SurfaceDescriptionInputs.opacity:                                  output.opacity =                                    input.opacity;
+
+    $SurfaceDescriptionInputs.circle:                                   output.circle =                                     input.texCoord7;
     
 #if UNITY_ANY_INSTANCING_ENABLED
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID =                                 unity_InstanceID;

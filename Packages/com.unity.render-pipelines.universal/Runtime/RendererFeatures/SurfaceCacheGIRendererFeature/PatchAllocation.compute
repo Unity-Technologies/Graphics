@@ -1,11 +1,13 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
-#pragma kernel Allocate
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
+#pragma kernel AllocateMono DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel AllocateSinglePassStereoInstancing
 
 #define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
 #define PATCH_UTIL_USE_RW_CELL_PATCH_INDEX_BUFFER
 #define PATCH_UTIL_USE_RW_CELL_ALLOCATION_MARK_BUFFER
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
@@ -21,26 +23,27 @@ RWStructuredBuffer<uint> _CellPatchIndices;
 RWStructuredBuffer<uint> _PatchCellIndices;
 StructuredBuffer<int3> _VolumeCascadeOffsets;
 
-Texture2D<float> _CurrentFullResScreenDepths;
-Texture2D<float3> _CurrentFullResScreenFlatNormals;
-Texture2D<float2> _CurrentFullResScreenMotionVectors;
-Texture2D<float3> _PreviousLowResScreenIrradiancesL0;
-Texture2D<float3> _PreviousLowResScreenIrradiancesL10;
-Texture2D<float3> _PreviousLowResScreenIrradiancesL11;
-Texture2D<float3> _PreviousLowResScreenIrradiancesL12;
-Texture2D<float> _PreviousLowResScreenNdcDepths;
+TYPED_TEXTURE2D_X(float, _CurrentFullResScreenDepths);
+TYPED_TEXTURE2D_X(float3, _CurrentFullResScreenFlatNormals);
+TYPED_TEXTURE2D_X(float2, _CurrentFullResScreenMotionVectors);
+TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL0);
+TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL10);
+TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL11);
+TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL12);
+TYPED_TEXTURE2D_X(float, _PreviousLowResScreenNdcDepths);
 
 uint _FrameIdx;
+uint _StereoEyeIndex;
 uint _VolumeSpatialResolution;
 float _VolumeVoxelMinSize;
 uint _VolumeCascadeCount;
 uint _RingConfigOffset;
-float4x4 _CurrentClipToWorldTransform;
-float4x4 _PreviousClipToWorldTransform;
+float4x4 _CurrentClipToWorldTransforms[2];
+float4x4 _PreviousClipToWorldTransforms[2];
 float3 _VolumeTargetPos;
 uint2 _LowResScreenSize;
 uint2 _FullResPixelOffset;
-int _UseMotionVectorSeeding;
+int _PatchWarping;
 
 uint CountLeadingZeroes(uint x)
 {
@@ -87,8 +90,7 @@ uint RandomPermute(uint idx, uint len, uint seed)
 
 #define GROUP_SIZE 8
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
+void Allocate(uint2 lowResPixelPos)
 {
     if (any(lowResPixelPos >= _LowResScreenSize))
         return;
@@ -100,7 +102,7 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
     const uint2 fullResPixelPos = lowResPixelPos * lowResScreenScaling + _FullResPixelOffset;
     uint2 fullResScreenSize;
-    _CurrentFullResScreenDepths.GetDimensions(fullResScreenSize.x, fullResScreenSize.y);
+    GET_TEXTURE2D_X_SIZE(_CurrentFullResScreenDepths, fullResScreenSize.x, fullResScreenSize.y);
 
     if (any(fullResPixelPos >= fullResScreenSize))
         return;
@@ -112,8 +114,8 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
     const float2 rcpFullResScreenSize = rcp(float2(fullResScreenSize));
 
     const float2 sourceUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
-    const float3 sourceWorldPosition = ComputeWorldSpacePosition(sourceUvPos, ndcDepth, _CurrentClipToWorldTransform);
-    const float3 sourceWorldFlatNormal = _CurrentFullResScreenFlatNormals[fullResPixelPos];
+    const float3 sourceWorldPosition = ComputeWorldSpacePosition(sourceUvPos, ndcDepth, _CurrentClipToWorldTransforms[unity_StereoEyeIndex]);
+    const float3 sourceWorldFlatNormal = _CurrentFullResScreenFlatNormals[COORD_TEXTURE2D_X(fullResPixelPos)];
 
     PatchUtil::VolumeParamSet volumeParams;
     volumeParams.targetPos = _VolumeTargetPos;
@@ -121,6 +123,7 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
+    volumeParams.patchWarping = _PatchWarping != 0;
 
     PatchUtil::VolumePositionResolution patchPosResolution = PatchUtil::ResolveVolumePosition(sourceWorldPosition, volumeParams);
 
@@ -148,14 +151,11 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
         if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeLookup)
         {
-            // with this, we allow patches that were spawn from a hit bounce to, in turn, triger bounce allocation
-            // once they are seen again by the camera
-            PatchUtil::PatchStatisticsSet stats = _PatchStatistics[resolutionResult.patchIdx];
-            if (PatchUtil::GetRank(stats.counters) != 0)
-            {
-                PatchUtil::SetRank(stats.counters, 0);
-                _PatchStatistics[resolutionResult.patchIdx] = stats;
-            }
+            // Visible this frame: refresh keep-alive and force rank 0 so bounce-spawned patches can trigger bounce alloc.
+            PatchUtil::PatchRequestState reqState = _PatchStatistics[resolutionResult.patchIdx].requestState;
+            PatchUtil::SetRank(reqState, 0);
+            PatchUtil::SetHeartbeat(reqState, _FrameIdx);
+            _PatchStatistics[resolutionResult.patchIdx].requestState = reqState;
         }
         else if (resolutionResult.code == PatchUtil::patchIndexResolutionCodeAllocationSuccess)
         {
@@ -164,79 +164,54 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
 
             if (_FrameIdx != 0)
             {
-                if (_UseMotionVectorSeeding)
+                const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
+                float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[COORD_TEXTURE2D_X(fullResPixelPos)];
+                if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
                 {
-                    const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
-                    float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[fullResPixelPos];
-                    if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
+                    const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
+                    const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;
+                    const float seedNdcDepth = _PreviousLowResScreenNdcDepths[COORD_TEXTURE2D_X(seedLowResPixelPos)];
+
+                    if (seedNdcDepth != invalidNdcDepth)
                     {
-                        const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
-                        const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;
-                        const float seedNdcDepth = _PreviousLowResScreenNdcDepths[seedLowResPixelPos];
-
-                        if (seedNdcDepth != invalidNdcDepth)
+                        const float2 seedFullResUvPos = PixelPosToUvPos(seedLowResPixelPos * lowResScreenScaling, rcpFullResScreenSize);
+                        const float3 seedWorldPosition = ComputeWorldSpacePosition(seedFullResUvPos, seedNdcDepth, _PreviousClipToWorldTransforms[unity_StereoEyeIndex]);
+                        const float voxelSize = PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, patchPosResolution.cascadeIdx);
+                        const float patchPlaneToSeedPositionDistance = dot(sourceWorldFlatNormal, seedWorldPosition - sourceWorldPosition);
+                        if (patchPlaneToSeedPositionDistance < voxelSize)
                         {
-                            const float2 seedFullResUvPos = PixelPosToUvPos(seedLowResPixelPos * lowResScreenScaling, rcpFullResScreenSize);
-                            const float3 seedWorldPosition = ComputeWorldSpacePosition(seedFullResUvPos, seedNdcDepth, _PreviousClipToWorldTransform);
-                            const float voxelSize = PatchUtil::GetVoxelSize(_VolumeVoxelMinSize, patchPosResolution.cascadeIdx);
-                            const float patchPlaneToSeedPositionDistance = dot(sourceWorldFlatNormal, seedWorldPosition - sourceWorldPosition);
-                            if (patchPlaneToSeedPositionDistance < voxelSize)
-                            {
-                                irradianceSeed = IrradianceCompression::LoadAndDecompress(
-                                    _PreviousLowResScreenIrradiancesL0,
-                                    _PreviousLowResScreenIrradiancesL10,
-                                    _PreviousLowResScreenIrradiancesL11,
-                                    _PreviousLowResScreenIrradiancesL12,
-                                    seedLowResPixelPos);
+                            irradianceSeed = IrradianceCompression::LoadAndDecompress(
+                                _PreviousLowResScreenIrradiancesL0,
+                                _PreviousLowResScreenIrradiancesL10,
+                                _PreviousLowResScreenIrradiancesL11,
+                                _PreviousLowResScreenIrradiancesL12,
+                                seedLowResPixelPos);
 
-                                if (PatchUtil::IsValid(irradianceSeed))
-                                    patchUpdateCount = PatchUtil::updateMax / 2;
-                                #ifdef SEED_DEBUGGING
-                                else
-                                {
-                                    irradianceSeed = (SphericalHarmonics::RGBL1)0;
-                                    patchUpdateCount = PatchUtil::updateMax;
-                                    irradianceSeed.l0 = float3(10, 0, 0);
-                                }
-                                #endif
-                            }
-                            #ifdef SEED_DEBUGGING
-                            else
-                            {
-                                patchUpdateCount = PatchUtil::updateMax;
-                                irradianceSeed.l0 = float3(0, 0, 10);
-                            }
-                            #endif
+                            if (PatchUtil::IsValid(irradianceSeed))
+                                patchUpdateCount = PatchUtil::updateMax / 2;
                         }
                     }
                 }
-                else
-                {
-                    irradianceSeed = IrradianceCompression::LoadAndDecompress(
-                        _PreviousLowResScreenIrradiancesL0,
-                        _PreviousLowResScreenIrradiancesL10,
-                        _PreviousLowResScreenIrradiancesL11,
-                        _PreviousLowResScreenIrradiancesL12,
-                        lowResPixelPos);
-
-                    if (PatchUtil::IsValid(irradianceSeed))
-                        patchUpdateCount = PatchUtil::updateMax / 2;
-                }
-                #ifdef SEED_DEBUGGING
-                // For debugging: Add color to unseeded patches.
-                if (PatchUtil::GetUpdateCount(counterSet) == 0)
-                {
-                    patchUpdateCount = PatchUtil::updateMax;
-                    irradianceSeed.l0 = float3(0, 10, 0);
-                }
-                #endif
             }
 
             _PatchIrradiances0[resolutionResult.patchIdx] = irradianceSeed;
             _PatchIrradiances1[resolutionResult.patchIdx] = irradianceSeed;
             PatchUtil::PatchStatisticsSet stats = PatchUtil::InitPatchStatistics(irradianceSeed.l0, _FrameIdx, 0);
-            PatchUtil::SetUpdateCount(stats.counters, patchUpdateCount);
+            PatchUtil::SetUpdateCount(stats.irradianceState, patchUpdateCount);
             _PatchStatistics[resolutionResult.patchIdx] = stats;
         }
     }
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void AllocateMono(uint2 lowResPixelPos : SV_DispatchThreadID)
+{
+    Allocate(lowResPixelPos);
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void AllocateSinglePassStereoInstancing(uint2 lowResPixelPos : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(_StereoEyeIndex);
+    Allocate(lowResPixelPos);
 }

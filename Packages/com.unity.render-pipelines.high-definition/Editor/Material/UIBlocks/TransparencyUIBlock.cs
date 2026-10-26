@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Transparency Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Transparency Inputs", null, null, null);
         }
 
         Features m_Features;

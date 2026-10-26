@@ -883,6 +883,11 @@ namespace UnityEngine.Rendering
         public void SetGlobalMatrixArray(int nameID, List<Matrix4x4> values)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.SetGlobalMatrixArray(nameID, values); }
 
         /// <summary>Wraps [SetGlobalMatrixArray](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html) on a CommandBuffer.</summary>
+        /// <param name="nameID">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html)</param>
+        /// <param name="values">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html)</param>
+        public void SetGlobalMatrixArray(int nameID, ReadOnlySpan<Matrix4x4> values)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.SetGlobalMatrixArray(nameID, values); }
+
+        /// <summary>Wraps [SetGlobalMatrixArray](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html) on a CommandBuffer.</summary>
         /// <param name="propertyName">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html)</param>
         /// <param name="values">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalMatrixArray.html)</param>
         public void SetGlobalMatrixArray(string propertyName, Matrix4x4[] values)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.SetGlobalMatrixArray(propertyName, values); }

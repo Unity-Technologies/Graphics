@@ -2,10 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
         readonly Material m_ReplacementMaterial;
         readonly Material m_HDRDebugViewMaterial;
+        readonly Material m_BatchingTypeDebugMaterial;
 
         HDRDebugViewPass m_HDRDebugViewPass;
         RTHandle m_DebugScreenColorHandle;
@@ -87,10 +88,11 @@ namespace UnityEngine.Rendering.Universal
         Vector4 m_DebugRenderTargetPixelRect;
         Vector4 m_DebugRenderTargetRangeRemap;
         RTHandle m_DebugRenderTarget;
+        bool m_DebugRenderTargetIsCustom;
+        RTHandle m_CustomDebugRenderTarget;
+        bool m_HasCustomDebugTexture;
 
         RTHandle m_DebugFontTexture;
-
-        private GraphicsBuffer m_debugDisplayConstant;
 
         readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
@@ -111,13 +113,15 @@ namespace UnityEngine.Rendering.Universal
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
+            AreAnySettingsActive && (
             m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
             m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
             m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
             m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
             m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
-            m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None;
+            m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None ||
+            m_DebugDisplaySettings.renderingSettings.batchingTypeViewEnabled);
 
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
@@ -128,6 +132,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         internal Material ReplacementMaterial => m_ReplacementMaterial;
+        internal Material BatchingTypeDebugMaterial => m_BatchingTypeDebugMaterial;
         internal UniversalRenderPipelineDebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
         internal ref RTHandle DebugScreenColorHandle => ref m_DebugScreenColorHandle;
         internal ref RTHandle DebugScreenDepthHandle => ref m_DebugScreenDepthHandle;
@@ -162,9 +167,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal bool IsDepthPrimingCompatible => RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.Wireframe;
+        internal bool IsDepthPrimingCompatible => !AreAnySettingsActive || RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.Wireframe;
 
         internal int stpDebugViewIndex { get { return RenderingSettings.stpDebugViewIndex; } }
+
+        internal bool IsBatchingTypeViewActive => m_DebugDisplaySettings.renderingSettings.batchingTypeViewEnabled;
 
         internal DebugHandler()
         {
@@ -174,6 +181,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_ReplacementMaterial = (shaders.debugReplacementPS != null) ? CoreUtils.CreateEngineMaterial(shaders.debugReplacementPS) : null;
                 m_HDRDebugViewMaterial = (shaders.hdrDebugViewPS != null) ? CoreUtils.CreateEngineMaterial(shaders.hdrDebugViewPS) : null;
+                m_BatchingTypeDebugMaterial = (shaders.batchingTypeDebugPS != null) ? CoreUtils.CreateEngineMaterial(shaders.batchingTypeDebugPS) : null;
             }
 
             m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
@@ -183,8 +191,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DebugFontTexture = RTHandles.Alloc(m_RuntimeTextures.debugFontTexture);
             }
-
-            m_debugDisplayConstant = new GraphicsBuffer(GraphicsBuffer.Target.Constant, 32, Marshal.SizeOf(typeof(Vector4)));
         }
 
         public void Dispose()
@@ -192,10 +198,11 @@ namespace UnityEngine.Rendering.Universal
             m_HDRDebugViewPass.Dispose();
             m_DebugScreenColorHandle?.Release();
             m_DebugScreenDepthHandle?.Release();
+            m_CustomDebugRenderTarget?.Release();
             m_DebugFontTexture?.Release();
-            m_debugDisplayConstant.Dispose();
             CoreUtils.Destroy(m_HDRDebugViewMaterial);
             CoreUtils.Destroy(m_ReplacementMaterial);
+            CoreUtils.Destroy(m_BatchingTypeDebugMaterial);
         }
 
         internal bool IsActiveForCamera(bool isPreviewCamera)
@@ -253,9 +260,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
 
-            m_debugDisplayConstant.SetData(MaterialSettings.debugRenderingLayersColors, 0, 0, 32);
-
-            cmd.SetGlobalConstantBuffer(m_debugDisplayConstant, "_DebugDisplayConstant", 0, m_debugDisplayConstant.count * m_debugDisplayConstant.stride);
+            cmd.SetGlobalVectorArray("_DebugRenderingLayerMaskColors", MaterialSettings.debugRenderingLayersColors);
 
             if (MaterialSettings.renderingLayersSelectedLight)
                 cmd.SetGlobalInt("_DebugRenderingLayerMask", (int)MaterialSettings.GetDebugLightLayersMask());
@@ -319,19 +324,40 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo, Vector4 dataRangeRemap)
+        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo, Vector4 dataRangeRemap, bool isCustomTexture = false)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetSupportsStereo = supportsStereo;
             m_DebugRenderTarget = renderTarget;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
             m_DebugRenderTargetRangeRemap = dataRangeRemap;
+            m_DebugRenderTargetIsCustom = isCustomTexture;
         }
 
         internal void ResetDebugRenderTarget()
         {
             m_HasDebugRenderTarget = false;
+            m_DebugRenderTargetIsCustom = false;
         }
+
+        // The texture is copied into a persistent target so it survives into the resolving camera's render graph
+        // when a camera stack resolves through a camera that does not publish a texture itself.
+        internal void SetCustomDebugTexture(RenderGraph renderGraph, TextureHandle texture)
+        {
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CustomDebugRenderTarget, renderGraph.GetTextureDesc(texture), "_CustomDebugTexture");
+            renderGraph.AddCopyPass(texture, renderGraph.ImportTexture(m_CustomDebugRenderTarget), passName: "Copy Custom Debug Texture");
+            m_HasCustomDebugTexture = true;
+        }
+
+        // Called once per camera stack by the resolving camera, after the fullscreen debug setup consumed the texture.
+        internal void ResetCustomDebugTexture()
+        {
+            m_HasCustomDebugTexture = false;
+        }
+
+        internal RTHandle customDebugTexture => m_CustomDebugRenderTarget;
+
+        internal bool IsCustomDebugTextureActive => RenderingSettings.fullScreenDebugMode == DebugFullScreenMode.None && m_HasCustomDebugTexture;
 
         class DebugFinalValidationPassData
         {
@@ -346,6 +372,7 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 debugRenderTargetPixelRect;
             public int debugRenderTargetSupportsStereo;
             public Vector4 debugRenderTargetRangeRemap;
+            public bool useCustomFullScreenMode;
 
             public TextureHandle debugFontTextureHandle;
 
@@ -368,6 +395,7 @@ namespace UnityEngine.Rendering.Universal
             passData.debugRenderTargetPixelRect = m_DebugRenderTargetPixelRect;
             passData.debugRenderTargetSupportsStereo = m_DebugRenderTargetSupportsStereo ? 1 : 0;
             passData.debugRenderTargetRangeRemap = m_DebugRenderTargetRangeRemap;
+            passData.useCustomFullScreenMode = m_DebugRenderTargetIsCustom;
 
             passData.debugFontTextureHandle = TextureHandle.nullHandle;
 
@@ -403,6 +431,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(k_DebugTextureDisplayRect, data.debugRenderTargetPixelRect);
                 cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, data.debugRenderTargetSupportsStereo);
                 cmd.SetGlobalVector(k_DebugRenderTargetRangeRemap, data.debugRenderTargetRangeRemap);
+
+                // A custom texture is not selectable in the settings, so the per-camera setup pass left the mode at None.
+                if (data.useCustomFullScreenMode)
+                    cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)DebugFullScreenMode.Custom);
             }
 
             var renderingSettings = data.renderingSettings;
@@ -569,9 +601,20 @@ namespace UnityEngine.Rendering.Universal
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
-            DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
+            DebugRendererLists debug = m_FreeDebugRendererLists.Count > 0
+                ? m_FreeDebugRendererLists.Pop()
+                : new DebugRendererLists(this);
+
             debug.CreateRendererListsWithDebugRenderState(renderGraph, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
+        }
+
+        // A caller holds one from recording until its pass draws, so these are pooled rather than shared.
+        readonly Stack<DebugRendererLists> m_FreeDebugRendererLists = new Stack<DebugRendererLists>(4);
+
+        internal void ReturnDebugRendererLists(DebugRendererLists lists)
+        {
+            m_FreeDebugRendererLists.Push(lists);
         }
         #endregion
     }
@@ -579,33 +622,39 @@ namespace UnityEngine.Rendering.Universal
     internal class DebugRendererLists
     {
         private readonly DebugHandler m_DebugHandler;
-        readonly FilteringSettings m_FilteringSettings;
         List<DebugRenderSetup> m_DebugRenderSetups = new List<DebugRenderSetup>(2);
+        int m_ActiveDebugRenderSetupCount;
         List<RendererList> m_ActiveDebugRendererList = new List<RendererList>(2);
         List<RendererListHandle> m_ActiveDebugRendererListHdl = new List<RendererListHandle>(2);
 
-        public DebugRendererLists(DebugHandler debugHandler,
-            FilteringSettings filteringSettings)
+        public DebugRendererLists(DebugHandler debugHandler)
         {
             m_DebugHandler = debugHandler;
-            m_FilteringSettings = filteringSettings;
         }
 
         private void CreateDebugRenderSetups(FilteringSettings filteringSettings)
         {
             var sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
             var numIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) || (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe)) ? 2 : 1;
-            for (var i = 0; i < numIterations; i++)
+
+            for (var i = m_DebugRenderSetups.Count; i < numIterations; i++)
                 m_DebugRenderSetups.Add(new DebugRenderSetup(m_DebugHandler, i, filteringSettings));
+
+            for (var i = 0; i < numIterations; i++)
+                m_DebugRenderSetups[i].Reuse(i, filteringSettings);
+
+            m_ActiveDebugRenderSetupCount = numIterations;
         }
 
         void DisposeDebugRenderLists()
         {
-            foreach (var debugRenderSetup in m_DebugRenderSetups)
+            for (var i = 0; i < m_ActiveDebugRenderSetupCount; i++)
             {
-                debugRenderSetup.Dispose();
+                m_DebugRenderSetups[i].Dispose();
             }
-            m_DebugRenderSetups.Clear();
+
+            // The setups outlive the frame; only the per-frame lists are cleared.
+            m_ActiveDebugRenderSetupCount = 0;
             m_ActiveDebugRendererList.Clear();
             m_ActiveDebugRendererListHdl.Clear();
         }
@@ -618,8 +667,9 @@ namespace UnityEngine.Rendering.Universal
             ref RenderStateBlock renderStateBlock)
         {
             CreateDebugRenderSetups(filteringSettings);
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
+            for (var setupIndex = 0; setupIndex < m_ActiveDebugRenderSetupCount; setupIndex++)
             {
+                DebugRenderSetup debugRenderSetup = m_DebugRenderSetups[setupIndex];
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererListHandle rendererListHdl = new RendererListHandle();
@@ -638,8 +688,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void DrawWithRendererList(RasterCommandBuffer cmd)
         {
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
+            for (var setupIndex = 0; setupIndex < m_ActiveDebugRenderSetupCount; setupIndex++)
             {
+                DebugRenderSetup debugRenderSetup = m_DebugRenderSetups[setupIndex];
                 debugRenderSetup.Begin(cmd);
                 RendererList rendererList = new RendererList();
                 if (m_ActiveDebugRendererList.Count > 0)
@@ -656,6 +707,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             DisposeDebugRenderLists();
+            m_DebugHandler.ReturnDebugRendererLists(this);
         }
     }
 }

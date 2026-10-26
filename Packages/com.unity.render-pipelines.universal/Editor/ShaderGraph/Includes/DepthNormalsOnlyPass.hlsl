@@ -1,6 +1,10 @@
 #ifndef SG_DEPTH_NORMALS_PASS_INCLUDED
 #define SG_DEPTH_NORMALS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -27,37 +31,27 @@ void frag(
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(unpacked.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
-    #else
-        // Retrieve the normal from the bump map or mesh normal
-        #if defined(_NORMALMAP)
-            #if _NORMAL_DROPOFF_TS
-                // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-                float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-                float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
-                float3 normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(unpacked.tangentWS.xyz, bitangent, unpacked.normalWS.xyz));
-            #elif _NORMAL_DROPOFF_OS
-                float3 normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
-            #elif _NORMAL_DROPOFF_WS
-                float3 normalWS = surfaceDescription.NormalWS;
-            #endif
-        #else
-            float3 normalWS = unpacked.normalWS;
+    // Retrieve the normal from the bump map or mesh normal
+    #if defined(_NORMALMAP)
+        #if _NORMAL_DROPOFF_TS
+            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+            float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+            float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
+            float3 normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(unpacked.tangentWS.xyz, bitangent, unpacked.normalWS.xyz));
+        #elif _NORMAL_DROPOFF_OS
+            float3 normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+        #elif _NORMAL_DROPOFF_WS
+            float3 normalWS = surfaceDescription.NormalWS;
         #endif
-
-        outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
+    #else
+        float3 normalWS = unpacked.normalWS;
     #endif
 
-    #if defined(_WRITE_SMOOTHNESS)
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), 0.0);
+
+    #if defined(_WRITE_SMOOTHNESS) && !defined(_SCREENSPACEREFLECTIONS_OFF)
         outNormalWS.a = surfaceDescription.Smoothness;
     #endif
 

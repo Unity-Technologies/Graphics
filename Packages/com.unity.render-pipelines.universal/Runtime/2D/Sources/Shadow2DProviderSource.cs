@@ -28,15 +28,19 @@ namespace UnityEngine.Rendering.Universal
             SerializedProperty component = serializedObject.FindProperty("m_ShadowShape2DComponent");
             lightType.intValue = m_SourceType;
 
-            foreach (var obj in serializedObject.targetObjects)
-            {
-                ShadowCaster2D shadowCaster2D = obj as ShadowCaster2D;
-                shadowCaster2D.shadowShape2DProvider = m_Provider as ShadowShape2DProvider;
-            }
-
+            // Both of these go through SerializedProperty. Writing the provider straight onto the
+            // component instead -- as this did -- is undone by the ApplyModifiedProperties below, which
+            // writes back the buffer read by Update() above and so restores the previous provider. The
+            // source Component was written through a property and did stick, leaving the caster with a
+            // provider and a component that do not belong together; the built-in providers then cast
+            // that component to the type they expect and throw InvalidCastException on the next enable
+            // or disable.
+            provider.managedReferenceValue = m_Provider as ShadowShape2DProvider;
             component.objectReferenceValue = m_Component;
 
-            m_Provider.OnSelected();
+            if (m_Provider != null)
+                m_Provider.OnSelected();
+
             serializedObject.ApplyModifiedProperties();
         }
     }

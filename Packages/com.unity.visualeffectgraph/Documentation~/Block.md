@@ -6,8 +6,8 @@ Control the behavior, appearance, and simulation of particles.
 | --- | --- |
 | [Attribute Blocks](Attribute.md) | Write values to the attributes of particles. |
 | [Collision Blocks](Block-Collision-LandingPage.md) | Configure how particles collide with shapes or the depth buffer. |
-| [Force Blocks](Force.md) | Apply and control forces on particles, such as gravity and turbulence. |
 | [Custom HLSL Block](Operator-CustomHLSL.md) | Write an HLSL function that takes inputs and produces outputs. |
+| [Force Blocks](Force.md) | Apply and control forces on particles, such as gravity and turbulence. |
 | [Implicit Integration Blocks](Implicit.md) | Explore the hidden Blocks that Visual Effect Graph uses to update the position and rotation of particles. |
 | [Orientation Blocks](Orientation.md) | Change the direction that particles face. |
 | [Output Blocks](Output.md) | Control particle output and rendering. |

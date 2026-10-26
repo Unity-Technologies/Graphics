@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using UnityEditor.Build;
@@ -17,7 +16,6 @@ namespace UnityEditor.Rendering.Analytics
         internal class Analytic : IAnalytic
         {
 
-            [MustUseReturnValue]
             public bool TryGatherData([NotNullWhen(true)] out IAnalytic.IData data, [NotNullWhen(false)] out Exception error)
             {
                 var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;

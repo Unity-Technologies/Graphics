@@ -28,6 +28,19 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class LightUtility
     {
+        // GenerateShapeMesh fills a Freeform light's interior only when this assembly has the 2D Common tessellator.
+        // Editor code must read this instead of its own USING_2DCOMMON, because the asmdefs use different version thresholds.
+        internal static bool canTessellateFreeformInterior
+        {
+            get
+            {
+#if USING_2DCOMMON
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
 
         public static int ProviderToHash(Provider2D provider, Component component)
         {
@@ -268,6 +281,68 @@ namespace UnityEngine.Rendering.Universal
             return output;
         }
 
+        // Assigns UV coordinates to the first `vertexCount` entries of `vertices` by
+        // normalizing each vertex's effective post-extrusion XY position into [0, 1]
+        // using the min/max X and Y across the same range. Zero-extent axes
+        // deterministically map to 0.
+        //
+        // The effective position mirrors the vertex-shader extrusion done by both
+        // Hidden/Light2D's vert_shape and the ShaderGraph Light2DPass vert:
+        //     effectivePos = position + falloffDistance * color.rg
+        // Parametric outer-perimeter vertices carry a non-zero extrusion direction
+        // in color.rg (see GenerateParametricMesh); using raw positions would collapse
+        // the outer falloff ring onto the inner perimeter's endPoint and squash the
+        // UV [0,1] range into the inner polygon instead of covering the visible
+        // extents. Freeform vertices bake color.rg = 0, so this formula reduces to
+        // the raw position there and is a no-op. `falloffDistance == 0` disables
+        // extrusion entirely (for callers that already produced final positions).
+        //
+        // Writes into the LightMeshVertex.uv field so the SINGLE SetVertexBufferData
+        // upload carries position, color and UV together. This avoids any interaction
+        // with Mesh.SetUVs, which — when called on a mesh whose vertex layout was
+        // established via SetVertexBufferParams — can silently rebuild the vertex
+        // buffer with a different attribute layout and destroy the color data that
+        // Light2D shaders read for shape falloff via unpacked.color.a.
+        //
+        // Only used by built-in Light2D mesh generation for Freeform, Parametric and
+        // Point (Spot) light types. Sprite lights preserve their sprite UVs, and
+        // Provider-generated meshes are supplied externally and must not be touched.
+        static void AssignPositionExtentsUVs(NativeArray<LightMeshVertex> vertices, int vertexCount, float falloffDistance)
+        {
+            if (vertexCount <= 0)
+                return;
+
+            float minX = float.MaxValue, minY = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue;
+
+            for (int i = 0; i < vertexCount; ++i)
+            {
+                var v = vertices[i];
+                float ex = v.position.x + falloffDistance * v.color.r;
+                float ey = v.position.y + falloffDistance * v.color.g;
+                if (ex < minX) minX = ex;
+                if (ey < minY) minY = ey;
+                if (ex > maxX) maxX = ex;
+                if (ey > maxY) maxY = ey;
+            }
+
+            float width = maxX - minX;
+            float height = maxY - minY;
+            float invW = width > 0f ? 1f / width : 0f;
+            float invH = height > 0f ? 1f / height : 0f;
+
+            for (int i = 0; i < vertexCount; ++i)
+            {
+                var v = vertices[i];
+                float ex = v.position.x + falloffDistance * v.color.r;
+                float ey = v.position.y + falloffDistance * v.color.g;
+                var u = width > 0f ? (ex - minX) * invW : 0f;
+                var w = height > 0f ? (ey - minY) * invH : 0f;
+                v.uv = new Vector2(u, w);
+                vertices[i] = v;
+            }
+        }
+
         static void TransferToMesh(NativeArray<LightMeshVertex> vertices, int vertexCount, NativeArray<ushort> indices,
             int indexCount, Light2D light)
         {
@@ -320,7 +395,9 @@ namespace UnityEngine.Rendering.Universal
 
 #if USING_2DCOMMON
             int tessOutEdgeCount = 0;
-            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
+            // runPlanarGraph must stay true: the user can drag a Freeform shape until its edges cross,
+            // and the tessellator overruns its edge buffer unless crossing edges are split first.
+            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, true);
 #endif
 
             // Create falloff geometry with random noise to account for collinear points
@@ -441,6 +518,18 @@ namespace UnityEngine.Rendering.Universal
                         outIndices[icount++] = innerIndices[minPath - 1];
                 }
 
+                // Assign UVs derived from Freeform vertex positions BEFORE uploading
+                // so a single SetVertexBufferData call carries position, color and UV
+                // together — Mesh.SetUVs after the fact can silently rebuild the
+                // vertex buffer layout and destroy the color channel that the Light2D
+                // shape falloff shader reads via unpacked.color.a.
+                //
+                // Freeform vertices bake color.rg = 0 (see meshInteriorColor /
+                // meshExteriorColor above), so no shader-side extrusion happens and
+                // the falloffDistance argument reduces to a no-op. Passing 0 here
+                // makes that explicit and matches the geometry the vert shader emits.
+                AssignPositionExtentsUVs(outVertices, vcount, 0f);
+
                 TransferToMesh(outVertices, vcount, outIndices, icount, light);
             }
 
@@ -519,6 +608,17 @@ namespace UnityEngine.Rendering.Universal
                 max = math.max(max, endPoint + extrudeDir * falloffDistance);
             }
 
+            // Assign UVs derived from the effective post-extrusion Parametric vertex
+            // positions BEFORE uploading. Outer-perimeter vertices carry the extrusion
+            // direction in color.rg and get pushed outward by `falloffDistance * color.rg`
+            // in the vert shader — passing falloffDistance here lets the CPU-side UV
+            // calculation see the same extended positions, so the [0,1] range spans the
+            // visible falloff band instead of collapsing onto the inner endPoint.
+            //
+            // Kept on the SetVertexBufferData upload path so position, color and UV
+            // travel together and don't get partially rebuilt by a follow-up SetUVs.
+            AssignPositionExtentsUVs(vertices, vertexCount, falloffDistance);
+
             mesh.SetVertexBufferParams(vertexCount, LightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
             mesh.SetIndices(triangles, MeshTopology.Triangles, 0, false);
@@ -596,6 +696,25 @@ namespace UnityEngine.Rendering.Universal
 
                 return hashCode;
             }
+        }
+
+        /// <summary>
+        /// Checks if another enabled Global light already exists in the scene
+        /// </summary>
+        internal static void CheckForExistingGlobalLight(GameObject obj)
+        {
+#if UNITY_EDITOR
+            if (Light2DManager.TryGetLights(obj, out var lights))
+            {
+                foreach (var light in lights)
+                {
+                    if (light.lightType == Light2D.LightType.Global && light.enabled)
+                    {
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
+                    }
+                }
+            }
+#endif
         }
     }
 }

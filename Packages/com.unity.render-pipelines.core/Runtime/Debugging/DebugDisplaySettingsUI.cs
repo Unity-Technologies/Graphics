@@ -18,12 +18,19 @@ namespace UnityEngine.Rendering
             if (m_Settings != null)
             {
                 m_Settings.Reset();
-
-                // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
-                UnregisterDebug();
-                RegisterDebug(m_Settings);
-                DebugManager.instance.RefreshEditor();
+                ReregisterDebugPanels();
             }
+        }
+
+        /// <summary>
+        /// Unregisters and re-registers all DebugUI panels associated with the current <see cref="ISerializedDebugDisplaySettings"/>.
+        /// This effectively rebuilds the debug panel hierarchy without touching the Rendering Debugger window state itself.
+        /// </summary>
+        void ReregisterDebugPanels()
+        {
+            // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
+            UnregisterDebug();
+            RegisterDebug(m_Settings);
         }
 
         /// <summary>
@@ -33,8 +40,10 @@ namespace UnityEngine.Rendering
         public void RegisterDebug(IDebugDisplaySettings settings)
         {
             DebugManager.instance.RegisterData(this);
+            DebugManager.instance.onRecreateDebugUI += ReregisterDebugPanels;
             m_Settings = settings;
             m_Settings.Add(new DebugDisplaySettingsRenderGraph());
+            DebugManager.instance.supportsHidingDebugOverlays = true;
 
             // Don't initialize the UI immediately to avoid unnecessary work at pipeline init time. Instaed,
             // initialize UI when any debug UI is opened (or if the editor window is already open)
@@ -64,6 +73,7 @@ namespace UnityEngine.Rendering
                         displayName: disposableSettingsPanel.PanelName,
                         createIfNull: true,
                         groupIndex: (disposableSettingsPanel is DebugDisplaySettingsPanel debugDisplaySettingsPanel) ? debugDisplaySettingsPanel.Order : 0);
+
 #if UNITY_EDITOR
                     if (DocumentationUtils.TryGetHelpURL(disposableSettingsPanel.GetType(), out var documentationUrl))
                         panel.documentationUrl = documentationUrl;
@@ -73,6 +83,7 @@ namespace UnityEngine.Rendering
 
                     panel.flags = disposableSettingsPanel.Flags;
                     panels.Add(disposableSettingsPanel);
+
                     panelChildren.Add(panelWidgets);
                 };
 
@@ -99,6 +110,7 @@ namespace UnityEngine.Rendering
                     DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
                     string panelId = disposableSettingsPanel.PanelName;
                     DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
+
                     ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
                     disposableSettingsPanel.Dispose();
@@ -109,6 +121,7 @@ namespace UnityEngine.Rendering
             }
 
             debugManager.UnregisterData(this);
+            debugManager.onRecreateDebugUI -= ReregisterDebugPanels;
 
             DebugManager.windowStateChanged -= DebugUIOpened;
         }

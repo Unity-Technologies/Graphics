@@ -2,7 +2,7 @@
 #define _SAMPLING_SAMPLING_COMMON_HLSL_
 
 #ifndef PI
-#define PI 3.14159265358979323846f
+#define PI 3.14159265358979323846
 #endif
 
 #define FLOAT_ONE_MINUS_EPSILON 0.99999994
@@ -94,6 +94,23 @@ float2 MapSquareToDisk(float2 rnd)
             phi = (PI * 0.5f) - (PI * 0.25f) * (a / b);
     }
     return float2(r * cos(phi), r * sin(phi));
+}
+
+// A Low-Distortion Map Between Triangle and Square, by Eric Heitz, 2019
+// Preserves blue-noise quality of input samples better than sqrt parameterization.
+float2 MapUnitSquareToUnitTriangle(float2 unitSquareCoords)
+{
+    if (unitSquareCoords.y > unitSquareCoords.x)
+    {
+        unitSquareCoords.x *= 0.5f;
+        unitSquareCoords.y -= unitSquareCoords.x;
+    }
+    else
+    {
+        unitSquareCoords.y *= 0.5f;
+        unitSquareCoords.x -= unitSquareCoords.y;
+    }
+    return unitSquareCoords;
 }
 
 float3 CosineSample(float2 u, float3 normal)

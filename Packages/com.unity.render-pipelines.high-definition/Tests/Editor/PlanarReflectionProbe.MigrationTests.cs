@@ -133,7 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.cameraSettings.bufferClearing.backgroundColorHDR);
                     Assert.AreEqual(legacyProbeData.clearDepth, settings.cameraSettings.bufferClearing.clearDepth);
                     Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.cameraSettings.culling.cullingMask);
+                    #pragma warning disable CS0618
                     Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.cameraSettings.culling.useOcclusionCulling);
+                    #pragma warning restore CS0618
                     Assert.AreEqual(legacyProbeData.volumeLayerMask, (int)settings.cameraSettings.volumes.layerMask);
                     Assert.AreEqual(legacyProbeData.nearClipPlane, settings.cameraSettings.frustum.nearClipPlane);
                     Assert.AreEqual(legacyProbeData.farClipPlane, settings.cameraSettings.frustum.farClipPlane);

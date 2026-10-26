@@ -111,6 +111,11 @@ namespace UnityEngine.Rendering.Universal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
+                if (resourceData.exposureMultiplier.IsValid())
+                {
+                    builder.UseTexture(resourceData.exposureMultiplier, AccessFlags.Read);
+                }
+
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext rgContext) =>

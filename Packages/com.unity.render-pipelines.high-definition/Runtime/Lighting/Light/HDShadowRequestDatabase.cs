@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -60,15 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // each of which will contain shadow data that is index-aligned with the other light data.
 #endregion
 
+        [NoAutoStaticsCleanup] // HDLightRenderDatabase holds handles into this storage; disposed on last release / by the finalizer.
         private static HDShadowRequestDatabase s_Instance;
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = null;
-        }
-#endif
 
         // TODO: Pad each set of HDShadowRequests to eliminate cache line sharing between sets, as a prerequisite for parallel shadow request update work.
         private int m_HDShadowRequestFreeListIndex;

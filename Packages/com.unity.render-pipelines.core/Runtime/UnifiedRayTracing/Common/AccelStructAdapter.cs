@@ -54,9 +54,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             public int IdOfInstance;
             public int AccelStructID;
+            public Mesh OwnedMesh;
         }
 
         private readonly Dictionary<UInt64, IdsOfInstances[]> _objectHandleToInstances = new();
+        private readonly Dictionary<int, Stack<IdsOfInstances[]>> _freeInstanceArrays = new();
 
         public AccelStructAdapter(IRayTracingAccelStruct accelStruct, GeometryPool geometryPool)
         {
@@ -100,7 +102,12 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             _instances = null;
             _accelStruct?.Dispose();
             _accelStruct = null;
+
+            foreach (var instances in _objectHandleToInstances.Values)
+                foreach (var instance in instances)
+                    CoreUtils.Destroy(instance.OwnedMesh);
             _objectHandleToInstances.Clear();
+            _freeInstanceArrays.Clear();
 
             foreach (var buf in _aabbBuffers)
                 buf?.Dispose();
@@ -145,7 +152,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             int subMeshCount = mesh.subMeshCount;
 
-            var instances = new IdsOfInstances[subMeshCount];
+            var instances = ReuseOrCreateInstanceArray(subMeshCount);
             for (int i = 0; i < subMeshCount; ++i)
             {
                 var instanceDesc = new MeshInstanceDesc(mesh, i)
@@ -168,8 +175,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             List<IdsOfInstances> instanceHandles = new List<IdsOfInstances>();
 
-            AddHeightmap(terrainDesc, ref instanceHandles);
-            AddTrees(terrainDesc, ref instanceHandles);
+            try
+            {
+                AddHeightmap(terrainDesc, ref instanceHandles);
+                AddTrees(terrainDesc, ref instanceHandles);
+            }
+            catch
+            {
+                foreach (var instance in instanceHandles)
+                    CoreUtils.Destroy(instance.OwnedMesh);
+                throw;
+            }
 
             _objectHandleToInstances.Add(objectHandle, instanceHandles.ToArray());
 
@@ -184,8 +200,19 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             instanceDesc.enableTriangleCulling = terrainDesc.enableTriangleCulling;
             instanceDesc.frontTriangleCounterClockwise = terrainDesc.frontTriangleCounterClockwise;
 
-            instanceHandles.Add(AddInstance(instanceDesc, terrainDesc.materialID, terrainDesc.renderingLayerMask));
+            IdsOfInstances ids;
+            try
+            {
+                ids = AddInstance(instanceDesc, terrainDesc.materialID, terrainDesc.renderingLayerMask);
+            }
+            catch
+            {
+                CoreUtils.Destroy(terrainMesh);
+                throw;
+            }
 
+            ids.OwnedMesh = terrainMesh;
+            instanceHandles.Add(ids);
         }
 
         void AddTrees(TerrainDesc terrainDesc, ref List<IdsOfInstances> instanceHandles)
@@ -407,9 +434,31 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 _instances.RemoveInstance(instance.IdOfInstance);
                 _accelStruct.RemoveInstance(instance.AccelStructID);
+                CoreUtils.Destroy(instance.OwnedMesh);
             }
 
             _objectHandleToInstances.Remove(objectHandle);
+            RecycleInstanceArray(instances);
+        }
+
+        IdsOfInstances[] ReuseOrCreateInstanceArray(int length)
+        {
+            if (_freeInstanceArrays.TryGetValue(length, out var freeArrays) && freeArrays.Count != 0)
+                return freeArrays.Pop();
+
+            return new IdsOfInstances[length];
+        }
+
+        void RecycleInstanceArray(IdsOfInstances[] instances)
+        {
+            if (!_freeInstanceArrays.TryGetValue(instances.Length, out var freeArrays))
+            {
+                freeArrays = new Stack<IdsOfInstances[]>();
+                _freeInstanceArrays.Add(instances.Length, freeArrays);
+            }
+
+            Array.Clear(instances, 0, instances.Length);
+            freeArrays.Push(instances);
         }
 
         public void UpdateInstanceTransform(UInt64 objectHandle, Matrix4x4 localToWorldMatrix)
@@ -488,6 +537,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
             instanceIDs = Array.ConvertAll(instIDs, item => item.IdOfInstance);
             return true;
+        }
+
+        public int GetInstanceID(UInt64 objectHandle, int subMeshIndex)
+        {
+            bool success = _objectHandleToInstances.TryGetValue(objectHandle, out var instances);
+            Assert.IsTrue(success);
+            return instances[subMeshIndex].IdOfInstance;
         }
 
     }

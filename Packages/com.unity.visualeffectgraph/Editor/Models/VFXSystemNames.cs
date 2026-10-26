@@ -59,6 +59,11 @@ namespace UnityEditor.VFX
             return GenerateUniqueName(system);
         }
 
+        public void Clear()
+        {
+            m_SystemNamesCache.Clear();
+        }
+
         public void Sync(VFXGraph graph)
         {
             using var scope = k_ProfilerMarkerSyncNames.Auto();

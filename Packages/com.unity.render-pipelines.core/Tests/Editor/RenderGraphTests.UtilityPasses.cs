@@ -2,6 +2,8 @@ using NUnit.Framework;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
+using System;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -91,10 +93,14 @@ namespace UnityEngine.Rendering.Tests
             var resources = CreateBlitResources(m_RenderGraph);
             var canUseCopyPass = RenderGraphUtils.CanAddCopyPass(m_RenderGraph, resources.blitParameters.source, resources.blitParameters.destination);
 
-            // Writing to the texture blitting is the same as writing the same texture twice, is not allowed.
+            // Writing to the texture blitting is the same as writing the same texture twice, is not allowed. Depending on the situation if it goes to RasterPath pass or not
+            // it may throw one of these two exceptions:
+            // "<System.ArgumentException: Trying to UseTexture on a texture that is already used through SetRenderAttachment. Consider updating your code. (pass BlitPass resource)."
+            // "<System.InvalidOperationException: Trying to write a resource twice in a pass. You can only write the same resource once within a pass (pass BlitPass resource)."
+            // TODO: This is a bit inconsistent ideally we should do a pass on rendergraph validation to make the exceptions consistent.
             using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true))
             {
-                Assert.Throws<System.InvalidOperationException>(() =>
+                Assert.Throws(Is.TypeOf<ArgumentException>().Or.TypeOf<InvalidOperationException>(), () =>
                 {
                     builder.UseTexture(resources.textures[1], AccessFlags.Write);
                 });

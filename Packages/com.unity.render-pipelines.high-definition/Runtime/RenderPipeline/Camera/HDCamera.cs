@@ -994,9 +994,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initially, we don't want to clear any history buffer
             m_ClearHistoryRequest = false;
             contextContainer = new ContextContainer();
-#if ENABLE_UPSCALER_FRAMEWORK
             contextContainer.Create<UpscalingIO>();
-#endif
 
             Reset();
         }
@@ -1024,7 +1022,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderSTP;
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         internal bool IsIUpscalerEnabled()
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderIUpscaler;
@@ -1033,7 +1030,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraIUpscalerIsTemporalUpscaler;
         }
-#endif
 
         internal bool IsPathTracingEnabled()
         {
@@ -1082,7 +1078,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint;
             }
-#if ENABLE_UPSCALER_FRAMEWORK
             else if (IsIUpscalerEnabled())
             {
                 // get activeUpscalerName
@@ -1090,23 +1085,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
                 IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
                 Debug.Assert(upscaler != null);
-                string activeUpscalerName = upscaler.name;
 
-                // return the injection point of matching options
-                foreach (UpscalerOptions options in HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.upscalerOptions)
-                {
-                    if (options.upscalerName == activeUpscalerName)
-                    {
-                        return options.injectionPoint;
-                    }
-                }
+                // The injection point rides on the upscaler's options, resolved by the framework (per-camera-ready;
+                // the resolver's name-keyed default map mirrors the old asset-list lookup by upscalerName).
+                UpscalerOptions options = HDRenderPipeline.currentPipeline.upscaling.GetGlobalOptions(upscaler);
+                if (options != null)
+                    return options.injectionPoint;
 
                 // options not found, return a default value
                 return IsIUpscalerTemporalUpscaler()
                     ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost // temporal upscaler
                     : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost; // spatial upscaler
             }
-#endif
             else if (IsTAAUEnabled())
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint;
@@ -1146,10 +1136,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            bool isTemporalUpscaler = IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled();
-#if ENABLE_UPSCALER_FRAMEWORK
-            isTemporalUpscaler = isTemporalUpscaler || IsIUpscalerTemporalUpscaler();
-#endif
+            bool isTemporalUpscaler = IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled() || IsIUpscalerTemporalUpscaler();
 
             return (antialiasing == AntialiasingMode.TemporalAntialiasing || isTemporalUpscaler) && !IsPathTracingEnabled();
         }
@@ -1411,15 +1398,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LowResHWDRSFactor = Vector2.one;
             if (canDoDynamicResolution)
             {
-                Vector2Int orignalSize = new Vector2Int(actualWidth, actualHeight);
-                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(orignalSize);
+                Vector2Int originalSize = nonScaledViewport;
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(originalSize);
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
 
                 // Calculate mip bias: use upscaler's recommendation when active, otherwise fall back to DynamicResolutionHandler
                 bool shouldApplyMipBias = UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField;
                 bool isUpscaling = scaledSize.x <= nonScaledViewport.x || scaledSize.y <= nonScaledViewport.y;
-#if ENABLE_UPSCALER_FRAMEWORK
                 if (IsIUpscalerEnabled() && IsIUpscalerTemporalUpscaler())
                 {
                     // Temporal upscaler is active - use its mip bias calculation directly, bypassing TAA settings
@@ -1431,7 +1417,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
                 else
-#endif
                 {
                     globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, shouldApplyMipBias);
                 }
@@ -1473,21 +1458,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
         internal void SetReferenceSize()
         {
-#if ENABLE_UPSCALER_FRAMEWORK
-            if (IsIUpscalerEnabled())
-            {
-                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
-                Debug.Assert(HDRenderPipeline.currentPipeline != null);
-                IUpscaler activeUpscaler = HDRenderPipeline.currentPipeline.upscaling.activeUpscaler;
-                Debug.Assert(activeUpscaler != null);
-                Vector2Int res = new Vector2Int(actualWidth, actualHeight);
-                activeUpscaler.NegotiatePreUpscaleResolution(ref res,
-                    new Vector2Int(camera.pixelWidth, camera.pixelHeight));
-                actualWidth = res.x;
-                actualHeight = res.y;
-            }
-#endif
-
             RTHandles.SetReferenceSize(actualWidth, actualHeight);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
             SetPostProcessScreenSize(actualWidth, actualHeight);
@@ -2372,9 +2342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (xr.enabled
                 && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter
                 && !IsSTPEnabled()
-#if ENABLE_UPSCALER_FRAMEWORK
                 && !IsIUpscalerEnabled()
-#endif
                 )
             {
                 taaJitter = Vector4.zero;
@@ -2394,7 +2362,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 jitterX = stpJit.x;
                 jitterY = stpJit.y;
             }
-#if ENABLE_UPSCALER_FRAMEWORK
             else if (IsIUpscalerEnabled())
             {
                 Debug.Assert(HDRenderPipeline.currentPipeline != null);
@@ -2405,14 +2372,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float upscaleRatio = finalViewport.width / actualWidth;
                 upscaler.CalculateJitter(taaFrameIndex, upscaleRatio, out Vector2 jitter, out bool allowScaling);
 
-                // TODO (Apoorva): Re-examine if this negative sign is needed. It's currently there because URP and HDRP
-                // seem to be different in this regard. In URP, the jitter offset is -STP.Jit16(), while in HDRP, it
-                // seems to be STP.Jit16(). Maybe the usage of the jitter vector cancels this sign out, making the math
-                // equivalent. Needs more investigation. Until then, we add a negative sign in HDRP.
+                // jitterX/Y is the jitter applied to the rendering projection (via taaJitter, built below); it is NOT the
+                // value the upscaler reads. The upscaler's jitter is published separately by DoIUpscalerPasses as
+                // io.subpixelJitter = -taaJitter — the sign the native DLSS/FSR2 SDKs expect (URP applies the opposite
+                // convention). So the upscaler always receives the correct sign regardless of the sign applied here.
                 jitterX = -jitter.x;
                 jitterY = -jitter.y;
             }
-#endif
             else
             {
                 // The variance between 0 and the actual halton sequence values reveals noticeable

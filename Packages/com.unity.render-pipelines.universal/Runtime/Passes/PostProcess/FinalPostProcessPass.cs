@@ -125,11 +125,11 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr.enabled)
                 {
                     // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
-                    bool passSupportsFoveation = !Experimental.Rendering.XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                    bool passSupportsFoveation = (Experimental.Rendering.XRSystem.foveatedRenderingCaps & FoveatedRenderingCaps.NonUniformRaster) == 0;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
                     var requireHDROutput = PostProcessUtils.RequireHDROutput(cameraData);
                     var isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
                     var applyFxaa = data.applyFxaa;
-                    var hdrColorEncoding = data.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding);
+                    var hdrColorEncoding = (data.hdrOperations & HDROutputUtils.Operation.ColorEncoding) != 0;
                     var applySrgbEncoding = data.applySrgbEncoding;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                     if (hdrColorEncoding)
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
+                        RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
                     }
 
                     material.SetVector(ShaderConstants._SourceSize, PostProcessUtils.CalcShaderSourceSize(sourceTextureHdl));

@@ -24,3 +24,7 @@ The following example code represents one possible outcome of this node.
 TEXTURE2D_ARRAY(_Texture2DArrayAsset);
 SAMPLER(sampler_Texture2DArrayAsset);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -10,9 +10,9 @@ namespace UnityEditor.Rendering.Universal
     {
         private static class Styles
         {
-            public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Use this to control and apply a hue to the shadows.");
-            public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Use this to control and apply a hue to the shadows.");
-            public static readonly GUIContent highlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Use this to control and apply a hue to the shadows.");
+            public static readonly GUIContent shadowsLabel = L10n.TextContent("Shadows", "Use this to control and apply a hue to the shadows.", null, null);
+            public static readonly GUIContent midtonesLabel = L10n.TextContent("Midtones", "Use this to control and apply a hue to the shadows.", null, null);
+            public static readonly GUIContent highlightsLabel = L10n.TextContent("Highlights", "Use this to control and apply a hue to the shadows.", null, null);
         }
 
         SerializedDataParameter m_Shadows;
@@ -84,14 +84,14 @@ namespace UnityEditor.Rendering.Universal
                 Handles.DrawSolidRectangleWithOutline(m_CurveRect, Color.clear, Color.white * 0.4f);
             }
 
-            PropertyField(m_ShadowsStart, EditorGUIUtility.TrTextContent("Start"));
+            PropertyField(m_ShadowsStart, L10n.TextContent("Start", null, null, null));
             m_ShadowsStart.value.floatValue = Mathf.Min(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
-            PropertyField(m_ShadowsEnd, EditorGUIUtility.TrTextContent("End"));
+            PropertyField(m_ShadowsEnd, L10n.TextContent("End", null, null, null));
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
-            PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
+            PropertyField(m_HighlightsStart, L10n.TextContent("Start", null, null, null));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
-            PropertyField(m_HighlightsEnd, EditorGUIUtility.TrTextContent("End"));
+            PropertyField(m_HighlightsEnd, L10n.TextContent("End", null, null, null));
             m_HighlightsEnd.value.floatValue = Mathf.Max(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
         }
 

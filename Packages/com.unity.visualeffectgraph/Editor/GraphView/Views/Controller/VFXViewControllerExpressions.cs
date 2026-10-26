@@ -41,6 +41,15 @@ namespace UnityEditor.VFX.UI
             SendEvent(VFXRecompileEvent.Default);
         }
 
+        // Refresh the resolved input field values after the graph recompiles.
+        public void OnGraphRecompiled(VFXGraph vfxGraph)
+        {
+            // Only force the full path for a fresh recompile; keep a pending param-only refresh cheap.
+            if (!ExpressionGraphDirty)
+                ExpressionGraphDirtyParamOnly = false;
+            ExpressionGraphDirty = true;
+        }
+
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&

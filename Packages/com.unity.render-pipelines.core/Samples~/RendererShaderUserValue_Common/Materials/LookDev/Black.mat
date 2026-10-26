@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
-  version: 10
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -27,10 +27,10 @@ Material:
   m_ValidKeywords:
   - _DISABLE_SSR_TRANSPARENT
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2225
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -71,6 +71,7 @@ Material:
     - _AlphaSrcBlend: 1
     - _BlendMode: 0
     - _ConservativeDepthOffsetEnable: 0
+    - _Cull: 2
     - _CullMode: 2
     - _CullModeForward: 2
     - _DepthOffsetEnable: 0
@@ -95,6 +96,8 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
     - _Smoothness: 0
     - _SrcBlend: 1
     - _StencilRef: 0

@@ -21,6 +21,7 @@ namespace UnityEngine.PathTracing.Integration
         private EmissiveSamplingMode _indirectEmissiveSamplingMode = EmissiveSamplingMode.BRDFSampling;
         private uint _indirectRISCandidateCount = 1;
         private uint _basePositionsOffset;
+        private bool _hasTerrains;
 
         private static class ShaderProperties
         {
@@ -76,7 +77,8 @@ namespace UnityEngine.PathTracing.Integration
                 unifiedContext.GetComputeBuffer(radianceEstimateOut.Id),
                 (uint)radianceEstimateOut.Offset,
                 unifiedContext.GetComputeBuffer(expansionBuffer),
-                unifiedContext.GetComputeBuffer(reductionBuffer));
+                unifiedContext.GetComputeBuffer(reductionBuffer),
+                _hasTerrains);
 
             return new IProbeIntegrator.Result(IProbeIntegrator.ResultType.Success, string.Empty);
         }
@@ -109,7 +111,8 @@ namespace UnityEngine.PathTracing.Integration
                 unifiedContext.GetComputeBuffer(radianceEstimateOut.Id),
                 (uint)radianceEstimateOut.Offset,
                 unifiedContext.GetComputeBuffer(expansionBuffer),
-                unifiedContext.GetComputeBuffer(reductionBuffer));
+                unifiedContext.GetComputeBuffer(reductionBuffer),
+                _hasTerrains);
 
             return new IProbeIntegrator.Result(IProbeIntegrator.ResultType.Success, string.Empty);
         }
@@ -135,7 +138,8 @@ namespace UnityEngine.PathTracing.Integration
                 unifiedContext.GetComputeBuffer(validityEstimateOut.Id),
                 (uint)validityEstimateOut.Offset,
                 unifiedContext.GetComputeBuffer(expansionBuffer),
-                unifiedContext.GetComputeBuffer(reductionBuffer));
+                unifiedContext.GetComputeBuffer(reductionBuffer),
+                _hasTerrains);
 
             return new IProbeIntegrator.Result(IProbeIntegrator.ResultType.Success, string.Empty);
         }
@@ -204,7 +208,8 @@ namespace UnityEngine.PathTracing.Integration
                 unifiedContext.GetComputeBuffer(probeOcclusionEstimateOut.Id),
                 (uint)probeOcclusionEstimateOut.Offset,
                 unifiedContext.GetComputeBuffer(expansionBuffer),
-                unifiedContext.GetComputeBuffer(reductionBuffer));
+                unifiedContext.GetComputeBuffer(reductionBuffer),
+                _hasTerrains);
 
             return new IProbeIntegrator.Result(IProbeIntegrator.ResultType.Success, string.Empty);
         }
@@ -234,6 +239,7 @@ namespace UnityEngine.PathTracing.Integration
 
             _world = world as UnityComputeWorld;
             Debug.Assert(world != null);
+            _hasTerrains = _world.PathTracingWorld.HasTerrains();
 
             UnityComputeDeviceContext unifiedContext = context as UnityComputeDeviceContext;
             Debug.Assert(unifiedContext != null);
@@ -245,5 +251,6 @@ namespace UnityEngine.PathTracing.Integration
         }
 
         public void SetProgressReporter(BakeProgressState progressState) => _probeIntegrator.SetProgressReporter(progressState);
+
     }
 }

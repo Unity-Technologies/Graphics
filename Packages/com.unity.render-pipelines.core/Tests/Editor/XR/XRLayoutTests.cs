@@ -11,12 +11,19 @@ namespace UnityEngine.Rendering.Experimental.Tests.XR
         private XRDisplaySubsystem m_CurrentSubsystem;
         private Camera m_Camera;
         private XRLayout m_LayoutTest = new ();
+        private int m_SavedMaxViews;
 
         [SetUp]
         public void Setup()
         {
             var go = new GameObject(nameof(XRLayoutTests));
             m_Camera = go.AddComponent<Camera>();
+
+            // TextureXR.slices defaults to 1 without an XR device, which prevents
+            // AddView from accepting more than one view. Raise the limit for tests
+            // that construct multi-view passes.
+            m_SavedMaxViews = TextureXR.slices;
+            TextureXR.maxViews = 2;
         }
 
         [TearDown]
@@ -25,6 +32,8 @@ namespace UnityEngine.Rendering.Experimental.Tests.XR
             m_LayoutTest.Clear();
 
             Object.DestroyImmediate(m_Camera.gameObject);
+
+            TextureXR.maxViews = m_SavedMaxViews;
 
             Assert.IsEmpty(m_LayoutTest.GetActivePasses());
         }
@@ -107,6 +116,94 @@ namespace UnityEngine.Rendering.Experimental.Tests.XR
             }
 
             Assert.AreEqual(expectedActivePassesCount, m_LayoutTest.GetActivePasses().Count);
+        }
+
+        static XRPass CreatePassWithLayout(XRLayoutType layoutType, int multipassId)
+        {
+            var createInfo = new XRPassCreateInfo
+            {
+                xrLayoutType = layoutType,
+                multipassId = multipassId,
+                uvScales = Vector4.one,
+                uvOffsets = Vector4.zero,
+            };
+            var pass = new XRPass();
+            pass.InitBase(createInfo);
+            return pass;
+        }
+
+        [Test]
+        public void SinglePassStereoLayout_HasOnePass()
+        {
+            var pass = CreatePassWithLayout(XRLayoutType.SinglePassStereo, multipassId: 0);
+            pass.AddView(new XRView());
+            pass.AddView(new XRView());
+            m_LayoutTest.AddPass(m_Camera, pass);
+
+            Assert.AreEqual(1, m_LayoutTest.GetActivePasses().Count);
+
+            var (_, xrPass) = m_LayoutTest.GetActivePasses()[0];
+            Assert.AreEqual(XRLayoutType.SinglePassStereo, xrPass.xrLayoutType);
+            Assert.AreEqual(2, xrPass.viewCount);
+            Assert.IsTrue(xrPass.isFirstCameraPass);
+            Assert.IsTrue(xrPass.isLastCameraPass);
+            Assert.IsFalse(xrPass.isQuadViewInnerPass);
+        }
+
+        [Test]
+        public void TwoPassStereoLayout_HasTwoPasses()
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                var pass = CreatePassWithLayout(XRLayoutType.TwoPassStereo, multipassId: i);
+                pass.AddView(new XRView());
+                m_LayoutTest.AddPass(m_Camera, pass);
+            }
+
+            Assert.AreEqual(2, m_LayoutTest.GetActivePasses().Count);
+
+            var (_, pass0) = m_LayoutTest.GetActivePasses()[0];
+            Assert.AreEqual(XRLayoutType.TwoPassStereo, pass0.xrLayoutType);
+            Assert.AreEqual(1, pass0.viewCount);
+            Assert.IsTrue(pass0.isFirstCameraPass);
+            Assert.IsFalse(pass0.isLastCameraPass);
+            Assert.IsFalse(pass0.isQuadViewInnerPass);
+
+            var (_, pass1) = m_LayoutTest.GetActivePasses()[1];
+            Assert.AreEqual(XRLayoutType.TwoPassStereo, pass1.xrLayoutType);
+            Assert.IsFalse(pass1.isFirstCameraPass);
+            Assert.IsTrue(pass1.isLastCameraPass);
+            Assert.IsFalse(pass1.isQuadViewInnerPass);
+        }
+
+        [Test]
+        public void TwoPassQuadViewsLayout_HasPeripheralAndFovealPasses()
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                var pass = CreatePassWithLayout(XRLayoutType.TwoPassQuadViews, multipassId: i);
+                pass.AddView(new XRView());
+                pass.AddView(new XRView());
+                m_LayoutTest.AddPass(m_Camera, pass);
+            }
+
+            Assert.AreEqual(2, m_LayoutTest.GetActivePasses().Count);
+
+            // Pass 0: peripheral (outer) views
+            var (_, peripheral) = m_LayoutTest.GetActivePasses()[0];
+            Assert.AreEqual(XRLayoutType.TwoPassQuadViews, peripheral.xrLayoutType);
+            Assert.AreEqual(2, peripheral.viewCount);
+            Assert.IsTrue(peripheral.isFirstCameraPass);
+            Assert.IsFalse(peripheral.isLastCameraPass);
+            Assert.IsFalse(peripheral.isQuadViewInnerPass);
+
+            // Pass 1: foveal (inner) views
+            var (_, foveal) = m_LayoutTest.GetActivePasses()[1];
+            Assert.AreEqual(XRLayoutType.TwoPassQuadViews, foveal.xrLayoutType);
+            Assert.AreEqual(2, foveal.viewCount);
+            Assert.IsFalse(foveal.isFirstCameraPass);
+            Assert.IsTrue(foveal.isLastCameraPass);
+            Assert.IsTrue(foveal.isQuadViewInnerPass);
         }
     }
 }

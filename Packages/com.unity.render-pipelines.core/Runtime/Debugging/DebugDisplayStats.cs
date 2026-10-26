@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering
     /// </summary>
     public abstract class DebugDisplayStats
     {
+        List<ProfilingSampler> m_CoreProfilingSamplers = GetProfilingSamplersToDisplay(typeof(CoreProfilingSamplers));
+
         // Accumulate values to avg over one second.
         private class AccumulatedTiming
         {
@@ -35,23 +37,78 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Enable profiling recorders.
         /// </summary>
-        public abstract void EnableProfilingRecorders();
+        public virtual void EnableProfilingRecorders()
+        {
+            AddAndEnableProfilingSamplers(m_CoreProfilingSamplers);
+        }
+
+        /// <summary>
+        /// Add Profiling Samplers to recorded list and enable them.
+        /// </summary>
+        /// <param name="samplers">List of profiling samplers.</param>
+        protected void AddAndEnableProfilingSamplers(List<ProfilingSampler> samplers)
+        {
+            foreach (var sampler in samplers)
+            {
+                if (sampler == null) continue;
+
+                m_RecordedSamplers.Add(sampler);
+                sampler.enableRecording = true;
+            }
+        }
 
         /// <summary>
         /// Disable all active profiling recorders.
         /// </summary>
-        public abstract void DisableProfilingRecorders();
+        public virtual void DisableProfilingRecorders()
+        {
+            foreach (var sampler in m_RecordedSamplers)
+                sampler.enableRecording = false;
+
+            m_RecordedSamplers.Clear();
+        }
 
         /// <summary>
         /// Add display stats widgets to the list provided.
         /// </summary>
         /// <param name="list">List to add the widgets to.</param>
-        public abstract void RegisterDebugUI(List<DebugUI.Widget> list);
+        public virtual void RegisterDebugUI(List<DebugUI.Widget> list)
+        {
+            m_DebugFrameTiming.RegisterDebugUI(list);
+
+            var detailedStatsFoldout = new DebugUI.Foldout
+            {
+                displayName = "Detailed Stats",
+                opened = false,
+                children =
+                {
+                    new DebugUI.BoolField
+                    {
+                        displayName = "Update every second with average",
+                        getter = () => averageProfilerTimingsOverASecond,
+                        setter = value => averageProfilerTimingsOverASecond = value
+                    },
+                    new DebugUI.BoolField
+                    {
+                        displayName = "Hide empty scopes",
+                        tooltip = "Hide profiling scopes where elapsed time in each category is zero",
+                        getter = () => hideEmptyScopes,
+                        setter = value => hideEmptyScopes = value
+                    }
+                }
+            };
+            detailedStatsFoldout.children.Add(BuildDetailedStatsList("Profiling Scopes", m_CoreProfilingSamplers));
+            list.Add(detailedStatsFoldout);
+        }
 
         /// <summary>
         /// Update the timing data displayed in Display Stats panel.
         /// </summary>
-        public abstract void Update();
+        public virtual void Update()
+        {
+            m_DebugFrameTiming.UpdateFrameTiming();
+            UpdateDetailedStats(m_RecordedSamplers);
+        }
 
         /// <summary>
         /// Collects all <c>public static readonly ProfilingSampler</c> fields from
@@ -110,6 +167,16 @@ namespace UnityEngine.Rendering
 
         /// <summary> Whether to hide empty scopes from UI. </summary>
         protected bool hideEmptyScopes = true;
+
+        /// <summary>
+        /// Frame Times measurements used for Display Stats.
+        /// </summary>
+        readonly DebugFrameTiming m_DebugFrameTiming = new();
+
+        /// <summary>
+        /// List of markers for Detailed stats.
+        /// </summary>
+        readonly List<ProfilingSampler> m_RecordedSamplers = new();
 
         /// <summary>
         /// Helper function to build a list of sampler widgets for display stats.
@@ -176,7 +243,12 @@ namespace UnityEngine.Rendering
                 : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime);
         }
 
-        private ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(IEnumerable<ProfilingSampler> samplers)
+        /// <summary>
+        /// Create an observable list of widgets from Profiling Samplers
+        /// </summary>
+        /// <param name="samplers">Profiling Sampler collection.</param>
+        /// <returns>An observable list of widgets.</returns>
+        protected ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(IEnumerable<ProfilingSampler> samplers)
         {
             var result = new ObservableList<DebugUI.Widget>();
 
@@ -199,11 +271,7 @@ namespace UnityEngine.Rendering
 
             foreach (var sampler in samplers)
             {
-                // In non-dev build ProfilingSampler.Create always returns null.
-                if (sampler == null)
-                    continue;
-
-                sampler.enableRecording = true;
+                if (sampler == null) continue;
 
                 result.Add(new DebugUI.ValueTuple
                 {

@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_AOVRequestData == null) return;
 
-            ListPool<AOVRequestData>.Release(m_AOVRequestData);
+            UnityEngine.Pool.ListPool<AOVRequestData>.Release(m_AOVRequestData);
             m_AOVRequestData = null;
         }
     }

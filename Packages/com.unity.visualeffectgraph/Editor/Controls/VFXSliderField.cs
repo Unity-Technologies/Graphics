@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -83,11 +84,12 @@ namespace UnityEditor.VFX.UI
 
         private static readonly LinearSliderScale s_LinearSliderScale = new LinearSliderScale();
 
-        private Action m_OnValueDragFinished;
+        private Action<bool> m_OnValueDragFinished;
         private Action m_OnValueDragStarted;
         private bool m_IgnoreNotification;
         private ISliderScale m_Scale;
         private T m_Value;
+        private T m_ValueAtDragStart;
         private Vector2 m_Range;
 
         class StartFinishSliderManipulator : Manipulator
@@ -102,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
             protected override void RegisterCallbacksOnTarget()
             {
-                target.RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.NoTrickleDown);
+                target.RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
                 m_DragContainer = target.Q("unity-drag-container"); // Weakness: if UIToolkit change the internal structure of a slider this code could break
                 m_DragContainer.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
             }
@@ -194,17 +196,18 @@ namespace UnityEditor.VFX.UI
         }
 
         public void SetOnValueDragStarted(Action callback) => m_OnValueDragStarted = callback;
-        public void SetOnValueDragFinished(Action callback) => m_OnValueDragFinished = callback;
+        public void SetOnValueDragFinished(Action<bool> callback) => m_OnValueDragFinished = callback;
 
         private bool hasFocus => m_Field.HasFocus() || panel?.focusController.focusedElement == m_Field;
 
         private void ValueDragFinished()
         {
-            m_OnValueDragFinished?.Invoke();
+            m_OnValueDragFinished?.Invoke(!EqualityComparer<T>.Default.Equals(m_ValueAtDragStart, value));
         }
 
         private void ValueDragStarted()
         {
+            m_ValueAtDragStart = m_Value;
             m_OnValueDragStarted?.Invoke();
         }
 

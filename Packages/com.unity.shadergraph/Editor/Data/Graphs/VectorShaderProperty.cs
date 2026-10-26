@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            HLSLDeclaration decl = ResolveHLSLDeclaration(mode);
             if (decl == HLSLDeclaration.HybridPerInstance)
                 return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}{vectorDimension})";
             else

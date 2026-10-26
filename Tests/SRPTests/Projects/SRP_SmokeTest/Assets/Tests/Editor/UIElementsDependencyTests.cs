@@ -19,6 +19,13 @@ namespace UnityEditor.Rendering.Tests
         public UIElementsDependencyTests_WithUIElements() : base(uiElementsInstalled: true) { }
     }
 
+    // SRP_SmokeTest depends on com.unity.ugui (needed by the sample-import tests for TextMeshPro),
+    // which has a hard dependency on com.unity.modules.uielements. The module therefore cannot be
+    // removed at runtime, so the "without UIElements" domain-reload scenario cannot be exercised in
+    // this project (UnitySetUp's WaitForDomainReload never fires). The UITK-dependency guard is
+    // still covered by the WithUIElements fixture and by the equivalent test in projects that do
+    // not pull in uGUI.
+    [Ignore("com.unity.ugui pulls in com.unity.modules.uielements as a hard dependency in SRP_SmokeTest, so the module cannot be uninstalled to exercise the without-UIElements path.")]
     [TestFixture]
     public class UIElementsDependencyTests_WithoutUIElements : UIElementsDependencyTests
     {

@@ -670,12 +670,12 @@ float SanitizePositiveFinite(float x)
 
 real DegToRad(real deg)
 {
-    return deg * (PI / 180.0);
+    return deg * (real)(PI / 180.0);
 }
 
 real RadToDeg(real rad)
 {
-    return rad * (180.0 / PI);
+    return rad * (real)(180.0 / PI);
 }
 
 // Square functions for cleaner code
@@ -705,7 +705,7 @@ real FastACos(real inX)
 {
     real res = FastACosPos(inX);
 
-    return (inX >= 0) ? res : PI - res; // Undo range reduction
+    return (inX >= 0) ? res : (real)(PI - res); // Undo range reduction
 }
 
 // Same cost as Acos + 1 FR
@@ -1230,6 +1230,17 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
 
     // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
     return abs(viewSpaceZ);
+}
+
+// Orthographic Z buffer to linear view space (eye) depth.
+// Orthographic projection is linear in view space Z, so the raw depth maps directly onto [near, far].
+float LinearEyeDepthOrtho(float depth, float near, float far)
+{
+#if UNITY_REVERSED_Z
+    return far - (far - near) * depth;
+#else
+    return near + (far - near) * depth;
+#endif
 }
 
 // 'z' is the view space Z position (linear depth).

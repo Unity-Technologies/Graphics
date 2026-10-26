@@ -1,6 +1,6 @@
-# Length
+# Length Operator
 
-Menu Path : **Operator > Math > Vector**
+Menu Path : **Operator** > **Math** > **Vector**
 
 The **Length** [uniform Operator](Operators.md#uniform-operators) calculates the length of a 1D, 2D, or 3D vector. If you input a Vector4, this Operator ignores the fourth value of the vector.
 

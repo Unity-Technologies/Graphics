@@ -30,6 +30,7 @@
         * [Create a Sub Graph](Create-Sub-Graph.md)
         * [Add a Sub Graph to a shader graph](Add-Sub-Graph-To-Shader-Graph.md)
         * [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md)
+        * [Change how Sub Graph inputs appear on a node](Sub-Graph-Input-Display.md)
         * [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md)
         * [Change the behavior of a Sub Graph](Change-Behaviour-Sub-Graph-Dropdown.md)
         * [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md)
@@ -53,10 +54,14 @@
     * [Surface options](surface-options.md)
     * [Using Custom Interpolators](Custom-Interpolators-landing.md)
         * [Custom Interpolators](Custom-Interpolators.md)
-        * [Custom Interpolator reference](Custom-Interpolators-reference.md)
+        * [Custom Interpolator block node reference](Custom-Interpolator-block-node-reference.md)
+        * [Custom Interpolator node reference](Custom-Interpolator-node-reference.md)
     * [Create custom nodes with HLSL](Custom-nodes-hlsl-landing.md)
         * [Introduction to HLSL in Shader Graph](Custom-nodes-hlsl-introduction.md)
+        * [Create Custom Function node using HLSL](Custom-nodes-hlsl-create-custom-function-node.md)
         * [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
+        * [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)
+    * [Introduction to particle shaders](Particle-Shaders-Introduction.md)
 * [Node Library](Node-Library.md)
     * [Artistic](Artistic-Nodes.md)
         * Adjustment
@@ -96,6 +101,8 @@
         * [Slice Index / Cubemap Face](Slice-Index-Cubemap-Face-Node.md)
     * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
+        * 2D
+            * [Light Texture](light-texture-node.md)
         * Basic
             * [Boolean](Boolean-Node.md)
             * [Color](Color-Node.md)
@@ -151,6 +158,7 @@
         * Scene
             * [Camera](Camera-Node.md)
             * [Eye Index](Eye-Index-Node.md)
+            * [Fetch Scene Depth](Fetch-Scene-Depth-Node.md)
             * [Fog](Fog-Node.md)
             * [Object](Object-Node.md)
             * [Scene Color](Scene-Color-Node.md)
@@ -176,8 +184,13 @@
             * [Texture Size](Texture-Size-Node.md)
         * UI
             * [Element Layout UV](element-layout-uv-node.md)
+            * [Element Opacity](element-opacity-node.md)
             * [Element Texture Size](element-texture-size-node.md)
             * [Element Texture UV](element-texture-uv-node.md)
+            * [Element Tint](element-tint-node.md)
+            * [SDF Text Parameters](sdf-text-parameters-node.md)
+        * Universal Render Pipeline
+            * [URP Sample Buffer](URP-Sample-Buffer-Node.md)
     * [Keyword](Keyword-Node.md)
         * [Material Quality](Material-Quality-Keyword-Node.md)
         * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
@@ -261,6 +274,12 @@
             * [Sawtooth Wave](Sawtooth-Wave-Node.md)
             * [Square Wave](Square-Wave-Node.md)
             * [Triangle Wave](Triangle-Wave-Node.md)
+    * [Particle](Particle-Nodes.md)
+        * [Particle Anim Frame](Particle-Anim-Frame-Node.md)
+        * [Particle Color](Particle-Color-Node.md)
+        * [Particle Flipbook Blending](Particle-Flipbook-Blending-Node.md)
+        * [Particle Texcoords](Particle-Texcoords-Node.md)
+        * [Particle Transforms](Particle-Transforms-Node.md)
     * [Procedural](Procedural-Nodes.md)
         * [Checkerboard](Checkerboard-Node.md)
         * Noise
@@ -275,6 +294,7 @@
             * [Rounded Rectangle](Rounded-Rectangle-Node.md)
     * [Property](Property-Node.md)
     * [Redirect](Redirect-Node.md)
+    * [Reflected Function](Reflected-Function-Node.md)
     * [SpeedTree](SpeedTree8-SubGraphAssets.md)
     * [Sub Graphs](Sub-graph-Node.md)
         * [UVCombine](UVCombine-Node.md)
@@ -287,6 +307,7 @@
         * [Default SDF Text](default-sdf-text-node.md)
         * [Default Solid](default-solid-node.md)
         * [Default Texture](default-texture-node.md)
+        * [Is Forced Gamma](is-forced-gamma-node.md)
         * [Render Type](render-type-node.md)
         * [Render Type Branch](render-type-branch-node.md)
         * [Sample Element Texture](sample-element-texture-node.md)
@@ -309,6 +330,8 @@
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
             * Fabric
               * [ThreadMapDetail](ThreadMapDetail-Node.md)
+            * Surface Gradient
+              * [Surface Gradient Resolve Normal](Surface-Gradient-Resolve-Normal-Node.md)
         * Logic
             * [All](All-Node.md)
             * [And](And-Node.md)
@@ -354,7 +377,6 @@
     * [UGUI Shaders](Shader-Graph-Sample-UGUI-Shaders.md) 
         * [Getting started](Shader-Graph-Sample-UGUI-Shaders-Getting-Started.md)
         * [Custom UI components](Shader-Graph-Sample-UGUI-Shaders-Custom-UI-components.md)
-        * [Custom nodes](Shader-Graph-Sample-UGUI-Shaders-Custom-nodes.md)
         * [Subgraph nodes](Shader-Graph-Sample-UGUI-Shaders-Subgraph-nodes.md)
         * [Examples](Shader-Graph-Sample-UGUI-Shaders-Examples.md)
         * [How tos](Shader-Graph-Sample-UGUI-Shaders-How-tos.md)
@@ -376,4 +398,5 @@
         * [Components and Blends](Shader-Graph-Sample-Terrain-Components.md)
         * [Problems and Solutions](Shader-Graph-Sample-Terrain-Solutions.md)
         * [Performance Comparison](Shader-Graph-Sample-Terrain-Performance.md)
+    * [Particle Shaders](Shader-Graph-Sample-Particle-Shaders.md)
 

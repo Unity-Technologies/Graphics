@@ -39,10 +39,10 @@ namespace UnityEditor.Rendering.HighDefinition.Core
 
             public static readonly GUIContent viewInPackageManagerLabel = new("View in Package Manager", "");
 
-            public static readonly GUIContent hdrpProjectSettingsPathLabel = EditorGUIUtility.TrTextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
+            public static readonly GUIContent hdrpProjectSettingsPathLabel = L10n.TextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.", null, null);
 
-            public static readonly GUIContent matcapViewMixAlbedoLabel = EditorGUIUtility.TrTextContent("MatCap Mode Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.");
-            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("MatCap Mode Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
+            public static readonly GUIContent matcapViewMixAlbedoLabel = L10n.TextContent("MatCap Mode Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.", null, null);
+            public static readonly GUIContent matcapViewScaleLabel = L10n.TextContent("MatCap Mode Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.", null, null);
         }
 
         static List<string> s_SearchKeywords = new() {

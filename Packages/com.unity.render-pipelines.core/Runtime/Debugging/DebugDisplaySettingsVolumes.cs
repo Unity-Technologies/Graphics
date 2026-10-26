@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering
             if (panel == null)
                 return;
 
-            DebugManager.instance.RequestEditorWindowPanel(k_PanelTitle);
+            DebugManager.instance.RequestPanelSelection(k_PanelTitle);
 
             // Try to select the given volume component in the component selector drop down
             if (volumeComponent != null &&
@@ -414,6 +414,8 @@ namespace UnityEngine.Rendering
                             displayName = name,
                             getter = () => (Object[])parameterType.GetProperty("value").GetValue(param, null),
                             type = parameterType,
+                            // Result column reads a pool-rented buffer whose tail is null-padded; hide it.
+                            trimTrailingNulls = isResultParameter,
                             isHiddenCallback = isHiddenCallback
                         };
                     }

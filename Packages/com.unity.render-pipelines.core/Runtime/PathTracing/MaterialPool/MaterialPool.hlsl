@@ -72,7 +72,7 @@ namespace MaterialPool
 
         return albedo;
     }
-    
+
     float3 BoostAlbedo(float3 albedo, float albedoBoost)
     {
         // Apply albedo boost, but still keep the reflectance at maximum 100%
@@ -135,6 +135,11 @@ namespace MaterialPool
         return transmission;
     }
 
+    bool UsesDoubleSidedGI(uint materialFlags)
+    {
+        return materialFlags & 2;
+    }
+
     MaterialProperties LoadMaterialProperties(
         StructuredBuffer<MaterialEntry> materialList,
         Texture2DArray<float4> albedoTextures,
@@ -159,7 +164,7 @@ namespace MaterialPool
         material.transmission = LoadTransmission(matEntry, albedo, transmissionTextures, transmissionSamplerState, atlasTexelSize, uv0);
         material.emission = LoadEmission(matEntry, emissionTextures, emissionSamplerState, atlasTexelSize, uv0, uv1);
         material.isTransmissive = matEntry.flags & 1;
-        material.doubleSidedGI = matEntry.flags & 2;
+        material.doubleSidedGI = UsesDoubleSidedGI(matEntry.flags);
 
         // unused for now, we need these for specular support
         material.roughness = 1.0;

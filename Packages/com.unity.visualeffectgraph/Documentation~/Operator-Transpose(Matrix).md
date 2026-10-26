@@ -1,6 +1,6 @@
-# Transpose (Matrix)
+# Transpose (Matrix) Operator
 
-Menu Path : **Operator > Math > Geometry > Transpose (Matrix)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transpose (Matrix)**
 
 The **Transpose (Matrix)** Operator flips a matrix across its diagonal, swapping the matrix’s column values and its row values. This is the same operation as [Matrix4x4.transpose](https://docs.unity3d.com/ScriptReference/Matrix4x4-transpose.html).
 

@@ -225,8 +225,8 @@ void TraceRay(DispatchInfo dispatchInfo, RayTracingAccelStruct accelStruct, uint
         HitContext hitContext;
         hitContext.worldRayOrigin = rayQuery.WorldRayOrigin();
         hitContext.worldRayDirection = rayQuery.WorldRayDirection();
-        hitContext.localRayOrigin = rayQuery.CandidateLocalRayOrigin();
-        hitContext.localRayDirection = rayQuery.CandidateLocalRayDirection();
+        hitContext.localRayOrigin = rayQuery.CandidateObjectRayOrigin();
+        hitContext.localRayDirection = rayQuery.CandidateObjectRayDirection();
         hitContext.tmin = rayQuery.RayTMin();
         hitContext.instanceID = rayQuery.CandidateInstanceID();
         hitContext.primitiveIndex = rayQuery.CandidatePrimitiveIndex();
@@ -282,8 +282,8 @@ void TraceRay(DispatchInfo dispatchInfo, RayTracingAccelStruct accelStruct, uint
         HitContext hitContext;
         hitContext.worldRayOrigin = rayQuery.WorldRayOrigin();
         hitContext.worldRayDirection = rayQuery.WorldRayDirection();
-        hitContext.localRayOrigin = rayQuery.CommittedLocalRayOrigin();
-        hitContext.localRayDirection = rayQuery.CommittedLocalRayDirection();
+        hitContext.localRayOrigin = rayQuery.CommittedObjectRayOrigin();
+        hitContext.localRayDirection = rayQuery.CommittedObjectRayDirection();
         hitContext.tmin = rayQuery.RayTMin();
         hitContext.tcurrent = rayQuery.CommittedRayT();
         hitContext.instanceID = rayQuery.CommittedInstanceID();

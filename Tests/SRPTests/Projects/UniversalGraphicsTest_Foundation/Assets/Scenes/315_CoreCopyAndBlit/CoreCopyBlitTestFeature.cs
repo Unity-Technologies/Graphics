@@ -84,7 +84,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
             // Blit from activeColorTexture (possibly multisampled) to a temp texture, guaranteed single sampled
             // This also tests the source texture setup of blit. Material is also a shadergraph material to ensure it works.
             int sourceTexturePropertyID = Shader.PropertyToID("_BlitTexture");
-            RenderGraphUtils.BlitMaterialParameters para = new(resourceData.activeColorTexture, blitDestination, m_Material, m_Pass, null, 0, mip,
+            RenderGraphUtils.BlitMaterialParameters para = new(resourceData.activeColorTexture, blitDestination, m_Material, m_Pass, null, -1, mip,
                 sourceMip: mip,
                 sourceTexturePropertyID: sourceTexturePropertyID,
                 geometry: RenderGraphUtils.FullScreenGeometryType.ProceduralTriangle);

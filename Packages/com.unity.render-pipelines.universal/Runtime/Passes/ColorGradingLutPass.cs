@@ -17,8 +17,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly Material m_LutBuilderHdr;
         internal readonly GraphicsFormat m_HdrLutFormat;
         internal readonly GraphicsFormat m_LdrLutFormat;
-        
+
         bool m_AllowColorGradingACESHDR = true;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        // Persistent handle used with QuadViews so the outer pass's LUT survives into the inner pass's render graph execution for reuse
+        RTHandle m_QuadViewsColorLutHandle;
+#endif
 
         /// <summary>
         /// Creates a new <c>ColorGradingLutPass</c> instance.
@@ -64,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="internalLut">The RTHandle to use to render to.</param>
         /// <seealso cref="RTHandle"/>
         public void Setup(in RTHandle internalLut)
-        { 
+        {
         }
 
         /// <summary>
@@ -211,6 +216,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                         case TonemappingMode.ACES: material.EnableKeyword(allowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
+                        case TonemappingMode.AgX:
+                            material.EnableKeyword(ShaderKeywordStrings.TonemapAgX);
+                            Tonemapping.GetAgXCurveConstants(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, out float agxToeA, out float agxSlope);
+                            material.SetVector(ShaderConstants._AgxParams, new Vector4(tonemapping.agxContrast.value, tonemapping.agxMidGrey.value, agxToeA, agxSlope));
+                            break;
                         default: break; // None
                     }
 
@@ -245,7 +255,39 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
-            internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, k_InternalColorLutName, true, filterMode);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // With Quad Views, the LUT is identical between outer and inner passes so use a persistent RTHandle for the base camera.
+            // We don't check for the camera type here as we want the reusable LUT texture to be live for as long as we're rendering with quad views
+            bool shouldReuseLutHandle = cameraData.xr.enabled && cameraData.xr.xrLayoutType ==
+                                                              XRLayoutType.TwoPassQuadViews;
+            // Avoid stale LUT texture handles if we're not rendering in quad view mode anymore
+            if (!shouldReuseLutHandle && m_QuadViewsColorLutHandle != null)
+            {
+                m_QuadViewsColorLutHandle.Release();
+                m_QuadViewsColorLutHandle = null;
+            }
+            // Allocate (if needed) the reusable LUT texture and have this pass use it as a source for Color LUT
+            if (shouldReuseLutHandle && cameraData.renderType == CameraRenderType.Base)
+            {
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_QuadViewsColorLutHandle, lutDesc, filterMode, TextureWrapMode.Clamp, 1, 0, k_InternalColorLutName);
+                ImportResourceParams importParams = new ImportResourceParams();
+                importParams.clearOnFirstUse = !cameraData.xr.isQuadViewInnerPass; // Outer pass always bakes a fresh LUT, inner passes should not clear
+                importParams.discardOnLastUse = cameraData.xr.isQuadViewInnerPass; // Keep the texture in memory for the inner pass to import, inner pass should discard when done
+                internalColorLut = renderGraph.ImportTexture(m_QuadViewsColorLutHandle, importParams);
+
+                // Early exit: the outer pass has already baked the LUT, We don't need to do anything at this point if we're processing the inner pass
+                if (cameraData.xr.isQuadViewInnerPass)
+                {
+                    return;
+                }
+            }
+            else
+#endif
+            {
+                internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc,
+                    k_InternalColorLutName, true, filterMode);
+            }
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -289,6 +331,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CoreUtils.Destroy(m_LutBuilderLdr);
             CoreUtils.Destroy(m_LutBuilderHdr);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_QuadViewsColorLutHandle?.Release();
+#endif
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
@@ -318,6 +363,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _CurveHueVsSat = Shader.PropertyToID("_CurveHueVsSat");
             public static readonly int _CurveLumVsSat = Shader.PropertyToID("_CurveLumVsSat");
             public static readonly int _CurveSatVsSat = Shader.PropertyToID("_CurveSatVsSat");
+            public static readonly int _AgxParams = Shader.PropertyToID("_AgxParams");
         }
     }
 }

@@ -1,4 +1,7 @@
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData = (InputData)0;
@@ -25,51 +28,53 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS) : float4(0, 0, 0, 0);
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
     #endif
-    #if defined(LIGHTMAP_ON)
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
     inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
     inputData.vertexSH = input.sh;
     #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
-#if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
-#elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(input.sh,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        inputData.positionCS.xy,
-        input.probeOcclusion,
-        inputData.shadowMask);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-#endif
+    GIParams giParams = (GIParams)0;
+
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
+    giParams.staticLightmapUV = input.staticLightmapUV;
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
+    giParams.vertexSH = input.sh;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #ifdef USE_APV_PROBE_OCCLUSION
+    giParams.vertexProbeOcclusion = input.probeOcclusion;
+    #endif
+
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = inputData.positionCS.xy;
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
 }
 
 PackedVaryings vert(Attributes input)
@@ -97,9 +102,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
         half alpha = 1;
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
@@ -135,10 +138,10 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
+    URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
                                             inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS,
                                             inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, surfaceDescription.Occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, ClampExposed(inputData.preExposureMultiplier * (surfaceDescription.Emission + color)), surfaceDescription.Occlusion);
 }

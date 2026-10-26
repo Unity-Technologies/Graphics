@@ -117,25 +117,36 @@ public class HDRP_GraphicTestRunner
 
         // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
         int warmupTime = 1;
-        Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
+        Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(warmupTime, settings.ImageComparisonSettings);
 
-        if (!XRGraphicsAutomatedTests.enabled)
-            camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
-
-        // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
-        settings.doBeforeTest?.Invoke();
-
-        // Wait one rendered frame to trigger shader compilation.
-        for (int i = 0; i < warmupTime; ++i)
-            yield return new WaitForEndOfFrame();
-
-        // Wait for all compilation to end.
-        while (UnityEditor.ShaderUtil.anythingCompiling)
+        RenderTexture warmupTarget = null;
+        try
         {
-            yield return new WaitForEndOfFrame();
-        }
+            if (!XRGraphicsAutomatedTests.enabled)
+            {
+                warmupTarget = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+                camera.targetTexture = warmupTarget;
+            }
 
-        camera.targetTexture = null;
+            // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
+            settings.doBeforeTest?.Invoke();
+
+            // Wait one rendered frame to trigger shader compilation.
+            for (int i = 0; i < warmupTime; ++i)
+                yield return new WaitForEndOfFrame();
+
+            // Wait for all compilation to end.
+            while (UnityEditor.ShaderUtil.anythingCompiling)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+        }
+        finally
+        {
+            camera.targetTexture = null;
+            if (warmupTarget != null)
+                RenderTexture.ReleaseTemporary(warmupTarget);
+        }
 #endif
 
         // Reload the scene to reset time in order to be deterministic.
@@ -197,21 +208,14 @@ public class HDRP_GraphicTestRunner
         {
             GraphicsTestLogger.Log(LogType.Log, "XR Automated Tests enabled.");
 
-            if (settings.xrCompatible)
-            {
-                Unity.Testing.XR.Runtime.ConfigureMockHMD.ConfigureXRDisplay(settings.xrCompatible, settings.ImageComparisonSettings);
+            Unity.Testing.XR.Runtime.ConfigureMockHMD.ConfigureXRDisplay(settings.ImageComparisonSettings);
 
-                #if !UNITY_EDITOR
-                // Some tests need time after eye resolution change before setting player resolution
-                yield return Unity.Testing.XR.Runtime.ConfigureMockHMD.WaitForXRFrames(settings.xrCompatible, 1);
-                #endif
+            #if !UNITY_EDITOR
+            // Some tests need time after eye resolution change before setting player resolution
+            yield return Unity.Testing.XR.Runtime.ConfigureMockHMD.WaitForXRFrames(1);
+            #endif
 
-                waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetPlayerResolutionForXR(settings.xrCompatible, settings.ImageComparisonSettings, waitFrames);
-            }
-            else
-            {
-                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
-            }
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetPlayerResolutionForXR(settings.ImageComparisonSettings, waitFrames);
 
             // Increase tolerance to account for slight changes due to float precision
             settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
@@ -281,14 +285,6 @@ public class HDRP_GraphicTestRunner
         {
             // Standard Test
             ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, settings?.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
-
-            // For some reason, tests on mac os have started failing with render graph enabled by default.
-            // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.
-            // That's why we don't test on macos anymore.
-            if (settings.checkMemoryAllocation)
-            {
-                yield return ImageAssert.CheckGCAllocWithCallstack(camera, settings?.ImageComparisonSettings);
-            }
         }
         else
         {

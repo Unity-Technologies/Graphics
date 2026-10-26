@@ -4,7 +4,7 @@
 
 Returns a **Metal Reflectance** value for a physically based material. The material to use can be selected with the **Material** dropdown parameter on the [Node](Node.md).
 
-When using **Specular** **Workflow** on a [PBR Master Node](PBR-Master-Node.md) this value should be supplied to the **Specular** [Port](Port.md). When using **Metallic** **Workflow** this value should be supplied to the **Albedo** [Port](Port.md).
+When using the **Specular** workflow, supply this value to the **Specular** block in the [Master Stack](Master-Stack.md). When using the **Metallic** workflow, supply it to the **Base Color** block instead.
 
 ## Ports
 
@@ -71,3 +71,7 @@ float3 _MetalReflectance_Out = float3(0.662, 0.655, 0.634);
 ```
 float3 _MetalReflectance_Out = float3(0.672, 0.637, 0.585);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

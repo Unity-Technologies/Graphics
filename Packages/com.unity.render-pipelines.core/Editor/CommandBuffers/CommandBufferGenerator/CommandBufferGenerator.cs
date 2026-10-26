@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering
                 new FunctionInfo("SetGlobalTexture", textureArg: "value", modifiesGlobalState: true),
                 new FunctionInfo("SetGlobalBuffer", textureArg: "", modifiesGlobalState: true),
                 new FunctionInfo("SetGlobalConstantBuffer", textureArg: "", modifiesGlobalState: true),
+                "SetBufferData",
                 "SetLateLatchProjectionMatrices",
                 "MarkLateLatchMatrixShaderPropertyID",
                 "UnmarkLateLatchMatrix",
@@ -86,7 +87,6 @@ namespace UnityEditor.Rendering
                 "SetRayTracingMatrixArrayParam",
                 "SetRayTracingShaderPass",
                 "DispatchRays",
-                "SetBufferData",
                 "SetBufferCounterValue",
                 "CopyCounterValue"
             };

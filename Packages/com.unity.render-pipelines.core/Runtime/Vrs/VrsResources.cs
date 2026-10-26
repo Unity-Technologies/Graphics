@@ -49,12 +49,6 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        ~VrsResources()
-        {
-            Dispose();
-            GC.SuppressFinalize(this);
-        }
-
         public void Dispose()
         {
 #if UNITY_EDITOR
@@ -90,6 +84,7 @@ namespace UnityEngine.Rendering
             validatedShadingRateFragmentSizeBuffer = null;
 
             m_VisualizationShader = null;
+            CoreUtils.Destroy(m_VisualizationMaterial);
             m_VisualizationMaterial = null;
         }
 

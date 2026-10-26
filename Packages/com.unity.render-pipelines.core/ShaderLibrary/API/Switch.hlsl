@@ -15,6 +15,9 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+// Keep in sync with RenderingUtils.useStructuredBuffer on the C# side.
+#define API_PREFERS_UBO_OVER_SSBO
+
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER
 #define PLATFORM_LANE_COUNT 32
@@ -25,6 +28,14 @@
 #define UNITY_UNROLL        [unroll]
 #define UNITY_UNROLLX(_x)   [unroll(_x)]
 #define UNITY_LOOP          [loop]
+
+// In situations where buffer accesses are correctly guarded by an
+// out of bounds check, Unity may perform branch flattening in such
+// a way that the out of bounds access happens regardless. This is
+// valid in some languages (e.g. HLSL) but not in others (e.g. MSL)
+// where it causes undefined behavior. See UUM-126860 for more
+// details. As a workaround you may use this macro.
+#define UNITY_OUT_OF_BOUNDS_BRANCH [branch]
 
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0

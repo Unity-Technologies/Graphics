@@ -12,22 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Fog_01
   m_EditorClassIdentifier: 
-  m_Paragraphs:
+  <IndexInTutorial>k__BackingField: 0
+  Title:
+    m_Untranslated: What is Fog?
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: bbac427ff2a44574ea772e6c16a5dce4, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: bbac427ff2a44574ea772e6c16a5dce4, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -35,28 +49,35 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: What is Fog?
+        m_Untranslated: 
       Text:
-        m_Untranslated: "In HDRP, the <b>Fog</b> system can be used to simulate denser
-          atmospheres, to increase the perception of depth in the Scene. \n\nThe
-          Fog can react to the lighting to create beautiful volumetric effects, such
-          as sunrays, when using <b>Volumetric Fog,</b> based on a camera frustum
-          voxel technique often called \"froxel\".\n\nLike most other HDRP effects,
-          the Fog can be controlled via a Volume override."
+        m_Untranslated: "In HDRP, the <b>Fog</b> system can be used to simulate denser atmospheres, to increase the perception of depth in the Scene. \n\nThe Fog can react to the lighting to create beautiful volumetric effects, such as sunrays, when using <b>Volumetric Fog,</b> based on a camera frustum voxel technique often called \"froxel\".\n\nLike most other HDRP effects, the Fog can be controlled via a Volume override."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -78,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

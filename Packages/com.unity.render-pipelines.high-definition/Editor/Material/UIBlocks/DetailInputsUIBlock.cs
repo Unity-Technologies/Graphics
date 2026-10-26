@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Detail Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Detail Inputs", null, null, null);
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV Mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map", "Specifies the Detail Map albedo (R) Normal map y-axis (G) Smoothness (B) Normal map x-axis (A) - Neutral value is (0.5, 0.5, 0.5, 0.5)");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail Albedo Scale", "Controls the scale factor for the Detail Map's Albedo.");

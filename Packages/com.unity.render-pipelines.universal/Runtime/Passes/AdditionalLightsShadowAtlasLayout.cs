@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
             public bool softShadow
             {
-                get => m_ShadowProperties.HasFlag(SettingsOptions.SoftShadow); // otherwise it's hard-shadow (no filtering)
+                get => (m_ShadowProperties & SettingsOptions.SoftShadow) != 0; // otherwise it's hard-shadow (no filtering)
                 set
                 {
                     if (value)
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
 
             public bool pointLightShadow
             {
-                get => m_ShadowProperties.HasFlag(SettingsOptions.PointLightShadow); // otherwise it's spot light shadow (1 shadow slice instead of 6)
+                get => (m_ShadowProperties & SettingsOptions.PointLightShadow) != 0; // otherwise it's spot light shadow (1 shadow slice instead of 6)
                 set
                 {
                     if (value)
@@ -79,7 +79,6 @@ namespace UnityEngine.Rendering.Universal
 
         public AdditionalLightsShadowAtlasLayout(UniversalLightData lightData, UniversalShadowData shadowData, UniversalCameraData cameraData)
         {
-            bool useStructuredBuffer = RenderingUtils.useStructuredBuffer;
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
             int numberOfVisibleLights = visibleLights.Length;
 
@@ -95,21 +94,17 @@ namespace UnityEngine.Rendering.Universal
             if (s_CompareShadowResolutionRequest == null)
                 s_CompareShadowResolutionRequest = CreateCompareShadowResolutionRequesPredicate();
 
-            if (!useStructuredBuffer)
+            int newCapacity = UniversalRenderPipeline.maxVisibleAdditionalLights;
+
+            if (s_UnusedAtlasSquareAreas.Capacity < newCapacity)
+                s_UnusedAtlasSquareAreas.Capacity = newCapacity;
+
+            if (s_ShadowResolutionRequests.Count < numberOfVisibleLights)
             {
-                int newCapacity = UniversalRenderPipeline.maxVisibleAdditionalLights;
-
-                if (s_UnusedAtlasSquareAreas.Capacity < newCapacity)
-                    s_UnusedAtlasSquareAreas.Capacity = newCapacity;
-
-                if (s_ShadowResolutionRequests.Count < numberOfVisibleLights)
-                {
-                    s_ShadowResolutionRequests.Capacity = numberOfVisibleLights;
-                    int diff = numberOfVisibleLights - s_ShadowResolutionRequests.Count + 1;
-                    for (int i = 0; i < diff; i++)
-                        s_ShadowResolutionRequests.Add(new ShadowResolutionRequest());
-                }
-
+                s_ShadowResolutionRequests.Capacity = numberOfVisibleLights;
+                int diff = numberOfVisibleLights - s_ShadowResolutionRequests.Count + 1;
+                for (int i = 0; i < diff; i++)
+                    s_ShadowResolutionRequests.Add(new ShadowResolutionRequest());
             }
 
             s_UnusedAtlasSquareAreas.Clear();
@@ -173,9 +168,9 @@ namespace UnityEngine.Rendering.Universal
             m_SortedShadowResolutionRequests = new NativeArray<ShadowResolutionRequest>(s_SortedShadowResolutionRequests, Allocator.Temp);
 
             // To avoid visual artifacts when there is not enough place in the atlas, we remove shadow slices that would be allocated a too small resolution.
-            // When not using structured buffers, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
-            // In that case we have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
-            int totalShadowSlicesCount = useStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, UniversalRenderPipeline.maxVisibleAdditionalLights);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
+            // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl,
+            // whose size must stay within the 64kb uniform buffer limit on some platforms.
+            int totalShadowSlicesCount = Math.Min(totalShadowResolutionRequestsCount, UniversalRenderPipeline.maxVisibleAdditionalLights);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
             int atlasSize = shadowData.additionalLightsShadowmapWidth;
 
             // Find biggest end index in m_SortedShadowResolutionRequests array, under which all shadow requests can be allocated a big enough shadow atlas slot, to not cause rendering artifacts

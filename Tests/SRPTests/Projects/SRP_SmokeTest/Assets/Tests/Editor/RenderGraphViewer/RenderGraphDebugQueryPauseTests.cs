@@ -1,0 +1,131 @@
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.Rendering.RenderGraphModule;
+
+namespace UnityEditor.Rendering.Tests
+{
+    [TestFixture]
+    internal class RenderGraphDebugQueryPauseTests
+    {
+        const string k_ExpectedGraphName = RenderGraphDebugSessionMockFactory.k_GraphName;
+
+        MockPausableDebugSession m_MockSession;
+
+        class MockPausableDebugSession : IRenderGraphDebugSession
+        {
+            readonly IRenderGraphDebugSession m_InnerSession;
+            bool m_IsPaused;
+
+            public event Action onRegisteredGraphsChanged { add { } remove { } }
+            public event Action<string, EntityId> onDebugDataUpdated { add { } remove { } }
+            public event Action<bool> onPausedStateChanged { add { } remove { } }
+
+            public MockPausableDebugSession(IRenderGraphDebugSession innerSession)
+            {
+                m_InnerSession = innerSession;
+            }
+
+            public bool isActive => true;
+
+            public bool isPaused
+            {
+                get => m_IsPaused;
+                set => m_IsPaused = value;
+            }
+
+            public string connectionName { get => string.Empty; set { } }
+
+            public DebugDataContainer debugDataContainer => m_InnerSession.debugDataContainer;
+
+            public List<string> GetRegisteredGraphs() => m_InnerSession.GetRegisteredGraphs();
+            public List<RenderGraph.DebugExecutionItem> GetExecutions(string graphName) => m_InnerSession.GetExecutions(graphName);
+            public RenderGraph.DebugData GetDebugData(string graphName, EntityId executionId) => m_InnerSession.GetDebugData(graphName, executionId);
+            public void SetDebugData(string renderGraph, EntityId executionId, RenderGraph.DebugData data) { }
+            public void DeleteExecutionIds(string renderGraph, List<EntityId> executionIds) { }
+            public void Dispose() { }
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            var mockedSession = RenderGraphDebugSessionMockFactory.CreateMockedSession();
+            m_MockSession = new MockPausableDebugSession(mockedSession);
+            RenderGraphDebugSessionManager.BeginSession(m_MockSession);
+
+            Assert.IsTrue(RenderGraphDebugSessionManager.hasActiveDebugSession, "Session should be active after creating mocked session");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            RenderGraphDebugSessionManager.EndSession();
+        }
+
+        [Test]
+        public void Dispose_RestoresPausedState()
+        {
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
+
+            session.isPaused = false;
+
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
+            {
+                Assert.IsTrue(session.isPaused, "Session should be paused after Capture");
+            }
+
+            Assert.IsFalse(session.isPaused, "Session should be unpaused after query disposal");
+        }
+
+        [Test]
+        public void Query_InvalidatesWhenSessionUnpaused()
+        {
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
+
+            session.isPaused = false;
+
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
+            {
+                Assert.IsTrue(session.isPaused, "Session should be paused during query");
+
+                var result = query.GetGraphs();
+                Assert.IsTrue(result.TryGetValue(out _), "First query should succeed");
+
+                session.isPaused = false;
+
+                var errorResult = query.GetGraphs();
+                Assert.IsFalse(errorResult.TryGetValue(out _), "Query should fail when session is unpaused");
+                Assert.IsNotNull(errorResult.error);
+                Assert.IsNotEmpty(errorResult.error, "Error should have a message");
+                Assert.That(errorResult.error, Does.Contain("unpaused").IgnoreCase, "Error should mention session was unpaused");
+            }
+        }
+
+        [Test]
+        public void Query_FluentAPI_ThrowsWhenSessionInvalidated()
+        {
+            var session = RenderGraphDebugSessionManager.currentDebugSession;
+            session.isPaused = false;
+
+            using (var query = RenderGraphDebugSessionManager.CreateQueryScope())
+            {
+                var executionItem = GetExecutionItem(k_ExpectedGraphName);
+
+                var result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPasses();
+                Assert.IsTrue(result.TryGetValue(out _), "First query should succeed");
+
+                session.isPaused = false;
+
+                result = query.Graph(k_ExpectedGraphName).Execution(executionItem).GetPasses();
+                Assert.IsFalse(result.TryGetValue(out _), "Second query should fail");
+            }
+        }
+
+        RenderGraph.DebugExecutionItem GetExecutionItem(string graphName)
+        {
+            // Return hardcoded execution item for predictable tests
+            return new RenderGraph.DebugExecutionItem(EntityId.FromULong(RenderGraphDebugSessionMockFactory.k_ExecutionIdValue), RenderGraphDebugSessionMockFactory.k_ExecutionName);
+        }
+    }
+}

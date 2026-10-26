@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using System.Diagnostics.CodeAnalysis;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -55,7 +54,6 @@ namespace UnityEditor.Rendering.Analytics
 
         private static readonly string[] k_SearchFolders = new[] { "Assets" };
 
-        [MustUseReturnValue]
         static bool TryGatherData([NotNullWhen(true)] out List<IAnalytic> datas, [NotNullWhen(false)] out string warning)
         {
             warning = string.Empty;

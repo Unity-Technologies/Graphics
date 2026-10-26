@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         RenderPipelineAsset m_RenderPipelineAsset;
+        RenderPipelineAsset m_DefaultRenderPipeline;
         int m_QualityLevel = -1;
         string m_DefaultFolder = string.Empty;
         string m_QualityLevelName = string.Empty;
@@ -28,6 +29,7 @@ namespace UnityEditor.Rendering.Universal.Tools
         {
             m_RenderPipelineAsset = QualitySettings.renderPipeline;
             QualitySettings.renderPipeline = null;
+            m_DefaultRenderPipeline = GraphicsSettings.defaultRenderPipeline;
             m_QualityLevel = QualitySettings.GetQualityLevel();
             m_QualityLevelName = QualitySettings.names[m_QualityLevel];
 
@@ -46,6 +48,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             }
 
             QualitySettings.renderPipeline = m_RenderPipelineAsset;
+            GraphicsSettings.defaultRenderPipeline = m_DefaultRenderPipeline;
             UniversalProjectSettings.projectSettingsFolderPath = m_DefaultFolder;
         }
 
@@ -59,9 +62,23 @@ namespace UnityEditor.Rendering.Universal.Tools
             {
                 Assert.IsTrue(scanItems.Count > 0, "Initialization did not found the item to convert");
 
+                // Find the Quality folder (RenderSettingsConverter returns Graphics and Quality folders)
+                IFolderRenderPipelineConverterItem qualityFolder = null;
+                foreach (var item in scanItems)
+                {
+                    if (item is IFolderRenderPipelineConverterItem folder && folder.name == "Quality")
+                    {
+                        qualityFolder = folder;
+                        break;
+                    }
+                }
+
+                Assert.IsNotNull(qualityFolder, "Quality folder not found in scan results");
+                Assert.IsTrue(qualityFolder.children.Count > m_QualityLevel, $"Quality level {m_QualityLevel} out of range for {qualityFolder.children.Count} quality levels");
+
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
-                
-                var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
+
+                var status = renderSettingsConverter.Convert(qualityFolder.children[m_QualityLevel], out string msg);
                 Assert.IsTrue(status != Status.Error, msg);
 
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");
@@ -117,6 +134,49 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
+        public void WhenRunningBuiltInToURP3DRenderSettingsConverter_WithoutAnActiveURP_TheLightFalloffMode_IsQuadratic()
+        {
+            var lightFalloffSettings = GraphicsSettings.GetRenderPipelineSettings<URPLightFalloffSettings>();
+            if (lightFalloffSettings == null)
+                Assert.Ignore("URP is not the default render pipeline. Skipping test");
+
+            var previousLightFalloffMode = lightFalloffSettings.lightFalloffMode;
+            lightFalloffSettings.lightFalloffMode = LightFalloffMode.InverseSquared;
+            GraphicsSettings.defaultRenderPipeline = null;
+
+            try
+            {
+                var renderSettingsConverter = new BuiltInToURP3DRenderSettingsConverter();
+
+                void OnScanFinished(List<IRenderPipelineConverterItem> scanItems)
+                {
+                    IFolderRenderPipelineConverterItem qualityFolder = null;
+                    foreach (var item in scanItems)
+                    {
+                        if (item is IFolderRenderPipelineConverterItem folder && folder.name == "Quality")
+                        {
+                            qualityFolder = folder;
+                            break;
+                        }
+                    }
+
+                    Assert.IsNotNull(qualityFolder, "Quality folder not found in scan results");
+
+                    var status = renderSettingsConverter.Convert(qualityFolder.children[m_QualityLevel], out string msg);
+                    Assert.IsTrue(status != Status.Error, msg);
+                }
+
+                renderSettingsConverter.Scan(OnScanFinished);
+
+                Assert.AreEqual(LightFalloffMode.Quadratic, lightFalloffSettings.lightFalloffMode, "lightFalloffMode mismatch");
+            }
+            finally
+            {
+                lightFalloffSettings.lightFalloffMode = previousLightFalloffMode;
+            }
+        }
+
+        [Test]
         public void WhenRunningBuiltInToURP2DRenderSettingsConverter_TheCurrent_QualityLevel_IsNowURP_AndHasEverythingProperlyAssigned()
         {
             var renderSettingsConverter = new BuiltInToURP2DRenderSettingsConverter();
@@ -126,9 +186,23 @@ namespace UnityEditor.Rendering.Universal.Tools
             {
                 Assert.IsTrue(scanItems.Count > 0, "Initialization did not found the item to convert");
 
+                // Find the Quality folder (RenderSettingsConverter returns Graphics and Quality folders)
+                IFolderRenderPipelineConverterItem qualityFolder = null;
+                foreach (var item in scanItems)
+                {
+                    if (item is IFolderRenderPipelineConverterItem folder && folder.name == "Quality")
+                    {
+                        qualityFolder = folder;
+                        break;
+                    }
+                }
+
+                Assert.IsNotNull(qualityFolder, "Quality folder not found in scan results");
+                Assert.IsTrue(qualityFolder.children.Count > m_QualityLevel, $"Quality level {m_QualityLevel} out of range for {qualityFolder.children.Count} quality levels");
+
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
 
-                var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
+                var status = renderSettingsConverter.Convert(qualityFolder.children[m_QualityLevel], out string msg);
                 Assert.IsTrue(status != Status.Error, msg);
 
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");

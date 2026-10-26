@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering
     {
         AlwaysPass = (1 << 0),
         CountVisible = (1 << 1),
+        UseSphereBounds = (1 << 2),
     }
 
     internal struct OcclusionTestComputeShader
@@ -253,7 +254,8 @@ namespace UnityEngine.Rendering
                 in occluderCtx,
                 subviewSettings,
                 debugDisplaySettings?.occlusionTestOverlayCountVisible ?? false,
-                debugDisplaySettings?.overrideOcclusionTestToAlwaysPass ?? false);
+                debugDisplaySettings?.overrideOcclusionTestToAlwaysPass ?? false,
+                debugDisplaySettings?.useBoundingSphereOcclusionTest ?? false);
             cmd.SetBufferData(m_CommonConstantBuffer, m_CommonShaderVariables);
 
             cmd.SetComputeConstantBufferParam(shader.cs, ShaderIDs.OcclusionCullingCommonShaderVariables, m_CommonConstantBuffer, 0, m_CommonConstantBuffer.stride);

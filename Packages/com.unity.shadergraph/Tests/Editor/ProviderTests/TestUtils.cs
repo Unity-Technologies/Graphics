@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.GraphAuthoring.Editor.ProviderSystem;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
@@ -28,11 +29,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             return av == bv;
         }
 
-        internal static bool CompareBase(IShaderObject a, IShaderObject b)
+        internal static bool CompareBase(IDefinition a, IDefinition b)
         {
             return a.IsValid && b.IsValid && string.Equals(a.Name, b.Name)
-                && CompareSequence(a.Namespace, b.Namespace, string.Equals)
-                && CompareSequence(a.Hints, b.Hints, (e, f) => e.Key == f.Key && e.Value == f.Value);
+                && CompareSequence(a.Namespace, b.Namespace, string.Equals);
         }
 
         internal static bool CompareType(IShaderType a, IShaderType b)
@@ -45,13 +45,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             return a.IsInput == b.IsInput && a.IsOutput == b.IsOutput && CompareType(a.ShaderType, b.ShaderType) && CompareBase(a, b);
         }
 
-        internal static bool CompareFunction(IShaderFunction a, IShaderFunction b)
+        internal static bool CompareFunction(IShaderFunction a, IShaderFunction b, bool ignoreBodyWhitespace = false)
         {
             return CompareBase(a, b)
                 && CompareType(a.ReturnType, b.ReturnType)
-                && a.FunctionBody == b.FunctionBody
+                && (ignoreBodyWhitespace ? CollapseWhitespace(a.FunctionBody) == CollapseWhitespace(b.FunctionBody) : a.FunctionBody == b.FunctionBody)
                 && CompareSequence(a.Parameters, b.Parameters, CompareField);
         }
+
+        static string CollapseWhitespace(string text)
+            => text == null ? null : System.Text.RegularExpressions.Regex.Replace(text.Trim(), @"\s+", " ");
 
         internal static void AssertNodeSetup(IProvider<IShaderFunction> provider)
         {

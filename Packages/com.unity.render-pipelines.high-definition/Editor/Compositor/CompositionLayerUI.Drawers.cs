@@ -12,23 +12,23 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         static partial class Styles
         {
             // main layer
-            static public readonly GUIContent k_Resolution = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of this layer's render target. Lower resolution increases the performance at the expense of visual quality.");
-            static public readonly GUIContent k_BufferFormat = EditorGUIUtility.TrTextContent("Format", "Specifies the color buffer format of this layer. ");
-            static public readonly GUIContent k_OutputRenderer = EditorGUIUtility.TrTextContent("Output Renderer", "Redirects the output of this layer to the surface which is drawn by the selected mesh renderer. ");
-            static public readonly GUIContent k_AOVs = EditorGUIUtility.TrTextContent("AOVs", "Specifies the Arbitrary Output Variable (AOV) that will be drawn on this layer. This option affects all cameras that are stacked on this layer.");
+            static public readonly GUIContent k_Resolution = L10n.TextContent("Resolution", "Specifies the resolution of this layer's render target. Lower resolution increases the performance at the expense of visual quality.", null, null);
+            static public readonly GUIContent k_BufferFormat = L10n.TextContent("Format", "Specifies the color buffer format of this layer. ", null, null);
+            static public readonly GUIContent k_OutputRenderer = L10n.TextContent("Output Renderer", "Redirects the output of this layer to the surface which is drawn by the selected mesh renderer. ", null, null);
+            static public readonly GUIContent k_AOVs = L10n.TextContent("AOVs", "Specifies the Arbitrary Output Variable (AOV) that will be drawn on this layer. This option affects all cameras that are stacked on this layer.", null, null);
 
             // Sub layer
-            static public readonly GUIContent k_NameContent = EditorGUIUtility.TrTextContent("Layer Name", "Specifies the name of this layer.");
-            static public readonly GUIContent k_Camera = EditorGUIUtility.TrTextContent("Source Camera", "Specifies the camera of the scene that will provide the content for this sublayer.");
-            static public readonly GUIContent k_Image = EditorGUIUtility.TrTextContent("Source Image", "Specifies the image that will provide the content for this sublayer.");
-            static public readonly GUIContent k_Video = EditorGUIUtility.TrTextContent("Source Video", "Specifies the video that will provide the content for this sublayer.");
-            static public readonly GUIContent k_ClearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, the depth buffer will be cleared before rendering this layer. Not clearing the depth can be useful when stacking sublayers. The first sublayer of a stack always clears the depth.");
-            static public readonly GUIContent k_ClearAlpha = EditorGUIUtility.TrTextContent("Clear Alpha", "If enabled, the alpha channel will be cleared before rendering this layer. If enabled, post processing will affect only the objects of this layer");
-            static public readonly GUIContent k_ClearMode = EditorGUIUtility.TrTextContent("Clear Color", "To override the clear mode of this layer, activate the option by clicking on the check-box and then select the desired value. This can be changed only on the first sub layer of a stack (stacked sublayers do not clear the color).");
-            static public readonly GUIContent k_AAMode = EditorGUIUtility.TrTextContent("Post Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.");
-            static public readonly GUIContent k_CullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.");
-            static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
-            static public readonly GUIContent k_AlphaRange = EditorGUIUtility.TrTextContent("Alpha Range", "The range of alpha values used when transitioning from post-processed to plain image regions. A smaller range will result in a steeper transition.");
+            static public readonly GUIContent k_NameContent = L10n.TextContent("Layer Name", "Specifies the name of this layer.", null, null);
+            static public readonly GUIContent k_Camera = L10n.TextContent("Source Camera", "Specifies the camera of the scene that will provide the content for this sublayer.", null, null);
+            static public readonly GUIContent k_Image = L10n.TextContent("Source Image", "Specifies the image that will provide the content for this sublayer.", null, null);
+            static public readonly GUIContent k_Video = L10n.TextContent("Source Video", "Specifies the video that will provide the content for this sublayer.", null, null);
+            static public readonly GUIContent k_ClearDepth = L10n.TextContent("Clear Depth", "If enabled, the depth buffer will be cleared before rendering this layer. Not clearing the depth can be useful when stacking sublayers. The first sublayer of a stack always clears the depth.", null, null);
+            static public readonly GUIContent k_ClearAlpha = L10n.TextContent("Clear Alpha", "If enabled, the alpha channel will be cleared before rendering this layer. If enabled, post processing will affect only the objects of this layer", null, null);
+            static public readonly GUIContent k_ClearMode = L10n.TextContent("Clear Color", "To override the clear mode of this layer, activate the option by clicking on the check-box and then select the desired value. This can be changed only on the first sub layer of a stack (stacked sublayers do not clear the color).", null, null);
+            static public readonly GUIContent k_AAMode = L10n.TextContent("Post Anti-aliasing", "To override the postprocess Anti-aliasing mode, activate the option by clicking on the check-box and then select the desired value.", null, null);
+            static public readonly GUIContent k_CullingMask = L10n.TextContent("Culling Mask", "To override the culling mask, activate the option by clicking on the check-box and then select the desired value.", null, null);
+            static public readonly GUIContent k_VolumeMask = L10n.TextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.", null, null);
+            static public readonly GUIContent k_AlphaRange = L10n.TextContent("Alpha Range", "The range of alpha values used when transitioning from post-processed to plain image regions. A smaller range will result in a steeper transition.", null, null);
 
             static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player requires to enable the Runtime AOV API support in the HDRP quality settings.";
 

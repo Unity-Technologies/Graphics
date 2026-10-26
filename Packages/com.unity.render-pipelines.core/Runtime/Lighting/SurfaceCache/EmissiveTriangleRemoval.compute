@@ -1,0 +1,55 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
+#pragma kernel Remove
+
+#include "EmissiveTriangles.hlsl"
+
+StructuredBuffer<EmissiveTriangle> _SrcTriangles;
+StructuredBuffer<uint> _SrcTriangleCount;
+RWStructuredBuffer<EmissiveTriangle> _DstTriangles;
+RWStructuredBuffer<uint> _DstTriangleCount;
+StructuredBuffer<uint> _RemovedInstanceIds;
+uint _RemovedInstanceIdCount;
+
+groupshared EmissiveTriangle _GroupSurvivors[256];
+groupshared uint _GroupSurvivorCount;
+groupshared uint _GroupSurvivorBaseOffset;
+
+[numthreads(256, 1, 1)]
+void Remove(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupThreadId : SV_GroupIndex)
+{
+    // Reset survivor count
+    if (groupThreadId == 0)
+        _GroupSurvivorCount = 0;
+    GroupMemoryBarrierWithGroupSync();
+
+    // Determine if triangle survives
+    EmissiveTriangle tri = (EmissiveTriangle)0;
+    bool survives = dispatchThreadId.x < _SrcTriangleCount[0];
+    if (survives)
+    {
+        tri = _SrcTriangles[dispatchThreadId.x];
+        for (uint i = 0; i < _RemovedInstanceIdCount; i++)
+        {
+            if (tri.instanceId == _RemovedInstanceIds[i])
+                survives = false;
+        }
+    }
+
+    // If triangle survives, write it to LDS
+    if (survives)
+    {
+        uint localIdx;
+        InterlockedAdd(_GroupSurvivorCount, 1u, localIdx);
+        _GroupSurvivors[localIdx] = tri;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // Increment global count
+    if (groupThreadId == 0)
+        InterlockedAdd(_DstTriangleCount[0], _GroupSurvivorCount, _GroupSurvivorBaseOffset);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Write LDS to global memory
+    if (groupThreadId < _GroupSurvivorCount)
+        _DstTriangles[_GroupSurvivorBaseOffset + groupThreadId] = _GroupSurvivors[groupThreadId];
+}

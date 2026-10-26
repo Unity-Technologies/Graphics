@@ -48,34 +48,33 @@ void SampleAPVSixWay(APVSample apvSample, half3x3 tbn, out half4 diffuseGIData[3
 
 void GatherDiffuseGIData(float3 positionWS, float3 normalWS, float4 tangentWS, inout half4 diffuseGIData0, inout half4 diffuseGIData1, inout half4 diffuseGIData2)
 {
-    #if defined(LIGHTMAP_ON)
-    //Do nothing
+    if (LightmapAvailable())
+        return;
+
+    half4 diffuseGIData[] = {diffuseGIData0, diffuseGIData1, diffuseGIData2};
+    float crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+    float3 bitangentWS = crossSign * cross(normalWS, tangentWS.xyz);
+    float3x3 tbn = float3x3(tangentWS.xyz, bitangentWS, -normalWS);
+
+    #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+        APVSample apvSample = SampleAPV(positionWS, normalWS, 0xFFFFFFFF, 0);
+        if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+        {
+            apvSample.Decode();
+            SampleAPVSixWay(apvSample, tbn, diffuseGIData);
+        }
     #else
-        half4 diffuseGIData[] = {diffuseGIData0, diffuseGIData1, diffuseGIData2};
-        float crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-        float3 bitangentWS = crossSign * cross(normalWS, tangentWS.xyz);
-        float3x3 tbn = float3x3(tangentWS.xyz, bitangentWS, -normalWS);
+        half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
-        #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-            APVSample apvSample = SampleAPV(positionWS, normalWS, 0xFFFFFFFF, 0);
-            if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
-            {
-                apvSample.Decode();
-                SampleAPVSixWay(apvSample, tbn, diffuseGIData);
-            }
-        #else
-            half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-
-            for (int i = 0; i<3; i++)
-            {
-                diffuseGIData[i].xyz = SHEvalLinearL1(tbn[i] * kInvClampedCosine1, unity_SHAr.xyz, unity_SHAg.xyz, unity_SHAb.xyz);
-                diffuseGIData[i].w = L0[i];
-            }
-        #endif
-        diffuseGIData0 = diffuseGIData[0];
-        diffuseGIData1 = diffuseGIData[1];
-        diffuseGIData2 = diffuseGIData[2];
+        for (int i = 0; i<3; i++)
+        {
+            diffuseGIData[i].xyz = SHEvalLinearL1(tbn[i] * kInvClampedCosine1, unity_SHAr.xyz, unity_SHAg.xyz, unity_SHAb.xyz);
+            diffuseGIData[i].w = L0[i];
+        }
     #endif
+    diffuseGIData0 = diffuseGIData[0];
+    diffuseGIData1 = diffuseGIData[1];
+    diffuseGIData2 = diffuseGIData[2];
 }
 
 half3 ComputeGIColor(SixWaySurfaceData surfaceData)
@@ -121,7 +120,7 @@ half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tang
     return PI * cbsdf_R * radiance; // *PI because URP doesn't multiply by the Lambert term in its Lit implementation
 }
 
-half4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
 {
     if(surfaceData.alpha == 0)
         return half4(0,0,0,0);
@@ -134,9 +133,7 @@ half4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData
 
     lightingData.giColor = ComputeGIColor(surfaceData);
 
-    #ifdef _LIGHT_LAYERS
-    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
-    #endif
+    if (IsMatchingLightLayer(mainLight, meshRenderingLayers))
     {
         lightingData.mainLightColor = SixWayLightBlend(surfaceData, mainLight, inputData.tangentToWorld);
     }
@@ -149,11 +146,9 @@ half4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
 
-        #ifdef _LIGHT_LAYERS
-        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-            #endif
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
             lightingData.additionalLightsColor += SixWayLightBlend(surfaceData, light, inputData.tangentToWorld);
         }
@@ -161,14 +156,12 @@ half4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
 
-    #ifdef _LIGHT_LAYERS
-    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-        #endif
-    {
-        lightingData.additionalLightsColor += SixWayLightBlend(surfaceData, light, inputData.tangentToWorld);
-    }
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
+        {
+            lightingData.additionalLightsColor += SixWayLightBlend(surfaceData, light, inputData.tangentToWorld);
+        }
     LIGHT_LOOP_END
     #endif
 

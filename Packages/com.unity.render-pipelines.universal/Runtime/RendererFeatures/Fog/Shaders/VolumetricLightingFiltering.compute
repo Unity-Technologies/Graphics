@@ -1,0 +1,141 @@
+// 3x3 Gaussian filter applied to each v-buffer slice after the lighting pass. Pairs with the
+// reprojection EMA (the "Both" denoising mode) — temporal averaging removes most noise, but a
+// shallow spatial blur cleans up residual flicker near hard shadow edges that reprojection
+// can't catch without ghosting. Without reprojection, this is a cheap alternative that just
+// soaks the per-frame jitter pattern.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+
+#pragma kernel FilterVolumetricLighting
+
+// Set on platforms that don't support RGBA16F as a load-store UAV. When ON, the input is bound
+// as a sampled texture and the output goes to a separate UAV; otherwise we read+write the same
+// UAV in place. (See VolumetricFilteringPass.cs for the SystemInfo check.)
+#pragma multi_compile_local _ NEED_SEPARATE_OUTPUT
+
+// _VBufferSize is bound by VolumetricFilteringPass — same constant as the lighting pass
+// (xyzw = w, h, 1/w, 1/h). Used to clamp the 1-pixel padding around the LDS tile.
+float4 _VBufferSize;
+
+#if NEED_SEPARATE_OUTPUT
+TEXTURE3D(inputTex3D);
+RW_TEXTURE3D(float4, outputTex3D);
+#else
+RW_TEXTURE3D(float4, inputTex3D);
+#endif
+
+#define GAUSSIAN_SIGMA      1.0
+#define GROUP_SIZE_1D_XY    8
+#define GROUP_SIZE_1D_Z     1
+#define NR_THREADS          (GROUP_SIZE_1D_XY * GROUP_SIZE_1D_XY * GROUP_SIZE_1D_Z)
+
+// 8x8 group + 1-pixel padding on each side = 10x10 working area in LDS.
+#define FILTER_SIZE_1D      (GROUP_SIZE_1D_XY + 2)
+#define LDS_SIZE            (FILTER_SIZE_1D * FILTER_SIZE_1D)
+
+#define DIV_ROUND_UP(N, D)  (((N) + ((D) - 1)) / (D))
+
+// Split LDS per channel reduces bank conflicts on most GPUs
+#define USE_SPLIT_CACHE     (!defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2))
+
+#if USE_SPLIT_CACHE
+groupshared float gs_cacheR[LDS_SIZE];
+groupshared float gs_cacheG[LDS_SIZE];
+groupshared float gs_cacheB[LDS_SIZE];
+groupshared float gs_cacheA[LDS_SIZE];
+#else
+groupshared float4 gs_cache[LDS_SIZE];
+#endif
+
+float4 GetSample(uint index)
+{
+#if USE_SPLIT_CACHE
+    return float4(gs_cacheR[index], gs_cacheG[index], gs_cacheB[index], gs_cacheA[index]);
+#else
+    return gs_cache[index];
+#endif
+}
+
+void PrefetchData(uint sampleID, uint2 groupOrigin, uint sliceIndex)
+{
+    int2 originXY = int2(groupOrigin) - 1;
+
+    int offsetX = sampleID % FILTER_SIZE_1D;
+    int offsetY = sampleID / FILTER_SIZE_1D;
+
+    uint3 sampleCoord = uint3(clamp(originXY.x + offsetX, 0, max(0, (int)_VBufferSize.x - 1)),
+                              clamp(originXY.y + offsetY, 0, max(0, (int)_VBufferSize.y - 1)),
+                              sliceIndex);
+
+    float4 sampleVal = inputTex3D[sampleCoord];
+
+    uint LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
+#if USE_SPLIT_CACHE
+    gs_cacheR[LDSIndex] = sampleVal.r;
+    gs_cacheG[LDSIndex] = sampleVal.g;
+    gs_cacheB[LDSIndex] = sampleVal.b;
+    gs_cacheA[LDSIndex] = sampleVal.a;
+#else
+    gs_cache[LDSIndex] = sampleVal;
+#endif
+}
+
+void WriteOutput(uint3 voxelCoord, float4 value)
+{
+#if NEED_SEPARATE_OUTPUT
+    outputTex3D[voxelCoord] = value;
+#else
+    inputTex3D[voxelCoord] = value;
+#endif
+}
+
+float Gaussian(float radius, float sigma)
+{
+    float v = radius / sigma;
+    return exp(-(v * v));
+}
+
+[numthreads(GROUP_SIZE_1D_XY, GROUP_SIZE_1D_XY, GROUP_SIZE_1D_Z)]
+void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
+                              uint  groupIndex       : SV_GroupIndex,
+                              uint2 groupId          : SV_GroupID,
+                              uint2 groupThreadId    : SV_GroupThreadID)
+{
+    uint2 currentCoord = groupId * GROUP_SIZE_1D_XY + groupThreadId;
+    uint  currentSlice = dispatchThreadId.z;
+    uint3 voxelCoord   = uint3(currentCoord, currentSlice);
+
+    // Cooperative LDS prefetch — every thread in the group helps load the 10x10 tile.
+    UNITY_UNROLLX(DIV_ROUND_UP(LDS_SIZE, NR_THREADS))
+    for (uint i = groupIndex; i < LDS_SIZE; i += NR_THREADS)
+    {
+        PrefetchData(i, groupId * GROUP_SIZE_1D_XY, voxelCoord.z);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 3x3 weighted Gaussian tap from LDS. No filtering across slices — Z bandwidth is high
+    // enough that a 3x3x3 kernel stops being worth it.
+    float  sumW = 0.0;
+    float4 value = float4(0, 0, 0, 0);
+    const int radius = 1;
+
+    UNITY_UNROLL
+    for (int idx = -radius; idx <= radius; ++idx)
+    {
+        UNITY_UNROLL
+        for (int idx2 = -radius; idx2 <= radius; ++idx2)
+        {
+            int2 tapAddress = (int2(groupThreadId) + 1) + int2(idx2, idx);
+            uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
+            float4 currentValue = GetSample(ldsTapAddress);
+
+            float weight = Gaussian(length(int2(idx, idx2)), GAUSSIAN_SIGMA);
+            value += currentValue * weight;
+            sumW += weight;
+        }
+    }
+
+    WriteOutput(voxelCoord, value / sumW);
+}

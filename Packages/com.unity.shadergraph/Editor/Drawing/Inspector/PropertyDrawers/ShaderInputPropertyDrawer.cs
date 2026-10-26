@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildReferenceNameField(propertySheet);
             BuildPromoteField(propertySheet);
             BuildNoConnectorField(propertySheet);
-            BuildPropertyFields(propertySheet);            
+            BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
             BuildAttributesFields(propertySheet);
@@ -270,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     );
 
                 toggleRow.SetEnabled(shaderInput.isExposable);
-                propertySheet.Add(toggleRow);                
+                propertySheet.Add(toggleRow);
                 exposedToggle = exposedToggleVisualElement as Toggle;
             }
         }
@@ -362,8 +362,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     if (evt.newValue != shaderInput.displayName)
                     {
-                        this._preChangeValueCallback("Change Display Name");
-                        shaderInput.SetDisplayNameAndSanitizeForGraph(graphData, evt.newValue);
+                        // Rename through the dispatched action only, matching the Blackboard path.
                         this._displayNameChangedCallback(evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.displayName))
@@ -371,7 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         else
                             m_DisplayNameField.AddToClassList("modified");
 
-                        this._postChangeValueCallback(true, ModificationScope.Layout);
+                        inspectorUpdateDelegate?.Invoke();
                     }
                 });
 
@@ -1544,13 +1543,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(gradientPropertyDrawer.CreateGUI(
                 newValue =>
                 {
-                    this._preChangeValueCallback("Change property value");
                     this._changeValueCallback(newValue);
                     this._postChangeValueCallback();
+                    if (this.graphData?.owner != null)
+                        this.graphData.owner.isDirty = true;
                 },
                 gradientShaderProperty.value,
                 "Default Value",
-                out var propertyGradientField));
+                out var propertyGradientField,
+                preValueChangedCallback: () => this._preChangeValueCallback("Modify Gradient")));
         }
 
         void BuildAttributesFields(PropertySheet propertySheet)
@@ -1935,12 +1936,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     EditorGUI.BeginChangeCheck();
                     var name = EditorGUI.DelayedTextField(displayRect, entry.name, EditorStyles.label);
-                    var value = EditorGUI.IntField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
+                    var value = EditorGUI.DelayedIntField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         this._preChangeValueCallback("Edit Enum Entry");
-                        name = GraphUtil.SanitizeName(vector1Property.enumNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
+                        var otherNames = new List<string>(vector1Property.enumNames.Count - 1);
+                        for (int i = 0; i < vector1Property.enumNames.Count; i++)
+                            if (i != index) otherNames.Add(vector1Property.enumNames[i]);
+                        name = GraphUtil.SanitizeName(otherNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
                         if (string.IsNullOrWhiteSpace(name))
                             Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
                         else if (int.TryParse(name, out int intVal) || float.TryParse(name, out float floatVal))
@@ -2097,7 +2101,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._preChangeValueCallback("Edit Enum Keyword Entry");
 
                     displayName = GetSanitizedDisplayName(displayName);
-                    referenceName = GetSanitizedReferenceName(displayName.ToUpper());
+                    referenceName = GetSanitizedReferenceName(displayName.ToUpperInvariant());
                     var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
                     if (duplicateIndex != -1)
                     {
@@ -2256,14 +2260,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             name = name.Trim();
             // Get de-duplicated display and reference names
             displayName = GetDuplicateSafeEnumDisplayName(id, name);
-            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpper());
+            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpperInvariant());
             // Check when the simple reference name should be for the display name.
             // If these don't match then there will be a desync which causes the enum entry to not work.
             // An example where this happens is ["new 1", "NEW_1"] already exists.
             // The display name "New_1" is added.
             // This new display name doesn't exist, but it finds the reference name of "NEW_1" already exists so we get the pair ["New_1", "NEW_2"] which is invalid.
             // The easiest fix in this case is to just use the safe reference name as the new display name which is guaranteed to be unique.
-            var simpleReferenceName = Regex.Replace(displayName.ToUpper(), m_ReferenceNameDisallowedPattern, "_");
+            var simpleReferenceName = Regex.Replace(displayName.ToUpperInvariant(), m_ReferenceNameDisallowedPattern, "_");
             if (referenceName != simpleReferenceName)
                 displayName = referenceName;
         }

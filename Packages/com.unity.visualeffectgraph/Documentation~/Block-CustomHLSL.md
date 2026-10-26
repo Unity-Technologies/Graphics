@@ -1,6 +1,6 @@
 # Custom HLSL Block
 
-Menu Path : **HLSL > Custom HLSL**
+Menu Path : **HLSL** > **Custom HLSL**
 
 The **Custom HLSL** Block allows you to write an HLSL function that takes inputs and can read and write to particle attributes.
 For general information about Custom HLSL nodes, refer to [Custom HLSL Nodes](CustomHLSL-Common.md).

@@ -17,7 +17,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(133, Extension, -902)]
+    [ScriptedImporter(135, Extension, -902)]
     [CoreRPHelpURL("Shader-Graph-Asset", "com.unity.shadergraph")]
     class ShaderGraphImporter : ScriptedImporter
     {
@@ -197,6 +197,19 @@ Shader ""Hidden/GraphErrorShader2""
                         Material material = new Material(shader) { name = primaryShaderName };
                         importContext.AddObjectToAsset("Material", material);
 
+                        // Gather import artifacts from targets.
+                        void AddImportArtifact(IHasImportArtifact provider)
+                        {
+                            var artifact = provider?.GetImportArtifact(graph, material, primaryShaderName);
+                            if (artifact != null)
+                                importContext.AddObjectToAsset(artifact.GetType().Name, artifact);
+                        }
+                        foreach (var activeTarget in graph.activeTargets)
+                        {
+                            AddImportArtifact(activeTarget as IHasImportArtifact);
+                            AddImportArtifact(activeTarget.activeSubTarget as IHasImportArtifact);
+                        }
+
                         first = false;
                     }
                     else
@@ -251,9 +264,12 @@ Shader ""Hidden/GraphErrorShader2""
             graph.ValidateGraph();
 
             UnityEngine.Object mainObject = null;
+            // Shader interface mode has no code generation yet, so it imports as the error shader.
+            if (!graph.hasShaderInterfaceData
 #if VFX_GRAPH_10_0_0_OR_NEWER
-            if (!graph.isOnlyVFXTarget)
+                && !graph.isOnlyVFXTarget
 #endif
+            )
             {
                 // build shaders
                 mainObject = BuildAllShaders(ctx, importLog, assetCollection, graph);
@@ -261,7 +277,7 @@ Shader ""Hidden/GraphErrorShader2""
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
             ShaderGraphVfxAsset vfxAsset = null;
-            if (graph.hasVFXTarget)
+            if (graph.hasVFXTarget && !graph.hasShaderInterfaceData)
             {
                 vfxAsset = GenerateVfxShaderGraphAsset(graph);
                 if (mainObject == null)
@@ -656,30 +672,73 @@ Shader ""Hidden/GraphErrorShader2""
                 portPropertySets[portIndex] = new HashSet<string>();
             }
 
-            foreach (var node in nodes)
-            {
-                if (!(node is PropertyNode propertyNode))
-                {
-                    continue;
-                }
-
-                for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-                {
-                    var portNodeSet = portNodeSets[portIndex];
-                    if (portNodeSet.Contains(node))
-                    {
-                        portPropertySets[portIndex].Add(propertyNode.property.objectId);
-                    }
-                }
-            }
-
             var shaderProperties = new PropertyCollector();
             foreach (var node in nodes)
             {
                 node.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
             }
 
-            asset.SetTextureInfos(shaderProperties.GetConfiguredTextures());
+            foreach (var node in nodes)
+            {
+                var subGraphNode = node as SubGraphNode;
+                HashSet<string> usedDisplayNames = null;
+                if (subGraphNode != null && subGraphNode.asset != null && subGraphNode.asset.slotDependencies != null && subGraphNode.asset.slotDependencies.Count > 0)
+                {
+                    // Empty slotDependencies is left as null on purpose: nested-subgraph-bubbled promoted properties don't appear there.
+                    usedDisplayNames = new HashSet<string>(subGraphNode.asset.slotDependencies.Count);
+                    foreach (var dep in subGraphNode.asset.slotDependencies)
+                        usedDisplayNames.Add(dep.inputSlotName);
+                }
+
+                for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                {
+                    var portNodeSet = portNodeSets[portIndex];
+                    if (!portNodeSet.Contains(node))
+                        continue;
+
+                    if (subGraphNode != null && subGraphNode.asset != null)
+                    {
+                        // SubGraphNode can contribute to the properties with Promoted Properties.
+                        foreach (var property in subGraphNode.asset.nodeProperties)
+                        {
+                            if (property == null || property.objectIdIsEmpty)
+                                continue;
+                            if (!property.promoteToFinalShader)
+                                continue;
+                            if (usedDisplayNames != null && !usedDisplayNames.Contains(property.displayName))
+                                continue;
+                            portPropertySets[portIndex].Add(property.objectId);
+                        }
+                    }
+                    else if (node is PropertyNode propertyNode)
+                    {
+                        portPropertySets[portIndex].Add(propertyNode.property.objectId);
+                    }
+                }
+            }
+
+            var configuredTextures = shaderProperties.GetConfiguredTextures();
+            // GetConfiguredTextures returns the SG non-exposed constant textures and any promoted-from-subgraph texture properties.
+            // Strip exposed promoted properties since VFX reaches them per-element via the slot path (ExpressionFromSlot).
+            // Non-exposed promoted properties must keep their constant binding so VFX still binds the default texture.
+            HashSet<string> promotedExposedNames = null;
+            HashSet<string> promotedNonExposedNames = null;
+            foreach (var input in graph.GetPromotedInputs())
+            {
+                if (input is AbstractShaderProperty prop)
+                {
+                    if (prop.isExposed)
+                        (promotedExposedNames ??= new HashSet<string>()).Add(prop.referenceName);
+                    else
+                        (promotedNonExposedNames ??= new HashSet<string>()).Add(prop.referenceName);
+                }
+            }
+
+            // Drop generatePropertyBlock=false globals provided by engine or SRP (like _ShapeLightTexture0, unity_MipmapStreaming_DebugTex)
+            configuredTextures.RemoveAll(t =>
+                (promotedExposedNames != null && promotedExposedNames.Contains(t.name))
+             || (!t.generatePropertyBlock && (promotedNonExposedNames == null || !promotedNonExposedNames.Contains(t.name))));
+            asset.SetTextureInfos(configuredTextures);
 
             var codeSnippets = new List<string>();
             var portCodeIndices = new List<int>[ports.Count];
@@ -765,7 +824,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 
                 ShaderStringBuilder builder = new ShaderStringBuilder();
-                property.ForeachHLSLProperty(h => h.AppendTo(builder));
+                property.ForeachHLSLProperty(GenerationMode.ForReals, h => h.AppendTo(builder));
 
                 codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
             }
@@ -776,7 +835,7 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     sharedCodeIndices.Add(codeSnippets.Count);
                     ShaderStringBuilder builder = new ShaderStringBuilder();
-                    prop.ForeachHLSLProperty(h => h.AppendTo(builder));
+                    prop.ForeachHLSLProperty(GenerationMode.ForReals, h => h.AppendTo(builder));
 
                     codeSnippets.Add($"// Property: {prop.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
                 }
@@ -918,18 +977,14 @@ Shader ""Hidden/GraphErrorShader2""
             var sortedProperties = graph.categories
                 .SelectMany(x => x.Children)
                 .Union(graph.properties)
+                .Union(graph.GetPromotedInputs())
                 .Where(x =>
                     {
                         if (!asset.generatesWithShaderGraph)
                             return x.isExposed; //Compatibility behavior for old SG integration
 
                         if (x is AbstractShaderProperty shaderProperty)
-                        {
-                            if (shaderProperty.isExposed)
-                                return true; //see implicit override of isPerElementVFX in https://github.cds.internal.unity3d.com/unity/unity/blob/b27af44f6be3c181e86bd3c2e30fd58738a69404/Packages/com.unity.shadergraph/Editor/Data/Graphs/GraphData.cs#L1357
-
-                            return shaderProperty.isPerElementVFX && x.isExposable;
-                        }
+                            return shaderProperty.isExposed;
 
                         return x.isExposable;
                     });
@@ -950,6 +1005,10 @@ Shader ""Hidden/GraphErrorShader2""
                         stageCapability |= ports[portIndex].stageCapability;
                     }
                 }
+
+                //Skip properties that no active port consumes. This behavior is only applicable for non keyword promoted properties: regular fields are listed regardless of in-graph usage.
+                if (stageCapability == 0 && property.promoteToFinalShader && !(property is ShaderKeyword))
+                    continue;
 
                 propertiesStages.Add(stageCapability);
                 inputProperties.Add(property);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Moq;
 using NUnit.Framework;
@@ -137,7 +138,7 @@ namespace UnityEditor.VFX.Test
     class GraphViewTemplateWindowTest : EditorWindowUITestFixture<GraphViewTemplateWindow>
     {
         static readonly string k_SampleExpectedPath = "Assets/Samples";
-        static readonly string k_AltSamplePackageName = "Visual Effect Graph Additions";
+        static readonly string k_LearningSamplePackageName = "Learning Templates";
 
         readonly VFXTemplateHelperInternal m_vfxTemplateHelper = new();
         readonly Mock<ITemplateHelper> m_templateHelperMock;
@@ -157,10 +158,7 @@ namespace UnityEditor.VFX.Test
             m_templateHelperMock.SetupGet(x => x.builtInCategory).Returns(m_vfxTemplateHelper.builtInCategory);
             m_templateHelperMock.SetupGet(x => x.builtInTemplatePath).Returns(m_vfxTemplateHelper.builtInTemplatePath);
             m_templateHelperMock.SetupGet(x => x.createNewAssetTitle).Returns(m_vfxTemplateHelper.createNewAssetTitle);
-            m_templateHelperMock.SetupGet(x => x.learningSampleName).Returns(k_AltSamplePackageName);
-            m_templateHelperMock
-                .Setup(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()))
-                .Callback((PackageManager.PackageInfo pkg, Sample sample) => m_vfxTemplateHelper.RaiseImportSampleDependencies(pkg, sample));
+            m_templateHelperMock.SetupGet(x => x.learningSampleName).Returns(k_LearningSamplePackageName);
             m_templateHelperMock
                 .Setup(x => x.TryGetTemplate(It.IsAny<string>(), out It.Ref<GraphViewTemplateDescriptor>.IsAny))
                 .Returns(new TryGetTemplateDelegate((string guid, out GraphViewTemplateDescriptor descriptor) => m_vfxTemplateHelper.TryGetTemplate(guid, out descriptor)));
@@ -272,6 +270,181 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(DisplayStyle.Flex, emptyResultLabel.resolvedStyle.display);
         }
 
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Preserved_When_Changing_Sort()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Simple Loop");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+
+            var selectedBefore = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual("Simple Loop", selectedBefore.header);
+
+            GraphViewTemplateWindowHelpers.SortBy(window, "Order");
+            yield return null;
+
+            Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem,
+                "Selection should be restored after the sort completes.");
+            var selectedAfter = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual(selectedBefore.assetGuid, selectedAfter.assetGuid,
+                "Selection should follow the same template across a sort change, not stick to the old position.");
+        }
+
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Restored_After_Search_Is_Cleared()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Simple Loop");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+            var selectedBefore = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual("Simple Loop", selectedBefore.header);
+
+            // A search that filters out the selected template must not discard the selection.
+            m_SearchField.value = "*adbonly* zzz_no_such_template";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            m_SearchField.value = string.Empty;
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            var selectedAfter = (GraphViewTemplateDescriptor)treeView.selectedItem;
+            Assert.AreEqual(selectedBefore.assetGuid, selectedAfter.assetGuid,
+                "Selection should return to the chosen template once a search that filtered it out is cleared.");
+        }
+
+        [UnityTest, Description("Covers UUM-143043")]
+        public IEnumerator Selection_Is_Restored_After_Search_Showing_Other_Templates_Is_Cleared()
+        {
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+
+            var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == "Head & Trail");
+            treeView.SetSelectionById(target.id);
+            yield return null;
+
+            m_SearchField.value = "*adbonly* Simple";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            m_SearchField.value = string.Empty;
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem);
+            Assert.AreEqual("Head & Trail", ((GraphViewTemplateDescriptor)treeView.selectedItem).header,
+                "Selection should not move to the template that took its place in the filtered list.");
+        }
+
+        [UnityTest, Explicit("Soak test: run explicitly by name, not in regular suites")]
+        [Description("Cycles select -> filter -> clear to shake out selection/scroll timing issues")]
+        [Timeout(30 * 60 * 1000)]
+        public IEnumerator Soak_Filter_Selection_Cycle()
+        {
+            if (Environment.GetEnvironmentVariable("VFX_SOAK_TESTS") != "1")
+                Assert.Ignore("Set VFX_SOAK_TESTS=1 to run this soak test.");
+
+            const int k_Iterations = 1000;
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            var targets = new[] { "Head & Trail", "Empty VFX", "Simple Trail", "Firework" };
+
+            for (var i = 0; i < k_Iterations; i++)
+            {
+                var header = targets[i % targets.Length];
+                var target = m_TemplateTree.SelectMany(x => x.children).First(x => x.data.header == header);
+                treeView.SetSelectionById(target.id);
+                yield return null;
+
+                m_SearchField.value = "*adbonly* Simple";
+                simulate.FrameUpdate();
+                yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+                yield return null;
+
+                m_SearchField.value = string.Empty;
+                simulate.FrameUpdate();
+                yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+                yield return null;
+
+                Assert.IsInstanceOf<GraphViewTemplateDescriptor>(treeView.selectedItem,
+                    $"Iteration {i} ({header}): selection should be restored after the search is cleared.");
+                var restored = (GraphViewTemplateDescriptor)treeView.selectedItem;
+                Assert.AreEqual(header, restored.header,
+                    $"Iteration {i}: selection should return to the template selected before the search.");
+            }
+        }
+
+        [UnityTest, Description("Covers UUM-144963")]
+        public IEnumerator Search_Field_Keeps_Focus_On_Input()
+        {
+            m_SearchField.Focus();
+            yield return null;
+
+            m_SearchField.value = "*adbonly* S";
+            simulate.FrameUpdate();
+            yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(window);
+            yield return null;
+
+            var focused = window.rootVisualElement.focusController?.focusedElement as VisualElement;
+            Assert.IsTrue(focused != null && (focused == m_SearchField || m_SearchField.Contains(focused)),
+                "Search field should keep focus after typing yields results.");
+        }
+
+        [UnityTest, Description("Covers UUM-144972")]
+        public IEnumerator Template_Rows_Are_Not_Individually_Focusable()
+        {
+            yield return null;
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            var rows = treeView.Query<VisualElement>(className: "unity-tree-view__item").ToList();
+            Assert.IsNotEmpty(rows, "Expected realized tree rows to inspect.");
+
+            foreach (var row in rows)
+                Assert.IsFalse(row.focusable,
+                    "Template rows must not be individually focusable; keyboard focus and selection are owned by the tree.");
+        }
+
+        [Test, Description("Covers UUM-150861")]
+        public void Template_Row_Contents_Have_No_Tab_Stops()
+        {
+            simulate.FrameUpdate();
+
+            var treeView = GraphViewTemplateWindowHelpers.GetTreeView(window);
+            Assert.IsTrue(treeView.focusable, "The list view must stay focusable.");
+
+            var rows = treeView.Query<VisualElement>(className: "unity-tree-view__item").ToList();
+            Assert.IsNotEmpty(rows, "Expected realized tree rows to inspect.");
+
+            var stops = rows
+                .SelectMany(row => row.Query<VisualElement>().ToList())
+                .Where(element => element.focusable)
+                .Select(element => $"{element.GetType().Name}#{element.name}")
+                .ToList();
+            Assert.IsEmpty(stops, "No row content may be a Tab stop: " + string.Join(", ", stops));
+        }
+
+        [Test, Description("Covers UUM-143138")]
+        public void Creating_From_A_Deleted_Template_Warns_And_Does_Not_Error()
+        {
+            // Simulate a selection whose template asset no longer exists (e.g. deleted while the window was open).
+            var testAccess = new GraphViewTemplateWindow.TestAccess(window);
+            testAccess.SelectedTemplate = new GraphViewTemplateDescriptor { assetGuid = "00000000000000000000000000000000" };
+
+            LogAssert.Expect(LogType.Warning, new Regex("could not be found"));
+
+            testAccess.OnCreate();
+
+            // Creation is skipped (no loader errors, which the test framework would fail on) and the window stays open.
+            Assert.IsTrue(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+        }
+
         [Test, Description("Covers UUM-95871")]
         public void Check_Install_Learning_Sample_Button()
         {
@@ -298,21 +471,25 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        // Sign your package to re-enable this test. (UUM-144949)
         [UnityTest, Description("Covers UUM-121936")]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
             var installButton = window.rootVisualElement.Q<Button>("InstallButton");
             Assert.NotNull(installButton);
 
-            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Never);
             Assert.IsFalse(Directory.Exists(k_SampleExpectedPath), $"The directory {k_SampleExpectedPath} should not exist before installing the sample.");
             yield return ClickButton(window.rootVisualElement, "InstallButton");
 
             Assert.IsTrue(Directory.Exists(k_SampleExpectedPath), $"Fail to find: {k_SampleExpectedPath}");
             yield return null;
 
+            // The sample's shared "Common" dependencies must be imported alongside it.
+            var dependencyDirs = Directory.GetDirectories(k_SampleExpectedPath, "Common", SearchOption.AllDirectories);
+            Assert.IsNotEmpty(dependencyDirs, $"Expected sample dependency assets under {k_SampleExpectedPath} after install.");
+
             Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>()); //Install template doesn't trigger Close
-            m_templateHelperMock.Verify(x => x.RaiseImportSampleDependencies(It.IsAny<PackageManager.PackageInfo>(), It.IsAny<Sample>()), Times.Once);
 
             AssetDatabase.DeleteAsset(k_SampleExpectedPath);
         }

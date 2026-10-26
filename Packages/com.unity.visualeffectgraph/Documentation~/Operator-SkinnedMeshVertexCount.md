@@ -1,4 +1,4 @@
-# Get Skinned Mesh Vertex Count
+# Get Skinned Mesh Vertex Count Operator
 
 Menu Path: **Operator > Sampling > Get Skinned Mesh Vertex Count**
 

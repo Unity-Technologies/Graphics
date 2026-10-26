@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -89,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!m_Requests.TryGetValue(index, out var v))
                     {
-                        v = GenericPool<Set>.Get();
+                        v = UnityEngine.Pool.GenericPool<Set>.Get();
                         m_Requests.Add(index, v);
                     }
                     return v;
@@ -103,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var pair in m_Requests)
                 {
                     pair.Value.Clear();
-                    GenericPool<Set>.Release(pair.Value);
+                    UnityEngine.Pool.GenericPool<Set>.Release(pair.Value);
                 }
                 m_Requests.Clear();
             }
@@ -158,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!m_Requests.TryGetValue(index, out var v))
                     {
-                        v = GenericPool<Set>.Get();
+                        v = UnityEngine.Pool.GenericPool<Set>.Get();
                         m_Requests.Add(index, v);
                     }
                     return v;
@@ -172,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var pair in m_Requests)
                 {
                     pair.Value.Clear();
-                    GenericPool<Set>.Release(pair.Value);
+                    UnityEngine.Pool.GenericPool<Set>.Release(pair.Value);
                 }
                 m_Requests.Clear();
             }
@@ -211,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int m_Index;         // identifies decal within the set
         }
 
+        [NoAutoStaticsCleanup] // Owned by the surviving HDRenderPipeline; Initialize/Cleanup run only from pipeline construction/disposal.
         static DecalSystem s_Instance;
         public static DecalSystem instance => s_Instance ??= new DecalSystem();
 
@@ -1720,13 +1722,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateTransparentShaderGraphs()
         {
             m_ShaderGraphSaveRequested = true;
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance?.Cleanup();
-            s_Instance = null;
         }
 #endif
     }

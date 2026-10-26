@@ -60,16 +60,17 @@ namespace UnityEditor.VFX.UI
         protected void ValueDragFinished()
         {
             if (onValueDragFinished != null)
-                onValueDragFinished();
+                onValueDragFinished(m_ValueAtDragStart != value);
         }
 
         protected void ValueDragStarted()
         {
+            m_ValueAtDragStart = value;
             if (onValueDragStarted != null)
                 onValueDragStarted();
         }
 
-        public Action onValueDragFinished;
+        public Action<bool> onValueDragFinished;
         public Action onValueDragStarted;
 
         public VFXMinMaxSliderField()
@@ -107,6 +108,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public Vector2 m_Value;
+        Vector2 m_ValueAtDragStart;
 
         public Vector2 value
         {

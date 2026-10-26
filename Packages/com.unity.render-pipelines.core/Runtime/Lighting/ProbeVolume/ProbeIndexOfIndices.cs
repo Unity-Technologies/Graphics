@@ -5,15 +5,15 @@ namespace UnityEngine.Rendering
 {
     internal class ProbeGlobalIndirection
     {
-        const int kUintPerEntry = 3;
+        const int k_UintPerEntry = 3;
         internal int estimatedVMemCost { get; private set; }
 
         // IMPORTANT! IF THIS VALUE CHANGES DATA NEEDS TO BE REBAKED.
-        internal const int kEntryMaxSubdivLevel = 3;
+        internal const int k_EntryMaxSubdivLevel = 3;
 
         internal struct IndexMetaData
         {
-            static readonly uint[] s_PackedValues = new uint[kUintPerEntry];
+            static readonly uint[] s_PackedValues = new uint[k_UintPerEntry];
 
 #if UNITY_EDITOR
             [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
@@ -23,15 +23,15 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            internal Vector3Int minLocalIdx;
-            internal Vector3Int maxLocalIdxPlusOne;
-            internal int firstChunkIndex;
-            internal int minSubdiv;
+            internal Vector3Int m_MinLocalIdx;
+            internal Vector3Int m_MaxLocalIdxPlusOne;
+            internal int m_FirstChunkIndex;
+            internal int m_MinSubdiv;
 
             internal void Pack(out uint[] vals)
             {
                 vals = s_PackedValues;
-                for (int i = 0; i < kUintPerEntry; ++i)
+                for (int i = 0; i < k_UintPerEntry; ++i)
                 {
                     vals[i] = 0;
                 }
@@ -53,15 +53,15 @@ namespace UnityEngine.Rendering
                 //  sizeOfValid.y          10 bit
                 //  sizeOfValid.z          10 bit
 
-                // This is always less than CellSize(kEntryMaxSubdivLevel)+1 == 28. See GetEntrySubdivLevel()
-                var sizeOfValid = maxLocalIdxPlusOne - minLocalIdx;
+                // This is always less than CellSize(k_EntryMaxSubdivLevel)+1 == 28. See GetEntrySubdivLevel()
+                var sizeOfValid = m_MaxLocalIdxPlusOne - m_MinLocalIdx;
 
-                vals[0] = (uint)firstChunkIndex & 0x1FFFFFFF;
-                vals[0] |= ((uint)minSubdiv & 0x7) << 29;
+                vals[0] = (uint)m_FirstChunkIndex & 0x1FFFFFFF;
+                vals[0] |= ((uint)m_MinSubdiv & 0x7) << 29;
 
-                vals[1] = (uint)minLocalIdx.x & 0x3FF;
-                vals[1] |= ((uint)minLocalIdx.y & 0x3FF) << 10;
-                vals[1] |= ((uint)minLocalIdx.z & 0x3FF) << 20;
+                vals[1] = (uint)m_MinLocalIdx.x & 0x3FF;
+                vals[1] |= ((uint)m_MinLocalIdx.y & 0x3FF) << 10;
+                vals[1] |= ((uint)m_MinLocalIdx.z & 0x3FF) << 20;
 
                 vals[2] = (uint)sizeOfValid.x & 0x3FF;
                 vals[2] |= ((uint)sizeOfValid.y & 0x3FF) << 10;
@@ -70,9 +70,9 @@ namespace UnityEngine.Rendering
         }
 
         ComputeBuffer m_IndexOfIndicesBuffer;
-        uint[] m_IndexOfIndicesData;
+        readonly uint[] m_IndexOfIndicesData;
 
-        int m_CellSizeInMinBricks;
+        readonly int m_CellSizeInMinBricks;
 
         Vector3Int m_EntriesCount;
         Vector3Int m_EntryMin;
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering
         internal Vector3Int GetGlobalIndirectionDimension() => m_EntriesCount;
         internal Vector3Int GetGlobalIndirectionMinEntry() => m_EntryMin;
 
-        int entrySizeInBricks => Mathf.Min((int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, kEntryMaxSubdivLevel), m_CellSizeInMinBricks);
+        int entrySizeInBricks => Mathf.Min((int)Mathf.Pow(ProbeBrickPool.k_BrickCellCount, k_EntryMaxSubdivLevel), m_CellSizeInMinBricks);
         internal int entriesPerCellDimension => m_CellSizeInMinBricks / Mathf.Max(1, entrySizeInBricks);
 
         int GetFlatIndex(Vector3Int normalizedPos)
@@ -108,13 +108,12 @@ namespace UnityEngine.Rendering
             m_EntryMax = (cellMax + Vector3Int.one) * entriesPerCellDimension - Vector3Int.one;
 
             int flatEntryCount = m_EntriesCount.x * m_EntriesCount.y * m_EntriesCount.z;
-            int bufferSize = kUintPerEntry * flatEntryCount;
-            m_IndexOfIndicesBuffer = new ComputeBuffer(flatEntryCount, kUintPerEntry * sizeof(uint));
+            int bufferSize = k_UintPerEntry * flatEntryCount;
+            m_IndexOfIndicesBuffer = new ComputeBuffer(flatEntryCount, k_UintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];
             m_NeedUpdateComputeBuffer = false;
-            estimatedVMemCost = flatEntryCount * kUintPerEntry * sizeof(uint);
+            estimatedVMemCost = flatEntryCount * k_UintPerEntry * sizeof(uint);
         }
-
 
         internal int GetFlatIdxForEntry(Vector3Int entryPosition)
         {
@@ -154,17 +153,17 @@ namespace UnityEngine.Rendering
                 ProbeBrickIndex.IndirectionEntryUpdateInfo entryUpdateInfo = cellInfo.updateInfo.entriesInfo[entry];
 
                 int minSubdivCellSize = ProbeReferenceVolume.CellSize(entryUpdateInfo.minSubdivInCell);
-                IndexMetaData metaData = new IndexMetaData();
-                metaData.minSubdiv = entryUpdateInfo.minSubdivInCell;
-                metaData.minLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.zero : entryUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
-                metaData.maxLocalIdxPlusOne = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.one : entryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
-                metaData.firstChunkIndex = entryUpdateInfo.firstChunkIndex;
+                var metaData = new IndexMetaData();
+                metaData.m_MinSubdiv = entryUpdateInfo.minSubdivInCell;
+                metaData.m_MinLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.zero : entryUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
+                metaData.m_MaxLocalIdxPlusOne = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.one : entryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
+                metaData.m_FirstChunkIndex = entryUpdateInfo.firstChunkIndex;
 
                 metaData.Pack(out uint[] packedVals);
 
-                for (int i = 0; i < kUintPerEntry; ++i)
+                for (int i = 0; i < k_UintPerEntry; ++i)
                 {
-                    m_IndexOfIndicesData[entryIndex * kUintPerEntry + i] = packedVals[i];
+                    m_IndexOfIndicesData[entryIndex * k_UintPerEntry + i] = packedVals[i];
                 }
             }
 
@@ -175,14 +174,13 @@ namespace UnityEngine.Rendering
         {
             for (int entry = 0; entry < entriesFlatIndices.Length; ++entry)
             {
-                for (int i = 0; i < kUintPerEntry; ++i)
+                for (int i = 0; i < k_UintPerEntry; ++i)
                 {
-                    m_IndexOfIndicesData[entriesFlatIndices[entry] * kUintPerEntry + i] = 0xFFFFFFFF;
+                    m_IndexOfIndicesData[entriesFlatIndices[entry] * k_UintPerEntry + i] = 0xFFFFFFFF;
                 }
             }
             m_NeedUpdateComputeBuffer = true;
         }
-
 
         internal void PushComputeData()
         {

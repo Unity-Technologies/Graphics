@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Sorting Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Sorting Inputs", null, null, null);
             public static GUIContent meshDecalBiasType = new GUIContent("Mesh Decal Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
             public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
             public static GUIContent meshDecalViewBiasText = new GUIContent("Mesh Decal View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");

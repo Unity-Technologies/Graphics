@@ -1,4 +1,5 @@
 using System;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4 m_ShadowChannelMask2 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
         // Screen space shadow material
+        [NoAutoStaticsCleanup] // Pipeline-lifetime: created by InitializeScreenSpaceShadows, destroyed by ReleaseScreenSpaceShadows.
         static Material s_ScreenSpaceShadowsMat;
 
         // This buffer holds the unfiltered, accumulated, shadow values, it is accessed with the same index as the one used at runtime (aka screen space shadow slot)

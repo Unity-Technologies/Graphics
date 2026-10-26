@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             var result = new List<AbstractShaderGraphDataExtension>();
             foreach (var type in TypeCache.GetTypesDerivedFrom(typeof(AbstractShaderGraphDataExtension)))
             {
-                if (type.IsGenericType || type == typeof(MultiJsonInternal.UnknownGraphDataExtension))
+                if (type.IsGenericType || type == typeof(MultiJsonInternal.UnknownGraphDataExtension) || type == typeof(ShaderInterfaceGraphData))
                     continue;
 
                 var subData = (AbstractShaderGraphDataExtension)Activator.CreateInstance(type);

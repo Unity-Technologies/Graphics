@@ -1,4 +1,4 @@
-# Inverse Lerp
+# Inverse Lerp Operator
 
 Menu Path : **Operator > Math > Arithmetic > Inverse Lerp**
 

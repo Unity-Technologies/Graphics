@@ -18,8 +18,8 @@ using UnityEditorInternal;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [MockHmdSetup(99)]
-    [AssetBundleSetup]
+    [MockHmdSetup]
+    [PrebuildSetup(typeof(AssetBundleSetupAttribute))]
     public class VFXCheckGarbage
     {
         public static readonly string[] s_CustomGarbageWrapperTest = new[] { "Reference_Forcing_Garbage_Creation", "Basic_Usage" };

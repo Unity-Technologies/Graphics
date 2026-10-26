@@ -124,6 +124,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal void Release<T>(T value) where T : class, new()
         {
+            if (value is IRenderGraphPassData resettable)
+                resettable.Reset();
+
             SharedObjectPool<T>.Release(value);
         }
 

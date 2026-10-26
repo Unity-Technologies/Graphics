@@ -182,8 +182,8 @@ namespace UnityEditor.Rendering.LookDev
             string cameraSpeedDisplayValue = flySpeed.ToString(flySpeed < 0.1f ? "F2" : flySpeed < 10f ? "F1" : "F0");
             if (flySpeed < 0.1f)
                 cameraSpeedDisplayValue = cameraSpeedDisplayValue.TrimStart(new Char[] { '0' });
-            GUIContent cameraSpeedContent = EditorGUIUtility.TrTempContent(
-                $"{cameraSpeedDisplayValue}x");
+            GUIContent cameraSpeedContent = L10n.TempContent(
+                $"{cameraSpeedDisplayValue}x", null);
             m_Window.ShowNotification(cameraSpeedContent, .5f);
             evt.StopPropagation();
         }

@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering
                     var toggleHeader = container.Q<Toggle>().ElementAt(0);
                     if (!string.IsNullOrEmpty(documentationUrl))
                     {
-                        var infoButton = new UIElements.Button((Background.FromTexture2D((Texture2D)EditorGUIUtility.TrIconContent("_Help").image )),() => Help.BrowseURL(documentationUrl));
+                        var infoButton = new UIElements.Button((Background.FromTexture2D((Texture2D)L10n.IconContent("_Help", null, null).image )),() => Help.BrowseURL(documentationUrl));
                         infoButton.AddToClassList("info-button");
                         infoButton.tooltip = $"Open Reference for {displayName}.";
                         toggleHeader.Add(infoButton);
@@ -439,7 +439,7 @@ namespace UnityEngine.Rendering
                             string tooltip = m_ColumnTooltips[i] ?? string.Empty;
                             m_RowContents.Add(
 #if UNITY_EDITOR
-                            EditorGUIUtility.TrTextContent(label, tooltip)
+                            L10n.TextContent(label, tooltip, null, null)
 #else
                             new GUIContent(label, tooltip)
 #endif
@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering
                 var container = new UIElements.VisualElement();
                 container.AddToClassList("debug-window-table");
 
-                using (ListPool<string>.Get(out var tmp))
+                using (UnityEngine.Pool.ListPool<string>.Get(out var tmp))
                 {
                     if (children.Count != 0 && children[0] is Row row)
                     {

@@ -22,3 +22,7 @@ void Unity_Step_float4(float4 Edge, float4 In, out float4 Out)
     Out = step(Edge, In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

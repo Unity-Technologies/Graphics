@@ -11,8 +11,19 @@ namespace UnityEngine.Rendering.Universal
         ForwardLights m_ForwardLights;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        ExposurePass m_ExposurePass;
 
         private RTHandle m_TargetColorHandle, m_TargetDepthHandle;
+
+        // Owns the 3D group only, the base vars come from the default path (SetupRenderGraphDefaultCameraProperties).
+        // A custom renderer using ForwardLights and the shadow passes fills and pushes the 3D vars itself, otherwise
+        // the main light, its cookie and the shadow globals stay at zero. Dirty flags keep the push to what was filled.
+        GlobalShaderVariablesUploader m_GlobalShaderVarsUploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Only3D);
+
+        private class PushGlobalShaderVarsPassData
+        {
+            internal GlobalShaderVariablesUploader uploader;
+        }
 
         public CustomRenderer(CustomRenderGraphData data) : base(data)
         {
@@ -24,11 +35,14 @@ namespace UnityEngine.Rendering.Universal
 
             m_TargetColorHandle = null;
             m_TargetDepthHandle = null;
+
+            m_ExposurePass = new ExposurePass();
         }
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+            m_ForwardLights.Cleanup();
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
 
@@ -44,8 +58,46 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupRenderGraphLights(renderGraph, renderingData ,cameraData, lightData);
         }
 
+        // Must run once both shadow passes are set up, so their per-frame state is final.
+        private void UpdateGlobalShaderVariables()
+        {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            // Nothing filled this uploader before this point, so the whole fill window lives in this method.
+            m_GlobalShaderVarsUploader.BeginFill();
+
+            m_ForwardLights.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, cameraData, lightData);
+
+            m_MainLightShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, lightData, shadowData);
+            m_AdditionalLightsShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, shadowData.supportsSoftShadows);
+
+            // Nothing fills the uploader after this point, freeze the staged state as the defaults of this camera.
+            m_GlobalShaderVarsUploader.EndFill();
+        }
+
+        // Recorded after SetupRenderGraphDefaultCameraProperties, which pushes the base variables and lets
+        // cmd.SetupCameraProperties overwrite part of the global state.
+        private void PushGlobalShaderVariables(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddUnsafePass<PushGlobalShaderVarsPassData>("Push Global Shader Variables", out var passData))
+            {
+                passData.uploader = m_GlobalShaderVarsUploader;
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (PushGlobalShaderVarsPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    data.uploader.PushDefaultToGlobal(rgContext.cmd);
+                });
+            }
+        }
+
         public override void OnBeginRenderGraphFrame()
         {
+            base.OnBeginRenderGraphFrame();
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
         }
@@ -56,23 +108,57 @@ namespace UnityEngine.Rendering.Universal
             resourceData.EndFrame();
         }
 
+        private class InitShadowGlobalsPassData
+        {
+            internal MainLightShadowCasterPass mainLightShadowCasterPass;
+            internal AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass;
+        };
+
+        internal override void InitRenderGraphFrame(RenderGraph renderGraph)
+        {
+            base.InitRenderGraphFrame(renderGraph);
+
+            // The shadow passes record nothing in empty mode, so the default shadowmaps and the empty keywords/params
+            // have to be published here instead. Runs after the pass in base.InitRenderGraphFrame, which resets the shadow keywords.
+            using (var builder = renderGraph.AddUnsafePass<InitShadowGlobalsPassData>("Init Shadow Globals", out var passData))
+            {
+                passData.mainLightShadowCasterPass = m_MainLightShadowCasterPass;
+                passData.additionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPass;
+
+                builder.AllowGlobalStateModification(true);
+
+                TextureHandle defaultShadowTexture = renderGraph.defaultResources.defaultShadowTexture;
+                MainLightShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
+                AdditionalLightsShadowCasterPass.SetDefaultShadowmapGlobalTexture(builder, defaultShadowTexture);
+
+                builder.SetRenderFunc(static (InitShadowGlobalsPassData data, UnsafeGraphContext rgContext) =>
+                {
+                    data.mainLightShadowCasterPass.ApplyEmptyShadowmapGlobals(rgContext.cmd);
+                    data.additionalLightsShadowCasterPass.ApplyEmptyShadowmapGlobals(rgContext.cmd);
+                });
+            }
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+            var resourceData = frameData.Get<UniversalResourceData>();
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
             SetupRenderGraphLights(renderGraph);
 
-            TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
-            TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
+            m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData);
+            m_MainLightShadowCasterPass.RecordRenderGraph(renderGraph, frameData);
+            TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
 
-            if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
-                mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
-            if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
-                additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
+            m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData);
+            m_AdditionalLightsShadowCasterPass.RecordRenderGraph(renderGraph, frameData);
+            TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;
+
+            UpdateGlobalShaderVariables();
 
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;
@@ -124,7 +210,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-
             ImportResourceParams importBackbufferParams = new ImportResourceParams();
             importBackbufferParams.clearOnFirstUse = true;
             importBackbufferParams.clearColor = cameraData.backgroundColor;
@@ -133,7 +218,10 @@ namespace UnityEngine.Rendering.Universal
             var targetHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferParams);
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
-            SetupRenderGraphCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
+            SetupRenderGraphDefaultCameraProperties(renderGraph, targetHandle.IsValid() ? targetHandle : depthHandle);
+            PushGlobalShaderVariables(renderGraph);
+
+            m_ExposurePass.RecordRenderGraph(renderGraph, frameData);
 
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }

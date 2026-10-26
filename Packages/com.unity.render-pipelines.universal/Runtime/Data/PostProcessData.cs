@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="Shader"/>
     /// <seealso cref="Texture"/>
     [Serializable]
-    [URPHelpURL("integration-with-post-processing")]
+    [URPHelpURL("urp/integration-with-post-processing")]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR

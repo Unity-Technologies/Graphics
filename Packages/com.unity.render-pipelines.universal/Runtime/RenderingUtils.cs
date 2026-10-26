@@ -84,21 +84,27 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Must be kept in sync with API_PREFERS_UBO_OVER_SSBO in the platform API shader includes
         internal static bool useStructuredBuffer
         {
-            // There are some performance issues with StructuredBuffers in some platforms.
-            // We fallback to UBO in those cases.
             get
             {
-                // TODO: For now disabling SSBO until figure out Vulkan binding issues.
-                // When enabling this also enable USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA in shader side in Input.hlsl
-                return false;
+                // - On WebGL and GL older than 4.3, SSBOs are not supported
+                // - On GLES3 and Switch, SSBOs can be slower than UBOs/ConstantBuffers even when the data access is non-uniform across the warps
+                var type = SystemInfo.graphicsDeviceType;
+                return type != GraphicsDeviceType.OpenGLES3 && type != GraphicsDeviceType.OpenGLCore && type != GraphicsDeviceType.Switch;
+            }
+        }
 
-                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
-                //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
-                //return !Application.isMobilePlatform &&
-                //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
-                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.PlayStation5 || deviceType == GraphicsDeviceType.XboxOne);
+        // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
+        internal static bool usePersistentConstantBuffer
+        {
+            get
+            {
+                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see LIGHT_SHADOWS_NO_CBUFFER) due to Adreno perf issues with large CBs
+                // - On WebGL, CBs remains temporarily transient due to a graphics buffer bug
+                // - Everywhere else we use the persistent CB path for optimal performance at shader setup on native engine side.
+                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3;
             }
         }
 
@@ -113,18 +119,26 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="requirements">The pass input requirements.</param>
         /// <param name="renderPassEvent">The event at which the pass runs. When only Depth (or Motion) is requested without Normal, a pass before or at BeforeRenderingOpaques gets a prepass instead of a depth copy, so it remains compatible.</param>
+        /// <param name="usesDeferredLighting">True when the renderer actually runs the Deferred (or Deferred+) path this frame (UniversalRenderer.usesDeferredLighting, not the requested mode).</param>
         /// <remarks>
         /// This method mirrors how the render pipeline fulfills pass input requirements. Keep it in sync with pipeline behavior:
         /// <list type="bullet">
         /// <item><b>Color:</b> The pipeline adds a copy color pass and exposes the result as a global texture. That store/load cannot stay on tile and triggers Tile-Only validation.</item>
         /// <item><b>Depth without Normal:</b> The pipeline fulfills depth-only by adding a depth copy pass when the pass runs after opaque. When the pass runs at or before BeforeRenderingOpaques, the pipeline adds a prepass instead, which is compatible.</item>
         /// <item><b>Motion without Normal:</b> Motion implies depth; same as Depth without Normal with respect to prepass vs copy and renderPassEvent.</item>
+        /// <item><b>Deferred:</b> The prepass always renders into the camera depth attachment (so the GBuffer pass can reuse it), never directly into the camera depth texture.
+        /// Any Depth, Normal or Motion requirement therefore results in a depth copy that samples the on-tile depth attachment, which triggers Tile-Only validation.</item>
         /// </list>
         /// When adding or changing requirements or pipeline behavior, update this method and the corresponding editor validation (e.g. FullScreenPassRendererFeatureEditor) so they stay consistent.
         /// </remarks>
-        internal static bool IsCompatibleWithTileOnlyMode(ScriptableRenderPassInput requirements, RenderPassEvent renderPassEvent)
+        internal static bool IsCompatibleWithTileOnlyMode(ScriptableRenderPassInput requirements, RenderPassEvent renderPassEvent, bool usesDeferredLighting)
         {
             if ((requirements & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None)
+                return false;
+            // Deferred: the camera depth texture can only be produced by copying the depth attachment (see UniversalRenderer CalculateDepthCopySchedules),
+            // regardless of renderPassEvent or whether Normal is requested.
+            const ScriptableRenderPassInput k_DepthDependentInputs = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal | ScriptableRenderPassInput.Motion;
+            if (usesDeferredLighting && (requirements & k_DepthDependentInputs) != ScriptableRenderPassInput.None)
                 return false;
             // Depth without Normal: pipeline uses a depth copy when the pass runs after opaque; when pass is before or at opaque, pipeline adds a prepass instead (compatible).
             if ((requirements & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None && (requirements & ScriptableRenderPassInput.Normal) == ScriptableRenderPassInput.None
@@ -208,12 +222,33 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
-        internal static void SetupOffscreenUIViewportParams(Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
+        // Returns the size of the backbuffer the camera renders to, in pixels.
+        internal static Vector2Int GetScreenBackbufferSize(Camera camera)
+        {
+            // Screen.width/height only ever describe the main display, so cameras targeting a secondary
+            // display need to query that display instead.
+            //
+            // UUM-149562: on QNX and Embedded Linux the graphics backend still reports the main display's
+            // resolution for the backbuffer of a secondary display. Returning the secondary display's real
+            // resolution here would no longer match what the backend reports, the render pass would fail
+            // validation and the secondary display would stop rendering altogether. Falling back to the main
+            // display size keeps those platforms rendering as usual. Remove the platform exclusions
+            // above once the backend reports per-display backbuffer dimensions.
+#if ENABLE_MULTIPLE_DISPLAYS && !UNITY_QNX && !UNITY_EMBEDDED_LINUX
+            int targetDisplay = camera.targetDisplay;
+            var displays = Display.displays;
+            if (targetDisplay > 0 && targetDisplay < displays.Length)
+                return new Vector2Int(displays[targetDisplay].renderingWidth, displays[targetDisplay].renderingHeight);
+#endif
+            return new Vector2Int(Screen.width, Screen.height);
+        }
+
+        internal static void SetupOffscreenUIViewportParams(UniversalCameraData cameraData, Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
         {
             Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
             if (isRenderToBackBufferTarget)
             {
-                var rcpScreenSize = new Vector2(1f / Screen.width, 1f / Screen.height);
+                var rcpScreenSize = new Vector2(1f / cameraData.backbufferWidth, 1f / cameraData.backbufferHeight);
                 offscreenUIViewportParams = new Vector4(pixelRect.x * rcpScreenSize.x, pixelRect.y * rcpScreenSize.y, pixelRect.width * rcpScreenSize.x, pixelRect.height * rcpScreenSize.y);
             }
             material.SetVector(ShaderPropertyId.offscreenUIViewportParams, offscreenUIViewportParams);
@@ -757,6 +792,11 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
         {
             Camera camera = cameraData.camera;
+            CullingSplitMask mask = CullingSplitMask.DrawAll;
+
+            if (cameraData.xr.enabled)
+                mask = cameraData.xr.isQuadViewInnerPass ? CullingSplitMask.DrawSplitOnly : CullingSplitMask.DrawCullingOnly;
+
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
@@ -767,6 +807,8 @@ namespace UnityEngine.Rendering.Universal
                 enableInstancing = camera.cameraType != CameraType.Preview,
                 // stencil-based LOD doesn't support native render pass for now.
                 lodCrossFadeStencilMask = renderingData.stencilLodCrossFadeEnabled ? (int)UniversalRendererStencilRef.CrossFadeStencilRef_All : 0,
+
+                splitMask = mask
             };
             return settings;
         }
@@ -828,23 +870,6 @@ namespace UnityEngine.Rendering.Universal
             return renderGraphContext.GetTextureUVOrigin(textureHandle) == TextureUVOrigin.BottomLeft;
         }
 
-#if URP_COMPATIBILITY_MODE
-        /// <summary>
-        /// Returns the scale bias vector to use for final blits to the backbuffer, based on scaling mode and y-flip platform requirements.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="cameraData"></param>
-        /// <returns></returns>
-        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData)
-        {
-            Vector2 scale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
-            Vector4 scaleBias = !yflip ? new Vector4(scale.x, -scale.y, 0, scale.y) : new Vector4(scale.x, scale.y, 0, 0);
-
-            return scaleBias;
-        }
-#endif
         internal static Vector4 GetFinalBlitScaleBias(in RasterGraphContext renderGraphContext, in TextureHandle source, in TextureHandle destination)
         {
             RTHandle srcRTHandle = source;
@@ -931,12 +956,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="textureUVOrigin">The UV origin of the texture (typically from GetTextureUVOrigin)</param>
         /// <param name="cameraData">Camera data containing view and projection matrices</param>
+        /// <param name="eyeIndex">Eye index used in XR rendering</param>
         /// <returns>The inverse view-projection matrix matching the texture orientation</returns>
-        internal static Matrix4x4 ComputeInverseViewProjectionMatrix(TextureUVOrigin textureUVOrigin, UniversalCameraData cameraData)
+        internal static Matrix4x4 ComputeInverseViewProjectionMatrix(TextureUVOrigin textureUVOrigin, UniversalCameraData cameraData, int eyeIndex = 0)
         {
             bool isFlipped = (textureUVOrigin == TextureUVOrigin.BottomLeft);
-            Matrix4x4 projection = cameraData.GetGPUProjectionMatrix(isFlipped);
-            Matrix4x4 view = cameraData.GetViewMatrix();
+            Matrix4x4 projection = cameraData.GetGPUProjectionMatrix(isFlipped, eyeIndex);
+            Matrix4x4 view = cameraData.GetViewMatrix(eyeIndex);
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projection, view, cameraData.camera.orthographic);
             return Matrix4x4.Inverse(viewProj);
         }

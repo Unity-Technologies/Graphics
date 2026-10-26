@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
+            public static GUIContent header { get; } = L10n.TextContent("Surface Inputs", null, null, null);
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
             public static GUIContent alphaRemappingText = new GUIContent("Alpha Remapping", "Controls a remap for the alpha channel in the Base Color.");

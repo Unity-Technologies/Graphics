@@ -58,35 +58,39 @@ bool GetExpandedSample(uint dispatchIndex, out uint localSampleOffset, out uint2
     instanceTexelPos = 0;
     if (localSampleOffset >= (uint)g_MaxLocalSampleCount)
         return false; // no more samples to process
-
-    const uint compactedTexelIndex = dispatchIndex / g_ExpandedTexelSampleWidth;
-    const uint texelIndex = g_CompactedGBuffer[compactedTexelIndex];
-    const uint linearChunkOffset = g_ChunkOffsetY * g_InstanceWidth + g_ChunkOffsetX;
-    const uint linearTexelIndex = texelIndex + linearChunkOffset;
-    instanceTexelPos = uint2(linearTexelIndex % g_InstanceWidth, linearTexelIndex / g_InstanceWidth);
+    else
+    {
+        const uint compactedTexelIndex = dispatchIndex / g_ExpandedTexelSampleWidth;
+        const uint texelIndex = g_CompactedGBuffer[compactedTexelIndex];
+        const uint linearChunkOffset = g_ChunkOffsetY * g_InstanceWidth + g_ChunkOffsetX;
+        const uint linearTexelIndex = texelIndex + linearChunkOffset;
+        instanceTexelPos = uint2(linearTexelIndex % g_InstanceWidth, linearTexelIndex / g_InstanceWidth);
 
 #ifdef TERRAIN_RAY_MARCHING_ENABLED
-    if (g_InstanceGeometryIndex == -1)
-    {
-        float2 uv;
-        return GetExpandedSampleTerrain(dispatchIndex, worldPosition, worldNormal, worldFaceNormal, uv);
-    }
+        if (g_InstanceGeometryIndex == -1)
+        {
+            float2 uv;
+            return GetExpandedSampleTerrain(dispatchIndex, worldPosition, worldNormal, worldFaceNormal, uv);
+        }
 #endif
 
-    if (!g_GBuffer[dispatchIndex].IsValid())
-        return false; // no intersection found, skip this sample
+        if (!g_GBuffer[dispatchIndex].IsValid())
+            return false; // no intersection found, skip this sample
+        else
+        {
+            UnifiedRT::Hit hit;
+            hit.instanceID = g_GBuffer[dispatchIndex].instanceID;
+            hit.primitiveIndex = g_GBuffer[dispatchIndex].primitiveIndex;
+            hit.uvBarycentrics = g_GBuffer[dispatchIndex].barycentrics;
 
-    UnifiedRT::Hit hit;
-    hit.instanceID = g_GBuffer[dispatchIndex].instanceID;
-    hit.primitiveIndex = g_GBuffer[dispatchIndex].primitiveIndex;
-    hit.uvBarycentrics = g_GBuffer[dispatchIndex].barycentrics;
+            FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal);
 
-    FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal);
-
-    worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
-    worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
-    worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
-    return true;
+            worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
+            worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
+            worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
+            return true;
+        }
+    }
 }
 
 bool GetExpandedSample(uint dispatchIndex, inout float3 worldPosition, inout float3 worldNormal, inout float3 worldFaceNormal, inout float2 uv1)
@@ -98,18 +102,20 @@ bool GetExpandedSample(uint dispatchIndex, inout float3 worldPosition, inout flo
 
     if (!g_GBuffer[dispatchIndex].IsValid())
         return false; // no intersection found, skip this sample
+    else
+    {
+        UnifiedRT::Hit hit;
+        hit.instanceID = g_GBuffer[dispatchIndex].instanceID;
+        hit.primitiveIndex = g_GBuffer[dispatchIndex].primitiveIndex;
+        hit.uvBarycentrics = g_GBuffer[dispatchIndex].barycentrics;
 
-    UnifiedRT::Hit hit;
-    hit.instanceID = g_GBuffer[dispatchIndex].instanceID;
-    hit.primitiveIndex = g_GBuffer[dispatchIndex].primitiveIndex;
-    hit.uvBarycentrics = g_GBuffer[dispatchIndex].barycentrics;
+        FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal, uv1);
 
-    FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal, uv1);
-
-    worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
-    worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
-    worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
-    return true;
+        worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
+        worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
+        worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
+        return true;
+    }
 }
 
 #endif

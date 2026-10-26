@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 new(BuildTarget.Switch)
             },
             MessageFormat = "URP: HDR is enabled in {0}.asset in {1}",
-            DefaultSeverity = Severity.Warning,
             Fixer = FixHDR
         };
 
@@ -39,18 +38,18 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
                 yield return new RenderingSettingsIssue(URP0004, assetName: urpAsset.name);
             }
 
-            using (UnityEngine.Pool.ListPool<(int level, string name)>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<(int level, string assetName)>.Get(out var tmp))
             {
                 QualitySettings.ForEach((level, name) =>
                 {
                     if (QualitySettings.renderPipeline is UniversalRenderPipelineAsset qualityUrpAsset && qualityUrpAsset.supportsHDR)
                     {
-                        tmp.Add((level, name));
+                        tmp.Add((level, qualityUrpAsset.name));
                     }
                 });
 
-                foreach (var (level, name) in tmp)
-                    yield return new RenderingSettingsIssue(URP0004, level, name);
+                foreach (var (level, assetName) in tmp)
+                    yield return new RenderingSettingsIssue(URP0004, level, assetName);
             }
         }
 

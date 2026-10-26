@@ -72,14 +72,14 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
-            public static readonly GUIContent k_OverrideSettingText = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
+            public static readonly GUIContent k_OverrideSettingText = L10n.TextContent("", "Override this setting for this volume.", null, null);
 
             public static readonly GUIContent k_AllText =
-                EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
+                L10n.TextContent("ALL", "Enable all overrides. To maximize performance, only enable the overrides you need.", null, null);
 
-            public static readonly GUIContent k_NoneText = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
+            public static readonly GUIContent k_NoneText = L10n.TextContent("NONE", "Disable all overrides.", null, null);
 
-            public static string toggleAllText { get; } = L10n.Tr("Toggle All");
+            public static string changeAllOverridesUndoText { get; } = L10n.Tr("Change All Overrides", null);
 
             public const int overrideCheckboxWidth = 14;
             public const int overrideCheckboxOffset = 9;
@@ -297,9 +297,18 @@ namespace UnityEditor.Rendering
             VolumeComponent.FindParameters(target, m_VolumeNotAdditionalParameters, field => field.GetCustomAttribute<AdditionalPropertyAttribute>() == null);
         }
 
-        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop = null)
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos)
         {
-            if (o == null)
+            var visited = new HashSet<object>(VolumeComponent.ReferenceComparer.instance);
+            GetFields(o, infos, null, visited);
+        }
+
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop, HashSet<object> visited)
+        {
+            // There is a recursive call below. The visited set holds the objects on the current recursion path only, so an
+            // early return here prevents an infinite loop, while an object reachable through several fields is still
+            // visited once per field (each field has its own serialized property).
+            if (o == null || !visited.Add(o))
                 return;
 
             var fields = o.GetType()
@@ -314,9 +323,13 @@ namespace UnityEditor.Rendering
                          (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
                         infos.Add((field, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
                 }
-                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
-                    GetFields(field.GetValue(o), infos, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
+                else if (VolumeComponent.ShouldSearchForNestedParameters(field.FieldType))
+                {
+                    GetFields(field.GetValue(o), infos, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name), visited);
+                }
             }
+
+            visited.Remove(o);
         }
 
         /// <summary>
@@ -347,7 +360,7 @@ namespace UnityEditor.Rendering
                     }
 
                     var parameter = new SerializedDataParameter(t.Item2);
-                    return (EditorGUIUtility.TrTextContent(name), order, parameter);
+                    return (L10n.TextContent(name, null, null, null), order, parameter);
                 })
                 .OrderBy(t => t.order)
                 .ToList();
@@ -375,9 +388,9 @@ namespace UnityEditor.Rendering
                 defaultProfile != profile)
             {
                 menu.AddSeparator(string.Empty);
-                menu.AddItem(EditorGUIUtility.TrTextContent($"Show Default Volume Profile"), false,
+                menu.AddItem(L10n.TextContent($"Show Default Volume Profile", null, null, null), false,
                     () => Selection.activeObject = defaultProfile);
-                menu.AddItem(EditorGUIUtility.TrTextContent($"Apply Values to Default Volume Profile"), false, copyAction);
+                menu.AddItem(L10n.TextContent($"Apply Values to Default Volume Profile", null, null, null), false, copyAction);
             }
         }
 
@@ -441,14 +454,14 @@ namespace UnityEditor.Rendering
             var volumeComponentType = volumeComponent.GetType();
             var displayInfo = volumeComponentType.GetCustomAttribute<DisplayInfoAttribute>();
             if (displayInfo != null && !string.IsNullOrWhiteSpace(displayInfo.name))
-                return m_DisplayTitle = EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
+                return m_DisplayTitle = L10n.TextContent(displayInfo.name, string.Empty, null, null);
 
             #pragma warning disable CS0618
             if (!string.IsNullOrWhiteSpace(volumeComponent.displayName))
-                return m_DisplayTitle = EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
+                return m_DisplayTitle = L10n.TextContent(volumeComponent.displayName, string.Empty, null, null);
             #pragma warning restore CS0618
 
-            return m_DisplayTitle = EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name), string.Empty);
+            return m_DisplayTitle = L10n.TextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name), string.Empty, null, null);
         }
 
         void AddToggleState(GUIContent content, bool state)
@@ -495,7 +508,7 @@ namespace UnityEditor.Rendering
                 SetAllOverridesTo(state);
             else
             {
-                Undo.RecordObject(target, Styles.toggleAllText);
+                Undo.RecordObject(target, Styles.changeAllOverridesUndoText);
                 volumeComponent.SetOverridesTo(m_VolumeNotAdditionalParameters, state);
                 serializedObject.Update();
             }
@@ -514,7 +527,7 @@ namespace UnityEditor.Rendering
 
         internal void SetAllOverridesTo(bool state)
         {
-            Undo.RecordObject(target, Styles.toggleAllText);
+            Undo.RecordObject(target, Styles.changeAllOverridesUndoText);
             volumeComponent.SetAllOverridesTo(state);
             serializedObject.Update();
         }
@@ -539,8 +552,8 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip); // avoid property from getting the tooltip of another one with the same name
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null); // avoid property from getting the tooltip of another one with the same name
             return PropertyField(property, title);
         }
 
@@ -554,7 +567,7 @@ namespace UnityEditor.Rendering
         {
             if (!s_HeadersGuiContents.TryGetValue(header, out GUIContent content))
             {
-                content = EditorGUIUtility.TrTextContent(header);
+                content = L10n.TextContent(header, null, null, null);
                 s_HeadersGuiContents.Add(header, content);
             }
 
@@ -707,8 +720,8 @@ namespace UnityEditor.Rendering
         /// <param name="property">The color property</param>
         protected void ColorFieldLinear(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = L10n.TextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip, null, null);
 
             using (var scope = new OverridablePropertyScope(property, title, this))
             {
@@ -814,7 +827,7 @@ namespace UnityEditor.Rendering
                 drawer = null;
                 displayed = false;
                 isAdditionalProperty = false;
-                this.label = EditorGUIUtility.TrTextContent(label);
+                this.label = L10n.TextContent(label, null, null, null);
                 this.editor = editor;
 
                 Init(property, this.label, editor);

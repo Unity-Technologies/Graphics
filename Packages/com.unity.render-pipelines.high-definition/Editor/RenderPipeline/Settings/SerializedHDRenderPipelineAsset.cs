@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             virtualTexturingSettings = new SerializedVirtualTexturingSettings(serializedObject.FindProperty("virtualTexturingSettings"));
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // HDRenderPipelineAsset/RenderPipelineSettings/GlobalDynamicResolutionScaling struct contains the
             // UpscalerOptions collection (polymorphic data) tagged with [SerializeReference].
             // Here we ensure the ScriptableObject references (concrete UpscalerOptions) are in a valid state,
@@ -48,14 +47,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 UnityEngine.Debug.LogError($"[HDRP Serialized Asset] Could not find 'UpscalerOptions' property in DynamicResolutionSettings for {asset.name}.");
                 return;
             }
-            if (UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, UpscalerOptionBaseProp))
+            var advancedUpscalers = asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+            if (UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, UpscalerOptionBaseProp, advancedUpscalers))
             {
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(asset);
 
                 UnityEngine.Debug.Log($"[HDRP Serialized Asset] HDRenderPipelineAsset '{asset.name}' auto-populated and saved on SerializedObject creation.");
             }
-#endif
         }
 
         public void Update()

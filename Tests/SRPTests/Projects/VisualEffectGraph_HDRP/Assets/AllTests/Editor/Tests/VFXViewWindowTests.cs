@@ -1,9 +1,11 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
 
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.UIElements;
 using UnityEditor.UIElements.TestFramework;
 using UnityEditor.VFX.UI;
 using UnityEngine;
@@ -41,7 +43,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsEditor })] // Unstable: https://jira.unity3d.com/browse/UUM-140366
         public IEnumerator Create_New_ShaderGraph_Output_Context()
         {
             const int kTemplateWindowTimeoutInMs = 5000;
@@ -74,12 +75,40 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(isTemplateWindowOpen, $"Template window did not open within {sw.ElapsedMilliseconds} ms after clicking the New Button.");
 
             var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
-            yield return GraphViewTemplateWindowHelpers.WaitUntilTemplatesAreCollected(templateWindow);
+
+            // The search index may still be building; re-run until all expected templates are collected.
+            const int kExpectedTemplateCount = 3;
+            const int kCollectTimeoutInMs = 30000;
+            var searchField = templateWindow.rootVisualElement.Q<ToolbarSearchField>();
+            var collectSw = System.Diagnostics.Stopwatch.StartNew();
+            List<TreeViewItemData<ITemplateDescriptor>> templateTree;
+            int childCount;
+            do
+            {
+                // Waits for the search to finish without asserting on the count, so we can re-run.
+                yield return GraphViewTemplateWindowHelpers.WaitTemplateSearchCompleted(templateWindow);
+                templateTree = GraphViewTemplateWindowHelpers.GetTemplateTree(templateWindow);
+                childCount = templateTree.Count > 0 ? templateTree[0].children.Count() : 0;
+                if (childCount >= kExpectedTemplateCount)
+                    break;
+
+                // Re-run the search against the now more-complete index.
+                if (searchField != null)
+                {
+                    searchField.value = " ";
+                    simulate.FrameUpdate();
+                    searchField.value = string.Empty;
+                    simulate.FrameUpdate();
+                }
+                yield return null;
+            }
+            while (collectSw.ElapsedMilliseconds < kCollectTimeoutInMs);
+            collectSw.Stop();
             simulate.FrameUpdate();
 
-            var templateTree = GraphViewTemplateWindowHelpers.GetTemplateTree(templateWindow);
             Assert.AreEqual(1, templateTree.Count);
-            Assert.AreEqual(3, templateTree[0].children.Count());
+            Assert.AreEqual(kExpectedTemplateCount, childCount,
+                $"Expected {kExpectedTemplateCount} templates but found {childCount} after {collectSw.ElapsedMilliseconds} ms.");
         }
     }
 }

@@ -7,7 +7,10 @@ namespace UnityEditor.Rendering
     {
         internal class PassTitleLabel : Label
         {
-            public PassTitleLabel(string text) : base(text) { }
+            public PassTitleLabel(string text) : base(text)
+            {
+                style.unityEditorTextRenderingMode = EditorTextRenderingMode.SDF;
+            }
 
             public override bool ContainsPoint(Vector2 localPoint)
             {

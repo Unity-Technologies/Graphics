@@ -294,6 +294,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (graphView.controller != null)
                     VFXAnalytics.GetInstance().OnGraphClosed(graphView);
+                graphView.SetUnsavedChangesOnClose(hasUnsavedChanges);
                 graphView.Dispose();
                 graphView = null;
             }
@@ -416,7 +417,9 @@ namespace UnityEditor.VFX.UI
                             VFXView.CompileAndUpdateAsset(graph);
                         }
                         else
-                            VFXView.RecompileIfNeeded(graph);
+                        {
+                            VFXView.UpdateAssetValues(graph);
+                        }
 
                         if (graph.IsCustomAttributeDirty())
                         {

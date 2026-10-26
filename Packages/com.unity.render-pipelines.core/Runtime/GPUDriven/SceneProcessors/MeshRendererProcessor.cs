@@ -71,8 +71,17 @@ namespace UnityEngine.Rendering
         /// parallel jobs, uploads the buffer to the GPU, then scatter-writes each component
         /// into the instance data buffer.
         /// </summary>
-        static readonly ProfilerMarker k_UploadGPUComponentOverrides =
+        internal static readonly ProfilerMarker k_UploadGPUComponentOverrides =
             new ProfilerMarker(ProfilerCategory.Render, "UploadGPUComponentOverrides", MarkerFlags.VerbosityAdvanced);
+
+        /// <summary>
+        /// Gathers per-instance local AABBs into the CPU staging buffer via a parallel job,
+        /// uploads the buffer to the GPU, then scatter-writes the local bounds component used
+        /// by the GPU occlusion culling OBB test. Only runs when occlusion culling instance
+        /// data is enabled and instances were (re)allocated or their local bounds changed.
+        /// </summary>
+        static readonly ProfilerMarker k_UploadLocalBoundsGPUData =
+            new ProfilerMarker(ProfilerCategory.Render, "UploadLocalBoundsGPUData", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
         /// Verifies that no GPU archetype changes occurred for the updated instances by
@@ -116,6 +125,7 @@ namespace UnityEngine.Rendering
             new ProfilerMarker(ProfilerCategory.Render, "DeepValidation.NoInstanceUsesBlendProbes", MarkerFlags.VerbosityAdvanced);
 
         private GPUDrivenProcessor m_GPUDrivenProcessor;
+        private GPUResidentContext m_GRDContext;
         private InstanceCullingBatcher m_CullingBatcher;
         private NativeReference<GPUArchetypeManager> m_ArchetypeManager;
         private InstanceDataSystem m_InstanceDataSystem;
@@ -127,6 +137,7 @@ namespace UnityEngine.Rendering
         public MeshRendererProcessor(GPUDrivenProcessor gpuDrivenProcessor, GPUResidentContext grdContext)
         {
             m_GPUDrivenProcessor = gpuDrivenProcessor;
+            m_GRDContext = grdContext;
             m_CullingBatcher = grdContext.batcher;
             m_ArchetypeManager = grdContext.instanceDataSystem.archetypeManager;
             m_InstanceDataSystem = grdContext.instanceDataSystem;
@@ -213,7 +224,7 @@ namespace UnityEngine.Rendering
             {
                 using (k_ProcessRendererMaterialAndMeshChangesSort.Auto())
                 {
-                    sortedExcludedRenderers.Reinterpret<int>().ParallelSort().Complete();
+                    sortedExcludedRenderers.Reinterpret<ulong>().ParallelSort().Complete();
                 }
             }
 
@@ -301,6 +312,7 @@ namespace UnityEngine.Rendering
             const MeshRendererComponentMask UpdateInstanceDataMask = MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.LocalBounds
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.ParentLODGroup
@@ -316,11 +328,14 @@ namespace UnityEngine.Rendering
             const MeshRendererComponentMask UpdateDrawBatchesMask = MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.Lightmap
                 | MeshRendererComponentMask.RendererPriority;
 
             bool updateDrawBatches = updateType != MeshRendererUpdateType.NoStructuralChanges || updateBatch.HasAnyComponent(UpdateDrawBatchesMask);
+
+            bool updateLocalBounds = m_InstanceDataSystem.hasBoundingSpheres && (updateArchetype || updateBatch.HasAnyComponent(MeshRendererComponentMask.LocalBounds));
 
             GPUComponentSet overrideComponentSet = default;
             NativeArray<GPUComponentUploadSource> componentUploadSources = default;
@@ -358,6 +373,9 @@ namespace UnityEngine.Rendering
 
             if (updateInstanceData)
                 m_InstanceDataSystem.UpdateInstanceData(instances, updateBatch, m_LODGroupDataSystem.lodGroupDataHash);
+
+            if (updateLocalBounds)
+                UploadLocalBoundsGPUData(instances);
 
             if (!overrideComponentSet.isEmpty)
                 UploadGPUComponentOverrides(overrideComponentSet, componentUploadSources, instances);
@@ -466,6 +484,39 @@ namespace UnityEngine.Rendering
             uploadData.Dispose();
         }
 
+        void UploadLocalBoundsGPUData(NativeArray<InstanceHandle> instances)
+        {
+            using var _ = k_UploadLocalBoundsGPUData.Auto();
+
+            const int uintSize = sizeof(uint);
+            var instanceCount = instances.Length;
+
+            ref DefaultGPUComponents defaultGPUComponents = ref m_InstanceDataSystem.defaultGPUComponents;
+            var uploadData = m_InstanceDataSystem.CreateInstanceUploadData(defaultGPUComponents.localBoundsAABB, instanceCount, Allocator.TempJob);
+
+            EnsureUploadBufferUintCount(uploadData.uploadDataUIntSize);
+
+            var writeBuffer = m_CPUUploadBuffer.GetSubArray(0, uploadData.uploadDataUIntSize);
+            var offset = uploadData.PrepareComponentWrite<LocalBoundsGPUData>(defaultGPUComponents.localBoundsAABB);
+            var stride = UnsafeUtility.SizeOf<LocalBoundsGPUData>() / uintSize;
+            var boundsData =
+                writeBuffer.GetSubArray(offset, instanceCount * stride).Reinterpret<LocalBoundsGPUData>(uintSize);
+
+            new GatherLocalBoundsGPUDataJob
+            {
+                instances = instances,
+                renderWorld = m_InstanceDataSystem.renderWorld,
+                boundsData = boundsData,
+            }
+            .Schedule(instances.Length, 128)
+            .Complete();
+
+            m_GPUUploadBuffer.SetData(writeBuffer);
+            m_InstanceDataSystem.UploadDataToGPU(instances, m_GPUUploadBuffer, uploadData);
+
+            uploadData.Dispose();
+        }
+
         void EnsureUploadBufferUintCount(int uintCount)
         {
             int currentCPUBufferLength = m_CPUUploadBuffer.IsCreated ? m_CPUUploadBuffer.Length : 0;
@@ -497,22 +548,37 @@ namespace UnityEngine.Rendering
                 DestroyInstances(rendererData.invalidRenderer);
             }
 
+#if ENABLE_PROFILER
+            m_GRDContext.advancedDebugStats?.RecordRenderers(
+                rendererData.renderer,
+                rendererData.invalidRenderer,
+                rendererData.invalidRendererReason);
+#endif
+
             if (rendererData.renderer.Length == 0)
                 return;
 
-            var gpuComponents = new NativeArray<GPUComponent>(2, Allocator.Temp);
+            var gpuComponents = new NativeArray<GPUComponent>(3, Allocator.Temp);
             gpuComponents[0] = new GPUComponent(DefaultShaderPropertyID.unity_LightmapST, UnsafeUtility.SizeOf<Vector4>());
             gpuComponents[1] = new GPUComponent(DefaultShaderPropertyID.unity_RendererUserValuesPropertyEntry, UnsafeUtility.SizeOf<uint>());
+            gpuComponents[2] = new GPUComponent(DefaultShaderPropertyID.unity_LightProbeUsagePropertyEntry, UnsafeUtility.SizeOf<uint>());
 
-            var gpuComponentUpdates = new NativeArray<GPUComponentUpdate>(2, Allocator.Temp);
+            // Widen byte-staged lightProbeUsages to uint for the uint-sized GPU instancing slot.
+            var lightProbeUsagesU32 = new NativeArray<uint>(rendererData.lightProbeUsages.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < rendererData.lightProbeUsages.Length; ++i)
+                lightProbeUsagesU32[i] = rendererData.lightProbeUsages[i];
+
+            var gpuComponentUpdates = new NativeArray<GPUComponentUpdate>(3, Allocator.Temp);
             gpuComponentUpdates[0] = GPUComponentUpdate.FromArray(gpuComponents[0], rendererData.lightmapScaleOffset);
             gpuComponentUpdates[1] = GPUComponentUpdate.FromArray(gpuComponents[1], rendererData.rendererUserValues);
+            gpuComponentUpdates[2] = GPUComponentUpdate.FromArray(gpuComponents[2], lightProbeUsagesU32);
 
             const MeshRendererComponentMask UpdateMask = MeshRendererComponentMask.LocalToWorld
                 | MeshRendererComponentMask.PrevLocalToWorld
                 | MeshRendererComponentMask.Mesh
                 | MeshRendererComponentMask.Material
                 | MeshRendererComponentMask.SubMeshStartIndex
+                | MeshRendererComponentMask.StaticBatchSubMeshCount
                 | MeshRendererComponentMask.LocalBounds
                 | MeshRendererComponentMask.RendererSettings
                 | MeshRendererComponentMask.ParentLODGroup
@@ -542,6 +608,7 @@ namespace UnityEngine.Rendering
                 materialIDs = rendererData.material,
                 subMaterialRanges = rendererData.subMaterialRange,
                 subMeshStartIndices = rendererData.subMeshStartIndex,
+                staticBatchSubMeshCounts = rendererData.staticBatchSubMeshCount,
                 localBounds = rendererData.localBounds.Reinterpret<AABB>(),
                 rendererSettings = rendererData.rendererSettings,
                 parentLODGroupIDs = rendererData.lodGroup,
@@ -685,6 +752,29 @@ namespace UnityEngine.Rendering
 
                 selectedRenderIDsForMaterials.AddRangeNoResize(renderersToAddForMaterialsPtr, renderersToAddForMaterials.Length);
                 selectedRenderIDsForMeshes.AddRangeNoResize(renderersToAddForMeshesPtr, renderersToAddForMeshes.Length);
+            }
+        }
+
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+        private unsafe struct GatherLocalBoundsGPUDataJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<InstanceHandle> instances;
+            [ReadOnly][NativeDisableContainerSafetyRestriction, NoAlias] public RenderWorld renderWorld;
+
+            [WriteOnly][NativeDisableParallelForRestriction] public NativeArray<LocalBoundsGPUData> boundsData;
+
+            public void Execute(int index)
+            {
+                var instance = instances[index];
+                if (!instance.isValid)
+                {
+                    boundsData[index] = default;
+                    return;
+                }
+
+                var instanceIndex = renderWorld.HandleToIndex(instance);
+                ref readonly AABB localAABB = ref renderWorld.localAABBs.ElementAt(instanceIndex);
+                boundsData[index] = LocalBoundsGPUData.Pack(localAABB.center, localAABB.extents);
             }
         }
 

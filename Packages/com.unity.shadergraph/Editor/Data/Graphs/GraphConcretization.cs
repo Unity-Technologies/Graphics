@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed partial class GraphData : ISerializationCallbackReceiver
+    sealed partial class GraphData
     {
         public static class GraphConcretization
         {

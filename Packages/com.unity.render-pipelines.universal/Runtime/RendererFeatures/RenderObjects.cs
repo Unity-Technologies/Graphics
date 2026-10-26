@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
     [ExcludeFromPreset]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
-    [URPHelpURL("renderer-features/renderer-feature-render-objects")]
+    [URPHelpURL("urp/renderer-features/renderer-feature-render-objects")]
     public class RenderObjects : ScriptableRendererFeature
     {
         /// <summary>
@@ -146,6 +146,11 @@ namespace UnityEngine.Rendering.Universal
             public LayerMask LayerMask;
 
             /// <summary>
+            /// The rendering layers that an object must match for the pass to render it.
+            /// </summary>
+            public RenderingLayerMask RenderingLayerMask;
+
+            /// <summary>
             /// The passes to render.
             /// </summary>
             public string[] PassNames;
@@ -157,6 +162,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderQueueType = RenderQueueType.Opaque;
                 LayerMask = 0;
+                RenderingLayerMask = uint.MaxValue;
             }
         }
 
@@ -208,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 settings.Event = RenderPassEvent.BeforeRenderingPrePasses;
 
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
-                filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
+                filter.RenderQueueType, filter.LayerMask, filter.RenderingLayerMask, settings.cameraSettings);
 
             switch (settings.overrideMode)
             {
@@ -234,7 +240,8 @@ namespace UnityEngine.Rendering.Universal
             if (settings.stencilSettings.overrideStencilState)
                 renderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,
                     settings.stencilSettings.stencilCompareFunction, settings.stencilSettings.passOperation,
-                    settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
+                    settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation,
+                    settings.stencilSettings.stencilReadMask, settings.stencilSettings.stencilWriteMask);
         }
 
         /// <inheritdoc/>
@@ -242,6 +249,10 @@ namespace UnityEngine.Rendering.Universal
         {
             if (renderingData.cameraData.cameraType == CameraType.Preview
                 || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+                return;
+
+            // An empty layer or rendering layer mask filters out all renderers, so the pass would never draw anything.
+            if (settings.filterSettings.LayerMask == 0 || settings.filterSettings.RenderingLayerMask == 0u)
                 return;
 
             bool enableDepthInputAttachment = settings.depthInputAttachment;

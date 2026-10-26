@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
         SavedBool m_2DFoldout;
         class Styles
         {
-            public static readonly GUIContent maskInteractionLabel = EditorGUIUtility.TrTextContent("Mask Interaction", "Renderer's interaction with a Sprite Mask");
+            public static readonly GUIContent maskInteractionLabel = L10n.TextContent("Mask Interaction", "Renderer's interaction with a Sprite Mask", null, null);
         }
 
 

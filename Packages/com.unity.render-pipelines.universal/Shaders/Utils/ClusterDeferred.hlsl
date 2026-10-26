@@ -50,10 +50,8 @@ float4x4 _ScreenToWorld[2];
 
 half3 DeferredLightContribution(Light light, InputData inputData, GBufferData gBufferData)
 {
-    #if defined(_LIGHT_LAYERS)
-    UNITY_BRANCH if (!IsMatchingLightLayer(light.layerMask, gBufferData.meshRenderingLayers))
+    UNITY_BRANCH if (LightLayersAvailable() && !IsMatchingLightLayer(light.layerMask, gBufferData.meshRenderingLayers))
         return half3(0.0, 0.0, 0.0);
-    #endif
 
     #if defined(_SIMPLELIT)
     {
@@ -76,7 +74,7 @@ half3 DeferredLightContribution(Light light, InputData inputData, GBufferData gB
         #endif
 
         BRDFData brdfData = GBufferDataToBRDFData(gBufferData);
-        return half3(LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff));
+        return half3(LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, !materialSpecularHighlightsOff, false));
     }
     #endif
 
@@ -100,7 +98,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
 
     GBufferData gBufferData = UnpackGBuffers(input.positionCS.xy);
 
-    half3 color = 0.0;
+    URP_LIGHT_ACCUM3 color = 0.0;
     half alpha = 1.0;
 
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -114,22 +112,24 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     posWS.xyz *= rcp(posWS.w);
 
     InputData inputData = (InputData)0;
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = posWS.xyz;
     inputData.normalWS = gBufferData.normalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(posWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv, false);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION)
+    if (ScreenSpaceOcclusionAvailable())
+    {
         // What we want is really to apply the minimum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
         // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
         // We must also avoid divide-by-0 that the reciprocal can generate.
         half surfaceDataOcclusion = gBufferData.occlusion;
         half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
         alpha = occlusion;
-    #endif
+    }
 
     // Main light
     Light mainLight = GetMainLight();
@@ -137,24 +137,20 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     bool materialReceiveShadowsOff = (gBufferData.materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
     UNITY_BRANCH if (!materialReceiveShadowsOff)
     {
-        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
-        #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-        #else
-            float4 shadowCoord = float4(0, 0, 0, 0);
-        #endif
-        mainLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, gBufferData.shadowMask, _MainLightOcclusionProbes);
+        float4 shadowCoord = float4(0, 0, 0, 0);
+        // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
+        if (MainLightShadowsAvailable())
+            shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, gBufferData.normalWS);
+        mainLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, gBufferData.shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false);
     }
 
-    #if defined(_LIGHT_COOKIES)
-        half3 cookieColor = SampleMainLightCookie(posWS.xyz);
-        mainLight.color *= half3(cookieColor);
-    #endif
+    real3 cookieColor = SampleMainLightCookie(posWS.xyz);
+    mainLight.color *= half3(cookieColor);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION)
+    mainLight.color *= ComputeMainLightFogAttenuation(posWS.xyz, mainLight.direction);
+
+    if (ScreenSpaceOcclusionAvailable())
         mainLight.shadowAttenuation *= aoFactor.directAmbientOcclusion;
-    #endif
 
     color += DeferredLightContribution(mainLight, inputData, gBufferData);
 
@@ -162,7 +158,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     // We do additional directional lights last because otherwise FXC complains...
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false, gBufferData.normalWS);
 
         UNITY_BRANCH if (materialReceiveShadowsOff)
         {
@@ -175,7 +171,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     UNITY_LOOP for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
-        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false, gBufferData.normalWS);
 
         UNITY_BRANCH if (materialReceiveShadowsOff)
         {
@@ -185,6 +181,6 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
         color += DeferredLightContribution(light, inputData, gBufferData);
     }
 
-    return half4(color, alpha);
+    return half4(ClampExposed(inputData.preExposureMultiplier * color), alpha);
 }
 #endif //UNIVERSAL_CLUSTER_DEFERRED

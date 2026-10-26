@@ -96,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
 
+                TextureHandle opaqueColorBuffer = TextureHandle.nullHandle;
+
                 // Evaluate the ray tracing acceleration structure debug views
                 EvaluateRTASDebugView(m_RenderGraph, hdCamera);
 
@@ -144,23 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer, vtFeedbackBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
 
-                    bool rendersOffscreenUI = !m_OffscreenUIRenderedInCurrentFrame && HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay;
-                    if (rendersOffscreenUI)
-                    {
-                        uiBuffer = RenderHDROffscreenUI(m_RenderGraph, hdCamera, renderContext);
-                        m_OffscreenUIRenderedInCurrentFrame = true;
-                    }
-                    else
-                    {
-                        // We do not render offscreen ui for the rest of cameras.
-                        uiBuffer = m_OffscreenUIRenderedInCurrentFrame ? m_RenderGraph.ImportTexture(m_OffscreenUIColorBuffer.Value) : m_RenderGraph.defaultResources.blackTextureXR;
-                    }
-
-                    bool blitsOffscreenUICover = rendersOffscreenUI && m_RequireOffscreenUICoverPrepass;
-                    if (blitsOffscreenUICover)
-                    {
-                        BlitFullscreenUIToOffscreen(m_RenderGraph, colorBackBuffer, uiBuffer, hdCamera);
-                    }
+                    uiBuffer = PrepareOffscreenUIBuffer(hdCamera, renderContext, colorBackBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && pathTracing.enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
                 {
@@ -183,6 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.LogWarning("Path Tracing is not supported with XR single-pass rendering.");
                     }
+
+                    uiBuffer = PrepareOffscreenUIBuffer(hdCamera, renderContext, colorBackBuffer);
 
 #if ENABLE_VIRTUALTEXTURES
                     resolveVirtualTextureFeedback = false;
@@ -273,26 +261,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RenderClouds(m_RenderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
 
+                    if (RequiresReactiveMaskPass(hdCamera, upscaling.activeUpscaler, upscaling.GetGlobalOptions(upscaling.activeUpscaler)))
+                    {
+                        opaqueColorBuffer = m_RenderGraph.CreateTexture(colorBuffer, "CameraColorBeforeTransparency", false);
+                        CopyOpaqueColor(m_RenderGraph, colorBuffer, opaqueColorBuffer);
+                    }
+
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, renderContext, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
-                    bool rendersOffscreenUI = !m_OffscreenUIRenderedInCurrentFrame && HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay;
-                    if (rendersOffscreenUI)
-                    {
-                        uiBuffer = RenderHDROffscreenUI(m_RenderGraph, hdCamera, renderContext);
-                        m_OffscreenUIRenderedInCurrentFrame = true;
-                    }
-                    else
-                    {
-                        // We do not render offscreen ui for the rest of cameras.
-                        uiBuffer = m_OffscreenUIRenderedInCurrentFrame ? m_RenderGraph.ImportTexture(m_OffscreenUIColorBuffer.Value) : m_RenderGraph.defaultResources.blackTextureXR;
-                    }
-
-                    bool blitsOffscreenUICover = rendersOffscreenUI && m_RequireOffscreenUICoverPrepass;
-                    if (blitsOffscreenUICover)
-                    {
-                        BlitFullscreenUIToOffscreen(m_RenderGraph, colorBackBuffer, uiBuffer, hdCamera);
-                    }
+                    uiBuffer = PrepareOffscreenUIBuffer(hdCamera, renderContext, colorBackBuffer);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -386,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, pathTracing, cullingResults, prepassOutput);
                 var postProcessTargetFace = postProcessIsFinalPass ? target.face : CubemapFace.Unknown;
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, colorBackBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, colorBackBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, opaqueColorBuffer, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -766,6 +744,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class CopyOpaqueColorPassData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        static void CopyOpaqueColor(RenderGraph renderGraph, in TextureHandle inputColor, in TextureHandle outputColor)
+        {
+            using (var builder = renderGraph.AddUnsafePass<CopyOpaqueColorPassData>("Copy cameraColor for upscalers", out var passData))
+            {
+                passData.source = inputColor;
+                passData.destination = outputColor;
+
+                builder.UseTexture(passData.source, AccessFlags.Read);
+                builder.UseTexture(passData.destination, AccessFlags.Write);
+
+                builder.SetRenderFunc(static (CopyOpaqueColorPassData data, UnsafeGraphContext ctx) =>
+                {
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                    Blitter.BlitCameraTexture(cmd, data.source, data.destination, Vector2.one, 0.0f, false);
+                });
+            }
+        }
+
         class CopyXRDepthPassData
         {
             public Material copyDepth;
@@ -773,6 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
             public Vector2 blitScaleBias;
             public bool flipY;
+            public int passIndex;
         }
 
         void CopyDepth(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle output, bool copyForXR)
@@ -789,6 +792,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.blitScaleBias = copyForXR ? new Vector2(hdCamera.actualWidth / hdCamera.finalViewport.width, hdCamera.actualHeight / hdCamera.finalViewport.height)
                                                    : RTHandles.rtHandleProperties.rtHandleScale;
                 passData.flipY = copyForXR;
+                passData.passIndex = renderGraph.GetTextureDesc(depthBuffer).msaaSamples != MSAASamples.None ? 1 : 0;
+                Debug.Assert(!(copyForXR && passData.passIndex != 0), "MSAA depth copies do not support XR scaling and Y-flipping.");
 
                 builder.SetRenderFunc(
                     static (CopyXRDepthPassData data, UnsafeGraphContext ctx) =>
@@ -799,7 +804,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, data.blitScaleBias);
                         mpb.SetInt(HDShaderIDs._FlipY, data.flipY ? 1 : 0);
 
-                        CoreUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.copyDepth, mpb);
+                        CoreUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.copyDepth, mpb, data.passIndex);
                     });
             }
         }
@@ -1087,6 +1092,30 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return renderGraph.CreateTexture(new TextureDesc(Screen.width, Screen.height, false, true)
                 { format = CoreUtils.GetDefaultDepthStencilFormat(), clearBuffer = true, msaaSamples = msaaSamples, name = "UI Depth Buffer" });
+        }
+
+        TextureHandle PrepareOffscreenUIBuffer(HDCamera hdCamera, ScriptableRenderContext renderContext, TextureHandle colorBackBuffer)
+        {
+            TextureHandle uiBuffer;
+            bool rendersOffscreenUI = !m_OffscreenUIRenderedInCurrentFrame && HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay;
+            if (rendersOffscreenUI)
+            {
+                uiBuffer = RenderHDROffscreenUI(m_RenderGraph, hdCamera, renderContext);
+                m_OffscreenUIRenderedInCurrentFrame = true;
+            }
+            else
+            {
+                // We do not render offscreen ui for the rest of cameras.
+                uiBuffer = m_OffscreenUIRenderedInCurrentFrame ? m_RenderGraph.ImportTexture(m_OffscreenUIColorBuffer.Value) : m_RenderGraph.defaultResources.blackTextureXR;
+            }
+
+            bool blitsOffscreenUICover = rendersOffscreenUI && m_RequireOffscreenUICoverPrepass;
+            if (blitsOffscreenUICover)
+            {
+                BlitFullscreenUIToOffscreen(m_RenderGraph, colorBackBuffer, uiBuffer, hdCamera);
+            }
+
+            return uiBuffer;
         }
 
         TextureHandle RenderHDROffscreenUI(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext)
@@ -1751,7 +1780,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange: GetTransparentRenderQueueRange(hdCamera, false)));
 
             // Copy depth buffer for refraction
-            CopyDepth(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, output.depthBufferPreRefraction, false);
+            CopyDepth(renderGraph, hdCamera, prepassOutput.depthBuffer, output.depthBufferPreRefraction, false);
 
             if (hasWater)
             {

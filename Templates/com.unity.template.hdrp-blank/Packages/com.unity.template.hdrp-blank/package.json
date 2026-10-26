@@ -1,18 +1,17 @@
 {
   "name": "com.unity.template.hdrp-blank",
-  "displayName":"3D HDRP",
-  "version": "17.1.0",
+  "displayName": "3D HDRP",
+  "version": "17.3.0",
   "type": "template",
   "host": "hub",
-  "unity": "6000.3",
+  "unity": "6000.7",
   "description": "This template includes the settings and assets you need to start creating with the High Definition Render Pipeline (HDRP).",
   "dependencies": {
-    "com.unity.collab-proxy": "2.11.4",
-    "com.unity.feature.development": "1.0.2",
-    "com.unity.render-pipelines.high-definition": "17.0.4",
-    "com.unity.timeline": "1.8.11",
-    "com.unity.ugui": "2.0.0",
-    "com.unity.visualscripting": "1.9.7",
-    "com.unity.inputsystem": "1.19.0"
+    "com.unity.ide.rider": "3.0.40",
+    "com.unity.ide.visualstudio": "2.0.28",
+    "com.unity.render-pipelines.high-definition": "17.7.0",
+    "com.unity.ugui": "2.7.0",
+    "com.unity.inputsystem": "6.7.0",
+    "com.unity.collab-proxy": "2.13.6"
   }
 }

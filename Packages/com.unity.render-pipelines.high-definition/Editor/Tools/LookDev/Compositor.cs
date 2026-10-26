@@ -189,10 +189,7 @@ namespace UnityEditor.Rendering.LookDev
                 return;
             m_Disposed = true;
             CleanUp();
-            GC.SuppressFinalize(this);
         }
-
-        ~Compositer() => CleanUp();
 
         public void Render()
         {

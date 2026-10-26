@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainLitGUI).FullName, universalRPType);
 
             // terrain shaders are always opaque, so these values are hardcoded to not inherit from the Universal Target
-            var renderTypeOpaque = RenderType.Opaque.ToString();
+            var renderTypeOpaque = UnityEditor.ShaderGraph.RenderType.Opaque.ToString();
             var renderQueue = target.alphaClip?RenderQueue.AlphaTest.ToString():RenderQueue.Geometry.ToString();
 
             context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitComputeDotsSubShader(target, renderTypeOpaque, renderQueue, blendModePreserveSpecular)));
@@ -335,25 +335,39 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
+            context.AddProperty("Override Depth", "Override the default depth write and depth test settings.", 0, new Toggle() { value = target.overrideDepthState }, (evt) =>
             {
-                if (Equals(target.zWriteControl, evt.newValue))
+                if (Equals(target.overrideDepthState, evt.newValue))
                     return;
 
-                registerUndo("Change Depth Write Control");
-                target.zWriteControl = (ZWriteControl)evt.newValue;
+                registerUndo("Change Override Depth");
+                target.overrideDepthState = evt.newValue;
                 onChange();
             });
 
-            context.AddProperty("Depth Test", new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)target.zTestMode }, (evt) =>
+            if (target.overrideDepthState)
             {
-                if (Equals(target.zTestMode, evt.newValue))
-                    return;
+                bool writeDepth = target.zWriteControl != ZWriteControl.ForceDisabled;
+                context.AddProperty("Write Depth", "Enable or disable depth buffer writes.", 1, new Toggle() { value = writeDepth }, (evt) =>
+                {
+                    if (Equals(writeDepth, evt.newValue))
+                        return;
 
-                registerUndo("Change Depth Test");
-                target.zTestMode = (ZTestMode)evt.newValue;
-                onChange();
-            });
+                    registerUndo("Change Write Depth");
+                    target.zWriteControl = evt.newValue ? ZWriteControl.ForceEnabled : ZWriteControl.ForceDisabled;
+                    onChange();
+                });
+
+                context.AddProperty("Depth Test", "The comparison function used for depth testing.", 1, new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)target.zTestMode }, (evt) =>
+                {
+                    if (Equals(target.zTestMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Test");
+                    target.zTestMode = (ZTestMode)evt.newValue;
+                    onChange();
+                });
+            }
 
             context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
             {
@@ -458,24 +472,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public struct Varyings
             {
-                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
-                    StructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
-                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
-                    StructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD2", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
                 public static FieldDescriptor normalViewDir = new FieldDescriptor(
                     StructFields.Varyings.name, "normalViewDir", "", ShaderValueType.Float4, "TEXCOORD3", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
                 public static FieldDescriptor tangentViewDir = new FieldDescriptor(
                     StructFields.Varyings.name, "tangentViewDir", "", ShaderValueType.Float4, "TEXCOORD4", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
                 public static FieldDescriptor bitangentViewDir = new FieldDescriptor(
                     StructFields.Varyings.name, "bitangentViewDir", "", ShaderValueType.Float4, "TEXCOORD5", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
-            }
-
-            public struct SurfaceDescriptionInputs
-            {
-                public static FieldDescriptor uvSplat01 = new FieldDescriptor(
-                    StructFields.SurfaceDescriptionInputs.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", "defined(UNIVERSAL_TERRAIN_SPLAT01)");
-                public static FieldDescriptor uvSplat23 = new FieldDescriptor(
-                    StructFields.SurfaceDescriptionInputs.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD2", "defined(UNIVERSAL_TERRAIN_SPLAT23)");
             }
         }
 
@@ -534,8 +536,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.texCoord3,
                     StructFields.Varyings.color,
                     StructFields.Varyings.screenPosition,
-                    TerrainStructFields.Varyings.uvSplat01,
-                    TerrainStructFields.Varyings.uvSplat23,
                     TerrainStructFields.Varyings.normalViewDir,
                     TerrainStructFields.Varyings.tangentViewDir,
                     TerrainStructFields.Varyings.bitangentViewDir,
@@ -568,8 +568,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.texCoord3,
                     StructFields.Varyings.color,
                     StructFields.Varyings.screenPosition,
-                    TerrainStructFields.Varyings.uvSplat01,
-                    TerrainStructFields.Varyings.uvSplat23,
                     TerrainStructFields.Varyings.normalViewDir,
                     TerrainStructFields.Varyings.tangentViewDir,
                     TerrainStructFields.Varyings.bitangentViewDir,
@@ -584,28 +582,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.cullFace,
                 }
             };
-
-            private static StructDescriptor SurfaceDescriptionInputsImpl()
-            {
-                var surfaceDescriptionInputs = Structs.SurfaceDescriptionInputs;
-                var terrainFieldList = new List<FieldDescriptor>();
-
-                for (int i = 0; i < surfaceDescriptionInputs.fields.Length; ++i)
-                    terrainFieldList.Add(surfaceDescriptionInputs.fields[i]);
-
-                terrainFieldList.Add(TerrainStructFields.SurfaceDescriptionInputs.uvSplat01);
-                terrainFieldList.Add(TerrainStructFields.SurfaceDescriptionInputs.uvSplat23);
-
-                return new StructDescriptor()
-                {
-                    name = "SurfaceDescriptionInputs",
-                    packFields = false,
-                    populateWithCustomInterpolators = true,
-                    fields = terrainFieldList.ToArray(),
-                };
-            }
-
-            public static StructDescriptor SurfaceDescriptionInputs => SurfaceDescriptionInputsImpl();
         }
 
         static class TerrainStructCollections
@@ -615,7 +591,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { TerrainStructs.Attributes },
                 { TerrainStructs.Varyings },
                 { Structs.VertexDescriptionInputs },
-                { TerrainStructs.SurfaceDescriptionInputs },
+                { Structs.SurfaceDescriptionInputs },
             };
 
             public static readonly StructCollection Meta = new StructCollection()
@@ -623,7 +599,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { TerrainStructs.MetaAttributes },
                 { TerrainStructs.MetaVaryings },
                 { Structs.VertexDescriptionInputs },
-                { TerrainStructs.SurfaceDescriptionInputs },
+                { Structs.SurfaceDescriptionInputs },
             };
         }
         #endregion
@@ -661,7 +637,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), TerrainCorePragmas.DOTSInstanced));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), TerrainCorePragmas.DOTSInstanced));
 
                 result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), TerrainCorePragmas.DOTSInstanced));
@@ -703,7 +679,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(TerrainLitPasses.ShadowCaster(target));
 
-                if (target.mayWriteDepth)
+                if (target.needsDepthOnlyPass)
                     result.passes.Add(TerrainLitPasses.DepthOnly(target));
 
                 result.passes.Add(TerrainLitPasses.DepthNormal(target));
@@ -819,10 +795,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var result = new RenderStateCollection
             {
-                RenderState.ZTest(target.zTestMode.ToString()),
                 RenderState.Cull(Cull.Back),
                 RenderState.Blend(Blend.One, Blend.Zero)
             };
+
+            result.Add(RenderState.ZTest(target.zTestMode.ToString()));
             switch (target.zWriteControl)
             {
                 case ZWriteControl.Auto:
@@ -833,6 +810,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.ZWrite(ZWrite.Off));
                     break;
             }
+
             return result;
         }
 
@@ -879,8 +857,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
@@ -929,8 +905,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
@@ -1064,8 +1038,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
                 result.keywords.Add(TerrainDefines.TerrainNormalmap);
                 result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
@@ -1110,8 +1082,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainAlphaClipEnable, target.alphaClip?1:0);
@@ -1283,8 +1253,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.instanceID,
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
                 TerrainStructFields.Varyings.normalViewDir,
                 TerrainStructFields.Varyings.tangentViewDir,
                 TerrainStructFields.Varyings.bitangentViewDir,
@@ -1293,8 +1261,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
@@ -1305,8 +1271,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.instanceID,
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
                 TerrainStructFields.Varyings.normalViewDir,
                 TerrainStructFields.Varyings.tangentViewDir,
                 TerrainStructFields.Varyings.bitangentViewDir,
@@ -1315,8 +1279,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection ShadowCaster = new FieldCollection()
@@ -1342,13 +1304,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.instanceID,
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
                 TerrainStructFields.Varyings.normalViewDir,
                 TerrainStructFields.Varyings.tangentViewDir,
                 TerrainStructFields.Varyings.bitangentViewDir,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection Meta = new FieldCollection()
@@ -1359,15 +1317,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            // needed for meta UVs
                 StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
                 StructFields.Varyings.positionCS,
                 StructFields.Varyings.texCoord0,                        // needed for meta UVs
                 StructFields.Varyings.texCoord1,                        // VizUV
                 StructFields.Varyings.texCoord2,                        // LightCoord
                 StructFields.Varyings.instanceID,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
         }
         #endregion
@@ -1379,24 +1333,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 displayName = "Universal Terrain",
                 referenceName = "UNIVERSAL_TERRAIN_ENABLED",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.Predefined,
-                scope = KeywordScope.Local,
-            };
-
-            public static readonly KeywordDescriptor TerrainSplat01 = new KeywordDescriptor()
-            {
-                displayName = "Universal Terrain Splat01",
-                referenceName = "UNIVERSAL_TERRAIN_SPLAT01",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.Predefined,
-                scope = KeywordScope.Local,
-            };
-
-            public static readonly KeywordDescriptor TerrainSplat23 = new KeywordDescriptor()
-            {
-                displayName = "Universal Terrain Splat23",
-                referenceName = "UNIVERSAL_TERRAIN_SPLAT23",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
@@ -1501,13 +1437,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
@@ -1519,22 +1458,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.VolumetricFog },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
+                { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
-                { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.ScreenSpaceReflection },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.DebugDisplay },
             };
         }

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Constants
         internal const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
+        internal const int k_GTAODepthPyramidMipCount = 4;
 
         // Shared Shader Property IDs
         internal static class ShaderConstants
@@ -28,10 +29,21 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
             public static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
 
-#if MODERN_SSAO
             public static readonly int _SSAOParams2 = Shader.PropertyToID("_SSAOParams2");
             public static readonly int _AODepthToViewParams = Shader.PropertyToID("_AODepthToViewParams");
-#endif
+            public static readonly int _GTAODepthPyramid = Shader.PropertyToID("_GTAODepthPyramid");
+            public static readonly int _GTAODepthPyramidSize = Shader.PropertyToID("_GTAODepthPyramidSize");
+            public static readonly int _GTAODepthPyramidParams = Shader.PropertyToID("_GTAODepthPyramidParams");
+            public static readonly int _GTAODepthPyramidMipLevelOffsets = Shader.PropertyToID("_GTAODepthPyramidMipLevelOffsets");
+        }
+
+        internal struct GTAODepthPyramidBinding
+        {
+            internal TextureHandle texture;
+            internal Vector4 size;       // xy = MIP 0 viewport size
+            internal Vector4 parameters; // x = MIP sampling offset, y = highest usable MIP level, z = MIP footprint cap
+            internal GTAODepthPyramidLayout layout;
+            internal bool enabled;
         }
 
         // Enums
@@ -57,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
 
             KawaseBlur = 8,
             KawaseAfterOpaque = 9,
+
+            BoxAfterOpaque = 10,
         }
 
         // Camera view data aggregated into a struct to avoid scattered arrays.
@@ -95,13 +109,12 @@ namespace UnityEngine.Rendering.Universal
             internal readonly bool sourceDepthMedium;
             internal readonly bool sourceDepthLow;
             internal readonly Vector4 ssaoParams;
-#if MODERN_SSAO
             internal readonly Vector4 ssaoParams2;
             internal readonly Vector4 depthToViewParams;
             internal readonly bool isGTAOMode;
-#endif
+            internal readonly bool useDepthPyramid;
 
-            internal SSAOMaterialParams(ScreenSpaceAmbientOcclusionSettings settings, UniversalCameraData cameraData, in TextureDesc cameraColorDesc)
+            internal SSAOMaterialParams(ScreenSpaceAmbientOcclusionSettings settings, UniversalCameraData cameraData, in TextureDesc cameraColorDesc, bool useDepthPyramid)
             {
                 float radius = CalculateRadius(settings);
                 orthographicCamera = cameraData.camera.orthographic;
@@ -109,13 +122,13 @@ namespace UnityEngine.Rendering.Universal
                 sampleCountMedium = settings.Samples == ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
                 sampleCountLow = settings.Samples == ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
 
-#if MODERN_SSAO
-                isGTAOMode = settings.Mode != ScreenSpaceAmbientOcclusionMode.Standard;
+                isGTAOMode = settings.Mode != ScreenSpaceAmbientOcclusionMode.SSAO;
 
                 if (isGTAOMode)
                 {
                     // GTAO always uses depth normals
                     sourceDepthNormals = true;
+                    this.useDepthPyramid = useDepthPyramid;
 
                     aoBlueNoise = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
                     aoInterleavedGradient = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
@@ -127,8 +140,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-#endif
-                    // Standard mode
+                    // SSAO mode
+                    this.useDepthPyramid = false;
                     bool isUsingDepthNormals = settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
                     aoBlueNoise = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise;
                     aoInterleavedGradient = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
@@ -136,11 +149,9 @@ namespace UnityEngine.Rendering.Universal
                     sourceDepthHigh = !isUsingDepthNormals && settings.NormalSamples == ScreenSpaceAmbientOcclusionSettings.NormalQuality.High;
                     sourceDepthMedium = !isUsingDepthNormals && settings.NormalSamples == ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium;
                     sourceDepthLow = !isUsingDepthNormals && settings.NormalSamples == ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low;
-#if MODERN_SSAO
                     ssaoParams2 = Vector4.zero;
                     depthToViewParams = Vector4.zero;
                 }
-#endif
                 ssaoParams = CalculateCommonParams(settings, radius);
             }
 
@@ -157,11 +168,10 @@ namespace UnityEngine.Rendering.Universal
                        && sourceDepthMedium == other.sourceDepthMedium
                        && sourceDepthLow == other.sourceDepthLow
                        && ssaoParams == other.ssaoParams
-#if MODERN_SSAO
                        && ssaoParams2 == other.ssaoParams2
                        && depthToViewParams == other.depthToViewParams
                        && isGTAOMode == other.isGTAOMode
-#endif
+                       && useDepthPyramid == other.useDepthPyramid
                     ;
             }
         }
@@ -172,6 +182,66 @@ namespace UnityEngine.Rendering.Universal
         {
             float radiusMultiplier = settings.AOMethod == ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise ? 1.5f : 1.0f;
             return settings.Radius * radiusMultiplier;
+        }
+
+        internal static Vector2Int CalculateAOAllocationResolution(in TextureDesc cameraColorDesc, ScreenSpaceAmbientOcclusionSettings settings)
+        {
+            int downsampleDivider = settings.Downsample ? 2 : 1;
+            return new Vector2Int(Mathf.Max(1, cameraColorDesc.width / downsampleDivider), Mathf.Max(1, cameraColorDesc.height / downsampleDivider));
+        }
+
+        internal static Vector2Int CalculateAOViewportResolution(in TextureDesc cameraColorDesc, ScreenSpaceAmbientOcclusionSettings settings)
+        {
+            // Dynamic resolution renders into a corner of the allocation.
+            Vector4 sourceSize = PostProcessUtils.CalcShaderSourceSize(cameraColorDesc.width, cameraColorDesc.height, cameraColorDesc.useDynamicScale);
+            float downsample = 1.0f / (settings.Downsample ? 2 : 1);
+            return new Vector2Int(Mathf.Max(1, (int)(sourceSize.x * downsample)), Mathf.Max(1, (int)(sourceSize.y * downsample)));
+        }
+
+        internal struct GTAODepthPyramidLayout
+        {
+            internal Vector2Int packedSize;
+            internal Vector2Int mipLevelOffset0;
+            internal Vector2Int mipLevelOffset1;
+            internal Vector2Int mipLevelOffset2;
+            internal Vector2Int mipLevelOffset3;
+
+            internal readonly void WriteMipLevelOffsets(Vector4[] mipLevelOffsets)
+            {
+                Debug.Assert(mipLevelOffsets.Length >= k_GTAODepthPyramidMipCount, "The MIP level offset array must hold every level of the pyramid.");
+
+                mipLevelOffsets[0] = new Vector4(mipLevelOffset0.x, mipLevelOffset0.y, 0.0f, 0.0f);
+                mipLevelOffsets[1] = new Vector4(mipLevelOffset1.x, mipLevelOffset1.y, 0.0f, 0.0f);
+                mipLevelOffsets[2] = new Vector4(mipLevelOffset2.x, mipLevelOffset2.y, 0.0f, 0.0f);
+                mipLevelOffsets[3] = new Vector4(mipLevelOffset3.x, mipLevelOffset3.y, 0.0f, 0.0f);
+            }
+        }
+
+        private static Vector2Int CalculateGTAODepthPyramidMipSize(Vector2Int mip0Size, int mipLevel)
+        {
+            return new Vector2Int(Mathf.Max(1, mip0Size.x >> mipLevel), Mathf.Max(1, mip0Size.y >> mipLevel));
+        }
+
+        internal static GTAODepthPyramidLayout CalculateGTAODepthPyramidLayout(Vector2Int mip0Size)
+        {
+            Vector2Int mip1Size = CalculateGTAODepthPyramidMipSize(mip0Size, 1);
+            Vector2Int mip2Size = CalculateGTAODepthPyramidMipSize(mip0Size, 2);
+            Vector2Int mip3Size = CalculateGTAODepthPyramidMipSize(mip0Size, 3);
+
+            Vector2Int mip1Offset = new Vector2Int(0, mip0Size.y);                        // below MIP 0
+            Vector2Int mip2Offset = new Vector2Int(mip1Size.x, mip0Size.y);               // in the column MIP 1 leaves free
+            Vector2Int mip3Offset = new Vector2Int(mip1Size.x, mip0Size.y + mip2Size.y);
+
+            return new GTAODepthPyramidLayout
+            {
+                // Every level is always placed, so this grows monotonically with mip0Size.
+                // A full size allocation therefore holds any smaller viewport's layout.
+                packedSize = new Vector2Int(Mathf.Max(mip0Size.x, mip2Offset.x + Mathf.Max(mip2Size.x, mip3Size.x)), Mathf.Max(mip1Offset.y + mip1Size.y, mip3Offset.y + mip3Size.y)),
+                mipLevelOffset0 = Vector2Int.zero,
+                mipLevelOffset1 = mip1Offset,
+                mipLevelOffset2 = mip2Offset,
+                mipLevelOffset3 = mip3Offset,
+            };
         }
 
         internal static Vector4 CalculateCommonParams(ScreenSpaceAmbientOcclusionSettings settings, float radius)
@@ -204,21 +274,15 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2(offsetX * k_InvScale, offsetY * k_InvScale);
         }
 
-        internal static Vector4 CalculateBlueNoiseParams(UniversalCameraData cameraData, Texture2D noiseTexture)
+        internal static Vector4 CalculateBlueNoiseParams(ScreenSpaceAmbientOcclusionSettings settings, in TextureDesc cameraColorDesc, Texture2D noiseTexture)
         {
+            Vector2Int aoSize = CalculateAOViewportResolution(cameraColorDesc, settings);
+            Vector2 noiseScale = new Vector2(aoSize.x / (float)noiseTexture.width, aoSize.y / (float)noiseTexture.height);
 #if UNITY_INCLUDE_TESTS
-            return new Vector4(
-                cameraData.pixelWidth / (float)noiseTexture.width,
-                cameraData.pixelHeight / (float)noiseTexture.height,
-                1.0f,
-                1.0f);
+            return new Vector4(noiseScale.x, noiseScale.y, 1.0f, 1.0f);
 #else
             Vector2 blueNoiseOffset = GetR2Offset();
-            return new Vector4(
-                cameraData.pixelWidth / (float)noiseTexture.width,
-                cameraData.pixelHeight / (float)noiseTexture.height,
-                blueNoiseOffset.x,
-                blueNoiseOffset.y);
+            return new Vector4(noiseScale.x, noiseScale.y, blueNoiseOffset.x, blueNoiseOffset.y);
 #endif
         }
 
@@ -323,6 +387,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraViewData viewData,
             Texture2D[] blueNoiseTextures,
             int blueNoiseTextureIndex,
+            bool useDepthPyramid,
             ref SSAOMaterialParams prevParams)
         {
             material.SetVector(ShaderConstants._ProjectionParams2, CalculateProjectionParams2(cameraData));
@@ -336,7 +401,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Texture2D noiseTexture = GetBlueNoiseTexture(blueNoiseTextures, blueNoiseTextureIndex);
                 Debug.Assert(noiseTexture != null, "Blue noise texture is null. Blue noise mode requires a valid blue noise texture.");
-                Vector4 blueNoiseParams = CalculateBlueNoiseParams(cameraData, noiseTexture);
+                Vector4 blueNoiseParams = CalculateBlueNoiseParams(settings, cameraColorDesc, noiseTexture);
 
                 material.SetTexture(ShaderConstants._BlueNoiseTexture, noiseTexture);
                 material.SetVector(ShaderConstants._SSAOBlueNoiseParams, blueNoiseParams);
@@ -348,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Setting keywords can be somewhat expensive on low-end platforms.
             // Previous params are cached to avoid setting the same keywords every frame.
-            SSAOMaterialParams matParams = new SSAOMaterialParams(settings, cameraData, cameraColorDesc);
+            SSAOMaterialParams matParams = new SSAOMaterialParams(settings, cameraData, cameraColorDesc, useDepthPyramid);
             bool ssaoParamsDirty = !prevParams.Equals(in matParams);
             bool isParamsPropertySet = material.HasProperty(ShaderConstants._SSAOParams);
             if (!ssaoParamsDirty && isParamsPropertySet)
@@ -367,14 +432,13 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(material, ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword,           matParams.aoBlueNoise);
             CoreUtils.SetKeyword(material, ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword, matParams.aoInterleavedGradient);
             material.SetVector(ShaderConstants._SSAOParams, matParams.ssaoParams);
-#if MODERN_SSAO
-            CoreUtils.SetKeyword(material, ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword, matParams.isGTAOMode);
+            CoreUtils.SetKeyword(material, ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword,         matParams.isGTAOMode && !matParams.useDepthPyramid);
+            CoreUtils.SetKeyword(material, ScreenSpaceAmbientOcclusionKeywords.k_GTAODepthPyramidKeyword, matParams.useDepthPyramid);
             if (matParams.isGTAOMode)
             {
                 material.SetVector(ShaderConstants._SSAOParams2, matParams.ssaoParams2);
                 material.SetVector(ShaderConstants._AODepthToViewParams, matParams.depthToViewParams);
             }
-#endif
         }
 
         // Pass data classes for shared raster recording
@@ -389,6 +453,8 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle finalTexture;
             internal TextureHandle blurTexture;
             internal TextureHandle cameraNormalsTexture;
+            internal GTAODepthPyramidBinding depthPyramid;
+            internal Vector4[] depthPyramidMipLevelOffsets = new Vector4[k_GTAODepthPyramidMipCount];
         }
 
         internal class BlurPassData
@@ -415,7 +481,8 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle aoTexture,
             TextureHandle cameraDepthTexture,
             TextureHandle cameraNormalsTexture,
-            in TextureDesc cameraColorDesc)
+            in TextureDesc cameraColorDesc,
+            in GTAODepthPyramidBinding depthPyramid)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RasterAOPassData>("Blit SSAO", out var passData, profilingSampler))
             {
@@ -429,15 +496,18 @@ namespace UnityEngine.Rendering.Universal
                 passData.aoTexture = aoTexture;
 
                 builder.SetRenderAttachment(passData.aoTexture, 0, AccessFlags.WriteAll);
-
-                Debug.Assert(cameraDepthTexture.IsValid(), "Camera depth texture is invalid. SSAO raster AO pass requires a depth texture.");
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
-                if (settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
-                {
-                    Debug.Assert(cameraNormalsTexture.IsValid(), "Camera normals texture is invalid. SSAO raster AO pass requires a normals texture when Source is DepthNormals.");
+                bool useNormalsTexture = settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
+                passData.cameraNormalsTexture = useNormalsTexture ? cameraNormalsTexture : TextureHandle.nullHandle;
+                if (useNormalsTexture)
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
-                    passData.cameraNormalsTexture = cameraNormalsTexture;
+
+                passData.depthPyramid = depthPyramid;
+                if (depthPyramid.enabled)
+                {
+                    depthPyramid.layout.WriteMipLevelOffsets(passData.depthPyramidMipLevelOffsets);
+                    builder.UseTexture(depthPyramid.texture, AccessFlags.Read);
                 }
 
                 builder.SetRenderFunc(static (RasterAOPassData data, RasterGraphContext ctx) =>
@@ -446,6 +516,14 @@ namespace UnityEngine.Rendering.Universal
 
                     if (data.cameraNormalsTexture.IsValid())
                         data.material.SetTexture(ShaderConstants._CameraNormalsTexture, data.cameraNormalsTexture);
+
+                    if (data.depthPyramid.enabled)
+                    {
+                        data.material.SetTexture(ShaderConstants._GTAODepthPyramid, data.depthPyramid.texture);
+                        data.material.SetVector(ShaderConstants._GTAODepthPyramidSize, data.depthPyramid.size);
+                        data.material.SetVector(ShaderConstants._GTAODepthPyramidParams, data.depthPyramid.parameters);
+                        data.material.SetVectorArray(ShaderConstants._GTAODepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsets);
+                    }
 
                     Vector4 viewScaleBias = new(1, 1, 0, 0);
                     Blitter.BlitTexture(ctx.cmd, viewScaleBias, data.material, (int)ShaderPasses.AmbientOcclusion);
@@ -546,7 +624,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // ---- Texture Creation ----
-        internal static TextureDesc GetCameraColorDescriptor(RenderGraph renderGraph, in TextureHandle source, bool useDynamicScale)
+        internal static TextureDesc GetCameraColorDescriptor(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source)
         {
             var info = renderGraph.GetRenderTargetInfo(source);
             return new TextureDesc(info.width, info.height)
@@ -555,7 +633,8 @@ namespace UnityEngine.Rendering.Universal
                 slices = info.volumeDepth,
                 dimension = info.volumeDepth > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
                 bindTextureMS = info.bindMS,
-                useDynamicScale = useDynamicScale,
+                useDynamicScale = cameraData.camera.allowDynamicResolution,
+                vrUsage = cameraData.cameraTargetDescriptor.vrUsage,
             };
         }
 
@@ -581,13 +660,13 @@ namespace UnityEngine.Rendering.Universal
             finalTextureDescriptor.enableRandomWrite = enableRandomWrite;
 
             // Descriptor for the AO and Blur passes
-            int downsampleDivider = settings.Downsample ? 2 : 1;
+            Vector2Int aoResolution = CalculateAOAllocationResolution(cameraColorDesc, settings);
             bool useRedComponentOnly = supportsR8 && blurType > BlurTypes.Bilateral;
 
             TextureDesc aoBlurDescriptor = PostProcessUtils.GetCompatibleDescriptor(
                 cameraColorDesc,
-                cameraColorDesc.width / downsampleDivider,
-                cameraColorDesc.height / downsampleDivider,
+                aoResolution.x,
+                aoResolution.y,
                 useRedComponentOnly ? GraphicsFormat.R8_UNorm : GraphicsFormat.R8G8B8A8_UNorm);
             aoBlurDescriptor.enableRandomWrite = enableRandomWrite;
 
@@ -600,14 +679,10 @@ namespace UnityEngine.Rendering.Universal
             else
                 blurTexture = TextureHandle.nullHandle;
 
-#if MODERN_SSAO
             if (settings.IsTemporalFilterActive)
                 temporalTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_TemporalTexture", false, Color.clear, FilterMode.Bilinear);
             else
                 temporalTexture = TextureHandle.nullHandle;
-#else
-            temporalTexture = TextureHandle.nullHandle;
-#endif
 
             if (!settings.AfterOpaque)
                 resourceData.ssaoTexture = finalTexture;

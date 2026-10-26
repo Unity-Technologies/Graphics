@@ -177,6 +177,11 @@ namespace UnityEngine.PathTracing.Core
             shader.SetKeyword(cmd, shader.CreateLocalKeyword("EMISSIVE_SAMPLING_MIS"), lightSamplingMode == EmissiveSamplingMode.MIS);
         }
 
+        internal static void SetTerrainRayMarchingKeyword(CommandBuffer cmd, IRayTracingShader shader, bool enableTerrain)
+        {
+            shader.SetKeyword(cmd, shader.CreateLocalKeyword("TERRAIN_RAY_MARCHING_ENABLED"), enableTerrain);
+        }
+
         internal static RayTracingResources LoadOrCreateRayTracingResources()
         {
             RayTracingResources resources = new RayTracingResources();

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal", "Unity.RenderPipelines.Universal.Runtime")]
-    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData-overview.html")]
+    [URPHelpURL("urp/2DRendererData-overview")]
     public partial class Renderer2DData : ScriptableRendererData
     {
         internal enum Renderer2DDefaultMaterialType
@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering.Universal
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
         internal LayerMask layerMask => m_LayerMask;
+        internal bool useRenderingLayers { get { return UniversalRenderPipeline.asset.useRenderingLayers; } }
+        internal RenderingLayerUtils.MaskSize renderingLayersMaskSize { get; set; }
 
         /// <summary>
         /// Creates the instance of the Renderer2D.
@@ -104,20 +106,8 @@ namespace UnityEngine.Rendering.Universal
         internal void Dispose()
         {
             UnityEngine.RenderAs2DUtil.DisposeCanRenderAs2D();
-
-            foreach(var mat in lightMaterials)
-                CoreUtils.Destroy(mat.Value);
-
-            lightMaterials.Clear();
-
-            CoreUtils.Destroy(spriteSelfShadowMaterial);
-            CoreUtils.Destroy(spriteUnshadowMaterial);
-            CoreUtils.Destroy(spriteSelfShadowMaterialSkinned);
-            CoreUtils.Destroy(spriteUnshadowMaterialSkinned);
-            CoreUtils.Destroy(geometrySelfShadowMaterial);
-            CoreUtils.Destroy(geometryUnshadowMaterial);
-            CoreUtils.Destroy(projectedShadowMaterial);
-            CoreUtils.Destroy(projectedUnshadowMaterial);
+            ClearLightMaterialCache();
+            ClearShadowMaterialCaches();
         }
 
         /// <summary>
@@ -127,27 +117,71 @@ namespace UnityEngine.Rendering.Universal
         {
             base.OnEnable();
 
-            geometrySelfShadowMaterial = null;
-            geometryUnshadowMaterial = null;
-
-            spriteSelfShadowMaterial = null;
-            spriteUnshadowMaterial = null;
-            spriteSelfShadowMaterialSkinned = null;
-            spriteUnshadowMaterialSkinned = null;
-            projectedShadowMaterial = null;
-            projectedUnshadowMaterial = null;
+            // Shadow material caches are cleared on enable so editor shader changes
+            // force a rebuild on the next render. (Mirrors the previous behavior of
+            // null'ing the individual shadow material properties here.)
+            ClearShadowMaterialCaches();
         }
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
-        internal Material spriteSelfShadowMaterial { get; set; }
-        internal Material spriteUnshadowMaterial { get; set; }
-        internal Material spriteSelfShadowMaterialSkinned { get; set; }
-        internal Material spriteUnshadowMaterialSkinned { get; set; }
-        internal Material geometrySelfShadowMaterial { get; set; }
-        internal Material geometryUnshadowMaterial { get; set; }
-        internal Material projectedShadowMaterial { get; set; }
-        internal Material projectedUnshadowMaterial { get; set; }
+        // Per-(customMaterial, overlapOperation, lightType) clones of Light2D.material for
+        // custom-material draws. Cloning is required because blend-state properties
+        // (_SrcBlend/_DstBlend/_VolSrcBlend/_VolDstBlend) are mutated on the material
+        // instance at frame recording, but the actual draw is deferred — two Light2Ds
+        // sharing the same source material with different overlapOperation or lightType
+        // would stomp each other's blend state before either draw executes. Each unique
+        // tuple gets its own instance with the correct blend state baked in. Instances
+        // are destroyed alongside `lightMaterials` in Dispose / ClearLightMaterialCache.
+        // Key: (source material's EntityId as ulong, packed overlapOperation | lightType).
+        internal Dictionary<(ulong id, int state), Material> customLightMaterials { get; } = new Dictionary<(ulong id, int state), Material>();
+        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> spriteShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
+        // Serves both geometry casters and projected shadows: since Shadow2D.shader declares all
+        // five pass roles, the keyword-free material both paths want is the same object, and the
+        // pass index is what selects between them. The former projectedShadowMaterials cache held a
+        // duplicate of this and was removed with the shader merge.
+        internal Dictionary<uint, ShadowRendering.CachedShadowMaterial> geometryShadowMaterials { get; } = new Dictionary<uint, ShadowRendering.CachedShadowMaterial>();
+
+        /// <summary>
+        /// Clears the cached light materials, forcing them to be recreated.
+        /// Called when shader variants or settings change.
+        /// </summary>
+        internal void ClearLightMaterialCache()
+        {
+            foreach (var mat in lightMaterials.Values)
+            {
+                if (mat != null)
+                    CoreUtils.Destroy(mat);
+            }
+            lightMaterials.Clear();
+
+            foreach (var mat in customLightMaterials.Values)
+            {
+                if (mat != null)
+                    CoreUtils.Destroy(mat);
+            }
+            customLightMaterials.Clear();
+        }
+
+        /// <summary>
+        /// Clears the cached shadow materials, forcing them to be recreated.
+        /// </summary>
+        internal void ClearShadowMaterialCaches()
+        {
+            foreach (var entry in spriteShadowMaterials.Values)
+            {
+                if (entry.material != null)
+                    CoreUtils.Destroy(entry.material);
+            }
+            spriteShadowMaterials.Clear();
+
+            foreach (var entry in geometryShadowMaterials.Values)
+            {
+                if (entry.material != null)
+                    CoreUtils.Destroy(entry.material);
+            }
+            geometryShadowMaterials.Clear();
+        }
 
         internal RTHandle normalsRenderTarget;
         internal RTHandle cameraSortingLayerRenderTarget;

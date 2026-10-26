@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 using static UnityEditor.Rendering.MaterialUpgrader;
 
 namespace UnityEditor.Rendering.Converter
@@ -9,15 +8,18 @@ namespace UnityEditor.Rendering.Converter
     [Serializable]
     internal class RenderPipelineConverterMaterialUpgraderItem : IRenderPipelineConverterItem
     {
-        public string assetPath { get; }
-        public List<string> variantsPaths { get; }
+        [SerializeField]
+        private string m_AssetPath;
+        public string assetPath => m_AssetPath;
 
-        public string name { get; }
-
-        public string info => assetPath;
-
-        public bool isEnabled { get; set; } = true;
-        public string isDisabledMessage { get; set; } = string.Empty;
+        [SerializeField]
+        private List<string> m_VariantsPaths;
+        public List<string> variantsPaths => m_VariantsPaths;
+        
+        [field:SerializeField] public string name { get; set; }
+        [field:SerializeField] public string info { get; set; }
+        [field:SerializeField] public bool isEnabled { get; set; } = true;
+        [field:SerializeField] public string isDisabledMessage { get; set; }
 
         public Texture2D icon
         {
@@ -43,13 +45,14 @@ namespace UnityEditor.Rendering.Converter
             if (string.IsNullOrEmpty(materialPath))
                 throw new ArgumentException(nameof(materialPath));
 
-            assetPath = materialPath;
-            this.variantsPaths = variantsPaths;
+            m_AssetPath = materialPath;
+            m_VariantsPaths = variantsPaths;
 
             if (material == null)
                 throw new ArgumentException($"Unable to load material at path {materialPath}");
 
-            name = material.name + " - " + shaderPath;
+            name = material.name;
+            info = materialPath;
         }
 
         public Material material => AssetDatabase.LoadAssetAtPath<Material>(assetPath);
@@ -92,14 +95,15 @@ namespace UnityEditor.Rendering.Converter
         {
             m_UpgradersCache = upgraders;
 
-            if (m_UpgradersCache.Count == 0)
+            if (m_UpgradersCache == null || m_UpgradersCache.Count == 0)
             {
                 Debug.Log($"No upgraders specified for this converter ({GetType()}). Skipping Initialization.");
+                onScanFinish?.Invoke(new List<IRenderPipelineConverterItem>());
                 return;
             }
 
             var materialsGroupByShader = MaterialFinder.GroupAllMaterialsInProject();
-            using (HashSetPool<string>.Get(out var destinationShaders))
+            using (UnityEngine.Pool.HashSetPool<string>.Get(out var destinationShaders))
             {
                 foreach (var upgrader in m_UpgradersCache)
                 {
@@ -107,11 +111,15 @@ namespace UnityEditor.Rendering.Converter
                 }
 
                 assets.Clear();
+
+                using var pooledDict = UnityEngine.Pool.DictionaryPool<string, List<IRenderPipelineConverterItem>>.Get(out var materialsByShader);
+
                 foreach (var kvp in materialsGroupByShader)
                 {
-                    // This material shader is already on the target pipeline, skip it.
                     if (destinationShaders.Contains(kvp.Key))
                         continue;
+
+                    var shaderPath = kvp.Key;
 
                     foreach (var (parent, variants) in kvp.Value)
                     {
@@ -121,17 +129,53 @@ namespace UnityEditor.Rendering.Converter
                             variantsPaths.Add(AssetDatabase.GetAssetPath(variant));
                         }
 
-                        assets.Add(new RenderPipelineConverterMaterialUpgraderItem(kvp.Key,
+                        var item = new RenderPipelineConverterMaterialUpgraderItem(shaderPath,
                             AssetDatabase.GetAssetPath(parent),
-                            variantsPaths));
+                            variantsPaths);
+
+                        assets.Add(item);
+
+                        if (!materialsByShader.ContainsKey(shaderPath))
+                            materialsByShader[shaderPath] = new List<IRenderPipelineConverterItem>();
+
+                        materialsByShader[shaderPath].Add(item);
                     }
                 }
-                onScanFinish?.Invoke(assets);
-            } 
+
+                var organizedList = new List<IRenderPipelineConverterItem>();
+
+                foreach (var kvp in materialsByShader)
+                {
+                    var shaderPath = kvp.Key;
+                    var materials = kvp.Value;
+
+                    if (materials.Count == 0)
+                        continue;
+
+                    var shaderGroup = new RenderPipelineConverterUtility.AssetGroupItem
+                    {
+                        name = shaderPath,
+                        info = $"{materials.Count} material(s) using {shaderPath}",
+                        assetType = typeof(Shader)
+                    };
+
+                    foreach (var material in materials)
+                    {
+                        shaderGroup.children.Add(material);
+                    }
+
+                    organizedList.Add(shaderGroup);
+                }
+
+                onScanFinish?.Invoke(organizedList);
+            }
         }
 
         public Status Convert(IRenderPipelineConverterItem item, out string message)
         {
+            // Lazy initialization of upgraders cache (needed after assembly reload since it's not serialized)
+            m_UpgradersCache ??= upgraders;
+
             if (item is not RenderPipelineConverterMaterialUpgraderItem materialUpgraderItem)
             {
                 message = $"Item is not a {nameof(RenderPipelineConverterMaterialUpgraderItem)}.";

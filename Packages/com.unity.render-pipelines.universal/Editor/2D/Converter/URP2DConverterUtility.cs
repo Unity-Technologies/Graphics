@@ -11,9 +11,9 @@ internal static class URP2DConverterUtility
 
     private static class Styles
     {
-        public static readonly GUIContent failedToInstallPackageTitle = EditorGUIUtility.TrTextContent("Installation Failed");
-        public static readonly GUIContent failedToInstallPackageContent = EditorGUIUtility.TrTextContent("Failed to install {0} package.\nErrorCode: {1}\nMessage: {2}");
-        public static readonly GUIContent okText = EditorGUIUtility.TrTextContent("OK");
+        public static readonly GUIContent failedToInstallPackageTitle = L10n.TextContent("Installation Failed", null, null, null);
+        public static readonly GUIContent failedToInstallPackageContent = L10n.TextContent("Failed to install {0} package.\nErrorCode: {1}\nMessage: {2}", null, null, null);
+        public static readonly GUIContent okText = L10n.TextContent("OK", null, null, null);
     }
 
     public static bool InstallPackage(string package)

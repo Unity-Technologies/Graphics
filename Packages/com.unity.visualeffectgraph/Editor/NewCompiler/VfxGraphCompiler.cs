@@ -1,14 +1,17 @@
 using Unity.GraphCommon.LowLevel.Editor;
+using Unity.Profiling;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VfxGraphCompiler
+    class VfxGraphCompiler : IVFXCompiler
     {
-        private Compiler<VfxGraphLegacyCompilationOutput> m_GraphCompiler;
-        private VfxIntermediateGraphBuilder m_GraphBuilder = new();
+        private Compiler<CompilationOutput> m_GraphCompiler;
+        private IntermediateGraphBuilder m_GraphBuilder = new();
 
         private DataDescriptionWriterRegistry m_DataWriter;
+
+        static readonly ProfilerMarker k_CompileMarker = new("VfxGraphCompiler.Compile");
 
         public VfxGraphCompiler()
         {
@@ -19,15 +22,33 @@ namespace UnityEditor.VFX
             m_DataWriter.Register(new ParticleSystemDataDescriptionWriter(attributeDataWriter));
             m_DataWriter.Register(new StructuredDataDescriptionWriter());
             m_DataWriter.Register(new EventListDataDescriptionWriter(attributeDataWriter));
+            m_DataWriter.Register(new RenderingDataDescriptionWriter());
 
-            m_GraphCompiler = new(new VfxGraphLegacyOutputPass(),
+            m_DataWriter.Register(new VfxTextureDataDescriptionWriter());
+            m_DataWriter.Register(new VfxGraphicsBufferDataDescriptionWriter());
+
+            m_GraphCompiler = new(new OutputPass(),
                 new AttributeLayoutPass(),
-                new VfxGraphLegacyParticleSystemPass(),
                 new DataLayoutPass(),
-                new TemplateCodeGenerationPass(m_DataWriter));
+                new ParticleSystemPass(),
+                new SpawnerSystemPass(),
+                new BufferConversionPass(),
+                new SystemTaskBindingsPass(),
+                new VfxTemplateCodeGenerationPass(m_DataWriter),
+                new TaskLoweringPass(
+                    new TemplateTaskLowering(m_DataWriter),
+                    new SortTaskLowering(),
+                    new SpawnerTaskLowering()),
+                new InstancingBuffersPass());
         }
 
-        public VFXGraphCompiledData.VFXCompileOutput Compile(VFXGraph graph, VFXCompilationMode compilationMode, bool generateShadersDebugSymbols)
+        // For now the new compiler performs a full recompilation
+        public VFXExpressionCompiledData CompileExpressionsOnly(VFXGraph graph, VFXCompilationMode compilationMode)
+        {
+            return Compile(graph, compilationMode, false).compiledData;
+        }
+
+        public VFXCompileOutput Compile(VFXGraph graph, VFXCompilationMode compilationMode, bool generateShadersDebugSymbols)
         {
             // One of supported SRPs is not current SRP
             if (VFXLibrary.currentSRPBinder == null)
@@ -35,16 +56,19 @@ namespace UnityEditor.VFX
                 return new() { success = false };
             }
 
+            using var _ = k_CompileMarker.Auto();
+
             var intermediateGraph = m_GraphBuilder.BuildGraph(graph, compilationMode);
 
             // TODO: setup compilation mode and shader debug symbols
             var compilationResult = m_GraphCompiler.Compile(intermediateGraph);
 
-            VFXGraphCompiledData.VFXCompileOutput output = new()
+            VFXCompileOutput output = new()
             {
                 success = true, // TODO
                 sourceDependencies = new(), // TODO
-                assetDesc = compilationResult.result.GenerateAssetDesc()
+                assetDesc = compilationResult.result.GenerateAssetDesc(),
+                compiledData = compilationResult.result.CreateCompiledData(),
             };
 
             return output;

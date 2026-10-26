@@ -16,6 +16,14 @@ namespace UnityEngine.Rendering.Universal
             SelectOnly                  // Selects the keyword and removes others
         }
 
+        // How the Hidden/Light2D shader's multi_compile_local variants should be filtered for this URP asset.
+        internal enum Light2DPrefilteringMode
+        {
+            KeepAll,        // strip2DUnusedVariants is off: ship all 64 combos.
+            StripAll,       // strip2DUnusedVariants is on and this asset has no Renderer2DData: shader is unreachable, strip every variant.
+            StripUnused,    // strip2DUnusedVariants is on and Light2Ds were found in build scenes: keep only the analyzed combos.
+        }
+
         internal enum PrefilteringModeMainLightShadows
         {
             Remove,                     // Removes the keyword
@@ -54,6 +62,8 @@ namespace UnityEngine.Rendering.Universal
         // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
         // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
         // NOTE: off variants are atm always removed when shadows are supported
+        // Note: StencilDeferred is intentionally NOT carved out here.
+        // Additional-light shadows keep their carve-out below.
         [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight,            keywordNames: ShaderKeywordStrings.MainLightShadows)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff,      keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
@@ -64,7 +74,8 @@ namespace UnityEngine.Rendering.Universal
         // Additional Lights
         // clustered renderer can override PerVertex/PerPixel to be disabled
         // NOTE: off variants are atm always kept when additional lights are enabled due to XR perf reasons
-        // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+        // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX
+        // multi_compile_fragment _ _ADDITIONAL_LIGHTS
         [ShaderKeywordFilter.RemoveIf(PrefilteringModeAdditionalLights.Remove,            keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertex,      keywordNames: ShaderKeywordStrings.AdditionalLightsVertex)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertexAndOff,keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]
@@ -74,9 +85,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private PrefilteringModeAdditionalLights m_PrefilteringModeAdditionalLight = PrefilteringModeAdditionalLights.SelectPixelAndOff;
 
         // Additional Lights Shadows
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        // Prefiltering rules for the additional-light shadow keyword now live in
+        // ShaderScriptableStripper.StripUnusedFeatures_AdditionalLightShadows.
+        // The field below is a dead-write today (still computed/serialized) but no longer consumed by any
+        // [ShaderKeywordFilter.*] attribute; it's kept so existing URP assets deserialize without migration.
         [SerializeField] private PrefilteringMode m_PrefilteringModeAdditionalLightShadows = PrefilteringMode.Select;
 
         // XR Specific keywords
@@ -134,25 +146,16 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT)]
         [SerializeField] private bool m_PrefilterAlphaOutput = false;
 
-        // Screen Space Ambient Occlusion (SSAO) specific keywords
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword)]
-        [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSourceDepthHigh = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOInterleaved = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOBlueNoise = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountLowKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountLow = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountMediumKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountMedium = false;
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusionKeywords.k_SampleCountHighKeyword)]
-        [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
+        // Screen Space Ambient Occlusion (SSAO) specific keywords.
+        // The volume can change the depth source, noise method and sample count at runtime, so they are kept or stripped together.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
+            ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_AOInterleavedGradientKeyword, ScreenSpaceAmbientOcclusionKeywords.k_AOBlueNoiseKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SampleCountLowKeyword, ScreenSpaceAmbientOcclusionKeywords.k_SampleCountMediumKeyword,
+            ScreenSpaceAmbientOcclusionKeywords.k_SampleCountHighKeyword
+        })]
+        [SerializeField] private bool m_PrefilterSSAOKeywords = false;
 
         // Decals
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
@@ -223,6 +226,31 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.PointSampling)]
         [SerializeField] private bool m_PrefilterPointSamplingUpsampling = false;
 
+        // Exposure (_EXPOSURE)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.Exposure)]
+        [SerializeField] private bool m_PrefilterExposure = false;
+
+        // Volumetric fog (_VOLUMETRIC_FOG, _FOG_VOLUMETRIC)
+        // The fog mode pair has no off variant, so _FOG_ANALYTIC is selected as the survivor instead.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.VolumetricFog)]
+        [ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.FogAnalytic)]
+        [SerializeField] private bool m_PrefilterVolumetricFog = false;
+
+        // Light falloff (_LIGHT_FALLOFF_QUADRATIC)
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
+        [SerializeField] private bool m_PrefilterLightFalloffQuadratic = true;
+
+        // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
+        // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
+        // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
+        // attributes; ShaderScriptableStripper reads these fields and trims variants programmatically.
+        [SerializeField] private Light2DPrefilteringMode m_Light2DPrefilteringMode = Light2DPrefilteringMode.KeepAll;
+        [SerializeField] private string[] m_Light2DKeptVariantCombos = null;
+
+        internal Light2DPrefilteringMode light2DPrefilteringMode => m_Light2DPrefilteringMode;
+        internal string[] light2DKeptVariantCombos => m_Light2DKeptVariantCombos;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -252,15 +280,7 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSoftShadowsQualityMedium;
             public bool stripSoftShadowsQualityHigh;
 
-            public bool stripSSAOBlueNoise;
-            public bool stripSSAOInterleaved;
-            public bool stripSSAODepthNormals;
-            public bool stripSSAOSourceDepthLow;
-            public bool stripSSAOSourceDepthMedium;
-            public bool stripSSAOSourceDepthHigh;
-            public bool stripSSAOSampleCountLow;
-            public bool stripSSAOSampleCountMedium;
-            public bool stripSSAOSampleCountHigh;
+            public bool stripSSAOKeywords;
 
             public bool stripBicubicLightmapSampling;
             public bool stripReflectionProbeRotation;
@@ -270,10 +290,20 @@ namespace UnityEngine.Rendering.Universal
 
             public bool stripPointSamplingUpsampling;
 
+            public bool stripExposure;
+
+            public bool stripVolumetricFog;
+
+            public bool stripLightFalloffQuadratic;
+
             public bool stripScreenSpaceIrradiance;
 
             // Keyword used by the DepthNormalOnly pass to write smoothness into alpha channel for screen space reflections.
             public bool stripWriteSmoothness;
+
+            // Hidden/Light2D variant filtering. See Light2DPrefilteringMode.
+            public Light2DPrefilteringMode light2DPrefilteringMode;
+            public string[] light2DKeptVariantCombos;
 
             public static ShaderPrefilteringData GetDefault()
             {
@@ -286,6 +316,8 @@ namespace UnityEngine.Rendering.Universal
                     additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select,
                     screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select,
                     screenSpaceReflectionPrefilteringMode = PrefilteringMode.Select,
+                    light2DPrefilteringMode = Light2DPrefilteringMode.KeepAll,
+                    light2DKeptVariantCombos = null,
                 };
             }
         }
@@ -321,15 +353,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
             m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
 
-            m_PrefilterSSAOBlueNoise                 = prefilteringData.stripSSAOBlueNoise;
-            m_PrefilterSSAOInterleaved               = prefilteringData.stripSSAOInterleaved;
-            m_PrefilterSSAODepthNormals              = prefilteringData.stripSSAODepthNormals;
-            m_PrefilterSSAOSourceDepthLow            = prefilteringData.stripSSAOSourceDepthLow;
-            m_PrefilterSSAOSourceDepthMedium         = prefilteringData.stripSSAOSourceDepthMedium;
-            m_PrefilterSSAOSourceDepthHigh           = prefilteringData.stripSSAOSourceDepthHigh;
-            m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
-            m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
-            m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
+            m_PrefilterSSAOKeywords                  = prefilteringData.stripSSAOKeywords;
 
             m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
             m_PrefilterReflectionProbeRotation       = prefilteringData.stripReflectionProbeRotation;
@@ -339,9 +363,18 @@ namespace UnityEngine.Rendering.Universal
 
             m_PrefilterPointSamplingUpsampling       = prefilteringData.stripPointSamplingUpsampling;
 
+            m_PrefilterExposure                      = prefilteringData.stripExposure;
+
+            m_PrefilterVolumetricFog                 = prefilteringData.stripVolumetricFog;
+
+            m_PrefilterLightFalloffQuadratic         = prefilteringData.stripLightFalloffQuadratic;
+
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 
             m_PrefilterWriteSmoothness               = prefilteringData.stripWriteSmoothness;
+
+            m_Light2DPrefilteringMode                = prefilteringData.light2DPrefilteringMode;
+            m_Light2DKeptVariantCombos               = prefilteringData.light2DKeptVariantCombos;
         }
     }
 }

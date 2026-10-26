@@ -1,18 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Mono.Cecil;
 using UnityEditor.Categorization;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Converter
 {
+    /// <summary>
+    /// User data stored in toggle elements for folder items in the tree view.
+    /// Contains the node data and optional callback for event cleanup.
+    /// </summary>
+    internal struct FolderToggleUserData
+    {
+        public TreeNodeData nodeData;
+        public EventCallback<ChangeEvent<bool>> callback;
+    }
+
     internal class RenderPipelineConverterVisualElement : VisualElement
     {
         const string k_Uxml = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConverterVisualElement.uxml";
         const string k_Uss = "Packages/com.unity.render-pipelines.core/Editor-PrivateShared/Tools/Converter/Window/RenderPipelineConverterVisualElement.uss";
+
+        const string k_ColumnName = "name";
+        const string k_ColumnInfo = "info";
+        const string k_ColumnState = "state";
 
         static Lazy<VisualTreeAsset> s_VisualTreeAsset = new Lazy<VisualTreeAsset>(() => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_Uxml));
         static Lazy<StyleSheet> s_StyleSheet = new Lazy<StyleSheet>(() => AssetDatabase.LoadAssetAtPath<StyleSheet>(k_Uss));
@@ -46,6 +58,7 @@ namespace UnityEditor.Rendering.Converter
                 m_IsEnabled = value;
                 m_HeaderFoldout.tooltip = (m_IsEnabled) ? description : converter.isDisabledMessage;
                 m_HeaderFoldout.SetEnabled(m_IsEnabled);
+                converterSelected?.Invoke();
             }
         }
 
@@ -66,15 +79,25 @@ namespace UnityEditor.Rendering.Converter
             m_HeaderFoldout.value = state.isExpanded;
             m_HeaderFoldout.RegisterCallback<ChangeEvent<bool>>((evt) =>
             {
-                state.isExpanded = evt.newValue;
+                if (evt.target == m_HeaderFoldout)
+                    state.isExpanded = evt.newValue;
             });
             m_HeaderFoldout.showEnableCheckbox = true;
             m_HeaderFoldout.documentationURL = converterInfo.helpUrl;
 
-            m_HeaderFoldout.enableToggle.SetValueWithoutNotify(state.isSelected);
-            m_HeaderFoldout.enableToggle.RegisterCallback<ClickEvent>((evt) =>
+            // Add context menu for expand/collapse all
+            m_HeaderFoldout.contextMenuGenerator = () =>
             {
-                state.isSelected = !state.isSelected;
+                var menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Expand All"), false, () => ExpandCollapseAll(true));
+                menu.AddItem(new GUIContent("Collapse All"), false, () => ExpandCollapseAll(false));
+                return menu;
+            };
+
+            m_HeaderFoldout.enableToggle.SetValueWithoutNotify(state.isSelected);
+            m_HeaderFoldout.enableToggle.RegisterValueChangedCallback((evt) =>
+            {
+                state.isSelected = evt.newValue;
                 converterSelected?.Invoke();
                 UpdateConversionInfo();
             });
@@ -84,12 +107,14 @@ namespace UnityEditor.Rendering.Converter
             {
                 SetItemsActive(true);
                 Refresh();
+                converterSelected?.Invoke();
             });
             var noneLabel = m_RootVisualElement.Q<Label>("none");
             noneLabel.RegisterCallback<ClickEvent>((evt) =>
             {
                 SetItemsActive(false);
                 Refresh();
+                converterSelected?.Invoke();
             });
 
             m_ListViewHeader = m_RootVisualElement.Q("listViewHeader");
@@ -100,91 +125,45 @@ namespace UnityEditor.Rendering.Converter
             m_PressScan = m_RootVisualElement.Q<HelpBox>("pressScanHelpBox");
 
             m_TreeView = m_RootVisualElement.Q<MultiColumnTreeView>("converterItemsTreeView");
-            m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
+
+            // Ensure tree is built (may be needed after assembly reload since OnAfterDeserialize only marks dirty)
+            state.ApplyFilter();
+            m_TreeView.SetRootItems<TreeNodeData>(state.filteredItemsTree);
+
+            // Disable column sorting - items are pre-sorted (folders first, then by name)
+            m_TreeView.sortingMode = ColumnSortingMode.None;
+
+            // Register callbacks to track expanded/collapsed state in real-time
+            m_TreeView.itemExpandedChanged += (args) =>
+            {
+                // Get the tree node data directly and update its folder state
+                var nodeData = m_TreeView.GetItemDataForId<TreeNodeData>(args.id);
+                if (nodeData != null && nodeData.itemState is FolderItemState folderState)
+                {
+                    folderState.isExpanded = args.isExpanded;
+
+                    // Handle recursive collapse/expand (Alt+click or programmatic)
+                    // If this item has children, update their states recursively
+                    UpdateDescendantExpandedStates(nodeData, args.isExpanded);
+                }
+            };
 
             m_Filter = m_RootVisualElement.Q<RenderPipelineConverterVisualElementListFilter>("listViewFilter");
             m_Filter.Bind(state);
             m_Filter.onFilterChanged += () =>
             {
                 state.ApplyFilter();
-                m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
+                m_TreeView.SetRootItems<TreeNodeData>(state.filteredItemsTree);
                 m_TreeView.RefreshItems();
+                RestoreTreeViewExpandedState();
             };
 
-            var isSelectedColumn = m_TreeView.columns["selected"];
-            isSelectedColumn.makeCell = () =>
-            {
-                var toggle = new Toggle();
-                toggle.AddToClassList("render-pipeline-converter-items-toggle");
-                return toggle;
-            };
-            isSelectedColumn.bindCell = (VisualElement element, int index) =>
-            {
-                ConverterItemState itemState = m_TreeView.GetItemDataForIndex<ConverterItemState>(index);
-                var toggle = (element as Toggle);
+            var nameColumn = m_TreeView.columns[k_ColumnName];
+            nameColumn.makeCell = MakeNameCell;
+            nameColumn.bindCell = BindNameCell;
+            nameColumn.unbindCell = UnbindNameCell;
 
-                if (toggle.userData is ConverterItemState previousBindItem)
-                {
-                    toggle.UnregisterCallback<ClickEvent>(previousBindItem.OnSelectionChanged);
-                    previousBindItem.onIsSelectedChanged -= OnSelectionChanged;
-                }  
-
-                toggle.userData = itemState;
-                if (itemState.item.isEnabled)
-                {
-                    toggle.SetEnabled(true);
-                    toggle.tooltip = "Select/Deselect this item for conversion";
-                    toggle.SetValueWithoutNotify(itemState.isSelected);
-                }
-                else
-                {
-                    toggle.SetEnabled(false);
-                    toggle.tooltip = itemState.item.isDisabledMessage;
-                    toggle.SetValueWithoutNotify(false);
-                }
-                toggle.RegisterCallback<ClickEvent>(itemState.OnSelectionChanged);
-                itemState.onIsSelectedChanged += OnSelectionChanged;
-                
-            };
-
-            var iconColumn = m_TreeView.columns["icon"];
-            iconColumn.makeCell = () =>
-            {
-                var icon = new Image();
-                icon.AddToClassList("render-pipeline-converter-items-icon");
-                return icon;
-            };
-            iconColumn.bindCell = (VisualElement element, int index) =>
-            {
-                var item = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).item;
-                var icon = item.icon;
-                if (icon != null)
-                    (element as Image).image = icon;
-            };
-
-            var nameColumn = m_TreeView.columns["name"];
-            nameColumn.makeCell = () =>
-            {
-                var label = new Label();
-                label.AddToClassList("render-pipeline-converter-items-name-label");
-                return label;
-            };
-            nameColumn.bindCell = (VisualElement element, int index) =>
-            {
-                ConverterItemState itemState = m_TreeView.GetItemDataForIndex<ConverterItemState>(index);
-                var label = (element as Label);
-
-                if (label.userData is ConverterItemState previousBindItem)
-                {
-                    label.UnregisterCallback<ClickEvent>(previousBindItem.OnClicked);
-                }
-
-                label.text = itemState.item.name;
-                label.userData = itemState;
-                label.RegisterCallback<ClickEvent>(itemState.OnClicked);
-            };
-
-            var infoColumn = m_TreeView.columns["info"];
+            var infoColumn = m_TreeView.columns[k_ColumnInfo];
             infoColumn.stretchable = true;
             infoColumn.makeCell = () =>
             {
@@ -194,49 +173,95 @@ namespace UnityEditor.Rendering.Converter
             };
             infoColumn.bindCell = (VisualElement element, int index) =>
             {
-                (element as Label).text = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).item.info;
+                var nodeData = m_TreeView.GetItemDataForIndex<TreeNodeData>(index);
+                var label = (element as Label);
+
+                if (nodeData.isFolder)
+                {
+                    // Show selected of total count
+                    int totalCount = 0;
+                    int selectedCount = GetSelectedChildCount(nodeData, out totalCount);
+                    label.text = $"{selectedCount} of {totalCount}";
+                    label.tooltip = string.Empty;
+                }
+                else if (nodeData.itemState != null)
+                {
+                    label.text = nodeData.itemState.item.info;
+                    label.tooltip = nodeData.itemState.item.info;
+                }
             };
-            
-            var stateColumn = m_TreeView.columns["state"];
+
+            var stateColumn = m_TreeView.columns[k_ColumnState];
             stateColumn.makeCell = () => new Image();
             stateColumn.bindCell = (VisualElement element, int index) =>
             {
-                (Status Status, string Message) conversionResult = m_TreeView.GetItemDataForIndex<ConverterItemState>(index).conversionResult;
-
-                Texture2D icon = null;
-                Status status = conversionResult.Status;
-                switch (status)
-                {
-                    case Status.Pending:
-                        icon = CoreEditorStyles.iconPending;
-                        break;
-                    case Status.Error:
-                        icon = CoreEditorStyles.iconFail;
-                        break;
-                    case Status.Warning:
-                        icon = CoreEditorStyles.iconWarn;
-                        break;
-                    case Status.Success:
-                        icon = CoreEditorStyles.iconComplete;
-                        break;
-                }
-
+                var nodeData = m_TreeView.GetItemDataForIndex<TreeNodeData>(index);
                 var image = (element as Image);
-                image.image = icon;
-                image.tooltip = conversionResult.Message;
+
+                if (nodeData.isFolder)
+                {
+                    // Folders don't show conversion status
+                    image.image = null;
+                    image.tooltip = "";
+                }
+                else if (nodeData.itemState != null)
+                {
+                    (Status Status, string Message) conversionResult = nodeData.itemState.conversionResult;
+
+                    Texture2D icon = null;
+                    string tooltip = conversionResult.Message;
+                    Status status = conversionResult.Status;
+                    switch (status)
+                    {
+                        case Status.Pending:
+                            icon = CoreEditorStyles.iconPending;
+                            if (string.IsNullOrEmpty(tooltip))
+                                tooltip = "This item is pending conversion. Click the Convert button to convert it.";
+                            break;
+                        case Status.Error:
+                            icon = CoreEditorStyles.iconFail;
+                            break;
+                        case Status.Warning:
+                            icon = CoreEditorStyles.iconWarn;
+                            break;
+                        case Status.Success:
+                            icon = CoreEditorStyles.iconComplete;
+                            break;
+                    }
+
+                    image.image = icon;
+                    image.tooltip = tooltip;
+                }
             };
 
             Add(m_RootVisualElement);
+
+            // Set up event handlers for state changes
+            // This is needed both for new states and after assembly reload
+            SetupStateEventHandlers();
+
+            // Restore tree view expanded state after assembly reload
+            RestoreTreeViewExpandedState();
+
             Refresh();
+        }
+
+        private void SetupStateEventHandlers()
+        {
+            // Set up event handlers on root items to refresh UI when selection changes
+            // This needs to be called both during initial scan and after assembly reload
+            state.SetupRootEventHandlers((isSelected) =>
+            {
+                m_TreeView.RefreshItems();
+                UpdateSelectedConverterItemsLabel();
+                UpdateAllNoneLabels();
+                converterSelected?.Invoke();
+            });
         }
 
         private void SetItemsActive(bool value)
         {
-            foreach (var itemState in state.items)
-            {
-                if (itemState.item.isEnabled)
-                    itemState.isSelected = value;
-            }
+            state.SetAllItemsSelected(value);
         }
 
         public void UpdateInfo()
@@ -254,7 +279,7 @@ namespace UnityEditor.Rendering.Converter
 
         void UpdateSelectedConverterItemsLabel()
         {
-            var text = $" ({state.selectedItemsCount} of {state.items.Count})";
+            var text = $" ({state.selectedItemsCount} of {state.totalItemsCount})";
             m_RootVisualElement.Q<Label>("converterStats").text = text;
         }
 
@@ -263,7 +288,7 @@ namespace UnityEditor.Rendering.Converter
             var allLabel = m_RootVisualElement.Q<Label>("all");
             var noneLabel = m_RootVisualElement.Q<Label>("none");
 
-            var count = state.items.Count;
+            var count = state.totalItemsCount;
             int selectedCount = state.selectedItemsCount;
 
             bool noneSelected = selectedCount == 0;
@@ -291,7 +316,7 @@ namespace UnityEditor.Rendering.Converter
             if (state.isInitialized)
             {
                 m_PressScan.style.display = DisplayStyle.None;
-                if (state.items.Count > 0)
+                if (state.totalItemsCount > 0)
                 {
                     state.ApplyFilter();
                     m_NoItemsFound.style.display = DisplayStyle.None;
@@ -316,11 +341,78 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
+        private void ExpandAllFolders(IEnumerable<TreeViewItemData<TreeNodeData>> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.data.isFolder && item.data.itemState is FolderItemState folderState)
+                {
+                    // Set the folder state to expanded
+                    folderState.isExpanded = true;
+                    m_TreeView.ExpandItem(item.id);
+
+                    // Recursively expand children
+                    if (item.hasChildren)
+                    {
+                        ExpandAllFolders(item.children);
+                    }
+                }
+            }
+        }
+
+        private static int GetSelectedChildCount(TreeNodeData node, out int totalCount)
+        {
+            totalCount = 0;
+            if (node.childItems == null)
+                return 0;
+
+            int selectedCount = 0;
+            foreach (var child in node.childItems)
+            {
+                if (child.item.isEnabled)
+                {
+                    totalCount++;
+                    if (child.isSelected == true)
+                        selectedCount++;
+                }
+            }
+            return selectedCount;
+        }
+
         public void Refresh()
         {
             m_TreeView.RefreshItems();
             UpdateInfo();
             m_HeaderFoldout.SetEnabled(converter.isEnabled);
+        }
+
+        /// <summary>
+        /// Restores tree view expanded state from folder states.
+        /// Should only be called after SetRootItems, not on every refresh.
+        /// </summary>
+        private void RestoreTreeViewExpandedState()
+        {
+            if (m_TreeView == null)
+                return;
+
+            RestoreExpandedStateRecursive(state.filteredItemsTree);
+        }
+
+        private void RestoreExpandedStateRecursive(IEnumerable<TreeViewItemData<TreeNodeData>> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.data.isFolder && item.data.itemState is FolderItemState folderState)
+                {
+                    if (folderState.isExpanded)
+                        m_TreeView.ExpandItem(item.id);
+                    else
+                        m_TreeView.CollapseItem(item.id);
+
+                    if (item.hasChildren)
+                        RestoreExpandedStateRecursive(item.children);
+                }
+            }
         }
 
         public void Scan(Action onScanFinish)
@@ -333,20 +425,30 @@ namespace UnityEditor.Rendering.Converter
             {
                 foreach(var item in items)
                 {
-                    var converterItemState = new ConverterItemState()
-                    {
-                        item = item,
-                        isSelected = item.isEnabled,
-                    };
-
-                    state.AddItem(converterItemState);
+                    state.AddItem(item);
                 }
+
+                // Set up event handlers (using the shared method)
+                SetupStateEventHandlers();
 
                 state.isLoading = false;
                 state.isInitialized = true;
-                m_HeaderFoldout.value = true; // Expand the foldout when we perform a search
 
-                m_TreeView.SetRootItems<ConverterItemState>(state.filteredItems);
+                // Expand the foldout when we perform a search
+                state.isExpanded = true;
+                m_HeaderFoldout.value = true;
+
+                // Build the tree structure from the items
+                state.ApplyFilter();
+
+                m_TreeView.SetRootItems<TreeNodeData>(state.filteredItemsTree);
+                m_TreeView.Rebuild();
+
+                // Expand all folders recursively by default
+                ExpandAllFolders(state.filteredItemsTree);
+
+                // Refresh filter toggle states (filter was reset to All in Clear())
+                m_Filter.RefreshToggleStates();
 
                 Refresh();
                 onScanFinish?.Invoke();
@@ -355,7 +457,8 @@ namespace UnityEditor.Rendering.Converter
 
         public void Convert(string progressTitle, StringBuilder sb)
         {
-            if (state.pending == 0)
+            int selectedPendingCount = state.selectedPending;
+            if (selectedPendingCount == 0)
             {
                 sb.AppendLine($"[{displayName}] Skipping conversion.");
                 return;
@@ -364,52 +467,339 @@ namespace UnityEditor.Rendering.Converter
             sb.AppendLine($"[{displayName}]");
 
             converter.BeforeConvert();
-            int itemIndex = 0;
             int itemToConvertIndex = 0;
-            foreach (var itemState in state.items)
+            foreach (var itemState in state.GetAllLeafItems())
             {
+                // Skip invalid items (can happen after failed deserialization)
+                if (itemState.item == null)
+                    continue;
+
+                // Skip items that are not selected or already converted
+                if (itemState.hasConverted || itemState.isSelected != true)
+                    continue;
+
+                var itemName = itemState.item.name ?? "(unnamed)";
+
                 if (EditorUtility.DisplayCancelableProgressBar(progressTitle,
-                    $"({itemToConvertIndex} of {state.pending}) {itemState.item.name}",
-                    itemToConvertIndex / (float)state.pending))
+                    $"({itemToConvertIndex + 1} of {selectedPendingCount}) {itemName}",
+                    itemToConvertIndex / (float)selectedPendingCount))
                     break;
 
-                if (!itemState.hasConverted && itemState.isSelected)
+                try
                 {
-                    try
+                    var status = converter.Convert(itemState.item, out var message);
+                    switch (status)
                     {
-                        var status = converter.Convert(itemState.item, out var message);
-                        switch (status)
+                        case Status.Pending:
+                            throw new InvalidOperationException("Converter returned a pending status when converting. This is not supported.");
+                        case Status.Error:
+                        case Status.Warning:
+                            sb.AppendLine($"\t- {itemName} ({status}) ({message})");
+                            break;
+                        case Status.Success:
                         {
-                            case Status.Pending:
-                                throw new InvalidOperationException("Converter returned a pending status when converting. This is not supported.");
-                            case Status.Error:
-                            case Status.Warning:
-                                sb.AppendLine($"\t- {itemState.item.name} ({status}) ({message})");
-                                break;
-                            case Status.Success:
-                            {
-                                sb.AppendLine($"\t- {itemState.item.name} ({status})");
-                                message = "Conversion successful!";
-                            }
-                                break;
+                            sb.AppendLine($"\t- {itemName} ({status})");
+                            message = "Conversion successful!";
                         }
+                            break;
+                    }
 
-                        itemState.conversionResult.Status = status;
-                        itemState.conversionResult.Message = message;
-                    }
-                    catch(Exception ex)
-                    {
-                        Debug.LogError($"Exception {ex.Message} while converting {itemState.item.name} from {displayName}");
-                    }
-                    itemToConvertIndex++;
+                    // Update the tuple as a whole
+                    itemState.conversionResult = (status, message);
                 }
-                itemIndex++;
+                catch(Exception ex)
+                {
+                    Debug.LogError($"Exception {ex.Message} while converting {itemName} from {displayName}");
+                }
+                itemToConvertIndex++;
             }
             converter.AfterConvert();
 
             Refresh();
 
             sb.AppendLine(state.ToString());
+        }
+
+        private VisualElement MakeNameCell()
+        {
+            // Create a container with toggle + icon + label in horizontal layout
+            var container = new VisualElement();
+            container.style.flexDirection = FlexDirection.Row;
+            container.style.alignItems = Align.Center;
+
+            var toggle = new Toggle();
+            toggle.AddToClassList("render-pipeline-converter-items-toggle");
+            toggle.name = "item-toggle";
+
+            var icon = new Image();
+            icon.AddToClassList("render-pipeline-converter-items-icon");
+            icon.name = "item-icon";
+
+            var label = new Label();
+            label.AddToClassList("render-pipeline-converter-items-name-label");
+            label.name = "item-label";
+
+            container.Add(toggle);
+            container.Add(icon);
+            container.Add(label);
+
+            return container;
+        }
+
+        private void BindNameCell(VisualElement element, int index)
+        {
+            TreeNodeData nodeData = m_TreeView.GetItemDataForIndex<TreeNodeData>(index);
+
+            var container = element;
+            var toggle = container.Q<Toggle>("item-toggle");
+            var icon = container.Q<Image>("item-icon");
+            var label = container.Q<Label>("item-label");
+
+            if (toggle == null || icon == null || label == null || nodeData == null)
+                return;
+
+            // Store nodeData in userData for unbind
+            label.userData = nodeData;
+
+            // Set label text
+            label.text = nodeData.displayName;
+
+            // Bind icon
+            if (nodeData.itemState != null)
+            {
+                var itemIcon = nodeData.itemState.item.icon;
+                if (itemIcon != null)
+                {
+                    icon.image = itemIcon;
+                    icon.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    icon.image = null;
+                    icon.style.display = DisplayStyle.None;
+                }
+            }
+            else
+            {
+                icon.image = null;
+                icon.style.display = DisplayStyle.None;
+            }
+
+            // Bind toggle
+            if (nodeData.isFolder)
+            {
+                // FOLDER NODE - Tri-state checkbox
+                toggle.style.display = DisplayStyle.Flex;
+                toggle.style.visibility = Visibility.Visible;
+
+                // Check if folder is enabled (at least one child is enabled)
+                bool folderEnabled = nodeData.itemState?.item.isEnabled ?? false;
+                toggle.SetEnabled(folderEnabled);
+
+                var (isChecked, isIndeterminate) = nodeData.GetFolderCheckboxState();
+
+                toggle.showMixedValue = isIndeterminate;
+                toggle.SetValueWithoutNotify(isChecked);
+
+                if (folderEnabled)
+                {
+                    if (isIndeterminate)
+                    {
+                        toggle.tooltip = "Some items selected - click to select all";
+                    }
+                    else
+                    {
+                        toggle.tooltip = isChecked ? "All items selected - click to deselect all" : "No items selected - click to select all";
+                    }
+
+                    // Create callback that captures the current nodeData
+                    EventCallback<ChangeEvent<bool>> callback = (evt) =>
+                    {
+                        bool newValue = evt.newValue;
+
+                        // If currently indeterminate, clicking should select all (set to true)
+                        var (currentIsChecked, currentIsIndeterminate) = nodeData.GetFolderCheckboxState();
+                        if (currentIsIndeterminate)
+                            newValue = true;
+
+                        nodeData.itemState.SetSelectedWithoutNotify(newValue);
+                        Refresh();
+                        converterSelected?.Invoke();
+                    };
+
+                    // Store callback in toggle's userData for later cleanup
+                    toggle.userData = new FolderToggleUserData
+                    {
+                        nodeData = nodeData,
+                        callback = callback
+                    };
+
+                    toggle.RegisterValueChangedCallback(callback);
+                }
+                else
+                {
+                    // Folder is disabled - show reason in tooltip
+                    toggle.tooltip = nodeData.itemState?.item.isDisabledMessage ?? "All items in this folder are already converted or disabled";
+                    // Store nodeData for consistency (no callback since it's disabled)
+                    toggle.userData = new FolderToggleUserData
+                    {
+                        nodeData = nodeData,
+                        callback = null
+                    };
+                }
+            }
+            else if (nodeData.itemState != null)
+            {
+                // LEAF NODE - Regular checkbox
+                toggle.showMixedValue = false;
+                toggle.style.display = DisplayStyle.Flex;
+                toggle.style.visibility = Visibility.Visible;
+
+                if (nodeData.itemState.item.isEnabled)
+                {
+                    toggle.SetEnabled(true);
+                    toggle.tooltip = "Select/Deselect this item for conversion";
+                    toggle.SetValueWithoutNotify(nodeData.itemState.isSelected ?? false);
+
+                    // Store nodeData for cleanup
+                    toggle.userData = nodeData;
+
+                    // Register value change to toggle selection - root event handler will refresh UI
+                    toggle.RegisterValueChangedCallback(nodeData.itemState.OnSelectionChanged);
+
+                    // Register click for label
+                    label.RegisterCallback<ClickEvent>(nodeData.itemState.OnClicked);
+                }
+                else
+                {
+                    toggle.SetEnabled(false);
+                    toggle.tooltip = nodeData.itemState.item.isDisabledMessage;
+                    toggle.SetValueWithoutNotify(false);
+
+                    // Store nodeData even for disabled items
+                    toggle.userData = nodeData;
+                }
+            }
+            else
+            {
+                toggle.style.display = DisplayStyle.None;
+            }
+        }
+
+        private void UnbindNameCell(VisualElement element, int index)
+        {
+            var container = element;
+            var toggle = container.Q<Toggle>("item-toggle");
+            var label = container.Q<Label>("item-label");
+
+            if (toggle == null || label == null)
+                return;
+
+            // Unregister callbacks based on what was stored in userData
+            // Check if it's a folder with callback stored
+            if (toggle.userData is FolderToggleUserData folderData && folderData.callback != null)
+            {
+                // Unregister the folder's value changed callback
+                toggle.UnregisterValueChangedCallback(folderData.callback);
+                toggle.userData = null;
+            }
+            // Or if it's a leaf item with value changed callback
+            else if (toggle.userData is TreeNodeData leafNode)
+            {
+                if (leafNode.itemState != null)
+                {
+                    toggle.UnregisterValueChangedCallback(leafNode.itemState.OnSelectionChanged);
+                }
+                toggle.userData = null;
+            }
+
+            // Unregister label click callback
+            if (label.userData is TreeNodeData labelNode && labelNode.itemState != null)
+            {
+                label.UnregisterCallback<ClickEvent>(labelNode.itemState.OnClicked);
+                label.userData = null;
+            }
+        }
+
+        private void ExpandCollapseAll(bool expand)
+        {
+            if (state.filteredItemsTree == null || state.filteredItemsTree.Count == 0)
+                return;
+
+            ExpandCollapseAllRecursive(state.filteredItemsTree, expand);
+            // State is automatically updated via itemExpandedChanged callback
+        }
+
+        private void ExpandCollapseAllRecursive(IEnumerable<TreeViewItemData<TreeNodeData>> items, bool expand)
+        {
+            foreach (var item in items)
+            {
+                if (item.data.isFolder && item.data.itemState is FolderItemState folderState)
+                {
+                    // Explicitly update state (don't rely solely on callback)
+                    folderState.isExpanded = expand;
+
+                    if (expand)
+                        m_TreeView.ExpandItem(item.id);
+                    else
+                        m_TreeView.CollapseItem(item.id);
+
+                    if (item.hasChildren)
+                        ExpandCollapseAllRecursive(item.children, expand);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the expanded state of all descendant folders when a parent folder is collapsed/expanded.
+        /// This ensures recursive collapse (Alt+click) persists correctly across assembly reloads.
+        /// </summary>
+        private void UpdateDescendantExpandedStates(TreeNodeData parentNode, bool isExpanded)
+        {
+            // Get the TreeViewItemData for this node to access its children
+            var treeItem = FindTreeViewItem(state.filteredItemsTree, parentNode);
+            if (treeItem.HasValue && treeItem.Value.hasChildren)
+            {
+                UpdateDescendantExpandedStatesRecursive(treeItem.Value.children, isExpanded);
+            }
+        }
+
+        /// <summary>
+        /// Recursively updates expanded state for all descendant folders
+        /// </summary>
+        private void UpdateDescendantExpandedStatesRecursive(IEnumerable<TreeViewItemData<TreeNodeData>> items, bool isExpanded)
+        {
+            foreach (var item in items)
+            {
+                if (item.data.isFolder && item.data.itemState is FolderItemState folderState)
+                {
+                    folderState.isExpanded = isExpanded;
+
+                    if (item.hasChildren)
+                        UpdateDescendantExpandedStatesRecursive(item.children, isExpanded);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds a TreeViewItemData that contains the specified TreeNodeData
+        /// </summary>
+        private TreeViewItemData<TreeNodeData>? FindTreeViewItem(IEnumerable<TreeViewItemData<TreeNodeData>> items, TreeNodeData targetNode)
+        {
+            foreach (var item in items)
+            {
+                if (item.data == targetNode)
+                    return item;
+
+                if (item.hasChildren)
+                {
+                    var found = FindTreeViewItem(item.children, targetNode);
+                    if (found.HasValue)
+                        return found;
+                }
+            }
+
+            return null;
         }
     }
 }

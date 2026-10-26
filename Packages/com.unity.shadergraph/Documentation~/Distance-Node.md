@@ -22,3 +22,7 @@ void Unity_Distance_float4(float4 A, float4 B, out float Out)
     Out = distance(A, B);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

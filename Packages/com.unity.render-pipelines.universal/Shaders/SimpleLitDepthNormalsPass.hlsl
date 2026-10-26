@@ -1,12 +1,17 @@
 #ifndef UNIVERSAL_SIMPLE_LIT_DEPTH_NORMALS_PASS_INCLUDED
 #define UNIVERSAL_SIMPLE_LIT_DEPTH_NORMALS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitFeatures.hlsl"
+
+#if FEATURES_NORMALMAP
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
-#if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+#if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP
     #define REQUIRES_UV_INTERPOLATOR
 #endif
 
@@ -27,7 +32,7 @@ struct Varyings
         float2 uv          : TEXCOORD1;
     #endif
 
-    #ifdef _NORMALMAP
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 normalWS    : TEXCOORD2;    // xyz: normal, w: viewDir.x
         half4 tangentWS   : TEXCOORD3;    // xyz: tangent, w: viewDir.y
         half4 bitangentWS : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
@@ -56,7 +61,7 @@ Varyings DepthNormalsVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);
 
-    #if defined(_NORMALMAP)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
         output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
@@ -80,35 +85,23 @@ void DepthNormalsFragment(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if defined(_ALPHATEST_ON)
-        Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+        half albedoAlpha = SampleBaseMap(input.uv).a;
+        AlphaDiscard((UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha()) ? _BaseColor.a : albedoAlpha * _BaseColor.a, _Cutoff);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE)
-        LODFadeCrossFade(input.positionCS);
-    #endif
+    LODFadeCrossFade(input.positionCS);
 
-    #if _SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF_KEYWORD_DECLARED
-        if (_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF)
-            discard;
-    #endif
-
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float3 normalWS = normalize(input.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        outNormalWS = half4(packedNormalWS, 0.0);
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        half3 normalWS;
+        if (UseNormalMap())
+            normalWS = TransformTangentToWorld(SampleNormal(input.uv), half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+        else
+            normalWS = input.normalWS.xyz;
     #else
-        #if defined(_NORMALMAP)
-            half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-            half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
-        #else
-            half3 normalWS = input.normalWS;
-        #endif
-
-        normalWS = NormalizeNormalPerPixel(normalWS);
-        outNormalWS = half4(normalWS, 0.0);
+        half3 normalWS = input.normalWS;
     #endif
+
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
         outRenderingLayers = EncodeMeshRenderingLayer();

@@ -12,10 +12,10 @@ namespace UnityEditor.Rendering.Tests.Documentation
     {
         static TestCaseData[] s_VolumeTestsCaseDatas =
         {
-            new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline), "Volumes")
-                .SetName("Volumes URL's are correct when URP is the active pipeline"),
+            new TestCaseData("Assets/PipelineAssets/UniversalRenderPipelineAsset.asset" , typeof(UniversalRenderPipeline), "urp/Volumes")
+                .SetName("{m}(Volumes URL's are correct when URP is the active pipeline)"),
             new TestCaseData("Assets/PipelineAssets/HDRenderPipelineAsset.asset", typeof(HDRenderPipeline), "understand-volumes")
-                .SetName("Volumes URL's are correct when HDRP is the active pipeline"),
+                .SetName("{m}(Volumes URL's are correct when HDRP is the active pipeline)"),
         };
 
         [Test, TestCaseSource(nameof(s_VolumeTestsCaseDatas))]
@@ -33,10 +33,10 @@ namespace UnityEditor.Rendering.Tests.Documentation
 
         static TestCaseData[] s_VolumeProfileTestsCaseDatas =
         {
-            new TestCaseData(k_URPAssetPath, typeof(UniversalRenderPipeline), "Volume-Profile")
-                .SetName("Volumes URL's are correct when URP is the active pipeline"),
+            new TestCaseData(k_URPAssetPath, typeof(UniversalRenderPipeline), "urp/Volume-Profile")
+                .SetName("{m}(Volumes URL's are correct when URP is the active pipeline)"),
             new TestCaseData(k_HDRPAssetPath, typeof(HDRenderPipeline), "create-a-volume-profile")
-                .SetName("Volumes URL's are correct when HDRP is the active pipeline"),
+                .SetName("{m}(Volumes URL's are correct when HDRP is the active pipeline)"),
         };
 
         [Test, TestCaseSource(nameof(s_VolumeProfileTestsCaseDatas))]
@@ -53,6 +53,12 @@ namespace UnityEditor.Rendering.Tests.Documentation
         string SetRPAndGetExpectedDocumentationLink(string renderPipelineAsset, Type renderPipelineType, string pageName)
         {
             GraphicsSettings.defaultRenderPipeline = LoadAsset(renderPipelineAsset);
+
+            // URP documentation is in the Unity Manual since 6000.0. Page paths are relative to the
+            // Manual's "md" root (passed in via pageName, e.g. "urp/Volumes").
+            if (renderPipelineType == typeof(UniversalRenderPipeline))
+                return DocumentationInfo.GetManualLink(pageName);
+
             Assume.That(DocumentationUtils.TryGetPackageInfoForType(renderPipelineType, out var name, out var version), Is.True);
             return DocumentationInfo.GetPackageLink(name, version, pageName);
         }

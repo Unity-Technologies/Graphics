@@ -12,3 +12,5 @@ If the average frame time is different from the target frame time, HDRP changes 
 | **Scale Up Step Count**       | The number of downscale steps between the minimum screen percentage to the maximum screen percentage. For example, a value of 5 means that each step upscales 20% of the difference between the maximum and minimum screen resolutions. <br/><br/>You can set the minimum and maximum screen percentage in the [HDRP Asset](HDRP-Asset.md). |
 | **Scale Down Step Count**     | The number of downscale steps between the maximum screen percentage to the minimum screen percentage. For example, a value of 5 means that each step downscales 20% of the difference between the maximum and minimum screen resolutions. <br/><br/>You can set the minimum and maximum screen percentage in the [HDRP Asset](HDRP-Asset.md). |
 | **Enable Debug View**         | Enables the debug view of dynamic resolution.                |
+
+**Note**: The debug view is only available in builds with **Managed Code Variant** set to **Debug**, **Checked**, or **Instrumented** in [**Player Settings**](https://docs.unity3d.com/Manual/class-PlayerSettings.html).

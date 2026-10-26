@@ -517,7 +517,7 @@ namespace UnityEngine.VFX.SDF
             Vector2Int r = Vector2Int.zero;
             int nbGroupNeeded = (nbThreads + threadCountPerGroup - 1) / threadCountPerGroup;
             r.y = 1 + (nbGroupNeeded / 0xffff); //0xffff is maximal number of group of DX11 : D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION
-            r.x = nbGroupNeeded / r.y;
+            r.x = iDivUp(nbGroupNeeded, r.y);
             return r;
         }
 
@@ -778,7 +778,7 @@ namespace UnityEngine.VFX.SDF
 
             BuildGeometry();
 
-            FirstDraw();
+            FirstDraw(upperBoundCount);
 
             PrefixSumCount();
 
@@ -826,7 +826,7 @@ namespace UnityEngine.VFX.SDF
             nTriangles /= 3;
         }
 
-        private void FirstDraw()
+        private void FirstDraw(int upperBoundCount)
         {
             m_Cmd.BeginSample("BakeSDF.FirstDraw");
 
@@ -836,6 +836,7 @@ namespace UnityEngine.VFX.SDF
                 m_Material[i].SetInt(ShaderProperties.dimY, m_Dimensions[1]);
                 m_Material[i].SetInt(ShaderProperties.dimZ, m_Dimensions[2]);
                 m_Material[i].SetInt(ShaderProperties.currentAxis, i);
+                m_Material[i].SetInt(ShaderProperties.upperBoundCount, upperBoundCount);
                 m_Material[i].SetBuffer(ShaderProperties.verticesBuffer, m_VerticesOutBuffer);
                 m_Material[i].SetBuffer(ShaderProperties.coordFlipBuffer, m_CoordFlipBuffer);
             }

@@ -30,7 +30,11 @@ float4 _CameraDepthTexture_TexelSize;
 
 float SampleSceneDepth(float2 uv)
 {
-    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
+    uv = UnityStereoTransformScreenSpaceTex(uv);
+    #if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+    uv = RemovePretransformRotation(uv, GetScaledScreenParams());
+    #endif
+    uv = ClampAndScaleUVForBilinear(uv, _CameraDepthTexture_TexelSize.xy);
     uint2 pixelCoord = uint2(uv * _ScreenSize.xy);
     return LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).r;
 }

@@ -2,19 +2,24 @@
 #define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
 
 #include "LitInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/LitFeatures.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+// Realtime shadows are never sampled when Receive Shadows is off at compile time;
+// drop the vertex shadow-coord interpolator.
+#if _RECEIVE_SHADOWS_OFF_STATICALLY_ENABLED
+    #undef USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
 #endif
 
-#if defined(_PARALLAXMAP)
-#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#if FEATURES_PARALLAXMAP
+#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR 1
 #endif
 
-#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR))) || defined(_DETAIL)
-#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
+#if (FEATURES_NORMALMAP || FEATURES_DETAILMAP)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
 // keep this file in sync with LitGBufferPass.hlsl
@@ -34,39 +39,48 @@ struct Varyings
 {
     float2 uv                       : TEXCOORD0;
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+#if REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
     float3 positionWS               : TEXCOORD1;
 #endif
 
     float3 normalWS                 : TEXCOORD2;
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+
+#if REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
     half4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: sign
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
+    URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 #else
     half  fogFactor                 : TEXCOORD5;
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
     float4 shadowCoord              : TEXCOORD6;
 #endif
 
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+#if REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
     half3 viewDirTS                : TEXCOORD7;
 #endif
 
-    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 8);
-#ifdef DYNAMICLIGHTMAP_ON
-    float2  dynamicLightmapUV : TEXCOORD9; // Dynamic lightmap UVs
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    float2 staticLightmapUV         : LIGHTMAPUV;
+#endif
+
+#if USE_VERTEX_SH_INTERPOLATOR
+    half3 vertexSH                  : VERTEXSH;
+#endif
+
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    float2 dynamicLightmapUV        : DYNLIGHTMAPUV;
 #endif
 
 #ifdef USE_APV_PROBE_OCCLUSION
-    float4 probeOcclusion : TEXCOORD10;
+    float4 probeOcclusion           : PROBEOCCLUSION;
 #endif
 
     float4 positionCS               : SV_POSITION;
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -79,89 +93,80 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.positionWS = input.positionWS;
 #endif
 
-#if defined(DEBUG_DISPLAY)
     inputData.positionCS = input.positionCS;
-#endif
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-#if defined(_NORMALMAP) || defined(_DETAIL)
-    float sgn = input.tangentWS.w;      // should be either +1 or -1
-    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-
-    #if defined(_NORMALMAP)
-    inputData.tangentToWorld = tangentToWorld;
-    #endif
-    inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+    inputData.normalWS = input.normalWS;
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    if (UseNormalMap() || UseDetailMap())
+    {
+        float sgn = input.tangentWS.w;      // should be either +1 or -1
+        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+        half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+        if (UseNormalMap())
+            inputData.tangentToWorld = tangentToWorld;
+        inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+    }
 #else
     inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz);
 #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-#else
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
 #endif
-
-#if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
-    float2 preRotatedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
-    {
-    default:
-        case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0: inputData.normalizedScreenSpaceUV = preRotatedScreenSpaceUV; break;
-        case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90: inputData.normalizedScreenSpaceUV = float2(1 - preRotatedScreenSpaceUV.y, preRotatedScreenSpaceUV.x); break;
-        case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180: inputData.normalizedScreenSpaceUV = float2(1 - preRotatedScreenSpaceUV.x, 1 - preRotatedScreenSpaceUV.y); break;
-        case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270: inputData.normalizedScreenSpaceUV = float2(preRotatedScreenSpaceUV.y, 1 - preRotatedScreenSpaceUV.x); break;
-    }
-#else
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-#endif
+                           
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);  
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
     inputData.dynamicLightmapUV = input.dynamicLightmapUV;
     #endif
-    #if defined(LIGHTMAP_ON)
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
     inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
+    #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
     inputData.vertexSH = input.vertexSH;
     #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
     inputData.probeOcclusion = input.probeOcclusion;
     #endif
     #endif
+
+    inputData.preExposureMultiplier = GetPreExposureMultiplier();
 }
 
 void InitializeBakedGIData(Varyings input, inout InputData inputData)
 {
-    #if defined(_SCREEN_SPACE_IRRADIANCE)
-    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, input.positionCS.xy, inputData.normalWS);
-    #elif defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-    #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
-        GetAbsolutePositionWS(inputData.positionWS),
-        inputData.normalWS,
-        inputData.viewDirectionWS,
-        input.positionCS.xy,
-        input.probeOcclusion,
-        inputData.shadowMask);
-    #else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+    GIParams giParams = (GIParams)0;
+
+    #if USE_LIGHTMAP_UV_INTERPOLATOR
+    giParams.staticLightmapUV = input.staticLightmapUV;
     #endif
+    #if USE_VERTEX_SH_INTERPOLATOR
+    giParams.vertexSH = input.vertexSH;
+    #endif
+    #if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    giParams.dynamicLightmapUV = input.dynamicLightmapUV;
+    #endif
+    #ifdef USE_APV_PROBE_OCCLUSION
+    giParams.vertexProbeOcclusion = input.probeOcclusion;
+    #endif
+
+    giParams.positionWS = inputData.positionWS;
+    giParams.normalWS = inputData.normalWS;
+    giParams.viewDirWS = inputData.viewDirectionWS;
+    giParams.positionSS = input.positionCS.xy;
+    giParams.isSurfaceTypeTransparent = IsSurfaceTypeTransparent();
+
+    InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,38 +189,56 @@ Varyings LitPassVertex(Attributes input)
     // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+    URP_LIGHT_ACCUM3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
 
     half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
+
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
     half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
 #endif
+
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     output.tangentWS = tangentWS;
 #endif
 
+half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
 #endif
 
-    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-#ifdef DYNAMICLIGHTMAP_ON
-    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#if USE_LIGHTMAP_UV_INTERPOLATOR
+    output.staticLightmapUV = LightmapAvailable() ? TransformLightmapUV(input.staticLightmapUV.xy, unity_LightmapST) : float2(0, 0);
 #endif
-    OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
+
+#if USE_VERTEX_SH_INTERPOLATOR
+    if (!LightmapAvailable())
+    {
+        #ifdef USE_APV_PROBE_OCCLUSION
+        output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.normalWS.xyz, viewDirWS, output.probeOcclusion);
+        #else
+        output.vertexSH = SampleProbeSHVertex(vertexInput.positionWS, output.normalWS.xyz, viewDirWS);
+        #endif
+    }
+    else
+    {
+        output.vertexSH = half3(0, 0, 0);
+    }
+#endif
+
+#if USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR
+    output.dynamicLightmapUV = DynamicLightmapAvailable() ? TransformLightmapUV(input.dynamicLightmapUV.xy, unity_DynamicLightmapST) : float2(0, 0);
+#endif
+
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.fogFactorAndVertexLight = URP_LIGHT_ACCUM4(fogFactor, vertexLight);
 #else
     output.fogFactor = fogFactor;
 #endif
@@ -224,8 +247,8 @@ Varyings LitPassVertex(Attributes input)
     output.positionWS = vertexInput.positionWS;
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), output.normalWS.xyz) : float4(0, 0, 0, 0);
 #endif
 
     output.positionCS = vertexInput.positionCS;
@@ -245,35 +268,35 @@ void LitPassFragment(
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if defined(_PARALLAXMAP)
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;
-#else
-    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-    half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
-#endif
     ApplyPerPixelDisplacement(viewDirTS, input.uv);
 #endif
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-#ifdef LOD_FADE_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
 #if defined(_DBUFFER)
-    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+    if (!IsSurfaceTypeTransparent())
+        ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData, IsSpecularSetup());
 #endif
 
     InitializeBakedGIData(input, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData,
+        IsSpecularSetup(), UseSpecularHighlights(), UseAlphaPremultiply(),
+        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections(), input.normalWS.xyz);
+    color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.positionCS));
+#if defined(_TRANSPARENT_RECEIVE_FOG)
+    if (IsSurfaceTypeTransparent())
+        color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, UseAlphaPremultiply(), input.positionCS);
+#endif
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 
     outColor = color;

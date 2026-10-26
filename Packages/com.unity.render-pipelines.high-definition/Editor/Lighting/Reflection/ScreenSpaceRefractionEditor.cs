@@ -21,6 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_ScreenFadeDistance, k_ScreenFadeDistance);
         }
 
-        static public readonly UnityEngine.GUIContent k_ScreenFadeDistance = EditorGUIUtility.TrTextContent("Screen Weight Distance", "Controls the distance at which HDRP fades out the refraction effect when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out the refraction effect for a ray destination.");
+        static public readonly UnityEngine.GUIContent k_ScreenFadeDistance = L10n.TextContent("Screen Weight Distance", "Controls the distance at which HDRP fades out the refraction effect when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out the refraction effect for a ray destination.", null, null);
     }
 }

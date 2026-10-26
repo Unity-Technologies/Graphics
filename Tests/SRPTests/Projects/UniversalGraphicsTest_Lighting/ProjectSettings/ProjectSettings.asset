@@ -479,33 +479,7 @@ PlayerSettings:
     m_StaticBatching: 0
     m_DynamicBatching: 1
   m_BuildTargetShaderSettings: []
-  m_BuildTargetGraphicsJobs:
-  - m_BuildTarget: MacStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: Switch
-    m_GraphicsJobs: 0
-  - m_BuildTarget: MetroSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: AppleTVSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: BJMSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: LinuxStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: PS4Player
-    m_GraphicsJobs: 0
-  - m_BuildTarget: iOSSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: WindowsStandaloneSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: XboxOnePlayer
-    m_GraphicsJobs: 0
-  - m_BuildTarget: LuminSupport
-    m_GraphicsJobs: 0
-  - m_BuildTarget: AndroidPlayer
-    m_GraphicsJobs: 0
-  - m_BuildTarget: WebGLSupport
-    m_GraphicsJobs: 0
+  m_BuildTargetGraphicsJobs: []
   m_BuildTargetGraphicsJobMode:
   - m_BuildTarget: PS4Player
     m_GraphicsJobMode: 0
@@ -698,22 +672,22 @@ PlayerSettings:
   webGLWebAssemblyBigInt: 0
   webGLCloseOnQuit: 0
   scriptingDefineSymbols:
-    Android: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    GameCoreScarlett: URP_SCREEN_SPACE_REFLECTION
-    GameCoreXboxOne: URP_SCREEN_SPACE_REFLECTION
-    Nintendo Switch: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    Nintendo Switch 2: URP_SCREEN_SPACE_REFLECTION
-    PS4: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    PS5: URP_SCREEN_SPACE_REFLECTION
-    Standalone: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    WebGL: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    Windows Store Apps: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    XboxOne: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    iPhone: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
-    tvOS: LWRP_DEBUG_STATIC_POSTFX;URP_SCREEN_SPACE_REFLECTION
+    Android: LWRP_DEBUG_STATIC_POSTFX
+    Nintendo Switch: LWRP_DEBUG_STATIC_POSTFX
+    PS4: LWRP_DEBUG_STATIC_POSTFX
+    Standalone: LWRP_DEBUG_STATIC_POSTFX
+    WebGL: LWRP_DEBUG_STATIC_POSTFX
+    Windows Store Apps: LWRP_DEBUG_STATIC_POSTFX
+    XboxOne: LWRP_DEBUG_STATIC_POSTFX
+    iPhone: LWRP_DEBUG_STATIC_POSTFX
+    tvOS: LWRP_DEBUG_STATIC_POSTFX
   additionalCompilerArguments:
     Standalone:
     - -warnaserror+
+    - -warnaserror-:CS0618
+    - -warnaserror-:UAC0005
+    - -warnaserror-:UAC0007
+    - -warnaserror-:UAC0020
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

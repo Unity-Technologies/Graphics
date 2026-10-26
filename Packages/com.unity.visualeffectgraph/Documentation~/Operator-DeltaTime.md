@@ -1,4 +1,4 @@
-# Delta Time
+# Delta Time Operator
 
 Menu Path : **Operator > BuiltIn > DeltaTime**
 

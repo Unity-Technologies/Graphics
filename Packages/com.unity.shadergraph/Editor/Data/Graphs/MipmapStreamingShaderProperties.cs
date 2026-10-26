@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public sealed class MipmapStreamingShaderProperty : Texture2DShaderProperty
         {
-            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+            internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
             {
                 // No Texture2D declaration needed, already declared by internal files.
                 // We do want to declare related mipmap streaming debugging properties, wrapped inside a macro

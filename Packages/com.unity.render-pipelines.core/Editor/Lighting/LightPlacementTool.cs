@@ -19,7 +19,7 @@ class LightPlacementTool : EditorTool
     private static SceneView.SceneViewState previousSceneViewState;
     private static SceneView lastSceneView;
 
-    public override GUIContent toolbarIcon => EditorGUIUtility.TrIconContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/", "LightPlacement_Icon", ".png", false), "The Light Placement Tool temporarily changes the Scene Camera to look-through the currently selected Light. Use the Scene View Navigation controls to move it around the Scene.");
+    public override GUIContent toolbarIcon => L10n.IconContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/", "LightPlacement_Icon", ".png", false), "The Light Placement Tool temporarily changes the Scene Camera to look-through the currently selected Light. Use the Scene View Navigation controls to move it around the Scene.", null);
 
     public override void OnActivated()
     {

@@ -1,4 +1,4 @@
-# Ceiling
+# Ceiling Operator
 
 Menu Path : **Operator > Math > Clamp > Ceiling**
 

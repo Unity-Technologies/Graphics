@@ -395,5 +395,113 @@ namespace UnityEngine.Rendering.Utils.Tests
             Assert.AreEqual(0, list.Count);
             Assert.IsTrue(itemRemovedEventTriggered); // Events should trigger for every item removed
         }
+
+        static readonly Comparison<int> k_Ascending = (x, y) => x.CompareTo(y);
+
+        public static IEnumerable<TestCaseData> TestCasesAddRange
+        {
+            get
+            {
+                yield return new TestCaseData(
+                        new[] { 10, 20 }, new[] { 30, 40 }, null,
+                        new[] { 10, 20, 30, 40 },
+                        new[] { (2, 30), (3, 40) })
+                    .SetName("AddRange_NoComparison_AppendsAndReportsTailIndices");
+
+                yield return new TestCaseData(
+                        new[] { 2, 8 }, new[] { 5, 1 }, k_Ascending,
+                        new[] { 1, 2, 5, 8 },
+                        new[] { (2, 5), (0, 1) })
+                    .SetName("AddRange_Sort_ReportsPostSortIndicesForInsertedItems");
+
+                yield return new TestCaseData(
+                        new int[] { }, new[] { 3, 1, 2 }, k_Ascending,
+                        new[] { 1, 2, 3 },
+                        new[] { (2, 3), (0, 1), (1, 2) })
+                    .SetName("AddRange_Sort_IntoEmptyList");
+            }
+        }
+
+        [Test, TestCaseSource(nameof(TestCasesAddRange))]
+        public void AddRange_On_List(int[] init, int[] itemsToAdd, Comparison<int> comparison,
+            int[] expectedFinalList, (int index, int item)[] expectedEvents)
+        {
+            // Arrange
+            var list = new UnityEngine.Rendering.ObservableList<int>(init, comparison: comparison);
+            var events = new List<(int index, int item)>();
+            list.ItemAdded += (sender, args) => events.Add((args.index, args.item));
+
+            // Act
+            list.AddRange(itemsToAdd);
+
+            // Assert
+            AssertRangeAddedEvents(list, expectedFinalList, expectedEvents, events);
+        }
+
+        public static IEnumerable<TestCaseData> TestCasesInsertRange
+        {
+            get
+            {
+                // init, index, itemsToInsert, comparison, expectedFinalList, expectedEvents (index,item)
+                yield return new TestCaseData(
+                        new[] { 10, 20, 30 }, 0, new[] { 1, 2 }, null,
+                        new[] { 1, 2, 10, 20, 30 },
+                        new[] { (0, 1), (1, 2) })
+                    .SetName("InsertRange_NoComparison_AtStart");
+
+                // Regression: inserting at index > 0 with no comparison must still
+                // fire one event per inserted item (old loop bound fired none here).
+                yield return new TestCaseData(
+                        new[] { 10, 20, 30 }, 2, new[] { 40, 50 }, null,
+                        new[] { 10, 20, 40, 50, 30 },
+                        new[] { (2, 40), (3, 50) })
+                    .SetName("InsertRange_NoComparison_AtMiddle_RegressionFiresEvents");
+
+                yield return new TestCaseData(
+                        new[] { 10, 20, 30 }, 3, new[] { 40, 50 }, null,
+                        new[] { 10, 20, 30, 40, 50 },
+                        new[] { (3, 40), (4, 50) })
+                    .SetName("InsertRange_NoComparison_AtEnd");
+
+                // With a comparison the insert index is irrelevant; events must
+                // report the actual post-sort positions of the inserted items.
+                yield return new TestCaseData(
+                        new[] { 2, 8 }, 1, new[] { 5, 1 }, k_Ascending,
+                        new[] { 1, 2, 5, 8 },
+                        new[] { (2, 5), (0, 1) })
+                    .SetName("InsertRange_Sort_ReportsPostSortIndices");
+            }
+        }
+
+        [Test, TestCaseSource(nameof(TestCasesInsertRange))]
+        public void InsertRange_On_List(int[] init, int index, int[] itemsToInsert, Comparison<int> comparison,
+            int[] expectedFinalList, (int index, int item)[] expectedEvents)
+        {
+            // Arrange
+            var list = new UnityEngine.Rendering.ObservableList<int>(init, comparison: comparison);
+            var events = new List<(int index, int item)>();
+            list.ItemAdded += (sender, args) => events.Add((args.index, args.item));
+
+            // Act
+            list.InsertRange(index, itemsToInsert);
+
+            // Assert
+            AssertRangeAddedEvents(list, expectedFinalList, expectedEvents, events);
+        }
+
+        static void AssertRangeAddedEvents(UnityEngine.Rendering.ObservableList<int> list,
+            int[] expectedFinalList, (int index, int item)[] expectedEvents, List<(int index, int item)> events)
+        {
+            // Final list contents.
+            CollectionAssert.AreEqual(expectedFinalList, list);
+
+            // One event per inserted item, with the correct post-operation (index, item).
+            Assert.AreEqual(expectedEvents.Length, events.Count, "One ItemAdded event should fire per inserted item.");
+            CollectionAssert.AreEquivalent(expectedEvents, events);
+
+            // Each reported index must actually hold the reported item after the operation completes.
+            foreach (var e in events)
+                Assert.AreEqual(e.item, list[e.index], $"Event reported item {e.item} at index {e.index} but list[{e.index}] is {list[e.index]}.");
+        }
     }
 }

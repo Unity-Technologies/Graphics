@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -42,8 +41,20 @@ namespace UnityEngine.Rendering
                 return result is true;
             }
 
+            // Only meaningful once RunInProgress() is false. A finished run is not necessarily a successful one.
+            internal bool GetLastRunSucceeded()
+            {
+                if (!InvokeMethod(new object[] { }, out object result))
+                    return false;
+
+                return result is true;
+            }
+
             internal void Step(ref float progress, ref StageName stage) =>
                 Update(true, true, true, out progress, out stage);
+
+            internal void ClearProgress() =>
+                InvokeMethod(new object[] { }, out _);
 
             void SetEnableBakedLightmaps(bool enable) =>
                 InvokeMethod(new object[] { enable }, out _);
@@ -87,7 +98,7 @@ namespace UnityEngine.Rendering
                 Bake = 3,
                 PostProcess = 4,
                 AdditionalBake = 5,
-                Done = 6
+                Done = 6,
             }
 
             // If StageName is not kept in sync, this should return false

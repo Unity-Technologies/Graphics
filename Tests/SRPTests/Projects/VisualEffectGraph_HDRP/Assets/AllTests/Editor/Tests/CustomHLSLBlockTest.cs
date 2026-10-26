@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI.Internal;
@@ -774,8 +775,7 @@ void CustomHLSL(inout VFXAttributes attributes)
             }
             else
             {
-                using var customLogHandler = new CustomLogHandler();
-                customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
+                LogAssert.Expect(LogType.Error, new Regex(@".*Unity cannot compile the VisualEffectAsset.*"));
                 VFXTestCommon.ReimportVFXGraph(graph);
             }
 

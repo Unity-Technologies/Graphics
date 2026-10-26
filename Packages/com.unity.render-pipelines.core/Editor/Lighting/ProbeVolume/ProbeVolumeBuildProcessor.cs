@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -10,12 +10,12 @@ namespace UnityEditor.Rendering
 {
     class ProbeVolumeBuildProcessor : BuildPlayerProcessor, IPostprocessBuildWithReport
     {
-        const string kTempAPVStreamingAssetsPath = "TempAPVStreamingAssets";
+        const string k_TempAPVStreamingAssetsPath = "TempAPVStreamingAssets";
 
         string GetTempAPVStreamingAssetsPath()
         {
             var libraryPath = Path.GetFullPath("Library");
-            return Path.Combine(libraryPath, kTempAPVStreamingAssetsPath);
+            return Path.Combine(libraryPath, k_TempAPVStreamingAssetsPath);
         }
 
         // Include an asset in the build. The mechanism for doing so depends on whether we are using StreamingAssets path.
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering
         void GetProbeVolumeProjectSettings(BuildTarget target, out bool supportProbeVolume, out ProbeVolumeSHBands maxSHBands)
         {
             // Grab all assets used for the build.
-            List<RenderPipelineAsset> srpAssets = new List<RenderPipelineAsset>();
+            var srpAssets = new List<RenderPipelineAsset>();
             target.TryGetRenderPipelineAssets(srpAssets);
 
             maxSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering
         }
 
         // Keep track of which assets we touched during the build, so we can restore them after the build.
-        private static HashSet<ProbeVolumeBakingSet> s_BakingSetsProcessedLastBuild = new();
+        static readonly HashSet<ProbeVolumeBakingSet> s_BakingSetsProcessedLastBuild = new();
 
         public override void PrepareForBuild(BuildPlayerContext buildPlayerContext)
         {
@@ -107,8 +107,8 @@ namespace UnityEditor.Rendering
             s_BakingSetsProcessedLastBuild.Clear();
             foreach (var scene in buildPlayerContext.BuildPlayerOptions.scenes)
             {
-                var sceneGUID = AssetDatabase.AssetPathToGUID(scene);
-                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGUID);
+                var sceneGuid = AssetDatabase.GUIDFromAssetPath(scene);
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGuid);
                 if (bakingSet != null)
                 {
                     // Already processed (different scenes can belong to the same baking set).
@@ -133,8 +133,8 @@ namespace UnityEditor.Rendering
                         }
                     }
 
-                    var bakingSetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(bakingSet));
-                    var basePath = Path.Combine(tempStreamingAssetsPath, bakingSetGUID);
+                    var bakingSetGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(bakingSet));
+                    var basePath = Path.Combine(tempStreamingAssetsPath, bakingSetGuid);
 
                     Directory.CreateDirectory(basePath);
 
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            buildPlayerContext.AddAdditionalPathToStreamingAssets(tempStreamingAssetsPath, AdaptiveProbeVolumes.kAPVStreamingAssetsPath);
+            buildPlayerContext.AddAdditionalPathToStreamingAssets(tempStreamingAssetsPath, AdaptiveProbeVolumes.k_APVStreamingAssetsPath);
         }
 
         public void OnPostprocessBuild(BuildReport report)

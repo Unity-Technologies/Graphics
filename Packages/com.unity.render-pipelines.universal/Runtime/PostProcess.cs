@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using System.Runtime.CompilerServices;  // AggressiveInlining
 
 namespace UnityEngine.Rendering.Universal
@@ -13,9 +14,6 @@ namespace UnityEngine.Rendering.Universal
         DepthOfFieldGaussianPostProcessPass m_DepthOfFieldGaussianPass;
         DepthOfFieldBokehPostProcessPass m_DepthOfFieldBokehPass;
         UpscalerPostProcessPass m_UpscalerPostProcessPass;
-#if !ENABLE_UPSCALER_FRAMEWORK
-        StpPostProcessPass m_StpPostProcessPass;
-#endif
         TemporalAntiAliasingPostProcessPass m_TemporalAntiAliasingPass;
         MotionBlurPostProcessPass m_MotionBlurPass;
         PaniniProjectionPostProcessPass m_PaniniProjectionPass;
@@ -48,6 +46,9 @@ namespace UnityEngine.Rendering.Universal
             Assertions.Assert.IsNotNull(postProcessResourceAssetData, "PostProcessData and resources cannot be null.");
             m_Resources = postProcessResourceAssetData;
 
+            GraphicsSettings.TryGetRenderPipelineSettings<UpscalerReactiveMaskResources>(out var reactiveMaskResources);
+            var reactiveMaskPS = reactiveMaskResources?.reactiveMaskPS;
+
             GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineFilmGrainResources>(out var filmGrainResources);
             m_FilmGrainTextures = filmGrainResources?.textures;
 
@@ -55,10 +56,7 @@ namespace UnityEngine.Rendering.Universal
             m_SmaaPostProcessPass      = new SmaaPostProcessPass(m_Resources.shaders.subpixelMorphologicalAntialiasingPS, m_Resources.textures.smaaAreaTex, m_Resources.textures.smaaSearchTex);
             m_DepthOfFieldGaussianPass = new DepthOfFieldGaussianPostProcessPass(m_Resources.shaders.gaussianDepthOfFieldPS);
             m_DepthOfFieldBokehPass    = new DepthOfFieldBokehPostProcessPass(m_Resources.shaders.bokehDepthOfFieldPS);
-            m_UpscalerPostProcessPass  = new UpscalerPostProcessPass(m_Resources.textures.blueNoise16LTex);
-#if !ENABLE_UPSCALER_FRAMEWORK
-            m_StpPostProcessPass       = new StpPostProcessPass(m_Resources.textures.blueNoise16LTex);
-#endif
+            m_UpscalerPostProcessPass  = new UpscalerPostProcessPass(reactiveMaskPS, m_Resources.textures.blueNoise16LTex);
             m_TemporalAntiAliasingPass = new TemporalAntiAliasingPostProcessPass(m_Resources.shaders.temporalAntialiasingPS);
             m_MotionBlurPass           = new MotionBlurPostProcessPass(m_Resources.shaders.cameraMotionBlurPS);
             m_PaniniProjectionPass     = new PaniniProjectionPostProcessPass(m_Resources.shaders.paniniProjectionPS);
@@ -89,9 +87,6 @@ namespace UnityEngine.Rendering.Universal
             m_PaniniProjectionPass?.Dispose();
             m_MotionBlurPass?.Dispose();
             m_TemporalAntiAliasingPass?.Dispose();
-#if !ENABLE_UPSCALER_FRAMEWORK
-            m_StpPostProcessPass?.Dispose();
-#endif
             m_UpscalerPostProcessPass.Dispose();
             m_DepthOfFieldBokehPass?.Dispose();
             m_DepthOfFieldGaussianPass?.Dispose();
@@ -147,6 +142,15 @@ namespace UnityEngine.Rendering.Universal
             // `resourceData.cameraColor` is the current post-process input for each pass.
             var colorSourceDesc = resourceData.cameraColor.GetDescriptor(renderGraph);
 
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
+            bool temporalUpscalerActive = postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.isTemporal;
+
+            if (temporalUpscalerActive && UpscalerPostProcessPass.RequiresReactiveMaskPass(postProcessingData.activeUpscaler))
+            {
+                resourceData.cameraColorBeforePP = renderGraph.CreateTexture(colorSourceDesc);
+                renderGraph.AddCopyPass(resourceData.cameraColor, resourceData.cameraColorBeforePP, "Copy cameraColor for Upscalers");
+            }
+
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
             m_StopNanPostProcessPass.RecordRenderGraph(renderGraph, frameData);
@@ -161,14 +165,9 @@ namespace UnityEngine.Rendering.Universal
             m_DepthOfFieldBokehPass.RecordRenderGraph(renderGraph, frameData);
 
             // Temporal Anti Aliasing / Upscaling
-#if ENABLE_UPSCALER_FRAMEWORK
-            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
-            bool temporalUpscalerActive = postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.isTemporal;
             if (temporalUpscalerActive)
                 m_UpscalerPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-#else
-            m_StpPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-#endif
+
             m_TemporalAntiAliasingPass.RecordRenderGraph(renderGraph, frameData);
 
             m_MotionBlurPass.RecordRenderGraph(renderGraph, frameData);
@@ -222,17 +221,10 @@ namespace UnityEngine.Rendering.Universal
             // Point sampling is only used for upscaling so the default linear sampler should be used if there is a final pass
             if (cameraData.imageScalingMode == ImageScalingMode.Upscaling && !hasFinalPass)
             {
-#if ENABLE_UPSCALER_FRAMEWORK
                 if (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_Point)
                 {
                     filteringOperation = UberPostProcessPass.FilteringOperation.Point;
                 }
-#else
-                if (cameraData.upscalingFilter == ImageUpscalingFilter.Point)
-                {
-                    filteringOperation = UberPostProcessPass.FilteringOperation.Point;
-                }
-#endif
             }
 
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded;
@@ -266,22 +258,15 @@ namespace UnityEngine.Rendering.Universal
             FinalPostProcessPass.FilteringOperation filteringOperation = FinalPostProcessPass.FilteringOperation.Linear;
 
             bool isFsr1Enabled = PostProcessUtils.IsFsrEnabled(cameraData);
-#if ENABLE_UPSCALER_FRAMEWORK
             bool upscalerSupportsSharpening = postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.supportsSharpening;
-#endif
 
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
             // If STP is enabled, then TAA sharpening has already been performed inside STP.
             bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f)
-#if ENABLE_UPSCALER_FRAMEWORK
                 // TODO-Volkan: update the comment above w.r.t Upscaling framework support (upscalers with sharpening / avoiding double sharpen).
                 && !upscalerSupportsSharpening;
-#else
-                && !isFsr1Enabled
-                && !cameraData.IsSTPEnabled();
-#endif
 
             if (isTaaSharpeningEnabled)
             {
@@ -322,7 +307,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     case ImageScalingMode.Upscaling:
                     {
-#if ENABLE_UPSCALER_FRAMEWORK
                         bool spatialUpscalerActive = postProcessingData.activeUpscaler != null && !postProcessingData.activeUpscaler.isTemporal;
                         if (cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_Point)
                         {
@@ -347,29 +331,6 @@ namespace UnityEngine.Rendering.Universal
                                 filteringOperation = FinalPostProcessPass.FilteringOperation.FsrSharpening;
                             }
                         }
-#else
-                        switch (cameraData.upscalingFilter)
-                        {
-                            case ImageUpscalingFilter.Point:
-                            {
-                                // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
-                                if (filteringOperation != FinalPostProcessPass.FilteringOperation.TaaSharpening)
-                                    filteringOperation = FinalPostProcessPass.FilteringOperation.Point;
-                                break;
-                            }
-                            case ImageUpscalingFilter.Linear:
-                            {
-                                break;
-                            }
-                            case ImageUpscalingFilter.FSR:
-                            {
-                                m_Fsr1UpscaleFinalPostProcessPass.Setup(upscaledDesc);
-                                m_Fsr1UpscaleFinalPostProcessPass.RecordRenderGraph(renderGraph, frameData);
-                                filteringOperation = FinalPostProcessPass.FilteringOperation.FsrSharpening;
-                                break;
-                            }
-                        }
-#endif
                         break;
                     }
                     case ImageScalingMode.Downscaling:

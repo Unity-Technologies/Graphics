@@ -1,4 +1,4 @@
-# ArcSphere
+# ArcSphere Operator
 
 Menu Path : **Operator > Inline > ArcSphere**
 

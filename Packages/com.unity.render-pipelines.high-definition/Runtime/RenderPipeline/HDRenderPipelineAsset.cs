@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
+using Unity.Mathematics;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -26,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         //This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
         [SerializeField] internal bool m_ShouldUseConservativeEnclosingSphere;
-        //Setting this to 64 as this is the default value. This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed.
+        //Setting this to 64 as this is the default value. This is not exposed to the UI. It can be enabled via Debug inspector if it is really needed. Value is clamped to [0, 256] in OnValidate.
         [SerializeField] internal int m_NumIterationsEnclosingSphere = 64;
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
@@ -97,6 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void OnValidate()
         {
             isInOnValidateCall = true;
+
+            m_NumIterationsEnclosingSphere = Mathf.Clamp(m_NumIterationsEnclosingSphere, 0, 256);
 
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
@@ -250,6 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             enableOcclusionCulling = m_RenderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras,
             allowInEditMode = true,
             smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
+            shadowSmallMeshScreenPercentages = m_RenderPipelineSettings.gpuResidentDrawerSettings.shadowSmallMeshScreenPercentages,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
 #endif
@@ -287,10 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 return m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("STP")
-  #if ENABLE_UPSCALER_FRAMEWORK
-              || m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains(STPIUpscaler.upscalerName)
-  #endif
-              ;
+                    || m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains(STPIUpscaler.registeredId);
             }
         }
     }

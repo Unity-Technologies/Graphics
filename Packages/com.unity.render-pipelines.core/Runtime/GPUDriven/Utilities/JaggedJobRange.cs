@@ -36,10 +36,11 @@ namespace UnityEngine.Rendering
             Assert.IsTrue(allocator == Allocator.TempJob || allocator == Allocator.Persistent,
                 "Allocator must be either TempJob or Persistent");
 
-            if (jaggedSpan.sectionCount == 0)
-                return default;
-
             var jobRanges = new NativeList<JaggedJobRange>(allocator);
+
+            // Allocated before the check because callers use the result without testing IsCreated.
+            if (jaggedSpan.isEmpty)
+                return jobRanges;
 
             JaggedJobRangeBurst.ComputeRanges(JobsUtility.JobWorkerCount, batchSizeHint, jaggedSpan.totalLength, canExceedBatchSizeHint,
                 jaggedSpan.untypedSections, ref jobRanges);

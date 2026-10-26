@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false;
-            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+            internal override void ForeachHLSLProperty(GenerationMode mode, Action<HLSLProperty> action)
             {
                 action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
             }

@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
         /// by grouping instances by mesh, material, and render state. Marks the draw lists dirty
         /// for rebuild on next cull.
         /// </summary>
-        static readonly ProfilerMarker k_BuildBatches =
+        internal static readonly ProfilerMarker k_BuildBatches =
             new ProfilerMarker(ProfilerCategory.Render, "BuildBatches", MarkerFlags.VerbosityAdvanced);
 
         /// <summary>
@@ -92,6 +92,23 @@ namespace UnityEngine.Rendering
         /// </summary>
         static readonly ProfilerMarker k_RegisterAndBuildBatches =
             new ProfilerMarker(ProfilerCategory.Render, "RegisterAndBuildBatches");
+
+        /// <summary>
+        /// Registers any newly-encountered materials and meshes with the BatchRendererGroup
+        /// for an update batch, before draw batches that reference them are built. The
+        /// surrounding BuildBatches step is intentionally excluded so the recorder doesn't
+        /// double-count with <c>k_BuildBatches</c>.
+        /// </summary>
+        internal static readonly ProfilerMarker k_RegisterMaterialsAndMeshes =
+            new ProfilerMarker(ProfilerCategory.Render, "GRD.RegisterMaterialsAndMeshes");
+
+        /// <summary>
+        /// Schedules the per-frame culling job tree (frustum, LOD, occlusion). Covers the
+        /// CPU-side dispatch and scheduling cost only; the actual worker-thread job execution
+        /// is not included.
+        /// </summary>
+        internal static readonly ProfilerMarker k_CreateCullJobTree =
+            new ProfilerMarker(ProfilerCategory.Render, "GRD.CreateCullJobTree");
 
         private GPUResidentContext m_GRDContext;
         private InstanceDataSystem m_InstanceDataSystem;
@@ -404,24 +421,29 @@ namespace UnityEngine.Rendering
 #endif
 
             bool allowOcclusionCulling = m_InstanceDataSystem.hasBoundingSpheres;
-            JobHandle jobHandle = m_GRDContext.culler.CreateCullJobTree(
-                context,
-                cullingOutput,
-                m_InstanceDataSystem.renderWorld,
-                m_GRDContext.batcher.meshMap,
-                m_InstanceDataSystem.gpuBuffer.AsReadOnly(),
-                m_LODGroupDataSystem.lodGroupCullingData,
-                m_DrawInstanceData,
-                m_BatchIDs,
-                m_GRDContext.smallMeshScreenPercentage,
-                allowOcclusionCulling ? m_GRDContext.occlusionCullingCommon : null,
-                includeExcludeListFilter);
+
+            JobHandle jobHandle;
+            using (k_CreateCullJobTree.Auto())
+            {
+                jobHandle = m_GRDContext.culler.CreateCullJobTree(
+                    context,
+                    cullingOutput,
+                    m_InstanceDataSystem.renderWorld,
+                    m_GRDContext.batcher.meshMap,
+                    m_InstanceDataSystem.gpuBuffer.AsReadOnly(),
+                    m_LODGroupDataSystem.lodGroupCullingData,
+                    m_DrawInstanceData,
+                    m_BatchIDs,
+                    m_GRDContext.smallMeshScreenPercentage,
+                    m_GRDContext.shadowSmallMeshScreenPercentages,
+                    allowOcclusionCulling ? m_GRDContext.occlusionCullingCommon : null,
+                    includeExcludeListFilter);
+            }
 
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, context, cullingOutput);
 
-            includeExcludeListFilter.Dispose(jobHandle);
-            return jobHandle;
+            return includeExcludeListFilter.Dispose(jobHandle);
         }
 
         public void DestroyDrawInstances(NativeArray<InstanceHandle> instances)
@@ -500,11 +522,15 @@ namespace UnityEngine.Rendering
         {
             using var _ = k_RegisterAndBuildBatches.Auto();
 
-            if (updateBatch.HasAnyComponent(MeshRendererComponentMask.Material))
-                RegisterMaterials(updateBatch.materialIDs);
+            // Wrap only the register portion so the recorder doesn't double-count BuildBatches.
+            using (k_RegisterMaterialsAndMeshes.Auto())
+            {
+                if (updateBatch.HasAnyComponent(MeshRendererComponentMask.Material))
+                    RegisterMaterials(updateBatch.materialIDs);
 
-            if (updateBatch.HasAnyComponent(MeshRendererComponentMask.Mesh))
-                RegisterMeshes(updateBatch.meshIDs);
+                if (updateBatch.HasAnyComponent(MeshRendererComponentMask.Mesh))
+                    RegisterMeshes(updateBatch.meshIDs);
+            }
 
             BuildBatches(instances);
         }

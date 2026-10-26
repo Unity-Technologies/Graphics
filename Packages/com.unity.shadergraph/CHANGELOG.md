@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added the Dilate, Sharpness, Outline Color, Outline Dilate, Shadow Color, Shadow Offset and Shadow Softness inputs to the UI Toolkit Default SDF Text node, and the SDF Text Parameters node that outputs the element's values for them.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [17.6.0] - 2026-06-26
+
+This version is compatible with Unity 6000.7.0a2.
+For the release notes, refer to the [Unity download archive](https://unity.com/releases/editor/archive).
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 

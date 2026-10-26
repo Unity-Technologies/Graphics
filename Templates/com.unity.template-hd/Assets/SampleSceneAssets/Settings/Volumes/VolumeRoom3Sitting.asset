@@ -27,14 +27,9 @@ MonoBehaviour:
   m_Name: WhiteBalance
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   temperature:
     m_OverrideState: 1
     m_Value: -20
-    min: -100
-    max: 100
   tint:
     m_OverrideState: 0
     m_Value: 0
-    min: -100
-    max: 100

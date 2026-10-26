@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -49,7 +50,7 @@ namespace UnityEditor.VFX
             internal VFXContext m_Context;
             internal VFXTaskCompiledData m_TaskData;
             internal HashSet<string> m_Defines;
-            internal HashSet<string> m_Dependencies;
+            internal HashSet<GUID> m_Dependencies;
             internal VFXCodeGenerator.Cache m_CodeGeneratorCache;
             internal bool m_HumanReadable;
         }
@@ -326,9 +327,12 @@ namespace UnityEditor.VFX
 
             public void CollectChildren()
             {
+                var includeGuid = AssetDatabase.GUIDFromAssetPath(m_IncludePath);
+                if (!includeGuid.Empty())
+                    m_ShaderGenerationData.m_Dependencies.Add(includeGuid);
+
                 if (!m_ShaderGenerationData.m_CodeGeneratorCache.TryGetTemplateCache(m_IncludePath, out var templateContent))
                 {
-                    m_ShaderGenerationData.m_Dependencies.Add(AssetDatabase.AssetPathToGUID(m_IncludePath));
                     var formattedPath = FormatPath(m_IncludePath);
                     templateContent = File.ReadAllText(formattedPath);
                     m_ShaderGenerationData.m_CodeGeneratorCache.AddTemplateCache(m_IncludePath, templateContent);

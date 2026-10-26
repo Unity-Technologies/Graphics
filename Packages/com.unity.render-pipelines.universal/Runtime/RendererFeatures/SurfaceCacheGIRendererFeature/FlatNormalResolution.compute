@@ -1,14 +1,16 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 
-#pragma kernel ResolveFlatNormals
+#pragma kernel ResolveFlatNormalsMono DISABLE_TEXTURE2D_X_ARRAY
+#pragma kernel ResolveFlatNormalsSinglePassStereoInstancing
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/Common.hlsl"
 
-Texture2D<float> _ScreenDepths;
-RWTexture2D<float3> _ScreenFlatNormals;
+TYPED_TEXTURE2D_X(float, _ScreenDepths);
+RW_TEXTURE2D_X(float3, _ScreenFlatNormals);
 
-float4x4 _ClipToWorldTransform;
+float4x4 _ClipToWorldTransforms[2];
 
 struct PixelInfo
 {
@@ -64,11 +66,10 @@ float3 GetNeighborWorldPos(uint2 centerPixelPos, float centerDepthNDC, int2 delt
         neighborPixelInfo = edgeInfoPositiveSide.nearPixelInfo;
     }
 
-    return ComputeWorldSpacePosition(neighborPixelInfo.uvPos, neighborPixelInfo.depthNDC, _ClipToWorldTransform);
+    return ComputeWorldSpacePosition(neighborPixelInfo.uvPos, neighborPixelInfo.depthNDC, _ClipToWorldTransforms[unity_StereoEyeIndex]);
 }
 
-[numthreads(8, 8, 1)]
-void ResolveFlatNormals(uint2 centerPixelPos : SV_DispatchThreadID)
+void ResolveFlatNormals(uint2 centerPixelPos)
 {
     // This is inspired by https://atyuwen.github.io/posts/normal-reconstruction/
     // In addition to the center sample, we take 8 depth samples in a cross around the center.
@@ -86,7 +87,7 @@ void ResolveFlatNormals(uint2 centerPixelPos : SV_DispatchThreadID)
     // diagonal extrapolation.
 
     uint2 screenSize;
-    _ScreenDepths.GetDimensions(screenSize.x, screenSize.y);
+    GET_TEXTURE2D_X_SIZE(_ScreenDepths, screenSize.x, screenSize.y);
 
     if (any(screenSize <= centerPixelPos))
         return;
@@ -97,7 +98,7 @@ void ResolveFlatNormals(uint2 centerPixelPos : SV_DispatchThreadID)
 
     const float2 reciprocalScreenSize = rcp(float2(screenSize));
     const float2 centerUVPos = PixelPosToUvPos(centerPixelPos, reciprocalScreenSize);
-    const float3 centerWorldPos = ComputeWorldSpacePosition(centerUVPos, centerNdcDepth, _ClipToWorldTransform);
+    const float3 centerWorldPos = ComputeWorldSpacePosition(centerUVPos, centerNdcDepth, _ClipToWorldTransforms[unity_StereoEyeIndex]);
 
     bool handednessFlip = false; // Account for handedness and winding order.
 
@@ -111,5 +112,18 @@ void ResolveFlatNormals(uint2 centerPixelPos : SV_DispatchThreadID)
     if (handednessFlip)
         flatNormal = -flatNormal;
 
-    _ScreenFlatNormals[centerPixelPos] = flatNormal;
+    _ScreenFlatNormals[COORD_TEXTURE2D_X(centerPixelPos)] = flatNormal;
+}
+
+[numthreads(8, 8, 1)]
+void ResolveFlatNormalsMono(uint2 centerPixelPos : SV_DispatchThreadID)
+{
+    ResolveFlatNormals(centerPixelPos);
+}
+
+[numthreads(8, 8, 1)]
+void ResolveFlatNormalsSinglePassStereoInstancing(uint3 centerPixelPos : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(centerPixelPos.z);
+    ResolveFlatNormals(centerPixelPos.xy);
 }

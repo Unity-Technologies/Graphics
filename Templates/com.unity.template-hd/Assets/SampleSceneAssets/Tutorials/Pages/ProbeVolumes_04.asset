@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: ProbeVolumes_04
   m_EditorClassIdentifier: 
+  <IndexInTutorial>k__BackingField: 0
   Title:
     m_Untranslated: Virtual Offset
-  m_Paragraphs:
+  m_LegacyParagraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 9
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -39,41 +51,33 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "Because Probe Volumes only offer automatic probe placement,
-          individual probes cannot be moved or deleted. This is a core limitation
-          of the system. \n\nHowever, if certain probes are in unwanted locations
-          (e.g. inside or behind geometries), you can let the system alter the capture
-          point of all probes in the Scene, by tuning the global <b>Virtual Offset</b>
-          properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b>
-          tab. \n\nFor manual probe adjustments in parts of the Scene, you may use
-          local <b>Probe Adjustment Volumes</b> instead, found under <b>GameObject</b>
-          > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen
-          in the image above is caused by the overly bright probes under the floor.
-          To fix this unwanted light leaking, we already added a probe adjustment
-          volume that virtually lifts the capture points of the said probes by 0.62
-          meters when the lighting is generated.\n\n\nTo reproduce the artifact seen
-          in the image above, follow these steps to disable the <b>Probe Adjustment
-          Volume:</b>\n\n1. Place a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i>
-          window, disable the <b>Probe Adjustment Volume</b> under <b>Lighting</b>
-          > <b>Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button
-          at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter
-          several seconds, once the lighting has been rebaked, unwanted light leaking
-          appears above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b>
-          and regenerate the lighting to fix the issue again."
+        m_Untranslated: "Because Probe Volumes only offer automatic probe placement, individual probes cannot be moved or deleted. This is a core limitation of the system. \n\nHowever, if certain probes are in unwanted locations (e.g. inside or behind geometries), you can let the system alter the capture point of all probes in the Scene, by tuning the global <b>Virtual Offset</b> properties in the <i>Lighting</i> window, under the <b>Probe Volumes</b> tab. \n\nFor manual probe adjustments in parts of the Scene, you may use local <b>Probe Adjustment Volumes</b> instead, found under <b>GameObject</b> > <b>Light</b> > <b>Probe Volumes.</b>\n\nThe bright line on the Cube seen in the image above is caused by the overly bright probes under the floor. To fix this unwanted light leaking, we already added a probe adjustment volume that virtually lifts the capture points of the said probes by 0.62 meters when the lighting is generated.\n\n\nTo reproduce the artifact seen in the image above, follow these steps to disable the <b>Probe Adjustment Volume:</b>\n\n1. Place a Cube at <b>X:41 Y:0 Z:3</b>\n\n2. In the <i>Hierarchy</i> window, disable the <b>Probe Adjustment Volume</b> under <b>Lighting</b> > <b>Probe Volumes.</b>\n\n3. Click the <b>Generate Lighting</b> button at the bottom of the <i>Lighting</i> window to rebake the lighting.\n\nAfter several seconds, once the lighting has been rebaked, unwanted light leaking appears above the floor.\n\n4. Re-enable the <b>Probe Adjustment Volume</b> and regenerate the lighting to fix the issue again."
+      m_CodeSample: 
+      m_PostInstructionImage: {fileID: 0}
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
+      m_VideoUrl: 
       m_Video: {fileID: 0}
+      m_Media:
+        m_ContentType: 0
+        m_Image: {fileID: 0}
+        m_VideoClip: {fileID: 0}
+        m_Url: 
+        m_AutoStart: 1
+        m_Loop: 1
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+        MaskPreset: {fileID: 0}
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+  m_PageParagraphs: []
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
@@ -95,6 +99,7 @@ MonoBehaviour:
   DoneButton:
     m_Untranslated: Done
   m_CompletedSound: {fileID: 0}
+  m_FaqEntries: []
   m_AutoAdvance: 0
   Showing:
     m_PersistentCalls:

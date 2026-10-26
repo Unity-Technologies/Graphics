@@ -1,7 +1,7 @@
 #ifndef SURFACE_CACHE_PATCH_UTIL
 #define SURFACE_CACHE_PATCH_UTIL
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "VectorLogic.hlsl"
 #include "Common.hlsl"
 #include "RingBuffer.hlsl"
@@ -51,12 +51,20 @@ namespace PatchUtil
         float3 normal;
     };
 
-    struct PatchCounterSet
+    struct PatchRequestState
     {
         // Layout
-        // 0x000000FF: Update count.
-        // 0x0000FF00: Rank.
-        // 0xFFFF0000: Last access frame.
+        // 0x000000FF: Rank.
+        // 0x0000FF00: Unused.
+        // 0xFFFF0000: Heartbeat.
+        uint data;
+    };
+
+    struct IrradianceState
+    {
+        // Layout
+        // 0x0000FFFF: UpdateCount: How many updates did primary irradiance buffer see?
+        // 0xFFFF0000: IsTemporalInitialized: Is post temporal irradiance buffer initialized?
         uint data;
     };
 
@@ -64,7 +72,8 @@ namespace PatchUtil
     {
         float3 mean;
         float3 variance;
-        PatchCounterSet counters;
+        IrradianceState irradianceState;
+        PatchRequestState requestState;
     };
 
     struct VolumeParamSet
@@ -74,6 +83,7 @@ namespace PatchUtil
         float3 targetPos;
         StructuredBuffer<int3> cascadeOffsets;
         uint cascadeCount;
+        bool patchWarping;
     };
 
     uint ModuloDistance(uint a, uint b, uint modulo)
@@ -82,62 +92,77 @@ namespace PatchUtil
         return min(dif, modulo - dif);
     }
 
-    uint GetFramesSinceLastAccess(uint currentFrameIdx, uint patchLastAccessFrame)
+    uint GetFramesSinceHeartbeat(uint currentFrameIdx, uint patchHeartbeat)
     {
-        // Here we take into account that last access frame index is in [0, 2^16-1].
+        // Here we take into account that heartbeat frame index is in [0, 2^16-1].
         // We use that the last frame index can never be later than current frame index.
         const uint modulo = 65536; // 2^16
         return ModuloDistance(
             currentFrameIdx % modulo,
-            patchLastAccessFrame,
+            patchHeartbeat,
             modulo);
     }
 
-    void Reset(out PatchCounterSet set)
+    uint GetUpdateCount(IrradianceState state)
     {
-        set.data = 0;
+        return state.data & 0xFFFF;
     }
 
-    uint GetUpdateCount(PatchCounterSet set)
+    bool GetIsTemporalInitialized(IrradianceState state)
     {
-        return set.data & 0xFF;
+        return bool(state.data >> 16);
     }
 
-    uint GetRank(PatchCounterSet set)
+    void SetUpdateCount(inout IrradianceState state, uint updateCount)
     {
-        return (set.data & 0xFF00) >> 8;
+        state.data = updateCount | (state.data & 0xFFFF0000);
     }
 
-    void SetRank(inout PatchCounterSet set, uint rank)
+    void SetIsTemporalInitialized(inout IrradianceState state, bool isInitialized)
     {
-        set.data = (rank << 8) | (set.data & 0xFFFF00FF);
+        state.data = (uint(isInitialized) << 16) | (state.data & 0xFFFF);
     }
 
-    uint GetLastAccessFrame(PatchCounterSet set)
+    void ResetRequestState(out PatchRequestState state)
     {
-        return set.data >> 16;
+        state.data = 0;
     }
 
-    void SetUpdateCount(inout PatchCounterSet set, uint updateCount)
+    void ResetIrradianceState(out IrradianceState state)
     {
-        set.data = updateCount | (set.data & 0xFFFFFF00);
+        state.data = 0;
     }
 
-    void SetLastAccessFrame(inout PatchCounterSet set, uint lastAccessFrame)
+    uint GetRank(PatchRequestState state)
     {
-        set.data = (lastAccessFrame << 16) | (set.data & 0xFFFF);
+        return state.data & 0xFF;
     }
 
-    bool IsEqual(PatchCounterSet a, PatchCounterSet b)
+    uint GetHeartbeat(PatchRequestState state)
+    {
+        return state.data >> 16;
+    }
+
+    void SetHeartbeat(inout PatchRequestState state, uint heartbeat)
+    {
+        state.data = (heartbeat << 16) | (state.data & 0xFFFF);
+    }
+
+    void SetRank(inout PatchRequestState state, uint rank)
+    {
+        state.data = rank | (state.data & 0xFFFFFF00);
+    }
+
+    bool IsEqual(PatchRequestState a, PatchRequestState b)
     {
         return a.data == b.data;
     }
 
-    void WriteLastFrameAccess(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
+    void UpdateHeartbeat(RWStructuredBuffer<PatchUtil::PatchStatisticsSet> statisticsSets, uint patchIdx, uint frameIdx)
     {
-        PatchCounterSet counterSet = statisticsSets[patchIdx].counters;
-        SetLastAccessFrame(counterSet, frameIdx);
-        statisticsSets[patchIdx].counters = counterSet;
+        PatchRequestState reqState = statisticsSets[patchIdx].requestState;
+        SetHeartbeat(reqState, frameIdx);
+        statisticsSets[patchIdx].requestState = reqState;
     }
 
     float GetVoxelSize(float voxelMinSize, uint cascadeIdx)
@@ -145,17 +170,31 @@ namespace PatchUtil
         return voxelMinSize * (1u << cascadeIdx);
     }
 
-    float2 OctWrap(float2 v)
+    // Surfaces sitting exactly on a voxel boundary (e.g. a floor at y = 0) flicker because
+    // floating-point noise flips neighboring samples between the two bordering cells. We displace
+    // the position by a continuous, world-anchored wave before quantizing, so nearby samples (and
+    // the same point across frames) resolve to a consistent voxel. Each axis is displaced by a
+    // function of the *other* two, so axis-aligned planes still vary across their surface, and the
+    // wave is quasi-periodic (a sum of incommensurate sines) to avoid collapsing into a regular
+    // lattice. This mitigates rather than fully fixes the ambiguity.
+    // See https://history.siggraph.org/learning/advances-in-spatial-hashing-a-pragmatic-approach-towards-robust-real-time-light-transport-simulation-by-gautron/
+    float QuasiPeriodicWave(float t)
     {
-        return (1.0 - abs(v.yx)) * VECTOR_LOGIC_SELECT(v.xy >= 0.0, 1.0, -1.0);
+        const float3 waves = sin(float3(t, 2.19f * t + 1.7f, 3.73f * t + 4.2f));
+        return (waves.x + waves.y + waves.z) * (1.0f / 3.0f);
     }
 
-    float2 SphereToSquare(float3 n)
+    float3 GetVoxelWarpOffset(float3 queryPos, float voxelSize)
     {
-        n /= (abs(n.x) + abs(n.y) + abs(n.z));
-        n.xy = VECTOR_LOGIC_SELECT(n.z >= 0.0, n.xy, OctWrap(n.xy));
-        n.xy = n.xy * 0.5 + 0.5;
-        return n.xy;
+        const float waveStrength = 0.01f;
+        const float waveFrequency = 0.01f;
+        // Base frequency in radians per voxel, with a different irrational multiplier per axis.
+        const float3 axisFrequency = waveFrequency * float3(1.0f, 1.41421356f, 1.73205081f);
+        const float3 phase = queryPos / voxelSize * axisFrequency;
+        const float3 wave = float3(QuasiPeriodicWave(phase.x), QuasiPeriodicWave(phase.y), QuasiPeriodicWave(phase.z));
+        const float3 offset = float3(wave.y + wave.z, wave.z + wave.x, wave.x + wave.y);
+        // Each QuasiPeriodicWave is in [-1, 1], so their sum is in [-2, 2]; 0.5 keeps the max displacement at waveStrength voxels.
+        return offset * (0.5f * waveStrength * voxelSize);
     }
 
     struct VolumePositionResolution
@@ -195,7 +234,7 @@ namespace PatchUtil
             float3(-0.888f, -0.41629f, 0.19536f));
         const float3 rotatedDirection = mul(arbitraryRotation, direction);
 
-        const uint2 angularSquarePos = min(uint2(angularResolution - 1, angularResolution - 1), SphereToSquare(rotatedDirection) * angularResolution);
+        const uint2 angularSquarePos = min(uint2(angularResolution - 1, angularResolution - 1), OctahedralSphereToSquare(rotatedDirection) * angularResolution);
         return angularSquarePos.y * angularResolution + angularSquarePos.x;
     }
 
@@ -242,8 +281,12 @@ namespace PatchUtil
             if (IsInsideCascade(volumeParams.targetPos, queryPos, cascadeVoxelSize, volumeParams.spatialResolution))
             {
                 const int3 cascadeOffset = volumeParams.cascadeOffsets[cascadeIdx];
-                const float3 centerRelativePositionVolumeSpace = queryPos / cascadeVoxelSize - cascadeOffset;
-                resolution.positionVolumeSpace = centerRelativePositionVolumeSpace + halfVolumeSize;
+                float3 warpedQueryPos = queryPos;
+                if (volumeParams.patchWarping)
+                    warpedQueryPos += GetVoxelWarpOffset(queryPos, cascadeVoxelSize);
+                const float3 centerRelativePositionVolumeSpace = warpedQueryPos / cascadeVoxelSize - cascadeOffset;
+                const int3 positionVolumeSpaceSigned = int3(centerRelativePositionVolumeSpace + halfVolumeSize);
+                resolution.positionVolumeSpace = uint3(clamp(positionVolumeSpaceSigned, 0, int(volumeParams.spatialResolution) - 1));
                 resolution.cascadeIdx = cascadeIdx;
                 break;
             }
@@ -327,54 +370,58 @@ namespace PatchUtil
         return result;
     }
 
-    bool ReadHemisphericalIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal, out SphericalHarmonics::RGBL1 resultIrradiance)
+    void MarkInvalid(inout SphericalHarmonics::RGBL1 irradiance)
     {
-        const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
-        const uint cellIdx = GetCellIndex(cascadeIdx, volumeSpacePosition, directionIdx, spatialResolution, volumeAngularResolution);
-
-        bool resultBool = false;
-        const uint patchIdx = cellPatchIndices[cellIdx];
-        resultIrradiance = (SphericalHarmonics::RGBL1)0; // Setting value only to silence shader compilation warning.
-        if (patchIdx != invalidPatchIndex)
-        {
-            resultIrradiance = patchIrradiances[patchIdx];
-            resultBool = true;
-        }
-        return resultBool;
+        irradiance.l0 = -1.0f;
     }
 
-    uint FindPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, float3 worldPosition, float3 worldNormal)
+    bool IsValid(in SphericalHarmonics::RGBL1 irradiance)
     {
+        return all(irradiance.l0 != -1.0f);
+    }
+
+    static const uint patchIndexLookupCodeInvalidPatchIndex = invalidPatchIndex;
+    static const uint patchIndexLookupCodeOutsideVolume = UINT_MAX - 1;
+    struct PatchIndexLookupResult
+    {
+        uint patchIdxOrCode;
+    };
+
+    uint HasValidPatchIndex(in PatchIndexLookupResult result)
+    {
+        return result.patchIdxOrCode != patchIndexLookupCodeInvalidPatchIndex && result.patchIdxOrCode != patchIndexLookupCodeOutsideVolume;
+    }
+
+    // You should only call this if you are sure the passed-in PatchIndexLookupResult
+    // contains a patch index.
+    uint GetPatchIndex(in PatchIndexLookupResult result)
+    {
+        return result.patchIdxOrCode;
+    }
+
+    uint LookupPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, uint3 posVolSpace, uint directionIdx, uint cascadeIdx)
+    {
+        const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posVolSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[cascadeIdx]);
+        const uint cellIdx = GetCellIndex(cascadeIdx, positionStorageSpace, directionIdx, volumeParams.spatialResolution, volumeAngularResolution);
+        const uint patchIdx = cellPatchIndices[cellIdx];
+        return patchIdx;
+    }
+
+    PatchIndexLookupResult LookupPatchIndex(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, float3 worldPosition, float3 worldNormal)
+    {
+        PatchIndexLookupResult result;
         VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams);
+        UNITY_OUT_OF_BOUNDS_BRANCH
         if (posResolution.isValid())
         {
             const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            const uint cellIdx = GetCellIndex(posResolution.cascadeIdx, positionStorageSpace, directionIdx, volumeParams.spatialResolution, volumeAngularResolution);
-            const uint patchIdx = cellPatchIndices[cellIdx];
-            if (patchIdx != invalidPatchIndex)
-            {
-                return patchIdx;
-            }
-            else
-            {
-                return invalidPatchIndex;
-            }
+            result.patchIdxOrCode = LookupPatchIndex(volumeParams, cellPatchIndices, posResolution.positionVolumeSpace, directionIdx, posResolution.cascadeIdx);
         }
         else
         {
-            return invalidPatchIndex;
+            result.patchIdxOrCode = patchIndexLookupCodeOutsideVolume;
         }
-    }
-
-    uint FindPatchIndexAndUpdateLastAccess(VolumeParamSet volumeParams, CellPatchIndexBufferType cellPatchIndices, RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatisticSets, float3 worldPosition, float3 worldNormal, uint frameIdx)
-    {
-        const uint patchIdx = FindPatchIndex(volumeParams, cellPatchIndices, worldPosition, worldNormal);
-        if (patchIdx != invalidPatchIndex)
-        {
-            WriteLastFrameAccess(patchStatisticSets, patchIdx, frameIdx);
-        }
-        return patchIdx;
+        return result;
     }
 
     bool ReadHemisphericalIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, VolumeParamSet volumeParams, float3 worldPosition, float3 worldNormal, uint startCascadeIdx, out SphericalHarmonics::RGBL1 resultIrradiance)
@@ -386,8 +433,14 @@ namespace PatchUtil
 
         if (posResolution.isValid())
         {
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, volumeParams.spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal, resultIrradiance);
+            const uint directionIdx = GetDirectionIndex(worldNormal, volumeAngularResolution);
+            const uint patchIdx = LookupPatchIndex(volumeParams, cellPatchIndices, posResolution.positionVolumeSpace, directionIdx, posResolution.cascadeIdx);
+            UNITY_OUT_OF_BOUNDS_BRANCH
+            if (patchIdx != invalidPatchIndex)
+            {
+                resultIrradiance = patchIrradiances[patchIdx];
+                resultBool = true;
+            }
         }
 
         return resultBool;
@@ -411,49 +464,15 @@ namespace PatchUtil
         return max(0, SphericalHarmonics::Eval(irradiance, normal));
     }
 
-    float3 ReadPlanarIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, uint spatialResolution, uint cascadeIdx, uint3 volumeSpacePosition, float3 worldNormal)
-    {
-        SphericalHarmonics::RGBL1 resultIrradiance;
-        bool resultBool = ReadHemisphericalIrradiance(patchIrradiances, cellPatchIndices, spatialResolution, cascadeIdx, volumeSpacePosition, worldNormal, resultIrradiance);
-        if (resultBool)
-            return EvalIrradiance(resultIrradiance, worldNormal);
-        else
-            return invalidIrradiance;
-    }
-
-    float3 ReadPlanarIrradiance(PatchIrradianceBufferType patchIrradiances, CellPatchIndexBufferType cellPatchIndices, VolumeParamSet volumeParams, float3 worldPosition, float3 worldNormal)
-    {
-        VolumePositionResolution posResolution = ResolveVolumePosition(worldPosition, volumeParams);
-        if (posResolution.isValid())
-        {
-            const uint3 positionStorageSpace = ConvertVolumeSpaceToStorageSpace(posResolution.positionVolumeSpace, volumeParams.spatialResolution, volumeParams.cascadeOffsets[posResolution.cascadeIdx]);
-            return ReadPlanarIrradiance(patchIrradiances, cellPatchIndices, volumeParams.spatialResolution, posResolution.cascadeIdx, positionStorageSpace, worldNormal);
-        }
-        else
-        {
-            return invalidIrradiance;
-        }
-    }
-
-    void MarkInvalid(inout SphericalHarmonics::RGBL1 irradiance)
-    {
-        irradiance.l0 = -1.0f;
-    }
-
-    bool IsValid(inout SphericalHarmonics::RGBL1 irradiance)
-    {
-        return all(irradiance.l0 != -1.0f);
-    }
-
     PatchStatisticsSet InitPatchStatistics(float3 irradianceSeed, uint frameIndex, uint rank)
     {
         PatchStatisticsSet stats;
         stats.mean = irradianceSeed;
         stats.variance = 0;
-        Reset(stats.counters);
-        SetLastAccessFrame(stats.counters, frameIndex);
-        SetRank(stats.counters, rank);
-
+        ResetRequestState(stats.requestState);
+        ResetIrradianceState(stats.irradianceState);
+        SetHeartbeat(stats.requestState, frameIndex);
+        SetRank(stats.requestState, rank);
         return stats;
     }
 }

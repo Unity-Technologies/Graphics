@@ -24,6 +24,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
         private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
+        // Publishes a valid default as the normals global, for the frames where this pass isn't recorded
+        internal static void SetDefaultNormalsGlobalTexture(IBaseRenderGraphBuilder builder, TextureHandle defaultNormalsTexture)
+        {
+            builder.SetGlobalTextureAfterPass(defaultNormalsTexture, s_CameraNormalsTextureID);
+        }
+
         /// <summary>
         /// Creates a new <c>DepthNormalOnlyPass</c> instance.
         /// </summary>
@@ -148,11 +154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.ReadWrite);
 
                 passData.enableRenderingLayers = enableRenderingLayers;
-#if URP_SCREEN_SPACE_REFLECTION
                 passData.outputSmoothness = renderingData.writesSmoothnessToDepthNormalsAlpha;
-#else
-                passData.outputSmoothness = false;
-#endif
 
                 if (passData.enableRenderingLayers)
                 {
@@ -167,8 +169,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled)
                 {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
-                    // Apply MultiviewRenderRegionsCompatible flag only to the peripheral view in Quad Views
-                    if (cameraData.xr.multipassId == 0)
+                    // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
+                    if (!cameraData.xr.isQuadViewInnerPass)
                     {
                         builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
                     }

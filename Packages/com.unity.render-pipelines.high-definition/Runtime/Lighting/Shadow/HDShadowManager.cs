@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
@@ -647,20 +648,18 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_MaxShadowRequests;
         private int m_ShadowRequestCount;
 
+        // Maps stable dataIndex -> current visibleLights array index for the current frame.
+        // Built once per frame in RenderShadows() and shared across all shadow atlas passes (up to 6 passes: punctual, area, directional * cached/dynamic).
+        // Safe under HDRP's current synchronous record -> execute model, but would require revisiting if multiple cameras interleave record and execute phases.
+        NativeHashMap<int, int> m_DataIndexToLightIndexMap;
+
+        [NoAutoStaticsCleanup] // Cached by the surviving HDRenderPipeline at construction; native collections disposed via beforeAssemblyReload/quitting.
         private static HDShadowManager s_Instance = new HDShadowManager();
 
         public static HDShadowManager instance { get { return s_Instance; } }
         public static HDCachedShadowManager cachedShadowManager {  get { return HDCachedShadowManager.instance; } }
 
         internal NativeList<HDShadowResolutionRequest> shadowResolutionRequestStorage => m_ShadowResolutionRequestStorage;
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = new HDShadowManager();
-        }
-#endif
 
         private HDShadowManager()
         {
@@ -707,6 +706,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cachedShadowManager.DisposeNativeCollections();
             }
+
+            if (m_DataIndexToLightIndexMap.IsCreated)
+            {
+                m_DataIndexToLightIndexMap.Dispose();
+                m_DataIndexToLightIndexMap = default;
+            }
         }
 
         public void InitShadowManager(HDRenderPipeline renderPipeline, HDShadowInitParameters initParams, RenderGraph renderGraph)
@@ -728,6 +733,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
             m_MaxShadowRequests = initParams.maxShadowRequests;
             m_ShadowRequestCount = 0;
+
+            if (m_DataIndexToLightIndexMap.IsCreated)
+                m_DataIndexToLightIndexMap.Dispose();
+            m_DataIndexToLightIndexMap = new NativeHashMap<int, int>(256, Allocator.Persistent);
 
             if (initParams.maxShadowRequests == 0)
                 return;
@@ -1383,6 +1392,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
+        // Built once per frame to avoid rebuilding up to 6 times across shadow atlas passes.
+        // Safe under HDRP's current synchronous record -> execute model, but would require  revisiting if the execution model changes.
+        private void BuildDataIndexToLightIndexMap(NativeArray<int> visibleLightEntityIndices, int visibleLightCount)
+        {
+            m_DataIndexToLightIndexMap.Clear();
+
+            if (m_DataIndexToLightIndexMap.Capacity < visibleLightCount)
+            {
+                m_DataIndexToLightIndexMap.Capacity = visibleLightCount;
+            }
+
+            for (var i = 0; i < visibleLightCount; i++)
+            {
+                var dataIndex = visibleLightEntityIndices[i];
+                if (dataIndex >= 0)
+                    m_DataIndexToLightIndexMap[dataIndex] = i;
+            }
+        }
+
         internal void RenderShadows(
             RenderGraph renderGraph, ScriptableRenderContext renderContext,
             in ShaderVariablesGlobal globalCB, HDCamera hdCamera,
@@ -1395,16 +1423,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowRequestCount != 0 &&
                 (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)))
             {
+                BuildDataIndexToLightIndexMap(visibleLightEntityIndices, cullResults.visibleLights.Length);
+
                 // Punctual
-                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Punctual Lights Shadow Maps");
+                result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Cached Punctual Lights Shadow Maps");
                 BlitCachedShadows(renderGraph, ShadowMapType.PunctualAtlas);
-                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Punctual Lights Shadow Maps");
+                result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Punctual Lights Shadow Maps");
 
                 if (ShaderConfig.s_AreaLights == 1)
                 {
-                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Area Lights Shadow Maps");
+                    cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Cached Area Lights Shadow Maps");
                     BlitCachedShadows(renderGraph, ShadowMapType.AreaLightAtlas);
-                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Area Light Shadow Maps");
+                    m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Area Light Shadow Maps");
                     result.areaShadowResult = m_AreaLightShadowAtlas.BlurShadows(renderGraph);
                     result.cachedAreaShadowResult = cachedShadowManager.areaShadowAtlas.BlurShadows(renderGraph);
                 }
@@ -1415,11 +1445,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (cachedShadowManager.directionalLightAtlas.HasShadowRequests())
                     {
                         cachedShadowManager.UpdateDirectionalCacheTexture(renderGraph);
-                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Cached Directional Lights Shadow Maps");
+                        cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Cached Directional Lights Shadow Maps");
                     }
                     BlitCachedShadows(renderGraph, ShadowMapType.CascadedDirectional);
                 }
-                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, visibleLightEntityIndices, globalCB, hdCamera.frameSettings, "Render Directional Light Shadow Maps");
+                result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, renderContext, cullResults, m_DataIndexToLightIndexMap, globalCB, hdCamera.frameSettings, "Render Directional Light Shadow Maps");
             }
 
             // TODO RENDERGRAPH

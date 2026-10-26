@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// The text and tooltip for the specular map GUI.
             /// </summary>
             public static GUIContent specularMapText =
-                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
+                L10n.TextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.", null, null);
         }
 
         /// <summary>
@@ -91,12 +91,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// </summary>
             public MaterialProperty bumpMapProp;
 
-#if URP_SCREEN_SPACE_REFLECTION
             /// <summary>
             /// The MaterialProperty for screen space reflections contribute transparent.
             /// </summary>
             public MaterialProperty screenSpaceReflectionsContributeTransparent;
-#endif
 
             /// <summary>
             /// Constructor for the <c>SimpleLitProperties</c> container struct.
@@ -111,9 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 smoothnessMapChannel = BaseShaderGUI.FindProperty("_SmoothnessSource", properties, false);
                 smoothness = BaseShaderGUI.FindProperty("_Smoothness", properties, false);
                 bumpMapProp = BaseShaderGUI.FindProperty("_BumpMap", properties, false);
-#if URP_SCREEN_SPACE_REFLECTION
-                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty("_ScreenSpaceReflectionsContributeTransparent", properties, false);
-#endif
+                screenSpaceReflectionsContributeTransparent = BaseShaderGUI.FindProperty(Property.ScreenSpaceReflectionsContributeTransparent, properties, false);
             }
         }
 
@@ -145,14 +141,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 properties.specHighlights.floatValue = enabled ? (float)SpecularSource.SpecularTextureAndColor : (float)SpecularSource.NoSpecular;
             EditorGUI.showMixedValue = false;
 
-#if URP_SCREEN_SPACE_REFLECTION
             if (properties.screenSpaceReflectionsContributeTransparent != null)
             {
                 bool isTransparent = material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent;
                 if (isTransparent)
                     materialEditor.ShaderProperty(properties.screenSpaceReflectionsContributeTransparent, LitGUI.Styles.screenSpaceReflectionsContributeTransparentText);
             }
-#endif
         }
 
         /// <summary>
@@ -178,11 +172,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             UpdateMaterialSpecularSource(material);
 
-#if URP_SCREEN_SPACE_REFLECTION
-            if (material.HasProperty("_ScreenSpaceReflectionsContributeTransparent"))
-                CoreUtils.SetKeyword(material, "_SCREENSPACEREFLECTIONSCONTRIBUTETRANSPARENT_OFF",
-                    material.GetFloat("_ScreenSpaceReflectionsContributeTransparent") == 0.0f && material.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.Transparent);
-#endif
+            BaseShaderGUI.UpdateScreenSpaceReflectionContributeTransparentPassState(material);
         }
 
         private static void UpdateMaterialSpecularSource(Material material)

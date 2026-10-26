@@ -14,7 +14,7 @@ Material:
   m_ValidKeywords:
   - _DISABLE_SSR_TRANSPARENT
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 10
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2225
@@ -48,6 +48,8 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _BUILTIN_QueueControl: 1
+    - _BUILTIN_QueueOffset: 0
     - _BlendMode: 0
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
@@ -60,12 +62,14 @@ Material:
     - _DstBlend2: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _ExcludeFromTUAndAA: 0
     - _Falloff_Distance_End: 1
     - _Falloff_Distance_Start: 0.25
     - _Falloff_from_UV_center: 1
     - _Intensity: 10
     - _MaterialID: 1
     - _MaterialTypeMask: 2
+    - _Material_Emissive_Multiplier: 1
     - _OpaqueCullMode: 2
     - _PerPixelSorting: 0
     - _QueueControl: 1
@@ -76,6 +80,9 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
+    - _ScreenSpaceReflections: 1
+    - _ScreenSpaceReflectionsContributeTransparent: 1
+    - _Square: 0
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 8
@@ -108,6 +115,20 @@ Material:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _Emission_Color: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &170641408352878112
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639247ca83abc874e893eb93af2b5e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.ShaderGraph.Editor::UnityEditor.Rendering.BuiltIn.AssetVersion
+  version: 0
 --- !u!114 &4129780837305980848
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -120,7 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 11
 --- !u!114 &6988152796153263981
 MonoBehaviour:
   m_ObjectHideFlags: 11

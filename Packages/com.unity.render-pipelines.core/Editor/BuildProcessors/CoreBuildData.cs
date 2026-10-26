@@ -42,12 +42,19 @@ namespace UnityEditor.Rendering
         /// Use this to gate inclusion of diagnostic shaders, resources, and other build-time decisions
         /// that mirror C# code paths compiled under <c>#if UNITY_ENABLE_CHECKS</c>.
         /// </remarks>
-        public bool useDiagnosticChecks { get; private set; } = false;
+        public bool useDiagnosticChecks
+        {
+            get
+            {
+                var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+                return PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(buildTarget)) <= ManagedCodeVariant.Checked;
+            } 
+        }
 
         /// <summary>
         /// Obsolete. Always returns <c>false</c>.
         /// </summary>
-        [Obsolete("developmentBuild is no longer populated and always returns false. Use useDiagnosticChecks for stripping decisions that mirror UNITY_ENABLE_CHECKS-gated C# code.")]
+        [Obsolete("developmentBuild is no longer populated and always returns false. Use useDiagnosticChecks for stripping decisions that mirror UNITY_ENABLE_CHECKS-gated C# code. #from(6000.6) #breakingFrom(7000.0)", true)]
         public bool developmentBuild => false;
 
         internal Dictionary<EntityId, ComputeShader> computeShaderCache { get; private set; } = new();
@@ -58,8 +65,6 @@ namespace UnityEditor.Rendering
         private CoreBuildData(BuildTarget buildTarget)
         {
             m_Instance = this;
-
-            useDiagnosticChecks = PlayerSettings.GetManagedCodeVariant(GetNamedBuildTarget(buildTarget)) <= ManagedCodeVariant.Checked;
 
             if (!buildTarget.TryGetRenderPipelineAssets(renderPipelineAssets))
                 return;

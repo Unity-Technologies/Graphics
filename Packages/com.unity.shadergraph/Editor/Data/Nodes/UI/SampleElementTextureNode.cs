@@ -1,33 +1,35 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering.UITK.ShaderGraph;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    enum ElementTextureMipSamplingMode
+    {
+        Standard,
+        LOD
+    }
+
     [Title("UI", "Sample Element Texture")]
     [SubTargetFilter(typeof(IUISubTarget))]
     class SampleElementTextureNode : AbstractMaterialNode, IGeneratesFunction, IGeneratesBodyCode, IMayRequireUITK
     {
+        const int kMinSampleCount = 1;
+        const int kMaxSampleCount = 32;
 
-        public const int UV0Id = 0;
-        public const int UV1Id = 1;
-        public const int UV2Id = 2;
-        public const int UV3Id = 3;
-        public const int Color0SlotId = 10;
-        public const int Color1SlotId = 11;
-        public const int Color2SlotId = 12;
-        public const int Color3SlotId = 13;
+        // Fixed-id inputs that don't scale with the sample count.
+        public const int LODInputId = 4;
+        public const int SamplerInputId = 5;
 
-        private const string kUIV0SlotName = "UV 0";
-        private const string kUIV1SlotName = "UV 1";
-        private const string kUIV2SlotName = "UV 2";
-        private const string kUIV3SlotName = "UV 3";
-        private const string kColor0SlotName = "Color 0";
-        private const string kColor1SlotName = "Color 1";
-        private const string kColor2SlotName = "Color 2";
-        private const string kColor3SlotName = "Color 3";
+        const string kLODSlotName = "LOD";
+        const string kSamplerSlotName = "Sampler";
 
+        // The first 4 UV/Color slots keep their original ids so graphs authored before the count became
+        // configurable (which always had 4 samples) keep their connections; extra slots use disjoint ranges.
+        static int UVSlotId(int i) => i < 4 ? i : 1000 + i;
+        static int ColorSlotId(int i) => i < 4 ? 10 + i : 2000 + i;
 
         public override bool hasPreview { get { return false; } }
 
@@ -38,83 +40,161 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        [SerializeField]
+        private int m_SampleCount = 4;
+        internal int sampleCount
+        {
+            get { return Mathf.Clamp(m_SampleCount, kMinSampleCount, kMaxSampleCount); }
+            set
+            {
+                int clamped = Mathf.Clamp(value, kMinSampleCount, kMaxSampleCount);
+                if (m_SampleCount == clamped)
+                    return;
+                m_SampleCount = clamped;
+                UpdateNodeAfterDeserialization();
+            }
+        }
+
+        [SerializeField]
+        private ElementTextureMipSamplingMode m_MipSamplingMode = ElementTextureMipSamplingMode.Standard;
+        internal ElementTextureMipSamplingMode mipSamplingMode
+        {
+            set { m_MipSamplingMode = value; UpdateNodeAfterDeserialization(); }
+            get { return m_MipSamplingMode; }
+        }
+
         public override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector2MaterialSlot(UV0Id, kUIV0SlotName, kUIV0SlotName, SlotType.Input, Vector2.zero));
-            AddSlot(new Vector2MaterialSlot(UV1Id, kUIV1SlotName, kUIV1SlotName, SlotType.Input, Vector2.zero));
-            AddSlot(new Vector2MaterialSlot(UV2Id, kUIV2SlotName, kUIV2SlotName, SlotType.Input, Vector2.zero));
-            AddSlot(new Vector2MaterialSlot(UV3Id, kUIV3SlotName, kUIV3SlotName, SlotType.Input, Vector2.zero));
+            int count = sampleCount;
 
-            AddSlot(new Vector4MaterialSlot(Color0SlotId, kColor0SlotName, kColor0SlotName, SlotType.Output, Vector4.zero));
-            AddSlot(new Vector4MaterialSlot(Color1SlotId, kColor1SlotName, kColor1SlotName, SlotType.Output, Vector4.zero));
-            AddSlot(new Vector4MaterialSlot(Color2SlotId, kColor2SlotName, kColor2SlotName, SlotType.Output, Vector4.zero));
-            AddSlot(new Vector4MaterialSlot(Color3SlotId, kColor3SlotName, kColor3SlotName, SlotType.Output, Vector4.zero));
+            var ids = new List<int>();
+            for (int i = 0; i < count; i++)
+            {
+                AddSlot(new Vector2MaterialSlot(UVSlotId(i), $"UV {i}", $"UV {i}", SlotType.Input, Vector2.zero));
+                ids.Add(UVSlotId(i));
+            }
 
-            RemoveSlotsNameNotMatching(new[] {
-                UV0Id,
-                UV1Id,
-                UV2Id,
-                UV3Id,
-                Color0SlotId,
-                Color1SlotId,
-                Color2SlotId,
-                Color3SlotId,
-            });
+            // Optional sampler override. When left unconnected the node, element texture's own sampler is used.
+            AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerSlotName, kSamplerSlotName, SlotType.Input));
+            ids.Add(SamplerInputId);
+
+            bool lod = m_MipSamplingMode == ElementTextureMipSamplingMode.LOD;
+            if (lod)
+            {
+                AddSlot(new Vector1MaterialSlot(LODInputId, kLODSlotName, kLODSlotName, SlotType.Input, 0.0f));
+                ids.Add(LODInputId);
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                AddSlot(new Vector4MaterialSlot(ColorSlotId(i), $"Color {i}", $"Color {i}", SlotType.Output, Vector4.zero));
+                ids.Add(ColorSlotId(i));
+            }
+
+            // Lowering the count legitimately drops slots; suppress the "Removing Invalid MaterialSlot" warning.
+            RemoveSlotsNameNotMatching(ids, supressWarnings: true);
+
+            SetSlotOrder(ids);
         }
+
+        // Per-sample expression used inside the dispatch macro. _Texture##index resolves to the element
+        // texture slot picked by UIE_BRANCH; s/lod reference the function parameters when present.
+        static string SampleExpression(int i, bool lod, bool hasSampler)
+        {
+            if (hasSampler)
+                return lod
+                    ? $"SAMPLE_TEXTURE2D_LOD(_Texture##index, s, uv{i}, lod)"
+                    : $"SAMPLE_TEXTURE2D(_Texture##index, s, uv{i})";
+            return lod
+                ? $"UNITY_SAMPLE_TEX2D_LOD(_Texture##index, uv{i}, lod)"
+                : $"UNITY_SAMPLE_TEX2D(_Texture##index, uv{i})";
+        }
+
+        // Name encodes the count and the sampling variant so graphs mixing configurations don't collide on
+        // a single macro/function definition.
+        static string FunctionName(int count, bool lod, bool hasSampler)
+            => $"Unity_UIE_SampleElementTexture_{count}{(lod ? "_LOD" : "")}{(hasSampler ? "_S" : "")}";
+
+        static string MacroName(int count, bool lod, bool hasSampler)
+            => $"UIE_SAMPLE_{count}{(lod ? "_LOD" : "")}{(hasSampler ? "_S" : "")}";
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction("UIE_SAMPLE4", sb =>
+            int count = sampleCount;
+            bool lod = m_MipSamplingMode == ElementTextureMipSamplingMode.LOD;
+            bool hasSampler = IsSlotConnected(SamplerInputId);
+
+            string fn = FunctionName(count, lod, hasSampler);
+            string macro = MacroName(count, lod, hasSampler);
+
+            registry.ProvideFunction(fn, sb =>
             {
-                sb.AppendLine(@"#define UIE_SAMPLE4(index) \");
-                sb.AppendLine(@"    c0 = UNITY_SAMPLE_TEX2D(_Texture##index, uv0); \");
-                sb.AppendLine(@"    c1 = UNITY_SAMPLE_TEX2D(_Texture##index, uv1); \");
-                sb.AppendLine(@"    c2 = UNITY_SAMPLE_TEX2D(_Texture##index, uv2); \");
-                sb.AppendLine(@"    c3 = UNITY_SAMPLE_TEX2D(_Texture##index, uv3);");
+                sb.AppendLine($"#define {macro}(index) \\");
+                for (int i = 0; i < count; i++)
+                {
+                    string cont = (i < count - 1) ? " \\" : "";
+                    sb.AppendLine($"    c{i} = {SampleExpression(i, lod, hasSampler)};{cont}");
+                }
                 sb.AppendLine("");
-                sb.AppendLine("void SampleTextureSlot4(half index, float2 uv0, float2 uv1, float2 uv2, float2 uv3, out float4 c0, out float4 c1, out float4 c2, out float4 c3)");
+
+                var prms = new List<string> { "half index" };
+                for (int i = 0; i < count; i++)
+                    prms.Add($"float2 uv{i}");
+                if (hasSampler)
+                    prms.Add("SamplerState s");
+                if (lod)
+                    prms.Add("float lod");
+                for (int i = 0; i < count; i++)
+                    prms.Add($"out float4 c{i}");
+
+                sb.AppendLine($"void {fn}({string.Join(", ", prms)})");
                 using (sb.BlockScope())
                 {
-                    sb.AppendLine("UIE_BRANCH(UIE_SAMPLE4)");
+                    sb.AppendLine($"UIE_BRANCH({macro})");
                 }
             });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            int count = sampleCount;
+
             if (generationMode == GenerationMode.Preview)
             {
                 // In preview mode, return white
-                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color0SlotId));
-                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color1SlotId));
-                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color2SlotId));
-                sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(Color3SlotId));
+                for (int i = 0; i < count; i++)
+                    sb.AppendLine("$precision4 {0} = $precision4(1, 1, 1, 1);", GetVariableNameForSlot(ColorSlotId(i)));
                 return;
             }
 
-            sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color0SlotId));
-            sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color1SlotId));
-            sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color2SlotId));
-            sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(Color3SlotId));
+            for (int i = 0; i < count; i++)
+                sb.AppendLine("$precision4 {0};", GetVariableNameForSlot(ColorSlotId(i)));
+
+            bool lod = m_MipSamplingMode == ElementTextureMipSamplingMode.LOD;
+            bool hasSampler = IsSlotConnected(SamplerInputId);
 
             using (sb.BlockScope())
             {
                 sb.AppendLine("half Unity_UIE_TextureSlotIndex = IN.typeTexSettings.y;");
-                sb.AppendLine("SampleTextureSlot4(Unity_UIE_TextureSlotIndex, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7});",
-                    GetSlotValue(UV0Id, generationMode),
-                    GetSlotValue(UV1Id, generationMode),
-                    GetSlotValue(UV2Id, generationMode),
-                    GetSlotValue(UV3Id, generationMode),
-                    GetVariableNameForSlot(Color0SlotId),
-                    GetVariableNameForSlot(Color1SlotId),
-                    GetVariableNameForSlot(Color2SlotId),
-                    GetVariableNameForSlot(Color3SlotId));
+
+                var args = new List<string> { "Unity_UIE_TextureSlotIndex" };
+                for (int i = 0; i < count; i++)
+                    args.Add(GetSlotValue(UVSlotId(i), generationMode));
+                if (hasSampler)
+                    args.Add($"{GetSlotValue(SamplerInputId, generationMode)}.samplerstate");
+                if (lod)
+                    args.Add(GetSlotValue(LODInputId, generationMode));
+                for (int i = 0; i < count; i++)
+                    args.Add(GetVariableNameForSlot(ColorSlotId(i)));
+
+                sb.AppendLine($"{FunctionName(count, lod, hasSampler)}({string.Join(", ", args)});");
 
                 sb.AppendLine("#if _UIE_FORCE_GAMMA");
-                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color0SlotId), GetVariableNameForSlot(Color0SlotId));
-                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color1SlotId), GetVariableNameForSlot(Color1SlotId));
-                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color2SlotId), GetVariableNameForSlot(Color2SlotId));
-                sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", GetVariableNameForSlot(Color3SlotId), GetVariableNameForSlot(Color3SlotId));
+                for (int i = 0; i < count; i++)
+                {
+                    string c = GetVariableNameForSlot(ColorSlotId(i));
+                    sb.AppendLine("{0}.rgb = uie_linear_to_gamma({1}.rgb);", c, c);
+                }
                 sb.AppendLine("#endif");
             }
         }

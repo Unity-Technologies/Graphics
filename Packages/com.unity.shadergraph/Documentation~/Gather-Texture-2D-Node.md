@@ -21,11 +21,11 @@ The Gather Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Limitations
 
-The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
+The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]
 
 ## Inputs
 
-The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 | **Name**     | **Type**      | **Binding** | **Description**  |
 | :---         | :------       |  :------    |   :----------    |
@@ -37,7 +37,7 @@ The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- 
 
 ## Outputs
 
-The Gather Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)] <!-- MULTIPLE OUTPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)]
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
@@ -69,3 +69,7 @@ By changing the value provided to the T port on the Lerp node, you can change wh
 - [Sample Texture 2D LOD node](Sample-Texture-2D-LOD-Node.md)
 - [Sampler State node](Sampler-State-Node.md)
 - [Texture 2D Asset node](Texture-2D-Asset-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -13,6 +13,7 @@
 // Textures & Samplers
 TEXTURE2D_X(_CameraColorTexture);
 SAMPLER(sampler_CameraColorTexture);
+float4 _CameraColorTexture_TexelSize;
 
 TEXTURE2D_X(_SmoothnessTexture);
 SAMPLER(sampler_SmoothnessTexture);
@@ -21,6 +22,7 @@ TEXTURE2D_X(_MotionVectorColorTexture);
 SAMPLER(sampler_MotionVectorColorTexture);
 
 TEXTURE2D_X(_LastFrameCameraDepthTexture);
+float4 _LastFrameCameraDepthTexture_TexelSize;
 
 SAMPLER(sampler_BlitTexture);
 
@@ -33,6 +35,25 @@ float4x4 _CameraViews[2];
 float4 _CameraDeltaJitterOffset;
 float4 _SourceSize;
 
+// xy: the current frame's scale.
+// zw: scale of the history the pass samples. (color history in main pass, SSR history in temporal pass)
+float4 _ResolutionScales;
+
+float2 GetCurrentResolutionScale()
+{
+    return _ResolutionScales.xy;
+}
+
+float2 GetHistoryResolutionScale()
+{
+    return _ResolutionScales.zw;
+}
+
+float2 GetCurrentValidSize(float2 unscaledSize)
+{
+    return ceil(unscaledSize * GetCurrentResolutionScale());
+}
+
 TYPED_TEXTURE2D_X(float, _DepthPyramid);
 float4 _DepthPyramidMipLevelOffsets[15];
 int _SsrDepthPyramidMaxMip;
@@ -44,7 +65,7 @@ uint _Downsample;
 int _HiZTrace;
 int _HitRefinementSteps;
 float4 _ThicknessScaleAndBias;
-float4 _MinimumSmoothnessAndFadeStart;
+float4 _SmoothnessAndStrengthAndClamp;
 float4 _ScreenEdgeFadeAndViewConeDot;
 int _ReflectSky;
 
@@ -90,7 +111,17 @@ float2 GetScreenEdgeFade()
 
 float GetMinimumSmoothness()
 {
-    return _MinimumSmoothnessAndFadeStart.x;
+    return _SmoothnessAndStrengthAndClamp.x;
+}
+
+float GetStrength()
+{
+    return _SmoothnessAndStrengthAndClamp.z;
+}
+
+float GetClampValue()
+{
+    return _SmoothnessAndStrengthAndClamp.w * GetCurrentExposureMultiplier();
 }
 
 #if defined(USING_STEREO_MATRICES)
@@ -128,6 +159,7 @@ bool TraceScreenSpaceRay(
     rayHitPosNDC = 0;
     float prevT = 0;
     bool hitCoarse = false;
+    float rawSceneDepth = startZ;
 
     for (iterCount = 0; iterCount < rayScreenDelta; iterCount++)
     {
@@ -141,7 +173,7 @@ bool TraceScreenSpaceRay(
         rayHitT = lerp((rayPosSS.y - startPosSS.y) / rayScreenDeltaY, (rayPosSS.x - startPosSS.x) / rayScreenDeltaX, useDeltaX);
 
         // Get current depth of scene at the ray position.
-        float rawSceneDepth = LoadSceneDepth(rayPosSS.xy * _Downsample);
+        rawSceneDepth = LoadSceneDepth(rayPosSS.xy * _Downsample);
 
         // Check if we've hit something
         bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayPosSS.z, rawSceneDepth);
@@ -172,14 +204,14 @@ bool TraceScreenSpaceRay(
             float2 candidateHitPosSS = lerp(startPosSS, endPosSS, t);
             candidateHitPosSS = round(candidateHitPosSS - 0.5) + 0.5; // round to nearest texel center
             float rayDepth = lerp(startZ, endZ, t);
-            float rawSceneDepth = LoadSceneDepth(candidateHitPosSS * _Downsample);
+            float rawSceneDepthFine = LoadSceneDepth(candidateHitPosSS * _Downsample);
 
-            bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth);
-            bool belowFloor = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth * GetThicknessScale() + GetThicknessBias());
+            bool aboveBase = !COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine);
+            bool belowFloor = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine * GetThicknessScale() + GetThicknessBias());
             [branch]
             if (aboveBase && belowFloor)
             {
-                hitFine = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepth * GetThicknessScaleFine() + GetThicknessBiasFine());
+                hitFine = COMPARE_DEVICE_DEPTH_CLOSER(rayDepth, rawSceneDepthFine * GetThicknessScaleFine() + GetThicknessBiasFine());
 
                 rayHitPosNDC = float3(candidateHitPosSS * screenSizeWithInverse.xy, rayDepth);
                 t1 = t;
@@ -196,7 +228,19 @@ bool TraceScreenSpaceRay(
     }
     #endif
 
-    return hitCoarse || _ReflectSky;
+    // If we have a hit, we are done.
+    if (hitCoarse)
+        return true;
+
+    // If we hit no geometry, and the depth is at the far plane, we have hit the skybox.
+    // Treat it as a valid hit if _ReflectSky is enabled, otherwise return false.
+    UNITY_BRANCH
+    if (_ReflectSky)
+    {
+        rayHitPosNDC.z = UNITY_RAW_FAR_CLIP_VALUE;
+        return rawSceneDepth == UNITY_RAW_FAR_CLIP_VALUE;
+    }
+    return false;
 }
 
 bool TraceScreenSpaceRayHiZ(
@@ -348,17 +392,35 @@ float SampleSmoothness(float2 uv)
     return SAMPLE_TEXTURE2D_X(_SmoothnessTexture, sampler_SmoothnessTexture, uv).a;
 }
 
-float4 ComputeSSR(Varyings input) : SV_Target
+float3 ClampAndSanitizeColor(float3 color)
+{
+    float maxChannel = Max3(color.r, color.g, color.b);
+    float scale = maxChannel > GetClampValue() ? GetClampValue() / maxChannel : 1;
+    float3 clamped = scale * color;
+    if (AnyIsNaN(clamped) || AnyIsInf(clamped))
+        return 0;
+    return clamped;
+}
+
+float4 ComputeSSR(Varyings input
+    #ifdef _CONTACT_HARDENING
+    , out float4 rayDistancesAndValidity : SV_Target1
+    #endif
+    ) : SV_Target0
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+    #ifdef _CONTACT_HARDENING
+    rayDistancesAndValidity = 0;
+    #endif
+
     float2 positionNDC = input.texcoord;
     float2 positionSS = input.positionCS.xy;
-    float deviceDepth = LoadSceneDepth(uint2(positionSS) * _Downsample).r;
+    float deviceDepth = LoadSceneDepth(uint2(positionSS * _Downsample)).r;
 
     // If the smoothness is below our minimum, don't do any raymarching
     float perceptualSmoothness = SampleSmoothness(positionNDC);
-    UNITY_BRANCH if (perceptualSmoothness <= GetMinimumSmoothness())
+    UNITY_BRANCH if (perceptualSmoothness < GetMinimumSmoothness())
     {
         // Output the framebuffer color ->
         //   avoids bleeding black/uninitialized texels into reflections when blurring.
@@ -367,7 +429,7 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // If the pixel is showing an object, output 1 alpha ->
         //   avoids bleeding 0 alpha into reflections when blurring, which would cause peter-panning.
         float alpha = deviceDepth != UNITY_RAW_FAR_CLIP_VALUE;
-        return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, alpha);
+        return float4(ClampAndSanitizeColor(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC * GetHistoryResolutionScale(), 0).rgb) * alpha, alpha);
     }
 
     // Calculate ray origin and direction in world space
@@ -377,25 +439,22 @@ float4 ComputeSSR(Varyings input) : SV_Target
     float3 rayDirWS = reflect(-positionToCamWS, normalWS);
 
     // Apply normal bias with the magnitude dependent on the distance from the camera.
-    #ifdef _HIZ_TRACE
     float3 camPosWS = GetCurrentViewPosition();
-    positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normalWS, positionToCamWS), FLT_EPS)));
+    positionWS = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * _Downsample * rcp(max(dot(normalWS, positionToCamWS), FLT_EPS)));
     deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, _CameraViewProjections[unity_eyeIndex]).z;
-    #endif
 
     // Transform ray origin and direction to view space.
     float3 positionVS = mul(_CameraViews[unity_eyeIndex], float4(positionWS, 1)).xyz;
     float3 rayDirVS = SafeNormalize(mul(_CameraViews[unity_eyeIndex], float4(rayDirWS, 0)).xyz);
 
-    // Calculate ray end position in view space and screen space
-    float rayLength = 1;
-
-    #ifndef _HIZ_TRACE
     // Clamp ray length such that the end point is in front of the camera.
-    // Not needed for Hi-Z path as there is no end point, only a direction.
-    rayLength = rayDirVS.z > 0 ? min(GetMaxRayLength(), -positionVS.z / rayDirVS.z * 0.999) : GetMaxRayLength();
+    float maxRayLength = 1;
+    #ifndef _HIZ_TRACE
+    maxRayLength = GetMaxRayLength();
     #endif
+    float rayLength = rayDirVS.z > 0 ? min(maxRayLength, -positionVS.z / rayDirVS.z * 0.999) : maxRayLength;
 
+    // Calculate ray end position in view space and screen space
     float3 endPosVS = positionVS + rayDirVS * rayLength;
     float3 startPosNDC = float3(positionNDC, deviceDepth);
     float3 endPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(endPosVS, _CameraProjections[unity_eyeIndex]);
@@ -410,7 +469,8 @@ float4 ComputeSSR(Varyings input) : SV_Target
     endPosNDC = startPosNDC + rayDirNDC * min(rayLengthNDC, min(maxDistanceNDC.x, min(maxDistanceNDC.y, maxDistanceNDC.z)));
     #endif
 
-    float4 screenSizeWithInverse = _BlitTexture_TexelSize;
+    float2 traceScreenSize = GetCurrentValidSize(_BlitTexture_TexelSize.zw);
+    float4 screenSizeWithInverse = float4(rcp(traceScreenSize), traceScreenSize);
     float2 endPosSS = endPosNDC.xy * screenSizeWithInverse.zw;
 
     float3 rayHitPosNDC;
@@ -424,14 +484,22 @@ float4 ComputeSSR(Varyings input) : SV_Target
 
     UNITY_BRANCH if (hit)
     {
+        const bool hitIsSky = rayHitPosNDC.z == UNITY_RAW_FAR_CLIP_VALUE;
+
         #ifdef _USE_MOTION_VECTORS
         // Reproject position
         rayHitPosNDC.xy -= SampleMotionVector(rayHitPosNDC.xy);
         // Compensate for jittering
         rayHitPosNDC.xy -= _CameraDeltaJitterOffset.xy;
 
-        const float2 downsampledScreenSize = screenSizeWithInverse.zw * _Downsample;
-        const int2 topLeftReprojectedPixelPos = int2(rayHitPosNDC.xy * downsampledScreenSize - 0.5);
+        // Map the hit into the color history's occupied region.
+        const float2 validHistorySize = ceil(_CameraColorTexture_TexelSize.zw * GetHistoryResolutionScale());
+        const float2 scaledHitPixelPos = rayHitPosNDC.xy * validHistorySize;
+        const int2 topLeftReprojectedPixelPos = int2(scaledHitPixelPos - 0.5);
+
+        // The depth history is allocated independently of the color history, so derive its
+        // texel from its own size.
+        const float2 validDepthHistorySize = ceil(_LastFrameCameraDepthTexture_TexelSize.zw * GetHistoryResolutionScale());
 
         // Manually apply bilinear filter at the reprojected position
         float3 hitColor = 0;
@@ -444,19 +512,22 @@ float4 ComputeSSR(Varyings input) : SV_Target
                 const float2 samplePixelCenter = float2(samplePixelPos) + 0.5;
 
                 // Reject samples that are off-screen
-                const bool isInView = all(0 <= samplePixelPos && samplePixelPos < downsampledScreenSize);
+                const bool isInView = all(0 <= samplePixelPos && samplePixelPos < validHistorySize);
                 if (!isInView)
                     continue;
 
-                // Reject samples that land on the skybox (unless we are intentionally reflecting skybox)
-                const float sampleDeviceDepth = LOAD_TEXTURE2D_X_LOD(_LastFrameCameraDepthTexture, samplePixelPos, 0).x;
-                if (sampleDeviceDepth == UNITY_RAW_FAR_CLIP_VALUE && rayHitPosNDC.z != UNITY_RAW_FAR_CLIP_VALUE)
+                // We are either reflecting the sky or not, never mix sky and non-sky hits.
+                const float2 sampleNDC = samplePixelCenter / validHistorySize;
+                const int2 depthHistoryPixelPos = int2(sampleNDC * validDepthHistorySize);
+                const float sampleDeviceDepth = LOAD_TEXTURE2D_X_LOD(_LastFrameCameraDepthTexture, depthHistoryPixelPos, 0).x;
+                const bool sampleIsSky = sampleDeviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+                if (sampleIsSky != hitIsSky)
                     continue;
 
                 // Calculate bilinear weight and accumulate
                 const float weight =
-                    (1.0f - abs(rayHitPosNDC.x * downsampledScreenSize.x - samplePixelCenter.x)) *
-                    (1.0f - abs(rayHitPosNDC.y * downsampledScreenSize.y - samplePixelCenter.y));
+                    (1.0f - abs(scaledHitPixelPos.x - samplePixelCenter.x)) *
+                    (1.0f - abs(scaledHitPixelPos.y - samplePixelCenter.y));
                 const float3 sampleColor = LOAD_TEXTURE2D_X_LOD(_CameraColorTexture, samplePixelPos, 0).rgb;
                 hitColor += weight * sampleColor;
                 weightSum += weight;
@@ -468,11 +539,11 @@ float4 ComputeSSR(Varyings input) : SV_Target
         // value instead.
         const float k_MinimumWeight = 1e-3;
         if (weightSum < k_MinimumWeight)
-            return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, 0);
+            return 0;
         else
             hitColor /= weightSum;
         #else
-        float3 hitColor = SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, rayHitPosNDC.xy, 0).rgb;
+        float3 hitColor = SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, rayHitPosNDC.xy * GetHistoryResolutionScale(), 0).rgb;
         #endif
 
         // Fade rays pointing toward camera.
@@ -481,14 +552,28 @@ float4 ComputeSSR(Varyings input) : SV_Target
         const float normalFadeFactor = 0.1;
         float fade = smoothstep(viewConeDot, viewConeDot + normalFadeFactor, viewDotRay);
 
-        // Fade rays hitting near the max distance, if we aren't reflecting the sky.
-        #ifndef _HIZ_TRACE
-        if (!_ReflectSky)
+        if (!hitIsSky)
         {
-            float4 rayHitPosCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
-            float4 rayHitPosVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitPosCS);
-            rayHitPosVS.xyz /= rayHitPosVS.w;
-            fade *= smoothstep(GetMaxRayLength(), GetRayLengthFadeStart(), distance(positionVS, rayHitPosVS.xyz));
+            float4 rayHitCS = ComputeClipSpacePosition(rayHitPosNDC.xy, rayHitPosNDC.z);
+            float3 rayHitVS = mul(_CameraInverseProjections[unity_eyeIndex], rayHitCS).xyz;
+            rayHitVS *= LinearEyeDepth(rayHitPosNDC.z, _ZBufferParams) * rcp(-rayHitVS.z);
+            float3 rayOriginVS = positionVS * (LinearEyeDepth(deviceDepth, _ZBufferParams) * rcp(-positionVS.z));
+            float hitDistance = distance(rayOriginVS, rayHitVS);
+
+            #ifdef _CONTACT_HARDENING
+            const float k_MinDistance = 0.001;
+            rayDistancesAndValidity = float4(hitDistance, rcp(max(hitDistance, k_MinDistance)), 1.0, 0.0);
+            #endif
+
+            // Fade rays hitting near the max distance, if we aren't reflecting the sky.
+            #ifndef _HIZ_TRACE
+            fade *= smoothstep(maxRayLength, GetRayLengthFadeStart(), hitDistance);
+            #endif
+        }
+        #ifdef _CONTACT_HARDENING
+        else
+        {
+            rayDistancesAndValidity = float4(0.0, 0.0, 0.0, 1.0);
         }
         #endif
 
@@ -496,13 +581,13 @@ float4 ComputeSSR(Varyings input) : SV_Target
         float2 edgeDist = smoothstep(0, GetScreenEdgeFade().x, rayHitPosNDC.xy) * smoothstep(1, GetScreenEdgeFade().y, rayHitPosNDC.xy);
         fade *= edgeDist.x * edgeDist.y;
 
-        return float4(hitColor, fade);
+        // Scale the SSR contribution by the user-defined strength.
+        fade *= GetStrength();
+
+        return float4(ClampAndSanitizeColor(hitColor) * fade, fade);
     }
 
-    // Even if we hit nothing, we output the framebuffer color (but with 0 weight).
-    // This provides the blur/upscale kernel with data needed to avoid blurring black into
-    // the reflections, which leads to ugly borders.
-    return float4(SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_CameraColorTexture, positionNDC, 0).rgb, 0);
+    return 0;
 }
 
 // ------------------------------------------------------------------
@@ -512,7 +597,7 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+    float2 uv = input.texcoord;
 
     // Reconstruct world position
     float2 positionNDC = uv;
@@ -523,210 +608,118 @@ float4 CompositeSSRAfterOpaque(Varyings input) : SV_Target
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(perceptualSmoothness);
 
     // Map roughness to mip level to get blur.
-    float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness);
+    float mipLevel = GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness, uv);
     float4 reflColor = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_TrilinearClamp, uv, mipLevel);
+    if (reflColor.a > 0)
+        reflColor.rgb *= rcp(reflColor.a);
 
     // Fade out reflections with smoothness.
     // Not physically correct, but we can't do much better without more data.
-    reflColor.a *= perceptualSmoothness;
+    float fadeStart = _ScreenSpaceReflectionParam.y;
+    float fadeEnd = _ScreenSpaceReflectionParam.z;
+    reflColor.a *= smoothstep(fadeStart, fadeEnd, perceptualSmoothness);
 
     return reflColor;
 }
 
 // ------------------------------------------------------------------
-// Bilateral Blur
+// Upscaling
 // ------------------------------------------------------------------
-#define SAMPLE_BASEMAP(uv) float4(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv)));
+float4 BilinearUpscale(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texcoord);
+}
 
 float CompareNormal(float3 d1, float3 d2)
 {
     return smoothstep(0.8, 1.0, dot(d1, d2));
 }
 
-// Geometry-aware separable bilateral filter
-float4 BilateralBlur(const float2 uv, const float2 delta) : SV_Target
-{
-    float4 p0 =  SAMPLE_BASEMAP(uv);
-    float4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
-    float4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
-    float4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
-    float4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
-
-    float3 n0 =  SampleSceneNormals(uv);
-    float3 n1a = SampleSceneNormals(uv - delta * 1.3846153846);
-    float3 n1b = SampleSceneNormals(uv + delta * 1.3846153846);
-    float3 n2a = SampleSceneNormals(uv - delta * 3.2307692308);
-    float3 n2b = SampleSceneNormals(uv + delta * 3.2307692308);
-
-    float w0  = float(0.2270270270);
-    float w1a = CompareNormal(n0, n1a) * float(0.3162162162);
-    float w1b = CompareNormal(n0, n1b) * float(0.3162162162);
-    float w2a = CompareNormal(n0, n2a) * float(0.0702702703);
-    float w2b = CompareNormal(n0, n2b) * float(0.0702702703);
-
-    float4 s = 0.0;
-    s += p0 * w0;
-    s += p1a * w1a;
-    s += p1b * w1b;
-    s += p2a * w2a;
-    s += p2b * w2b;
-    s *= rcp(w0 + w1a + w1b + w2a + w2b);
-
-    return s;
-}
-
-// Geometry-aware bilateral filter (single pass/small kernel)
-float4 BilateralBlurSinglePass(const float2 uv, const float2 delta)
-{
-    float4 p0 = SAMPLE_BASEMAP(uv                            );
-    float4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
-    float4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
-    float4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
-    float4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
-
-    float3 n0 =  SampleSceneNormals(uv);
-    float3 n1a = SampleSceneNormals(uv - delta * 1.3846153846);
-    float3 n1b = SampleSceneNormals(uv + delta * 1.3846153846);
-    float3 n2a = SampleSceneNormals(uv - delta * 3.2307692308);
-    float3 n2b = SampleSceneNormals(uv + delta * 3.2307692308);
-
-    float w0 = 1.0;
-    float w1 = CompareNormal(n0, n1a);
-    float w2 = CompareNormal(n0, n1b);
-    float w3 = CompareNormal(n0, n2a);
-    float w4 = CompareNormal(n0, n2b);
-
-    float4 s = 0.0;
-    s += p0 * w0;
-    s += p1 * w1;
-    s += p2 * w2;
-    s += p3 * w3;
-    s += p4 * w4;
-
-    return s *= rcp(w0 + w1 + w2 + w3 + w4);
-}
-
-float4 HorizontalBilateralBlur(Varyings input) : SV_Target
+float4 BilateralUpscale(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    const float2 uv = input.texcoord;
-    const float2 delta = float2(_SourceSize.z * _Downsample, 0.0);
-    return BilateralBlur(uv, delta);
-}
+    float4 texelSize = _BlitTexture_TexelSize;
+    float2 uv = input.texcoord;
+    float2 lowResSize = GetCurrentValidSize(texelSize.zw);
+    // Position of texel, from 0 to lowResSize
+    float2 texelPos = uv * lowResSize - 0.5;
+    // Position of the first texel center in the bilinear neighborhood, from 0 to lowResSize
+    float2 topLeftTexelPos = floor(texelPos) + 0.5;
+    // Offset in texel, [0; 1]
+    float2 offsetInTexel = frac(texelPos);
 
-float4 VerticalBilateralBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float3 normalRef = SampleSceneNormals(uv);
 
-    const float2 uv = input.texcoord;
-    const float2 delta = float2(0.0, _SourceSize.w * _Downsample);
-    return BilateralBlur(uv, delta);
-}
-
-float4 FinalBilateralBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    const float2 uv = input.texcoord;
-    const float2 delta = _SourceSize.zw * _Downsample;
-    return BilateralBlurSinglePass(uv, delta );
-}
-
-// ------------------------------------------------------------------
-// Gaussian Blur
-// ------------------------------------------------------------------
-float4 GaussianBlur(float2 uv, float2 pixelOffset)
-{
-    float4 colOut = 0;
-
-    // Kernel width 7 x 7
-    const int stepCount = 2;
-
-    const half gWeights[stepCount] ={
-        0.44908,
-        0.05092
-     };
-    const half gOffsets[stepCount] ={
-        0.53805,
-        2.06278
-     };
-
-    UNITY_UNROLL
-    for( int i = 0; i < stepCount; i++ )
+    float4 result = 0;
+    float weightSum = 0;
+    for (int dx = 0; dx < 2; dx++)
     {
-        float2 texCoordOffset = gOffsets[i] * pixelOffset;
-        float4 p1 = SAMPLE_BASEMAP(uv + texCoordOffset);
-        float4 p2 = SAMPLE_BASEMAP(uv - texCoordOffset);
-        float4 col = p1 + p2;
-        colOut += gWeights[i] * col;
+        for (int dy = 0; dy < 2; dy++)
+        {
+            // Reject off-screen samples.
+            float2 sampleTexelPos = topLeftTexelPos + float2(dx, dy);
+            const bool isInView = all(0 <= sampleTexelPos && sampleTexelPos < lowResSize);
+            if (!isInView)
+                continue;
+
+            // Sample color and normal from bilinear neighborhood.
+            float2 sampleUvPos = sampleTexelPos / lowResSize;
+            float4 sampleColor = LOAD_TEXTURE2D_X(_BlitTexture, sampleTexelPos);
+            float3 sampleNormal = SampleSceneNormals(sampleUvPos);
+
+            // Bilinear weight.
+            float weight =
+                (dx ? offsetInTexel.x : 1.0 - offsetInTexel.x) *
+                (dy ? offsetInTexel.y : 1.0 - offsetInTexel.y);
+
+            // Bilateral weight. Clamped to prevent division by 0, and also to ensure we get a
+            // reasonable value when none of the samples pass the normal comparison condition.
+            const float k_MinWeight = 0.01;
+            weight *= max(k_MinWeight, CompareNormal(normalRef, sampleNormal));
+
+            result += sampleColor * weight;
+            weightSum += weight;
+        }
     }
-
-    return colOut;
-}
-
-float4 HorizontalGaussianBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.texcoord;
-    float2 delta = float2(_SourceSize.z * _Downsample, 0.0);
-    return GaussianBlur(uv, delta);
-}
-
-float4 VerticalGaussianBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.texcoord;
-    float2 delta = float2(0.0, _SourceSize.w * _Downsample);
-    return GaussianBlur(uv, delta);
+    return result * rcp(weightSum);
 }
 
 // ------------------------------------------------------------------
-// Kawase Blur
+// Temporal Filtering
 // ------------------------------------------------------------------
-float4 KawaseBlurFilter(float2 texCoord, float2 pixelSize)
-{
-    float2 texCoordSample;
-    float2 halfPixelSize = pixelSize * 0.5;
-    float2 dUV = halfPixelSize.xy;
+TEXTURE2D_X(_ReflectionHistoryTexture);
+float _BaseBlendFactor;
 
-    float4 cOut;
-
-    // Sample top left pixel
-    texCoordSample.x = texCoord.x - dUV.x;
-    texCoordSample.y = texCoord.y + dUV.y;
-    cOut = SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample top right pixel
-    texCoordSample.x = texCoord.x + dUV.x;
-    texCoordSample.y = texCoord.y + dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample bottom right pixel
-    texCoordSample.x = texCoord.x + dUV.x;
-    texCoordSample.y = texCoord.y - dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Sample bottom left pixel
-    texCoordSample.x = texCoord.x - dUV.x;
-    texCoordSample.y = texCoord.y - dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
-
-    // Average
-    cOut *= 0.25;
-
-    return cOut;
-}
-
-float4 KawaseBlur(Varyings input) : SV_Target
+float4 SSRTemporalFiltering(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.texcoord;
-    float2 texelSize = _SourceSize.zw * _Downsample;
-    return KawaseBlurFilter(uv, texelSize);
+    const int2 maxValidCoord = int2(GetCurrentValidSize(_BlitTexture_TexelSize.zw)) - 1;
+    int2 pixelCoord = min(int2(input.positionCS.xy), maxValidCoord);
+    float2 currentUv = input.texcoord;
+    float2 reprojectedUv = currentUv - SampleMotionVector(currentUv);
+    float4 current = LOAD_TEXTURE2D_X(_BlitTexture, pixelCoord);
+    float4 history = SAMPLE_TEXTURE2D_X(_ReflectionHistoryTexture, sampler_LinearClamp, reprojectedUv * GetHistoryResolutionScale());
+
+    // Take 4 taps around center in a cross pattern
+    float4 nb0 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 0,  1), 0, maxValidCoord));
+    float4 nb1 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 0, -1), 0, maxValidCoord));
+    float4 nb2 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2( 1,  0), 0, maxValidCoord));
+    float4 nb3 = LOAD_TEXTURE2D_X(_BlitTexture, clamp(pixelCoord + int2(-1,  0), 0, maxValidCoord));
+
+    // Neighborhood clamping
+    float4 boxMin = min(min(min(min(current, nb0), nb1), nb2), nb3);
+    float4 boxMax = max(max(max(max(current, nb0), nb1), nb2), nb3);
+    history = clamp(history, boxMin, boxMax);
+
+    // If outside screen, ignore history
+    float blendFactor = _BaseBlendFactor;
+    if (any(reprojectedUv < 0) || any(reprojectedUv > 1))
+        blendFactor = 0.0;
+
+    return lerp(current, history, blendFactor);
 }
 
 #endif //UNIVERSAL_SSR_INCLUDED

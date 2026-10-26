@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace UnityEngine.PathTracing.Core
 {
     // The type parameter T is only used as a tag, preventing different kinds of handles from being mixed together.
-    internal readonly struct Handle<T>
+    internal readonly struct Handle<T> : IEquatable<Handle<T>>
     {
         public readonly UInt64 Value;
 
@@ -27,6 +27,7 @@ namespace UnityEngine.PathTracing.Core
         }
 
         // Value type semantics
+        public bool Equals(Handle<T> other) => other.Value == Value;
         public override int GetHashCode() => Value.GetHashCode();
         public override bool Equals(object obj) => obj is Handle<T> other && other.Value == Value;
         public override string ToString() => $"Handle<{typeof(T).Name}>({Value})";
@@ -40,6 +41,8 @@ namespace UnityEngine.PathTracing.Core
         private readonly Stack<Handle<T>> _freeHandles = new();
         private UInt64 _nextHandleIndex;
 
+        public int Count => (int)_nextHandleIndex - _freeHandles.Count;
+
         public Handle<T> Add()
         {
             if (_freeHandles.Count > 0)
@@ -50,7 +53,7 @@ namespace UnityEngine.PathTracing.Core
 
         public void Remove(Handle<T> handle)
         {
-            Debug.Assert(!_freeHandles.Contains(handle));
+            Debug.Assert(handle.Value < _nextHandleIndex, "Removed handle was never allocated by this set.");
             _freeHandles.Push(handle);
         }
 

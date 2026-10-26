@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             {
                 // Definition
                 displayName = compatibility.ToString(),
-                referenceName = "SHADERPASS_" + compatibility.ToString().ToUpper(),
+                referenceName = "SHADERPASS_" + compatibility.ToString().ToUpperInvariant(),
                 useInPreview = true,
 
                 // Template

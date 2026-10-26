@@ -29,3 +29,4 @@ Follow these guidelines to decide which node to use:
 - [Element Texture UV node](xref:element-texture-uv-node)
 - [Element Layout UV node](xref:element-layout-uv-node)
 - [Texture Size node](Texture-Size-node.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

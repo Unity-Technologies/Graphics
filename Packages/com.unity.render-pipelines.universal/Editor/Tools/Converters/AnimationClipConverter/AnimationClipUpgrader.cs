@@ -8,9 +8,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using static UnityEditor.Rendering.AnimationClipUpgrader;
-using static UnityEditor.Rendering.Universal.AnimationClipConverter;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 
@@ -418,7 +415,7 @@ namespace UnityEditor.Rendering
             foreach (var renderer in s_RendererBuffer)
             {
                 var path = AnimationUtility.CalculateTransformPath(renderer.transform, root);
-                var m = ListPool<IMaterial>.Get();
+                var m = UnityEngine.Pool.ListPool<IMaterial>.Get();
                 var r = (RendererProxy)renderer;
                 r.GetSharedMaterials(m);
                 s_RenderersByPath[path] = (r, m);
@@ -434,7 +431,7 @@ namespace UnityEditor.Rendering
             // release UnityObject references
             s_RendererBuffer.Clear();
             foreach (var (_, materials) in s_RenderersByPath.Values)
-                ListPool<IMaterial>.Release(materials);
+                UnityEngine.Pool.ListPool<IMaterial>.Release(materials);
             s_RenderersByPath.Clear();
         }
 

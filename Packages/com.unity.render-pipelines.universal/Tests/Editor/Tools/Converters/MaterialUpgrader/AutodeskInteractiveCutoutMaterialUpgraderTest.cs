@@ -112,7 +112,7 @@ class AutodeskInteractiveCutoutMaterialUpgraderTest : MaterialUpgraderTestBase<A
             {
                 material.SetFloat("_Mode", 1.0f); // cutout
                 material.SetColor("_EmissionColor", Color.green);
-                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
             },
             verify = material =>
             {

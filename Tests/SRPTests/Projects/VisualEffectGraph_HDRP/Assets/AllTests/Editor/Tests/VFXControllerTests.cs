@@ -1734,11 +1734,106 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        [UnityTest, Description("Converting a selection that includes an output property to a Subgraph Operator must not throw and must still clean up the source nodes")]
+        public IEnumerator ConvertToSubGraphOperator_With_OutputProperty_In_Selection()
+        {
+            // Output properties only exist in subgraph operators, matching the reported repro.
+            var subgraphOperator = VFXTestCommon.MakeTemporarySubGraphOperator();
+            var resource = subgraphOperator.GetResource();
+
+            var window = VFXTestCommon.GetViewWindow();
+            window.LoadResource(resource, null);
+            var graph = window.graphView.controller.graph;
+            yield return null;
+
+            // An operator fed by an exposed input parameter and feeding an output property.
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            graph.AddChild(add);
+
+            var inputParameter = ScriptableObject.CreateInstance<VFXParameter>();
+            inputParameter.Init(typeof(float));
+            graph.AddChild(inputParameter);
+            inputParameter.SetSettingValue("m_Exposed", true);
+            Assert.IsTrue(inputParameter.outputSlots[0].Link(add.inputSlots[1]));
+
+            var outputParameter = ScriptableObject.CreateInstance<VFXParameter>();
+            outputParameter.Init(typeof(float));
+            graph.AddChild(outputParameter);
+            outputParameter.isOutput = true;
+            Assert.IsTrue(add.outputSlots[0].Link(outputParameter.inputSlots[0]));
+            window.graphView.controller.LightApplyChanges();
+            yield return null;
+
+            var controllers = window.graphView.Query<VFXNodeUI>().ToList()
+                .Where(t => t.controller.model != null)
+                .Select(o => o.controller)
+                .Cast<Controller>().ToArray();
+
+            var guid = Guid.NewGuid().ToString();
+            var subGraphPath = string.Format(VFXTestCommon.tempBasePath + "/vfx_{0}.vfxoperator", guid);
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, controllers, Rect.zero, subGraphPath);
+
+            // The operator moved into the subgraph and the source graph was cleaned up (previously the exception left it behind).
+            Assert.IsFalse(graph.children.OfType<Operator.Add>().Any());
+            Assert.AreEqual(1, graph.children.OfType<VFXSubgraphOperator>().Count());
+
+            window.Close();
+            yield return null;
+        }
+
+        [UnityTest, Description("Converting directly connected input and output properties to a Subgraph Operator removes both from the source graph (UUM-108536)")]
+        public IEnumerator ConvertToSubGraphOperator_Removes_Directly_Connected_Properties()
+        {
+            var subgraphOperator = VFXTestCommon.MakeTemporarySubGraphOperator();
+            var resource = subgraphOperator.GetResource();
+
+            var window = VFXTestCommon.GetViewWindow();
+            window.LoadResource(resource, null);
+            var graph = window.graphView.controller.graph;
+            yield return null;
+
+            // Input property wired directly to an output property, with no logic in between.
+            var inputParameter = ScriptableObject.CreateInstance<VFXParameter>();
+            inputParameter.Init(typeof(float));
+            graph.AddChild(inputParameter);
+            inputParameter.SetSettingValue("m_Exposed", true);
+
+            var outputParameter = ScriptableObject.CreateInstance<VFXParameter>();
+            outputParameter.Init(typeof(float));
+            graph.AddChild(outputParameter);
+            outputParameter.isOutput = true;
+            Assert.IsTrue(inputParameter.outputSlots[0].Link(outputParameter.inputSlots[0]));
+            window.graphView.controller.LightApplyChanges();
+
+            // Node UIs rebuild on a deferred pass; a single frame isn't always enough (e.g. under code coverage).
+            Controller[] controllers = null;
+            for (var i = 0; i < 64 && controllers == null; ++i)
+            {
+                yield return null;
+                var nodeUIs = window.graphView.Query<VFXNodeUI>().ToList().Where(t => t.controller?.model != null).ToList();
+                if (nodeUIs.Any(t => t.controller.model == inputParameter) && nodeUIs.Any(t => t.controller.model == outputParameter))
+                    controllers = nodeUIs.Select(o => o.controller).Cast<Controller>().ToArray();
+            }
+            Assert.IsNotNull(controllers, "Both parameter nodes should be present before conversion.");
+
+            var guid = Guid.NewGuid().ToString();
+            var subGraphPath = string.Format(VFXTestCommon.tempBasePath + "/vfx_{0}.vfxoperator", guid);
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, controllers, Rect.zero, subGraphPath);
+
+            // Convert removes the parameter nodes (the blackboard definitions remain), so assert on node count.
+            Assert.AreEqual(0, inputParameter.nodes.Count, "Input property node should be removed from the source graph.");
+            Assert.AreEqual(0, outputParameter.nodes.Count, "Output property node should be removed from the source graph.");
+            Assert.AreEqual(1, graph.children.OfType<VFXSubgraphOperator>().Count());
+
+            window.Close();
+            yield return null;
+        }
+
         [UnityTest, Description("Repro from nested subgraph and live authoring")]
         public IEnumerator SubgraphNested_Unexpected_ExpressionCount()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_SubgraphNested_ExpressionCount.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = "Assets/TmpTests/Repro_NestedSubgraph_ExpressionCount.vfx";
@@ -1836,7 +1931,7 @@ namespace UnityEditor.VFX.Test
         {
             //N.B.: The "Bis" package doesn't use activation slot
             var packagePath = $"Assets/AllTests/Editor/Tests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = $"Assets/TmpTests/Repro_Subgraph_ActivationSlot{(useVariant ? "_Bis" : string.Empty)}.vfx";
@@ -1943,7 +2038,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Subgraph_Dont_Invalidate_MainGraph_Infinitely()
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Repro_Subgraph_Infinite_Compilation.unitypackage";
-            AssetDatabase.ImportPackageImmediately(packagePath);
+            UnityEditor.AssetPackage.Utility.ImportPackageImmediately(packagePath);
             yield return null;
 
             var mainPath = "Assets/TmpTests/Repro_Subgraph_Infinite_Compilation.vfx";
@@ -2092,6 +2187,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, rangeParameterController.minValue);
             Assert.AreEqual(1, rangeParameterController.value);
             Assert.AreEqual(100, rangeParameterController.maxValue);
+        }
+
+        [Test]
+        public void MakeNameUnique_WithConflict_AndZeroMaxLength_DoesNotThrow()
+        {
+            // Reproduces calls made by DuplicateBlackBoardCategory (VFXView.cs:3329)
+            // and AddCategory (VFXBlackboard.cs:819) which pass maxLength=0 (default)
+            // while the candidate name conflicts with an existing one.
+            var existingNames = new HashSet<string> { "Speed" };
+
+            string uniqueName = null;
+            Assert.DoesNotThrow(() =>
+            {
+                uniqueName = VFXParameterController.MakeNameUnique("Speed", existingNames, true, 0, null);
+            });
+
+            Assert.IsNotNull(uniqueName);
+            Assert.AreNotEqual("Speed", uniqueName);
+            Assert.IsFalse(existingNames.Contains(uniqueName));
         }
     }
 }

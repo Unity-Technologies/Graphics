@@ -1,10 +1,9 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditorInternal;
-
 using Object = UnityEngine.Object;
 
 [assembly: InternalsVisibleTo("SRPSmoke.Editor.Tests")]
@@ -43,9 +42,9 @@ namespace UnityEditor.Rendering
                 {
                     var lightingGroup = GetHDRPLightingGroup();
                     var probeVolume = GetHDRPProbeVolumeEnum();
-                    var k_QualitySettingsHelpBox = GetHDRPQualitySettingsHelpBox();
+                    var qualitySettingsHelpBox = GetHDRPQualitySettingsHelpBox();
 
-                    k_QualitySettingsHelpBox.Invoke(null, new []
+                    qualitySettingsHelpBox.Invoke(null, new[]
                     {
                         "The current HDRP Asset does not support Adaptive Probe Volumes.", MessageType.Warning, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem"
                     });
@@ -53,10 +52,10 @@ namespace UnityEditor.Rendering
                 }
                 case { Name: "UniversalRenderPipelineAsset" }:
                 {
-                    var k_QualitySettingsHelpBox = GetURPQualitySettingsHelpBox();
+                    var qualitySettingsHelpBox = GetURPQualitySettingsHelpBox();
                     var lightingValue = GetURPLightingGroup();
 
-                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    qualitySettingsHelpBox.Invoke(null, new[]
                     {
                         "The current URP Asset does not support Adaptive Probe Volumes.", MessageType.Warning, lightingValue, "m_LightProbeSystem"
                     });
@@ -72,14 +71,14 @@ namespace UnityEditor.Rendering
 
         internal static object GetHDRPLightingGroup()
         {
-            var k_ExpandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
-            return k_ExpandableGroup.GetEnumValues().GetValue(IndexOf(k_ExpandableGroup.GetEnumNames(), "Lighting"));
+            var expandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
+            return expandableGroup.GetEnumValues().GetValue(IndexOf(expandableGroup.GetEnumNames(), "Lighting"));
         }
 
         internal static object GetHDRPProbeVolumeEnum()
         {
-            var k_LightingSection = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableLighting,Unity.RenderPipelines.HighDefinition.Editor");
-            return k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "ProbeVolume"));
+            var lightingSection = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableLighting,Unity.RenderPipelines.HighDefinition.Editor");
+            return lightingSection.GetEnumValues().GetValue(IndexOf(lightingSection.GetEnumNames(), "ProbeVolume"));
         }
 
         internal static MethodInfo GetHDRPQualitySettingsHelpBox()
@@ -96,15 +95,17 @@ namespace UnityEditor.Rendering
 
         internal static object GetURPLightingGroup()
         {
-            var k_LightingSection = Type.GetType("UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI+Expandable,Unity.RenderPipelines.Universal.Editor");
-            return k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "Lighting"));
+            var lightingSection = Type.GetType("UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI+Expandable,Unity.RenderPipelines.Universal.Editor");
+            return lightingSection.GetEnumValues().GetValue(IndexOf(lightingSection.GetEnumNames(), "Lighting"));
         }
 
         internal static int IndexOf(string[] names, string name)
         {
             for (int i = 0; i < names.Length; i++)
+            {
                 if (name == names[i])
                     return i;
+            }
             return -1;
         }
 
@@ -117,13 +118,13 @@ namespace UnityEditor.Rendering
             {
                 static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
 
-                var k_FrameSettingsField = Type.GetType("UnityEngine.Rendering.HighDefinition.FrameSettingsField,Unity.RenderPipelines.HighDefinition.Runtime");
-                var k_APVFrameSetting = k_FrameSettingsField.GetEnumValues().GetValue(IndexOf(k_FrameSettingsField.GetEnumNames(), "AdaptiveProbeVolume"));
+                var frameSettingsField = Type.GetType("UnityEngine.Rendering.HighDefinition.FrameSettingsField,Unity.RenderPipelines.HighDefinition.Runtime");
+                var apvFrameSetting = frameSettingsField.GetEnumValues().GetValue(IndexOf(frameSettingsField.GetEnumNames(), "AdaptiveProbeVolume"));
 
-                var k_EnsureFrameSetting = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                var ensureFrameSetting = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
                     .GetMethod("EnsureFrameSetting", BindingFlags.Static | BindingFlags.NonPublic);
 
-                k_EnsureFrameSetting.Invoke(null, new object[] { k_APVFrameSetting});
+                ensureFrameSetting.Invoke(null, new[] { apvFrameSetting });
             }
         }
 
@@ -146,7 +147,9 @@ namespace UnityEditor.Rendering
 
             bool drawInspector = true;
 
+#pragma warning disable 618
             if (ProbeVolumeLightingTab.GetLightingSettings().realtimeGI)
+#pragma warning restore 618
             {
                 EditorGUILayout.HelpBox("Adaptive Probe Volumes are not supported when using Realtime Global Illumination(Enlighten).", MessageType.Warning, wide: true);
                 drawInspector = false;
@@ -163,7 +166,7 @@ namespace UnityEditor.Rendering
                 ProbeVolumeEditor.FrameSettingDisabledHelpBox();
 
                 serializedObject.Update();
-                ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
+                ProbeVolumeUI.k_Inspector.Draw(m_SerializedProbeVolume, this);
                 m_SerializedProbeVolume.Apply();
             }
         }
@@ -186,11 +189,11 @@ namespace UnityEditor.Rendering
             if (probeVolume.mode != ProbeVolume.Mode.Local)
                 return;
 
-            //important: if the origin of the handle's space move along the handle,
-            //handles displacement will appears as moving two time faster.
+            // important: if the origin of the handle's space move along the handle,
+            // handles displacement will appears as moving two time faster.
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, probeVolume.transform.rotation, Vector3.one)))
             {
-                //contained must be initialized in all case
+                // contained must be initialized in all case
                 s_ShapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
                 s_ShapeBox.size = probeVolume.size;
 
