@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Threading;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
@@ -20,7 +22,31 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
     )]
     public class PostProcessingTests : HdrpTestsBase
     {
+        const int k_SceneLoadStallMilliseconds = 200;
+
         public PostProcessingTests(GpuResidentDrawerContext grdContext) : base(grdContext) { }
+
+        public override void SetUpContext()
+        {
+            base.SetUpContext();
+            if (!TestContext.CurrentContext.Test.Name.Contains("DRS-FSR2"))
+                return;
+
+            SceneManager.sceneLoaded -= StallAfterSceneLoad;
+            SceneManager.sceneLoaded += StallAfterSceneLoad;
+        }
+
+        public override void OneTimeTearDown()
+        {
+            SceneManager.sceneLoaded -= StallAfterSceneLoad;
+            base.OneTimeTearDown();
+        }
+
+        // Workaround for UUM-158331
+        static void StallAfterSceneLoad(Scene scene, LoadSceneMode mode)
+        {
+            Thread.Sleep(k_SceneLoadStallMilliseconds);
+        }
 
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
