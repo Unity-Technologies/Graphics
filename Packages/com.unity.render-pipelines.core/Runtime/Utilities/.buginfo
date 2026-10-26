@@ -28,3 +28,9 @@ tools:
     path:
       - ^.*MeshGizmo?.*$
   area: Graphics Tools
+
+postprocessing:
+  when:
+    path:
+      - ^.*hlsl.*$
+  area: Post-processing and Compositing
