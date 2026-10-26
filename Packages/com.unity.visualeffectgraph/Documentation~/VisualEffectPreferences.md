@@ -3,10 +3,10 @@
 The Visual Effect Graph preferences are in the Unity Preferences window. To access them:
 
 Windows:
-* Navigate to **Edit > Preferences > Visual Effects**
+* Navigate to **Edit** > **Preferences** > **Visual Effects**
 
 macOS: 
-* Navigate to **Unity > Settings > Visual Effects**
+* Navigate to **Unity** > **Settings** > **Visual Effects**
 
 ## Properties:
 

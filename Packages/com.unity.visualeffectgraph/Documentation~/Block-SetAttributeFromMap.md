@@ -1,4 +1,4 @@
-# Set Attribute from Map
+# Set Attribute from Map Block
 
 Menu Path : **Attribute > Set \<Attribute> From Map**
 

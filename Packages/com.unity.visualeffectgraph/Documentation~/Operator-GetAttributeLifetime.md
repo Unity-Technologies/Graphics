@@ -1,4 +1,4 @@
-# Get Attribute: lifetime
+# Get Attribute: lifetime Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: lifetime**
 

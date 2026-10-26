@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
-    [URPHelpURL("universal-additional-light-data")]
+    [URPHelpURL("urp/universal-additional-light-data")]
     public partial class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]

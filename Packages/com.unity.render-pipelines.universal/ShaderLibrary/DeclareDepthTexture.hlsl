@@ -9,15 +9,11 @@ float4 _CameraDepthTexture_TexelSize;
 // 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
 #define sampler_CameraDepthTexture sampler_PointClamp
 
-float SampleSceneDepth(float2 uv, SAMPLER(samplerParam))
-{
-    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
-    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, samplerParam, uv).r;
-}
-
 float SampleSceneDepth(float2 uv)
 {
-    return SampleSceneDepth(uv, sampler_PointClamp);
+    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
+    uint2 pixelCoord = uint2(uv * _ScreenSize.xy);
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).r;
 }
 
 float LoadSceneDepth(uint2 pixelCoords)

@@ -1,4 +1,4 @@
-# Variable Rate
+# Variable Rate Block
 
 Menu Path : **Spawn > Variable Rate**
 
@@ -8,7 +8,7 @@ The Variable Rate Block uses a more advanced approach than the [Constant Rate Bl
 
 This Block is compatible with the following Contexts:
 
-- [Spawn](Context-Spawn.md)
+- [Spawn Context](Context-Spawn.md)
 
 ## Block properties
 

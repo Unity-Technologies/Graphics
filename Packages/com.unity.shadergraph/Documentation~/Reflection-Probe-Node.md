@@ -32,3 +32,7 @@ void Unity_ReflectionProbe_float(float3 ViewDir, float3 Normal, float LOD, out f
     Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

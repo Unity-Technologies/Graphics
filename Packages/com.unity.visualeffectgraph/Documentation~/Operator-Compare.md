@@ -1,4 +1,4 @@
-# Compare
+# Compare Operator
 
 Menu Path : **Operator > Logic > Compare**
 

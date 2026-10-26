@@ -1,6 +1,6 @@
-# Transform (Vector4)
+# Transform (Vector4) Operator
 
-Menu Path : **Operator > Math > Geometry > Transform (Vector4)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transform (Vector4)**
 
 The **Transform (Vector4)** Operator applies a transformation to a Vector4.
 

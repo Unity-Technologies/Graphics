@@ -1,4 +1,4 @@
-# Get Attribute: position
+# Get Attribute: position Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: position**
 

@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("post-processing-chromatic-aberration")]
+    [URPHelpURL("urp/post-processing-chromatic-aberration")]
     public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

@@ -1,4 +1,4 @@
-# Cone
+# Cone Operator
 
 Menu Path : **Operator > Inline > Cone**
 

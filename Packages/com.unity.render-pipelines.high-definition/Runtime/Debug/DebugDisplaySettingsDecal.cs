@@ -40,11 +40,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public SettingsPanel(DebugDisplaySettingsDecal data)
             {
+                DocumentationUtils.TryGetHelpURL(typeof(DebugDisplaySettingsDecal), out var documentationUrl);
                 var foldout = new DebugUI.Foldout()
                 {
                     displayName = Strings.decals,
                     opened = true,
-                    documentationUrl = typeof(DebugDisplaySettingsDecal).GetCustomAttribute<HelpURLAttribute>()?.URL
+                    documentationUrl = documentationUrl
                 };
                 AddWidget(foldout);
 

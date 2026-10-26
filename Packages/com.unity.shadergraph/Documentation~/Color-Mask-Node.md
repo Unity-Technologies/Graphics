@@ -25,3 +25,7 @@ void Unity_ColorMask_float(float3 In, float3 MaskColor, float Range, float Fuzzi
     Out = saturate(1 - (Distance - Range) / max(Fuzziness, 1e-5));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

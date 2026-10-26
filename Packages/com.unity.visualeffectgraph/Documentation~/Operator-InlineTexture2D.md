@@ -1,4 +1,4 @@
-# Texture2D
+# Texture2D Operator
 
 Menu Path : **Operator > Inline > Texture2D**
 

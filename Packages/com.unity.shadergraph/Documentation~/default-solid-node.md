@@ -23,3 +23,4 @@ You can use this node combined with other nodes to create custom effects for the
 - [Default SDF Text node](xref:default-sdf-text-node)
 - [Default Bitmap Text node](xref:default-bitmap-text-node)
 - [Render Type Branch node](xref:render-type-branch-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

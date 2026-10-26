@@ -36,3 +36,7 @@ float3 _Object_WorldBoundsMin = SHADERGRAPH_RENDERER_BOUNDS_MIN;
 float3 _Object_WorldBoundsMax = SHADERGRAPH_RENDERER_BOUNDS_MAX;
 float3 _Object_BoundsSize = (SHADERGRAPH_RENDERER_BOUNDS_MAX - SHADERGRAPH_RENDERER_BOUNDS_MIN);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

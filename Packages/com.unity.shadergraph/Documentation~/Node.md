@@ -41,4 +41,4 @@ Right clicking on a **Node** will open a context menu. This menu contains many o
 
 <image>
 
-Unity applies each component of T as a weight factor to each component to A and B. If T has fewer components than A and B, Unity casts T to the required number of components. Unity copies the values of the original components of T to the added components.
+

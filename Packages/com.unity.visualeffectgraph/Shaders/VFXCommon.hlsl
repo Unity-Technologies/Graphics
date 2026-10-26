@@ -131,6 +131,12 @@ float3 VFXSafeNormalize(float3 v)
     return v * rsqrt(sqrLength);
 }
 
+float3 VFXSafeNormalize(float3 v, float3 fallback)
+{
+    float sqrLength = dot(v, v);
+    return sqrLength > VFX_EPSILON * VFX_EPSILON ? v * rsqrt(sqrLength) : fallback;
+}
+
 float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
 {
     float3 outVec = cross(v1, v2);

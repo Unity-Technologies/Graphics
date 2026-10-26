@@ -38,3 +38,7 @@ void Unity_Reciprocal_Fast_float4(float4 In, out float4 Out)
     Out = rcp(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

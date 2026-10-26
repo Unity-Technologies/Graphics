@@ -86,6 +86,7 @@ class Renderer2DTests
         Assert.IsTrue(baseRenderer.m_CreateDepthTexture);
     }
 
+#if URP_COMPATIBILITY_MODE
     [Test]
     public void OverlayRendererUsesRenderTexturesFromBase()
     {
@@ -96,14 +97,10 @@ class Renderer2DTests
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
 
-#if URP_COMPATIBILITY_MODE
         Assert.AreEqual(baseRenderer.m_ColorTextureHandle, overlayRenderer.m_ColorTextureHandle);
         Assert.AreEqual(baseRenderer.m_DepthTextureHandle, overlayRenderer.m_DepthTextureHandle);
-#else
-        Assert.AreEqual(baseRenderer.m_RenderGraphCameraColorHandles, overlayRenderer.m_RenderGraphCameraColorHandles);
-        Assert.AreEqual(baseRenderer.m_RenderGraphCameraDepthHandle, overlayRenderer.m_RenderGraphCameraDepthHandle);
-#endif
     }
+#endif
 
     [Test]
     public void OverlayRendererSetsTheCreateTextureFlags()

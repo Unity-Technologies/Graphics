@@ -1,4 +1,4 @@
-# Get Mesh Triangle Count
+# Get Mesh Triangle Count Operator
 
 Menu Path: **Operator > Sampling > Get Mesh Triangle Count**
 

@@ -1,4 +1,4 @@
-# Spawn
+# Spawn Context
 
 Menu Path : **Context > Spawn**
 

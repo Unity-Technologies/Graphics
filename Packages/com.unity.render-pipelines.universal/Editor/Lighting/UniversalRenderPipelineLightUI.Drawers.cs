@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineLightUI
     {
-        [URPHelpURL("light-component")]
+        [URPHelpURL("urp/light-component")]
         enum Expandable
         {
             General = 1 << 0,

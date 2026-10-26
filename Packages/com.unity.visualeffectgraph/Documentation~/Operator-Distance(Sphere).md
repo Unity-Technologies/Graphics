@@ -1,6 +1,6 @@
-# Distance (Sphere)
+# Distance (Sphere) Operator
 
-Menu Path : **Operator > Math > Geometry > Distance (Sphere)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Distance (Sphere)**
 
 The **Distance (Sphere)** Operator takes a sphere and a position and calculates:
 

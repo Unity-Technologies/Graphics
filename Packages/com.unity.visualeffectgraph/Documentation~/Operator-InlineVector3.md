@@ -1,4 +1,4 @@
-# Vector3
+# Vector3 Operator
 
 Menu Path : **Operator > Inline > Vector3**
 

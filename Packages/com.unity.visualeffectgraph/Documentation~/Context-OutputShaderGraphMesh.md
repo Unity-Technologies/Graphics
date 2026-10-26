@@ -1,4 +1,4 @@
-# Output ShaderGraph Mesh
+# Output Particle ShaderGraph Mesh Context
 
 Menu Path : **Context > Output Particle ShaderGraph Mesh**
 

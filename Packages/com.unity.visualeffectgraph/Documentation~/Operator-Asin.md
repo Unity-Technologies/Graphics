@@ -1,4 +1,4 @@
-# Asin
+# Asin Operator
 
 Menu Path : **Operator > Math > Trigonometry > Asin**
 

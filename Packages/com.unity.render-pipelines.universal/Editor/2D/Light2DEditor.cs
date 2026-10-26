@@ -10,8 +10,6 @@ using UnityEditor.U2D.Common.Path;
 
 namespace UnityEditor.Rendering.Universal
 {
-
-
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
     internal class Light2DEditor
@@ -21,7 +19,6 @@ namespace UnityEditor.Rendering.Universal
         : Editor
 #endif
     {
-
 #if USING_2DCOMMON
 
         [EditorTool("Edit Freeform Shape", typeof(Light2D))]
@@ -59,28 +56,40 @@ namespace UnityEditor.Rendering.Universal
                 // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
             }
-    }
-
+        }
 #endif
 
         private static class Styles
         {
             public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
 
-            public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
-            public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
-            public static Texture lightCapBottomLeft = Resources.Load<Texture>("LightCapBottomLeft");
-            public static Texture lightCapBottomRight = Resources.Load<Texture>("LightCapBottomRight");
-            public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
-            public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
+            static Texture s_LightCapTopRight;
+            static Texture s_LightCapTopLeft;
+            static Texture s_LightCapBottomLeft;
+            static Texture s_LightCapBottomRight;
+            static Texture s_LightCapUp;
+            static Texture s_LightCapDown;
 
+            public static Texture lightCapTopRight => s_LightCapTopRight ??= LoadIcon("LightCapTopRight.png");
+            public static Texture lightCapTopLeft => s_LightCapTopLeft ??= LoadIcon("LightCapTopLeft.png");
+            public static Texture lightCapBottomLeft => s_LightCapBottomLeft ??= LoadIcon("LightCapBottomLeft.png");
+            public static Texture lightCapBottomRight => s_LightCapBottomRight ??= LoadIcon("LightCapBottomRight.png");
+            public static Texture lightCapUp => s_LightCapUp ??= LoadIcon("LightCapUp.png");
+            public static Texture lightCapDown => s_LightCapDown ??= LoadIcon("LightCapDown.png");
 
-            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
-            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
-            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
-            public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
+            static GUIContent[] s_LightTypeOptions;
 
+            public static GUIContent[] lightTypeOptions => s_LightTypeOptions ??= new[]
+            {
+                new GUIContent("Freeform", LoadInspectorIcon("FreeformLight.png")),
+                new GUIContent("Sprite", LoadInspectorIcon("SpriteLight.png")),
+                new GUIContent("Spot", LoadInspectorIcon("PointLight.png")),
+                new GUIContent("Global", LoadInspectorIcon("GlobalLight.png"))
+            };
+
+            static Texture LoadIcon(string fileName) => AssetDatabase.LoadAssetAtPath<Texture>(Light2DEditorUtility.ResourcePath + fileName);
+
+            static Texture LoadInspectorIcon(string fileName) => LoadIcon("InspectorIcons/" + fileName);
 
             public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
             public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");
@@ -142,14 +151,12 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
         SerializedProperty m_LightIntensity;
-        SerializedProperty m_UseNormalMap;
         SerializedProperty m_ShadowsEnabled;
         SerializedProperty m_ShadowIntensity;
         SerializedProperty m_ShadowSoftness;
         SerializedProperty m_ShadowSoftnessFalloffIntensity;
         SerializedProperty m_ShadowVolumeIntensity;
         SerializedProperty m_ShadowVolumeIntensityEnabled;
-        SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricIntensity;
         SerializedProperty m_VolumetricEnabled;
         SerializedProperty m_BlendStyleIndex;
@@ -164,12 +171,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
-        SerializedProperty m_DeprecatedPointLightSprite;
 
         // Shape Light Properties
-        SerializedProperty m_ShapeLightParametricRadius;
         SerializedProperty m_ShapeLightFalloffSize;
-        SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightSprite;
 
         SavedBool m_BlendingSettingsFoldout;
@@ -244,14 +248,12 @@ namespace UnityEditor.Rendering.Universal
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
-            m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ShadowsEnabled = serializedObject.FindProperty("m_ShadowsEnabled");
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
             m_ShadowSoftness = serializedObject.FindProperty("m_ShadowSoftness");
             m_ShadowSoftnessFalloffIntensity = serializedObject.FindProperty("m_ShadowSoftnessFalloffIntensity");
             m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
             m_ShadowVolumeIntensityEnabled = serializedObject.FindProperty("m_ShadowVolumeIntensityEnabled");
-            m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricIntensity = serializedObject.FindProperty("m_LightVolumeIntensity");
             m_VolumetricEnabled = serializedObject.FindProperty("m_LightVolumeEnabled");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
@@ -266,12 +268,9 @@ namespace UnityEditor.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_DeprecatedPointLightSprite = serializedObject.FindProperty("m_DeprecatedPointLightCookieSprite");
 
             // Shape Light
-            m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
-            m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -591,8 +590,8 @@ namespace UnityEditor.Rendering.Universal
             DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
-            if (m_DeprecatedPointLightSprite.objectReferenceValue != null)
-                EditorGUILayout.PropertyField(m_DeprecatedPointLightSprite, Styles.pointLightSprite);
+            if (m_ShapeLightSprite.objectReferenceValue != null)
+                EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.pointLightSprite);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 

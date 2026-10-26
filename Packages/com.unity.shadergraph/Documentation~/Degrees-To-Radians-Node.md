@@ -10,8 +10,8 @@ One degree is equivalent to approximately 0.0174533 radians and a full rotation 
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| In      | Input | Dynamic Vector | Input value in degrees |
+| Out | Output      |    Dynamic Vector | Output value in radians |
 
 ## Generated Code Example
 
@@ -23,3 +23,7 @@ void Unity_DegreesToRadians_float4(float4 In, out float4 Out)
     Out = radians(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -1,6 +1,6 @@
-# Remap (Remap)
+# Remap (Remap) Operator
 
-Menu Path : **Operator > Math > Remap > Remap**
+Menu Path : **Operator** > **Math** > **Remap** > **Remap**
 
 The **Remap** Operator linearly remaps input values from an old range to a new range, with an optional clamp.
 

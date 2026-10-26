@@ -1,4 +1,4 @@
-# Standard Attribute Reference
+# Standard Attributes Reference
 
 ## Standard Attributes
 
@@ -28,6 +28,7 @@ Some attributes are a bit more advanced and will be used by default in most simu
 | `angle` | Vector3 | **Variadic:** Euler rotation of a simulated element, expressed as a Vector of Degrees Values. | (0,0,0) |
 | `angularVelocity` | Vector3 | **Variadic:** Euler rotation speed of a simulated element, expressed as a Vector of Degrees per second values. | (0,0,0) |
 | `oldPosition` | Vector3 | **Deprecated:** This attribute is a storage Helper if you want to back-up current position of a simulated element, before integrating its velocity. | (0,0,0) |
+| `oldVelocity` | Vector3 | The velocity of a particle at the beginning of the context, before any force integration. | (0,0,0) |
 | `targetPosition` | Vector3 | This attribute has various purposes: it can be a storage Helper if you want to store a position to reach, then compute a vector in order to reach this Target Position. In Line Renderers, this attribute can be also used to set the end of each line particle. | (0,0,0) |
 
 ### Rendering Attributes
@@ -42,6 +43,7 @@ Rendering Attributes are not used in simulation but are useful when you want to 
 | `scale` | Vector3 | The Non-uniform Scale multiplier of a rendered element, applied to its **unit representation** | (1,1,1) |
 | `pivot` | Vector3 | The Origin position of a rendered element, in its **unit representation** | (0,0,0) |
 | `texIndex` | float | The animation frame used for sampling Flipbook UVs for a rendered element. | 0.0 |
+| `meshIndex` | uint | The index of the mesh to use, when the Mesh Count setting on an Output Particle Mesh context is set higher than 1. | 0 |
 | `axisX` | Vector3 | The computed Right axis of the rendered Element. | (1,0,0) |
 | `axisY` | Vector3 | The computed Up axis of the rendered Element. | (0,1,0) |
 | `axisZ` | Vector3 | The computed Forward axis of the rendered Element. | (0,0,1) |
@@ -57,6 +59,7 @@ System Attributes provide information about system values. These attributes are 
 | `spawnCount` | float | A `SpawnEvent` attribute that describes how many particles were spawned this frame.  You can use `spawnCount` as a [Source Attribute](Attributes.md) in a Spawn context. `spawnCount` is a floating point number so that Unity can accumulate a relative `spawnCount` at the spawn context stage in the [Constant Rate](Block-ConstantRate.md) block.| 0.0 |
 | `spawnTime` | float | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that contains a Spawn Context internal time (when exported using a [Set Spawn Time](Block-SetSpawnTime.md) Spawn Block) | 0.0 |
 | `particleIndexInStrip` | uint | The index in the Particle Strip Ring Buffer where is located this element. | 0 |
+| spawnIndexInStrip | uint | The spawn index of a particle within its strip. Unlike particleIndexInStrip, which is unique for each particle, the spawnIndexInStrip value can be the same for two or more particles in different strip. | 0 |
 
 ### Collision Attributes
 

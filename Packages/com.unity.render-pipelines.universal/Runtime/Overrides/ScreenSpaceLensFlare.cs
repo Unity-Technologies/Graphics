@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScreenSpaceLensFlareResolutionParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("shared/lens-flare/lens-flare-component")]
+    [URPHelpURL("urp/shared/lens-flare/lens-flare-component")]
     [DisplayInfo(name = "Screen Space Lens Flare")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {

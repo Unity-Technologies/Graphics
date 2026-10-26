@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -189,7 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
             architectures: new[] { Architecture.X64 }
         )]
-        [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
@@ -272,7 +272,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
             architectures: new[] { Architecture.X64 }
         )]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
         [IgnoreGraphicsTest(
@@ -382,8 +381,19 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "3006_TileCluster_Cluster$",
-            "https://jira.unity3d.com/browse/UUM-144350 - Localized tile/cluster artifact on NVIDIA A10 in the XR playmode job after the win11-22H2-x64-azure-nvidia image update. XR and non-XR share one reference image (xr-reuse-tests), so the ignore is scoped to DX11+WindowsEditor.",
-            GraphicsDeviceType.Direct3D11, RuntimePlatform.WindowsEditor
+            "https://jira.unity3d.com/browse/UUM-144350 - Localized tile/cluster artifact on NVIDIA A10 in the XR playmode jobs after the win11-22H2-x64-azure-nvidia image update. Seen on DX11 and on DX12 (XR, NativeGraphicsJobsSplitThreading).",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12 },
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-147934",
+            RuntimePlatform.WindowsEditor
+        )]
+        [IgnoreGraphicsTest(
+            "4111_DRS-DLSS-With-CustomPass",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-148012",
+            RuntimePlatform.WindowsEditor
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {

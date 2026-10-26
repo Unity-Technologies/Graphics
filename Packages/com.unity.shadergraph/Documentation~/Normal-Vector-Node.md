@@ -20,3 +20,7 @@ The **Space** dropdown determines the coordinate space of the normal vector.
 | **View** | Returns the vertex or fragment normal in view space, where up is the up direction of the camera. |
 | **World**   | Returns the vertex or fragment normal in world space, where up is the up direction of the scene. |
 | **Tangent** | Returns the vertex or fragment normal in tangent space, where up is away from the surface of the mesh. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

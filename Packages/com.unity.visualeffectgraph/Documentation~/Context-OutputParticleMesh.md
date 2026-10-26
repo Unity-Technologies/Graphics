@@ -1,4 +1,4 @@
-# Output Particle Mesh
+# Output Particle Mesh Context
 
 Menu Path : **Context > Output Particle Mesh**
 

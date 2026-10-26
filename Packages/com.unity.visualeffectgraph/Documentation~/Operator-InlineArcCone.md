@@ -1,4 +1,4 @@
-# ArcCone
+# ArcCone Operator
 
 Menu Path : **Operator > Inline > ArcCone**
 

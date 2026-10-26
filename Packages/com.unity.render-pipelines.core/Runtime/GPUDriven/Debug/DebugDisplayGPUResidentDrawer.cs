@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// GPU Resident Drawer Rendering Debugger settings.
     /// </summary>
-    [CurrentPipelineHelpURL("gpu-resident-drawer")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", "urp/gpu-resident-drawer")]
+    [PipelineHelpURL("HDRenderPipelineAsset", "gpu-resident-drawer")]
     public class DebugDisplayGPUResidentDrawer : IDebugDisplaySettingsData
     {
         const string k_FormatString = "{0}";
@@ -284,10 +285,11 @@ namespace UnityEngine.Rendering
 
             public SettingsPanel(DebugDisplayGPUResidentDrawer data)
             {
+                DocumentationUtils.TryGetHelpURL(typeof(DebugDisplayGPUResidentDrawer), out var documentationUrl);
                 var foldout = new DebugUI.Foldout()
                 {
                     displayName = Strings.drawerSettingsContainerName,
-                    documentationUrl = typeof(DebugDisplayGPUResidentDrawer).GetCustomAttribute<HelpURLAttribute>()?.URL
+                    documentationUrl = documentationUrl
                 };
                 AddWidget(foldout);
 

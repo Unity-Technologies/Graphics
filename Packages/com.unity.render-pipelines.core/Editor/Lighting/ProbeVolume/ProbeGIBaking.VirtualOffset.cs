@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
-                    if (renderer.component is SkinnedMeshRenderer)
+                    if (renderer.component is not MeshRenderer)
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;

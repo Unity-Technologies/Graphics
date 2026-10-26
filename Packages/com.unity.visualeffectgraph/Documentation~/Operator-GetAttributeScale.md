@@ -1,4 +1,4 @@
-# Get Attribute: scale
+# Get Attribute: scale Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: scale**
 

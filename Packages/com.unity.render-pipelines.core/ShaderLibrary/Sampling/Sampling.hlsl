@@ -141,7 +141,7 @@ real3 SampleConeUniform(real u1, real u2, real cosTheta)
     float r0 = cosTheta + u1 * (1.0f - cosTheta);
     float r = sqrt(max(0.0, 1.0 - r0 * r0));
     float phi = TWO_PI * u2;
-    return float3(r * cos(phi), r * sin(phi), r0);
+    return real3(r * cos(phi), r * sin(phi), r0);
 }
 
 real3 SampleSphereUniform(real u1, real u2)
@@ -313,9 +313,9 @@ void SampleCone(real2 u, real cosHalfAngle,
 // note: the first sample is always [0, 0, 1]
 real3 SampleConeStrata(uint sampleIdx, real rcpSampleCount, real cosHalfApexAngle)
 {
-    real z = 1.0f - ((1.0f - cosHalfApexAngle) * sampleIdx) * rcpSampleCount;
-    real r = sqrt(1.0f - z * z);
-    real a = sampleIdx * 2.3999632297286f; // pi*(3-sqrt(5))
+    real z = (real)(1.0f - ((1.0f - cosHalfApexAngle) * (float)sampleIdx) * rcpSampleCount);
+    real r = (real)sqrt(1.0f - z * z);
+    real a = (real)((float)sampleIdx * 2.3999632297286f); // pi*(3-sqrt(5))
     real sphi = sin(a);
     real cphi = cos(a);
     return real3(r * cphi, r * sphi, z);

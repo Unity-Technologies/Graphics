@@ -43,6 +43,11 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #endif // SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
     uint2 tileCoord = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
+
+    // Clamp to avoid out-of-bounds indexing of the tile buffer.
+    uint2 tileCount = uint2(URP_FP_TILE_COUNT_X, URP_FP_TILE_COUNT_Y);
+    tileCoord = min(tileCoord, tileCount - 1);
+
     uint tileIndex = tileCoord.y * URP_FP_TILE_COUNT_X + tileCoord.x;
 #if defined(USING_STEREO_MATRICES)
     tileIndex += URP_FP_TILE_COUNT * unity_StereoEyeIndex;

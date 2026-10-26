@@ -779,5 +779,13 @@ namespace UnityEngine.Rendering.Universal
         {
             return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
+
+        internal static int GetMaxSupportedShadowAtlasResolution()
+        {
+            int maxTextureSize = SystemInfo.maxTextureSize;
+            int powerOfTwo = Mathf.ClosestPowerOfTwo(maxTextureSize);
+
+            return powerOfTwo > maxTextureSize ? powerOfTwo >> 1 : powerOfTwo;
+        }
     }
 }

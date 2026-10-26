@@ -1,4 +1,4 @@
-# OrientedBox
+# OrientedBox Operator
 
 Menu Path : **Operator > Inline > OrientedBox**
 

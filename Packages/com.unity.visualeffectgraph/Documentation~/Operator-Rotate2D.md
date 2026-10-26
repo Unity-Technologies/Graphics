@@ -1,4 +1,4 @@
-# Rotate 2D
+# Rotate 2D Operator
 
 Menu Path : **Operator > Math > Vector**
 

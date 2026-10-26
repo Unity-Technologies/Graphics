@@ -136,7 +136,9 @@ GBufferFragOutput frag(PackedVaryings packedInput)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+                                            inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS,
+                                            inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
     return PackGBuffersBRDFData(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, surfaceDescription.Occlusion);
 }

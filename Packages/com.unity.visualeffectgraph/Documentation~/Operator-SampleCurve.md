@@ -1,4 +1,4 @@
-# Sample Curve
+# Sample Curve Operator
 
 Menu Path : **Operator > Sampling > Sample Curve**
 

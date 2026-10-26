@@ -47,3 +47,7 @@ void Unity_RotateAboutAxis_Degrees_float(float3 In, float3 Axis, float Rotation,
     Out = In * c + cross(Axis, In) * s + Axis * dot(Axis, In) * (1 - c);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

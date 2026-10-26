@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Universal
                 // Set color and depth attachments
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
 
-                if (Renderer2D.IsDepthUsageAllowed(frameData, rendererData))
+                if (commonResourceData.activeDepthTexture.IsValid())
                     builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
 
                 builder.AllowGlobalStateModification(true);

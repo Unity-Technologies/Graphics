@@ -1,4 +1,4 @@
-# Update
+# Update Particle Context
 
 Menu Path : **Context > Update Particle**
 

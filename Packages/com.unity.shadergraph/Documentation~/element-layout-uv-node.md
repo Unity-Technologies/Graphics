@@ -18,3 +18,4 @@ Outputs the geometric coordinates (UV) relative to the UI element, such as a but
 
 - [Element Texture UV node](xref:element-texture-uv-node)
 - [Element Texture Size node](xref:element-texture-size-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -45,3 +45,7 @@ float4 Append_Out = float4( A.x, B.xyz);
 ```
 float4 Append_Out = float4( A.xyz, B.x);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

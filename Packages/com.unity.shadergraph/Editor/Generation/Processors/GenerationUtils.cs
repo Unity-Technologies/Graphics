@@ -485,11 +485,10 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include);
         }
 
-        internal static void GetActiveFieldsAndPermutationsForNodes(PassDescriptor pass,
-            KeywordCollector keywordCollector, List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
-            bool[] texCoordNeedsDerivs,
-            List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
-            ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
+        internal static void GetActiveFieldsAndRequirements(PassDescriptor pass,
+            List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
+            bool[] texCoordNeedsDerivs, ActiveFields activeFields,
+            out ShaderGraphRequirementsPerKeyword graphRequirements)
         {
             // Initialize requirements
             ShaderGraphRequirementsPerKeyword pixelRequirements = new ShaderGraphRequirementsPerKeyword();
@@ -514,6 +513,47 @@ namespace UnityEditor.ShaderGraph
             // Build graph requirements
             graphRequirements.UnionWith(pixelRequirements);
             graphRequirements.UnionWith(vertexRequirements);
+        }
+
+        internal static List<int>[] GetPermutationsForNodes(KeywordCollector keywordCollector, List<AbstractMaterialNode> nodes)
+        {
+            List<int>[] permutationsPerNode = new List<int>[nodes.Count];
+
+            // Map each node to its index for perf
+            Dictionary<AbstractMaterialNode, int> nodeToIndex = new(nodes.Count);
+            for (int i = 0; i < nodes.Count; ++i)
+                nodeToIndex[nodes[i]] = i;
+
+            // Evaluate all Keyword permutations
+            for (int i = 0; i < keywordCollector.permutations.Count; i++)
+            {
+                // Get active nodes for this permutation
+                var localNodes = Pool.HashSetPool<AbstractMaterialNode>.Get();
+                localNodes.EnsureCapacity(nodes.Count);
+
+                foreach (var node in nodes)
+                {
+                    if (node is BlockNode)
+                    {
+                        NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, NodeUtils.IncludeSelf.Include,
+                            keywordCollector.permutations[i]);
+                    }
+                }
+
+                // Track each node in this permutation
+                foreach (AbstractMaterialNode localNode in localNodes)
+                {
+                    int nodeIndex = nodeToIndex[localNode];
+
+                    if (permutationsPerNode[nodeIndex] == null)
+                        permutationsPerNode[nodeIndex] = new List<int>();
+                    permutationsPerNode[nodeIndex].Add(i);
+                }
+
+                Pool.HashSetPool<AbstractMaterialNode>.Release(localNodes);
+            }
+
+            return permutationsPerNode;
         }
 
         static ConditionalField[] GetConditionalFieldsFromVertexRequirements(ShaderGraphRequirements requirements)
@@ -1082,7 +1122,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static void GenerateSurfaceDescriptionFunction(
             List<AbstractMaterialNode> nodes,
-            List<int>[] keywordPermutationsPerNode,
+            Lazy<List<int>[]> keywordPermutationsPerNode,
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
@@ -1115,7 +1155,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 for (int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                    GenerateDescriptionForNode(nodes[i], null, functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
@@ -1130,7 +1170,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(
                         nodes,
-                        keywordPermutationsPerNode,
+                        keywordPermutationsPerNode.Value,
                         surfaceDescriptionFunction,
                         shaderKeywords);
                 }
@@ -1268,7 +1308,6 @@ namespace UnityEditor.ShaderGraph
             GenerationMode mode,
             AbstractMaterialNode rootNode,
             List<AbstractMaterialNode> nodes,
-            List<int>[] keywordPermutationsPerNode,
             List<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
             string functionName = "PopulateVertexData",
@@ -1293,7 +1332,7 @@ namespace UnityEditor.ShaderGraph
                 Profiler.BeginSample("GenerateNodeDescriptions");
                 for (int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                    GenerateDescriptionForNode(nodes[i], null, functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }

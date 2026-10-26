@@ -12,30 +12,15 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnProcessScene(UnityEngine.SceneManagement.Scene scene, BuildReport report)
         {
-            bool usesURP = false;
-            if (GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset != null)
-            {
-                // ^ The global pipeline is set to URP
-                usesURP = true;
-            }
-            else
-            {
-                // ^ The global pipeline isn't set to URP, but a quality setting could still use it
-                for (int i = 0; i < QualitySettings.count; i++)
-                {
-                    if (QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset != null)
-                    {
-                        // ^ This quality setting uses URP
-                        usesURP = true;
-                        break;
-                    }
-                }
-            }
+            bool usesURP = URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
 
             if (usesURP)
             {
                 GameObject[] roots = scene.GetRootGameObjects();
-
+#if XR_MANAGEMENT_4_0_1_OR_NEWER && ENABLE_VR && ENABLE_XR_MODULE
+                var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+                var buildTargetSettings = XR.Management.XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+#endif
                 foreach (GameObject root in roots)
                 {
                     Light[] lights = root.GetComponentsInChildren<Light>();
@@ -58,6 +43,24 @@ namespace UnityEditor.Rendering.Universal
                             );
                         }
                     }
+
+#if XR_MANAGEMENT_4_0_1_OR_NEWER && ENABLE_VR && ENABLE_XR_MODULE
+                    if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                    {
+                        Camera[] cameras = root.GetComponentsInChildren<Camera>();
+                        foreach (Camera camera in cameras)
+                        {
+                            if (camera.TryGetComponent<UniversalAdditionalCameraData>(out UniversalAdditionalCameraData cameraData))
+                            {
+                                if (camera.orthographic && cameraData.allowXRRendering)
+                                {
+                                    Debug.LogWarning($"One or more cameras have their projection set as Orthographic. This is not supported on XR and may produce artifacts at runtime. Please change the projection setting to Perspective to avoid issues.");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+#endif
                 }
             }
         }

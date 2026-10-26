@@ -24,3 +24,7 @@ void Unity_NoiseSineWave_float4(float4 In, float2 MinMax, out float4 Out)
     Out = sinIn + noise;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

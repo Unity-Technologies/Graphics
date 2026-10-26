@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
+    [VFXHelpURL("Context-OutputStripQuad")]
     [VFXInfo(name = "Output ParticleStrip|HDRP Lit|Quad", category = "#3Output Strip", experimental = true, synonyms = new []{ "Trail", "Ribbon" })]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {

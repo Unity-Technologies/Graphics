@@ -1,4 +1,4 @@
-# Switch
+# Switch Operator
 
 
 Menu Path : **Operator > Logic > Switch**
