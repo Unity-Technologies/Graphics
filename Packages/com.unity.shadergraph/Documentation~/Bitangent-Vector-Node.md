@@ -15,3 +15,7 @@ Provides access to the mesh vertex or fragment's **Bitangent Vector**, depending
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of **Bitangent Vector** to output. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

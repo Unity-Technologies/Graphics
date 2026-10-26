@@ -37,3 +37,7 @@ void Unity_NormalFromTexture_float(Texture texture, SamplerState Sampler, float2
     Out = normalize(cross(va, vb));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

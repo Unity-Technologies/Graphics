@@ -235,7 +235,9 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseAllGlobalTextures(true);
 
                 builder.SetRenderAttachment(colorBuffer, 0);
-                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+
+                if (depthBuffer.IsValid())
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                 passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UIToolkit_UGUI);
                 builder.UseRendererList(passData.rendererList);

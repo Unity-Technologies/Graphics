@@ -288,7 +288,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
                 if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+                {
+                    if (resourceData.activeDepthTexture.IsValid())
+                        builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+                }
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
                 TextureHandle additionalShadowsTexture = resourceData.additionalShadowsTexture;

@@ -621,7 +621,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     material.SetFloat("_DistortionStrengthScaled", material.GetFloat("_DistortionStrength") * 0.1f);
             }
 
-            var useFading = (useSoftParticles || useCameraFading) && !hasZWrite;
+            var useFading = useCameraFading && !hasZWrite;
             CoreUtils.SetKeyword(material, "_FADING_ON", useFading);
         }
     }

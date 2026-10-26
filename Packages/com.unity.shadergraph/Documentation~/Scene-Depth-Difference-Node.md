@@ -17,3 +17,7 @@ The Scene Depth Difference node returns the difference in depth between a world 
 | **Linear 01** | Returns the distance in linear normalized space. The minimum distance is 0, and the maximum distance is 1. |
 | **Raw** | Returns the distance in the non-linear space the depth buffer uses. The minimum distance is 0, and the maximum distance is 1. |
 | **Eye** | Returns the distance in meters. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

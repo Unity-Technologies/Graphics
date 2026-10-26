@@ -61,3 +61,7 @@ void Unity_RotateAboutAxis_Degrees_float(float3 In, float3 Axis, float Rotation,
     Out = mul(rot_mat,  In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -19,3 +19,7 @@ Calculates the intensity of the Sclera ring, a darkening feature of eyes.
 | **LimbalRingFade**         | Input         | float   | Normalized [0, 1] value that defines strength of the fade out of the limbal ring.** |
 | **LimbalRing Intensity**   | Input         | float   | Positive value that defines how dark the limbal ring is.     |
 | **Iris Limbal Ring Color** | Output        | Color   | Intensity of the limbal ring (blackscale).                   |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

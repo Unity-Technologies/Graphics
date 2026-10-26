@@ -20,3 +20,7 @@ void Unity_And(float A, float B, out float Out)
     Out = A && B;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

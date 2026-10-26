@@ -3,11 +3,21 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MotionVectorsCommon.hlsl"
 
+// TODO: URP target should generate MotionVectorPassAttributes accurately based on usage.
+// NOTE: SkinnedMeshRenderer hardcodes TexCoord4 to float3.
 struct MotionVectorPassAttributes
 {
+#if defined(ATTRIBUTES_NEED_TEXCOORD4)
+    float4 previousPositionOS  : TEXCOORD4; // SG declared TexCoord4 as float4
+#else
     float3 previousPositionOS  : TEXCOORD4; // Contains previous frame local vertex position (for skinned meshes)
+#endif
 #if defined (_ADD_PRECOMPUTED_VELOCITY)
+    #if defined(ATTRIBUTES_NEED_TEXCOORD5)
+    float4 alembicMotionVectorOS : TEXCOORD5; // SG declared TexCoord5 as float4
+    #else
     float3 alembicMotionVectorOS : TEXCOORD5; // Alembic precomputed object space motion vector (offset from last frame's position)
+    #endif
 #endif
 };
 
@@ -98,7 +108,7 @@ void vert(
     #endif
 #else
     const bool hasDeformation = unity_MotionVectorsParams.x == 1; // Mesh has skinned deformation
-    float3 previousPositionOS = hasDeformation ? passInput.previousPositionOS : input.positionOS;
+    float3 previousPositionOS = hasDeformation ? passInput.previousPositionOS.xyz : input.positionOS;
 
     #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
         const bool applyDeformation = true;
@@ -124,9 +134,9 @@ void vert(
     // overwritten by Compute Deform node
     ApplyPreviousFrameDeformedVertexPosition(input.vertexID, previousPositionOS);
 #endif
-        
+
 #if defined (_ADD_PRECOMPUTED_VELOCITY)
-        previousPositionOS -= passInput.alembicMotionVectorOS;
+        previousPositionOS -= passInput.alembicMotionVectorOS.xyz;
 #endif
 
         mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, float4(currentFrameMvData.positionWS, 1.0f));

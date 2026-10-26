@@ -25,3 +25,7 @@ float Time_CosineTime = _CosTime.w;
 float Time_DeltaTime = unity_DeltaTime.x;
 float Time_SmoothDelta = unity_DeltaTime.z;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

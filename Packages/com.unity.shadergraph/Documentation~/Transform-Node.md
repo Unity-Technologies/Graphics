@@ -270,3 +270,7 @@ float3 _Transform_Out = result.xyz / result.w;
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(ComputeWorldSpacePosition(In.xy, In.z, UNITY_MATRIX_I_VP));
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

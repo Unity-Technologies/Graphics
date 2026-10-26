@@ -113,9 +113,9 @@ namespace UnityEngine.Rendering.Universal
         {
             foreach (var target in rendererFeatures)
             {
-                if (target.GetType() == typeof(T))
+                if (target is T feature)
                 {
-                    rendererFeature = target as T;
+                    rendererFeature = feature;
                     return true;
                 }
             }

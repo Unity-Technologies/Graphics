@@ -72,3 +72,7 @@ void Unity_Hue_Radians_float(float3 In, float Offset, out float3 Out)
     Out = hsv.z * lerp(K2.xxx, saturate(P2 - K2.xxx), hsv.y);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

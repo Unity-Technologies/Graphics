@@ -217,7 +217,7 @@ half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float4
     if (cubemapPositionWS.w > 0.0f)
     {
         float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
-        half3 rbMinMax = half3(boxMinMax - positionWS) / reflectionWS;
+        half3 rbMinMax = (reflectionWS != 0.0f) ? half3(boxMinMax - positionWS) / reflectionWS : HALF_MAX;
 
         half fa = half(min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z));
 

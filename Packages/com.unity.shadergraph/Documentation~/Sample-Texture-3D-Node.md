@@ -90,3 +90,7 @@ float4 _SampleTexture3D_Out = SAMPLE_TEXTURE3D(Texture, Sampler, UV);
 - [Sample Texture 2D Array node](Sample-Texture-2D-Array-Node.md)
 - [Sample Texture 2D node](Sample-Texture-2D-Node.md)
 - [Sampler State node](Sampler-State-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

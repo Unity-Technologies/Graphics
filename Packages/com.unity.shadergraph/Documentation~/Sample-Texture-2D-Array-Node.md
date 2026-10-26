@@ -77,3 +77,7 @@ float _SampleTexture2DArray_A = _SampleTexture2DArray_RGBA.a;
 - [Sample Texture 2D node](Sample-Texture-2D-Node.md)
 - [Sample Texture 3D node](Sample-Texture-3D-Node.md)
 - [Sampler State node](Sampler-State-Node.md)
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

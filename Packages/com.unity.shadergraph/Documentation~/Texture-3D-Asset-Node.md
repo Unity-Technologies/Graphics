@@ -24,3 +24,7 @@ The following example code represents one possible outcome of this node.
 TEXTURE3D(_Texture3DAsset);
 SAMPLER(sampler_Texture3DAsset);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

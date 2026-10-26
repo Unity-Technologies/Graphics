@@ -5,7 +5,6 @@ using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(Light2D))]
@@ -53,20 +52,34 @@ namespace UnityEditor.Rendering.Universal
         {
             public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
 
-            public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
-            public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
-            public static Texture lightCapBottomLeft = Resources.Load<Texture>("LightCapBottomLeft");
-            public static Texture lightCapBottomRight = Resources.Load<Texture>("LightCapBottomRight");
-            public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
-            public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
+            static Texture s_LightCapTopRight;
+            static Texture s_LightCapTopLeft;
+            static Texture s_LightCapBottomLeft;
+            static Texture s_LightCapBottomRight;
+            static Texture s_LightCapUp;
+            static Texture s_LightCapDown;
 
+            public static Texture lightCapTopRight => s_LightCapTopRight ??= LoadIcon("LightCapTopRight.png");
+            public static Texture lightCapTopLeft => s_LightCapTopLeft ??= LoadIcon("LightCapTopLeft.png");
+            public static Texture lightCapBottomLeft => s_LightCapBottomLeft ??= LoadIcon("LightCapBottomLeft.png");
+            public static Texture lightCapBottomRight => s_LightCapBottomRight ??= LoadIcon("LightCapBottomRight.png");
+            public static Texture lightCapUp => s_LightCapUp ??= LoadIcon("LightCapUp.png");
+            public static Texture lightCapDown => s_LightCapDown ??= LoadIcon("LightCapDown.png");
 
-            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
-            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
-            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
-            public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
+            static GUIContent s_LightTypeFreeform;
+            static GUIContent s_LightTypeSprite;
+            static GUIContent s_LightTypePoint;
+            static GUIContent s_LightTypeGlobal;
+            static GUIContent[] s_LightTypeOptions;
 
+            public static GUIContent lightTypeFreeform => s_LightTypeFreeform ??= new GUIContent("Freeform", LoadInspectorIcon("FreeformLight.png"));
+            public static GUIContent lightTypeSprite => s_LightTypeSprite ??= new GUIContent("Sprite", LoadInspectorIcon("SpriteLight.png"));
+            public static GUIContent lightTypePoint => s_LightTypePoint ??= new GUIContent("Spot", LoadInspectorIcon("PointLight.png"));
+            public static GUIContent lightTypeGlobal => s_LightTypeGlobal ??= new GUIContent("Global", LoadInspectorIcon("GlobalLight.png"));
+            public static GUIContent[] lightTypeOptions => s_LightTypeOptions ??= new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
+
+            static Texture LoadIcon(string fileName) => AssetDatabase.LoadAssetAtPath<Texture>(Light2DEditorUtility.ResourcePath + fileName);
+            static Texture LoadInspectorIcon(string fileName) => LoadIcon("InspectorIcons/" + fileName);
 
             public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
             public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");

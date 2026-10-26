@@ -40,3 +40,7 @@ void Unity_SceneColor_float(float4 UV, out float3 Out)
     Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -47,3 +47,7 @@ void Unity_NormalBlend_Reoriented_float(float3 A, float3 B, out float3 Out)
     Out = (t / t.z) * dot(t, u) - u;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]
