@@ -34,9 +34,10 @@ namespace UnityEngine.Rendering.Universal
             Version_6 = 6,
             Version_7 = 7,
             Version_8 = 8,
+            Version_9 = 9,
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_8;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_9;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         internal enum ShadowCastingSources
@@ -343,6 +344,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if UNITY_EDITOR
+        // Points the Casting Source dropdown at the source the shadow is built from.
+        void SyncSelectedSourceHash()
+        {
+            if (m_SelectionSources == null)
+                return;
+
+            if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
+                m_SelectionSources.selectedHashCode = LightUtility.ProviderToHash(m_ShadowShape2DProvider, m_ShadowShape2DComponent);
+            else
+                m_SelectionSources.selectedHashCode = (int)m_ShadowCastingSource;
+        }
+#endif
+
         private void Awake()
         {
             if (m_ShadowCastingSource < 0)
@@ -359,6 +374,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
                 }
+
+                SyncSelectedSourceHash();
 #else
                 m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
 #endif
@@ -678,15 +695,14 @@ namespace UnityEngine.Rendering.Universal
                 m_ForceShadowMeshRebuild = true;
             }
 
-            if (m_ComponentVersion < ComponentVersions.Version_6)
-            {
 #if UNITY_EDITOR
-                if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
-                    m_SelectionSources.selectedHashCode = LightUtility.ProviderToHash(shadowShape2DProvider, shadowShape2DComponent);
-                else
-                    m_SelectionSources.selectedHashCode = (int)m_ShadowCastingSource;
+            // Before Version_9, Awake left the selected hash at 0 whichever source it picked, so the
+            // Casting Source dropdown showed its first entry instead. Only a hash of 0 is repaired,
+            // so a source the user picked in the dropdown is never rewritten.
+            if (m_ComponentVersion < ComponentVersions.Version_6 ||
+                (m_ComponentVersion < ComponentVersions.Version_9 && m_SelectionSources != null && m_SelectionSources.selectedHashCode == 0))
+                SyncSelectedSourceHash();
 #endif
-            }
 
             if(m_ShadowMesh != null)
                 m_ShadowMesh.OnAfterDeserialize();
