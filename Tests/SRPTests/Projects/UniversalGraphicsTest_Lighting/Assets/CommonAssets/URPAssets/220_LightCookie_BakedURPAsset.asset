@@ -79,7 +79,7 @@ MonoBehaviour:
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 0
-  m_SupportsLightCookies: 1
+  m_SupportsLightCookies: 0
   m_SupportsLightLayers: 0
   m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
