@@ -103,9 +103,50 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Only apply changes if the user actually changed the value
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && newSelectedIndex >= 0)
             {
-                Light2DProviderSources.ApplySelectionFromIndex(selectionSources, newSelectedIndex, k_ChangeLightTypeUndoName);
+                ApplyLightTypeSelection(serializedObject, sourceNames[newSelectedIndex]);
+            }
+        }
+
+        /// <summary>
+        /// Applies the entry the user picked to the light, and reports the clash when that pick is what
+        /// turned the light Global.
+        /// </summary>
+        /// <remarks>
+        /// The report belongs here, on the path both the Inspector and the Light Explorer take, because the
+        /// Light Explorer has no equivalent of the Inspector's CheckForExistingGlobalLight: picking Global
+        /// in its Light Type column used to go unreported.
+        /// </remarks>
+        static internal void ApplyLightTypeSelection(SerializedObject serializedObject, GUIContent chosen)
+        {
+            Light2D light = serializedObject.targetObject as Light2D;
+            if (light == null)
+                return;
+
+            SerializedProperty selectionSources = serializedObject.FindProperty("m_SelectionSources");
+            Light2DProviderSources sources = selectionSources?.boxedValue as Light2DProviderSources;
+            if (sources == null)
+                return;
+
+            RefreshLightSources(light, sources);
+
+            // Read before the selection is written, so this tells whether the pick is what made it Global.
+            bool wasGlobal = light.lightType == Light2D.LightType.Global;
+
+            GUIContent[] sourceNames = sources.GetSourceNames();
+            for (int i = 0; i < sourceNames.Length; i++)
+            {
+                if (sourceNames[i].text != chosen.text)
+                    continue;
+
+                Light2DProviderSources.ApplySelectionFromIndex(selectionSources, i, k_ChangeLightTypeUndoName);
+
+                // Only a light that just became Global reports; ErrorIfDuplicateGlobalLight skips other types.
+                // Lights that were already Global stay quiet, so the clash is not logged once per global light.
+                if (!wasGlobal && light.isActiveAndEnabled)
+                    Light2DManager.ErrorIfDuplicateGlobalLight(light);
+                break;
             }
         }
 
