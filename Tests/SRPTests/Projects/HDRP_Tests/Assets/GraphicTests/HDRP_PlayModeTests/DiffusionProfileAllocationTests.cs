@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         [UnityTest]
+        [ConditionalIgnore("IgnoreForCoverage", "Allocates every frame under code coverage instrumentation, see UUM-155177")]
         public IEnumerator FrameWithDiffusionProfileOverride_DoesNotAllocatePerFrame()
         {
             var detector = new AllocationDetector
