@@ -10,6 +10,7 @@
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Timeline",
