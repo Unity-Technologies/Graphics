@@ -92,7 +92,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public void OnBeforeSerialize()
         {
-            m_SerializedTexture = EditorJsonUtility.ToJson(new TextureHelper { textureArray = textureArray }, false);
+            if (!string.IsNullOrEmpty(m_SerializedTexture) || (object)m_TextureArray == null)
+                return;
+
+            m_SerializedTexture = EditorJsonUtility.ToJson(new TextureHelper { textureArray = m_TextureArray }, false);
         }
 
         public void OnAfterDeserialize()

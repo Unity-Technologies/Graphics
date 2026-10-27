@@ -616,6 +616,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     owner.AddValidationError(objectId, $"Could not find Sub Graph asset with GUID {assetGuid}.");
                 }
+                else if (AssetDatabase.AssetPathExists(assetPath) && AssetDatabase.GetMainAssetEntityId(assetPath) == EntityId.None)
+                {
+                    // Sub Graph is not imported yet; its artifact dependency reimports this graph once it is
+                }
                 else
                 {
                     owner.AddValidationError(objectId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");

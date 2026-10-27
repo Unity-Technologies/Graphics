@@ -322,21 +322,23 @@ Shader ""Hidden/GraphErrorShader2""
 
             var sgMetadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
             sgMetadata.hideFlags = HideFlags.HideInHierarchy;
-            sgMetadata.assetDependencies = new List<UnityEngine.Object>();
+            sgMetadata.assetDependencies = new List<LazyLoadReference<UnityEngine.Object>>();
 
             foreach (var asset in assetCollection.assets)
             {
                 if (asset.Value.HasFlag(AssetCollection.Flags.IncludeInExportPackage))
                 {
-                    // this sucks that we have to fully load these assets just to set the reference,
-                    // which then gets serialized as the GUID that we already have here.  :P
-
                     var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-                    if (!string.IsNullOrEmpty(dependencyPath))
+                    if (string.IsNullOrEmpty(dependencyPath))
+                        continue;
+
+                    var entityId = AssetDatabase.GetMainAssetEntityId(dependencyPath);
+                    if (entityId == EntityId.None)
                     {
-                        sgMetadata.assetDependencies.Add(
-                            AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UnityEngine.Object)));
+                        continue;
                     }
+
+                    sgMetadata.assetDependencies.Add(new LazyLoadReference<UnityEngine.Object> { entityId = entityId });
                 }
             }
 

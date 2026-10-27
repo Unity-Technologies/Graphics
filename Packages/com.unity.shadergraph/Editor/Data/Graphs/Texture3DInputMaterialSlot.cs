@@ -94,7 +94,10 @@ namespace UnityEditor.ShaderGraph
             var guidString = m_Texture.guid;
             if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
             {
-                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+                assetCollection.AddAssetDependency(
+                    guid,
+                    AssetCollection.Flags.ArtifactDependency |
+                    AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }
