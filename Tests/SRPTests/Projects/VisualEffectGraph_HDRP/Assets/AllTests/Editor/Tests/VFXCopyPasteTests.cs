@@ -691,7 +691,7 @@ namespace UnityEditor.VFX.Test
             var parameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant);
 
             //TODOPAUL: Check with @julien-amsellem, we got a null category here
-            //Later, in SetParametersOrder, we are doing ".Where(t => t.Value.isOutput == controller.isOutput && t.Value.model.category == controller.model.category)"
+            //Later, in MoveParameterAfter, we are doing ".Where(t => t.Value.isOutput == controller.isOutput && t.Value.model.category == controller.model.category)"
             //It fails due to confusion between null and string.empty, it seems specific to test
             //This test has been added with PR #82090
             parameter.category = string.Empty;

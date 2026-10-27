@@ -453,7 +453,7 @@ namespace UnityEditor.VFX
 
             if(ExistsBuiltInOnly(newName))
             {
-                return RenameStatus.NameUsed;
+                return RenameStatus.NameUsedByBuiltIn;
             }
 
             bool newFound = m_CustomAttributes.TryGetValue(newName, out VFXAttribute existingCustomAttributeNewName);

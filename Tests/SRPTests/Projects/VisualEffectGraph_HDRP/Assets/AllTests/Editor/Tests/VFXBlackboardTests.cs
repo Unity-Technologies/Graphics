@@ -151,11 +151,55 @@ namespace UnityEditor.VFX.Test
 
             // Act
             // The name is trimmed before being validated, so it ends up empty and is rejected
-            LogAssert.Expect(LogType.Error, "Can't change name, '' is not a valid category name.");
+            LogAssert.Expect(LogType.Error, "Cannot rename category: a category name cannot be empty.");
             blackboard.SetCategoryName(cat, " ");
 
             // Assert
             Assert.AreEqual(categoryName, cat.title);
+        }
+
+        [UnityTest]
+        public IEnumerator Rename_Category_With_Reserved_Name()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            var categoryName = "new category";
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+
+            blackboard.Update();
+            blackboard.AddCategory(categoryName);
+            yield return null;
+
+            window.graphView.OnSave();
+            yield return null;
+            var cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName).First();
+
+            // Act
+            LogAssert.Expect(LogType.Error, "Cannot rename category: 'Attributes' is a reserved category name.");
+            blackboard.SetCategoryName(cat, "Attributes");
+
+            // Assert
+            Assert.AreEqual(categoryName, cat.title);
+        }
+
+        [Test]
+        public void Rename_Custom_Attribute_To_Built_In_Name_Is_Rejected()
+        {
+            // Arrange
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            Assert.IsTrue(graph.TryAddCustomAttribute("myattribute", VFXValueType.Float, string.Empty, false, out _));
+
+            // Act
+            LogAssert.Expect(LogType.Warning, "Cannot rename custom attribute: The name is already used by a built-in attribute");
+            var renamed = graph.TryRenameCustomAttribute("myattribute", "position");
+
+            // Assert
+            Assert.IsFalse(renamed);
+            Assert.AreEqual("myattribute", graph.customAttributes.Single().attributeName);
         }
 
         [UnityTest]

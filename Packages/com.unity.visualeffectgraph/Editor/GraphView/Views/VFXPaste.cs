@@ -289,7 +289,10 @@ namespace UnityEditor.VFX.UI
             }
 
             PasteOperators(viewController, center, serializableGraph);
-            PasteParameters(viewController, serializableGraph, center);
+            string targetCategory = null;
+            var hasTargetCategory = view?.blackboard != null && view.blackboard.TryGetSelectedCategoryName(out targetCategory);
+            var selectedParameters = view?.blackboard != null ? view.blackboard.GetSelectedParameters() : Array.Empty<VFXParameterController>();
+            PasteParameters(viewController, serializableGraph, center, hasTargetCategory, targetCategory, selectedParameters);
             PasteCategories(viewController);
 
             // Create controllers for all new nodes
@@ -815,7 +818,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteParameters(VFXViewController viewController, SerializableGraph serializableGraph, Vector2 center)
+        private void PasteParameters(VFXViewController viewController, SerializableGraph serializableGraph, Vector2 center, bool hasTargetCategory, string targetCategory, IReadOnlyList<VFXParameterController> selectedParameters)
         {
             newParameterNodes.Clear();
 
@@ -879,24 +882,47 @@ namespace UnityEditor.VFX.UI
 
             if (serializableGraph.parameters != null)
             {
+                VFXParameterController selectionAnchor = null;
                 foreach (var parameter in serializableGraph.parameters)
                 {
                     var newVfxParameter = ScriptableObject.CreateInstance<VFXParameter>();
                     newVfxParameter.Init(parameter.value.type);
                     CopyParameter(viewController, parameter, newVfxParameter, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
+                    var sourceVFXParameterController = viewController.parameterControllers.FirstOrDefault(x => x.model.GetEntityId() == parameter.originalEntityId);
+                    var isDuplicate = sourceVFXParameterController != null && selectedParameters.Contains(sourceVFXParameterController);
                     if (categoryMapping.TryGetValue(newVfxParameter.category, out var category))
                     {
                         newBlackboardItems.Add(category);
                         newVfxParameter.category = category;
                         newCategories.RemoveAll(c => string.Equals(c, parameter.category, StringComparison.OrdinalIgnoreCase));
                     }
+                    else if (hasTargetCategory && !isDuplicate && !newVfxParameter.isOutput)
+                    {
+                        newVfxParameter.category = targetCategory;
+                    }
+
                     viewController.AddVFXModel(Vector2.zero, newVfxParameter);
                     var groupChanged = false;
                     viewController.SyncControllerFromModel(ref groupChanged);
 
                     var newVfxParameterController = viewController.GetParameterController(newVfxParameter);
-                    var sourceVFXParameterController = viewController.parameterControllers.Single(x => string.Compare(x.exposedName, parameter.name, StringComparison.InvariantCultureIgnoreCase) == 0);
-                    viewController.SetParametersOrder(newVfxParameterController, sourceVFXParameterController.order + 1);
+                    VFXParameterController previousController;
+                    if (isDuplicate)
+                    {
+                        previousController = sourceVFXParameterController;
+                    }
+                    else if (selectionAnchor != null || selectedParameters.Count > 0)
+                    {
+                        // Paste: the copies follow the last selected property, in copy order
+                        previousController = selectionAnchor ?? selectedParameters[selectedParameters.Count - 1];
+                        selectionAnchor = newVfxParameterController;
+                    }
+                    else
+                    {
+                        previousController = sourceVFXParameterController;
+                    }
+
+                    viewController.MoveParameterAfter(newVfxParameterController, previousController);
                     newBlackboardItems.Add(newVfxParameter.exposedName);
                 }
             }

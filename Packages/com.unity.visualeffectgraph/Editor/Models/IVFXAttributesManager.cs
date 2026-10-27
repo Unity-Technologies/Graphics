@@ -8,6 +8,7 @@ namespace UnityEditor.VFX
         Success,
         InvalidName,
         NameUsed,
+        NameUsedByBuiltIn,
         NotFound,
     }
 

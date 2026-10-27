@@ -1737,12 +1737,12 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    Debug.LogError("Can't change name, category with the same name already exists");
+                    Debug.LogError("Cannot rename category: a category with the same name already exists");
                 }
             }
             else
             {
-                Debug.LogError("Can't change name, category not found");
+                Debug.LogError("Cannot rename category: category not found");
             }
 
             return false;
@@ -1769,28 +1769,16 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        public void SetParametersOrder(VFXParameterController controller, int index)
+        // Moves the controller, whose category is already the destination one, right after "after", or last when "after" is null or in another category
+        public void MoveParameterAfter(VFXParameterController controller, VFXParameterController after)
         {
-            var orderedParameters = m_ParameterControllers
-                .Where(t => t.Value.isOutput == controller.isOutput && t.Value.model.category == controller.model.category)
-                .OrderBy(t => t.Value.order)
-                .Select(t => t.Value)
+            var orderedParameters = m_ParameterControllers.Values
+                .Where(x => x != controller && x.isOutput == controller.isOutput && x.model.category == controller.model.category)
+                .OrderBy(x => x.order)
                 .ToList();
 
-            int oldIndex = orderedParameters.IndexOf(controller);
-
-            if (oldIndex != -1)
-            {
-                orderedParameters.RemoveAt(oldIndex);
-
-                if (oldIndex < index)
-                    --index;
-            }
-
-            if (index < orderedParameters.Count)
-                orderedParameters.Insert(index, controller);
-            else
-                orderedParameters.Add(controller);
+            var afterIndex = after == null ? -1 : orderedParameters.IndexOf(after);
+            orderedParameters.Insert(afterIndex < 0 ? orderedParameters.Count : afterIndex + 1, controller);
 
             for (var i = 0; i < orderedParameters.Count; ++i)
             {
@@ -1905,7 +1893,7 @@ namespace UnityEditor.VFX.UI
 
                 parameter.ValidateNodes();
 
-                var newParameterController = new VFXParameterController(parameter, this) { order = m_ParameterControllers.Count };
+                var newParameterController = new VFXParameterController(parameter, this);
                 m_ParameterControllers[parameter] = newParameterController;
 
                 m_SyncedModels[model] = new List<VFXNodeController>();

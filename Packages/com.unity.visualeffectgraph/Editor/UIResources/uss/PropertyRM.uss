@@ -47,6 +47,7 @@
     margin-right: 8px;
     padding-left: 16px;
     font-size: 6px;
+    text-overflow: clip;
     -unity-text-align: middle-center;
     background-position: left;
     background-size: 14px 14px;

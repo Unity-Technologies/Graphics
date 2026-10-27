@@ -3481,15 +3481,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DuplicateBlackboardFieldSelection()
-        {
-            var selectedBlackFields = selection
-                .OfType<VFXBlackboardField>()
-                .ToList();
-            string lastDuplicateParameter = null;
-            selectedBlackFields.ForEach(x => lastDuplicateParameter = blackboard.DuplicateParameter(x));
-        }
-
         public string DuplicateBlackBoardCategory(string category, string newCategoryName = null, string[] parametersToDuplicate = null)
         {
             if (IsLocked())
@@ -3532,30 +3523,6 @@ namespace UnityEditor.VFX.UI
             m_Controller.graph.SetExpressionValueDirty();
 
             return newCategoryName;
-        }
-
-        public VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
-        {
-            if (IsLocked())
-                return null;
-
-            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName, VFXParameterController.kMaxExposedNameLength);
-            var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
-            controller.AddVFXModel(Vector2.zero, newVfxParameter);
-
-            bool groupChanged = false;
-            controller.SyncControllerFromModel(ref groupChanged);
-
-            var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
-
-            if (blackboardField.controller.spaceableAndMasterOfSpace)
-            {
-                newParameterController.space = blackboardField.controller.space;
-            }
-
-            m_Controller.graph.SetExpressionValueDirty();
-
-            return newParameterController;
         }
 
         public void DuplicateBlackBoardCategorySelection()

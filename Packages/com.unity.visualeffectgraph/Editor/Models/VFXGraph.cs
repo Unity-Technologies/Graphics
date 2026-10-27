@@ -687,14 +687,17 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public void SetCustomAttributeOrder(string attributeName, int order)
+        public bool SetCustomAttributeOrder(string attributeName, int order)
         {
-            if (TryFindCustomAttributeDescriptor(attributeName, out var attributeDescriptor))
+            // Attributes imported from subgraphs are not in the local list and cannot be moved
+            if (TryFindCustomAttributeDescriptor(attributeName, out var attributeDescriptor) && m_CustomAttributes.Remove(attributeDescriptor))
             {
-                m_CustomAttributes.Remove(attributeDescriptor);
                 m_CustomAttributes.Insert(order, attributeDescriptor);
                 Invalidate(InvalidationCause.kStructureChanged);
+                return true;
             }
+
+            return false;
         }
 
         public bool TryFindCustomAttributeDescriptor(string attributeName, out VFXCustomAttributeDescriptor attributeDescriptor)
@@ -783,7 +786,11 @@ namespace UnityEditor.VFX
 
             if (result == RenameStatus.NameUsed)
             {
-                Debug.LogWarning("You are trying to rename a custom attribute with a name that is already used by another custom attribute");
+                Debug.LogWarning("Cannot rename custom attribute: The name is already used by another custom attribute");
+            }
+            else if (result == RenameStatus.NameUsedByBuiltIn)
+            {
+                Debug.LogWarning("Cannot rename custom attribute: The name is already used by a built-in attribute");
             }
             return false;
         }
