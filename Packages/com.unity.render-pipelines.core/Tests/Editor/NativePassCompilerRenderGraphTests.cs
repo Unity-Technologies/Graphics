@@ -908,6 +908,107 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void NativeSubPassesLimitIgnoresGraphPassesMergedIntoSameSubPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // More graph passes than the native subpasses limit, all using the same attachments so they share a single native subpass
+            for (int i = 0; i < Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 2; i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            // Different color attachment, so this graph pass needs a second native subpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass_NewSubPass", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 3, passes[0].numGraphPasses);
+            Assert.AreEqual(2, passes[0].numNativeSubPasses);
+        }
+
+        [Test]
+        public void NativeSubPassesLimitReachedWithMultipleGraphPassesPerSubPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // Two graph passes per native subpass, alternating the color attachment so that each pair needs a new native subpass,
+            // one pair more than the native subpasses limit
+            for (int i = 0; i < 2 * (Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 1); i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[(i / 2) % 2], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(2 * Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numGraphPasses);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numNativeSubPasses);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.SubPassLimitReached, passes[0].breakAudit.reason);
+            Assert.AreEqual(2, passes[1].numGraphPasses);
+            Assert.AreEqual(1, passes[1].numNativeSubPasses);
+        }
+
+        [Test]
+        public void NativeSubPassesLimitNotExceededWhenMergedPassAddsDepth()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // As many graph passes as the native subpasses limit, without depth and alternating the color attachment, so one native subpass each
+            for (int i = 0; i < Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass; i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i % 2], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            // Same color attachment as the last native subpass, but this graph pass brings the depth attachment of the native pass,
+            // which changes the flags of the existing native subpasses when merged
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass_AddsDepth", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass - 1) % 2], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            foreach (var pass in passes)
+            {
+                Assert.LessOrEqual(pass.numNativeSubPasses, Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass);
+            }
+        }
+
+        [Test]
         public void AllocateFreeInMergedPassesWorks()
         {
             var g = AllocateRenderGraph();
