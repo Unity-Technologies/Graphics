@@ -18,6 +18,9 @@ namespace UnityEditor.VFX.Test
     {
         private const string testFolder = "TmpTests";
 
+        private const double kWaitTimeout = 2;
+        private int m_PendingAddParameterCount;
+
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
@@ -32,6 +35,18 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllVFXWindow();
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            // A pending OnAddParameter delay call would otherwise run during the next test
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0);
+            while (enumerator.MoveNext())
+            {
+                yield return null;
+            }
+        }
+
         [UnityTest]
         public IEnumerator Select_Parameter_RecordsToHistory_AndCanNavigate()
         {
@@ -51,20 +66,17 @@ namespace UnityEditor.VFX.Test
                 AddParameter(blackboard, paramDescArray[i]);
             }
 
-            yield return null;
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Q<VFXBlackboardField>() != null);
+            while (enumerator.MoveNext())
+            {
+                yield return null;
+            }
             blackboard.Focus();
             yield return null;
 
             // Act
-            VFXBlackboardField parameterFieldFirst = null;
-            VFXBlackboardField parameterFieldLast = null;
-            var maxFrames = 16;
-            while (parameterFieldFirst == null && parameterFieldLast == null && maxFrames-- > 0)
-            {
-                yield return null;
-                parameterFieldFirst = blackboard.Query<VFXBlackboardField>().First();
-                parameterFieldLast = blackboard.Query<VFXBlackboardField>().Last();
-            }
+            var parameterFieldFirst = blackboard.Query<VFXBlackboardField>().First();
+            var parameterFieldLast = blackboard.Query<VFXBlackboardField>().Last();
             Assert.NotNull(parameterFieldFirst);
             Assert.NotNull(parameterFieldLast);
 
@@ -172,7 +184,11 @@ namespace UnityEditor.VFX.Test
             window.graphView.DuplicateBlackBoardCategorySelection();
             blackboard.SetCategoryName(cat, "new name");
             window.graphView.OnSave();
-            yield return null;
+            var enumerator = WaitFor(() => blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " 1").First() != null);
+            while (enumerator.MoveNext())
+            {
+                yield return null;
+            }
 
             // Assert
             cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " 1").First();
@@ -274,8 +290,8 @@ namespace UnityEditor.VFX.Test
 
             var viewController = window.graphView.controller;
             AddParameter(blackboard, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)));
-            var maxFrames = 16;
-            while (maxFrames-- > 0 && !viewController.parameterControllers.Any())
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && viewController.parameterControllers.Any());
+            while (enumerator.MoveNext())
             {
                 yield return null;
             }
@@ -286,7 +302,7 @@ namespace UnityEditor.VFX.Test
             parameterController.valueFilter = VFXValueFilter.Range;
             parameterController.maxValue = 100f;
             viewController.LightApplyChanges();
-            maxFrames = 8;
+            var maxFrames = 8;
             while (maxFrames-- > 0)
             {
                 yield return null;
@@ -410,18 +426,16 @@ namespace UnityEditor.VFX.Test
 
             var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             AddParameter(blackboard, descriptorParameter);
-            yield return null;
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Q<VFXBlackboardField>() != null);
+            while (enumerator.MoveNext())
+            {
+                yield return null;
+            }
             blackboard.Focus();
             yield return null;
 
             // Act
-            VFXBlackboardField parameterField = null;
-            var maxFrames = 16;
-            while (parameterField == null && maxFrames-- > 0)
-            {
-                yield return null;
-                parameterField = blackboard.Q<VFXBlackboardField>();
-            }
+            var parameterField = blackboard.Q<VFXBlackboardField>();
             Assert.NotNull(parameterField);
             window.graphView.AddToSelection(parameterField);
             window.graphView.Delete();
@@ -486,14 +500,12 @@ namespace UnityEditor.VFX.Test
             AddParameter(blackboard, descriptorParameter);
             yield return null;
             AddParameter(blackboard, descriptorParameter);
-            var parameterFields = new List<VFXBlackboardField>();
-
-            var frames = 32;
-            while (frames-- > 0 && parameterFields.Count != 2)
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Query<VFXBlackboardField>().ToList().Count == 2);
+            while (enumerator.MoveNext())
             {
                 yield return null;
-                parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
             }
+            var parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
 
             // Act
             window.graphView.AddToSelection(categoryRow);
@@ -502,7 +514,7 @@ namespace UnityEditor.VFX.Test
             window.graphView.Delete();
 
             // Assert
-            frames = 32;
+            var frames = 32;
             while (frames-- > 0 && categoryRow != null)
             {
                 yield return null;
@@ -592,25 +604,23 @@ namespace UnityEditor.VFX.Test
 
             var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             AddParameter(blackboard, descriptorParameter);
-            yield return null;
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Q<VFXBlackboardField>() != null);
+            while (enumerator.MoveNext())
+            {
+                yield return null;
+            }
 
             // Remove focus from newly created attribute so that it's not open for edit
             blackboard.Focus();
             yield return null;
 
             // Act
-            VFXBlackboardField blackboardField = null;
-            var maxFrames = 16;
-            while (blackboardField == null && maxFrames-- > 0)
-            {
-                yield return null;
-                blackboardField = blackboard.Q<VFXBlackboardField>();
-            }
+            var blackboardField = blackboard.Q<VFXBlackboardField>();
             Assert.NotNull(blackboardField);
             VFXGUITestHelper.SendDoubleClick(blackboardField, 2);
 
             // Assert
-            var enumerator = IsOpenForEdit(blackboard, "textField", $"New {descriptorParameter.name}");
+            enumerator = IsOpenForEdit(blackboard, "textField", $"New {descriptorParameter.name}");
             while (enumerator.MoveNext())
             {
                 yield return null;
@@ -632,15 +642,13 @@ namespace UnityEditor.VFX.Test
 
             var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             AddParameter(blackboard, descriptorParameter);
-            yield return null;
-
-            VFXBlackboardField blackboardField = null;
-            var maxFrames = 16;
-            while (blackboardField == null && maxFrames-- > 0)
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Q<VFXBlackboardField>() != null);
+            while (enumerator.MoveNext())
             {
                 yield return null;
-                blackboardField = blackboard.Q<VFXBlackboardField>();
             }
+
+            var blackboardField = blackboard.Q<VFXBlackboardField>();
             Assert.NotNull(blackboardField);
             var initialName = blackboardField.controller.exposedName;
 
@@ -671,15 +679,13 @@ namespace UnityEditor.VFX.Test
             AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(int)));
             yield return null;
             AddParameter(blackboard, VFXLibrary.GetParameters().First(d => d.modelType == typeof(float)));
-            yield return null;
-
-            var parameterFields = new List<VFXBlackboardField>();
-            var maxFrames = 16;
-            while (parameterFields.Count != 2 && maxFrames-- > 0)
+            var enumerator = WaitFor(() => m_PendingAddParameterCount == 0 && blackboard.Query<VFXBlackboardField>().ToList().Count == 2);
+            while (enumerator.MoveNext())
             {
                 yield return null;
-                parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
             }
+
+            var parameterFields = blackboard.Query<VFXBlackboardField>().ToList();
             Assert.AreEqual(2, parameterFields.Count);
 
             // Act
@@ -1029,23 +1035,35 @@ namespace UnityEditor.VFX.Test
             var onAddParameterMethod = blackboard.GetType().GetMethod("OnAddParameter", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(onAddParameterMethod);
             onAddParameterMethod.Invoke(blackboard, new object[] { descriptorParameters });
+
+            // Runs right after the delay call registered by OnAddParameter
+            m_PendingAddParameterCount++;
+            EditorApplication.delayCall += () => m_PendingAddParameterCount--;
+        }
+
+        private IEnumerator WaitFor(Func<bool> condition)
+        {
+            var timeout = EditorApplication.timeSinceStartup + kWaitTimeout;
+            while (!condition() && EditorApplication.timeSinceStartup < timeout)
+            {
+                yield return null;
+            }
         }
 
         private IEnumerator IsOpenForEdit(VisualElement parent, string fieldName, string textFieldValue, bool isInEdit = true)
         {
-            var maxFrame = 16;
-            while (maxFrame-- > 0)
+            TextField textField = null;
+            var enumerator = WaitFor(() => (textField = parent.Query<TextField>(fieldName).Where(x => x.resolvedStyle.display == DisplayStyle.Flex).First()) != null);
+            while (enumerator.MoveNext())
             {
                 yield return null;
-                var textField = parent.Query<TextField>(fieldName).Where(x => x.resolvedStyle.display == DisplayStyle.Flex).First();
-                if (textField != null && isInEdit)
-                {
-                    Assert.AreEqual(textFieldValue, textField.value);
-                    yield break;
-                }
             }
 
-            Assert.IsFalse(isInEdit,  $"Could not find field with '{textFieldValue}' value in edit mode.");
+            if (isInEdit)
+            {
+                Assert.NotNull(textField, $"Could not find field with '{textFieldValue}' value in edit mode.");
+                Assert.AreEqual(textFieldValue, textField.value);
+            }
         }
 
         private T GetItemOfTypeAndName<T>(VFXBlackboard blackboard, string name)
