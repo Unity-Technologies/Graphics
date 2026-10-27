@@ -135,6 +135,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kPassNameXRMotionVectors = "XRMotionVectors";
         public static readonly string kPassNameXRUberPost = "UberPostXR";
         public static readonly string kPassNameXRFinalPost = "FinalPostXR";
+        public static readonly string kPassNameRenderingLayerMask2D = "Rendering Layer Mask";
 
         // Keywords
         LocalKeyword m_MainLightShadows;
@@ -1218,6 +1219,14 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripUnusedPass_RenderingLayerMask2D(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip the Sprite Lit and Sprite Custom Lit Rendering Layer Mask pass (including VFX Graph outputs) if rendering layers are disabled
+            if (strippingData.passName == kPassNameRenderingLayerMask2D && !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LightLayers))
+                return true;
+            return false;
+        }
+
         internal bool StripUnusedPass(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedPass_2D(ref strippingData))
@@ -1239,6 +1248,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedPass_XRFinalPost(ref strippingData))
+                return true;
+
+            if (StripUnusedPass_RenderingLayerMask2D(ref strippingData))
                 return true;
             return false;
         }
