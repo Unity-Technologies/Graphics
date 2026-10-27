@@ -1,0 +1,13 @@
+{
+    "MonoBehaviour": {
+        "m_Enabled": true,
+        "m_EditorHideFlags": 0,
+        "m_Name": "",
+        "m_EditorClassIdentifier": "UnityEditor.QNX.Extensions:UnityEditor.QNX:QNXSettings",
+        "qnxInstallationPath": "",
+        "osVersion_": 1,
+        "networkStack_": 0,
+        "architecture_": 0,
+        "zOrderIndex": 0
+    }
+}
