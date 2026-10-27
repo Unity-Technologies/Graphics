@@ -453,6 +453,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDisable()
         {
+            graphEditorView = null;
+
             messageManager.ClearAll();
 
             m_MessageManager = null;
