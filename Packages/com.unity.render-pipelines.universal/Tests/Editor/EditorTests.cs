@@ -284,4 +284,29 @@ class EditorTests
             }
         }
     }
+
+    // Users can't save package materials, so validating them must not change them
+    [Test]
+    public void SceneTemplateMaterials_AreUpToDateWithLitValidation()
+    {
+        var guids = AssetDatabase.FindAssets("t:Material", new[] { "Packages/com.unity.render-pipelines.universal/Editor/SceneTemplates/Materials" });
+        Assert.IsNotEmpty(guids);
+
+        foreach (var guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var validated = new Material(material);
+            try
+            {
+                new UnityEditor.Rendering.Universal.ShaderGUI.LitShader().ValidateMaterial(validated);
+
+                CollectionAssert.AreEquivalent(material.shaderKeywords, validated.shaderKeywords, $"{path} is out of date with its shader.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(validated);
+            }
+        }
+    }
 }
