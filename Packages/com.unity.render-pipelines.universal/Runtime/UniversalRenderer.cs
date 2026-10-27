@@ -132,6 +132,11 @@ namespace UnityEngine.Rendering.Universal
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MotionVectorRenderPass m_MotionVectorPass;
+        // Shadow passes per stack camera (0 is the base camera, i + 1 is overlay i), only used with Quad Views shadow map caching in XR.
+        // Otherwise, every camera uses index 0.
+        readonly List<MainLightShadowCasterPass> m_MainLightShadowCasterPasses = new List<MainLightShadowCasterPass>();
+        readonly List<AdditionalLightsShadowCasterPass> m_AdditionalLightsShadowCasterPasses = new List<AdditionalLightsShadowCasterPass>();
+        // Shadow passes of the stack camera currently being rendered, selected by SetupShadowCasterPasses().
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -345,8 +350,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            AddShadowCasterPasses();
+            m_MainLightShadowCasterPass = m_MainLightShadowCasterPasses[0];
+            m_AdditionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPasses[0];
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
@@ -537,8 +543,32 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            m_MainLightShadowCasterPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.Dispose();
+            foreach (var mainLightShadowCasterPass in m_MainLightShadowCasterPasses)
+                mainLightShadowCasterPass?.Dispose();
+            foreach (var additionalLightsShadowCasterPass in m_AdditionalLightsShadowCasterPasses)
+                additionalLightsShadowCasterPass?.Dispose();
+        }
+
+        void AddShadowCasterPasses()
+        {
+            m_MainLightShadowCasterPasses.Add(new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows));
+            m_AdditionalLightsShadowCasterPasses.Add(new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows));
+        }
+
+        // Selects the shadow passes used by the camera currently being rendered. With Quad Views shadow map caching, every
+        // camera of the stack owns its shadowmaps, so that the inner pass can reuse the ones cached by the outer pass.
+        void SetupShadowCasterPasses(UniversalCameraData cameraData, UniversalShadowData shadowData)
+        {
+            int stackCameraIndex = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (shadowData.supportShadowMapCaching)
+                stackCameraIndex = cameraData.xrUniversal.stackCameraIndex;
+#endif
+            while (m_MainLightShadowCasterPasses.Count <= stackCameraIndex)
+                AddShadowCasterPasses();
+
+            m_MainLightShadowCasterPass = m_MainLightShadowCasterPasses[stackCameraIndex];
+            m_AdditionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPasses[stackCameraIndex];
         }
 
         /// <summary>

@@ -759,6 +759,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
+            SetupShadowCasterPasses(cameraData, shadowData);
+
             if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
             {
                 resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
@@ -788,6 +790,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
+
+            SetupShadowCasterPasses(cameraData, shadowData);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
