@@ -95,12 +95,14 @@ namespace UnityEditor.Rendering.Converter
             {
                 SetItemsActive(true);
                 Refresh();
+                converterSelected?.Invoke();
             });
             var noneLabel = m_RootVisualElement.Q<Label>("none");
             noneLabel.RegisterCallback<ClickEvent>((evt) =>
             {
                 SetItemsActive(false);
                 Refresh();
+                converterSelected?.Invoke();
             });
 
             m_ListViewHeader = m_RootVisualElement.Q("listViewHeader");
@@ -203,7 +205,19 @@ namespace UnityEditor.Rendering.Converter
             };
 
             Add(m_RootVisualElement);
+            SetupStateEventHandlers();
             Refresh();
+        }
+
+        private void SetupStateEventHandlers()
+        {
+            state.SetupRootEventHandlers((isSelected) =>
+            {
+                m_TreeView.RefreshItems();
+                UpdateSelectedConverterItemsLabel();
+                UpdateAllNoneLabels();
+                converterSelected?.Invoke();
+            });
         }
 
         private void SetItemsActive(bool value)
@@ -345,12 +359,7 @@ namespace UnityEditor.Rendering.Converter
                 }
 
                 // Set up event handlers on root items to refresh UI when selection changes
-                state.SetupRootEventHandlers((isSelected) =>
-                {
-                    m_TreeView.RefreshItems();
-                    UpdateSelectedConverterItemsLabel();
-                    UpdateAllNoneLabels();
-                });
+                SetupStateEventHandlers();
 
                 state.isLoading = false;
                 state.isInitialized = true;
@@ -528,6 +537,7 @@ namespace UnityEditor.Rendering.Converter
 
                     nodeData.itemState.SetSelectedWithoutNotify(newValue);
                     Refresh();
+                    converterSelected?.Invoke();
                 };
 
                 // Store callback in toggle's userData for later cleanup

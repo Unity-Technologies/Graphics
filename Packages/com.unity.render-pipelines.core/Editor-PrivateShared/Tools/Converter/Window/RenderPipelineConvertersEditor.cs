@@ -229,12 +229,12 @@ namespace UnityEditor.Rendering.Converter
 
             m_SourcePipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                ConfigureUI();
             });
 
             m_DestinationPipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                ConfigureUI();
             });
 
             ConfigureUI();
@@ -268,17 +268,12 @@ namespace UnityEditor.Rendering.Converter
 
         private bool CanEnableConvert()
         {
-            foreach (var child in currentContainer.children)
+            foreach (var converterVE in selectedConverters)
             {
-                if (m_ConvertersVisualElements.TryGetValue(child, out var ve))
+                foreach (var itemState in converterVE.state.GetAllLeafItems())
                 {
-                    if (ve.isSelectedAndEnabled &&
-                        ve.state.isInitialized &&
-                        ve.state.selectedItemsCount > 0 &&
-                        ve.state.pending > 0)
-                    {
+                    if (itemState.isSelected == true && !itemState.hasConverted)
                         return true;
-                    }
                 }
             }
 
