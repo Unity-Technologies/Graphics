@@ -73,6 +73,12 @@ namespace UnityEngine.VFX.Test
             RuntimePlatform.WindowsPlayer,
             UnityGraphicsKernelMode.UgkOn
         )]
+        [IgnoreGraphicsTest(
+            "027_RWTexture",
+            "https://jira.unity3d.com/browse/UGK-2500",
+            RuntimePlatform.Switch2,
+            UnityGraphicsKernelMode.UgkOn
+        )]
 
         [TestNotSupportedOn(
             "008_AssetBundle|025_Flipbook|16_MeshParticles|21_DepthModules|23_ParameterBinders|24_MotionVector|25_PerParticleLOD|32_ExcludeFromTAA|42_CollisionEvents|45_CustomPassCulling|HDRPFogVolumetric|PositionDepthOperator",
