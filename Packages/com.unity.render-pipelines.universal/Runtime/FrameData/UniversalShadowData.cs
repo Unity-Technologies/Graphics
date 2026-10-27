@@ -92,6 +92,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal bool isMainLightPCSSEnabled;
+        internal bool isAdditionalLightsPCSSEnabled;
         internal int mainLightShadowResolution;
         internal int mainLightRenderTargetWidth;
         internal int mainLightRenderTargetHeight;
@@ -102,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
         // Owned by AdditionalLightsShadowCasterPass
         internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
         internal GraphicsBuffer extraForwardAdditionalLightShadowsBuffer;
+        internal GraphicsBuffer extraForwardAdditionalLightPCSSBuffer;
         internal Vector4[] extraForwardAdditionalLightShadowParams;
         internal Vector4[] extraForwardAdditionalLightReceiverNormalBiases;
         internal short[] visibleLightIndexToAdditionalLightIndex;
@@ -135,6 +138,8 @@ namespace UnityEngine.Rendering.Universal
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;
+            isMainLightPCSSEnabled = false;
+            isAdditionalLightsPCSSEnabled = false;
             mainLightShadowResolution = 0;
             mainLightRenderTargetWidth = 0;
             mainLightRenderTargetHeight = 0;
@@ -147,6 +152,7 @@ namespace UnityEngine.Rendering.Universal
 
             emptyAdditionalLightShadowsBuffer = null;
             extraForwardAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightPCSSBuffer = null;
             extraForwardAdditionalLightShadowParams = null;
             extraForwardAdditionalLightReceiverNormalBiases = null;
 

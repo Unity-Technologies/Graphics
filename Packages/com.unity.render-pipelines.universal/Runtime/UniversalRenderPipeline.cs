@@ -2337,6 +2337,8 @@ namespace UnityEngine.Rendering.Universal
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
             shadowData.isKeywordSoftShadowsEnabled = false;
+            shadowData.isMainLightPCSSEnabled = false;
+            shadowData.isAdditionalLightsPCSSEnabled = false;
 
             // Those fields must be setup after ApplyAdaptivePerformance is called on RenderingData.
             // This is because this function can currently modify mainLightShadowmapWidth, mainLightShadowmapHeight and mainLightShadowCascadesCount.

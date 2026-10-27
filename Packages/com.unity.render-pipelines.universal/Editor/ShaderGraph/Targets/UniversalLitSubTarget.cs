@@ -1017,6 +1017,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
                 { CoreKeywordDescriptors.ReflectionProbeAtlas },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.ShadowsPCSS },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.DBuffer },

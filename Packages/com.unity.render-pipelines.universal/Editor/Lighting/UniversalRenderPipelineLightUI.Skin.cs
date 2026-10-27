@@ -52,6 +52,25 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent SoftShadowQuality = L10n.TextContent("Soft Shadows Quality", "Controls the filtering quality of soft shadows. Higher quality has lower performance.", null, null);
 
+            // PCSS
+            public static GUIContent PCSSHeader = L10n.TextContent("Soft Shadows", "Settings for Percentage-Closer Soft Shadows (PCSS), which widen the penumbra with the distance between the caster and the receiver. These settings apply when PCSS is enabled in the URP Asset and the resolved soft shadow quality is High.", null, null);
+            public static GUIContent PCSSAngularDiameter = L10n.TextContent("Angular Diameter", "Controls the angular diameter of the light in degrees, which sets how wide the PCSS penumbra grows with distance. The sun is roughly 0.5 degrees.", null, null);
+            public static GUIContent PCSSSoftnessScale = L10n.TextContent("Softness Scale", "Controls the multiplier applied to the PCSS penumbra size, so shadows can be softened without changing the size of the light.", null, null);
+            public static GUIContent PCSSSampleQuality = L10n.TextContent("PCSS Samples", "Controls how many shadow map samples PCSS takes per pixel. Higher quality reduces noise but has lower performance. Lower settings rely on temporal anti-aliasing to hide noise. Select Custom to set the sample counts and tuning values yourself.", null, null);
+            public static GUIContent PCSSBlockerSampleCount = L10n.TextContent("Blocker Sample Count", "Controls the number of samples the PCSS blocker search takes. Higher values reduce noise but have lower performance.", null, null);
+            public static GUIContent PCSSFilterSampleCount = L10n.TextContent("Filter Sample Count", "Controls the number of samples the PCSS filtering phase takes. Higher values reduce noise but have lower performance.", null, null);
+            public static GUIContent PCSSMaxPenumbraSize = L10n.TextContent("Max Penumbra Size", "Controls the world-space upper bound on the PCSS penumbra size. This acts as a safety clamp.", null, null);
+            public static GUIContent PCSSMaxSamplingDistance = L10n.TextContent("Max Sampling Distance", "Controls the world-space distance, at most, that PCSS moves the depth each sample compares against towards the light. This does not move the samples across the shadow map. Useful for reducing light bleeding.", null, null);
+            public static GUIContent PCSSMinFilterSizeTexels = L10n.TextContent("Min Filter Size (Texels)", "Controls the smallest PCSS filter radius in shadow map texels. Useful for hiding flickering at shadow contact points.", null, null);
+            public static GUIContent PCSSMinFilterSize = L10n.TextContent("Min Filter Size", "Controls the smallest PCSS filter radius. The range 0 to 1 maps to 0 to about 4 shadow map texels. Useful for hiding flickering at shadow contact points.", null, null);
+            public static GUIContent PCSSMinFilterMaxAngularDiameter = L10n.TextContent("Min Filter Max Angle", "Controls the angle in degrees the minimum PCSS filter cone widens to. Values below Blocker Search Angle, or below Angular Diameter multiplied by Softness Scale, are raised to the larger of the two.", null, null);
+            public static GUIContent PCSSBlockerSearchAngularDiameter = L10n.TextContent("Blocker Search Angle", "Controls the angle in degrees of the PCSS blocker search cone. Wider angles reduce light bleeding. Values below Angular Diameter multiplied by Softness Scale are raised to it.", null, null);
+            public static GUIContent PCSSBlockerSamplingClumpExponent = L10n.TextContent("Blocker Clumping", "Controls how strongly the PCSS blocker search samples clump towards the center of the search cone.", null, null);
+
+            // {0} is the URP Asset toggle label
+            public static GUIContent PCSSNotEnabledInAsset = L10n.TextContent("These parameters only take effect once {0} is enabled in the Shadows section of the active URP Asset.", null, null, null);
+            public static GUIContent PCSSNotListedBelowHighQuality = L10n.TextContent("These parameters only take effect once {0} is enabled in the Shadows section of the active URP Asset, which lists it once Soft Shadows Quality there is set to High.", null, null, null);
+
             // Bias (default or custom)
             public static GUIContent shadowBias = L10n.TextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.", null, null);
             public static int[] optionDefaultValues = { 0, 1 };

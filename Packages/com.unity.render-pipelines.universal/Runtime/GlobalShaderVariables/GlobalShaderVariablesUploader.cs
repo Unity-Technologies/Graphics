@@ -881,6 +881,50 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Sets the per cascade PCSS scales, x = depth2RadialScale, y = radial2DepthScale, z = maxSampleZDistance and w = maxPCSSOffset.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSParams0(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSParams0 = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSParams0);
+        }
+
+        /// <summary>
+        /// Sets the per cascade PCSS sampling controls, x = minFilterSizeTexels, y = minFilterRadial2DepthScale, z = blockerRadial2DepthScale and w = blockerClumpSampleExponent.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSParams1(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSParams1 = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSParams1);
+        }
+
+        /// <summary>
+        /// Sets the per cascade PCSS atlas rectangles, xy = the tile offset and zw = the tile scale, both in atlas UV.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSAtlas(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSAtlas = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSAtlas);
+        }
+
+        /// <summary>
+        /// The PCSS controls shared by every cascade, x = the tile texel size, y = the blocker sample count, z = the filter sample count and w = the temporal frame index.
+        /// </summary>
+        public Vector4 _MainLightPCSSScalars
+        {
+            get => m_StagingVars.vars3D._MainLightPCSSScalars;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightPCSSScalars = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSScalars);
+            }
+        }
+
+        /// <summary>
         /// Soft shadow sampling offsets, xy = offset0 and zw = offset1.
         /// </summary>
         public Vector4 _AdditionalShadowOffset0

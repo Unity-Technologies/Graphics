@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, cameraData, lightData);
 
-            m_MainLightShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, lightData, shadowData);
+            m_MainLightShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, cameraData, lightData, shadowData);
             m_AdditionalLightsShadowCasterPass.UpdateGlobalShaderVariables(m_GlobalShaderVarsUploader, shadowData.supportsSoftShadows);
 
             // Nothing fills the uploader after this point, freeze the staged state as the defaults of this camera.

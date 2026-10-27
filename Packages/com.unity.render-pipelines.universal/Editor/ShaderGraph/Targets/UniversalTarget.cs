@@ -2752,6 +2752,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         };
 
+        public static readonly KeywordDescriptor ShadowsPCSS = new KeywordDescriptor()
+        {
+            displayName = "Shadows PCSS",
+            referenceName = ShaderKeywordStrings.ShadowsPCSS,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
         {
             displayName = "Lightmap Shadow Mixing",

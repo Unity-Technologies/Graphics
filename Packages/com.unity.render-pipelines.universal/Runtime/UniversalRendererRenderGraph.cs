@@ -733,7 +733,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Shadows
             ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
-            shadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
+            shadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, cameraData, lightData, shadowData);
             shadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
         }
 
@@ -812,6 +812,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
             cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, false);

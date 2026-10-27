@@ -195,6 +195,24 @@ EditorBuildSettings:
     path: Assets/Scenes/264_Exposure_Emission_APV.unity
     guid: 40cbf8515a073e74ca57552ec4a26aec
   - enabled: 1
+    path: Assets/Scenes/270_Lighting_PCSS_MainLight.unity
+    guid: 1b193d4b42fce364f96552aea5b3b443
+  - enabled: 1
+    path: Assets/Scenes/270_Lighting_PCSS_MainLight_Deferred.unity
+    guid: e12a1b3bcfe24e5b9426f6258ce27e58
+  - enabled: 1
+    path: Assets/Scenes/270_Lighting_PCSS_MainLight_DeferredPlus.unity
+    guid: 9e2013c759ce4702a3b52ce533de18ba
+  - enabled: 1
+    path: Assets/Scenes/271_Lighting_PCSS_AdditionalLights.unity
+    guid: 004efcc2784af2a48ab3080ffe1a9ba1
+  - enabled: 1
+    path: Assets/Scenes/271_Lighting_PCSS_AdditionalLights_Deferred.unity
+    guid: ac6893f657909ac44b58aa66443c6bee
+  - enabled: 1
+    path: Assets/Scenes/271_Lighting_PCSS_AdditionalLights_DeferredPlus.unity
+    guid: 621e6679848f4d23adef798571fcb17e
+  - enabled: 1
     path: Assets/Scenes/353_LightProbeUsageOff.unity
     guid: 2933fd527d4464c46953f2a7c025e3c6
   m_configObjects:

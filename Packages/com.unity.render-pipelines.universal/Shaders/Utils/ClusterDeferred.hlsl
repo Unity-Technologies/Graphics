@@ -88,6 +88,9 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
 
+    // Raster position, read before the foveated remap below
+    float2 positionSS = input.positionCS.xy;
+
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     float2 undistorted_screen_uv = screen_uv;
     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -118,6 +121,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     inputData.normalWS = gBufferData.normalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(posWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.positionCS = float4(positionSS, input.positionCS.zw);
 
     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv, false);
 
@@ -141,7 +145,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
         // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
         if (MainLightShadowsAvailable())
             shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, gBufferData.normalWS);
-        mainLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, gBufferData.shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false);
+        mainLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, gBufferData.shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false, positionSS);
     }
 
     real3 cookieColor = SampleMainLightCookie(posWS.xyz);

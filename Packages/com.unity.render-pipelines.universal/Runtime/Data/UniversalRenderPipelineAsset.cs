@@ -576,6 +576,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
         [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
 
+        [SerializeField] bool m_MainLightShadowsPCSS = false;
+        [SerializeField] bool m_AdditionalLightShadowsPCSS = false;
+
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
         [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
@@ -1631,6 +1634,26 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_SoftShadowQuality;
             set => m_SoftShadowQuality = value;
+        }
+
+        /// <summary>
+        /// Enables Percentage-Closer Soft Shadows (PCSS) for the main directional light when its soft shadow quality is High.
+        /// Note: Builds strip the PCSS shader variants unless a URP Asset in the build enables this.
+        /// </summary>
+        internal bool mainLightShadowsPCSS
+        {
+            get => m_MainLightShadowsPCSS;
+            set => m_MainLightShadowsPCSS = value;
+        }
+
+        /// <summary>
+        /// Enables Percentage-Closer Soft Shadows (PCSS) for shadow casting spot and point lights when their soft shadow quality is High.
+        /// Note: Builds strip the PCSS shader variants unless a URP Asset in the build enables this.
+        /// </summary>
+        internal bool additionalLightShadowsPCSS
+        {
+            get => m_AdditionalLightShadowsPCSS;
+            set => m_AdditionalLightShadowsPCSS = value;
         }
 
         /// <summary>

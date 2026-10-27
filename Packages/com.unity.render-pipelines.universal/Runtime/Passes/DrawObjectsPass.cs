@@ -350,6 +350,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData.emptyAdditionalLightShadowsBuffer);
+                        context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
@@ -494,6 +495,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData.emptyAdditionalLightShadowsBuffer);
+                        context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));

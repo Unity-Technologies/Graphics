@@ -112,6 +112,11 @@ CBUFFER_START(GlobalShaderVariables)
     float4 _MainLightShadowOffset0; // xy: offset0, zw: offset1
     float4 _MainLightShadowOffset1; // xy: offset2, zw: offset3
     float4 _MainLightShadowmapSize; // xy: 1/width and 1/height, zw: width and height
+    // Main Light Shadows, PCSS. The slots of a cascade that was not rendered are zeroed, which reads as no shadow.
+    float4 _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
+    float4 _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
+    float4 _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+    float4 _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: temporal frame index)
     // Additional Lights Shadows
     float4 _AdditionalShadowOffset0; // xy: offset0, zw: offset1
     float4 _AdditionalShadowOffset1; // xy: offset2, zw: offset3

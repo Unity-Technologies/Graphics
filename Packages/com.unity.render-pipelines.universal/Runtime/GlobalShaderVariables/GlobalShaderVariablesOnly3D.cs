@@ -53,8 +53,14 @@ namespace UnityEngine.Rendering.Universal
         _NonJitteredViewProjMatrix = 1u << 25,
         _PrevViewProjMatrix = 1u << 26,
 
+        // Main Light Shadows, PCSS. Each cascade array goes out as a single push.
+        _MainLightPCSSParams0 = 1u << 27,
+        _MainLightPCSSParams1 = 1u << 28,
+        _MainLightPCSSAtlas = 1u << 29,
+        _MainLightPCSSScalars = 1u << 30,
+
         // Keep this referencing the last bit declared above when adding a variable.
-        All = (_PrevViewProjMatrix << 1) - 1u,
+        All = (_MainLightPCSSScalars << 1) - 1u,
     }
 
     /// <summary>
@@ -129,6 +135,76 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// One vector per main light shadow cascade, plus a trailing slot for the index past the last cascade.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct MainLightShadowCascadeVectors
+    {
+        /// <summary> The number of vectors, MAX_SHADOW_CASCADES + 1 in Shadows.hlsl. </summary>
+        public const int count = 5;
+
+        /// <summary>The vector of the first cascade.</summary>
+        public Vector4 cascade0;
+
+        /// <summary>The vector of the second cascade.</summary>
+        public Vector4 cascade1;
+
+        /// <summary>The vector of the third cascade.</summary>
+        public Vector4 cascade2;
+
+        /// <summary>The vector of the fourth cascade.</summary>
+        public Vector4 cascade3;
+
+        /// <summary>The trailing slot, see _MainLightPCSSAtlas in GlobalShaderVariables.hlsl.</summary>
+        public Vector4 cascade4;
+
+        /// <summary>
+        /// Pushes the vectors as a single global vector array.
+        /// </summary>
+        /// <param name="cmd">The command buffer used to set the global.</param>
+        /// <param name="nameID">The shader property id of the array.</param>
+        /// <param name="scratch">A scratch array of <see cref="count"/> elements the values are copied through.</param>
+        public readonly void SetGlobal(IBaseCommandBuffer cmd, int nameID, Vector4[] scratch)
+        {
+            scratch[0] = cascade0;
+            scratch[1] = cascade1;
+            scratch[2] = cascade2;
+            scratch[3] = cascade3;
+            scratch[4] = cascade4;
+            cmd.SetGlobalVectorArray(nameID, scratch);
+        }
+
+        /// <summary>Gets or sets the vector of a given cascade.</summary>
+        /// <param name="index">The cascade index, between 0 and <see cref="count"/> - 1.</param>
+        /// <returns>The vector stored for the requested cascade.</returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="index"/> is out of range.</exception>
+        public Vector4 this[int index]
+        {
+            readonly get => index switch
+            {
+                0 => cascade0,
+                1 => cascade1,
+                2 => cascade2,
+                3 => cascade3,
+                4 => cascade4,
+                _ => throw new IndexOutOfRangeException($"index {index} is out of range, it must be between 0 and {count - 1}."),
+            };
+            set
+            {
+                switch (index)
+                {
+                    case 0: cascade0 = value; break;
+                    case 1: cascade1 = value; break;
+                    case 2: cascade2 = value; break;
+                    case 3: cascade3 = value; break;
+                    case 4: cascade4 = value; break;
+                    default: throw new IndexOutOfRangeException($"index {index} is out of range, it must be between 0 and {count - 1}.");
+                }
+            }
+        }
+    }
+
     // Global shader variables only URP 3D declares and fills, see GlobalShaderVariables for the declaration guidelines.
     [StructLayout(LayoutKind.Sequential)]
     internal struct GlobalShaderVariablesOnly3D
@@ -163,6 +239,12 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _MainLightShadowOffset1; // Shadows.hlsl
         public Vector4 _MainLightShadowmapSize; // Shadows.hlsl
 
+        // Main Light Shadows, PCSS
+        public MainLightShadowCascadeVectors _MainLightPCSSParams0; // Shadows.hlsl
+        public MainLightShadowCascadeVectors _MainLightPCSSParams1; // Shadows.hlsl
+        public MainLightShadowCascadeVectors _MainLightPCSSAtlas; // Shadows.hlsl
+        public Vector4 _MainLightPCSSScalars; // Shadows.hlsl
+
         // Additional Lights Shadows
         public Vector4 _AdditionalShadowOffset0; // Shadows.hlsl
         public Vector4 _AdditionalShadowOffset1; // Shadows.hlsl
@@ -187,6 +269,9 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class GlobalShaderVariablesOnly3DExtensions
     {
+        // SetGlobalVectorArray takes no span
+        static readonly Vector4[] s_CascadeVectorScratch = new Vector4[MainLightShadowCascadeVectors.count];
+
         /// <summary>
         /// Sets the URP 3D shader variables flagged in <paramref name="dirty"/> as global uniforms using the provided
         /// CommandBuffer. This is a fallback when persistent constant buffer mode is disabled.
@@ -227,6 +312,12 @@ namespace UnityEngine.Rendering.Universal
             if ((dirty & Dirty._MainLightShadowOffset1) != 0) cmd.SetGlobalVector(PropertyId.mainLightShadowOffset1, vars._MainLightShadowOffset1);
             if ((dirty & Dirty._MainLightShadowmapSize) != 0) cmd.SetGlobalVector(PropertyId.mainLightShadowmapSize, vars._MainLightShadowmapSize);
 
+            // Main Light Shadows, PCSS
+            if ((dirty & Dirty._MainLightPCSSParams0) != 0) vars._MainLightPCSSParams0.SetGlobal(cmd, PropertyId.mainLightPCSSParams0, s_CascadeVectorScratch);
+            if ((dirty & Dirty._MainLightPCSSParams1) != 0) vars._MainLightPCSSParams1.SetGlobal(cmd, PropertyId.mainLightPCSSParams1, s_CascadeVectorScratch);
+            if ((dirty & Dirty._MainLightPCSSAtlas) != 0) vars._MainLightPCSSAtlas.SetGlobal(cmd, PropertyId.mainLightPCSSAtlas, s_CascadeVectorScratch);
+            if ((dirty & Dirty._MainLightPCSSScalars) != 0) cmd.SetGlobalVector(PropertyId.mainLightPCSSScalars, vars._MainLightPCSSScalars);
+
             // Additional Lights Shadows
             if ((dirty & Dirty._AdditionalShadowOffset0) != 0) cmd.SetGlobalVector(PropertyId.additionalShadowOffset0, vars._AdditionalShadowOffset0);
             if ((dirty & Dirty._AdditionalShadowOffset1) != 0) cmd.SetGlobalVector(PropertyId.additionalShadowOffset1, vars._AdditionalShadowOffset1);
@@ -266,6 +357,10 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int mainLightShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
             public static readonly int mainLightShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
             public static readonly int mainLightShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
+            public static readonly int mainLightPCSSParams0 = Shader.PropertyToID("_MainLightPCSSParams0");
+            public static readonly int mainLightPCSSParams1 = Shader.PropertyToID("_MainLightPCSSParams1");
+            public static readonly int mainLightPCSSAtlas = Shader.PropertyToID("_MainLightPCSSAtlas");
+            public static readonly int mainLightPCSSScalars = Shader.PropertyToID("_MainLightPCSSScalars");
 
             // Additional Lights
             public static readonly int additionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");

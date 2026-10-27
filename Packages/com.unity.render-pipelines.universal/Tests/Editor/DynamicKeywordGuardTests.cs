@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             "_REFLECTION_PROBE_BLENDING",
             "_SCREEN_SPACE_OCCLUSION",
             "_SCREEN_SPACE_REFLECTION",
+            "_SHADOWS_PCSS",
             "_SHADOWS_SOFT",
             "_SHADOWS_SOFT_HIGH",
             "_SHADOWS_SOFT_LOW",

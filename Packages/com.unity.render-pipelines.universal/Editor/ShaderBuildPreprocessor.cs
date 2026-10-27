@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
         RenderObjectDepthInputAttachment = (1L << 56),
         VolumetricFog = (1L << 57),
         LightFalloffQuadratic = (1L << 58),
+        ShadowsPCSS = (1L << 59),
         All = ~0
     }
 
@@ -232,6 +233,7 @@ namespace UnityEditor.Rendering.Universal
             public bool needsAdditionalLightShadows;
             public bool needsSoftShadows;
             public bool needsSoftShadowsQualityLevels;
+            public bool needsShadowsPCSS;
             public bool needsShadowsOff;
             public bool needsAdditionalLightsOff;
             public bool needsGBufferRenderingLayers;
@@ -788,6 +790,8 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
             rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
             rsd.needsSoftShadowsQualityLevels     = rsd.needsSoftShadows && s_UseSoftShadowQualityLevelKeywords;
+            // PCSS needs the per-light soft shadow quality, which the quality level keywords replace
+            rsd.needsShadowsPCSS                  = rsd.needsSoftShadows && !rsd.needsSoftShadowsQualityLevels && ((urpAsset.mainLightShadowsPCSS && rsd.needsMainLightShadows) || (urpAsset.additionalLightShadowsPCSS && rsd.needsAdditionalLightShadows));
             rsd.needsShadowsOff                   = !rendererData.stripShadowsOffVariants;
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !rendererData.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
@@ -867,6 +871,9 @@ namespace UnityEditor.Rendering.Universal
             // Soft shadows for Main and Additional Lights
             if (rendererRequirements.needsSoftShadows && !rendererRequirements.needsSoftShadowsQualityLevels)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
+
+            if (rendererRequirements.needsShadowsPCSS)
+                shaderFeatures |= ShaderFeatures.ShadowsPCSS;
 
             if (rendererRequirements.needsSoftShadowsQualityLevels)
             {
@@ -1129,6 +1136,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripSoftShadowsQualityLow = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsLow);
             spd.stripSoftShadowsQualityMedium = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsMedium);
             spd.stripSoftShadowsQualityHigh = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsHigh);
+            spd.stripShadowsPCSS = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsPCSS);
             spd.stripHDRKeywords = stripHDR;
             spd.stripAlphaOutputKeywords = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.AlphaOutput);
             spd.stripDebugDisplay = stripDebug;

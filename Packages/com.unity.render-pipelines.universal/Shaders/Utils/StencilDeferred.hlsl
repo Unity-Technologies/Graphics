@@ -113,7 +113,7 @@ struct PunctualLightData
     uint layerMask;             // Optional light layer mask
 };
 
-Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff, half3 normalWS = half3(0.0, 0.0, 0.0))
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff, half3 normalWS = half3(0.0, 0.0, 0.0), float2 positionSS = INVALID_SHADOW_SCREEN_POS)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
@@ -148,7 +148,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
         light.shadowAttenuation = 1.0;
     else
     {
-        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo, !materialFlagReceiveShadowsOff, normalWS);
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo, !materialFlagReceiveShadowsOff, normalWS, positionSS);
     }
 
     light.layerMask = punctualLightData.layerMask;
@@ -182,7 +182,7 @@ half4 SampleAdditionalLightCookieDeferred(int perObjectLightIndex, float3 sample
     return cookieColor;
 }
 
-Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags, half3 normalWS)
+Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags, half3 normalWS, float2 positionSS)
 {
     Light unityLight;
 
@@ -202,7 +202,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
                 if (MainLightShadowsAvailable())
                     shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, normalWS);
 
-                unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false);
+                unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false, positionSS);
             }
 
             real3 cookieColor = SampleMainLightCookie(posWS);
@@ -218,7 +218,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
 
             if (!materialReceiveShadowsOff)
             {
-                unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo, !materialReceiveShadowsOff, normalWS);
+                unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo, !materialReceiveShadowsOff, normalWS, positionSS);
             }
 
             // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
@@ -239,7 +239,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
         light.occlusionProbeInfo = _LightOcclusionProbInfo;
         light.flags = _LightFlags;
         light.layerMask = lightLayerMask;
-        unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff, normalWS);
+        unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff, normalWS, positionSS);
 
         // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
         // if(_CookieLightIndex >= 0)
@@ -258,6 +258,9 @@ half4 DeferredShading(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+
+    // Raster position, read before the foveated remap below
+    float2 positionSS = input.positionCS.xy;
 
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      float2 undistorted_screen_uv = screen_uv;
@@ -294,7 +297,7 @@ half4 DeferredShading(Varyings input) : SV_Target
     posWS.xyz *= rcp(posWS.w);
 
     // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
-    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, gBufferData.normalWS);
+    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, gBufferData.normalWS, positionSS);
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
     [branch] if (!IsMatchingLightLayer(unityLight.layerMask, gBufferData.meshRenderingLayers))

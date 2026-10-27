@@ -862,10 +862,28 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                     DrawShadowsSoftShadowQuality(serialized, ownerEditor);
+                    DrawShadowsPCSS(serialized);
                 EditorGUI.indentLevel--;
             }
 
             EditorGUI.indentLevel--;
+        }
+
+        // PCSS replaces the High quality filter, so its toggles are listed only there
+        static void DrawShadowsPCSS(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            bool isHighQuality = serialized.softShadowQualityProp.hasMultipleDifferentValues || serialized.softShadowQualityProp.intValue >= (int)SoftShadowQuality.High;
+
+            if (isHighQuality)
+            {
+                EditorGUILayout.PropertyField(serialized.mainLightShadowsPCSSProp, Styles.mainLightShadowsPCSS);
+                EditorGUILayout.PropertyField(serialized.additionalLightShadowsPCSSProp, Styles.additionalLightShadowsPCSS);
+                return;
+            }
+
+            // A hidden toggle still applies to lights set to High on their own
+            if (serialized.mainLightShadowsPCSSProp.boolValue || serialized.additionalLightShadowsPCSSProp.boolValue)
+                EditorGUILayout.HelpBox(Styles.pcssEnabledBelowHighQuality.text, MessageType.Info, true);
         }
 
         static void DrawShadowsSoftShadowQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

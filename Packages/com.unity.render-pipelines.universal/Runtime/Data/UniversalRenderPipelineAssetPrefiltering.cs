@@ -182,6 +182,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterSoftShadowsQualityHigh = false;
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadows)]
         [SerializeField] private bool m_PrefilterSoftShadows = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ShadowsPCSS)]
+        [SerializeField] private bool m_PrefilterShadowsPCSS = false;
 
         // Screen Coord Override - Controlled by the Global Settings
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
@@ -279,6 +281,7 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSoftShadowsQualityLow;
             public bool stripSoftShadowsQualityMedium;
             public bool stripSoftShadowsQualityHigh;
+            public bool stripShadowsPCSS;
 
             public bool stripSSAOKeywords;
 
@@ -352,6 +355,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSoftShadowsQualityMedium      = prefilteringData.stripSoftShadowsQualityMedium;
             m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
             m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
+            m_PrefilterShadowsPCSS                   = prefilteringData.stripShadowsPCSS;
 
             m_PrefilterSSAOKeywords                  = prefilteringData.stripSSAOKeywords;
 

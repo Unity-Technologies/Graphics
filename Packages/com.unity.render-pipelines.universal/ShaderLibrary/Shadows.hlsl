@@ -84,21 +84,12 @@
     #endif
 #endif
 
-#if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
-    #if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
-        static const bool _MAIN_LIGHT_SHADOWS_SOFT_PCSS = 0;
-    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
-        #undef _MAIN_LIGHT_SHADOWS_SOFT_PCSS
-        #define _MAIN_LIGHT_SHADOWS_SOFT_PCSS 1
-    #endif
-#endif
-
-#if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
-    #if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
-        static const bool _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS = 0;
-    #elif DEFINED_NONZERO(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
-        #undef _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS
-        #define _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS 1
+#if !defined(_SHADOWS_PCSS_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_PCSS)
+        static const bool _SHADOWS_PCSS = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_PCSS)
+        #undef _SHADOWS_PCSS
+        #define _SHADOWS_PCSS 1
     #endif
 #endif
 
@@ -175,14 +166,10 @@ bool SoftShadowsAvailable()
     return _SHADOWS_SOFT || _SHADOWS_SOFT_LOW || _SHADOWS_SOFT_MEDIUM || _SHADOWS_SOFT_HIGH;
 }
 
-bool MainLightPCSSAvailable()
+// PCSS is layered on the per-light soft shadows. Each light still picks its filter.
+bool ShadowsPCSSAvailable()
 {
-    return _MAIN_LIGHT_SHADOWS_SOFT_PCSS;
-}
-
-bool AdditionalLightPCSSAvailable()
-{
-    return _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS;
+    return _SHADOWS_SOFT && _SHADOWS_PCSS;
 }
 
 // Should match: UnityEngine.Rendering.Universal + 1
@@ -190,6 +177,7 @@ bool AdditionalLightPCSSAvailable()
 #define SOFT_SHADOW_QUALITY_LOW     half(1)
 #define SOFT_SHADOW_QUALITY_MEDIUM  half(2)
 #define SOFT_SHADOW_QUALITY_HIGH    half(3)
+#define SOFT_SHADOW_QUALITY_PCSS    half(4)
 
 // Passed by entry points that have no screen position. Those paths never take the PCSS branch.
 #define INVALID_SHADOW_SCREEN_POS float2(-1.0, -1.0)
@@ -272,13 +260,7 @@ SAMPLER_CMP(sampler_LinearClampCompare);
 
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowReceiverNormalBias; // world-space receiver normal bias, one component per cascade (all zero in caster mode)
-float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-
-// Main light PCSS. Loose uniforms until the C# side fills them, then they move into GlobalShaderVariables.hlsl.
-float4      _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
-float4      _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
-float4      _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
-float4      _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: TAA frame index)
+float4      _AdditionalShadowFadeParams; // (x: additional light fade scale, y: additional light fade bias, z: PCSS temporal frame index, w: 0.0)
 
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
@@ -291,14 +273,21 @@ CBUFFER_START(AdditionalLightShadows)
 #endif
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
-float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
-float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
-float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
 float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode)
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
-float4      _AdditionalLightsPCSSScalars;                        // (xy: shadow atlas size in texels, z: TAA frame index, w: unused)
+
+// Kept out of AdditionalLightShadows so that only the PCSS variants reference it.
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
+CBUFFER_START(AdditionalLightPCSS)
+#endif
+float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
+float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
+float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
+CBUFFER_END
+#endif
 
 // x: depth bias,
 // y: normal bias,
@@ -695,7 +684,7 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, Shado
         else
         {
             UNITY_BRANCH
-            if (MainLightPCSSAvailable() && usePCSS)
+            if (ShadowsPCSSAvailable() && usePCSS && shadowParams.y == SOFT_SHADOW_QUALITY_PCSS)
                 result = SampleShadowmapPCSSDirectional(shadowCoord, cascadeIndex, positionSS, shadowParams);
             else
                 result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
@@ -715,6 +704,12 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTranspa
     return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent);
 }
 
+// positionSS seeds the PCSS sample rotation
+half SampleMainLightRealtimeShadow(float4 shadowCoord, float3 positionWS, bool isSurfaceTypeTransparent, float2 positionSS)
+{
+    return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, GetMainLightCascadeIndex(positionWS), positionSS, true);
+}
+
 half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 shadowCoord, float2 positionSS, half4 shadowParams)
 {
     // Spot and point shadows use a perspective projection.
@@ -732,8 +727,8 @@ half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 sh
         atlas.zw, atlas.xy,
         pcssParams.x, pcssParams.y,
         (int)pcssParams.z, (int)pcssParams.w,
-        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalLightsPCSSScalars.xy,
-        (uint)_AdditionalLightsPCSSScalars.z, 0.0,
+        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalShadowmapSize.zw,
+        (uint)_AdditionalShadowFadeParams.z, 0.0,
         _AdditionalLightsShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
 
     attenuation = LerpWhiteTo(attenuation, shadowParams.x);
@@ -771,7 +766,7 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
             UNITY_BRANCH
-            if (AdditionalLightPCSSAvailable() && usePCSS && shadowParams.y >= SOFT_SHADOW_QUALITY_HIGH)
+            if (ShadowsPCSSAvailable() && usePCSS && shadowParams.y == SOFT_SHADOW_QUALITY_PCSS)
                 result = SampleShadowmapPCSSPunctual(lightIndex, shadowSliceIndex, shadowCoord, positionSS, shadowParams);
             else
                 result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
@@ -901,6 +896,11 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
 half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS)
 {
     return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS, float2 positionSS)
+{
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, positionSS, true);
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)

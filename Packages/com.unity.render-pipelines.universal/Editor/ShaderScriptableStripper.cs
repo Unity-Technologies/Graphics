@@ -207,6 +207,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_SoftShadowsLow;
         LocalKeyword m_SoftShadowsMedium;
         LocalKeyword m_SoftShadowsHigh;
+        LocalKeyword m_ShadowsPCSS;
         LocalKeyword m_MixedLightingSubtractive;
         LocalKeyword m_LightmapShadowMixing;
         LocalKeyword m_ShadowsShadowMask;
@@ -291,6 +292,7 @@ namespace UnityEditor.Rendering.Universal
             m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
             m_SoftShadowsMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsMedium);
             m_SoftShadowsHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsHigh);
+            m_ShadowsPCSS = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsPCSS);
             m_MixedLightingSubtractive = TryGetLocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
             m_LightmapShadowMixing = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
             m_ShadowsShadowMask = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
@@ -646,6 +648,17 @@ namespace UnityEditor.Rendering.Universal
                         m_SoftShadowsLow, ShaderFeatures.SoftShadowsLow,
                         m_SoftShadowsMedium, ShaderFeatures.SoftShadowsMedium,
                         m_SoftShadowsHigh, ShaderFeatures.SoftShadowsHigh));
+        }
+
+        internal bool StripUnusedFeatures_PCSS(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ShadowsPCSS, ShaderFeatures.ShadowsPCSS))
+                return true;
+
+            // URP only sets PCSS with the per-light soft shadow keyword
+            return strippingData.IsKeywordEnabled(m_ShadowsPCSS)
+                && !strippingData.IsKeywordEnabled(m_SoftShadows)
+                && !strippingData.IsKeywordDynamic(m_SoftShadows);
         }
 
         internal bool StripUnusedFeatures_HDRGrading(ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -1056,6 +1069,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_SoftShadowsQualityLevels(ref strippingData, ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_PCSS(ref strippingData, ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_HDRGrading(ref stripTool))

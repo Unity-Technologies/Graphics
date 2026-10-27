@@ -308,6 +308,119 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        static void DrawPCSSContent(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            Light light = serializedLight.settings.light;
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            if (!ShadowUtils.IsPCSSAvailableForLight(light, asset))
+                return;
+
+            bool isDirectional = light.type == LightType.Directional;
+            bool isPunctual = light.type == LightType.Spot || light.type == LightType.Point;
+            if (!isDirectional && !isPunctual)
+                return;
+
+            EditorGUILayout.LabelField(Styles.PCSSHeader, EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                bool enabledInAsset = isDirectional ? asset.mainLightShadowsPCSS : asset.additionalLightShadowsPCSS;
+                if (!enabledInAsset)
+                {
+                    // The asset lists the toggle only at High quality, so below it the quality is what to change first
+                    bool isToggleListed = asset.softShadowQuality >= SoftShadowQuality.High;
+                    GUIContent toggle = isDirectional ? UniversalRenderPipelineAssetUI.Styles.mainLightShadowsPCSS : UniversalRenderPipelineAssetUI.Styles.additionalLightShadowsPCSS;
+                    GUIContent message = isToggleListed ? Styles.PCSSNotEnabledInAsset : Styles.PCSSNotListedBelowHighQuality;
+                    string propertyPath = isToggleListed ? (isDirectional ? "m_MainLightShadowsPCSS" : "m_AdditionalLightShadowsPCSS") : "m_SoftShadowQuality";
+                    EditorUtils.QualitySettingsHelpBox(string.Format(message.text, toggle.text), MessageType.Info, UniversalRenderPipelineAssetUI.Expandable.Shadows, propertyPath);
+                }
+
+                using (new EditorGUI.DisabledScope(!enabledInAsset))
+                {
+                    if (isDirectional)
+                    {
+                        EditorGUILayout.PropertyField(serializedLight.softShadowAngularDiameterProp, Styles.PCSSAngularDiameter);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowScaleProp, Styles.PCSSSoftnessScale);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterSizeTexelsProp, Styles.PCSSMinFilterSizeTexels);
+                        DrawPCSSSampleQuality(serializedLight);
+                        if (IsPCSSCustomSelected(serializedLight))
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSampleCountProp, Styles.PCSSBlockerSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowFilterSampleCountProp, Styles.PCSSFilterSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMaxPenumbraSizeProp, Styles.PCSSMaxPenumbraSize);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMaxSamplingDistanceProp, Styles.PCSSMaxSamplingDistance);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterMaxAngularDiameterProp, Styles.PCSSMinFilterMaxAngularDiameter);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSearchAngularDiameterProp, Styles.PCSSBlockerSearchAngularDiameter);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSamplingClumpExponentProp, Styles.PCSSBlockerSamplingClumpExponent);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Baked and mixed lights already draw the shape radius above
+                        if (!serializedLight.settings.isBakedOrMixed)
+                            serializedLight.settings.DrawShapeRadius();
+                        EditorGUILayout.PropertyField(serializedLight.softShadowScaleProp, Styles.PCSSSoftnessScale);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterSizeProp, Styles.PCSSMinFilterSize);
+                        DrawPCSSSampleQuality(serializedLight);
+                        if (IsPCSSCustomSelected(serializedLight))
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSampleCountProp, Styles.PCSSBlockerSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowFilterSampleCountProp, Styles.PCSSFilterSampleCount);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static void DrawPCSSSampleQuality(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serializedLight.softShadowPCSSSampleQualityProp, Styles.PCSSSampleQuality);
+            if (!EditorGUI.EndChangeCheck() || !IsPCSSCustomSelected(serializedLight))
+                return;
+
+            UniversalAdditionalLightData[] lightsAdditionalData = serializedLight.lightsAdditionalData;
+            var presets = new PCSSSampleQuality[lightsAdditionalData.Length];
+            for (int i = 0; i < lightsAdditionalData.Length; ++i)
+            {
+                presets[i] = lightsAdditionalData[i].softShadowPCSSSampleQuality;
+            }
+
+            // Apply the serialized copy first, or its stale values would overwrite the direct writes below
+            serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties();
+
+            Undo.RecordObjects(lightsAdditionalData, "Set PCSS Samples to Custom");
+            for (int i = 0; i < lightsAdditionalData.Length; ++i)
+            {
+                if (presets[i] == PCSSSampleQuality.Custom)
+                    continue;
+
+                UniversalAdditionalLightData additionalLightData = lightsAdditionalData[i];
+                ShadowUtils.GetPCSSPresetSampleCounts(presets[i], out int blockerSampleCount, out int filterSampleCount);
+                additionalLightData.softShadowBlockerSampleCount = blockerSampleCount;
+                additionalLightData.softShadowFilterSampleCount = filterSampleCount;
+                additionalLightData.softShadowMaxPenumbraSize = UniversalAdditionalLightData.k_DefaultSoftShadowMaxPenumbraSize;
+                additionalLightData.softShadowMaxSamplingDistance = UniversalAdditionalLightData.k_DefaultSoftShadowMaxSamplingDistance;
+                additionalLightData.softShadowMinFilterMaxAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterMaxAngularDiameter;
+                additionalLightData.softShadowBlockerSearchAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSearchAngularDiameter;
+                additionalLightData.softShadowBlockerSamplingClumpExponent = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSamplingClumpExponent;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(additionalLightData);
+            }
+
+            serializedLight.serializedAdditionalDataObject.Update();
+        }
+
+        static bool IsPCSSCustomSelected(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            SerializedProperty qualityProp = serializedLight.softShadowPCSSSampleQualityProp;
+            return !qualityProp.hasMultipleDifferentValues && qualityProp.intValue == (int)PCSSSampleQuality.Custom;
+        }
+
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             if (serializedLight.settings.lightType.hasMultipleDifferentValues)
@@ -376,6 +489,8 @@ namespace UnityEditor.Rendering.Universal
                         // Soft Shadow Quality
                         if (serializedLight.settings.light.shadows == LightShadows.Soft)
                             EditorGUILayout.PropertyField(serializedLight.softShadowQualityProp, Styles.SoftShadowQuality);
+
+                        DrawPCSSContent(serializedLight);
 
                         if (isQuest)
                         {

@@ -74,6 +74,12 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class ShadowUtils
     {
+        // Must match PCSS_DISK_SAMPLE_COUNT in com.unity.render-pipelines.core/ShaderLibrary/Shadow/PCSS.hlsl
+        internal const int k_PCSSMaxSampleCount = 64;
+
+        // Must match SOFT_SHADOW_QUALITY_PCSS in Shadows.hlsl. The PCF filters read it as High.
+        internal const float k_SoftShadowQualityPCSS = (int)SoftShadowQuality.High + 1;
+
         internal static readonly bool m_ForceShadowPointSampling;
 
         static ShadowUtils()
@@ -622,11 +628,13 @@ namespace UnityEngine.Rendering.Universal
             if (!supportsSoftShadows || shadowLight.light.shadows != LightShadows.Soft)
                 return 1.0f;
 
-            SoftShadowQuality softShadowQuality = SoftShadowQuality.UsePipelineSettings;
-            if (SupportsPerLightSoftShadowQuality() && shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                softShadowQuality = additionalLightData.softShadowQuality;
+            SoftShadowQuality softShadowQuality = GetPerLightSoftShadowQuality(shadowLight.light, asset);
 
-            return GetSoftShadowKernelRadius(ResolveSoftShadowQuality(softShadowQuality, asset));
+            // PCSS sizes its own filter, and widening the kernel would collapse its penumbra
+            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset))
+                return 1.0f;
+
+            return GetSoftShadowKernelRadius(softShadowQuality);
         }
 
         internal static SoftShadowQuality ResolveSoftShadowQuality(SoftShadowQuality softShadowQuality, UniversalRenderPipelineAsset asset)
@@ -658,6 +666,212 @@ namespace UnityEngine.Rendering.Universal
             return kernelRadius;
         }
 
+        static SoftShadowQuality GetPerLightSoftShadowQuality(Light light, UniversalRenderPipelineAsset asset)
+        {
+            SoftShadowQuality softShadowQuality = SoftShadowQuality.UsePipelineSettings;
+            if (SupportsPerLightSoftShadowQuality() && light != null && light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                softShadowQuality = additionalLightData.softShadowQuality;
+
+            return ResolveSoftShadowQuality(softShadowQuality, asset);
+        }
+
+        static bool IsPCSSEnabled(LightType lightType, SoftShadowQuality resolvedSoftShadowQuality, UniversalRenderPipelineAsset asset)
+        {
+            if (asset == null || !SupportsPerLightSoftShadowQuality() || resolvedSoftShadowQuality < SoftShadowQuality.High)
+                return false;
+
+            switch (lightType)
+            {
+                case LightType.Directional:
+                    return asset.mainLightShadowsPCSS;
+                case LightType.Spot:
+                case LightType.Point:
+                    return asset.additionalLightShadowsPCSS;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsPCSSEnabled(ref VisibleLight shadowLight, UniversalAdditionalLightData additionalLightData, bool supportsSoftShadows, UniversalRenderPipelineAsset asset)
+        {
+            Light light = shadowLight.light;
+            if (light == null || !supportsSoftShadows || light.shadows != LightShadows.Soft)
+                return false;
+
+            SoftShadowQuality softShadowQuality = additionalLightData != null ? additionalLightData.softShadowQuality : SoftShadowQuality.UsePipelineSettings;
+            return IsPCSSEnabled(shadowLight.lightType, ResolveSoftShadowQuality(softShadowQuality, asset), asset);
+        }
+
+        // Takes the resolved quality packed into the y channel of the shadow params. Spot and point lights share the toggle.
+        internal static bool IsAdditionalLightPCSSEnabled(float packedSoftShadowQuality, UniversalRenderPipelineAsset asset)
+        {
+            return IsPCSSEnabled(LightType.Spot, (SoftShadowQuality)(int)packedSoftShadowQuality, asset);
+        }
+
+        // Ignores the asset toggle so the inspector can explain that it is off
+        internal static bool IsPCSSAvailableForLight(Light light, UniversalRenderPipelineAsset asset)
+        {
+            if (asset == null || light == null || !asset.supportsSoftShadows || light.shadows != LightShadows.Soft)
+                return false;
+
+            if (!SupportsPerLightSoftShadowQuality())
+                return false;
+
+            return GetPerLightSoftShadowQuality(light, asset) >= SoftShadowQuality.High;
+        }
+
+        internal static int GetPCSSTemporalFrameIndex(UniversalCameraData cameraData)
+        {
+            // The rotation only resolves under a temporal filter, and the wrap keeps InterleavedGradientNoise precise
+            return cameraData.IsTemporalAAEnabled() ? TemporalAA.CalculateTaaFrameIndex(ref cameraData.taaSettings) & 1023 : 0;
+        }
+
+        internal static void GetPCSSPresetSampleCounts(PCSSSampleQuality quality, out int blockerSampleCount, out int filterSampleCount)
+        {
+            switch (quality)
+            {
+                case PCSSSampleQuality.Low:
+                    blockerSampleCount = UniversalAdditionalLightData.k_LowSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_LowSoftShadowFilterSampleCount;
+                    break;
+
+                case PCSSSampleQuality.High:
+                    blockerSampleCount = UniversalAdditionalLightData.k_HighSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_HighSoftShadowFilterSampleCount;
+                    break;
+
+                case PCSSSampleQuality.Medium:
+                default:
+                    Debug.Assert(quality == PCSSSampleQuality.Medium, "Only the Low, Medium and High PCSS presets have sample counts.");
+                    blockerSampleCount = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_DefaultSoftShadowFilterSampleCount;
+                    break;
+            }
+        }
+
+        static bool UsesCustomPCSSSettings(UniversalAdditionalLightData additionalLightData)
+        {
+            return additionalLightData != null && additionalLightData.softShadowPCSSSampleQuality == PCSSSampleQuality.Custom;
+        }
+
+        internal static void GetPCSSSampleCounts(UniversalAdditionalLightData additionalLightData, out int blockerSampleCount, out int filterSampleCount)
+        {
+            if (UsesCustomPCSSSettings(additionalLightData))
+            {
+                blockerSampleCount = additionalLightData.softShadowBlockerSampleCount;
+                filterSampleCount = additionalLightData.softShadowFilterSampleCount;
+            }
+            else
+            {
+                PCSSSampleQuality quality = additionalLightData != null ? additionalLightData.softShadowPCSSSampleQuality : PCSSSampleQuality.Medium;
+                GetPCSSPresetSampleCounts(quality, out blockerSampleCount, out filterSampleCount);
+            }
+        }
+
+        internal static void ComputeAdditionalLightPCSSParams(float shapeRadius, UniversalAdditionalLightData additionalLightData, int sliceResolution, Matrix4x4 sliceProjectionMatrix, out Vector4 pcssParams, out Vector4 zBufferParams)
+        {
+            float softnessScale = additionalLightData != null ? additionalLightData.softShadowScale : UniversalAdditionalLightData.k_DefaultSoftShadowScale;
+            float minFilterSize = additionalLightData != null ? additionalLightData.softShadowMinFilterSize : UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterSize;
+            GetPCSSSampleCounts(additionalLightData, out int blockerSampleCount, out int filterSampleCount);
+
+            // Same fit as HDGpuLightsBuilder.GetNonDirectionalSoftness in HDRP, keep the two in sync
+            float x = shapeRadius * softnessScale;
+            float x2 = x * x;
+            float softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
+            softness /= 100.0f;
+            softness *= sliceResolution / 512.0f;  // Make it resolution independent whereas the baseline is 512
+
+            // Divided by 1000 so the user range is [0, 1], as in HDRP
+            float minFilterRadius = minFilterSize * 0.001f;
+
+            pcssParams = new Vector4(softness, minFilterRadius, Mathf.Clamp(blockerSampleCount, 1, k_PCSSMaxSampleCount), Mathf.Clamp(filterSampleCount, 1, k_PCSSMaxSampleCount));
+
+            // From the projection, so the point light near plane clamp and guard angle are included
+            float m22 = sliceProjectionMatrix.m22;
+            float m23 = sliceProjectionMatrix.m23;
+            float near = m23 / (m22 - 1.0f);
+            float far = m23 / (m22 + 1.0f);
+            zBufferParams = SystemInfo.usesReversedZBuffer
+                ? new Vector4((far - near) / near, 1.0f, (far - near) / (near * far), 1.0f / far)
+                : new Vector4((near - far) / near, far / near, (near - far) / (near * far), 1.0f / near);
+        }
+
+        internal static void ComputeMainLightPCSSParams(UniversalAdditionalLightData additionalLightData, ShadowSliceData[] cascadeSlices, int cascadeCount, int atlasWidth, int atlasHeight, ref MainLightShadowCascadeVectors params0, ref MainLightShadowCascadeVectors params1, ref MainLightShadowCascadeVectors atlas)
+        {
+            float angularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowAngularDiameter;
+            float softnessScale = UniversalAdditionalLightData.k_DefaultSoftShadowScale;
+            float maxPenumbraSize = UniversalAdditionalLightData.k_DefaultSoftShadowMaxPenumbraSize;
+            float maxSamplingDistance = UniversalAdditionalLightData.k_DefaultSoftShadowMaxSamplingDistance;
+            float minFilterSizeTexels = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterSizeTexels;
+            float minFilterMaxAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterMaxAngularDiameter;
+            float blockerSearchAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSearchAngularDiameter;
+            float blockerSamplingClumpExponent = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSamplingClumpExponent;
+            if (additionalLightData != null)
+            {
+                angularDiameter = additionalLightData.softShadowAngularDiameter;
+                softnessScale = additionalLightData.softShadowScale;
+                minFilterSizeTexels = additionalLightData.softShadowMinFilterSizeTexels;
+            }
+
+            if (UsesCustomPCSSSettings(additionalLightData))
+            {
+                maxPenumbraSize = additionalLightData.softShadowMaxPenumbraSize;
+                maxSamplingDistance = additionalLightData.softShadowMaxSamplingDistance;
+                minFilterMaxAngularDiameter = additionalLightData.softShadowMinFilterMaxAngularDiameter;
+                blockerSearchAngularDiameter = additionalLightData.softShadowBlockerSearchAngularDiameter;
+                blockerSamplingClumpExponent = additionalLightData.softShadowBlockerSamplingClumpExponent;
+            }
+
+            float lightAngularDiameter = softnessScale * angularDiameter;
+            float halfTan = HalfAngularDiameterTangent(lightAngularDiameter);
+
+            // The blocker search cone can only be widened, never narrowed below the cone of the light itself
+            float blockerSearchTan = HalfAngularDiameterTangent(Mathf.Max(blockerSearchAngularDiameter, lightAngularDiameter));
+            float minFilterTan = HalfAngularDiameterTangent(Mathf.Max(Mathf.Max(minFilterMaxAngularDiameter, blockerSearchAngularDiameter), lightAngularDiameter));
+
+            // The shader takes the square root of the normalized range, so the authored exponent is halved
+            float clumpExponent = 0.5f * blockerSamplingClumpExponent;
+            float maxBlockerDistance = maxPenumbraSize / (2.0f * halfTan);
+
+            float oneOverAtlasWidth = 1.0f / atlasWidth;
+            float oneOverAtlasHeight = 1.0f / atlasHeight;
+
+            for (int i = 0; i < cascadeCount; ++i)
+            {
+                // The culling matrices are OpenGL style while the shader uses [0, 1] depth
+                Matrix4x4 projectionMatrix = cascadeSlices[i].projectionMatrix;
+                float projectionDepthToRadialScale = 2.0f * Mathf.Abs(projectionMatrix.m00 / projectionMatrix.m22);
+                float worldToDepthScale = 0.5f * Mathf.Abs(projectionMatrix.m22);
+
+                float depth2RadialScale = halfTan * projectionDepthToRadialScale;
+
+                params0[i] = new Vector4(depth2RadialScale, 1.0f / depth2RadialScale, maxBlockerDistance * worldToDepthScale, maxSamplingDistance * worldToDepthScale);
+                params1[i] = new Vector4(minFilterSizeTexels, 1.0f / (minFilterTan * projectionDepthToRadialScale), 1.0f / (blockerSearchTan * projectionDepthToRadialScale), clumpExponent);
+                atlas[i] = new Vector4(cascadeSlices[i].offsetX * oneOverAtlasWidth, cascadeSlices[i].offsetY * oneOverAtlasHeight, cascadeSlices[i].resolution * oneOverAtlasWidth, cascadeSlices[i].resolution * oneOverAtlasHeight);
+            }
+
+            // See _MainLightPCSSAtlas in GlobalShaderVariables.hlsl
+            for (int i = cascadeCount; i < MainLightShadowCascadeVectors.count; ++i)
+            {
+                params0[i] = Vector4.zero;
+                params1[i] = Vector4.zero;
+                atlas[i] = Vector4.zero;
+            }
+        }
+
+        internal static Vector4 GetMainLightPCSSScalars(UniversalAdditionalLightData additionalLightData, int tileResolution)
+        {
+            GetPCSSSampleCounts(additionalLightData, out int blockerSampleCount, out int filterSampleCount);
+
+            // Tile texel size, since the shader compares the minimum filter radius in tile space
+            return new Vector4(1.0f / tileResolution, Mathf.Clamp(blockerSampleCount, 1, k_PCSSMaxSampleCount), Mathf.Clamp(filterSampleCount, 1, k_PCSSMaxSampleCount), 0.0f);
+        }
+
+        static float HalfAngularDiameterTangent(float angularDiameterInDegrees)
+        {
+            // The shader divides by the radial scales this feeds
+            return Mathf.Max(Mathf.Tan(0.5f * Mathf.Deg2Rad * angularDiameterInDegrees), 1e-6f);
+        }
 
         /// <summary>
         /// Extract scale and bias from a fade distance to achieve a linear fading of the fade distance.
@@ -922,10 +1136,17 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool hasSoftShadows)
         {
             if (SupportsPerLightSoftShadowQuality())
-                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
+                SetPerLightQualitySoftShadowKeywords(cmd, shadowData, hasSoftShadows);
             else
                 // keep static quality keywords in lockstep with the per-light shadow keywords (UUM-147509)
                 SetSoftShadowQualityShaderKeywords(cmd, shadowData, hasSoftShadows);
+        }
+
+        // PCSS is layered on the per-light soft shadow keyword, so shaders without it keep the PCF filters
+        static void SetPerLightQualitySoftShadowKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool enabled)
+        {
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, enabled && (shadowData.isMainLightPCSSEnabled || shadowData.isAdditionalLightsPCSSEnabled));
         }
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
@@ -935,15 +1156,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool enabled)
         {
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
             if (SupportsPerLightSoftShadowQuality())
             {
+                SetPerLightQualitySoftShadowKeywords(cmd, shadowData, enabled);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
             }
             else
             {
+                // XR mobile uses the static quality keywords, which never take the PCSS path
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
+                cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                 if (enabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, true);

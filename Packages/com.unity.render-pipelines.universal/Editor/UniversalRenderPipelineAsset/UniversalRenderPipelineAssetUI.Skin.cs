@@ -110,6 +110,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent conservativeEnclosingSphere = L10n.TextContent("Conservative Enclosing Sphere", "Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades. Disable this option only for compatibility purposes of existing projects created in previous Unity versions.", null, null);
 
             public static GUIContent softShadowsQuality = L10n.TextContent("Quality", "Default shadow quality setting for Lights.", null, null);
+            public static GUIContent mainLightShadowsPCSS = L10n.TextContent("PCSS (Main Light)", "If enabled, the main directional light uses Percentage-Closer Soft Shadows (PCSS), so the penumbra widens with the distance between the caster and the receiver. Only applies to a light whose resolved soft shadow quality is High.", null, null);
+            public static GUIContent additionalLightShadowsPCSS = L10n.TextContent("PCSS (Additional Lights)", "If enabled, shadow casting Spot and Point lights use Percentage-Closer Soft Shadows (PCSS), so the penumbra widens with the distance between the caster and the receiver. Only applies to a light whose resolved soft shadow quality is High. This costs more than the filtered soft shadows it replaces.", null, null);
             public static GUIContent[] softShadowsQualityAssetOptions =
             {
                 L10n.TextContent(nameof(SoftShadowQuality.Low), null, null, null),
@@ -162,6 +164,8 @@ namespace UnityEditor.Rendering.Universal
                 L10n.TextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ", null, null, null);
             public static GUIContent rendererUnsupportedAPIMessage =
                 L10n.TextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n", null, null, null);
+            public static GUIContent pcssEnabledBelowHighQuality =
+                L10n.TextContent("PCSS is enabled and still applies to lights whose own Soft Shadows Quality is High. Set Quality to High to change its settings.", null, null, null);
             public static GUIContent webGL2GpuResidentDrawerErrorMessage =
                 L10n.TextContent("GPU Resident Drawer is not supported with the WebGL2 Graphics API.", null, null, null);
             public static GUIContent brgShaderStrippingErrorMessage =

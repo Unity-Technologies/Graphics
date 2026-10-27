@@ -844,6 +844,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_AdditionalLightShadows(shader);
             TestStripUnusedFeatures_MixedLighting(shader);
             TestStripUnusedFeatures_SoftShadows(shader);
+            TestStripUnusedFeatures_PCSS(shader);
             TestStripUnusedFeatures_HDRGrading(shader);
             TestStripUnusedFeatures_UseFastSRGBLinearConversion(shader);
             TestStripUnusedFeatures_LightLayers(shader);
@@ -1428,6 +1429,41 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.SoftShadowsLow);
             helper.data.stripSoftShadowQualityLevels = true;
             helper.IsTrue(helper.stripper.StripUnusedFeatures_SoftShadowsQualityLevels(ref helper.data, ref helper.featureStripTool));
+        }
+
+        public void TestStripUnusedFeatures_PCSS(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // PCSS is only set with the per-light soft shadow keyword
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS | ShaderFeatures.SoftShadowsHigh);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadowsHigh };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // A dynamic soft shadow keyword resolves at runtime
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS };
+            TestHelper.s_DynamicKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_HDRGrading(Shader shader)

@@ -21,6 +21,20 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty useAdditionalDataProp { get; }                     // Does light use shadow bias settings defined in UniversalRP asset file?
         public SerializedProperty additionalLightsShadowResolutionTierProp { get; }  // Index of the AdditionalLights ShadowResolution Tier
         public SerializedProperty softShadowQualityProp { get; }                     // Per light soft shadow filtering quality.
+
+        // PCSS. The scale and sample counts apply to every light, Min Filter Size to spot and point lights, and the rest to the main directional light.
+        public SerializedProperty softShadowAngularDiameterProp { get; }
+        public SerializedProperty softShadowScaleProp { get; }
+        public SerializedProperty softShadowPCSSSampleQualityProp { get; }
+        public SerializedProperty softShadowBlockerSampleCountProp { get; }
+        public SerializedProperty softShadowFilterSampleCountProp { get; }
+        public SerializedProperty softShadowMaxPenumbraSizeProp { get; }
+        public SerializedProperty softShadowMaxSamplingDistanceProp { get; }
+        public SerializedProperty softShadowMinFilterSizeTexelsProp { get; }
+        public SerializedProperty softShadowMinFilterMaxAngularDiameterProp { get; }
+        public SerializedProperty softShadowBlockerSearchAngularDiameterProp { get; }
+        public SerializedProperty softShadowBlockerSamplingClumpExponentProp { get; }
+        public SerializedProperty softShadowMinFilterSizeProp { get; }
         public SerializedProperty lightCookieSizeProp { get; }                       // Multi dimensional light cookie size replacing `cookieSize` in legacy light.
         public SerializedProperty lightCookieOffsetProp { get; }                     // Multi dimensional light cookie offset.
 #if VOLUMETRIC_FOG
@@ -69,6 +83,18 @@ namespace UnityEditor.Rendering.Universal
             useAdditionalDataProp = serializedAdditionalDataObject.FindProperty("m_UsePipelineSettings");
             additionalLightsShadowResolutionTierProp = serializedAdditionalDataObject.FindProperty("m_AdditionalLightsShadowResolutionTier");
             softShadowQualityProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowQuality");
+            softShadowAngularDiameterProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowAngularDiameter");
+            softShadowScaleProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowScale");
+            softShadowPCSSSampleQualityProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowPCSSSampleQuality");
+            softShadowBlockerSampleCountProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowBlockerSampleCount");
+            softShadowFilterSampleCountProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowFilterSampleCount");
+            softShadowMaxPenumbraSizeProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowMaxPenumbraSize");
+            softShadowMaxSamplingDistanceProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowMaxSamplingDistance");
+            softShadowMinFilterSizeTexelsProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowMinFilterSizeTexels");
+            softShadowMinFilterMaxAngularDiameterProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowMinFilterMaxAngularDiameter");
+            softShadowBlockerSearchAngularDiameterProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowBlockerSearchAngularDiameter");
+            softShadowBlockerSamplingClumpExponentProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowBlockerSamplingClumpExponent");
+            softShadowMinFilterSizeProp = serializedAdditionalDataObject.FindProperty("m_SoftShadowMinFilterSize");
             lightCookieSizeProp = serializedAdditionalDataObject.FindProperty("m_LightCookieSize");
             lightCookieOffsetProp = serializedAdditionalDataObject.FindProperty("m_LightCookieOffset");
 #if VOLUMETRIC_FOG
