@@ -29,6 +29,7 @@ int _DebugValidationMode;
 // Lighting settings...
 int _DebugLightingMode;
 int _DebugLightingFeatureFlags;
+int _DebugShadowCachingForceState;
 
 half _DebugValidateAlbedoMinLuminance = 0.01;
 half _DebugValidateAlbedoMaxLuminance = 0.90;

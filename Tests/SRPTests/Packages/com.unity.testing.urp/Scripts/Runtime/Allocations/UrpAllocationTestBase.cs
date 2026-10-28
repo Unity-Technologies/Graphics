@@ -510,6 +510,35 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
             return MeasurePopulatedFrame(RenderingMode.Forward, 1f, DebugSceneOverrideMode.SolidWireframe);
         }
 
+#if URP_SHADOW_CACHING
+        protected IEnumerator MeasureFrameWithShadowCachingForceState()
+        {
+            SkipUnlessDebugShadersAreAvailable();
+
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+            var shadowCachingSettings = debugDisplaySettings.shadowCachingSettings;
+            var previousForceState = shadowCachingSettings.forceState;
+            try
+            {
+                shadowCachingSettings.forceState = ShadowCachingDebugState.None;
+                Assert.That(debugDisplaySettings.AreAnySettingsActive, Is.False,
+                    "Another Rendering Debugger setting is active, so the frame would not measure Force State alone.");
+
+                shadowCachingSettings.forceState = ShadowCachingDebugState.Cached;
+                Assert.That(debugDisplaySettings.AreAnySettingsActive, Is.True,
+                    "Force State did not turn the Rendering Debugger on, so the frame would not take the debug path.");
+
+                var frames = MeasurePopulatedFrame(RenderingMode.Forward, 1f, DebugSceneOverrideMode.None);
+                while (frames.MoveNext())
+                    yield return frames.Current;
+            }
+            finally
+            {
+                shadowCachingSettings.forceState = previousForceState;
+            }
+        }
+#endif
+
         /// <summary>
         /// A build without debug display variants logs a missing variant for every debug draw, and the
         /// logging is what a measurement would then be reporting. Gated on the setting that strips them

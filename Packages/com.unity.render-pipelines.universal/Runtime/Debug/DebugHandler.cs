@@ -47,6 +47,9 @@ namespace UnityEngine.Rendering.Universal
         // Lighting settings...
         static readonly int k_DebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
         static readonly int k_DebugLightingFeatureFlagsId = Shader.PropertyToID("_DebugLightingFeatureFlags");
+#if URP_SHADOW_CACHING
+        static readonly int k_DebugShadowCachingForceStateId = Shader.PropertyToID("_DebugShadowCachingForceState");
+#endif
 
         static readonly int k_DebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
         static readonly int k_DebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
@@ -113,15 +116,35 @@ namespace UnityEngine.Rendering.Universal
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
-            AreAnySettingsActive && (
-            m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
-            m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
-            m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
-            m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None ||
-            m_DebugDisplaySettings.renderingSettings.batchingTypeViewEnabled);
+            AreAnySettingsActive && IsModeUnsupportedForDeferred(
+                m_DebugDisplaySettings.lightingSettings,
+                m_DebugDisplaySettings.materialSettings,
+                m_DebugDisplaySettings.renderingSettings
+#if URP_SHADOW_CACHING
+                , m_DebugDisplaySettings.shadowCachingSettings
+#endif
+                );
+
+        internal static bool IsModeUnsupportedForDeferred(
+            DebugDisplaySettingsLighting lightingSettings,
+            DebugDisplaySettingsMaterial materialSettings,
+            DebugDisplaySettingsRendering renderingSettings
+#if URP_SHADOW_CACHING
+            , DebugDisplaySettingsShadowCaching shadowCachingSettings
+#endif
+            ) =>
+            lightingSettings.lightingDebugMode != DebugLightingMode.None ||
+            lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
+            renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
+            materialSettings.materialDebugMode != DebugMaterialMode.None ||
+            materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
+            materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
+            renderingSettings.mipInfoMode != DebugMipInfoMode.None ||
+            renderingSettings.batchingTypeViewEnabled
+#if URP_SHADOW_CACHING
+            || shadowCachingSettings.AreAnySettingsActive
+#endif
+            ;
 
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
@@ -498,7 +521,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        class DebugSetupPassData
+        internal class DebugSetupPassData
         {
             public bool isActiveForCamera;
 
@@ -508,6 +531,9 @@ namespace UnityEngine.Rendering.Universal
             public DebugDisplaySettingsMaterial  materialSettings;
             public DebugDisplaySettingsRendering renderingSettings;
             public DebugDisplaySettingsLighting  lightingSettings;
+#if URP_SHADOW_CACHING
+            public DebugDisplaySettingsShadowCaching shadowCachingSettings;
+#endif
         }
 
         DebugSetupPassData InitDebugSetupPassData(DebugSetupPassData passData, bool isPreviewCamera)
@@ -516,11 +542,14 @@ namespace UnityEngine.Rendering.Universal
             passData.materialSettings  = MaterialSettings;
             passData.renderingSettings = RenderingSettings;
             passData.lightingSettings  = LightingSettings;
+#if URP_SHADOW_CACHING
+            passData.shadowCachingSettings = m_DebugDisplaySettings.shadowCachingSettings;
+#endif
             return passData;
         }
 
         [Conditional("UNITY_ENABLE_CHECKS")]
-        static void Setup(RasterCommandBuffer cmd, DebugSetupPassData passData)
+        internal static void Setup(RasterCommandBuffer cmd, DebugSetupPassData passData)
         {
             if (passData.isActiveForCamera)
             {
@@ -549,6 +578,9 @@ namespace UnityEngine.Rendering.Universal
                 // Lighting settings...
                 cmd.SetGlobalFloat(k_DebugLightingModeId, (int)passData.lightingSettings.lightingDebugMode);
                 cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)passData.lightingSettings.lightingFeatureFlags);
+#if URP_SHADOW_CACHING
+                cmd.SetGlobalInteger(k_DebugShadowCachingForceStateId, (int)passData.shadowCachingSettings.forceState);
+#endif
 
                 // Set-up any other persistent properties...
                 cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
