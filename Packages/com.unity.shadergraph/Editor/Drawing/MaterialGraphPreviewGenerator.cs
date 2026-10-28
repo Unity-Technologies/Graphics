@@ -210,10 +210,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 null,
                 false);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var oldAllowPipes = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = allowSRP;
             m_Camera.Render();
             Unsupported.useScriptableRenderPipeline = oldAllowPipes;
+#pragma warning restore CS0618
 
             RenderTexture.active = previousRenderTexure;
 

@@ -1346,10 +1346,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
                     }
 
+#pragma warning disable CS0618 // Type or member is obsolete
                     var previousUseSRP = Unsupported.useScriptableRenderPipeline;
                     Unsupported.useScriptableRenderPipeline = (renderData == m_MasterRenderData);
                     m_SceneResources.camera.Render();
                     Unsupported.useScriptableRenderPipeline = previousUseSRP;
+#pragma warning restore CS0618
                 }
 
                 Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
@@ -1382,10 +1384,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SceneResources.camera.targetTexture = temp;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = true;
             m_SceneResources.camera.Render();
             Unsupported.useScriptableRenderPipeline = previousUseSRP;
+#pragma warning restore CS0618
 
             RenderTexture.ReleaseTemporary(temp);
 

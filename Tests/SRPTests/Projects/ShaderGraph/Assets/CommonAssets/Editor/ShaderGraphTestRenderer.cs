@@ -122,10 +122,12 @@ public class ShaderGraphTestRenderer
             probeAnchor: null,
             useLightProbes: false);
 
+#pragma warning disable CS0618 // Type or member is obsolete
         var previousUseSRP = Unsupported.useScriptableRenderPipeline;
         Unsupported.useScriptableRenderPipeline = useSRP;
         cam.Render();
         Unsupported.useScriptableRenderPipeline = previousUseSRP;
+#pragma warning restore CS0618
 
         RenderTexture.active = previousRenderTexture;
         ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
