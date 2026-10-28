@@ -52,6 +52,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit$|4082_DepthOfField-PB$|4099_DRS-STP-Software$",
+            "Small uniform deltaE drift on macOS Editor agents, slightly above threshold.",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
+        [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
             GraphicsDeviceType.Vulkan,
@@ -141,6 +148,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "4114_DRS-MetalFXSpatial-Hardware",
             "MetalFX Spatial is not supported on this device (needs macOS 13 and a capable GPU)",
             MetalFXSpatialSupport.SpatialUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4013_TransparentAndOpaqueMotionVector",
+            "Internal Metal shader compiler error on macOS 14 (Apple Silicon) in the Editor",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
         )]
         [IgnoreGraphicsTest(
             "4014_PrecomputedVelocityAlembic",

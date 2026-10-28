@@ -29,7 +29,7 @@ HDRP is compatible with the following platforms:
 - Microsoft
   - Xbox One
   - Xbox Series X and Xbox Series S
-- MacOS (minimum version 10.13) using Metal graphics
+- macOS (minimum version 14) using Metal graphics
 - Linux and Windows platforms with Vulkan
 
 **Note**: HDRP only works on these platforms if the device you use supports Compute Shaders. HDRP doesn't support OpenGL or OpenGL ES devices. On Linux, Vulkan might not be installed by default. In that case you need to install it manually to run HDRP.
