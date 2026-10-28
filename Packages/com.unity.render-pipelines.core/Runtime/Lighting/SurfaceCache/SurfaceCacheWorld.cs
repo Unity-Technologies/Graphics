@@ -510,12 +510,12 @@ namespace UnityEngine.Rendering
 
         public void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader)
         {
-            Init(ctx, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader, GeometryPoolDesc.NewDefault());
+            Init(ctx, worldResources, emissiveTriangleAdditionShader, emissiveTriangleRemovalShader, GeometryPoolDesc.NewDefault(), SystemInfo.maxTextureArraySlices);
         }
 
-        internal void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader, in GeometryPoolDesc geometryPoolDesc)
+        internal void Init(RayTracingContext ctx, WorldResourceSet worldResources, ComputeShader emissiveTriangleAdditionShader, ComputeShader emissiveTriangleRemovalShader, in GeometryPoolDesc geometryPoolDesc, int materialAtlasMaxSliceCount)
         {
-            _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie);
+            _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie, materialAtlasMaxSliceCount);
 
             var options = new AccelerationStructureOptions()
             {
@@ -564,6 +564,11 @@ namespace UnityEngine.Rendering
         internal int GetMaterialCount()
         {
             return _materialHandleSet.Count;
+        }
+
+        internal void GetMaterialAtlasUsage(out AtlasUsage albedo, out AtlasUsage emission, out AtlasUsage transmission)
+        {
+            _materialPool.GetAtlasUsage(out albedo, out emission, out transmission);
         }
 
         internal int GetTrackedEmissiveTriangleCount()
@@ -666,7 +671,11 @@ namespace UnityEngine.Rendering
         public MaterialHandle AddMaterial(in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             MaterialHandle handle = _materialHandleSet.Add();
-            _materialPool.AddMaterial(handle.Value, in material, albedoAndEmissionUVChannel);
+            if (!_materialPool.AddMaterial(handle.Value, in material, albedoAndEmissionUVChannel))
+            {
+                _materialHandleSet.Remove(handle);
+                return MaterialHandle.Invalid;
+            }
 
             Debug.Assert(!_trackedMaterials.ContainsKey(handle), "Material handle is already tracked.");
             _trackedMaterials.Add(handle, new MaterialInfo
@@ -677,9 +686,10 @@ namespace UnityEngine.Rendering
             return handle;
         }
 
-        public void UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public bool UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
-            _materialPool.UpdateMaterial(materialHandle.Value, in material, albedoAndEmissionUVChannel);
+            if (!_materialPool.UpdateMaterial(materialHandle.Value, in material, albedoAndEmissionUVChannel))
+                return false;
 
             // If a material goes from non-emissive to emissive or vice versa,
             // we need to update any instances referencing the material.
@@ -699,6 +709,8 @@ namespace UnityEngine.Rendering
                 }
                 _instancesToRetrack.Clear();
             }
+
+            return true;
         }
 
         void RetrackInstance(InstanceHandle instanceHandle)
@@ -723,12 +735,15 @@ namespace UnityEngine.Rendering
             Debug.Assert(mesh.subMeshCount == materials.Length);
             Debug.Assert(mesh.subMeshCount == masks.Length);
 
+            Span<uint> validMasks = stackalloc uint[mesh.subMeshCount];
             Span<uint> materialIndices = stackalloc uint[mesh.subMeshCount];
             Span<bool> isOpaque = stackalloc bool[mesh.subMeshCount];
             for (int i = 0; i < materials.Length; ++i)
             {
                 if (materials[i] == MaterialHandle.Invalid)
                     continue;
+
+                validMasks[i] = masks[i];
 
                 bool isTransmissive = false;
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out isTransmissive);
@@ -744,7 +759,7 @@ namespace UnityEngine.Rendering
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, 0);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, validMasks, materialIndices, isOpaque, 0);
             TrackInstance(instance, subMeshTriangleCounts, materials);
             return instance;
         }
@@ -790,13 +805,19 @@ namespace UnityEngine.Rendering
             Span<uint> materialIndices = stackalloc uint[materials.Length];
             for (int i = 0; i < materials.Length; ++i)
             {
+                if (materials[i] == MaterialHandle.Invalid)
+                    continue;
+
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out bool isTransmissive);
             }
 
             _rayTracingAccelerationStructure.UpdateInstanceMaterialIDs(instance.Value, materialIndices);
 
-            Debug.Assert(_trackedInstances.ContainsKey(instance), "Cannot update an instance that is not tracked.");
-            int[] trackedTriangleCounts = _trackedInstances[instance].SubMeshTriangleCounts;
+            // Terrain instances are not tracked.
+            if (!_trackedInstances.TryGetValue(instance, out var trackedInfo))
+                return;
+
+            int[] trackedTriangleCounts = trackedInfo.SubMeshTriangleCounts;
             Span<int> copiedTriangleCounts = stackalloc int[trackedTriangleCounts.Length];
             trackedTriangleCounts.CopyTo(copiedTriangleCounts);
             UntrackInstance(instance);
@@ -817,8 +838,7 @@ namespace UnityEngine.Rendering
             int subMeshCount = Math.Min(subMeshTriangleCounts.Length, materialHandles.Length);
             for (int subMeshIdx = 0; subMeshIdx < subMeshCount; subMeshIdx++)
             {
-                Debug.Assert(materialHandles[subMeshIdx] != MaterialHandle.Invalid, "Material referenced by instance is invalid");
-                if (!_materialPool.IsEmissive(materialHandles[subMeshIdx].Value, out _))
+                if (materialHandles[subMeshIdx] == MaterialHandle.Invalid || !_materialPool.IsEmissive(materialHandles[subMeshIdx].Value, out _))
                     continue;
 
                 info.SubMeshEmissiveMask[subMeshIdx] = true;
@@ -828,6 +848,9 @@ namespace UnityEngine.Rendering
 
             foreach (var materialHandle in materialHandles)
             {
+                if (materialHandle == MaterialHandle.Invalid)
+                    continue;
+
                 Debug.Assert(_trackedMaterials.ContainsKey(materialHandle), "Cannot reference an untracked material.");
                 _trackedMaterials[materialHandle].Instances.Add(instanceHandle);
             }
@@ -840,6 +863,9 @@ namespace UnityEngine.Rendering
 
             foreach (var materialHandle in info.SubMeshMaterials)
             {
+                if (materialHandle == MaterialHandle.Invalid)
+                    continue;
+
                 Debug.Assert(_trackedMaterials.ContainsKey(materialHandle), "Instance references a material that is not tracked.");
                 _trackedMaterials[materialHandle].Instances.Remove(instanceHandle);
             }

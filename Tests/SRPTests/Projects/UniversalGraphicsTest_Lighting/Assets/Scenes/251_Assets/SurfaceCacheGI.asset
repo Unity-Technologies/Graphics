@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: SurfaceCacheGIRendererFeature
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.SurfaceCacheGIRendererFeature
   m_Active: 1
+  m_MaterialResolution: 256
+  m_Version: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

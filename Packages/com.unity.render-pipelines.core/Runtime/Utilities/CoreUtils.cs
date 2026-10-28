@@ -23,6 +23,21 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CoreUtils
     {
+        internal static string FormatMemorySize(long bytes)
+        {
+            const long KB = 1024;
+            const long MB = KB * 1024;
+            const long GB = MB * 1024;
+
+            if (bytes >= GB)
+                return $"{bytes / (double)GB:F1} GB";
+            if (bytes >= MB)
+                return $"{bytes / (double)MB:F1} MB";
+            if (bytes >= KB)
+                return $"{bytes / (double)KB:F1} KB";
+            return $"{bytes} B";
+        }
+
 #if UNITY_EDITOR
         static CoreUtils()
         {

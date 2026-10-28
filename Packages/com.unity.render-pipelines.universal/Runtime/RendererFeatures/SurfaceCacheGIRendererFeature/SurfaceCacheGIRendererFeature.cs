@@ -97,8 +97,26 @@ namespace UnityEngine.Rendering.Universal
     /// Use the <see cref="SurfaceCacheGIVolumeOverride"/> volume component to control the effect.
     /// </summary>
     [DisallowMultipleRendererFeature("Surface Cache Global Illumination")]
-    public class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
+    public partial class SurfaceCacheGIRendererFeature : ScriptableRendererFeature
     {
+        internal enum MaterialResolution
+        {
+            VeryLow = 16,
+            Low = 32,
+            Medium = 64,
+            High = 128,
+            VeryHigh = 256,
+        }
+
+        [SerializeField]
+        MaterialResolution m_MaterialResolution = MaterialResolution.Medium;
+
+        internal MaterialResolution materialResolution
+        {
+            get => m_MaterialResolution;
+            set => m_MaterialResolution = value;
+        }
+
         internal static readonly string k_StaticBatchingErrorMesssage = "Surface Cache GI cannot run because it is incompatible with Static Batching. You can disable the option in the Player Settings.";
         internal static readonly string k_MeshBufferTargetErrorMessage = "Surface Cache GI requires access to raw mesh buffers. Set Default Mesh Buffer Target to Raw in the Graphics Settings.";
 
@@ -351,6 +369,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal SurfaceCacheWorld World => _world;
             internal uint RenderingLayerMask { get; set; }
+            internal int MaterialResolution { get; set; }
 
             public SurfaceCacheWorldPass(
                 RayTracingContext rtContext,
@@ -392,7 +411,8 @@ namespace UnityEngine.Rendering.Universal
                             RenderSettings.ambientIntensity,
                             _conformToUnityGIFormat,
                             RenderingLayerMask,
-                            _world);
+                            _world,
+                            MaterialResolution);
                     }
                     catch
                     {
@@ -1336,6 +1356,13 @@ namespace UnityEngine.Rendering.Universal
         internal int ActiveCacheCount => _cameraStates.Count;
         internal uint WorldRenderingLayerMask => _worldPass.RenderingLayerMask;
 
+        internal void GetMaterialAtlasUsage(out int materialCount, out AtlasUsage albedo, out AtlasUsage emission, out AtlasUsage transmission)
+        {
+            Debug.Assert(IsValidForDebugging(), "Material atlas usage is only available once the feature's resources are created.");
+            materialCount = _worldPass.World.GetMaterialCount();
+            _worldPass.World.GetMaterialAtlasUsage(out albedo, out emission, out transmission);
+        }
+
         // Historically, GI systems in Unity have, for historical reasons, 1) multiplied punctual light intensity
         // inputs with PI, and 2) divided all GI output with PI. To match this, Surface Cache for now does
         // something mathematically equivalent: It divides environment light and triangle emission by PI.
@@ -1573,6 +1600,7 @@ namespace UnityEngine.Rendering.Universal
                     combinedMask |= kvp.Value.RenderingLayerMask;
 
                 _worldPass.RenderingLayerMask = combinedMask;
+                _worldPass.MaterialResolution = (int)m_MaterialResolution;
                 renderer.EnqueuePass(_worldPass);
             }
 

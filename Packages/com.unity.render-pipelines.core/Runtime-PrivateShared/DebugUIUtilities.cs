@@ -15,5 +15,7 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
             }
             return null;
         }
+
+        internal static string FormatMemorySize(long bytes) => CoreUtils.FormatMemorySize(bytes);
     }
 }

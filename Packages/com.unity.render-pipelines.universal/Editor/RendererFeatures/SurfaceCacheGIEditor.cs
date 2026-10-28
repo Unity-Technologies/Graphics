@@ -11,6 +11,12 @@ namespace UnityEditor.Rendering.Universal
     {
         private const string k_UnsupportedRayTracingBackendMessage = "Surface Cache GI will not run on this device because it does not support hardware ray tracing or compute shaders.";
 
+        private static class Styles
+        {
+            public static readonly GUIContent materialResolution = L10n.TextContent("Material Resolution",
+                "Resolution at which each material's albedo, emission and transmission are captured for Surface Cache GI. Lower values fit more materials into the GPU texture atlas; GI is low-frequency, so Medium is usually indistinguishable from Very High.", null, null);
+        }
+
         private static bool SceneHasSurfaceCacheGIVolume()
         {
             Volume[] volumes = Object.FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
@@ -58,6 +64,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox("Many Surface Cache settings are controlled via the Volume system. Add a 'Surface Cache Global Illumination' volume override to your scene to adjust these settings per-scene.", MessageType.Info);
             }
+
+            serializedObject.Update();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_MaterialResolution"), Styles.materialResolution);
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

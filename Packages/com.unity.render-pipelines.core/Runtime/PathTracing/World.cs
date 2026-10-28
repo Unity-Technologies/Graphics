@@ -335,7 +335,12 @@ namespace UnityEngine.PathTracing.Core
 
         public void Init(RayTracingContext ctx, WorldResourceSet worldResources)
         {
-            _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie);
+            Init(ctx, worldResources, SystemInfo.maxTextureArraySlices);
+        }
+
+        internal void Init(RayTracingContext ctx, WorldResourceSet worldResources, int materialAtlasMaxSliceCount)
+        {
+            _materialPool = new MaterialPool(worldResources.SetAlphaChannelShader, worldResources.BlitCubemap, worldResources.BlitGrayScaleCookie, materialAtlasMaxSliceCount);
 
             var options = new AccelerationStructureOptions()
             {
@@ -501,27 +506,17 @@ namespace UnityEngine.PathTracing.Core
         public MaterialHandle AddMaterial(in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             MaterialHandle handle = _materialHandleSet.Add();
-            try
+            if (!_materialPool.AddMaterial(handle.Value, in material, albedoAndEmissionUVChannel))
             {
-                _materialPool.AddMaterial(handle.Value, in material, albedoAndEmissionUVChannel);
-            }
-            catch (Exception e)
-            {
-                LogException("failed to add material", e, handle.Value);
+                _materialHandleSet.Remove(handle);
+                return MaterialHandle.Invalid;
             }
             return handle;
         }
 
-        public void UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public bool UpdateMaterial(MaterialHandle materialHandle, in MaterialPool.MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
-            try
-            {
-                _materialPool.UpdateMaterial(materialHandle.Value, in material, albedoAndEmissionUVChannel);
-            }
-            catch (Exception e)
-            {
-                LogException("failed to modify material", e, materialHandle.Value);
-            }
+            return _materialPool.UpdateMaterial(materialHandle.Value, in material, albedoAndEmissionUVChannel);
         }
 
         private void LogException(string message, Exception e, Object obj)
@@ -554,6 +549,7 @@ namespace UnityEngine.PathTracing.Core
             Debug.Assert(mesh.subMeshCount == materials.Length);
             Debug.Assert(mesh.subMeshCount == masks.Length);
 
+            Span<uint> validMasks = stackalloc uint[mesh.subMeshCount];
             Span<uint> materialIndices = stackalloc uint[mesh.subMeshCount];
             Span<bool> isOpaque = stackalloc bool[mesh.subMeshCount];
             for (int i = 0; i < materials.Length; ++i)
@@ -561,13 +557,14 @@ namespace UnityEngine.PathTracing.Core
                 if (materials[i] == MaterialHandle.Invalid)
                     continue;
 
+                validMasks[i] = masks[i];
                 bool isTransmissive = false;
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out isTransmissive);
                 isOpaque[i] = !isTransmissive;
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, masks, materialIndices, isOpaque, renderingLayerMask);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, validMasks, materialIndices, isOpaque, renderingLayerMask);
 
             if (enableEmissiveSampling && !ProcessEmissiveMeshes(instance, mesh, bounds, materials, isStatic, _rayTracingAccelerationStructure, _materialPool, filter, _lightState.MeshLights, _subMeshIndices))
                 LogError($"Failed to process emissive triangles in mesh {mesh.name}.");
@@ -589,6 +586,8 @@ namespace UnityEngine.PathTracing.Core
             uint materialIndex = 0;
             if (material != MaterialHandle.Invalid)
                 _materialPool.GetMaterialInfo(material.Value, out materialIndex, out _);
+            else
+                mask = 0;
 
             InstanceHandle instance = _instanceHandleSet.Add();
             _rayTracingAccelerationStructure.AddTerrainInstance(
@@ -625,6 +624,9 @@ namespace UnityEngine.PathTracing.Core
             Span<uint> materialIndices = stackalloc uint[materials.Length];
             for (int i = 0; i < materials.Length; ++i)
             {
+                if (materials[i] == MaterialHandle.Invalid)
+                    continue;
+
                 _materialPool.GetMaterialInfo(materials[i].Value, out materialIndices[i], out bool isTransmissive);
             }
 
@@ -946,7 +948,7 @@ namespace UnityEngine.PathTracing.Core
                     newLight.attenuation.w = -cosSpotOuterHalfAngle * newLight.attenuation.z;
                 }
 
-                newLight.cookieIndex = _materialPool.AddCookieTexture(light.CookieTexture);
+                _materialPool.TryAddCookieTexture(light.CookieTexture, out newLight.cookieIndex);
 
                 _lightState.LightHandleToLightListEntry[lightHandles[i]] = newLight;
             }

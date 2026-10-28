@@ -72,9 +72,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
             Color ambientSkycolor, Color ambientEquatorColor, Color ambientGroundColor, float materialEnvIntensityMultiplier,
-            bool divideEnvIntensityByPI, uint renderingLayerMaskFilter, SurfaceCacheWorld world)
+            bool divideEnvIntensityByPI, uint renderingLayerMaskFilter, SurfaceCacheWorld world, int materialResolution)
         {
             using var _ = k_WorldAdapterUpdateMarker.Auto();
+
+            bool resolutionChanged = _sharedMaterials.SetResolution(materialResolution, world);
 
             bool filterChanged = renderingLayerMaskFilter != _renderingLayerMaskFilter;
             _renderingLayerMaskFilter = renderingLayerMaskFilter;
@@ -90,17 +92,19 @@ namespace UnityEngine.Rendering.Universal
 
             // A change to the global rendering layer mask filter is not reported as a per-object change by the
             // ObjectDispatcher, so re-evaluate every known instance to add the newly-included and remove the
-            // newly-excluded ones. Filter changes are rare (authoring), so this rescan is acceptable; the common
+            // newly-excluded ones. A material resolution change can make room for materials that were rejected, which
+            // re-evaluation retries. Both changes are rare (authoring), so this rescan is acceptable; the common
             // unchanged path skips it entirely.
-            if (filterChanged)
+            if (filterChanged || resolutionChanged)
             {
                 _meshRenderers.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
                 _entityInstances.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
 #if ENABLE_TERRAIN_MODULE
                 _terrains.ReevaluateAll(_sharedMaterials, world, _renderingLayerMaskFilter);
 #endif
-                _lights.ReevaluateAll(world, _renderingLayerMaskFilter);
             }
+            if (filterChanged)
+                _lights.ReevaluateAll(world, _renderingLayerMaskFilter);
 
             UpdateMaterials(changes.MaterialChangedList, world);
             UpdateEnvironment(
@@ -687,7 +691,8 @@ namespace UnityEngine.Rendering.Universal
                 ResolveMaterialIds(inputMats, inputMatIds);
 
                 bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
-                if (materialsChanged)
+                bool hasRejectedMaterials = Array.IndexOf(_acquiredMaterialIds[slot], EntityId.None) >= 0;
+                if (materialsChanged || hasRejectedMaterials)
                 {
                     Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
                     Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
@@ -735,6 +740,12 @@ namespace UnityEngine.Rendering.Universal
                     var acquiredMatEntityId = acquiredMat.GetEntityId();
                     acquiredMaterialHandles[i] = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
                     acquiredMaterialEntityIds[i] = acquiredMatEntityId;
+
+                    if (acquiredMaterialHandles[i] == MaterialHandle.Invalid)
+                    {
+                        masks[i] = 0u;
+                        acquiredMaterialEntityIds[i] = EntityId.None;
+                    }
                 }
             }
 
@@ -1066,6 +1077,8 @@ namespace UnityEngine.Rendering.Universal
                 EntityId inputMatEntityId = inputMaterial != null ? inputMaterial.GetEntityId() : EntityId.None;
                 ResolveMaterialHandleAndMask(terrain, inputMaterial, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
                     out EntityId acquiredMatEntityId, out MaterialHandle matHandle, out uint mask);
+                if (matHandle == MaterialHandle.Invalid)
+                    return;
 
                 _handles[slot] = world.AddInstance(terrain, matHandle, mask, terrain.transform.localToWorldMatrix);
                 _inputMaterialIds[slot] = inputMatEntityId;
@@ -1091,7 +1104,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var inputMat = terrain.splatBaseMaterial;
                 var inputMatEntityId = inputMat != null ? inputMat.GetEntityId() : EntityId.None;
-                if (inputMatEntityId != _inputMaterialIds[slot])
+                if (inputMatEntityId != _inputMaterialIds[slot] || _acquiredMaterialIds[slot] == EntityId.None)
                 {
                     ResolveMaterialHandleAndMask(terrain, inputMat, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
                         out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask);
@@ -1156,6 +1169,11 @@ namespace UnityEngine.Rendering.Universal
                     acquiredMat = inputMat;
                 }
                 acquiredMatHandle = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
+                if (acquiredMatHandle == MaterialHandle.Invalid)
+                {
+                    mask = 0u;
+                    acquiredMatEntityId = EntityId.None;
+                }
             }
         }
 #endif
@@ -1311,7 +1329,6 @@ namespace UnityEngine.Rendering.Universal
                 public Material Material;
                 public MaterialHandle WorldHandle;
                 public uint RefCount;
-                public MaterialPool.MaterialDescriptor Descriptor;
             }
 
             const EmissionMode kEmissionMode = EmissionMode.Realtime;
@@ -1320,11 +1337,44 @@ namespace UnityEngine.Rendering.Universal
             readonly Dictionary<EntityId, Entry> _entries = new();
             readonly HashSet<EntityId> _pendingMetaPassEvals = new();
             readonly HashSet<EntityId> _materialsMissingMetaPass = new();
+            readonly HashSet<EntityId> _reportedRejections = new();
+            readonly List<EntityId> _idScratch = new();
             readonly Material _fallbackMaterial;
+            int _resolution = 256;
 
             public SharedMaterialSet(Material fallbackMaterial)
             {
                 _fallbackMaterial = fallbackMaterial;
+            }
+
+            public bool SetResolution(int resolution, SurfaceCacheWorld world)
+            {
+                if (resolution == _resolution)
+                    return false;
+
+                _resolution = resolution;
+                _reportedRejections.Clear();
+
+                _idScratch.Clear();
+                _idScratch.AddRange(_entries.Keys);
+                foreach (var matEntityId in _idScratch)
+                {
+                    if (_pendingMetaPassEvals.Contains(matEntityId))
+                        continue;
+
+                    var entry = _entries[matEntityId];
+                    if (entry.Material == null)
+                        continue;
+
+#if UNITY_EDITOR
+                    var descriptor = entry.Material.FindPass("Meta") == -1 ? GetFallbackMaterialDescriptor() : CreateDescriptor(entry.Material);
+#else
+                    var descriptor = CreateDescriptor(entry.Material);
+#endif
+                    UpdateInWorld(matEntityId, entry, descriptor, world);
+                }
+                _idScratch.Clear();
+                return true;
             }
 
             public MaterialHandle Acquire(EntityId matEntityId, Material mat, SurfaceCacheWorld world)
@@ -1343,7 +1393,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                     if (UnityEditor.ShaderUtil.IsPassCompiled(mat, metaPassIndex))
                     {
-                        descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(mat, kEmissionMode);
+                        descriptor = CreateDescriptor(mat);
                     }
                     else
                     {
@@ -1352,15 +1402,22 @@ namespace UnityEngine.Rendering.Universal
                         UnityEditor.ShaderUtil.CompilePass(mat, metaPassIndex);
                     }
 #else
-                    descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(mat, EmissionMode.Realtime);
+                    descriptor = CreateDescriptor(mat);
 #endif
 
                     var newHandle = world.AddMaterial(descriptor, kUVChannel);
+                    DestroyDescriptorTextures(descriptor);
+                    if (newHandle == MaterialHandle.Invalid)
+                    {
+                        _pendingMetaPassEvals.Remove(matEntityId);
+                        ReportRejection(matEntityId, mat);
+                        return MaterialHandle.Invalid;
+                    }
+
                     var newEntry = new Entry
                     {
                         RefCount = 1,
                         WorldHandle = newHandle,
-                        Descriptor = descriptor,
                         Material = mat
                     };
                     _entries[matEntityId] = newEntry;
@@ -1381,10 +1438,7 @@ namespace UnityEngine.Rendering.Universal
                         Debug.Assert(metaPassIndex != -1);
                         if (UnityEditor.ShaderUtil.IsPassCompiled(entry.Material, metaPassIndex))
                         {
-                            DestroyDescriptorTextures(entry.Descriptor);
-                            entry.Descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(entry.Material, kEmissionMode);
-                            world.UpdateMaterial(entry.WorldHandle, entry.Descriptor, kUVChannel);
-                            _entries[matEntityId] = entry;
+                            UpdateInWorld(matEntityId, entry, CreateDescriptor(entry.Material), world);
                             evaluatedMaterials.Add(matEntityId);
                         }
                     }
@@ -1408,12 +1462,7 @@ namespace UnityEngine.Rendering.Universal
                     var metaPassIndex = material.FindPass("Meta");
                     if (metaPassIndex == -1)
                     {
-                        var fallbackEntry = _entries[matEntityId];
-                        DestroyDescriptorTextures(fallbackEntry.Descriptor);
-                        fallbackEntry.Descriptor = GetFallbackMaterialDescriptor();
-                        _entries[matEntityId] = fallbackEntry;
-
-                        world.UpdateMaterial(fallbackEntry.WorldHandle, in fallbackEntry.Descriptor, kUVChannel);
+                        UpdateInWorld(matEntityId, _entries[matEntityId], GetFallbackMaterialDescriptor(), world);
                         return;
                     }
                     else if (!UnityEditor.ShaderUtil.IsPassCompiled(material, metaPassIndex))
@@ -1424,12 +1473,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 #endif
 
-                    var entry = _entries[matEntityId];
-                    DestroyDescriptorTextures(entry.Descriptor);
-                    entry.Descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material, kEmissionMode);
-                    _entries[matEntityId] = entry;
-
-                    world.UpdateMaterial(entry.WorldHandle, in entry.Descriptor, kUVChannel);
+                    UpdateInWorld(matEntityId, _entries[matEntityId], CreateDescriptor(material), world);
                 }
             }
 
@@ -1450,6 +1494,9 @@ namespace UnityEngine.Rendering.Universal
 
             public void Release(EntityId matEntityId, SurfaceCacheWorld world)
             {
+                if (matEntityId == EntityId.None)
+                    return;
+
                 Debug.Assert(_entries.ContainsKey(matEntityId));
                 var entry = _entries[matEntityId];
 
@@ -1476,16 +1523,35 @@ namespace UnityEngine.Rendering.Universal
                     RemoveHandle(id, world);
             }
 
+            MaterialPool.MaterialDescriptor CreateDescriptor(Material material)
+            {
+                return MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material, kEmissionMode, _resolution);
+            }
+
 #if UNITY_EDITOR
             MaterialPool.MaterialDescriptor GetFallbackMaterialDescriptor()
             {
                 var oldAllowAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
                 UnityEditor.ShaderUtil.allowAsyncCompilation = false;
-                var descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(_fallbackMaterial, kEmissionMode);
+                var descriptor = CreateDescriptor(_fallbackMaterial);
                 UnityEditor.ShaderUtil.allowAsyncCompilation = oldAllowAsyncCompilation;
                 return descriptor;
             }
 #endif
+
+            void UpdateInWorld(EntityId matEntityId, in Entry entry, in MaterialPool.MaterialDescriptor descriptor, SurfaceCacheWorld world)
+            {
+                bool updated = world.UpdateMaterial(entry.WorldHandle, in descriptor, kUVChannel);
+                DestroyDescriptorTextures(descriptor);
+                if (!updated)
+                    ReportRejection(matEntityId, entry.Material);
+            }
+
+            void ReportRejection(EntityId matEntityId, Material mat)
+            {
+                if (_reportedRejections.Add(matEntityId))
+                    Debug.LogError($"Surface Cache GI: material '{mat.name}' could not be added because the material texture atlas is full ({SystemInfo.maxTextureArraySlices} slices). Lower 'Material Resolution' on the Surface Cache GI renderer feature or share materials between objects.", mat);
+            }
 
             void RemoveHandle(EntityId matEntityId, SurfaceCacheWorld world)
             {
@@ -1493,7 +1559,6 @@ namespace UnityEngine.Rendering.Universal
                 var entry = _entries[matEntityId];
                 world.RemoveMaterial(entry.WorldHandle);
                 _entries.Remove(matEntityId);
-                DestroyDescriptorTextures(entry.Descriptor);
             }
 
             static void DestroyDescriptorTextures(in MaterialPool.MaterialDescriptor desc)
