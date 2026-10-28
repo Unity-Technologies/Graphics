@@ -174,15 +174,18 @@ namespace UnityEngine.Rendering.Universal
             m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
 
             // Bloom & Screen Space Lens Flares
+            float? bloomIntensityOverride = null;
             {
                 var volumeStack = VolumeManager.instance.stack;
                 var bloom = volumeStack.GetComponent<Bloom>();
                 var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
 
-                // NOTE: Even if bloom is not active we might need to run it for the texture if the lensFlareScreenSpace pass is active.
-                if (!bloom.IsActive() && LensFlareScreenSpacePostProcessPass.IsActive(volumeStack, frameData))
-                    bloom.intensity = lensFlareScreenSpace.intensity;   // Set Bloom Active to true.
+                // Screen space lens flares use a bloom mip as their source, so bloom runs as their dependency and is composited at the flare intensity.
+                bool bloomRequiredByFlares = !bloom.IsActive() && LensFlareScreenSpacePostProcessPass.IsActive(volumeStack, frameData);
+                if (bloomRequiredByFlares)
+                    bloomIntensityOverride = lensFlareScreenSpace.intensity.value;
 
+                m_BloomPass.Setup(bloomRequiredByFlares);
                 m_BloomPass.RecordRenderGraph(renderGraph, frameData);
 
                 // We need to take into account how many valid mips the bloom pass produced.
@@ -228,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded;
-            m_UberPass.Setup(ditherTexture, filteringOperation, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI);
+            m_UberPass.Setup(ditherTexture, filteringOperation, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI, bloomIntensityOverride);
             m_UberPass.RecordRenderGraph(renderGraph, frameData);
         }
 
