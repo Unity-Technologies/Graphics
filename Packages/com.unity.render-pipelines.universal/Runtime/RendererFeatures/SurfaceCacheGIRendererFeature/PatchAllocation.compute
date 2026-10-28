@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 #pragma kernel AllocateMono DISABLE_TEXTURE2D_X_ARRAY
 #pragma kernel AllocateSinglePassStereoInstancing
+#pragma multi_compile _ _EXPOSURE
 
 #define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
 #define PATCH_UTIL_USE_RW_CELL_PATCH_INDEX_BUFFER
@@ -12,7 +13,9 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
 
+Texture2D<float2> _ExposureMultiplier;
 RWStructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
@@ -188,7 +191,11 @@ void Allocate(uint2 lowResPixelPos)
                                 seedLowResPixelPos);
 
                             if (PatchUtil::IsValid(irradianceSeed))
+                            {
+                                // Screen irradiances are pre-exposed, patch irradiances are not.
+                                SphericalHarmonics::MulMut(irradianceSeed, GetInvPreExposureMultiplier(_ExposureMultiplier));
                                 patchUpdateCount = PatchUtil::updateMax / 2;
+                            }
                         }
                     }
                 }
