@@ -1249,36 +1249,42 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Tells the pipeline this camera needs the real back buffer (the OS surface, not
-        // resourceData.backBuffer) multisampled. The pipeline keeps it single-sampled on frames where no
-        // camera needs MSAA, to save bandwidth.
+        // Tells the pipeline this camera needs its display target multisampled: the real back buffer (the OS
+        // surface, not resourceData.backBuffer), or the XR eye textures for XR cameras. The pipeline keeps it
+        // single-sampled on frames where no camera needs MSAA, to save bandwidth.
         //
-        // Contract: any renderer that renders multisampled content directly into the real back buffer must
+        // Contract: any renderer that renders multisampled content directly into the display target must
         // call this while rendering, or the pipeline may request a single-sampled surface and that content
         // is silently rendered without MSAA.
-        private protected void ReportRealBackbufferMSAA(UniversalCameraData cameraData, bool requiresIntermediateAttachments)
+        private protected void ReportDisplayTargetMSAA(UniversalCameraData cameraData, bool requiresIntermediateAttachments)
         {
-            if (NeedsRealBackbufferMSAA(cameraData, this, requiresIntermediateAttachments))
-                (RenderPipelineManager.currentPipeline as UniversalRenderPipeline)?.RequireRealBackbufferMSAA();
+            if (NeedsDisplayTargetMSAA(cameraData, this, requiresIntermediateAttachments))
+            {
+                var pipeline = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                {
+                    pipeline?.RequireXRDisplayMSAA();
+                    return;
+                }
+#endif
+                pipeline?.RequireRealBackbufferMSAA();
+            }
         }
 
-        // True when this camera renders multisampled content into the real back buffer, so the surface must
-        // be multisampled. The tile-only case is the subtle one: there the back buffer shares a native render
-        // pass with the MSAA intermediate attachments, so it must match their sample count even though it
-        // isn't rendered to directly.
-        static bool NeedsRealBackbufferMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer, bool requiresIntermediateAttachments)
+        // True when this camera renders multisampled content into its display target, so the surface must
+        // be multisampled. The tile-only case is subtle: there the back buffer shares a native render pass with the
+        // MSAA intermediate attachments, so it must match their sample count even though it isn't rendered to directly.
+        // Tile-only can still request MSAA when Deferred doesn't support it so that the fallback to Forward triggers correctly.
+        static bool NeedsDisplayTargetMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer, bool requiresIntermediateAttachments)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                return false;
-#endif
-            if (cameraData.targetTexture != null)
-                return false;
-            if (!(renderer.supportedRenderingFeatures.msaa && cameraData.camera.allowMSAA))
+            if (cameraData.targetTexture != null || !cameraData.camera.allowMSAA)
                 return false;
 
-            bool tileOnlyMode = renderer is UniversalRenderer { useTileOnlyMode: true };
-            return tileOnlyMode || !requiresIntermediateAttachments;
+            if (renderer is UniversalRenderer { useTileOnlyMode: true })
+                return true;
+
+            return renderer.supportedRenderingFeatures.msaa && !requiresIntermediateAttachments;
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

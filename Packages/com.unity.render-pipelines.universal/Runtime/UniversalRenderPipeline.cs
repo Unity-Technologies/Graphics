@@ -290,13 +290,39 @@ namespace UnityEngine.Rendering.Universal
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
-        // Set by any camera that needs the real back buffer multisampled; one camera keeps it on for the
-        // whole frame. Reset and consumed only in Render() so it can never be read stale.
-        private bool m_FrameNeedsRealBackbufferMSAA;
+        struct DisplayMSAARequest
+        {
+            // Set by any camera that needs the surface multisampled; one camera keeps it on for the
+            // whole frame. Reset and consumed only in Render() so it can never be read stale.
+            bool m_NeededThisFrame;
 
-        // Hysteresis on dropping back buffer MSAA to 1: counts consecutive frames not needing back buffer
-        // MSAA so a per-frame flip-flop of the decision doesn't keep reallocating the back buffer.
-        private int m_FramesSinceRealBackbufferMSAANeeded;
+            // Hysteresis on dropping MSAA to 1: counts consecutive frames not needing MSAA so a per-frame
+            // flip-flop of the decision doesn't keep reallocating the surface.
+            int m_FramesSinceNeeded;
+
+            public void BeginFrame() => m_NeededThisFrame = false;
+            public void Require() => m_NeededThisFrame = true;
+            public void ResetDowngradeDelay() => m_FramesSinceNeeded = 0;
+
+            // Returns the sample count to request. Upgrades apply immediately; downgrades wait out the
+            // hysteresis, since extra MSAA frames cost only bandwidth, never correctness.
+            public int Resolve(int assetSamples, int currentSamples)
+            {
+                if (m_NeededThisFrame)
+                {
+                    m_FramesSinceNeeded = 0;
+                    return assetSamples;                        // upgrade immediately
+                }
+                if (++m_FramesSinceNeeded >= realBackbufferMSAADowngradeDelayFrames)
+                    return 1;                                   // downgrade only after the delay
+                return currentSamples;                          // hold current during the delay
+            }
+        }
+
+        // The real backbuffer and XR eye textures each need their own: a camera with allowXRRendering disabled
+        // will render into the real back buffer in the same frame as the XR cameras render into the eye textures.
+        private DisplayMSAARequest m_RealBackbufferMSAARequest;
+        private DisplayMSAARequest m_XRDisplayMSAARequest;
 
         // Must be > 1: when the renderer configuration changes for only a few frames (different render passes
         // enqueued, e.g. by the volume system), this keeps us from setting back buffer MSAA to 1 and back
@@ -413,7 +439,7 @@ namespace UnityEngine.Rendering.Universal
             // Apply the asset's MSAA to the back buffer at bind time so it doesn't lag asset changes by a
             // frame; ApplyRealBackbufferMSAARequest still turns it off per-frame when no camera needs it.
             RequestRealBackbufferMSAA(asset.msaaSampleCount);
-            m_FramesSinceRealBackbufferMSAANeeded = 0;
+            m_RealBackbufferMSAARequest.ResetDowngradeDelay();
 
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
             VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
@@ -421,6 +447,7 @@ namespace UnityEngine.Rendering.Universal
             // Configure initial XR settings
             MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
             XRSystem.SetDisplayMSAASamples(msaaSamples);
+            m_XRDisplayMSAARequest.ResetDowngradeDelay();
             XRSystem.SetRenderScale(asset.renderScale);
 
             Lightmapping.SetDelegate(s_LightsDelegate);
@@ -652,9 +679,11 @@ namespace UnityEngine.Rendering.Universal
             // camera rendered here report its need, then apply. Cameras rendered outside this path (render
             // requests) are not counted — safe only because they target a destination texture, never the back
             // buffer. If that changes, this decision becomes incomplete.
-            m_FrameNeedsRealBackbufferMSAA = false;
+            m_RealBackbufferMSAARequest.BeginFrame();
+            m_XRDisplayMSAARequest.BeginFrame();
             RenderCameras(renderContext, cameras);
             ApplyRealBackbufferMSAARequest();
+            ApplyXRDisplayMSAARequest();
         }
 
         void RenderCameras(ScriptableRenderContext renderContext, List<Camera> cameras)
@@ -683,8 +712,6 @@ namespace UnityEngine.Rendering.Universal
 
                 var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
                 useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer;
-
-                XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
 #if UNITY_ENABLE_CHECKS
                 if (DebugManager.instance.isAnyDebugUIActive)
@@ -757,32 +784,19 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        // Renderers call this (via ScriptableRenderer.ReportRealBackbufferMSAA) to report that a camera needs
+        // Renderers call this (via ScriptableRenderer.ReportDisplayTargetMSAA) to report that a camera needs
         // the real back buffer multisampled.
         internal void RequireRealBackbufferMSAA()
         {
-            m_FrameNeedsRealBackbufferMSAA = true;
+            m_RealBackbufferMSAARequest.Require();
         }
 
         // Only sets the request for the next frame. The current frame already imported the live back buffer
         // value (Screen.currentBackbufferMSAASamples) into RenderGraph, so rendering stays correct no matter
         // when the surface is actually reallocated (deferred to the next frame on platforms like Metal).
-        // Upgrades apply immediately; downgrades wait out the hysteresis, since extra MSAA frames cost only
-        // bandwidth, never correctness.
         private void ApplyRealBackbufferMSAARequest()
         {
-            int desired;
-            if (m_FrameNeedsRealBackbufferMSAA)
-            {
-                m_FramesSinceRealBackbufferMSAANeeded = 0;
-                desired = asset.msaaSampleCount;                // upgrade immediately
-            }
-            else if (++m_FramesSinceRealBackbufferMSAANeeded >= realBackbufferMSAADowngradeDelayFrames)
-                desired = 1;                                    // downgrade only after the delay
-            else
-                desired = Screen.msaaSamples;                   // hold current during the delay
-
-            RequestRealBackbufferMSAA(desired);
+            RequestRealBackbufferMSAA(m_RealBackbufferMSAARequest.Resolve(asset.msaaSampleCount, Screen.msaaSamples));
         }
 
         // Sets the real back buffer MSAA count, clamped to 1 where MSAA is resolved explicitly (the
@@ -794,6 +808,23 @@ namespace UnityEngine.Rendering.Universal
                 samples = 1;
             if (samples != Screen.msaaSamples)
                 Screen.SetMSAASamples(samples);
+        }
+
+        // XR counterpart of RequireRealBackbufferMSAA, for the XR eye textures.
+        internal void RequireXRDisplayMSAA()
+        {
+            m_XRDisplayMSAARequest.Require();
+        }
+
+        // XR counterpart of ApplyRealBackbufferMSAARequest. The eye textures are reallocated at the next XR
+        // frame start, and URP imports their live descriptor each frame, so rendering stays correct.
+        private void ApplyXRDisplayMSAARequest()
+        {
+            if (!XRSystem.displayActive)
+                return;
+
+            int samples = m_XRDisplayMSAARequest.Resolve(asset.msaaSampleCount, (int)XRSystem.GetDisplayMSAASamples());
+            XRSystem.SetDisplayMSAASamples((MSAASamples)samples);
         }
 
         /// <summary>

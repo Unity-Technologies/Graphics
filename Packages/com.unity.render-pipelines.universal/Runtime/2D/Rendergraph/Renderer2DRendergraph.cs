@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Report this camera's real back buffer MSAA need; a 2D camera renders directly to it only when
             // no intermediate color texture is created (m_CreateColorTexture == false).
-            ReportRealBackbufferMSAA(cameraData, m_CreateColorTexture);
+            ReportDisplayTargetMSAA(cameraData, m_CreateColorTexture);
 
             ImportResourceSummary importSummary = GetImportResourceSummary(renderGraph, cameraData);
 
