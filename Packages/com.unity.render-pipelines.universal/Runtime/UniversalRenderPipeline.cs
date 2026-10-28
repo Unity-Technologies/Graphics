@@ -892,6 +892,10 @@ namespace UnityEngine.Rendering.Universal
                 RTDesc.width = Mathf.Max(1, RTDesc.width);
                 RTDesc.height = Mathf.Max(1, RTDesc.height);
 
+                RTDesc.depthStencilFormat = destination.depthStencilFormat;
+                if (RTDesc.depthStencilFormat == GraphicsFormat.None)
+                    RTDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
+
                 //if mip is 0 and target is Texture2D we can immediately render to the requested destination
                 if(destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
                 {
