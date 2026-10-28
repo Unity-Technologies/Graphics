@@ -102,7 +102,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #if !URP_FP_DISABLE_ZBINNING
             Select4(asuint(urp_ZBins[zBinWordIndex / 4]), zBinWordIndex % 4) &
 #endif
-            (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
+            (0xFFFFFFFFu << (header & 0x1F)) & ~(0xFFFFFFFEu << (header >> 16));
     }
 #endif
 
@@ -128,7 +128,7 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
             Select4(asuint(urp_ZBins[zBinWordIndex / 4]), zBinWordIndex % 4) &
 #endif
             // Mask out the beginning and end of the word.
-            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
+            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & ~(0xFFFFFFFEu << min(31, maxIndex - wordIndex * 32));
         // The light index can start at a non-multiple of 32, but the following iterations should always be multiples of 32.
         // So we add 32 and mask out the lower bits.
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;
