@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [BurstCompile]
-        unsafe static int GetNextShapeStart(int currentShape, int* inShapeStartingEdgePtr, int inShapeStartingEdgeLength, int maxValue)
+        internal unsafe static int GetNextShapeStart(int currentShape, int* inShapeStartingEdgePtr, int inShapeStartingEdgeLength, int maxValue)
         {
             return ((currentShape + 1 < inShapeStartingEdgeLength) && (inShapeStartingEdgePtr[currentShape + 1] >= 0)) ? inShapeStartingEdgePtr[currentShape + 1] : maxValue;
         }
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [BurstCompile]
-        static void GenerateInteriorMesh(ref NativeArray<ShadowMeshVertex> inVertices, ref NativeArray<int> inIndices, ref NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
+        internal static void GenerateInteriorMesh(ref NativeArray<ShadowMeshVertex> inVertices, ref NativeArray<int> inIndices, ref NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
         {
             int inEdgeCount = inEdges.Length;
 
@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering.Universal
 
         // BURST-COMPATIBLE internal function - Triangle version
         [BurstCompile]
-        static void GenerateShadowGeometry_Internal_FromTriangles(
+        internal static void GenerateShadowGeometry_Internal_FromTriangles(
             ref NativeArray<float3> inVertices,
             ref NativeArray<ShadowEdge> inEdges,
             ref NativeArray<int> inShapeStartingEdge,
@@ -548,7 +548,7 @@ namespace UnityEngine.Rendering.Universal
 
         // BURST-COMPATIBLE internal function - Line version
         [BurstCompile]
-        static void GenerateShadowGeometry_Internal_FromLines(
+        internal static void GenerateShadowGeometry_Internal_FromLines(
             ref NativeArray<float3> inVertices,
             ref NativeArray<ShadowEdge> inEdges,
             ref NativeArray<int> inShapeStartingEdge,
@@ -916,7 +916,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [BurstCompile]
-        static int GetClosedPathCount(ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray)
+        internal static int GetClosedPathCount(ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray)
         {
             int count = 0;
             for (int i = 0; i < inShapeStartingEdge.Length; i++)
@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [BurstCompile]
-        static void GetPathInfo(ref NativeArray<ShadowEdge> inEdges, ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray, out int closedPathArrayCount, out int closedPathsCount, out int openPathArrayCount, out int openPathsCount)
+        internal static void GetPathInfo(ref NativeArray<ShadowEdge> inEdges, ref NativeArray<int> inShapeStartingEdge, ref NativeArray<bool> inShapeIsClosedArray, out int closedPathArrayCount, out int closedPathsCount, out int openPathArrayCount, out int openPathsCount)
         {
             closedPathArrayCount = 0;
             openPathArrayCount = 0;
