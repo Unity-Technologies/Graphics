@@ -146,14 +146,14 @@ namespace UnityEditor.Rendering.Converter
 
         // Named with the path in the hierarchy, the only name Search has for objects in closed scenes. GameObject
         // names can contain '/', so the object's own name can't be taken from it.
-        static string GetSceneObjectName(string transformPath)
+        internal static string GetSceneObjectName(string transformPath)
         {
             var path = transformPath.StartsWith('/') ? transformPath.Substring(1) : transformPath;
             return $"{path} (SceneObject)";
         }
 
         // Returns null unless the id is of an object in a scene that is not loaded
-        static string GetUnloadedScenePath(string globalObjectId)
+        internal static string GetUnloadedScenePath(string globalObjectId)
         {
             if (!GlobalObjectId.TryParse(globalObjectId, out var gid) || gid.identifierType != GlobalObjectIdentifierType.SceneObject)
                 return null;

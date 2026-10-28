@@ -607,6 +607,115 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
+        public void ParametricToFreeformLightUpgraderCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/LightUpgraderClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Light");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var lightItem = ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Light" });
+
+                Assert.IsNotNull(lightItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, lightItem.GlobalObjectId);
+                Assert.AreEqual(scenePath, lightItem.assetPath);
+                Assert.AreEqual($"Scene: {scenePath}", lightItem.info);
+                Assert.AreEqual(GlobalObjectIdentifierType.SceneObject, lightItem.type);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Camera");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var ppCameraItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Camera" });
+
+                Assert.IsNotNull(ppCameraItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, ppCameraItem.GlobalObjectId);
+                Assert.AreEqual("Camera (SceneObject)", ppCameraItem.name);
+                Assert.AreEqual(scenePath, ppCameraItem.info);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_NestedObject_HasSameNameWhetherSceneIsOpenOrClosed()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraNestedNameTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var root = new GameObject("Root");
+                var go = new GameObject("Camera");
+                go.transform.SetParent(root.transform);
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var label = UnityEditor.Search.SearchUtils.GetTransformPath(go.transform);
+
+                var openSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var closedSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                Assert.AreEqual("Root/Camera (SceneObject)", openSceneItem.name);
+                Assert.AreEqual(openSceneItem.name, closedSceneItem.name);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        // An object that is gone from an open scene has nothing left to convert
+        [Test]
+        public void ConverterCreateItem_ObjectDeletedFromOpenScene_IsSkipped()
+        {
+            const string scenePath = "Assets/ConverterDeletedObjectTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Deleted");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                UnityEngine.Object.DestroyImmediate(go);
+
+                Assert.IsNull(ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+                Assert.IsNull(BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
         public void BatchModeFails()
         {
             bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(NotAConverterType) });
