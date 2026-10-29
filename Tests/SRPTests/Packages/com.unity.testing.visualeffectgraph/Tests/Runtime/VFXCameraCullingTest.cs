@@ -2,7 +2,6 @@ using System.Collections;
 using NUnit.Framework;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.TestTools;
 
 
@@ -11,8 +10,8 @@ namespace UnityEngine.VFX.Test
     [TestFixture]
     public class VFXCameraCullingTest
     {
-        Recorder m_VFXSortRecorder;
-        Recorder m_VFXProcessCameraRecorder;
+        ProfilerRecorder m_VFXSortRecorder;
+        ProfilerRecorder m_VFXProcessCameraRecorder;
         private const string kScenePath = "Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity";
         private const int kCameraVisibleCount = 4;
         private const int kCameraTotalCount = 6;
@@ -20,17 +19,16 @@ namespace UnityEngine.VFX.Test
         //Once in the Render Pipeline preparation, once in the Render Context Submit.
         private const int kMarkerMultiplier = 2;
         private const int kWaitFrameCount = 32;
+        private const ProfilerRecorderOptions k_RecorderOptions =
+            ProfilerRecorderOptions.CollectOnlyOnCurrentThread | ProfilerRecorderOptions.SumAllSamplesInFrame |
+            ProfilerRecorderOptions.WrapAroundWhenCapacityReached;
         private int m_PreviousFrameRate;
 
         [OneTimeSetUp]
         public void Init()
         {
-            m_VFXSortRecorder = Recorder.Get("VFX.SortBuffer");
-            m_VFXSortRecorder.FilterToCurrentThread();
-            m_VFXSortRecorder.enabled = false;
-            m_VFXProcessCameraRecorder = Recorder.Get("VFX.ProcessCamera");
-            m_VFXProcessCameraRecorder.FilterToCurrentThread();
-            m_VFXProcessCameraRecorder.enabled = false;
+            m_VFXSortRecorder = new ProfilerRecorder("VFX.SortBuffer", 1, k_RecorderOptions);
+            m_VFXProcessCameraRecorder = new ProfilerRecorder("VFX.ProcessCamera", 1, k_RecorderOptions);
             m_PreviousFrameRate = Application.targetFrameRate;
             Application.targetFrameRate = 30;
         }
@@ -38,7 +36,14 @@ namespace UnityEngine.VFX.Test
         [OneTimeTearDown]
         public void Cleanup()
         {
+            m_VFXSortRecorder.Dispose();
+            m_VFXProcessCameraRecorder.Dispose();
             Application.targetFrameRate = m_PreviousFrameRate;
+        }
+
+        static int GetSampleBlockCount(ProfilerRecorder recorder)
+        {
+            return recorder.Count == 1 ? (int)recorder.GetSample(0).Count : 0;
         }
 
         [UnityTest]
@@ -49,8 +54,8 @@ namespace UnityEngine.VFX.Test
 
             var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
-            m_VFXSortRecorder.enabled = true;
-            m_VFXProcessCameraRecorder.enabled = true;
+            m_VFXSortRecorder.Start();
+            m_VFXProcessCameraRecorder.Start();
 
             int maxFrame = 8;
             while (vfxComponents[^1].culled && maxFrame-- > 0)
@@ -62,10 +67,10 @@ namespace UnityEngine.VFX.Test
             bool foundValidFrame = false;
             for (int i = 0; i < kWaitFrameCount; i++)
             {
-                if (m_VFXProcessCameraRecorder.sampleBlockCount == kCameraTotalCount * kMarkerMultiplier)
+                if (GetSampleBlockCount(m_VFXProcessCameraRecorder) == kCameraTotalCount * kMarkerMultiplier)
                 {
                     foundValidFrame = true;
-                    Assert.AreEqual(kCameraVisibleCount * kMarkerMultiplier, m_VFXSortRecorder.sampleBlockCount);
+                    Assert.AreEqual(kCameraVisibleCount * kMarkerMultiplier, GetSampleBlockCount(m_VFXSortRecorder));
                     break;
                 }
                 yield return new WaitForEndOfFrame();

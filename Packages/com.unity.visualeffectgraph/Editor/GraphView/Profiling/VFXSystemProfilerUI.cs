@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
@@ -55,11 +54,6 @@ namespace UnityEditor.VFX.UI
         private Label m_SleepStateInfo;
         private Label m_CullStateInfo;
 
-        public override void Detach()
-        {
-            RemoveFromHierarchy();
-        }
-
         public override void ForceExpand()
         {
             m_Foldout.value = true;
@@ -97,7 +91,6 @@ namespace UnityEditor.VFX.UI
             var markerName = m_AttachedComponent.GetCPUSystemMarkerName(systemName);
             if (string.IsNullOrEmpty(markerName))
                 return;
-            var recorder = Recorder.Get(markerName);
             VisualElement labelContainer = new VisualElement
             {
                 style = { flexDirection = FlexDirection.Row, paddingTop = 2, paddingBottom = 2 }
@@ -116,7 +109,7 @@ namespace UnityEditor.VFX.UI
             labelContainer.Add(mainLabel);
             labelContainer.Add(timingLabel);
 
-            VFXProfilingBoard.ProfilingItemLeaf leaf = new VFXProfilingBoard.ProfilingItemLeaf(recorder, timingLabel);
+            VFXProfilingBoard.ProfilingItemLeaf leaf = new VFXProfilingBoard.ProfilingItemLeaf(markerName, timingLabel);
             m_ProfilingCPUItemLeaves.Add(leaf);
             AddContent(labelContainer);
         }
@@ -308,7 +301,7 @@ namespace UnityEditor.VFX.UI
             if (m_ProfilingCPUItemLeaves != null)
             {
                 ClearContent();
-                m_ProfilingCPUItemLeaves.Clear();
+                VFXProfilingBoard.ProfilingItemLeaf.DisposeAll(m_ProfilingCPUItemLeaves);
             }
             else
             {

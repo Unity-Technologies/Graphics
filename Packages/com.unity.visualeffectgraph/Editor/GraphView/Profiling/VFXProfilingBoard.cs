@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 
@@ -186,6 +187,7 @@ namespace UnityEditor.VFX.UI
             PauseUpdateItems();
 
             DisableProfilerPanels();
+            ProfilingItemLeaf.DisposeAll(m_CpuProfilingItemLeaves);
             m_CPUInfoContainer.Clear();
             m_GPUInfoContainer.Clear();
             m_HeatmapSettingsContainer.Clear();
@@ -221,6 +223,8 @@ namespace UnityEditor.VFX.UI
 
         private void ClearUI()
         {
+            PauseUpdateItems();
+            ProfilingItemLeaf.DisposeAll(m_CpuProfilingItemLeaves);
             if (m_AnchoredProfilerPanels != null)
             {
                 foreach (var anchoredPanel in m_AnchoredProfilerPanels)
@@ -298,6 +302,7 @@ namespace UnityEditor.VFX.UI
             RemoveFromHierarchy();
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.profilingBoard, false);
             DisableProfilerPanels();
+            ProfilingItemLeaf.DisposeAll(m_CpuProfilingItemLeaves);
             if (m_AttachedComponent != null)
             {
                 m_AttachedComponent.UnregisterForProfiling();
@@ -427,11 +432,19 @@ namespace UnityEditor.VFX.UI
 
 
 
-        public class ProfilingItemLeaf
+        public class ProfilingItemLeaf : IDisposable
         {
-            public ProfilingItemLeaf(Recorder recorder, Label label)
+            const ProfilerRecorderOptions k_RecorderOptions =
+                ProfilerRecorderOptions.SumAllSamplesInFrame |
+                ProfilerRecorderOptions.WrapAroundWhenCapacityReached |
+                ProfilerRecorderOptions.StartImmediately;
+
+            ProfilerRecorder m_Recorder;
+
+            public ProfilingItemLeaf(string markerName, Label label, bool gpu = false)
             {
-                this.recorder = recorder;
+                var options = gpu ? k_RecorderOptions | ProfilerRecorderOptions.GpuRecorder : k_RecorderOptions;
+                m_Recorder = new ProfilerRecorder(markerName, 1, options);
                 this.label = label;
                 maxTiming = 0;
                 minTiming = 0;
@@ -456,7 +469,27 @@ namespace UnityEditor.VFX.UI
                 maxTiming = 0;
                 minTiming = long.MaxValue;
             }
-            public Recorder recorder;
+
+            public long elapsedNanoseconds => m_Recorder.Valid ? m_Recorder.LastValue : 0;
+
+            public int sampleBlockCount => m_Recorder.Valid && m_Recorder.Count == 1 ? (int)m_Recorder.GetSample(0).Count : 0;
+
+            public void Dispose()
+            {
+                m_Recorder.Dispose();
+            }
+
+            public static void DisposeAll(List<ProfilingItemLeaf> leaves)
+            {
+                if (leaves == null)
+                    return;
+                foreach (var leaf in leaves)
+                {
+                    leaf.Dispose();
+                }
+                leaves.Clear();
+            }
+
             public Label label;
             public long maxTiming;
             public long minTiming;
@@ -471,7 +504,7 @@ namespace UnityEditor.VFX.UI
         {
             m_CPUInfoContainer.Clear();
             if(m_CpuProfilingItemLeaves != null)
-                m_CpuProfilingItemLeaves.Clear();
+                ProfilingItemLeaf.DisposeAll(m_CpuProfilingItemLeaves);
             else
                 m_CpuProfilingItemLeaves = new List<ProfilingItemLeaf>();
 
@@ -566,19 +599,17 @@ namespace UnityEditor.VFX.UI
         void AddEffectCpuLeaf(VisualEffect.VFXCPUEffectMarkers markerType, string displayName, string tooltip)
         {
             var markerName = m_AttachedComponent.GetCPUEffectMarkerName(markerType);
-            var recorder = Recorder.Get(markerName);
             Label timingLabel = AddDataRowWithDynamicLabel(m_CPUInfoContainer, displayName);
             timingLabel.tooltip = tooltip;
-            ProfilingItemLeaf leaf = new ProfilingItemLeaf(recorder, timingLabel);
+            ProfilingItemLeaf leaf = new ProfilingItemLeaf(markerName, timingLabel);
             m_CpuProfilingItemLeaves.Add(leaf);
         }
 
         void AddSystemCpuLeaf(string systemName)
         {
             var markerName = m_AttachedComponent.GetCPUSystemMarkerName(systemName);
-            var recorder = Recorder.Get(markerName);
             Label timingLabel = AddDataRowWithDynamicLabel(m_CPUInfoContainer, systemName);
-            ProfilingItemLeaf leaf = new ProfilingItemLeaf(recorder, timingLabel);
+            ProfilingItemLeaf leaf = new ProfilingItemLeaf(markerName, timingLabel);
             m_CpuProfilingItemLeaves.Add(leaf);
         }
 
@@ -652,12 +683,12 @@ namespace UnityEditor.VFX.UI
             bool hasVfxUpdate = true;
             foreach (var leaf in m_CpuProfilingItemLeaves)
             {
-                if (leaf.recorder.sampleBlockCount == 0)
+                if (leaf.sampleBlockCount == 0)
                 {
                     hasVfxUpdate = false;
                     break;
                 }
-                leaf.UpdateTimingStats(leaf.recorder.elapsedNanoseconds);
+                leaf.UpdateTimingStats(leaf.elapsedNanoseconds);
             }
 
             if (hasVfxUpdate)

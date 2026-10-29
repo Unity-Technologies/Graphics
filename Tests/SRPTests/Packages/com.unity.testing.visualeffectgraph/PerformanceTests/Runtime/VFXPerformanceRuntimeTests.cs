@@ -10,7 +10,6 @@ using Unity.PerformanceTesting;
 using UnityEngine.VFX.Test;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
-using UnityEngine.Profiling;
 using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools.Graphics.Performance;
@@ -172,40 +171,50 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return new WaitForEndOfFrame();
         }
 
+        const ProfilerRecorderOptions k_RecorderOptions =
+            ProfilerRecorderOptions.SumAllSamplesInFrame | ProfilerRecorderOptions.WrapAroundWhenCapacityReached |
+            ProfilerRecorderOptions.StartImmediately;
+
         public static IEnumerator Counters(SceneGraphicsTestCase testCase)
         {
             yield return Load_And_Prepare(testCase);
 
             var samplers = allMarkerName.Select(name =>
             {
-                (Recorder recorder, SampleGroup cpu, SampleGroup gpu) newSample;
-                newSample = (   Recorder.Get(name),
+                (ProfilerRecorder cpuRecorder, ProfilerRecorder gpuRecorder, SampleGroup cpu, SampleGroup gpu) newSample;
+                newSample = (   new ProfilerRecorder(name, 1, k_RecorderOptions),
+                                new ProfilerRecorder(name, 1, k_RecorderOptions | ProfilerRecorderOptions.GpuRecorder),
                                 new SampleGroup(FormatSampleGroupName(k_Timing, k_CPU, name), SampleUnit.Millisecond, false),
                                 new SampleGroup(FormatSampleGroupName(k_Timing, k_GPU, name), SampleUnit.Millisecond, false));
                 return newSample;
             }).ToArray();
 
-            foreach (var sampler in samplers)
-                sampler.recorder.enabled = true;
+            try
+            {
+                // Wait for the markers to be initialized
+                for (int i = 0; i < 20; i++)
+                    yield return new WaitForEndOfFrame();
 
-            // Wait for the markers to be initialized
-            for (int i = 0; i < 20; i++)
-                yield return new WaitForEndOfFrame();
-
-            for (int i = 0; i < 120; i++)
+                for (int i = 0; i < 120; i++)
+                {
+                    foreach (var sampler in samplers)
+                    {
+                        if (sampler.cpuRecorder.Valid && sampler.cpuRecorder.LastValue > 0)
+                            Measure.Custom(sampler.cpu, (double)sampler.cpuRecorder.LastValue / 1000000.0);
+                        if (sampler.gpuRecorder.Valid && sampler.gpuRecorder.LastValue > 0)
+                            Measure.Custom(sampler.gpu, (double)sampler.gpuRecorder.LastValue / 1000000.0);
+                    }
+                    yield return new WaitForEndOfFrame();
+                }
+            }
+            finally
             {
                 foreach (var sampler in samplers)
                 {
-                    if (sampler.recorder.elapsedNanoseconds > 0)
-                        Measure.Custom(sampler.cpu, (double)sampler.recorder.elapsedNanoseconds / 1000000.0);
-                    if (sampler.recorder.gpuElapsedNanoseconds > 0)
-                        Measure.Custom(sampler.gpu, (double)sampler.recorder.gpuElapsedNanoseconds / 1000000.0);
+                    sampler.cpuRecorder.Dispose();
+                    sampler.gpuRecorder.Dispose();
                 }
-                yield return new WaitForEndOfFrame();
             }
-
-            foreach (var sampler in samplers)
-                sampler.recorder.enabled = false;
         }
     }
 
@@ -259,7 +268,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 var allObjectOfType = Resources.FindObjectsOfTypeAll(type);
                 foreach (var obj in allObjectOfType)
                 {
-                    long currSize = Profiler.GetRuntimeMemorySizeLong(obj);
+                    long currSize = UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(obj);
                     totalMemory += currSize;
                     if (type == typeof(VisualEffect) || type == typeof(VisualEffectAsset))
                     {
@@ -292,8 +301,8 @@ namespace UnityEditor.VFX.PerformanceTest
                 Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name), SampleUnit.Byte, false), result.size);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemory"), SampleUnit.Byte, false), totalMemory);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryVfx"), SampleUnit.Byte, false), totalMemoryVfx);
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), Profiler.GetTotalAllocatedMemoryLong());
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), Profiler.GetAllocatedMemoryForGraphicsDriver());
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver());
 
             yield return FreeMemory();
         }
