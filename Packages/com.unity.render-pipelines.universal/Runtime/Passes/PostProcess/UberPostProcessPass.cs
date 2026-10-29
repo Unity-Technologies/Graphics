@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_IsFinalPass;
         bool m_RequireSRGBConversionBlit;
         bool m_RenderOverlayUI;
+        float? m_BloomIntensityOverride;
 
         public UberPostProcessPass(Shader shader, Texture2D[] filmGrainTextures)
         {
@@ -41,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
             m_RequireSRGBConversionBlit = false; // sRGB conversion is typically automatic based on format.
             m_IsFinalPass = false;  // Assume other passes.
             m_RenderOverlayUI = false;  // HDR disabled. HDR only.
+            m_BloomIntensityOverride = null;    // Bloom volume intensity.
         }
 
         public override void Dispose()
@@ -55,7 +57,8 @@ namespace UnityEngine.Rendering.Universal
             HDROutputUtils.Operation hdrOperations,
             bool requireSRGBConversionBlit,
             bool isFinalPass,
-            bool renderOverlayUI)
+            bool renderOverlayUI,
+            float? bloomIntensityOverride = null)
         {
             m_DitherTexture = ditherTexture;
             m_FilteringOperation = filteringOperation;
@@ -63,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
             m_RequireSRGBConversionBlit = requireSRGBConversionBlit;
             m_IsFinalPass = isFinalPass;
             m_RenderOverlayUI = renderOverlayUI;
+            m_BloomIntensityOverride = bloomIntensityOverride;
         }
 
         private class UberPostPassData
@@ -194,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.isHdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
 
                 passData.lut.Setup(colorAdjustments, colorLookup, postProcessingData.lutSize, internalColorLut, userColorLut);
-                passData.bloom.Setup(bloom, in srcDesc, bloomTexture);
+                passData.bloom.Setup(bloom, in srcDesc, bloomTexture, m_BloomIntensityOverride);
                 passData.lensDistortion.Setup(lensDistortion, cameraData.isSceneViewCamera);
                 passData.chromaticAberration.Setup(chromaticAberration);
                 passData.vignette.Setup(vignette, srcDesc.width, srcDesc.height, cameraData.xr);
@@ -380,10 +384,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Setup(Bloom bloom, in TextureDesc srcDesc, TextureHandle activeBloomTexture)
+            public void Setup(Bloom bloom, in TextureDesc srcDesc, TextureHandle activeBloomTexture, float? intensityOverride = null)
             {
                 this.activeBloomTexture = activeBloomTexture;
                 CalcBloomParams(bloom, in srcDesc, out bloomParams, out highQualityFiltering, out dirtTexture, out dirtScaleOffset, out dirtIntensity);
+                if (intensityOverride.HasValue)
+                    bloomParams.x = intensityOverride.Value;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
