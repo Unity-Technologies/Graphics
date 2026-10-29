@@ -9,6 +9,7 @@
 #pragma kernel SamplePunctualLightsCompute SamplePunctualLights=SamplePunctualLightsCompute UNIFIED_RT_BACKEND_COMPUTE
 #pragma kernel SamplePunctualLightsHardware SamplePunctualLights=SamplePunctualLightsHardware UNIFIED_RT_BACKEND_HARDWARE
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+#pragma multi_compile_local SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS
 
 // Shader variant 'SamplePunctualLightsHardware' fails to compile on Metal with inlineraytracing
 // enabled due to inlineraytracing requiring DXC over FXC compilation path.
@@ -79,7 +80,7 @@ void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint gro
     PunctualLightSample lightSample = (PunctualLightSample)0;
     lightSample.rayDirection = ray.direction;
 
-    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIdx, groupThreadIdx, accelStruct, ray);
+    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIdx, groupThreadIdx, accelStruct, ray, matPoolParams.materialEntries, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize);
     if (hitResult.IsValid())
     {
         const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(hitResult.instanceID);

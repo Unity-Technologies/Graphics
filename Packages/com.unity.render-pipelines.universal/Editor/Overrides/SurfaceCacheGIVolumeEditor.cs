@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected SerializedDataParameter m_Enabled;
         protected SerializedDataParameter m_Intensity;
+        protected SerializedDataParameter m_TransparencyMode;
 
         protected SerializedDataParameter m_LightTransportMultiBounce;
         protected SerializedDataParameter m_LightTransportBouncePatchAllocation;
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.Universal
 
         static GUIContent s_State = L10n.TextContent("State", "When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.", null, null);
         static GUIContent s_Intensity = L10n.TextContent("Intensity", "Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.", null, null);
+        static GUIContent s_TransparencyMode = L10n.TextContent("Transparency Mode", "Controls which geometry blocks rays. Opaques And Cutouts makes rays pass through fully transparent texels of alpha-cutout materials, such as foliage. Opaques Only is faster.", null, null);
         static GUIContent s_Quality = L10n.TextContent("Quality", "Quality preset for Surface Cache GI. Select Custom to manually adjust individual parameters.", null, null);
         static GUIContent s_LightTransportMultiBounce = L10n.TextContent("Multi Bounce", "Enable multi-bounce global illumination for more accurate light propagation.", null, null);
         static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
@@ -83,6 +85,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_Enabled = Unpack(o.Find(obj => obj.enabled));
             m_Intensity = Unpack(o.Find(obj => obj.intensity));
+            m_TransparencyMode = Unpack(o.Find(obj => obj.transparencyMode));
             m_LightTransportMultiBounce = Unpack(o.Find(obj => obj.lightTransportMultiBounce));
             m_LightTransportBouncePatchAllocation = Unpack(o.Find(obj => obj.lightTransportBouncePatchAllocation));
             m_LightTransportDefragCount = Unpack(o.Find(obj => obj.lightTransportDefragCount));
@@ -124,6 +127,8 @@ namespace UnityEditor.Rendering.Universal
 
             if (showAdditionalProperties)
                 PropertyField(m_Intensity, s_Intensity);
+
+            PropertyField(m_TransparencyMode, s_TransparencyMode);
 
             // Quality preset dropdown. Switching to a named preset writes its values into the
             // backing fields so users can see the preset values and make fine adjustments from there.

@@ -14,6 +14,7 @@
 #pragma kernel EstimateCompute Estimate=EstimateCompute UNIFIED_RT_BACKEND_COMPUTE
 #pragma kernel EstimateHardware Estimate=EstimateHardware UNIFIED_RT_BACKEND_HARDWARE
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+#pragma multi_compile_local SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS
 
 // Shader variant 'EstimateHardware' fails to compile on Metal with inlineraytracing
 // enabled due to inlineraytracing requiring DXC over FXC compilation path.

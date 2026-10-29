@@ -36,7 +36,7 @@ namespace MaterialPool
     float4 SampleAtlas(Texture2DArray<float4> atlas, SamplerState atlasSampler, float atlasTexelSize, uint index, float2 uv, float2 scale, float2 offset, bool pointFilterMode)
     {
         // Apply the scale and offset to access to desired atlas entry
-        float2 localUV = uv * scale + offset;
+        float2 localUV = frac(uv) * scale + offset;
 
         // To prevent sampling part of the neighbor due to bilinear filtering, we need to clamp the sample
         // position to an 'inner rectangle' of the atlas entry, which is shrunk by half a texel on each side.
@@ -135,6 +135,11 @@ namespace MaterialPool
         return transmission;
     }
 
+    bool IsTransmissive(uint materialFlags)
+    {
+        return materialFlags & 1;
+    }
+
     bool UsesDoubleSidedGI(uint materialFlags)
     {
         return materialFlags & 2;
@@ -163,7 +168,7 @@ namespace MaterialPool
         material.baseColor = BoostAlbedo(albedo.rgb, albedoBoost);
         material.transmission = LoadTransmission(matEntry, albedo, transmissionTextures, transmissionSamplerState, atlasTexelSize, uv0);
         material.emission = LoadEmission(matEntry, emissionTextures, emissionSamplerState, atlasTexelSize, uv0, uv1);
-        material.isTransmissive = matEntry.flags & 1;
+        material.isTransmissive = IsTransmissive(matEntry.flags);
         material.doubleSidedGI = UsesDoubleSidedGI(matEntry.flags);
 
         // unused for now, we need these for specular support

@@ -31,6 +31,12 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(1.0f, 0.0f, 4.0f);
 
+        /// <summary>
+        /// Controls how Surface Cache GI handles transparent objects. 'Opaques And Cutouts' allows rays to pass through objects with cutout materials, but incurs a performance penalty.
+        /// </summary>
+        [Tooltip("Controls how Surface Cache GI handles transparent objects. Opaques and Cutouts allows rays to pass through objects with cutout materials, but incurs a performance penalty.")]
+        public EnumParameter<TransparencyMode> transparencyMode = new(TransparencyMode.OpaquesOnly);
+
         // ==========================
         // Light Transport Parameters
         // ==========================
@@ -160,6 +166,22 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("advancedPatchWarpingEnabled")] // Added in Unity 6.7b1.
         [Tooltip("Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.")]
         public BoolParameter volumePatchWarpingEnabled = new BoolParameter(true);
+
+        /// <summary>
+        /// Describes how Surface Cache GI handles transparent objects.
+        /// </summary>
+        public enum TransparencyMode
+        {
+            /// <summary>
+            /// All geometry is treated as opaque.
+            /// </summary>
+            OpaquesOnly,
+
+            /// <summary>
+            /// Rays may pass through objects using cutout materials.
+            /// </summary>
+            OpaquesAndCutouts,
+        }
 
         // =======================
         // Preset Utility

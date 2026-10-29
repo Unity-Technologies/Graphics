@@ -18,6 +18,7 @@
 #pragma kernel VisualizeMonoHardware VisualizeMono=VisualizeMonoHardware UNIFIED_RT_BACKEND_HARDWARE DISABLE_TEXTURE2D_X_ARRAY
 #pragma kernel VisualizeSinglePassStereoInstancingHardware VisualizeSinglePassStereoInstancing=VisualizeSinglePassStereoInstancingHardware UNIFIED_RT_BACKEND_HARDWARE
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+#pragma multi_compile_local SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS
 
 // The hardware ray tracing compute-shader variants in this file fails to compile on Metal with inlineraytracing
 // enabled due to inlineraytracing requiring DXC over FXC compilation path.
@@ -97,7 +98,7 @@ float3 TraceMaterialProperty(uint2 pixelIdx, uint2 screenSize, uint globalThread
     ray.tMax = FLT_MAX;
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
-    UnifiedRT::Hit hit = TraceRayClosestHit(globalThreadIndex, groupThreadIdx, accelStruct, ray);
+    UnifiedRT::Hit hit = TraceRayClosestHit(globalThreadIndex, groupThreadIdx, accelStruct, ray, _MaterialEntries, _AlbedoTextures, sampler_AlbedoTextures, _MaterialAtlasTexelSize);
 
     float3 result = 0.0f;
     if (hit.IsValid())

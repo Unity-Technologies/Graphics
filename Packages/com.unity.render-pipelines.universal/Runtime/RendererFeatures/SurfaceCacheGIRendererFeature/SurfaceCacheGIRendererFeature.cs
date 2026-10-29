@@ -183,7 +183,8 @@ namespace UnityEngine.Rendering.Universal
                     SampleCount = (uint)volumeOverride.lightTransportSampleCount.value,
                     WarmUpSampleMultiplier = (uint)volumeOverride.lightTransportWarmupSampleMultiplier.value,
                     PunctualLightCandidateCount = (uint)volumeOverride.lightTransportPunctualLightCandidateCount.value,
-                    DistanceFallback = volumeOverride.volumeDistanceFallback.value
+                    DistanceFallback = volumeOverride.volumeDistanceFallback.value,
+                    AlphaCutouts = volumeOverride.transparencyMode.value == SurfaceCacheGIVolumeOverride.TransparencyMode.OpaquesAndCutouts
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
@@ -579,6 +580,7 @@ namespace UnityEngine.Rendering.Universal
                 internal GraphicsBuffer PatchCellIndices;
                 internal GraphicsBuffer PatchStatistics;
                 internal SurfaceCacheDebugViewMode ViewMode;
+                internal LocalKeyword TransparencyModeKeyword;
                 internal uint FrameIndex;
                 internal bool ShowSamplePosition;
                 internal uint VolumeSpatialResolution;
@@ -694,6 +696,8 @@ namespace UnityEngine.Rendering.Universal
             private readonly int _screenResolveDenoisingSinglePassStereoInstancingKernel;
             private readonly int _debugMonoKernel;
             private readonly int _debugSinglePassStereoInstancingKernel;
+            private readonly LocalKeyword _debugOpaquesOnlyKeyword;
+            private readonly LocalKeyword _debugCutoutsKeyword;
             private uint3 _screenResolveLookupKernelGroupSize;
             private uint3 _screenResolveUpsamplingKernelGroupSize;
             private uint3 _screenResolveDenoisingKernelGroupSize;
@@ -740,11 +744,15 @@ namespace UnityEngine.Rendering.Universal
                     rayTracingBackend == RayTracingBackend.Compute ? "VisualizeMonoCompute" : "VisualizeMonoHardware");
                 _debugSinglePassStereoInstancingKernel = _debugShader.FindKernel(
                     rayTracingBackend == RayTracingBackend.Compute ? "VisualizeSinglePassStereoInstancingCompute" : "VisualizeSinglePassStereoInstancingHardware");
+                _debugOpaquesOnlyKeyword = new LocalKeyword(_debugShader, SurfaceCacheResourceSet.OpaquesOnlyKeyword);
+                _debugCutoutsKeyword = new LocalKeyword(_debugShader, SurfaceCacheResourceSet.CutoutsKeyword);
 
                 _screenResolveLookupShader.GetKernelThreadGroupSizes(_screenResolveLookupMonoKernel, out _screenResolveLookupKernelGroupSize.x, out _screenResolveLookupKernelGroupSize.y, out _screenResolveLookupKernelGroupSize.z);
                 _screenResolveUpsamplingShader.GetKernelThreadGroupSizes(_screenResolveUpsamplingMonoKernel, out _screenResolveUpsamplingKernelGroupSize.x, out _screenResolveUpsamplingKernelGroupSize.y, out _screenResolveUpsamplingKernelGroupSize.z);
                 _screenResolveDenoisingShader.GetKernelThreadGroupSizes(_screenResolveDenoisingMonoKernel, out _screenResolveDenoisingKernelGroupSize.x, out _screenResolveDenoisingKernelGroupSize.y, out _screenResolveDenoisingKernelGroupSize.z);
+                _debugShader.EnableKeyword(_debugOpaquesOnlyKeyword);
                 _debugShader.GetKernelThreadGroupSizes(_debugMonoKernel, out _debugKernelGroupSize.x, out _debugKernelGroupSize.y, out _debugKernelGroupSize.z);
+                _debugShader.DisableKeyword(_debugOpaquesOnlyKeyword);
             }
 
             public void Dispose()
@@ -1077,6 +1085,7 @@ namespace UnityEngine.Rendering.Universal
                         passData.VolumeCascadeCount = cache.Volume.CascadeCount;
                         passData.CascadeOffsets = cache.Volume.CascadeOffsetBuffer;
                         passData.ViewMode = debugSettings.viewMode;
+                        passData.TransparencyModeKeyword = VolumeParams.EstimationParams.AlphaCutouts ? _debugCutoutsKeyword : _debugOpaquesOnlyKeyword;
                         passData.FrameIndex = CurrentPerCameraState.FrameIndex;
                         passData.ShowSamplePosition = debugSettings.showSamplePosition;
                         passData.ClipToWorldTransforms[0] = cameraInfo.ClipToWorld0;
@@ -1296,6 +1305,7 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
                 var shader = data.Shader;
                 var kernelIndex = data.KernelIndex;
+                cmd.EnableKeyword(shader, data.TransparencyModeKeyword);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._Result, data.Output);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenDepths, data.ScreenDepths);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenShadedNormals, data.ScreenShadedNormals);
@@ -1345,6 +1355,8 @@ namespace UnityEngine.Rendering.Universal
                     uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                     cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
                 }
+
+                cmd.DisableKeyword(shader, data.TransparencyModeKeyword);
             }
         }
 

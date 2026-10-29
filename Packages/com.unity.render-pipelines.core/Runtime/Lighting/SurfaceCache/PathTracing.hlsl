@@ -55,6 +55,7 @@ struct MaterialPoolParamSet
 };
 
 static const float3 invalidRadiance = float3(-1.0f, -1.0f, -1.0f);
+static const float alphaCutoutThreshold = 0.5f;
 
 struct RadianceSample
 {
@@ -137,13 +138,46 @@ UnifiedRT::Hit TraceRayClosestHit(
     uint dispatchThreadIndex,
     uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
-    UnifiedRT::Ray ray)
+    UnifiedRT::Ray ray,
+    StructuredBuffer<MaterialPool::MaterialEntry> materialEntries,
+    Texture2DArray<float4> albedoTextures,
+    SamplerState albedoSampler,
+    float atlasTexelSize)
 {
     const uint instanceMask = 0xFFFFFFFF;
+#if defined(SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS)
+    UNIFIED_RT_RAY_QUERY_TYPE(UnifiedRT::kRayFlagNone) rayQuery;
+    UNIFIED_RT_INIT_RAY_QUERY(UnifiedRT::kRayFlagNone, rayQuery, dispatchThreadIndex, groupThreadIndex, accelStruct, UnifiedRT::kRayFlagNone, instanceMask, ray);
+
+    while (rayQuery.Proceed())
+    {
+        if (rayQuery.CandidateType() != UnifiedRT::kCandidateNonOpaqueTriangle)
+            continue;
+
+        // Fetch candidate hit info
+        const uint candidateInstanceID = rayQuery.CandidateInstanceID();
+        const uint candidatePrimitiveIndex = rayQuery.CandidatePrimitiveIndex();
+        const float2 candidateUvBarycentrics = rayQuery.CandidateTriangleBarycentrics();
+        const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(candidateInstanceID);
+        const int geometryIndex = g_AccelStructInstanceList[candidateInstanceID].geometryIndex;
+        const UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(
+            geometryIndex,
+            candidatePrimitiveIndex,
+            candidateUvBarycentrics,
+            UnifiedRT::kGeomAttribTexCoord0 | UnifiedRT::kGeomAttribTexCoord1);
+
+        // Check if we must continue the ray based on alpha
+        const MaterialPool::MaterialEntry matEntry = materialEntries[hitInstance.userMaterialID];
+        const float alpha = MaterialPool::LoadAlbedo(matEntry, albedoTextures, albedoSampler, atlasTexelSize, attributes.uv0, attributes.uv1).a;
+        if (alpha > alphaCutoutThreshold)
+            rayQuery.CommitNonOpaqueTriangleHit();
+    }
+#elif defined(SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY)
     UNIFIED_RT_RAY_QUERY_TYPE(UnifiedRT::kRayFlagForceOpaque) rayQuery;
     UNIFIED_RT_INIT_RAY_QUERY(UnifiedRT::kRayFlagForceOpaque, rayQuery, dispatchThreadIndex, groupThreadIndex, accelStruct, UnifiedRT::kRayFlagNone, instanceMask, ray);
 
     rayQuery.Proceed();
+#endif
 
     UnifiedRT::Hit hitResult = UnifiedRT::Hit::Invalid();
     if (rayQuery.CommittedStatus() == UnifiedRT::kCommittedTriangleHit)
@@ -234,7 +268,7 @@ bool RejectPunctualLightSample(
     reconnectionRay.direction = normalize(hitPos - position);
     reconnectionRay.tMin = 0;
     reconnectionRay.tMax = FLT_MAX;
-    UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
+    UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay, matPoolParams.materialEntries, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize);
 
     bool reconnectionOccluded = false;
     discardSample = !reconnectionResult.IsValid();
@@ -337,7 +371,15 @@ EmissiveTriangleSample SampleEmissiveTriangles(
         const float2 uv1 = bary0 * tri.v0.uv1 + bary1 * tri.v1.uv1 + bary2 * tri.v2.uv1;
 
         const MaterialPool::MaterialEntry matEntry = matPoolParams.materialEntries[instance.userMaterialID];
-        const float3 emission = MaterialPool::LoadEmission(matEntry, matPoolParams.emissionTextures, matPoolParams.emissionSampler, matPoolParams.atlasTexelSize, uv0, uv1);
+        float3 emission = MaterialPool::LoadEmission(matEntry, matPoolParams.emissionTextures, matPoolParams.emissionSampler, matPoolParams.atlasTexelSize, uv0, uv1);
+#if defined(SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS)
+        if (MaterialPool::IsTransmissive(matEntry.flags))
+        {
+            const float alpha = MaterialPool::LoadAlbedo(matEntry, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize, uv0, uv1).a;
+            if (alpha <= alphaCutoutThreshold)
+                emission = 0.0f;
+        }
+#endif
 
         emissiveSample.pos = bary0 * tri.w0 + bary1 * tri.w1 + bary2 * tri.w2;
         emissiveSample.normal = crossProduct * instance.localToWorldDetSign / doubleArea;
@@ -403,7 +445,7 @@ RadianceSample EstimateIncomingRadianceFromEmissiveTriangles(
             shadowRay.direction = shadowRayDirection;
             shadowRay.tMin = 0;
             shadowRay.tMax = distanceToLight * (1.0f - epsilon); // Just a bit shorter than the real distance
-            UnifiedRT::Hit shadowHit = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay);
+            UnifiedRT::Hit shadowHit = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay, matPoolParams.materialEntries, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize);
             if (shadowHit.IsValid())
             {
                 const UnifiedRT::InstanceData hitInstance = UnifiedRT::GetInstance(shadowHit.instanceID);
@@ -443,6 +485,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
     uint dispatchThreadIndex,
     uint groupThreadIndex,
     UnifiedRT::RayTracingAccelStruct accelStruct,
+    MaterialPoolParamSet matPoolParams,
     float3 dirLightDirection,
     float3 dirLightIntensity,
     bool multiBounce,
@@ -465,7 +508,7 @@ float3 OutgoingDirectionalBounceAndMultiBounceRadiance(
             shadowRay.tMin = 0;
             shadowRay.tMax = FLT_MAX;
 
-            UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay);
+            UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, shadowRay, matPoolParams.materialEntries, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize);
             if (!hitResult.IsValid())
             {
                 radiance += dirLightIntensity * dot(-dirLightDirection, normal);
@@ -513,7 +556,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
     bool enablePatchAllocation,
     uint frameIndex)
 {
-    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, ray);
+    UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, ray, matPoolParams.materialEntries, matPoolParams.albedoTextures, matPoolParams.albedoSampler, matPoolParams.atlasTexelSize);
     float3 radiance;
     if (hitResult.IsValid())
     {
@@ -551,6 +594,7 @@ float3 IncomingEnvironmentAndDirectionalBounceAndMultiBounceAndEmissionRadiance(
                 dispatchThreadIndex,
                 groupThreadIndex,
                 accelStruct,
+                matPoolParams,
                 dirLightDirection,
                 dirLightIntensity,
                 multiBounce,

@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering
         public uint WarmUpSampleMultiplier;
         public uint PunctualLightCandidateCount;
         public bool DistanceFallback;
+        public bool AlphaCutouts;
     }
 
     internal struct SurfaceCachePatchFilteringParameterSet
@@ -195,6 +196,9 @@ namespace UnityEngine.Rendering
 
     internal class SurfaceCacheResourceSet
     {
+        internal const string OpaquesOnlyKeyword = "SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY";
+        internal const string CutoutsKeyword = "SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS";
+
         internal RayTracingBackend RayTracingBackend;
 
         internal ComputeShader ScrollingShader;
@@ -217,10 +221,14 @@ namespace UnityEngine.Rendering
         internal ComputeShader EstimationShader;
         internal int EstimationKernel;
         internal uint EstimationKernelGroupSize;
+        internal LocalKeyword EstimationOpaquesOnlyKeyword;
+        internal LocalKeyword EstimationCutoutsKeyword;
 
         internal ComputeShader PunctualLightSamplingShader;
         internal int PunctualLightSamplingKernel;
         internal uint PunctualLightSamplingKernelGroupSize;
+        internal LocalKeyword PunctualLightSamplingOpaquesOnlyKeyword;
+        internal LocalKeyword PunctualLightSamplingCutoutsKeyword;
 
         internal ComputeShader SpatialFilteringShader;
         internal int SpatialFilteringKernel;
@@ -276,11 +284,19 @@ namespace UnityEngine.Rendering
 
             EstimationShader = estimationShader;
             EstimationKernel = estimationShader.FindKernel(rtBackend == RayTracingBackend.Compute ? "EstimateCompute" : "EstimateHardware");
+            EstimationOpaquesOnlyKeyword = new LocalKeyword(EstimationShader, OpaquesOnlyKeyword);
+            EstimationCutoutsKeyword = new LocalKeyword(EstimationShader, CutoutsKeyword);
+            EstimationShader.EnableKeyword(EstimationOpaquesOnlyKeyword);
             EstimationShader.GetKernelThreadGroupSizes(EstimationKernel, out EstimationKernelGroupSize, out _, out _);
+            EstimationShader.DisableKeyword(EstimationOpaquesOnlyKeyword);
 
             PunctualLightSamplingShader = punctualLightSamplingShader;
             PunctualLightSamplingKernel = PunctualLightSamplingShader.FindKernel(rtBackend == RayTracingBackend.Compute ? "SamplePunctualLightsCompute" : "SamplePunctualLightsHardware");
+            PunctualLightSamplingOpaquesOnlyKeyword = new LocalKeyword(PunctualLightSamplingShader, OpaquesOnlyKeyword);
+            PunctualLightSamplingCutoutsKeyword = new LocalKeyword(PunctualLightSamplingShader, CutoutsKeyword);
+            PunctualLightSamplingShader.EnableKeyword(PunctualLightSamplingOpaquesOnlyKeyword);
             PunctualLightSamplingShader.GetKernelThreadGroupSizes(PunctualLightSamplingKernel, out PunctualLightSamplingKernelGroupSize, out _, out _);
+            PunctualLightSamplingShader.DisableKeyword(PunctualLightSamplingOpaquesOnlyKeyword);
 
             GlobalProbeShader = globalProbeShader;
             GlobalProbeKernel = globalProbeShader.FindKernel("Update");
@@ -390,9 +406,11 @@ namespace UnityEngine.Rendering
             internal ComputeShader EstimationShader;
             internal int EstimationKernelIndex;
             internal uint EstimationKernelGroupSize;
+            internal LocalKeyword EstimationTransparencyModeKeyword;
             internal ComputeShader PunctualLightSamplingShader;
             internal int PunctualLightSamplingKernelIndex;
             internal uint PunctualLightSamplingKernelGroupSize;
+            internal LocalKeyword PunctualLightSamplingTransparencyModeKeyword;
             internal GraphicsBuffer RingConfigBuffer;
             internal GraphicsBuffer PatchIrradiances;
             internal GraphicsBuffer PatchGeometries;
@@ -768,9 +786,11 @@ namespace UnityEngine.Rendering
                 passData.EstimationShader = _resources.EstimationShader;
                 passData.EstimationKernelIndex = _resources.EstimationKernel;
                 passData.EstimationKernelGroupSize = _resources.EstimationKernelGroupSize;
+                passData.EstimationTransparencyModeKeyword = _estimationParams.AlphaCutouts ? _resources.EstimationCutoutsKeyword : _resources.EstimationOpaquesOnlyKeyword;
                 passData.PunctualLightSamplingShader = _resources.PunctualLightSamplingShader;
                 passData.PunctualLightSamplingKernelIndex = _resources.PunctualLightSamplingKernel;
                 passData.PunctualLightSamplingKernelGroupSize = _resources.PunctualLightSamplingKernelGroupSize;
+                passData.PunctualLightSamplingTransparencyModeKeyword = _estimationParams.AlphaCutouts ? _resources.PunctualLightSamplingCutoutsKeyword : _resources.PunctualLightSamplingOpaquesOnlyKeyword;
                 passData.PatchAllocationRequestCount = _patchAllocationRequests.Count;
                 passData.PatchAllocationRequests = _patchAllocationRequests.Requests;
                 passData.RingConfigBuffer = RingConfig.Buffer;
@@ -944,6 +964,7 @@ namespace UnityEngine.Rendering
             {
                 var shader = data.PunctualLightSamplingShader;
                 var kernelIdx = data.PunctualLightSamplingKernelIndex;
+                cmd.EnableKeyword(shader, data.PunctualLightSamplingTransparencyModeKeyword);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PunctualLights, punctualLightBuffer);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightCount, punctualLightCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SamplesPerPunctualLight, (int)SamplesPerPunctualLight);
@@ -958,6 +979,7 @@ namespace UnityEngine.Rendering
                 InlineRayTracing.SetTraceScratchBuffer(cmd, shader, kernelIdx, data.TraceScratchBuffer);
                 uint groupCount = DivUp(data.PunctualLightSampleCount, data.PunctualLightSamplingKernelGroupSize);
                 cmd.DispatchCompute(shader, data.PunctualLightSamplingKernelIndex, (int)groupCount, 1, 1);
+                cmd.DisableKeyword(shader, data.PunctualLightSamplingTransparencyModeKeyword);
             }
 
             {
@@ -965,6 +987,7 @@ namespace UnityEngine.Rendering
                 var kernelIdx = data.EstimationKernelIndex;
                 var (dirLightDirection, dirLightIntensity) = GetDirectionalLightUniforms(data.World.GetDirectionalLight());
 
+                cmd.EnableKeyword(shader, data.EstimationTransparencyModeKeyword);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PunctualLights, punctualLightBuffer);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PatchAllocationRequestCount, data.PatchAllocationRequestCount);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PatchAllocationRequests, data.PatchAllocationRequests);
@@ -1007,6 +1030,7 @@ namespace UnityEngine.Rendering
                 InlineRayTracing.SetTraceScratchBuffer(cmd, shader, kernelIdx, data.TraceScratchBuffer);
                 uint groupCount = DivUp(data.PatchCapacity, data.EstimationKernelGroupSize);
                 cmd.DispatchCompute(shader, data.EstimationKernelIndex, (int)groupCount, 1, 1);
+                cmd.DisableKeyword(shader, data.EstimationTransparencyModeKeyword);
             }
         }
 
