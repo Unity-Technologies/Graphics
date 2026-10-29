@@ -763,12 +763,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_CannotDetermineSubPassFlagNoDepth);
             }
 
+            // Depth attachment is always at index 0.
+            return GetSubPassFlagForMerging(fragments[0].accessFlags);
+        }
+
+        // Same as above, from the access flags of the native pass depth attachment.
+        static SubPassFlags GetSubPassFlagForMerging(AccessFlags depthAccessFlags)
+        {
             // Only do this for mobile using Vulkan.
 #if (PLATFORM_ANDROID)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
             {
-                // Depth attachment is always at index 0.
-                return (fragments[0].accessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
+                return (depthAccessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
             }
             else
             {
@@ -1053,8 +1059,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
 
             // We check first if we are at risk of having too many subpasses,
-            // only then we do the costlier subpass merging check, short circuiting it whenever possible
-            bool canAddAnExtraSubpass = (nativePass.numGraphPasses < NativePassCompiler.k_MaxSubpass);
+            // only then we do the costlier subpass merging check, short circuiting it whenever possible.
+            // The limit is on native subpasses: graph passes merged into the same native subpass don't count.
+            bool canAddAnExtraSubpass = (nativePass.numNativeSubPasses < NativePassCompiler.k_MaxSubpass);
             if (!canAddAnExtraSubpass && !CanMergeNativeSubPass(contextData, ref nativePass, ref passToMerge))
             {
                 return new PassBreakAudit(PassBreakReason.SubPassLimitReached, passIdToMerge);
@@ -1261,8 +1268,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 flags = SubPassFlags.ReadOnlyDepth;
             }
 
+            // If the native pass gets its depth attachment from this merge, TryMerge adds it first and updates
+            // the flags of the existing subpasses, the last one included (see AddDepthAttachmentFirstDuringMerge)
+            SubPassFlags lastPassFlags = lastPass.flags;
+            if (currRenderGraphPassHasDepth && !nativePass.hasDepth)
+            {
+                lastPassFlags |= GetSubPassFlagForMerging(contextData.fragmentData[passToMerge.firstFragment].accessFlags);
+            }
+
             // last check for flags
-            return flags == lastPass.flags;
+            return flags == lastPassFlags;
         }
 
         // Try to merge the new graph pass into the last native sub pass or create a new one in the current native pass.
