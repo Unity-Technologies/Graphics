@@ -14,7 +14,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Unity Technologies
-  productName: com.unity.template.hdrp-blank
+  productName: HDRP Blank
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -180,7 +180,9 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Standalone: com.Unity-Technologies.com.unity.template.hdrp-blank
+    Android: com.UnityTechnologies.HDRPBlank
+    Standalone: com.Unity-Technologies.HDRP-Blank
+    iPhone: com.Unity-Technologies.HDRP-Blank
   buildNumber:
     Standalone: 0
     VisionOS: 0

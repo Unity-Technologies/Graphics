@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition Render Pipeline Sample",
-  "version": "16.3.0",
+  "version": "16.3.1",
   "type": "template",
   "host": "hub",
   "unity": "6000.7",
