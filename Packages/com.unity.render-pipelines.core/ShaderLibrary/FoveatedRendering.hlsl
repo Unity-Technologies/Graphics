@@ -41,24 +41,24 @@ float2 FoveatedRemapPrevFrameLinearToNonUniform(float2 uv)
 
 float2 FoveatedRemapDensity(float2 uv)
 {
+    float2 density = float2(1.0f, 1.0f);
     UNITY_BRANCH if(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         FOVEATED_FLIP_Y(uv);
-        uv = RemapFoveatedRenderingDensity(uv);
-        FOVEATED_FLIP_Y(uv);
+        density = RemapFoveatedRenderingDensity(uv);
     }
-    return uv;
+    return density;
 }
 
 float2 FoveatedRemapPrevFrameDensity(float2 uv)
 {
+    float2 density = float2(1.0f, 1.0f);
     UNITY_BRANCH if(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     {
         FOVEATED_FLIP_Y(uv);
-        uv = RemapFoveatedRenderingPrevFrameDensity(uv);
-        FOVEATED_FLIP_Y(uv);
+        density = RemapFoveatedRenderingPrevFrameDensity(uv);
     }
-    return uv;
+    return density;
 }
 
 float2 FoveatedRemapNonUniformToLinear(float2 uv)
@@ -101,8 +101,8 @@ float2 FoveatedRemapNonUniformToLinearCS(float2 positionCS)
 // dummy coordinate remapping functions for non-foveated rendering
 float2 FoveatedRemapLinearToNonUniform(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameLinearToNonUniform(float2 uv) {return uv;}
-float2 FoveatedRemapDensity(float2 uv) {return uv;}
-float2 FoveatedRemapPrevFrameDensity(float2 uv) {return uv;}
+float2 FoveatedRemapDensity(float2 uv) {return float2(1.0f, 1.0f);}
+float2 FoveatedRemapPrevFrameDensity(float2 uv) {return float2(1.0f, 1.0f);}
 float2 FoveatedRemapNonUniformToLinear(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameNonUniformToLinear(float2 uv) {return uv;}
 float2 FoveatedRemapLinearToNonUniformCS(float2 positionCS) {return positionCS;}
