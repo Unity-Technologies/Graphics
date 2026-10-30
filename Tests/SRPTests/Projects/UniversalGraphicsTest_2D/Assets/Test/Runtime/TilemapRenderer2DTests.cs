@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System.Collections;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,7 +10,6 @@ using Object = UnityEngine.Object;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEngine.Profiling;
 #endif
 
 [TestFixture]
@@ -94,17 +94,16 @@ class TilemapRenderer2DTests
         m_Tilemap.SetTile(new Vector3Int(1, 1, 0), m_Tile);
         Assert.AreEqual(m_Tile, m_Tilemap.GetTile(Vector3Int.zero));
 
-        Recorder recorder = null;
-        var sampler = Sampler.Get("RenderLoop.DrawSRPBatcher");
-        if (sampler.isValid)
-            recorder = sampler.GetRecorder();
+        using var recorder = new ProfilerRecorder("RenderLoop.DrawSRPBatcher", 1,
+            ProfilerRecorderOptions.WrapAroundWhenCapacityReached | ProfilerRecorderOptions.SumAllSamplesInFrame |
+            ProfilerRecorderOptions.StartImmediately);
 
         // Wait for rendering
         int count = 0;
         for (var i = 0; i < 3; ++i)
         {
-            if (recorder != null)
-                count += recorder.sampleBlockCount;
+            if (recorder.Valid && recorder.Count > 0)
+                count += (int)recorder.GetSample(0).Count;
             yield return null;
         }
 
@@ -137,17 +136,16 @@ class TilemapRenderer2DTests
         sr = srgo2.GetComponent<SpriteRenderer>();
         sr.sprite = m_Tile.sprite;
 
-        Recorder recorder = null;
-        var sampler = Sampler.Get("RenderLoop.DrawSRPBatcher");
-        if (sampler.isValid)
-            recorder = sampler.GetRecorder();
+        using var recorder = new ProfilerRecorder("RenderLoop.DrawSRPBatcher", 1,
+            ProfilerRecorderOptions.WrapAroundWhenCapacityReached | ProfilerRecorderOptions.SumAllSamplesInFrame |
+            ProfilerRecorderOptions.StartImmediately);
 
         // Wait for rendering
         int count = 0;
         for (var i = 0; i < 3; ++i)
         {
-            if (recorder != null)
-                count += recorder.sampleBlockCount;
+            if (recorder.Valid && recorder.Count > 0)
+                count += (int)recorder.GetSample(0).Count;
             yield return null;
         }
 
@@ -183,17 +181,16 @@ class TilemapRenderer2DTests
         sr = srgo2.GetComponent<SpriteRenderer>();
         sr.sprite = m_Tile.sprite;
 
-        Recorder recorder = null;
-        var sampler = Sampler.Get("RenderLoop.DrawSRPBatcher");
-        if (sampler.isValid)
-            recorder = sampler.GetRecorder();
+        using var recorder = new ProfilerRecorder("RenderLoop.DrawSRPBatcher", 1,
+            ProfilerRecorderOptions.WrapAroundWhenCapacityReached | ProfilerRecorderOptions.SumAllSamplesInFrame |
+            ProfilerRecorderOptions.StartImmediately);
 
         // Wait for rendering
         int count = 0;
         for (var i = 0; i < 3; ++i)
         {
-            if (recorder != null)
-                count += recorder.sampleBlockCount;
+            if (recorder.Valid && recorder.Count > 0)
+                count += (int)recorder.GetSample(0).Count;
             yield return null;
         }
 
@@ -235,17 +232,16 @@ class TilemapRenderer2DTests
         sr.material = spritesDefaultMat;
         sr.sprite = m_Tile.sprite;
 
-        Recorder recorder = null;
-        var sampler = Sampler.Get("RenderLoop.DrawSRPBatcher");
-        if (sampler.isValid)
-            recorder = sampler.GetRecorder();
+        using var recorder = new ProfilerRecorder("RenderLoop.DrawSRPBatcher", 1,
+            ProfilerRecorderOptions.WrapAroundWhenCapacityReached | ProfilerRecorderOptions.SumAllSamplesInFrame |
+            ProfilerRecorderOptions.StartImmediately);
 
         // Wait for rendering
         int count = 0;
         for (var i = 0; i < 3; ++i)
         {
-            if (recorder != null)
-                count += recorder.sampleBlockCount;
+            if (recorder.Valid && recorder.Count > 0)
+                count += (int)recorder.GetSample(0).Count;
 
             yield return null;
         }

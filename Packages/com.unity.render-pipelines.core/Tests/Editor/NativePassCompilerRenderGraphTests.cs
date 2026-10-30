@@ -2,7 +2,8 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Profiling;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 using UnityEngine.TestTools;
@@ -11,8 +12,6 @@ namespace UnityEngine.Rendering.Tests
 {
     class NativePassCompilerRenderGraphTests
     {
-        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
-
         class RenderGraphTestPassData
         {
             public TextureHandle[] textures = new TextureHandle[8];
@@ -1854,27 +1853,12 @@ namespace UnityEngine.Rendering.Tests
                 passes[0].GraphPasses(result.contextData);
             });
 
-            // From RenderPassCullingTests.cs
             void ValidateNoGCAllocs(Action action)
             {
                 // Warmup - this will catch static c'tors etc.
-                CountGCAllocs(action);
-
-                // Actual test.
-                var count = CountGCAllocs(action);
-                if (count != 0)
-                    throw new AssertionException($"Expected 0 GC allocations but there were {count}");
-            }
-
-            int CountGCAllocs(Action action)
-            {
-                gcAllocRecorder.FilterToCurrentThread();
-                gcAllocRecorder.enabled = true;
-
                 action();
 
-                gcAllocRecorder.enabled = false;
-                return gcAllocRecorder.sampleBlockCount;
+                Assert.That(() => action(), Is.Not.AllocatingGCMemory());
             }
         }
 
@@ -2836,13 +2820,8 @@ namespace UnityEngine.Rendering.Tests
                 AddPass(2);
                 var hash = g.ComputeGraphHash();
 
-                gcAllocRecorder.FilterToCurrentThread();
-                gcAllocRecorder.enabled = false; // flush allocations accumulated outside the measured window
-                gcAllocRecorder.enabled = true;
-                g.CompileNativeRenderGraph(hash);
-                gcAllocRecorder.enabled = false;
-
-                Assert.AreEqual(0, gcAllocRecorder.sampleBlockCount, "Compiling on a fresh compilation-cache entry allocated GC memory.");
+                Assert.That(() => { g.CompileNativeRenderGraph(hash); }, Is.Not.AllocatingGCMemory(),
+                    "Compiling on a fresh compilation-cache entry allocated GC memory.");
             }
             finally
             {

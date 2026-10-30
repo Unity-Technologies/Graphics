@@ -391,8 +391,11 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
                         collectBeforeEachRender ? RenderAfterGarbageCollection : m_Camera.Render,
                         measured => result = measured);
 
-                    while (frames.MoveNext())
-                        yield return null;
+                    using (frames as IDisposable)
+                    {
+                        while (frames.MoveNext())
+                            yield return null;
+                    }
                 }
                 finally
                 {

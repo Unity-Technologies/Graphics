@@ -5,11 +5,12 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 
 [TestFixture]
 public class MultipleViewGCTest : MonoBehaviour
 {
-    Recorder m_gcAllocRecorder;
     EditorWindow m_sceneView;
     RenderTexture m_RenderTexture;
     UniversalRenderPipeline.SingleCameraRequest m_RenderRequest;
@@ -37,10 +38,6 @@ public class MultipleViewGCTest : MonoBehaviour
         }
 
         m_sceneView = EditorWindow.GetWindow<SceneView>();
-
-        m_gcAllocRecorder = Recorder.Get("GC.Alloc");
-        m_gcAllocRecorder.FilterToCurrentThread();
-        m_gcAllocRecorder.enabled = false;
 
         RenderTextureDescriptor desc = new RenderTextureDescriptor(Camera.main.pixelWidth, Camera.main.pixelHeight, RenderTextureFormat.Default, 32);
         m_RenderTexture = RenderTexture.GetTemporary(desc);
@@ -71,18 +68,17 @@ public class MultipleViewGCTest : MonoBehaviour
     public void RenderSceneAndGameView()
     {
         Profiler.BeginSample("GC_Alloc_URP_MultipleViews");
+        try
         {
-            m_gcAllocRecorder.enabled = true;
-            m_sceneView.Repaint();
-            RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
-            m_gcAllocRecorder.enabled = false;
+            Assert.That(() =>
+            {
+                m_sceneView.Repaint();
+                RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
+            }, Is.Not.AllocatingGCMemory());
         }
-        int allocationCountOfRenderPipeline = m_gcAllocRecorder.sampleBlockCount;
-
-        if (allocationCountOfRenderPipeline > 0)
+        finally
         {
-            Debug.LogError($"Memory was allocated {allocationCountOfRenderPipeline} times");
+            Profiler.EndSample();
         }
-        Profiler.EndSample();
     }
 }

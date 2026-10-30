@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Profiling;
+using Unity.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.TestTools.Graphics.Allocations;
 
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
         // Everything the measured window touches is allocated once here. A closure or a recorder
         // fetched per frame would be counted as the allocation we are hunting for.
         readonly Action m_Invoke;
-        Recorder m_Recorder;
+        ProfilerRecorder m_Recorder;
         RenderGraph m_RenderGraph;
         ContextContainer m_FrameData;
 
@@ -108,7 +108,8 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
                 return;
 
             m_Begun = true;
-            m_Recorder ??= AllocationDetector.GetVerifiedRecorder(m_Result.threadScope);
+            if (!m_Recorder.Valid)
+                m_Recorder = AllocationDetector.GetVerifiedRecorder(m_Result.threadScope);
 
             // Created here, armed once warm-up is over: warm-up allocations are lazy initialisation and
             // pool growth, and tracing them buries the steady-state allocation being hunted.
@@ -134,6 +135,9 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
         /// </summary>
         public void Finish()
         {
+            m_Recorder.Dispose();
+            m_Recorder = default;
+
             if (m_Logs != null)
             {
                 m_Result.loggedErrors = m_Logs.hasErrors;
@@ -164,7 +168,8 @@ namespace UnityEngine.Rendering.Universal.Tests.Allocations
             if (!wantsMoreRenders)
                 return;
 
-            m_Recorder ??= AllocationDetector.GetVerifiedRecorder(m_Result.threadScope);
+            if (!m_Recorder.Valid)
+                m_Recorder = AllocationDetector.GetVerifiedRecorder(m_Result.threadScope);
             m_RenderGraph = renderGraph;
             m_FrameData = frameData;
 

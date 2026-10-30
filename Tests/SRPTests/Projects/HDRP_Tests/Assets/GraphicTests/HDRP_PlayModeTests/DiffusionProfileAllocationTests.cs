@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -89,8 +90,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 m_Camera.Render,
                 r => result = r);
 
-            while (frames.MoveNext())
-                yield return frames.Current;
+            using (frames as IDisposable)
+            {
+                while (frames.MoveNext())
+                    yield return frames.Current;
+            }
 
             var resolved = HDCamera.GetOrCreate(m_Camera).volumeStack.GetComponent<DiffusionProfileList>();
             Assert.That(resolved.diffusionProfiles.value, Does.Contain(m_DiffusionProfile),

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -29,8 +30,6 @@ namespace UnityEngine.Rendering.Tests
 
     class RenderGraphTestsCulling
     {
-        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
-
         const int kLightCount = 3;
 
         CullingTestRenderPass m_TestRenderPass;
@@ -136,23 +135,9 @@ namespace UnityEngine.Rendering.Tests
         void ValidateNoGCAllocs(Action action)
         {
             // Warmup - this will catch static c'tors etc.
-            CountGCAllocs(action);
-
-            // Actual test.
-            var count = CountGCAllocs(action);
-            if (count != 0)
-                throw new AssertionException($"Expected 0 GC allocations but there were {count}");
-        }
-
-        int CountGCAllocs(Action action)
-        {
-            gcAllocRecorder.FilterToCurrentThread();
-            gcAllocRecorder.enabled = true;
-
             action();
 
-            gcAllocRecorder.enabled = false;
-            return gcAllocRecorder.sampleBlockCount;
+            Assert.That(() => action(), Is.Not.AllocatingGCMemory());
         }
     }
 }

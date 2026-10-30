@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
-using UnityEngine.Profiling;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -516,28 +517,14 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
-        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
-        static int CountGCAllocs(Action action)
-        {
-            gcAllocRecorder.FilterToCurrentThread();
-            gcAllocRecorder.enabled = false;
-            gcAllocRecorder.enabled = true;
-
-            action();
-
-            gcAllocRecorder.enabled = false;
-            return gcAllocRecorder.sampleBlockCount;
-        }
         static void ValidateNoGCAllocs(Action action)
         {
             // warmup
             // this will catch static c'tors etc
-            CountGCAllocs(action);
+            action();
 
             // actual test
-            var count = CountGCAllocs(action);
-            if (count != 0)
-                throw new AssertionException($"Expected 0 GC allocations but there were {count}");
+            Assert.That(() => action(), Is.Not.AllocatingGCMemory());
         }
 
         [Test]
