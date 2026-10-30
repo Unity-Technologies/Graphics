@@ -1,6 +1,7 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -26,11 +27,74 @@ namespace UnityEngine.Rendering.Universal
         static bool s_FoldNeeded;
         static uint s_ConsumerVersion;
         static JobHandle s_TransformJob;
+        static SurfaceCacheCullingObserver[] s_CullingObservers = Array.Empty<SurfaceCacheCullingObserver>();
+        static int s_CullingObserverCount;
 
         public static bool IsConsumerPresent => s_ConsumerRegistered;
 
         // Producers push their full state again when this changes, so a recreated consumer starts complete.
         public static uint ConsumerVersion => s_ConsumerVersion;
+
+        public static ReadOnlySpan<SurfaceCacheCullingObserver> CullingObservers => new(s_CullingObservers, 0, s_CullingObserverCount);
+
+        struct CullingStatistics
+        {
+            public int TrackedEntityCount;
+            public int CulledEntityCount;
+            public int TrackedChunkCount;
+            public int CulledChunkCount;
+        }
+
+        static readonly Dictionary<ulong, CullingStatistics> s_CullingStatistics = new();
+
+        public static int TrackedEntityCount { get; private set; }
+        public static int CulledEntityCount { get; private set; }
+        public static int TrackedChunkCount { get; private set; }
+        public static int CulledChunkCount { get; private set; }
+
+        public static void SetCullingObservers(ReadOnlySpan<SurfaceCacheCullingObserver> observers)
+        {
+            if (s_CullingObservers.Length < observers.Length)
+                s_CullingObservers = new SurfaceCacheCullingObserver[observers.Length];
+
+            observers.CopyTo(s_CullingObservers);
+            s_CullingObserverCount = observers.Length;
+        }
+
+        public static void ReportCullingStatistics(ulong producer, int trackedEntityCount, int culledEntityCount, int trackedChunkCount, int culledChunkCount)
+        {
+            s_CullingStatistics[producer] = new CullingStatistics
+            {
+                TrackedEntityCount = trackedEntityCount,
+                CulledEntityCount = culledEntityCount,
+                TrackedChunkCount = trackedChunkCount,
+                CulledChunkCount = culledChunkCount,
+            };
+            SumCullingStatistics();
+        }
+
+        public static void RemoveCullingStatistics(ulong producer)
+        {
+            if (s_CullingStatistics.Remove(producer))
+                SumCullingStatistics();
+        }
+
+        static void SumCullingStatistics()
+        {
+            int trackedEntityCount = 0, culledEntityCount = 0, trackedChunkCount = 0, culledChunkCount = 0;
+            foreach (var statistics in s_CullingStatistics.Values)
+            {
+                trackedEntityCount += statistics.TrackedEntityCount;
+                culledEntityCount += statistics.CulledEntityCount;
+                trackedChunkCount += statistics.TrackedChunkCount;
+                culledChunkCount += statistics.CulledChunkCount;
+            }
+
+            TrackedEntityCount = trackedEntityCount;
+            CulledEntityCount = culledEntityCount;
+            TrackedChunkCount = trackedChunkCount;
+            CulledChunkCount = culledChunkCount;
+        }
 
         public static bool TryRegisterConsumer()
         {
@@ -55,6 +119,9 @@ namespace UnityEngine.Rendering.Universal
             CompleteTransformJob();
             s_ConsumerRegistered = false;
             s_DrainInProgress = false;
+            s_CullingObserverCount = 0;
+            s_CullingStatistics.Clear();
+            SumCullingStatistics();
 
             if (s_PendingTransforms.IsCreated)
             {

@@ -1,5 +1,7 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
+using Unity.Mathematics;
+
 namespace UnityEngine.Rendering.Universal
 {
     struct SurfaceCacheSubMeshMaterial
@@ -26,6 +28,13 @@ namespace UnityEngine.Rendering.Universal
     {
         public EntityId Key;
         public Matrix4x4 LocalToWorld;
+    }
+
+    struct SurfaceCacheCullingObserver
+    {
+        public float3 Position;
+        public float MaxDistance;
+        public float MinAngle;
     }
 }
 
