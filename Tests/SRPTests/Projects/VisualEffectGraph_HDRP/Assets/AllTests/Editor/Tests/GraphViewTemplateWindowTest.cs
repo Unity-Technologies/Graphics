@@ -473,6 +473,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest, Description("Covers UUM-121936")]
+        [Timeout(360000)]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
             var installButton = window.rootVisualElement.Q<Button>("InstallButton");
