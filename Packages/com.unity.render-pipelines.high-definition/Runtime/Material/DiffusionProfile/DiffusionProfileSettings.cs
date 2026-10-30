@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (profile != null && profile.hash == 0)
             {
                 profile.ResetToDefault();
-                profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);
+                DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
             }
         }
 
