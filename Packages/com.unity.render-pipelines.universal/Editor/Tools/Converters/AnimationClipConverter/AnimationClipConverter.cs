@@ -108,96 +108,95 @@ namespace UnityEditor.Rendering.Universal
                 onScanFinish?.Invoke(results);
             }
 
-            using (UnityEngine.Pool.DictionaryPool<string, HashSet<AnimationClipConverterItem>>.Get(out var animatorUsingClip))
-            using (UnityEngine.Pool.HashSetPool<(string,string)>.Get(out var animatorReferences))
+            var animatorUsingClip = new Dictionary<string, HashSet<AnimationClipConverterItem>>();
+            var animatorReferences = new HashSet<(string, string)>();
+
+            void OnAnimationClipDependenciesSearchFinish()
             {
-                void OnAnimationClipDependenciesSearchFinish()
-                {
-                    var query = new List<(string, string)>(animatorReferences);
-                    SearchServiceUtils.RunQueuedSearch
-                    (
-                        SearchServiceUtils.IndexingOptions.DeepSearch,
-                        query,
-                        (item, path) =>
-                        {
-                            var unityObject = item.ToObject();
-
-                            if (unityObject == null)
-                                return;
-
-                            var gid = GlobalObjectId.GetGlobalObjectIdSlow(unityObject);
-                            int type = gid.identifierType; // 1=Asset, 2=SceneObject
-
-                            var assetItem = new RenderPipelineConverterAssetItem(gid.ToString())
-                            {
-                                name = unityObject.name,
-                                info = path,
-                            };
-
-                            if (animatorUsingClip.TryGetValue(path, out var list))
-                            {
-                                foreach (var i in list)
-                                {
-                                    i.dependencies.Add(assetItem);
-                                }
-                            }
-                        },
-                        OnSearchFinish  // Invoked when all queued searches complete
-                    );
-                }
-
+                var query = new List<(string, string)>(animatorReferences);
                 SearchServiceUtils.RunQueuedSearch
                 (
                     SearchServiceUtils.IndexingOptions.DeepSearch,
-                    GetAnimationClipsSearchList(),
-                    (searchItem, animationClipPath) =>
+                    query,
+                    (item, path) =>
                     {
-                        // Search callback invoked for each asset that references an animation clip.
-                        // The queued search processes results grouped by animation clip. When we encounter
-                        // a different animationClipPath than the current one, it indicates we've started
-                        // processing dependencies for a new animation clip.
-                        // 
-                        // This batching approach efficiently groups all dependencies (prefabs, GameObjects, etc.)
-                        // under their respective animation clips without requiring separate searches per clip.
+                        var unityObject = item.ToObject();
 
-                        // Create a new converter item when we encounter a different animation clip
-                        if (currentAnimationClipItem == null ||
-                            !currentAnimationClipItem.assetPath.Equals(animationClipPath))
+                        if (unityObject == null)
+                            return;
+
+                        var gid = GlobalObjectId.GetGlobalObjectIdSlow(unityObject);
+                        int type = gid.identifierType; // 1=Asset, 2=SceneObject
+
+                        var assetItem = new RenderPipelineConverterAssetItem(gid.ToString())
                         {
-                            currentAnimationClipItem = new AnimationClipConverterItem(
-                                GlobalObjectId.GetGlobalObjectIdSlow(AssetDatabase.LoadAssetAtPath<AnimationClip>(animationClipPath)),
-                                animationClipPath);
-                            assets.Add(currentAnimationClipItem);
-                        }
+                            name = unityObject.name,
+                            info = path,
+                        };
 
-                        // Add the dependent asset (prefab, GameObject, etc.) to the current clip's dependency list
-                        var assetItem = new RenderPipelineConverterAssetItem(searchItem.id);
-                        
-                        // If the animation clip is being referenced by a controller, we need to enqueue where this controller is being used
-                        // Handle everything at the end and fill clip dependencies, with controller dependencies.
-                        if (assetItem.assetPath.EndsWith(".controller"))
+                        if (animatorUsingClip.TryGetValue(path, out var list))
                         {
-                            var controller = assetItem.LoadObject();
-                            string formattedId = $"<$object:{GlobalObjectId.GetGlobalObjectIdSlow(controller)},UnityEngine.Object$>";
-                            animatorReferences.Add(($"ref={formattedId}", AssetDatabase.GetAssetPath(controller)));
-
-                            if (!animatorUsingClip.TryGetValue(assetItem.assetPath, out var list))
+                            foreach (var i in list)
                             {
-                                list = new ();
-                                animatorUsingClip[assetItem.assetPath] = list;
+                                i.dependencies.Add(assetItem);
                             }
-
-                            list.Add(currentAnimationClipItem);
-                        }
-                        else
-                        {
-                            // A game object with an Animation component directly referencing the animation clip
-                            currentAnimationClipItem.dependencies.Add(assetItem);
                         }
                     },
-                    OnAnimationClipDependenciesSearchFinish  // Queue animators
+                    OnSearchFinish  // Invoked when all queued searches complete
                 );
             }
+
+            SearchServiceUtils.RunQueuedSearch
+            (
+                SearchServiceUtils.IndexingOptions.DeepSearch,
+                GetAnimationClipsSearchList(),
+                (searchItem, animationClipPath) =>
+                {
+                    // Search callback invoked for each asset that references an animation clip.
+                    // The queued search processes results grouped by animation clip. When we encounter
+                    // a different animationClipPath than the current one, it indicates we've started
+                    // processing dependencies for a new animation clip.
+                    // 
+                    // This batching approach efficiently groups all dependencies (prefabs, GameObjects, etc.)
+                    // under their respective animation clips without requiring separate searches per clip.
+
+                    // Create a new converter item when we encounter a different animation clip
+                    if (currentAnimationClipItem == null ||
+                        !currentAnimationClipItem.assetPath.Equals(animationClipPath))
+                    {
+                        currentAnimationClipItem = new AnimationClipConverterItem(
+                            GlobalObjectId.GetGlobalObjectIdSlow(AssetDatabase.LoadAssetAtPath<AnimationClip>(animationClipPath)),
+                            animationClipPath);
+                        assets.Add(currentAnimationClipItem);
+                    }
+
+                    // Add the dependent asset (prefab, GameObject, etc.) to the current clip's dependency list
+                    var assetItem = new RenderPipelineConverterAssetItem(searchItem.id);
+                    
+                    // If the animation clip is being referenced by a controller, we need to enqueue where this controller is being used
+                    // Handle everything at the end and fill clip dependencies, with controller dependencies.
+                    if (assetItem.assetPath.EndsWith(".controller"))
+                    {
+                        var controller = assetItem.LoadObject();
+                        string formattedId = $"<$object:{GlobalObjectId.GetGlobalObjectIdSlow(controller)},UnityEngine.Object$>";
+                        animatorReferences.Add(($"ref={formattedId}", AssetDatabase.GetAssetPath(controller)));
+
+                        if (!animatorUsingClip.TryGetValue(assetItem.assetPath, out var list))
+                        {
+                            list = new ();
+                            animatorUsingClip[assetItem.assetPath] = list;
+                        }
+
+                        list.Add(currentAnimationClipItem);
+                    }
+                    else
+                    {
+                        // A game object with an Animation component directly referencing the animation clip
+                        currentAnimationClipItem.dependencies.Add(assetItem);
+                    }
+                },
+                OnAnimationClipDependenciesSearchFinish  // Queue animators
+            );
         }
 
         /// <summary>
