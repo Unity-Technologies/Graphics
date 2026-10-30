@@ -1271,6 +1271,28 @@ namespace UnityEditor.VFX.UI
             return nodeControllers.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Returns the controller of a parameter that was just added to the graph, syncing the
+        /// controllers with the graph if that has not happened yet, so that the caller does not
+        /// have to wait for the next window update.
+        /// </summary>
+        public VFXParameterController GetNewParameterController(VFXParameter parameter)
+        {
+            if (m_ParameterControllers.TryGetValue(parameter, out VFXParameterController parameterController))
+            {
+                return parameterController;
+            }
+
+            bool groupNodeChanged = false;
+            SyncControllerFromModel(ref groupNodeChanged);
+            if (!m_ParameterControllers.TryGetValue(parameter, out parameterController))
+            {
+                throw new InvalidOperationException($"No controller was created for the parameter '{parameter.exposedName}'. It must be a child of the graph.");
+            }
+
+            return parameterController;
+        }
+
         public VFXNodeController AddNode(Vector2 tPos, Variant variant, VFXGroupNodeController groupNode)
         {
             VFXModel newNode = null;

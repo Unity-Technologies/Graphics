@@ -1208,19 +1208,8 @@ namespace UnityEditor.VFX.UI
                 newParam.SetSettingValue("m_Exposed", true);
             }
 
-            // We must delay because the VFXParameterController will be added on new graph update
-            EditorApplication.delayCall += () => AddParameterIfNeeded(newParam, m_Controller);
-        }
-
-        private void AddParameterIfNeeded(VFXParameter parameter, VFXViewController vfxViewController)
-        {
-            // Check if parameter has not already been added by an Update because of a postprocess
-            if (GetItemsData<PropertyItem>().All(x => string.Compare(parameter.exposedName, x.data.title, StringComparison.OrdinalIgnoreCase) != 0))
-            {
-                AddParameter(vfxViewController.GetParameterController(parameter), true);
-            }
-
-            OpenTextEditor<VFXBlackboardField, PropertyItem>(parameter.exposedName);
+            AddParameter(m_Controller.GetNewParameterController(newParam), true);
+            OpenTextEditor<VFXBlackboardField, PropertyItem>(newParam.exposedName);
         }
 
         private void OnAddCustomAttribute(object parameter)

@@ -283,6 +283,7 @@ namespace UnityEditor.VFX.Test
             AddParameter(blackboard, descriptorParameter);
 
             // Assert
+            Assert.IsNotNull(GetItemOfTypeAndName<PropertyItem>(blackboard, $"New {descriptorParameter.name}"), "The row must exist as soon as the parameter is added");
             var enumerator = IsOpenForEdit(blackboard, "textField", $"New {descriptorParameter.name}");
             while (enumerator.MoveNext())
             {
@@ -309,6 +310,7 @@ namespace UnityEditor.VFX.Test
             AddParameter(blackboard, descriptorParameter);
 
             // Assert
+            Assert.IsNotNull(GetItemOfTypeAndName<PropertyItem>(blackboard, $"New {descriptorParameter.name}"), "The row must exist as soon as the parameter is added");
             var enumerator = IsOpenForEdit(blackboard, "textField", $"New {descriptorParameter.name}");
             while (enumerator.MoveNext())
             {

@@ -3504,11 +3504,7 @@ namespace UnityEditor.VFX.UI
                 var newParameterName = VFXParameterController.MakeNameUnique(m_Controller, parameterController.exposedName);
                 var newVfxParameter = VFXParameter.Duplicate(newParameterName, parameterController.model);
                 controller.AddVFXModel(Vector2.zero, newVfxParameter);
-
-                bool groupChanged = false;
-                controller.SyncControllerFromModel(ref groupChanged);
-
-                var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+                VFXParameterController newParameterController = controller.GetNewParameterController(newVfxParameter);
                 newVfxParameter.category = newCategoryName;
 
                 if (parameterController.spaceableAndMasterOfSpace)
