@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -44,7 +45,10 @@ namespace UnityEngine.Rendering
             set => instance.m_AreDebugOverlaysHidden = value;
         }
 
-        ISerializedDebugDisplaySettings GetOrCreate(Type type)
+        const DynamicallyAccessedMemberTypes k_CreatedMembers =
+            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors;
+
+        ISerializedDebugDisplaySettings GetOrCreate([DynamicallyAccessedMembers(k_CreatedMembers)] Type type)
         {
             var setting = Get(type);
             if (setting != null)
@@ -79,7 +83,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <typeparam name="T">The debug display settings type to retrieve.</typeparam>
         /// <returns>The serialized instance for the given debug display settings type.</returns>
-        public static T GetOrCreate<T>() where T : class, ISerializedDebugDisplaySettings
+        public static T GetOrCreate<[DynamicallyAccessedMembers(k_CreatedMembers)] T>() where T : class, ISerializedDebugDisplaySettings
         {
             return instance.GetOrCreate(typeof(T)) as T;
         }
