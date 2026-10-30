@@ -6,6 +6,7 @@ Supply shaders with essential data such as constants, mesh attributes, gradients
 
 | **Topic** | **Description** |
 |-----------|-----------------|
+| [Active Shadow2D Light](active-shadow2d-light-node.md) | Outputs the position and radius of the 2D light that's casting the shadow, for use in Shadow2D shaders. |
 | [Light Texture](light-texture-node.md) | Outputs a shape light texture from the 2D Renderer for use in Sprite Custom Lit or Sprite Unlit shaders. |
 
 ## Basic
