@@ -582,12 +582,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 throw new Exception("SubPassFlag for merging can not be determined if native pass doesn't have a depth attachment");
             }
 
+            // Depth attachment is always at index 0.
+            return GetSubPassFlagForMerging(fragments[0].accessFlags);
+        }
+
+        // Same as above, from the access flags of the native pass depth attachment.
+        static SubPassFlags GetSubPassFlagForMerging(AccessFlags depthAccessFlags)
+        {
             // Only do this for mobile using Vulkan.
 #if (PLATFORM_ANDROID)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
             {
-                // Depth attachment is always at index 0.
-                return (fragments[0].accessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
+                return (depthAccessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
             }
             else
             {
@@ -812,8 +818,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return new PassBreakAudit(PassBreakReason.AttachmentLimitReached, passIdToMerge);
             }
 
+            // The limit is on native subpasses: graph passes merged into the same native subpass don't count.
             bool canMergeNativeSubPass = CanMergeNativeSubPass(contextData, nativePass, passToMerge);
-            if (!canMergeNativeSubPass && nativePass.numGraphPasses + 1 > NativePassCompiler.k_MaxSubpass)
+            if (!canMergeNativeSubPass && nativePass.numNativeSubPasses + 1 > NativePassCompiler.k_MaxSubpass)
             {
                 return new PassBreakAudit(PassBreakReason.SubPassLimitReached, passIdToMerge);
             }
@@ -963,8 +970,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
+            // If the native pass gets its depth attachment from this merge, TryMerge adds it first and updates
+            // the flags of the existing subpasses, the last one included (see AddDepthAttachmentFirstDuringMerge)
+            SubPassFlags lastPassFlags = lastPass.flags;
+            if (passToMerge.fragmentInfoHasDepth && !nativePass.hasDepth)
+            {
+                lastPassFlags |= GetSubPassFlagForMerging(contextData.fragmentData[passToMerge.firstFragment].accessFlags);
+            }
+
             // last check for flags
-            return flags == lastPass.flags;
+            return flags == lastPassFlags;
         }
 
         // Try to merge the new graph pass into the last native sub pass or create a new one in the current native pass.
