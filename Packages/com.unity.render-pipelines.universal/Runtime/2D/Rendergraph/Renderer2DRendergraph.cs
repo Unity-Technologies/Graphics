@@ -221,6 +221,26 @@ namespace UnityEngine.Rendering.Universal
             return allowDepth;
         }
 
+        static bool ShouldImportBackBufferDepth(ContextContainer frameData, Renderer2DData rendererData, bool createColorTexture)
+        {
+            if (IsDepthUsageAllowed(frameData, rendererData))
+                return true;
+
+            // OpenGL binds the default framebuffer's depth with its color even when no pass uses it, so it must still be cleared (UUM-159093)
+            var deviceType = SystemInfo.graphicsDeviceType;
+            if (deviceType != GraphicsDeviceType.OpenGLES3 && deviceType != GraphicsDeviceType.OpenGLCore)
+                return false;
+
+            // Only when the 2D passes draw straight into the back buffer, since they are what attach and clear it
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            bool isBackBuffer = cameraData.targetTexture == null && !createColorTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            isBackBuffer &= !cameraData.xr.enabled;
+#endif
+
+            return isBackBuffer && Graphics.backBufferHasDepthStencil;
+        }
+
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData, out PixelPerfectCamera ppc)
         {
             ppc = null;
@@ -540,10 +560,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
                     RenderingUtils.ReAllocateHandleIfNeeded(ref s_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                    commonResourceData.activeDepthID = ActiveID.Camera;
                 }
-                else
-                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
             }
             else // Overlay camera
             {
@@ -557,8 +574,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CreateDepthTexture = baseRenderer.m_CreateDepthTexture;
 
                 commonResourceData.activeColorID = m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
-                commonResourceData.activeDepthID = m_CreateDepthTexture ? ActiveID.Camera : ActiveID.BackBuffer;
             }
+
+            // An intermediate color target is never paired with the back buffer depth
+            commonResourceData.activeDepthID = m_CreateDepthTexture || m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
 
             // Report this camera's real back buffer MSAA need; a 2D camera renders directly to it only when
             // no intermediate color texture is created (m_CreateColorTexture == false).
@@ -600,7 +619,7 @@ namespace UnityEngine.Rendering.Universal
 
             commonResourceData.backBufferColor = renderGraph.ImportTexture(m_RenderGraphBackbufferColorHandle, importSummary.importInfo, importSummary.backBufferColorParams);
 
-            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            if (ShouldImportBackBufferDepth(frameData, m_Renderer2DData, m_CreateColorTexture))
             {
                 if (m_RenderGraphBackbufferDepthHandle == null)
                 {
