@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         const string kInterfaceName = "Hidden/Tests/ShaderInterfaceModeTests";
 
         const string kInterfaceSource = @"
-Shader ""Hidden/Tests/ShaderInterfaceModeTests""
+ShaderInterface ""Hidden/Tests/ShaderInterfaceModeTests""
 {
     SubShader
     {
