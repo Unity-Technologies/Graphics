@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
@@ -720,6 +721,151 @@ float4 SSRTemporalFiltering(Varyings input) : SV_Target
         blendFactor = 0.0;
 
     return lerp(current, history, blendFactor);
+}
+
+// ------------------------------------------------------------------
+// Debug Visualization
+// ------------------------------------------------------------------
+static const int SSR_DEBUG_VIEW_MODE_REFLECTIONS = 1;
+static const int SSR_DEBUG_VIEW_MODE_RAW_REFLECTIONS = 2;
+static const int SSR_DEBUG_VIEW_MODE_CONFIDENCE = 3;
+static const int SSR_DEBUG_VIEW_MODE_RAW_CONFIDENCE = 4;
+static const int SSR_DEBUG_VIEW_MODE_MIP_LEVEL = 5;
+static const int SSR_DEBUG_VIEW_MODE_SMOOTHNESS = 6;
+static const int SSR_DEBUG_VIEW_MODE_CONTACT_HARDENING_FACTOR = 7;
+static const int SSR_DEBUG_VIEW_MODE_RAY_DISTANCE = 8;
+
+float4 _DebugParams;
+
+float3 GetSSRDebugHeatmapColor(float t)
+{
+    float3 r = saturate(t) * 2.1f - float3(1.8f, 1.14f, 0.3f);
+    return 1.0f - r * r;
+}
+
+float3 GetSSRDebugSmoothnessColor(float perceptualSmoothness)
+{
+    float3 color = perceptualSmoothness;
+    if (perceptualSmoothness < GetMinimumSmoothness())
+        color.r = 1;
+    return color;
+}
+
+bool DrawSSRDebugLegend(float2 uv, uint maxValue, inout float3 color, out float barValue)
+{
+    const float2 pixelSize = max(1, round(_ScreenSize.y / 1080)) * _ScreenSize.zw;
+    const float2 barMin = float2(0.02, 18 * pixelSize.y);
+    const float2 barSize = float2(0.96, 16 * pixelSize.y);
+    const float2 barCoord = (uv - barMin) / barSize;
+    barValue = barCoord.x;
+    if (uv.y > barMin.y + barSize.y + 8 * pixelSize.y)
+        return false;
+    if (all(barCoord >= 0) && all(barCoord <= 1))
+        return true;
+
+    const uint labelCount = min(maxValue, 8);
+    const uint labelValue = round(round(saturate(barCoord.x) * labelCount) * maxValue / labelCount);
+    const float labelX = barMin.x + barSize.x * labelValue / maxValue;
+    const int2 labelPixel = int2((uv.x - labelX) / pixelSize.x + 8, uv.y / pixelSize.y);
+
+    color *= 0.075;
+    if (barCoord.y < 0 && SampleDebugFontNumber2Digits(labelPixel, labelValue))
+        color = 1;
+    return false;
+}
+
+float4 SSRDebug(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    const float sourceLastMipIndex = _DebugParams.x;
+    const float rayDistanceRange = _DebugParams.y;
+    const int viewMode = _DebugParams.w;
+    const bool showSceneColor = _DebugParams.z > 0 && (viewMode == SSR_DEBUG_VIEW_MODE_REFLECTIONS || viewMode == SSR_DEBUG_VIEW_MODE_RAW_REFLECTIONS);
+
+    const float2 uv = input.texcoord;
+    const float2 sceneColorUV = (uv - SampleMotionVector(uv)) * GetHistoryResolutionScale();
+    const float3 sceneColor = SAMPLE_TEXTURE2D_X_LOD(_CameraColorTexture, sampler_LinearClamp, sceneColorUV, 0).rgb * showSceneColor;
+
+    const float deviceDepth = SampleSceneDepth(uv).r;
+    const float3 positionWS = ComputeWorldSpacePosition(uv, deviceDepth, _CameraInverseViewProjections[unity_eyeIndex]);
+
+    const float perceptualSmoothness = SampleSmoothness(uv);
+    const float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(perceptualSmoothness);
+    const float smoothnessFade = smoothstep(_ScreenSpaceReflectionParam.y, _ScreenSpaceReflectionParam.z, perceptualSmoothness);
+    const bool isTraced = perceptualSmoothness >= GetMinimumSmoothness();
+    const bool isReflective = smoothnessFade > 1e-3;
+
+    const float lastMipIndex = min(GetSSRTextureLastValidMipIndex(), sourceLastMipIndex);
+    const float mipLevel = min(GetSSRMipLevelFromPerceptualRoughness(positionWS, perceptualRoughness, uv), lastMipIndex);
+    const float4 reflColor = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_TrilinearClamp, uv, mipLevel);
+    const float4 rawReflColor = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_TrilinearClamp, uv, 0) * isTraced;
+
+    float3 output = 0;
+    float coverage = 0;
+    float legendValue = 0;
+    if (viewMode == SSR_DEBUG_VIEW_MODE_REFLECTIONS)
+    {
+        output = reflColor.rgb * smoothnessFade;
+        coverage = reflColor.a * smoothnessFade;
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_RAW_REFLECTIONS)
+    {
+        output = rawReflColor.rgb;
+        coverage = rawReflColor.a;
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_CONFIDENCE)
+    {
+        output = reflColor.a * smoothnessFade;
+
+        if (DrawSSRDebugLegend(uv, 1, output, legendValue))
+            output = legendValue;
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_RAW_CONFIDENCE)
+    {
+        output = rawReflColor.a;
+
+        if (DrawSSRDebugLegend(uv, 1, output, legendValue))
+            output = legendValue;
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_MIP_LEVEL)
+    {
+        output = GetSSRDebugHeatmapColor(mipLevel * rcp(max(lastMipIndex, 1))) * isReflective;
+
+        if (DrawSSRDebugLegend(uv, lastMipIndex, output, legendValue))
+            output = GetSSRDebugHeatmapColor(legendValue);
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_SMOOTHNESS)
+    {
+        output = GetSSRDebugSmoothnessColor(perceptualSmoothness);
+
+        if (DrawSSRDebugLegend(uv, 1, output, legendValue))
+            output = GetSSRDebugSmoothnessColor(legendValue);
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_CONTACT_HARDENING_FACTOR)
+    {
+        const float roughnessBlurRadius = GetSSRBlurriness() * tan(GetSSRBlurConeHalfAngle(perceptualRoughness));
+        float contactFactor = 1.0;
+        if (roughnessBlurRadius > FLT_EPS)
+            contactFactor = GetSSRBlurRadiusFromPerceptualRoughness(positionWS, perceptualRoughness, uv) / roughnessBlurRadius;
+        output = GetSSRDebugHeatmapColor(contactFactor) * isReflective;
+
+        if (DrawSSRDebugLegend(uv, 1, output, legendValue))
+            output = GetSSRDebugHeatmapColor(legendValue);
+    }
+    else if (viewMode == SSR_DEBUG_VIEW_MODE_RAY_DISTANCE)
+    {
+        const float4 rayDistancesAndValidity = SAMPLE_TEXTURE2D_X_LOD(_ScreenSpaceReflectionRayDistanceTexture, sampler_PointClamp, uv, 0);
+        if (rayDistancesAndValidity.w > 0)
+            output = GetSSRDebugHeatmapColor(1);
+        else if (rayDistancesAndValidity.z > 0)
+            output = GetSSRDebugHeatmapColor(rayDistancesAndValidity.x / rayDistanceRange);
+
+        if (DrawSSRDebugLegend(uv, round(rayDistanceRange), output, legendValue))
+            output = GetSSRDebugHeatmapColor(legendValue);
+    }
+
+    return float4(output + sceneColor * (1 - coverage), 1);
 }
 
 #endif //UNIVERSAL_SSR_INCLUDED

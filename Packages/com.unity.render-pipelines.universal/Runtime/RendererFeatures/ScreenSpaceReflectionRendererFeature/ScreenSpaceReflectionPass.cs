@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
             BilinearUpscale = 2, // Single pass bilinear upscale
             BilateralUpscale = 3, // Single pass normal-weighted bilinear upscale
             TemporalFiltering = 4,
+            Debug = 5,
         }
 
         // Constants
@@ -72,6 +73,7 @@ namespace UnityEngine.Rendering.Universal
             internal static readonly int _ReflectionHistoryTexture = Shader.PropertyToID("_ReflectionHistoryTexture");
             internal static readonly int _BaseBlendFactor = Shader.PropertyToID("_BaseBlendFactor");
             internal static readonly int _ResolutionScales = Shader.PropertyToID("_ResolutionScales");
+            internal static readonly int _DebugParams = Shader.PropertyToID("_DebugParams");
         }
 
         // Private Variables
@@ -220,6 +222,24 @@ namespace UnityEngine.Rendering.Universal
             internal Vector2Int viewportSize;
         }
 
+        private class DebugPassData
+        {
+            internal Material material;
+            internal TextureHandle source;
+            internal TextureHandle cameraDepth;
+            internal TextureHandle smoothnessTexture;
+            internal TextureHandle rayDistanceTexture;
+            internal TextureHandle sceneColor;
+            internal TextureHandle sceneColorMotionVectors;
+            internal TextureHandle blackTexture;
+            internal ScreenSpaceReflectionDebugViewMode viewMode;
+            internal float sourceLastMipIndex;
+            internal float rayDistanceRange;
+            internal bool showSceneColor;
+            internal Vector2 currentResolutionScale;
+            internal Vector2 sceneColorResolutionScale;
+        }
+
         private class DepthCopyPassData
         {
             internal Material blitMaterial;
@@ -282,6 +302,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                TextureHandle selectedMotionVectorTexture;
+                TextureHandle selectedSceneColorTexture;
+                Vector2 selectedSceneColorScale;
                 using (var builder = renderGraph.AddRasterRenderPass<ScreenSpaceReflectionPassData>("SSR - Main Pass", out var passData))
                 {
                     // Shader keyword changes are considered as global state modifications
@@ -404,6 +427,11 @@ namespace UnityEngine.Rendering.Universal
                             }
                         }
                     }
+
+                    // Store references to the textures actually used by the main marching pass, used for debug vis.
+                    selectedMotionVectorTexture = passData.motionVectorColor;
+                    selectedSceneColorTexture = passData.afterOpaque ? passData.cameraColor : passData.lastFrameCameraColor;
+                    selectedSceneColorScale = passData.cameraColorResolutionScale;
 
                     builder.SetRenderFunc<ScreenSpaceReflectionPassData>(static (ssrData, rgContext) =>
                     {
@@ -592,6 +620,7 @@ namespace UnityEngine.Rendering.Universal
                             textureToBlit = mipGenTexture;
                             m_MipGenerator.RenderColorGaussianPyramid(renderGraph, viewportSizeWithScale, fullResSSRTexture, mipGenTexture);
                         }
+                        RenderDebugView(renderGraph, cameraData, textureToBlit, selectedSceneColorTexture, selectedSceneColorScale, selectedMotionVectorTexture, cameraDepthTexture, smoothnessTexture, rayDistanceTexture);
                         RenderAfterOpaqueBlit(renderGraph, textureToBlit, rayDistanceTexture, finalTexture);
                     }
                     else
@@ -602,6 +631,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             renderGraph.AddCopyPass(fullResSSRTexture, finalTexture, passName: "Final blit");
                         }
+                        RenderDebugView(renderGraph, cameraData, finalTexture, selectedSceneColorTexture, selectedSceneColorScale, selectedMotionVectorTexture, cameraDepthTexture, smoothnessTexture, rayDistanceTexture);
                     }
                 }
             }
@@ -883,7 +913,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
-        
+
         // Copies the potentially dynamically scaled depth into a viewport of a fixed size target.
         static void AddDepthCopyPass(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, Vector2Int viewportSize, Material blitMaterial, string passName)
         {
@@ -903,6 +933,82 @@ namespace UnityEngine.Rendering.Universal
                         Blitter.BlitTexture(context.cmd, data.source, new Vector4(1f, 1f, 0f, 0f), 0, false);
                 });
             }
+        }
+
+        private void RenderDebugView(
+            RenderGraph renderGraph,
+            UniversalCameraData cameraData,
+            TextureHandle source,
+            TextureHandle sceneColor,
+            Vector2 sceneColorResolutionScale,
+            TextureHandle sceneColorMotionVectors,
+            TextureHandle cameraDepth,
+            TextureHandle smoothnessTexture,
+            TextureHandle rayDistanceTexture)
+        {
+            var debugSettings = UniversalRenderPipelineDebugDisplaySettings.Instance.screenSpaceReflectionSettings;
+            if (debugSettings.viewMode == ScreenSpaceReflectionDebugViewMode.None)
+                return;
+
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            if (debugHandler == null)
+                return;
+
+            TextureDesc sourceDesc = source.GetDescriptor(renderGraph);
+            TextureDesc debugDesc = sourceDesc;
+            debugDesc.name = "_SSR_DebugTexture";
+            debugDesc.useMipMap = false;
+            debugDesc.autoGenerateMips = false;
+            debugDesc.enableRandomWrite = false;
+            debugDesc.clearBuffer = false;
+            TextureHandle debugTexture = renderGraph.CreateTexture(debugDesc);
+
+            using (var builder = renderGraph.AddRasterRenderPass<DebugPassData>("SSR - Debug", out var passData))
+            {
+                TextureHandle blackTexture = (TextureXR.slices > 1 && TextureXR.initialized)
+                    ? renderGraph.defaultResources.blackTextureXR
+                    : renderGraph.defaultResources.blackTexture;
+
+                passData.material = m_Material;
+                passData.source = source;
+                passData.cameraDepth = cameraDepth;
+                passData.smoothnessTexture = smoothnessTexture;
+                passData.rayDistanceTexture = rayDistanceTexture.IsValid() ? rayDistanceTexture : blackTexture;
+                passData.sceneColor = sceneColor;
+                passData.sceneColorMotionVectors = sceneColorMotionVectors;
+                passData.blackTexture = blackTexture;
+                passData.viewMode = debugSettings.viewMode;
+                passData.sourceLastMipIndex = sourceDesc.useMipMap ? Mathf.Floor(Mathf.Log(Mathf.Max(sourceDesc.width, sourceDesc.height), 2)) : 0f;
+                passData.rayDistanceRange = Mathf.Max(debugSettings.rayDistanceRange, 0.01f);
+                passData.showSceneColor = debugSettings.showSceneColor;
+                passData.currentResolutionScale = ColorHistory.GetCurrentDynamicResolutionScale(cameraData);
+                passData.sceneColorResolutionScale = sceneColorResolutionScale;
+
+                builder.SetRenderAttachment(debugTexture, 0);
+                builder.UseTexture(passData.source);
+                builder.UseTexture(passData.cameraDepth);
+                builder.UseTexture(passData.smoothnessTexture);
+                builder.UseTexture(passData.rayDistanceTexture);
+                builder.UseTexture(passData.sceneColor);
+                builder.UseTexture(passData.sceneColorMotionVectors);
+                builder.UseTexture(passData.blackTexture);
+
+                builder.SetRenderFunc<DebugPassData>(static (data, ctx) =>
+                {
+                    data.material.SetTexture(ShaderConstants._CameraDepthTexture, data.cameraDepth);
+                    data.material.SetTexture(ShaderConstants._SmoothnessTexture, data.smoothnessTexture);
+                    data.material.SetTexture(ShaderPropertyId.screenSpaceReflectionRayDistance, data.rayDistanceTexture);
+                    data.material.SetTexture(ShaderConstants._CameraColorTexture, ((RTHandle)data.sceneColor)?.rt == null ? data.blackTexture : data.sceneColor);
+                    data.material.SetTexture(ShaderConstants._MotionVectorColorTexture, data.sceneColorMotionVectors);
+                    data.material.SetVector(ShaderConstants._ResolutionScales, new Vector4(
+                        data.currentResolutionScale.x, data.currentResolutionScale.y,
+                        data.sceneColorResolutionScale.x, data.sceneColorResolutionScale.y));
+                    data.material.SetVector(ShaderConstants._DebugParams, new Vector4(data.sourceLastMipIndex, data.rayDistanceRange, data.showSceneColor ? 1f : 0f, (float)data.viewMode));
+                    Blitter.BlitTexture(ctx.cmd, data.source, Vector2.one, data.material, (int)ShaderPasses.Debug);
+                });
+            }
+
+            debugHandler.SetCustomDebugTexture(renderGraph, debugTexture);
         }
     }
 }

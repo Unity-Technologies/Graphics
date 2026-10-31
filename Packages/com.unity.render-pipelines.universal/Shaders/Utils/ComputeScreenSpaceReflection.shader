@@ -99,5 +99,16 @@ Shader "Hidden/Universal Render Pipeline/ComputeScreenSpaceReflection"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "SSR_Debug"
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment SSRDebug
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ComputeScreenSpaceReflection.hlsl"
+            ENDHLSL
+        }
+
     }
 }

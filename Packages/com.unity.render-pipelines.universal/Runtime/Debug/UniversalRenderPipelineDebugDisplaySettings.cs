@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
         internal DebugDisplaySettingsSurfaceCache surfaceCacheSettings { get; private set; }
 #endif
 
+        internal DebugDisplaySettingsScreenSpaceReflection screenSpaceReflectionSettings { get; private set; }
 #if URP_SHADOW_CACHING
         internal DebugDisplaySettingsShadowCaching shadowCachingSettings { get; private set; }
 #endif
@@ -118,6 +119,7 @@ namespace UnityEngine.Rendering.Universal
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
             surfaceCacheSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsSurfaceCache>());
 #endif
+            screenSpaceReflectionSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsScreenSpaceReflection>());
 #if URP_SHADOW_CACHING
             shadowCachingSettings = Add(DebugDisplaySerializer.GetOrCreate<DebugDisplaySettingsShadowCaching>());
 #endif
