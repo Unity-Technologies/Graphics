@@ -164,6 +164,41 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        internal static float GetEntityCullingMaxDistance(in VolumeParameterSet volumeParams)
+        {
+            switch (volumeParams.EntityCullingSphereMode)
+            {
+                case SurfaceCacheGIVolumeOverride.EntityCullingSphereMode.Fixed:
+                    return volumeParams.EntityCullingDistance;
+                case SurfaceCacheGIVolumeOverride.EntityCullingSphereMode.VolumePlusMargin:
+                    return 0.5f * volumeParams.VolumeSize + volumeParams.EntityCullingDistanceMargin;
+                default:
+                    return float.PositiveInfinity;
+            }
+        }
+
+        internal static float GetEntityCullingMinAngle(Camera camera, in VolumeParameterSet volumeParams)
+        {
+            switch (volumeParams.EntityCullingSmallObjectUnit)
+            {
+                case SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit.Degrees:
+                    return volumeParams.EntityCullingMinAngle;
+                case SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit.Pixels:
+                    return camera.orthographic ? 0.0f : ScreenSizeToAngle(volumeParams.EntityCullingMinScreenSize, camera.fieldOfView, camera.pixelHeight);
+                default:
+                    return 0.0f;
+            }
+        }
+
+        internal static float ScreenSizeToAngle(float pixels, float verticalFieldOfViewDegrees, int pixelHeight)
+        {
+            if (pixelHeight <= 0)
+                return 0.0f;
+
+            float halfHeightTangent = math.tan(math.radians(verticalFieldOfViewDegrees) * 0.5f);
+            return 2.0f * math.atan(pixels * halfHeightTangent / pixelHeight);
+        }
+
         static Vector3 ResolveFocusPos(Camera camera)
         {
             GameObject focusTarget = VolumeManager.instance.stack?.GetSceneObjectReference<SurfaceCacheGIVolumeOverride>();
@@ -205,7 +240,13 @@ namespace UnityEngine.Rendering.Universal
                 VolumeCascadeCount = (uint)volumeOverride.volumeCascadeCount.value,
                 DefragCount = (uint)volumeOverride.lightTransportDefragCount.value,
                 RenderingLayerMask = volumeOverride.lightTransportRenderingLayerMask.value,
-                PatchWarpingEnabled = volumeOverride.volumePatchWarpingEnabled.value
+                PatchWarpingEnabled = volumeOverride.volumePatchWarpingEnabled.value,
+                EntityCullingSphereMode = volumeOverride.entityCullingSphereMode.value,
+                EntityCullingDistanceMargin = volumeOverride.entityCullingDistanceMargin.value,
+                EntityCullingDistance = volumeOverride.entityCullingDistance.value,
+                EntityCullingSmallObjectUnit = volumeOverride.entityCullingSmallObjectUnit.value,
+                EntityCullingMinScreenSize = volumeOverride.entityCullingMinScreenSize.value,
+                EntityCullingMinAngle = math.radians(volumeOverride.entityCullingMinSolidAngle.value)
             };
         }
 
@@ -369,6 +410,7 @@ namespace UnityEngine.Rendering.Universal
             private readonly bool _conformToUnityGIFormat;
 
             internal SurfaceCacheWorld World => _world;
+            internal bool TryAcquireEntityChanges() => _entityChangeSource.TryAcquireBridge();
             internal uint RenderingLayerMask { get; set; }
             internal int MaterialResolution { get; set; }
 
@@ -469,6 +511,8 @@ namespace UnityEngine.Rendering.Universal
             internal uint FrameIndex;
             internal uint RenderingLayerMask;
             internal int LastUsedFrame;
+            internal bool EntityCullingEnabled;
+            internal SurfaceCacheCullingObserver EntityCullingObserver;
 
             public PerCameraState(SurfaceCache cache)
             {
@@ -1339,7 +1383,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, data.ClipToWorldTransforms);
                 cmd.SetComputeIntParam(shader, ShaderIDs._TileHeight, (int)data.TileHeight);
 
-                if (data.ViewMode == SurfaceCacheDebugViewMode.Albedo || data.ViewMode == SurfaceCacheDebugViewMode.Emission)
+                if (data.ViewMode == SurfaceCacheDebugViewMode.Albedo
+                    || data.ViewMode == SurfaceCacheDebugViewMode.Emission
+                    || data.ViewMode == SurfaceCacheDebugViewMode.WorldCulling)
                 {
                     for (uint tileOffsetY = 0; tileOffsetY < data.ThreadCount.y; tileOffsetY += data.TileHeight)
                     {
@@ -1422,6 +1468,12 @@ namespace UnityEngine.Rendering.Universal
             public uint DefragCount;
             public uint RenderingLayerMask;
             public bool PatchWarpingEnabled;
+            public SurfaceCacheGIVolumeOverride.EntityCullingSphereMode EntityCullingSphereMode;
+            public float EntityCullingDistanceMargin;
+            public float EntityCullingDistance;
+            public SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit EntityCullingSmallObjectUnit;
+            public float EntityCullingMinScreenSize;
+            public float EntityCullingMinAngle;
         }
 
         SurfaceCache CreateCache(in VolumeParameterSet vp)
@@ -1452,6 +1504,32 @@ namespace UnityEngine.Rendering.Universal
                 _cameraStates[stateKey].Dispose();
                 _cameraStates.Remove(stateKey);
             }
+        }
+
+        void PublishEntityCullingObservers()
+        {
+            // Other features would overwrite the observers of the feature whose world receives the entities.
+            if (_worldPass == null || !_worldPass.TryAcquireEntityChanges())
+                return;
+
+            bool excludeSceneView = UniversalRenderPipelineDebugDisplaySettings.Instance.surfaceCacheSettings.excludeSceneViewFromEntityCulling;
+            Span<SurfaceCacheCullingObserver> observers = stackalloc SurfaceCacheCullingObserver[_cameraStates.Count];
+            int observerCount = 0;
+            foreach (var kvp in _cameraStates)
+            {
+                if (excludeSceneView && kvp.Key.camera != null && kvp.Key.camera.cameraType == CameraType.SceneView)
+                    continue;
+
+                if (!kvp.Value.EntityCullingEnabled)
+                {
+                    observerCount = 0;
+                    break;
+                }
+
+                observers[observerCount++] = kvp.Value.EntityCullingObserver;
+            }
+
+            SurfaceCacheEntityChangeBridge.SetCullingObservers(observers.Slice(0, observerCount));
         }
 
         bool ResourcesCreated()
@@ -1572,6 +1650,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 if (_cameraStates.Count == 0 && ResourcesCreated())
                     ClearResources();
+                else
+                    PublishEntityCullingObservers();
 
                 // Where Surface Cache can never run, Enabled and Disabled already fall back identically,
                 // so only take over here where it can.
@@ -1607,6 +1687,15 @@ namespace UnityEngine.Rendering.Universal
             perCameraState.FrameIndex = reconfigured ? 0u : perCameraState.FrameIndex + 1u;
             perCameraState.LastUsedFrame = Time.frameCount;
             perCameraState.RenderingLayerMask = volumeParams.RenderingLayerMask;
+            Vector3 focusPos = ResolveFocusPos(camera);
+            perCameraState.EntityCullingEnabled = volumeParams.EntityCullingSphereMode != SurfaceCacheGIVolumeOverride.EntityCullingSphereMode.None
+                || volumeParams.EntityCullingSmallObjectUnit != SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit.None;
+            perCameraState.EntityCullingObserver = new SurfaceCacheCullingObserver
+            {
+                Position = focusPos,
+                MaxDistance = GetEntityCullingMaxDistance(volumeParams),
+                MinAngle = GetEntityCullingMinAngle(camera, volumeParams),
+            };
 
             // Editor repaints only advance the motion vector index, which stalls while no camera uses motion vectors.
             int motionVectorFrameIndex =
@@ -1626,13 +1715,15 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnqueuePass(_worldPass);
             }
 
+            PublishEntityCullingObservers();
+
             ScriptableRenderPassInput passInputs =
                 ScriptableRenderPassInput.Depth |
                 ScriptableRenderPassInput.Normal |
                 ScriptableRenderPassInput.Motion;
             _cameraPass.CurrentPerCameraState = perCameraState;
             _cameraPass.VolumeParams = volumeParams;
-            _cameraPass.FocusPos = ResolveFocusPos(camera);
+            _cameraPass.FocusPos = focusPos;
             _cameraPass.ConfigureInput(passInputs);
             renderer.EnqueuePass(_cameraPass);
         }

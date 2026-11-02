@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DrainBegun;
         bool m_ContentionLogged;
 
-        bool TryAcquireBridge()
+        public bool TryAcquireBridge()
         {
             if (!m_BridgeAcquired)
                 m_BridgeAcquired = SurfaceCacheEntityChangeBridge.TryRegisterConsumer();

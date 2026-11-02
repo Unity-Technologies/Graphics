@@ -114,6 +114,34 @@ float3 TraceMaterialProperty(uint2 pixelIdx, uint2 screenSize, uint globalThread
     return result;
 }
 
+float3 VisualizeWorldCulling(uint2 pixelIdx, uint2 screenSize, uint globalThreadIndex, uint groupThreadIdx, float nearClipValue)
+{
+    const float ndcDepth = LoadNdcDepth(_ScreenDepths, pixelIdx);
+    if (ndcDepth == invalidNdcDepth)
+        return 0.0f;
+
+    const float2 uv = (float2(pixelIdx) + 0.5f) / float2(screenSize);
+    const float4x4 clipToWorld = _ClipToWorldTransforms[unity_StereoEyeIndex];
+    const float3 nearPos = ComputeWorldSpacePosition(uv, nearClipValue, clipToWorld);
+    const float3 surfacePos = ComputeWorldSpacePosition(uv, ndcDepth, clipToWorld);
+    const float surfaceDistance = length(surfacePos - nearPos);
+    const float tolerance = 0.05f + 0.01f * surfaceDistance;
+
+    UnifiedRT::Ray ray;
+    ray.origin = nearPos;
+    ray.direction = (surfacePos - nearPos) / surfaceDistance;
+    ray.tMin = 0.0f;
+    ray.tMax = surfaceDistance + tolerance;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_RayTracingAccelerationStructure);
+    UnifiedRT::Hit hit = TraceRayClosestHit(globalThreadIndex, groupThreadIdx, accelStruct, ray, _MaterialEntries, _AlbedoTextures, sampler_AlbedoTextures, _MaterialAtlasTexelSize);
+    const bool isInWorld = hit.IsValid() && hit.hitDistance >= surfaceDistance - tolerance;
+
+    const float3 shadedNormal = UnpackNormalWSFromTexture(_ScreenShadedNormals[COORD_TEXTURE2D_X(pixelIdx)]);
+    const float shading = 0.3f + 0.7f * abs(dot(shadedNormal, ray.direction));
+    return (isInWorld ? float3(0.1f, 0.9f, 0.1f) : float3(0.9f, 0.1f, 0.1f)) * shading;
+}
+
 void Visualize(uint2 threadIdx, uint groupThreadIdx)
 {
     const float3 green = float3(0, 1, 0);
@@ -164,6 +192,11 @@ void Visualize(uint2 threadIdx, uint groupThreadIdx)
     {
         const uint globalThreadIndex = (unity_StereoEyeIndex * _TileHeight + threadIdx.y) * screenSize.x + threadIdx.x;
         output = TraceMaterialProperty(pixelIdx, screenSize, globalThreadIndex, groupThreadIdx, UNITY_NEAR_CLIP_VALUE, UNITY_RAW_FAR_CLIP_VALUE);
+    }
+    else if (_ViewMode == 11) // world presence via primary rays
+    {
+        const uint globalThreadIndex = (unity_StereoEyeIndex * _TileHeight + threadIdx.y) * screenSize.x + threadIdx.x;
+        output = VisualizeWorldCulling(pixelIdx, screenSize, globalThreadIndex, groupThreadIdx, UNITY_NEAR_CLIP_VALUE);
     }
     else
     {

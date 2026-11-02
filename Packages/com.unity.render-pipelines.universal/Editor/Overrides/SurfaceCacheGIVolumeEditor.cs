@@ -36,6 +36,13 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_VolumeDistanceFallback;
         protected SerializedDataParameter m_VolumePatchWarpingEnabled;
 
+        protected SerializedDataParameter m_EntityCullingSphereMode;
+        protected SerializedDataParameter m_EntityCullingDistanceMargin;
+        protected SerializedDataParameter m_EntityCullingDistance;
+        protected SerializedDataParameter m_EntityCullingSmallObjectUnit;
+        protected SerializedDataParameter m_EntityCullingMinScreenSize;
+        protected SerializedDataParameter m_EntityCullingMinSolidAngle;
+
         // The Focus Target is serialized on the owning Volume's GameObject (Volume.m_SceneObjectReference), not in
         // the profile, so it is edited through this SerializedObject rather than a SerializedDataParameter.
         const string k_ReferenceProp = "m_SceneObjectReference";
@@ -67,6 +74,12 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_VolumeCascadeCount = L10n.TextContent("Cascade Count", "Controls how patch density changes with distance. Higher values result in greater lighting detail up close and lower far away. Lower values evens out the distribution.", null, null);
         static GUIContent s_VolumeDistanceFallback = L10n.TextContent("Distance Fallback", "When enabled, a realtime global probe calculated from the environment light will be applied in the far distance.", null, null);
         static GUIContent s_PatchWarping = L10n.TextContent("Patch Warping", "Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.", null, null);
+        static GUIContent s_EntityCullingSphereMode = L10n.TextContent("Sphere Culling", "Leave out entities beyond a distance from every camera, following the Surface Cache volume plus a margin or at a fixed distance.", null, null);
+        static GUIContent s_EntityCullingDistanceMargin = L10n.TextContent("Margin", "How far beyond the Surface Cache volume entities are kept.", null, null);
+        static GUIContent s_EntityCullingDistance = L10n.TextContent("Distance", "Entities farther than this from every camera are left out.", null, null);
+        static GUIContent s_EntityCullingSmallObjectUnit = L10n.TextContent("Small Object Culling", "Leave out entities smaller than a minimum size for every camera, in pixels on screen or in degrees.", null, null);
+        static GUIContent s_EntityCullingMinScreenSize = L10n.TextContent("Min Screen Size", "Entities smaller than this many pixels on screen for every camera are left out.", null, null);
+        static GUIContent s_EntityCullingMinSolidAngle = L10n.TextContent("Min Solid Angle", "Entities covering a smaller angle than this, in degrees, for every camera are left out.", null, null);
         static GUIContent s_FocusTarget = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Stored on the Volume component, not in the shared Volume Profile.", null, null);
         static GUIContent s_FocusTargetProfile = L10n.TextContent("Focus Target", "GameObject the Surface Cache GI cascades center on. When unset, cascades follow the active camera. Requires a scene object reference, so it cannot be stored in the Volume Profile. Assign it on the Volume component in your scene.", null, null);
         static GUIContent s_FocusTargetProfileValue = L10n.TextContent("Scene object, set per Volume", null, null, null);
@@ -75,6 +88,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_LightTransportHeader = L10n.TextContent("Light Transport", "Controls how many rays are cast per patch to estimate indirect lighting. More samples reduce variance but increase GPU cost per frame.", null, null);
         static GUIContent s_PatchFilteringHeader = L10n.TextContent("Patch Filtering", "Controls how patch irradiance data is filtered over time and space. These settings trade temporal stability and spatial smoothness against responsiveness to lighting changes and light leaking.", null, null);
         static GUIContent s_ScreenFilteringHeader = L10n.TextContent("Screen Filtering", "Controls how the low-resolution patch irradiance is resolved and upsampled to full screen resolution. These settings affect the final image quality and sharpness of the GI contribution.", null, null);
+        static GUIContent s_EntityCullingHeader = L10n.TextContent("Entity Culling", "Leaves entities (ECS) that contribute little to the indirect lighting out of the Surface Cache world, which makes it cheaper to update. An entity is kept while any camera keeps it.", null, null);
         static GUIContent s_VolumeHeader = L10n.TextContent("Volume", "Defines the spatial extent and grid density of the surface cache volume. Size can be changed freely at runtime. Resolution and cascade count changes reallocate internal buffers, which may cause a brief hitch.", null, null);
         static GUIContent s_DefragCount = L10n.TextContent("Defrag Count", "Number of surface cache patches to defragment per frame. Higher values reduce memory fragmentation at a small per-frame cost.", null, null);
         static GUIContent s_RenderingLayerMask = L10n.TextContent("Rendering Layer Mask", "Only renderers whose Rendering Layer Mask intersects this mask contribute to Surface Cache GI.", null, null);
@@ -105,6 +119,12 @@ namespace UnityEditor.Rendering.Universal
             m_VolumeCascadeCount = Unpack(o.Find(obj => obj.volumeCascadeCount));
             m_VolumePatchWarpingEnabled = Unpack(o.Find(obj => obj.volumePatchWarpingEnabled));
             m_VolumeDistanceFallback = Unpack(o.Find(obj => obj.volumeDistanceFallback));
+            m_EntityCullingSphereMode = Unpack(o.Find(obj => obj.entityCullingSphereMode));
+            m_EntityCullingDistanceMargin = Unpack(o.Find(obj => obj.entityCullingDistanceMargin));
+            m_EntityCullingDistance = Unpack(o.Find(obj => obj.entityCullingDistance));
+            m_EntityCullingSmallObjectUnit = Unpack(o.Find(obj => obj.entityCullingSmallObjectUnit));
+            m_EntityCullingMinScreenSize = Unpack(o.Find(obj => obj.entityCullingMinScreenSize));
+            m_EntityCullingMinSolidAngle = Unpack(o.Find(obj => obj.entityCullingMinSolidAngle));
 
             // Re-detect preset when property changed
             ((SurfaceCacheGIVolumeOverride)target).propertyChanged += MarkQualityDirty;
@@ -192,6 +212,37 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.LabelField(s_ScreenFilteringHeader, EditorStyles.boldLabel);
             PropertyField(m_ScreenFilteringLookupSampleCount, s_ScreenFilteringLookupSampleCount);
             PropertyField(m_ScreenFilteringDenoisingPassCount, s_ScreenFilteringDenoisingPassCount);
+
+            if (showAdditionalProperties)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(s_EntityCullingHeader, EditorStyles.boldLabel);
+                PropertyField(m_EntityCullingSphereMode, s_EntityCullingSphereMode);
+                var sphereMode = (SurfaceCacheGIVolumeOverride.EntityCullingSphereMode)m_EntityCullingSphereMode.value.intValue;
+                if (sphereMode != SurfaceCacheGIVolumeOverride.EntityCullingSphereMode.None)
+                {
+                    using (new IndentLevelScope())
+                    {
+                        if (sphereMode == SurfaceCacheGIVolumeOverride.EntityCullingSphereMode.Fixed)
+                            PropertyField(m_EntityCullingDistance, s_EntityCullingDistance);
+                        else
+                            PropertyField(m_EntityCullingDistanceMargin, s_EntityCullingDistanceMargin);
+                    }
+                }
+
+                PropertyField(m_EntityCullingSmallObjectUnit, s_EntityCullingSmallObjectUnit);
+                var smallObjectUnit = (SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit)m_EntityCullingSmallObjectUnit.value.intValue;
+                if (smallObjectUnit != SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit.None)
+                {
+                    using (new IndentLevelScope())
+                    {
+                        if (smallObjectUnit == SurfaceCacheGIVolumeOverride.EntityCullingSmallObjectUnit.Degrees)
+                            PropertyField(m_EntityCullingMinSolidAngle, s_EntityCullingMinSolidAngle);
+                        else
+                            PropertyField(m_EntityCullingMinScreenSize, s_EntityCullingMinScreenSize);
+                    }
+                }
+            }
         }
 
         // Focus Target is bound to the owning Volume's GameObject instead of the shared profile. When editing

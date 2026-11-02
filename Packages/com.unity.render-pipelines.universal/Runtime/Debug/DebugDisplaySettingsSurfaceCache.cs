@@ -27,7 +27,8 @@ namespace UnityEngine.Rendering.Universal
         UpdateCount,
         FlatNormal,
         Albedo,
-        Emission
+        Emission,
+        WorldCulling
     }
 
     /// <summary>
@@ -45,6 +46,11 @@ namespace UnityEngine.Rendering.Universal
         /// Whether to show patch sample positions in the debug view.
         /// </summary>
         public bool showSamplePosition { get; set; }
+
+        /// <summary>
+        /// Whether the Scene view camera is ignored when deciding which entities Entity Culling keeps.
+        /// </summary>
+        public bool excludeSceneViewFromEntityCulling { get; set; }
 
         // Several renderers in the pipeline asset can each have an active Surface Cache GI feature
         static bool TryAggregateActiveFeatures(out int totalActiveCacheCount, out uint combinedWorldRenderingLayerMask)
@@ -134,9 +140,17 @@ namespace UnityEngine.Rendering.Universal
         internal static class Strings
         {
             public static readonly NameAndTooltip ViewMode = new() { name = "View Mode", tooltip = "Use the drop-down to select a Surface Cache debug visualization to display as an overlay." };
-            public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the debug overlay texture in the view." };
+            public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the debug overlay in the debug view." };
             public static readonly NameAndTooltip ShowSamplePosition = new() { name = "Show Sample Position", tooltip = "Show patch sample positions in the debug view." };
             public static readonly NameAndTooltip ActiveCaches = new() { name = "Active Caches", tooltip = "Number of per-camera surface caches currently alive." };
+            public static readonly NameAndTooltip EntityCullingSection = new() { name = "Entity Culling", tooltip = "Entity Culling statistics and options for the Surface Cache world." };
+            public static readonly NameAndTooltip ExcludeSceneViewFromEntityCulling = new() { name = "Exclude Scene View", tooltip = "Exclude the Scene view camera when culling. Can be used to view culling against other cameras without the Scene view interfering." };
+            public static readonly NameAndTooltip TrackedEntities = new() { name = "Entities", tooltip = "Number of entities that can contribute to Surface Cache, including culled entities." };
+            public static readonly NameAndTooltip CulledEntities = new() { name = "Culled Entities", tooltip = "Number of entities that Entity Culling leaves out of the Surface Cache world, and their percentage of all entities." };
+            public static readonly NameAndTooltip LiveEntities = new() { name = "Live Entities", tooltip = "Number of entities in the Surface Cache world, and their percentage of all entities." };
+            public static readonly NameAndTooltip TrackedChunks = new() { name = "Chunks", tooltip = "Number of entity chunks that hold entities that can contribute to Surface Cache." };
+            public static readonly NameAndTooltip CulledChunks = new() { name = "Culled Chunks", tooltip = "Number of chunks where Entity Culling leaves out every entity, and their percentage of all chunks." };
+            public static readonly NameAndTooltip LiveChunks = new() { name = "Live Chunks", tooltip = "Number of chunks with at least one entity in the Surface Cache world, and their percentage of all chunks." };
             public static readonly NameAndTooltip WorldRenderingLayerMask = new() { name = "World Rendering Layer Mask", tooltip = "Combined (OR) rendering layer mask used for the shared world update this frame. This value is read only." };
             public static readonly NameAndTooltip MaterialAtlas = new() { name = "Material Atlas", tooltip = "GPU texture atlases that hold the albedo, emission and transmission of every material used by Surface Cache GI." };
             public static readonly NameAndTooltip Materials = new() { name = "Materials", tooltip = "Number of unique materials in the Surface Cache GI world." };
@@ -200,6 +214,65 @@ namespace UnityEngine.Rendering.Universal
                 isHiddenCallback = () => data.viewMode == SurfaceCacheDebugViewMode.None
             };
 
+            internal static DebugUI.Widget CreateEntityCulling(DebugDisplaySettingsSurfaceCache data) => new DebugUI.Foldout
+            {
+                nameAndTooltip = Strings.EntityCullingSection,
+                opened = true,
+                children =
+                {
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.TrackedEntities,
+                        getter = () => FormatCount(SurfaceCacheEntityChangeBridge.TrackedEntityCount),
+                    },
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.CulledEntities,
+                        getter = () => FormatCountWithShare(SurfaceCacheEntityChangeBridge.CulledEntityCount, SurfaceCacheEntityChangeBridge.TrackedEntityCount),
+                    },
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.LiveEntities,
+                        getter = () => FormatCountWithShare(SurfaceCacheEntityChangeBridge.TrackedEntityCount - SurfaceCacheEntityChangeBridge.CulledEntityCount, SurfaceCacheEntityChangeBridge.TrackedEntityCount),
+                    },
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.TrackedChunks,
+                        getter = () => FormatCount(SurfaceCacheEntityChangeBridge.TrackedChunkCount),
+                    },
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.CulledChunks,
+                        getter = () => FormatCountWithShare(SurfaceCacheEntityChangeBridge.CulledChunkCount, SurfaceCacheEntityChangeBridge.TrackedChunkCount),
+                    },
+                    new ReadOnlyValueField
+                    {
+                        nameAndTooltip = Strings.LiveChunks,
+                        getter = () => FormatCountWithShare(SurfaceCacheEntityChangeBridge.TrackedChunkCount - SurfaceCacheEntityChangeBridge.CulledChunkCount, SurfaceCacheEntityChangeBridge.TrackedChunkCount),
+                    },
+                    new DebugUI.BoolField
+                    {
+                        nameAndTooltip = Strings.ExcludeSceneViewFromEntityCulling,
+                        getter = () => data.excludeSceneViewFromEntityCulling,
+                        setter = value => data.excludeSceneViewFromEntityCulling = value,
+                    },
+                },
+            };
+
+            internal static string FormatCount(int count)
+            {
+                return SurfaceCacheEntityChangeBridge.IsConsumerPresent ? count.ToString("N0") : "-";
+            }
+
+            internal static string FormatCountWithShare(int count, int total)
+            {
+                if (!SurfaceCacheEntityChangeBridge.IsConsumerPresent)
+                    return "-";
+
+                float percentage = total > 0 ? 100.0f * count / total : 0.0f;
+                return $"{count:N0} ({percentage:F1}%)";
+            }
+
             internal static DebugUI.Widget CreateWorldRenderingLayerMask(DebugDisplaySettingsSurfaceCache data)
             {
                 // No setter: DebugUI ignores edits when the setter is null, making the field read-only.
@@ -243,6 +316,7 @@ namespace UnityEngine.Rendering.Universal
                 AddWidget(WidgetFactory.CreateActiveCaches(data));
                 AddWidget(WidgetFactory.CreateWorldRenderingLayerMask(data));
                 AddWidget(WidgetFactory.CreateMaterialAtlas(data));
+                AddWidget(WidgetFactory.CreateEntityCulling(data));
             }
         }
 

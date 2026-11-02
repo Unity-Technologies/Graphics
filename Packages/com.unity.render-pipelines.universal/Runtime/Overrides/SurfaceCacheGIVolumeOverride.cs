@@ -184,6 +184,110 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // =======================
+        // Entity Culling
+        // =======================
+
+        /// <summary>
+        /// How the distance beyond which entities are culled is set.
+        /// Entities that are too far away or too small as seen from every camera are left out of the Surface Cache
+        /// world, which makes it cheaper to update. GameObjects are not affected.
+        /// </summary>
+        /// <seealso cref="entityCullingSphereMode"/>
+        public enum EntityCullingSphereMode
+        {
+            /// <summary>
+            /// Entities are not culled by distance.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// The distance is half the <see cref="volumeSize"/>, the radius of the Surface Cache volume, plus <see cref="entityCullingDistanceMargin"/>.
+            /// </summary>
+            VolumePlusMargin,
+
+            /// <summary>
+            /// The distance is <see cref="entityCullingDistance"/>.
+            /// </summary>
+            Fixed,
+        }
+
+        /// <summary>
+        /// Whether entities are culled by distance, and whether the distance follows the Surface Cache volume plus a margin or is fixed.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Leave out entities beyond a distance from every camera, following the Surface Cache volume plus a margin or at a fixed distance.")]
+        public EnumParameter<EntityCullingSphereMode> entityCullingSphereMode = new(EntityCullingSphereMode.None);
+
+        /// <summary>
+        /// Distance beyond the Surface Cache volume within which entities are kept.
+        /// Entities whose bounds are farther than half the <see cref="volumeSize"/> plus this margin from every camera are culled.
+        /// When a Focus Target is set, the distance is measured from it instead of the camera.
+        /// Used when <see cref="entityCullingSphereMode"/> is <see cref="EntityCullingSphereMode.VolumePlusMargin"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("How far beyond the Surface Cache volume entities are kept.")]
+        public MinFloatParameter entityCullingDistanceMargin = new MinFloatParameter(100.0f, 0.0f);
+
+        /// <summary>
+        /// Entities whose bounds are farther than this distance from every camera are culled.
+        /// When a Focus Target is set, the distance is measured from it instead of the camera.
+        /// Used when <see cref="entityCullingSphereMode"/> is <see cref="EntityCullingSphereMode.Fixed"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities farther than this from every camera are left out.")]
+        public MinFloatParameter entityCullingDistance = new MinFloatParameter(150.0f, 0.0f);
+
+        /// <summary>
+        /// The unit of the minimum size below which entities are culled.
+        /// </summary>
+        /// <seealso cref="entityCullingSmallObjectUnit"/>
+        public enum EntityCullingSmallObjectUnit
+        {
+            /// <summary>
+            /// Entities are not culled by size.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// The minimum size is <see cref="entityCullingMinScreenSize"/>, in pixels on screen.
+            /// </summary>
+            Pixels,
+
+            /// <summary>
+            /// The minimum size is <see cref="entityCullingMinSolidAngle"/>, an angle in degrees.
+            /// </summary>
+            Degrees,
+        }
+
+        /// <summary>
+        /// Whether entities are culled by size, and whether the minimum size is set in pixels on screen or as an angle in degrees.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Leave out entities smaller than a minimum size for every camera, in pixels on screen or in degrees.")]
+        public EnumParameter<EntityCullingSmallObjectUnit> entityCullingSmallObjectUnit = new(EntityCullingSmallObjectUnit.None);
+
+        /// <summary>
+        /// Entities whose bounds would cover fewer pixels than this on screen, as seen from every camera, are culled.
+        /// The size is converted to an angle using each camera's vertical field of view and pixel height.
+        /// When a Focus Target is set, the angle is measured from it instead of the camera.
+        /// Orthographic cameras do not cull by size. At 0, entities are never culled because of their size.
+        /// Used when <see cref="entityCullingSmallObjectUnit"/> is <see cref="EntityCullingSmallObjectUnit.Pixels"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities smaller than this many pixels on screen for every camera are left out.")]
+        public MinFloatParameter entityCullingMinScreenSize = new MinFloatParameter(16.0f, 0.0f);
+
+        /// <summary>
+        /// Entities whose bounds cover a smaller angle than this, in degrees, as seen from every camera are culled.
+        /// When a Focus Target is set, the angle is measured from it instead of the camera.
+        /// At 0, entities are never culled because of their size.
+        /// Used when <see cref="entityCullingSmallObjectUnit"/> is <see cref="EntityCullingSmallObjectUnit.Degrees"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities covering a smaller angle than this, in degrees, for every camera are left out.")]
+        public ClampedFloatParameter entityCullingMinSolidAngle = new ClampedFloatParameter(1.0f, 0.0f, 90.0f);
+
+        // =======================
         // Preset Utility
         // =======================
         /// <summary>
