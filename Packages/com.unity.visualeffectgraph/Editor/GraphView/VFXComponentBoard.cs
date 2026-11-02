@@ -312,7 +312,7 @@ namespace UnityEditor.VFX.UI
                 m_RecordBoundsButton.AddToClassList("show-recording");
                 m_BoundsActionLabel.text = "Bounds Recording";
             }
-            if (!hasSomethingToRecord && m_BoundsRecorder.isRecording)
+            if (!hasSomethingToRecord && m_BoundsRecorder != null && m_BoundsRecorder.isRecording)
                 m_BoundsRecorder.ToggleRecording();
         }
 
@@ -332,7 +332,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_BoundsRecorder != null)
             {
-                m_BoundsRecorder.isRecording = false;
+                m_BoundsRecorder.CancelRecording();
                 m_BoundsRecorder.CleanUp();
                 m_BoundsRecorder = null;
             }
@@ -346,6 +346,8 @@ namespace UnityEditor.VFX.UI
                 if (m_BoundsRecorder != null)
                 {
                     wasRecording = m_BoundsRecorder.isRecording;
+                    if (m_View.controller.isReentrant)
+                        m_BoundsRecorder.CancelRecording();
                     m_BoundsRecorder.CleanUp();
                 }
                 m_BoundsRecorder = new VFXBoundsRecorder(m_AttachedComponent, m_View);
@@ -476,6 +478,7 @@ namespace UnityEditor.VFX.UI
             }
 
             DeleteBoundsRecorder();
+            UpdateRecordingButton();
             RefreshInitializeErrors();
         }
 

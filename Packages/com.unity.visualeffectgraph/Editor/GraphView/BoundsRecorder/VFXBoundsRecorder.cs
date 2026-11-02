@@ -338,14 +338,25 @@ namespace UnityEditor.VFX.UI
         public void ToggleRecording()
         {
             m_IsRecording = !m_IsRecording;
-            foreach (var system in systems.Where(NeedsToBeRecorded))
-            {
-                system.SetSettingValue("needsComputeBounds", m_IsRecording);
-            }
+            ApplyRecordingToSystems();
 
             if (m_IsRecording)
             {
                 m_Bounds.Clear();
+            }
+        }
+
+        public void CancelRecording()
+        {
+            m_IsRecording = false;
+            ApplyRecordingToSystems();
+        }
+
+        void ApplyRecordingToSystems()
+        {
+            foreach (var system in systems)
+            {
+                system.SetRecordingBounds(m_IsRecording && NeedsToBeRecorded(system));
             }
         }
 
