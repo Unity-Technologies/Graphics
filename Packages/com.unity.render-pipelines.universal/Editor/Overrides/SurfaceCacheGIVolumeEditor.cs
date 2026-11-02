@@ -139,10 +139,15 @@ namespace UnityEditor.Rendering.Universal
                 m_VolumeSerializedObject.Dispose();
                 m_VolumeSerializedObject = null;
             }
+
+            base.OnDisable();
         }
 
         public override void OnInspectorGUI()
         {
+            if (SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
+                EditorGUILayout.HelpBox("Enable \"Always Refresh\" in the Scene View to see realtime updates in the Scene View.", MessageType.Info);
+
             PropertyField(m_Enabled, s_State);
 
             if (showAdditionalProperties)
