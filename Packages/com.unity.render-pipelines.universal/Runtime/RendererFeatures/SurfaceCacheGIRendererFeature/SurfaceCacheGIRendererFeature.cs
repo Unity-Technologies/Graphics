@@ -508,6 +508,7 @@ namespace UnityEngine.Rendering.Universal
                 internal TextureHandle LowResScreenIrradiancesL11;
                 internal TextureHandle LowResScreenIrradiancesL12;
                 internal TextureHandle LowResScreenNdcDepths;
+                internal TextureHandle ExposureMultiplier;
                 internal GraphicsBuffer CellAllocationMarks;
                 internal GraphicsBuffer CellPatchIndices;
                 internal GraphicsBuffer RingConfigBuffer;
@@ -787,6 +788,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.LowResScreenIrradiancesL11 = lowResScreenIrradiancesL11Handle;
                     passData.LowResScreenIrradiancesL12 = lowResScreenIrradiancesL12Handle;
                     passData.LowResScreenNdcDepths = lowResScreenNdcDepthsHandle;
+                    passData.ExposureMultiplier = resourceData.exposureMultiplier;
                     passData.CellAllocationMarks = cache.Volume.CellAllocationMarks;
                     passData.CellPatchIndices = cache.Volume.CellPatchIndices;
                     passData.RingConfigBuffer = cache.RingConfig.Buffer;
@@ -826,6 +828,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(lowResScreenIrradiancesL11Handle, AccessFlags.Read);
                     builder.UseTexture(lowResScreenIrradiancesL12Handle, AccessFlags.Read);
                     builder.UseTexture(lowResScreenNdcDepthsHandle, AccessFlags.Read);
+                    if (passData.ExposureMultiplier.IsValid())
+                    {
+                        builder.UseTexture(passData.ExposureMultiplier, AccessFlags.Read);
+                    }
 
                     builder.SetRenderFunc((PatchAllocationPassData data, ComputeGraphContext cgContext) => AllocatePatches(data, cgContext));
                 }
@@ -1088,6 +1094,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._PreviousLowResScreenIrradiancesL11, data.LowResScreenIrradiancesL11);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._PreviousLowResScreenIrradiancesL12, data.LowResScreenIrradiancesL12);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._PreviousLowResScreenNdcDepths, data.LowResScreenNdcDepths);
+                if (data.ExposureMultiplier.IsValid())
+                {
+                    cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ExposureMultiplier, data.ExposureMultiplier);
+                }
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CellAllocationMarks, data.CellAllocationMarks);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._RingConfigBuffer, data.RingConfigBuffer);
