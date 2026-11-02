@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "CameraColorTemporalAA";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
         uint m_WarnCounter;
 
         public TemporalAntiAliasingPostProcessPass(Shader shader)
@@ -17,23 +16,18 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = null;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
 
             m_WarnCounter = 0;
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
             if (postProcessingData.activeUpscaler != null && postProcessingData.activeUpscaler.isTemporal)
@@ -50,6 +44,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            if (!m_Material.Validate())
+                return;
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var sourceTexture = resourceData.cameraColor;
@@ -60,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
 
             Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. TAA requires a motion vector texture.");
 
-            TemporalAA.Render(renderGraph, m_Material, cameraData, sourceTexture, in cameraDepth, in motionVectors, destinationTexture);
+            TemporalAA.Render(renderGraph, m_Material.material, cameraData, sourceTexture, in cameraDepth, in motionVectors, destinationTexture);
 
             resourceData.cameraColor = destinationTexture;
         }

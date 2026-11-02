@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "CameraColorUpscaled";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         TextureDesc m_UpscaledDesc;
 
@@ -18,8 +17,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = new ProfilingSampler("Blit FSR Upscaling");
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
 
             // Default
             PostProcessUtils.MakeCompatible(ref m_UpscaledDesc);
@@ -30,8 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class PostProcessingFinalFSRScalePassData
@@ -51,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
+            if (!m_Material.Validate())
                 return;
 
             var cameraData = frameData.Get<UniversalCameraData>();
@@ -70,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.fsrInputSize = new Vector2(srcDesc.width, srcDesc.height);
                 passData.fsrOutputSize = new Vector2(dstDesc.width, dstDesc.height);
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;

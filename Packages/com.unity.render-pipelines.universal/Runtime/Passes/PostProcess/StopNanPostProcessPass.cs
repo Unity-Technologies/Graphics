@@ -8,22 +8,19 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "CameraColorStopNaNs";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         public StopNanPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.StopNaNs;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class StopNaNsPassData
@@ -33,11 +30,11 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var cameraData = frameData.Get<UniversalCameraData>();
             if (!cameraData.isStopNaNEnabled)
+                return;
+
+            if (!m_Material.Validate())
                 return;
 
             var resourceData = frameData.Get<UniversalResourceData>();
@@ -50,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(destinationTexture, 0, AccessFlags.ReadWrite);
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
-                passData.stopNaN = m_Material;
+                passData.stopNaN = m_Material.material;
                 builder.SetRenderFunc(static (StopNaNsPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
