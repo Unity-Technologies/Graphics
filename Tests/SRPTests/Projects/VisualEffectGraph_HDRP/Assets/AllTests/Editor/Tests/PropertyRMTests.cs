@@ -3,8 +3,10 @@ using System.Linq;
 
 using NUnit.Framework;
 
+using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Operator;
 using UnityEditor.VFX.UI;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
@@ -53,6 +55,58 @@ namespace UnityEditor.VFX.Test
             var value = (float)noiseOperator.GetInputSlot(3).value;
             Assert.AreEqual(0f, value);
             Assert.AreEqual(0f, floatField.value);
+        }
+
+        [UnityTest, Description("Covers UUM-139398: a constant-fed color slot stays evaluable (not indeterminate) after reimport")]
+        public IEnumerator ColorSlot_FedByConstant_StaysEvaluable_AfterReimport()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(initContext);
+
+            var setColor = ScriptableObject.CreateInstance<SetAttribute>();
+            setColor.SetSettingValue("attribute", "color");
+            initContext.AddChild(setColor);
+
+            var inlineVector3 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            inlineVector3.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+            inlineVector3.inputSlots[0].value = new Vector3(0.25f, 0.5f, 0.75f);
+            graph.AddChild(inlineVector3);
+
+            var path = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(path);
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
+            var window = VFXTestCommon.GetWindow(asset, true);
+            window.LoadAsset(asset, null);
+            window.Show();
+            yield return null;
+
+            var controller = window.graphView.controller;
+            Assert.IsNotNull(controller);
+
+            // Link the constant operator to the color input slot.
+            var colorSlot = setColor.inputSlots[0];
+            Assert.IsTrue(inlineVector3.outputSlots[0].Link(colorSlot));
+            yield return null;
+            yield return null;
+
+            controller.RecompileExpressionGraphIfNeeded();
+            Assert.IsTrue(controller.CanGetEvaluatedContent(colorSlot),
+                "Sanity: constant-fed color slot should be evaluable after linking.");
+
+            // Reimport through the editor's save path; a stale expression context used to make this indeterminate.
+            window.graphView.OnSave();
+            yield return null;
+            yield return null;
+
+            controller.RecompileExpressionGraphIfNeeded();
+            Assert.IsTrue(controller.CanGetEvaluatedContent(colorSlot),
+                "Constant-fed color slot must stay evaluable (not indeterminate) after reimport.");
+
+            window.Close();
         }
     }
 }

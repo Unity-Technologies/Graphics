@@ -1,9 +1,9 @@
-# Point Cache
+# Point Cache Operator
 
 > [!IMPORTANT]
 > This feature is experimental. To use this feature, open the **Preferences** window, go to the **Visual Effects** tab, and enable **Experimental Operators/Blocks**.
 
-Menu Path : **Operator > Utility > Point Cache**
+Menu Path : **Operator** > **Utility** > **Point Cache**
 
 The **Point Cache** Operator exposes the attribute maps and the point count stored into a [Point Cache asset](point-cache-asset.md).
 

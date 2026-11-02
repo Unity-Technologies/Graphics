@@ -13,3 +13,4 @@ To open the HLSL source file of a Reflected Function node, from the graph view, 
 - [Create custom nodes with HLSL](Custom-nodes-hlsl-landing.md)
 - [Create a custom node by reflection from HLSL](Custom-nodes-hlsl-create-node-by-reflection.md)
 - [Reflected function hints reference](Custom-nodes-hlsl-reflection-hints-reference.md)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

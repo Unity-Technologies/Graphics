@@ -1,4 +1,4 @@
-# Get Attribute: alpha
+# Get Attribute: alpha Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: alpha**
 

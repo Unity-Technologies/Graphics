@@ -568,17 +568,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpGlobalSettingsUsedCorrect())
                 FixHdrpGlobalSettingsUsed(fromAsync: false);
 
-            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings)
-                && GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorAssets>(out var editorAssets))
-            {
-                var defaultValuesAsset = editorAssets.defaultVolumeProfile;
-                var volumeProfileCopy = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultValuesAsset);
-                defaultVolumeProfileSettings.volumeProfile = volumeProfileCopy;
-                EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
-
-                if (VolumeManager.instance.isInitialized)
-                    VolumeManager.instance.SetGlobalDefaultProfile(volumeProfileCopy);
-            }
+            VolumeUtils.EnsureDefaultVolumeProfile();
         }
 
         IEnumerable<IMigratableAsset> migratableAssets

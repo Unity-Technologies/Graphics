@@ -55,6 +55,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         int m_customInterpWarn;
         [NonSerialized]
         int m_customInterpErr;
+        [NonSerialized]
+        internal bool m_DisablePreviewsForTesting;
 
         [SerializeField]
         bool m_AssetMaybeChangedOnDisk;
@@ -300,7 +302,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     string graphName = Path.GetFileNameWithoutExtension(assetPath);
                     graphObject.Validate();
 
-                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName)
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName, m_DisablePreviewsForTesting)
                     {
                         viewDataKey = selectedGuid,
                     };
@@ -349,6 +351,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         // may also need to re-run validation/concretization
                         graphObject.Validate();
+
+                        // Force the inspector to rebuild so errors from reloaded nodes (e.g. invalid HLSL) show immediately.
+                        graphEditorView?.inspectorView?.TriggerInspectorUpdate(null);
                     }
 
                     m_ChangedFileDependencyGUIDs.Clear();
@@ -1262,7 +1267,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (GraphLoadMarker.Auto())
                 {
-                    m_LastSerializedFileContents = File.ReadAllText(path, Encoding.UTF8);
+                    // FileUtilities.ReadAllTextUTF8 uses Unity's FileUtil which handles Windows long paths (>260 chars); plain File.ReadAllText does not.
+                    m_LastSerializedFileContents = FileUtilities.ReadAllTextUTF8(path);
 
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
@@ -1280,7 +1286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (CreateGraphEditorViewMarker.Auto())
                 {
-                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName)
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName, m_DisablePreviewsForTesting)
                     {
                         viewDataKey = selectedGuid,
                     };

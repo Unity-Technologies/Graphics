@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
 
         public bool Changed(string oldName, string newName, CustomAttributeUtility.Signature newType, string newDescription)
         {
-            if (string.Compare(oldName, newName, StringComparison.OrdinalIgnoreCase) != 0)
+            if (!string.Equals(oldName, newName, StringComparison.Ordinal))
             {
                 return this.graph.TryRenameCustomAttribute(oldName, newName);
             }

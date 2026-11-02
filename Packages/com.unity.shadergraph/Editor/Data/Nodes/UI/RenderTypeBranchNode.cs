@@ -121,12 +121,15 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         sb.AppendLine("SdfTextFragInput Unity_UIE_RenderTypeSwitchNode_SdfText_Input;");
-                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.tint = IN.color;");
+                        // Straight tint -> premultiplied face color (moved out of the vertex); opacity at frag-end.
+                        sb.AppendLine("float4 Unity_UIE_RenderTypeSwitchNode_SdfText_Tint = IN.color;");
+                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Tint.rgb *= Unity_UIE_RenderTypeSwitchNode_SdfText_Tint.a;");
+                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.tint = Unity_UIE_RenderTypeSwitchNode_SdfText_Tint;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.textureSlot = IN.typeTexSettings.y;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.uv = IN.uvClip.xy;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.extraDilate = IN.circle.x;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.textCoreLoc = round(IN.textCoreLoc);");
-                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.opacity = IN.typeTexSettings.z;");
+                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_SdfText_Input.opacity = 1.0;");
                         sb.AppendLine("CommonFragOutput Unity_UIE_RenderTypeSwitchNode_Output = uie_std_frag_sdf_text(Unity_UIE_RenderTypeSwitchNode_SdfText_Input);");
                         sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.rgb;", outputVarNameColor);
                         sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);
@@ -143,10 +146,11 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         sb.AppendLine("BitmapTextFragInput Unity_UIE_RenderTypeSwitchNode_BitmapText_Input;");
+                        // Straight tint; opacity is applied at the end of the fragment, so pass 1 here.
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_BitmapText_Input.tint = IN.color;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_BitmapText_Input.textureSlot = IN.typeTexSettings.y;");
                         sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_BitmapText_Input.uv = IN.uvClip.xy;");
-                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_BitmapText_Input.opacity = IN.typeTexSettings.z;");
+                        sb.AppendLine("Unity_UIE_RenderTypeSwitchNode_BitmapText_Input.opacity = 1.0;");
                         sb.AppendLine("CommonFragOutput Unity_UIE_RenderTypeSwitchNode_Output = uie_std_frag_bitmap_text(Unity_UIE_RenderTypeSwitchNode_BitmapText_Input);");
                         sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.rgb;", outputVarNameColor);
                         sb.AppendLine("{0} = Unity_UIE_RenderTypeSwitchNode_Output.color.a;", outputVarNameAlpha);

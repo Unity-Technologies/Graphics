@@ -153,6 +153,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = passData.cameraData.camera;
 
+            if (passData.cameraData.xr.enabled && passData.isActiveTargetBackBuffer)
+            {
+                cmd.SetViewport(passData.cameraData.xr.GetViewport());
+            }
+
             // In case of camera stacking we need to take the viewport rect from base camera
             Rect pixelRect = passData.cameraData.pixelRect;
             float cameraAspect = (float)pixelRect.width / (float)pixelRect.height;
@@ -208,13 +213,16 @@ namespace UnityEngine.Rendering.Universal
             internal RendererList rendererList;
 
             internal bool depthInputAttachment;
+            internal bool isActiveTargetBackBuffer;
         }
 
-        private void InitPassData(UniversalCameraData cameraData, ref PassData passData)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, bool isActiveTargetBackBuffer = false)
         {
             passData.cameraSettings = m_CameraSettings;
             passData.renderPassEvent = renderPassEvent;
             passData.cameraData = cameraData;
+            passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
+            passData.depthInputAttachment = false;
         }
 
         private void InitRendererLists(UniversalRenderingData renderingData, UniversalLightData lightData,
@@ -254,23 +262,25 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                InitPassData(cameraData, ref passData);
+                InitPassData(cameraData, ref passData, resourceData.isActiveTargetBackBuffer);
 
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
 
-                // Configure depth attachment based on input attachment setting
-                if (m_DepthInputAttachment && SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                if (resourceData.activeDepthTexture.IsValid())
                 {
-                    // Input attachment mode: depth is read-only, accessed from tile memory
-                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
-                    builder.SetInputAttachment(resourceData.activeDepthTexture, 0, AccessFlags.Read);
-                    passData.depthInputAttachment = true;
-                }
-                else if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
-                {
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.ReadWrite);
-                    passData.depthInputAttachment = false;
+                    // Configure depth attachment based on input attachment setting
+                    if (m_DepthInputAttachment && SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                    {
+                        // Input attachment mode: depth is read-only, accessed from tile memory
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
+                        builder.SetInputAttachment(resourceData.activeDepthTexture, 0, AccessFlags.Read);
+                        passData.depthInputAttachment = true;
+                    }
+                    else if (cameraData.imageScalingMode != ImageScalingMode.Upscaling || passData.renderPassEvent != RenderPassEvent.AfterRenderingPostProcessing)
+                    {
+                        builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.ReadWrite);
+                    }
                 }
 
                 TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;
@@ -308,7 +318,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)
                 {
-                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
                     // Multiview render regions are incompatible with the inner (foveal) pass in Quad View
                     if (!cameraData.xr.isQuadViewInnerPass)
                     {

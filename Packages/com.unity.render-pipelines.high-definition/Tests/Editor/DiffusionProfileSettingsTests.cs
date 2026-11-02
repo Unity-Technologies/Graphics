@@ -15,6 +15,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         private DiffusionProfileSettings m_Profile = null;
         private Material m_Material = null;
         private bool m_OldAutoRegisterValue = false;
+        private VolumeProfile m_VolumeProfile;
+        private DiffusionProfileList m_DiffusionProfileList;
+        private DiffusionProfileSettings[] m_RollbackProfiles;
 
         [SetUp]
         public void Setup()
@@ -30,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             m_OldAutoRegisterValue = m_DiffusionProfileSettings.autoRegister;
             m_DiffusionProfileSettings.autoRegister = false;
+
+            Assert.IsTrue(GraphicsSettings.TryGetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>(out var defaultVolumeProfileSettings));
+            m_VolumeProfile = defaultVolumeProfileSettings.volumeProfile;
+            m_DiffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(m_VolumeProfile);
+            m_RollbackProfiles = m_DiffusionProfileList.ToArray();
 
             m_Profile = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
             CoreUtils.EnsureFolderTreeInAssetFilePath(k_ProfilePath);
@@ -48,6 +56,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             m_DiffusionProfileSettings.autoRegister = m_OldAutoRegisterValue;
 
+            // Restore the shared list here (not at the end of the test body) so an assert failure can't leave the
+            // default volume profile's DiffusionProfileList emptied and leak into subsequent tests. Mirror the
+            // mutation path so the revert flushes to disk and clears VolumeManager's cached state.
+            if (m_DiffusionProfileList != null)
+            {
+                m_DiffusionProfileList.ReplaceWithArray(m_RollbackProfiles);
+                EditorUtility.SetDirty(m_VolumeProfile);
+                VolumeManager.instance.OnVolumeProfileChanged(m_VolumeProfile);
+            }
+
             AssetDatabase.DeleteAsset(k_MaterialPath);
             AssetDatabase.DeleteAsset(k_ProfilePath);
             AssetDatabase.SaveAssets();
@@ -63,17 +81,17 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Assert.IsInstanceOf<HDRPDefaultVolumeProfileSettings>(defaultVolumeProfileSettings);
 
 
-            var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(defaultVolumeProfileSettings.volumeProfile);
-            var profiles = diffusionProfileList.ToArray();
-
-            diffusionProfileList.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
+            m_DiffusionProfileList.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
             m_DiffusionProfileSettings.autoRegister = true;
 
             HDMaterial.SetDiffusionProfile(m_Material, m_Profile);
             AssetDatabase.SaveAssets();
+            // Registration is driven by OnPostprocessAllAssets over the import batch; SaveAssets alone doesn't
+            // reliably re-import the material, so force it to guarantee the postprocessor sees m_Material.
+            AssetDatabase.ImportAsset(k_MaterialPath, ImportAssetOptions.ForceUpdate);
 
             bool found = false;
-            foreach (var d in diffusionProfileList.ToArray())
+            foreach (var d in m_DiffusionProfileList.ToArray())
             {
                 if (d != m_Profile)
                     continue;
@@ -82,9 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 break;
             }
             Assert.IsTrue(found);
-
-            // Rollback previous data
-            diffusionProfileList.ReplaceWithArray(profiles);
         }
     }
 }

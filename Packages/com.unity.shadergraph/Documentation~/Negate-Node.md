@@ -21,3 +21,7 @@ void Unity_Negate_float4(float4 In, out float4 Out)
     Out = -1 * In;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

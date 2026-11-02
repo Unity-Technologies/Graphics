@@ -35,8 +35,6 @@ namespace UnityEditor.ShaderGraph
 
         public GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper { get; set; } = new SaveFileDialog();
 
-        public void RaiseImportSampleDependencies(PackageManager.PackageInfo packageInfo, PackageManager.UI.Sample sample) { }
-
         public void RaiseTemplateUsed(GraphViewTemplateDescriptor usedTemplate) =>
             ShaderGraphAnalytics.SendShaderGraphTemplateEvent(usedTemplate);
 
@@ -56,6 +54,7 @@ namespace UnityEditor.ShaderGraph
                         description = template.description,
                         icon = template.icon,
                         thumbnail = template.thumbnail,
+                        searchTerms = dataBag,
                     };
                     return true;
                 }

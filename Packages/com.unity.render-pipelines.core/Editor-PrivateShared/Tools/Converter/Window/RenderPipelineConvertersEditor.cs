@@ -147,12 +147,14 @@ namespace UnityEditor.Rendering.Converter
 
             var disabledHelpBox = rootVisualElement.Q<HelpBox>("disabledToolHelpBox");
             var convertersMainVE = rootVisualElement.Q<VisualElement>("converterEditorMainVE");
+            var bottomButtonVE = rootVisualElement.Q<VisualElement>("bottomButtonVE");
 
-            if (disabledHelpBox == null || convertersMainVE == null)
+            if (disabledHelpBox == null || convertersMainVE == null || bottomButtonVE == null)
                 return;
 
             disabledHelpBox.style.display = isPlaying ? DisplayStyle.Flex : DisplayStyle.None;
             convertersMainVE.SetEnabled(!isPlaying);
+            bottomButtonVE.SetEnabled(!isPlaying);
         }
 
         public void CreateGUI()
@@ -227,12 +229,12 @@ namespace UnityEditor.Rendering.Converter
 
             m_SourcePipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                ConfigureUI();
             });
 
             m_DestinationPipelineDropDown.RegisterCallback<ChangeEvent<string>>((evt) =>
             {
-                HideUnhideConverters();
+                ConfigureUI();
             });
 
             ConfigureUI();
@@ -266,17 +268,12 @@ namespace UnityEditor.Rendering.Converter
 
         private bool CanEnableConvert()
         {
-            foreach (var child in currentContainer.children)
+            foreach (var converterVE in selectedConverters)
             {
-                if (m_ConvertersVisualElements.TryGetValue(child, out var ve))
+                foreach (var itemState in converterVE.state.GetAllLeafItems())
                 {
-                    if (ve.isSelectedAndEnabled &&
-                        ve.state.isInitialized &&
-                        ve.state.selectedItemsCount > 0 &&
-                        ve.state.pending > 0)
-                    {
+                    if (itemState.isSelected == true && !itemState.hasConverted)
                         return true;
-                    }
                 }
             }
 

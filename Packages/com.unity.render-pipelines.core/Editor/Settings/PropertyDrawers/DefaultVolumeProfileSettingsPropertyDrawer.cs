@@ -313,6 +313,17 @@ namespace UnityEditor.Rendering
                 UpdateDefaultVolumeSerializedPropertyAndRecreate(m_ObjectField, evt.newValue);
             });
 
+            // Track property changes to update the field when the SerializedProperty changes externally
+            m_ObjectField.TrackPropertyValue(m_VolumeProfileSerializedProperty, prop =>
+            {
+                var newProfile = prop.objectReferenceValue as VolumeProfile;
+                if (m_ObjectField.value as VolumeProfile != newProfile)
+                {
+                    m_ObjectField.SetValueWithoutNotify(newProfile);
+                    CreateDefaultVolumeProfileEditor();
+                }
+            });
+
             profileLine.Add(toggle);
             profileLine.Add(m_ObjectField);
 

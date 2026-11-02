@@ -21,3 +21,7 @@ void Unity_IsInfinite_float(float In, out float Out)
     Out = isinf(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

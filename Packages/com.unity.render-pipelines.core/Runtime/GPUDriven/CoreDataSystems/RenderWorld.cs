@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering
     {
         public static readonly EntityId DefaultMesh = EntityId.None;
         public static readonly ushort DefaultSubMeshStartIndex = 0;
+        public static readonly ushort DefaultStaticBatchSubMeshCount = 0;
         public static readonly AABB DefaultLocalBounds = default;
         public static readonly InternalMeshRendererSettings DefaultRendererSettings = InternalMeshRendererSettings.Default;
         public static readonly InternalMeshLodRendererSettings DefaultMeshLodRendererSettings = InternalMeshLodRendererSettings.Default;
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering
         private NativeArray<EntityId> m_MeshIDs;
         private NativeArray<InternalMeshLodRendererSettings> m_MeshLodRendererSettings;
         private NativeArray<ushort> m_SubMeshStartIndices;
+        private NativeArray<ushort> m_StaticBatchSubMeshCounts;
         private NativeArray<AABB> m_LocalAABBs;
         private NativeArray<InternalMeshRendererSettings> m_RendererSettings;
         private NativeArray<short> m_LightmapIndices;
@@ -66,6 +68,7 @@ namespace UnityEngine.Rendering
         public NativeArray<EntityId> meshIDs => m_MeshIDs.GetSubArray(0, instanceCount);
         public NativeArray<InternalMeshLodRendererSettings> meshLodRendererSettings => m_MeshLodRendererSettings.GetSubArray(0, instanceCount);
         public NativeArray<ushort> subMeshStartIndices => m_SubMeshStartIndices.GetSubArray(0, instanceCount);
+        public NativeArray<ushort> staticBatchSubMeshCounts => m_StaticBatchSubMeshCounts.GetSubArray(0, instanceCount);
         public NativeArray<AABB> localAABBs => m_LocalAABBs.GetSubArray(0, instanceCount);
         public NativeArray<InternalMeshRendererSettings> rendererSettings => m_RendererSettings.GetSubArray(0, instanceCount);
         public NativeArray<short> lightmapIndices => m_LightmapIndices.GetSubArray(0, instanceCount);
@@ -103,6 +106,7 @@ namespace UnityEngine.Rendering
             m_MeshIDs = new NativeArray<EntityId>(initCapacity, Allocator.Persistent);
             m_MeshLodRendererSettings = new NativeArray<InternalMeshLodRendererSettings>(initCapacity, Allocator.Persistent);
             m_SubMeshStartIndices = new NativeArray<ushort>(initCapacity, Allocator.Persistent);
+            m_StaticBatchSubMeshCounts = new NativeArray<ushort>(initCapacity, Allocator.Persistent);
             m_LocalAABBs = new NativeArray<AABB>(initCapacity, Allocator.Persistent);
             m_RendererSettings = new NativeArray<InternalMeshRendererSettings>(initCapacity, Allocator.Persistent);
             m_LightmapIndices = new NativeArray<short>(initCapacity, Allocator.Persistent);
@@ -141,6 +145,7 @@ namespace UnityEngine.Rendering
             m_MeshIDs.Dispose();
             m_MeshLodRendererSettings.Dispose();
             m_SubMeshStartIndices.Dispose();
+            m_StaticBatchSubMeshCounts.Dispose();
             m_LocalAABBs.Dispose();
             m_RendererSettings.Dispose();
             m_LightmapIndices.Dispose();
@@ -175,6 +180,7 @@ namespace UnityEngine.Rendering
             m_MeshIDs.ResizeArray(newCapacity);
             m_MeshLodRendererSettings.ResizeArray(newCapacity);
             m_SubMeshStartIndices.ResizeArray(newCapacity);
+            m_StaticBatchSubMeshCounts.ResizeArray(newCapacity);
             m_LocalAABBs.ResizeArray(newCapacity);
             m_RendererSettings.ResizeArray(newCapacity);
             m_LightmapIndices.ResizeArray(newCapacity);
@@ -311,6 +317,7 @@ namespace UnityEngine.Rendering
             m_MeshIDs[index] = m_MeshIDs[lastIndex];
             m_MeshLodRendererSettings[index] = m_MeshLodRendererSettings[lastIndex];
             m_SubMeshStartIndices[index] = m_SubMeshStartIndices[lastIndex];
+            m_StaticBatchSubMeshCounts[index] = m_StaticBatchSubMeshCounts[lastIndex];
             m_LocalAABBs[index] = m_LocalAABBs[lastIndex];
             m_RendererSettings[index] = m_RendererSettings[lastIndex];
             m_LightmapIndices[index] = m_LightmapIndices[lastIndex];
@@ -342,6 +349,7 @@ namespace UnityEngine.Rendering
             m_MeshIDs[instanceIndex] = DefaultMesh;
             m_MeshLodRendererSettings[instanceIndex] = DefaultMeshLodRendererSettings;
             m_SubMeshStartIndices[instanceIndex] = DefaultSubMeshStartIndex;
+            m_StaticBatchSubMeshCounts[instanceIndex] = DefaultStaticBatchSubMeshCount;
             m_LocalAABBs[instanceIndex] = DefaultLocalBounds;
             m_RendererSettings[instanceIndex] = DefaultRendererSettings;
             m_LightmapIndices[instanceIndex] = DefaultLightmapIndex;
@@ -425,10 +433,9 @@ namespace UnityEngine.Rendering
                 crossFades = new NativeArray<byte>(length, allocator);
             }
 
-            public void Dispose(JobHandle jobHandle)
+            public JobHandle Dispose(JobHandle jobHandle)
             {
-                meshLods.Dispose(jobHandle);
-                crossFades.Dispose(jobHandle);
+                return JobHandle.CombineDependencies(meshLods.Dispose(jobHandle), crossFades.Dispose(jobHandle));
             }
         }
 

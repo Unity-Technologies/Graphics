@@ -6,8 +6,159 @@ using UnityEngine.Rendering.RenderGraphModule;
 namespace UnityEngine.Rendering
 {
     /// <summary>
+    /// Selects how an upscaler's render resolution is determined. Only meaningful for upscalers that expose a quality
+    /// mode (<see cref="IUpscaler.hasQualityMode"/>); upscalers without one always behave as <see cref="CustomScaling"/>.
+    /// </summary>
+    public enum UpscalerResolutionMode
+    {
+        /// <summary>
+        /// The upscaler's quality preset determines a single fixed render resolution (for example a "Quality" preset,
+        /// or a 1:1 native preset). The pipeline renders at that resolution; any pipeline-level scaling
+        /// (render scale or dynamic resolution) is ignored for the camera.
+        /// </summary>
+        QualityMode,
+
+        /// <summary>
+        /// The pipeline drives the render resolution — via render scale, dynamic resolution (adaptive or forced),
+        /// or a custom scale — and the upscaler only constrains it to the hard <see cref="UpscalerResolutionInfo.minResolution"/>/
+        /// <see cref="UpscalerResolutionInfo.maxResolution"/> limits it supports (no clamp at all when it has no quality
+        /// mode). This is the "dynamic / driven" mode, as opposed to the fixed <see cref="QualityMode"/>.
+        /// </summary>
+        CustomScaling,
+    }
+
+    /// <summary>
+    /// How an upscaler constrains the pipeline's render resolution. This is the resolved result reported via
+    /// <see cref="UpscalerResolutionInfo.constraint"/> — the upscaler's capabilities combined with the user-selected
+    /// <see cref="UpscalerResolutionMode"/> — not a user-facing setting.
+    /// </summary>
+    public enum UpscalerResolutionConstraint
+    {
+        /// <summary>
+        /// No constraint: the pipeline drives the render resolution unconstrained (e.g. STP, spatial filters, or FSR2 in
+        /// custom scaling, which has no hard per-quality range).
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// Pinned: the pipeline renders exactly at <see cref="UpscalerResolutionInfo.qualityModeResolution"/> and ignores
+        /// whatever render-resolution scaling it would otherwise apply (render scale, dynamic resolution).
+        /// </summary>
+        Fixed,
+
+        /// <summary>
+        /// Bounded: the pipeline drives the render resolution (render scale / dynamic resolution / forced) but must clamp
+        /// it to <see cref="UpscalerResolutionInfo.minResolution"/>..<see cref="UpscalerResolutionInfo.maxResolution"/>
+        /// (the upscaler's hard limits).
+        /// </summary>
+        Range,
+    }
+
+    /// <summary>
+    /// Resolution information from an upscaler for a given display resolution and quality mode.
+    /// Used by pipelines to configure Dynamic Resolution Scaling bounds or display resolution info in UI.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="constraint"/> tells the pipeline how to select the render resolution:
+    /// <list type="bullet">
+    /// <item><see cref="UpscalerResolutionConstraint.Fixed"/> — render exactly at <see cref="qualityModeResolution"/>;
+    /// the pipeline does not drive the resolution. [<see cref="Fixed"/>]</item>
+    /// <item><see cref="UpscalerResolutionConstraint.Range"/> — the pipeline drives the render resolution
+    /// (render scale / dynamic resolution / forced) and must clamp it to <see cref="minResolution"/>..<see cref="maxResolution"/>
+    /// (the upscaler's hard limits). [<see cref="Range"/>]</item>
+    /// <item><see cref="UpscalerResolutionConstraint.None"/> — the pipeline drives the render resolution, unconstrained.</item>
+    /// </list>
+    /// </remarks>
+    public struct UpscalerResolutionInfo
+    {
+        /// <summary>
+        /// Recommended render resolution for the current quality mode.
+        /// This is the "optimal" resolution the upscaler suggests for best quality/performance balance.
+        /// Authoritative when <see cref="constraint"/> is <see cref="UpscalerResolutionConstraint.Fixed"/>.
+        /// </summary>
+        public Vector2Int qualityModeResolution;
+
+        /// <summary>
+        /// How the upscaler constrains the render resolution (pin / bounded range / no constraint). See
+        /// <see cref="UpscalerResolutionConstraint"/> and the type remarks. DLSS and XeSS expose per-quality min/max
+        /// ranges (<see cref="UpscalerResolutionConstraint.Range"/>); FSR2 does not (global DRS support only).
+        /// </summary>
+        public UpscalerResolutionConstraint constraint;
+
+        /// <summary>
+        /// Minimum resolution when <see cref="constraint"/> is <see cref="UpscalerResolutionConstraint.Range"/>.
+        /// The upscaler guarantees acceptable quality down to this resolution.
+        /// Equals <see cref="qualityModeResolution"/> otherwise.
+        /// </summary>
+        public Vector2Int minResolution;
+
+        /// <summary>
+        /// Maximum resolution when <see cref="constraint"/> is <see cref="UpscalerResolutionConstraint.Range"/>.
+        /// This is typically the upper bound before the upscaler stops providing benefit.
+        /// Equals <see cref="qualityModeResolution"/> otherwise.
+        /// </summary>
+        public Vector2Int maxResolution;
+
+        /// <summary>
+        /// Advisory lower bound on the render scale (render resolution ÷ display resolution): below this the upscaler
+        /// still works but its quality degrades (e.g. FSR2 past its recommended ~3x maximum upscale ratio, i.e. ~0.33).
+        /// It is a resolution-independent ratio, unlike the hard <see cref="minResolution"/>/<see cref="maxResolution"/>
+        /// pixel bounds. This is <b>never clamped to</b> — consumers may surface an informational notice when the render
+        /// scale falls below it, but must keep rendering at the chosen scale. Defaults to 0 meaning "no recommendation".
+        /// </summary>
+        public float recommendedMinScale;
+
+        /// <summary>
+        /// Creates resolution info for a fixed resolution (no DRS range).
+        /// </summary>
+        /// <param name="resolution">The fixed optimal resolution.</param>
+        /// <returns>Resolution info with <see cref="constraint"/> = <see cref="UpscalerResolutionConstraint.Fixed"/>.</returns>
+        public static UpscalerResolutionInfo Fixed(Vector2Int resolution)
+        {
+            return new UpscalerResolutionInfo
+            {
+                qualityModeResolution = resolution,
+                constraint = UpscalerResolutionConstraint.Fixed,
+                minResolution = resolution,
+                maxResolution = resolution,
+            };
+        }
+
+        /// <summary>
+        /// Creates resolution info for a render-resolution range the pipeline drives within (render scale / dynamic
+        /// resolution / forced), clamped to the upscaler's hard <paramref name="min"/>..<paramref name="max"/> limits.
+        /// Use to expose a quality mode's [min,max] as a clamp (e.g. DLSS in Custom Scaling), or for any upscaler with a
+        /// hard render-resolution limit. The <see cref="constraint"/> is <see cref="UpscalerResolutionConstraint.Range"/>
+        /// (clamped, not pinned); when <paramref name="min"/> equals <paramref name="max"/> there is effectively no range,
+        /// so the constraint is <see cref="UpscalerResolutionConstraint.None"/>.
+        /// </summary>
+        /// <param name="min">The minimum render resolution the upscaler supports.</param>
+        /// <param name="max">The maximum render resolution (typically the display resolution).</param>
+        /// <returns>Resolution info with a <see cref="UpscalerResolutionConstraint.Range"/> clamp (or <see cref="UpscalerResolutionConstraint.None"/> when min == max).</returns>
+        public static UpscalerResolutionInfo Range(Vector2Int min, Vector2Int max)
+        {
+            return new UpscalerResolutionInfo
+            {
+                // Not used to select the resolution (the pipeline drives it); reported as the full-quality value for UI.
+                qualityModeResolution = max,
+                // A degenerate range (min == max) is no real range, so the upscaler expresses no constraint.
+                constraint = (min != max) ? UpscalerResolutionConstraint.Range : UpscalerResolutionConstraint.None,
+                minResolution = min,
+                maxResolution = max,
+            };
+        }
+    }
+
+
+    /// <summary>
     /// Defines the essential contract for any upscaling technology.
     /// </summary>
+    /// <remarks>
+    /// An upscaler instance is a shared singleton: one instance per type serves every camera and XR view. Store no
+    /// per-camera or per-frame state on it — per-camera state belongs in <see cref="IUpscalerContext"/>, and per-frame
+    /// inputs (options, resolutions, matrices, ...) arrive via <see cref="UpscalingIO"/> each frame. In particular,
+    /// read options from <c>io.options</c> (passed by the pipeline); the instance does not hold them.
+    /// </remarks>
     public interface IUpscaler : IRenderGraphRecorder
     {
         #region PROPERTIES
@@ -15,11 +166,6 @@ namespace UnityEngine.Rendering
         /// Gets the display name of the upscaler (e.g., "FSR2").
         /// </summary>
         string name { get; }
-
-        /// <summary>
-        /// Gets the options for this particular upscaler.
-        /// </summary>
-        UpscalerOptions options { get; }
 
         /// <summary>
         /// Returns true if the upscaler uses temporal information from previous frames.
@@ -32,9 +178,11 @@ namespace UnityEngine.Rendering
         bool supportsSharpening { get; }
 
         /// <summary>
-        /// Returns true if the upscaler supports XR rendering.
+        /// Returns true if the upscaler exposes a quality mode that can dictate the render resolution (e.g. the
+        /// DLSS/FSR presets). When false, the upscaler has no opinion on resolution and the pipeline drives the render
+        /// resolution (e.g. STP, spatial filters), which is equivalent to <see cref="UpscalerResolutionMode.CustomScaling"/>.
         /// </summary>
-        bool supportsXR { get; }
+        bool hasQualityMode { get; }
         #endregion
 
         #region METHODS
@@ -46,13 +194,6 @@ namespace UnityEngine.Rendering
         /// <param name="jitter">Outputs the calculated sub-pixel jitter vector.</param>
         /// <param name="allowScaling">Outputs whether the jitter vector permits scaling relative to resolution.</param>
         void CalculateJitter(int frameIndex, float upscaleRatio, out Vector2 jitter, out bool allowScaling);
-
-        /// <summary>
-        /// Determines the render resolution based on display resolution and optional internal upscaler state or options.
-        /// </summary>
-        /// <param name="preUpscaleResolution">The rendering resolution prior to upscaling. This is passed by reference and can be modified.</param>
-        /// <param name="postUpscaleResolution">The target display or output resolution.</param>
-        void NegotiatePreUpscaleResolution(ref Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution);
 
         /// <summary>
         /// Creates a new context for this upscaler. Upscaler authors implement this to create per-camera state.
@@ -82,6 +223,33 @@ namespace UnityEngine.Rendering
         /// <param name="postUpscaleResolution">The target display resolution after upscaling.</param>
         /// <returns>The recommended mip bias value (typically negative when upscaling).</returns>
         float CalculateMipBias(Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution);
+
+        /// <summary>
+        /// Gets resolution information for this upscaler given a display resolution and options.
+        /// Used by pipelines to configure DRS bounds or display resolution info in UI.
+        /// </summary>
+        /// <remarks>
+        /// DLSS and XeSS provide per-quality-mode min/max ranges via their SDK APIs.
+        /// FSR2 provides only optimal resolution (no per-quality range).
+        /// Spatial upscalers return the display resolution unchanged.
+        ///
+        /// The options parameter is provided by the framework (Upscaling.GetGlobalOptions) and enables future per-camera
+        /// quality settings; pipelines pass the framework-resolved options (asset default today; per-camera later).
+        ///
+        /// Example usage:
+        /// <code>
+        /// var info = upscaler.GetResolutionInfo(displayResolution, upscaling.GetGlobalOptions(upscaler));
+        /// if (info.constraint == UpscalerResolutionConstraint.Range)
+        /// {
+        ///     drsSettings.minPercentage = (float)info.minResolution.x / displayResolution.x * 100f;
+        ///     drsSettings.maxPercentage = (float)info.maxResolution.x / displayResolution.x * 100f;
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="displayResolution">The target display/output resolution.</param>
+        /// <param name="options">The upscaler options to use for resolution calculation.</param>
+        /// <returns>Resolution info containing optimal and optional min/max resolutions.</returns>
+        UpscalerResolutionInfo GetResolutionInfo(Vector2Int displayResolution, UpscalerOptions options);
         #endregion
     }
 
@@ -99,15 +267,8 @@ namespace UnityEngine.Rendering
         /// <inheritdoc cref="IUpscaler.supportsSharpening"/>
         public abstract bool supportsSharpening { get; }
 
-
-        /// <inheritdoc cref="IUpscaler.options"/>
-        public virtual UpscalerOptions options => null;
-
-        /// <inheritdoc cref="IUpscaler.supportsXR"/>
-        public virtual bool supportsXR => false;
-
-        /// <inheritdoc cref="IUpscaler.NegotiatePreUpscaleResolution(ref Vector2Int, Vector2Int)"/>
-        public virtual void NegotiatePreUpscaleResolution(ref Vector2Int preUpscaleResolution, Vector2Int postUpscaleResolution) {}
+        /// <inheritdoc cref="IUpscaler.hasQualityMode"/>
+        public virtual bool hasQualityMode => false;
 
         /// <inheritdoc cref="IUpscaler.CreateContext(UpscalerOptions, Vector2Int)"/>
         public virtual IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution) => null;
@@ -129,6 +290,24 @@ namespace UnityEngine.Rendering
             float xBias = Mathf.Log((float)preUpscaleResolution.x / postUpscaleResolution.x, 2f);
             float yBias = Mathf.Log((float)preUpscaleResolution.y / postUpscaleResolution.y, 2f);
             return Mathf.Min(xBias, yBias);
+        }
+
+        /// <inheritdoc cref="IUpscaler.GetResolutionInfo(Vector2Int, UpscalerOptions)"/>
+        /// <remarks>
+        /// Default implementation reports <see cref="UpscalerResolutionConstraint.None"/>: the upscaler has no quality
+        /// mode, so the pipeline drives the render resolution. Override in quality-mode upscalers to
+        /// return <see cref="UpscalerResolutionInfo.Fixed"/>/<see cref="UpscalerResolutionInfo.Range"/>.
+        /// </remarks>
+        public virtual UpscalerResolutionInfo GetResolutionInfo(Vector2Int displayResolution, UpscalerOptions options)
+        {
+            // No quality mode: the pipeline drives the render resolution, unconstrained.
+            return new UpscalerResolutionInfo
+            {
+                qualityModeResolution = displayResolution,
+                minResolution = displayResolution,
+                maxResolution = displayResolution,
+                constraint = UpscalerResolutionConstraint.None,
+            };
         }
 
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
@@ -163,11 +342,15 @@ namespace UnityEngine.Rendering
         bool IsValidForOptions(UpscalerOptions options);
 
         /// <summary>
-        /// Releases native resources associated with this context. Upscaler authors implement this to release GPU resources
-        /// when plugins or native code require command buffer access for cleanup.
-        /// Called automatically by the context manager when the context expires or needs recreation.
+        /// Releases native resources associated with this context. Called automatically by the context manager when the
+        /// context expires, needs recreation, or the upscaling system is disposed.
         /// </summary>
-        /// <param name="cmd">The command buffer to record cleanup commands into.</param>
+        /// <param name="cmd">The command buffer used to record cleanup commands into. The caller executes it.</param>
+        /// <remarks>
+        /// A command buffer is taken rather than this being a plain managed Dispose because some upscalers own native
+        /// resources that must be released on the render thread. Implementations may record a render-thread signal here
+        /// instead of GPU work, and the release may complete asynchronously.
+        /// </remarks>
         void Cleanup(CommandBuffer cmd);
     }
 
@@ -183,7 +366,11 @@ namespace UnityEngine.Rendering
         where TOptions : UpscalerOptions
     {
         /// <summary>
-        /// The native context from the plugin. Subclasses create this via GetOrCreateNativeContext().
+        /// The native context from the plugin. Subclasses create it lazily on first use (creation needs a CommandBuffer,
+        /// so it can't happen in the constructor) and assign it here; the base class destroys it via <see cref="Cleanup"/>
+        /// (calling <see cref="DestroyNativeContext"/>). The lazy-creation method is the subclass's own — e.g. DLSS's
+        /// create-once <c>GetOrCreateNativeContext</c>, or FSR2's <c>EnsureNativeContext</c> which also recreates when its
+        /// allocation size changes.
         /// </summary>
         protected TNativeContext m_NativeContext;
 
@@ -201,6 +388,9 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Creates a new plugin upscaler context for the specified display resolution.
+        /// Subclasses should extract and store context-creation settings (quality mode, presets)
+        /// in their own fields for use in RecordRenderGraph.
+        /// Per-frame settings (sharpness, etc.) should be read from io.options instead.
         /// </summary>
         /// <param name="displayResolution">The target display resolution.</param>
         protected PluginUpscalerContext(Vector2Int displayResolution)
@@ -292,6 +482,7 @@ namespace UnityEngine.Rendering
         private TextureHandle m_MotionVectorColor;
         private TextureHandle m_ExposureTexture;
         private Vector2Int m_PreUpscaleResolution;
+        private Vector2Int m_MaxPreUpscaleResolution;
         private Vector2Int m_PreviousPreUpscaleResolution;
         private Vector2Int m_PostUpscaleResolution;
         private bool m_EnableTexArray;
@@ -331,7 +522,7 @@ namespace UnityEngine.Rendering
 
         // Misc
         private bool m_EnableMotionScaling;
-        private bool m_EnableHwDrs;
+        private DynamicResolutionType? m_DynamicResolution;
         #endregion
 
         #region TEXTURE_IO
@@ -372,12 +563,26 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The resolution of the source image before upscaling.
+        /// The resolution of the source image rendered this frame (the actual render size; under dynamic resolution
+        /// this varies frame to frame). Upscalers use this as the per-frame dispatch/subrect size.
         /// </summary>
         public Vector2Int preUpscaleResolution
         {
             get { return m_PreUpscaleResolution; }
             set { m_PreUpscaleResolution = value; }
+        }
+
+        /// <summary>
+        /// The maximum render resolution the source image can reach (the allocation size), set by the pipeline. Stable
+        /// across the dynamic-resolution range, so upscalers should allocate per-camera history/native contexts at this
+        /// size and dispatch at <see cref="preUpscaleResolution"/> — this avoids per-frame reallocation when the render
+        /// size varies. Equals <see cref="preUpscaleResolution"/> when dynamic resolution is inactive.
+        /// (Note: DLSS is an exception — its feature must be created at the SDK's recommended optimal, not this max.)
+        /// </summary>
+        public Vector2Int maxPreUpscaleResolution
+        {
+            get { return m_MaxPreUpscaleResolution; }
+            set { m_MaxPreUpscaleResolution = value; }
         }
 
         /// <summary>
@@ -527,7 +732,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The number of active views (e.g., 2 for stereo rendering).
+        /// The number of active views (e.g., 2 for stereo rendering). This is the authoritative per-view count: the
+        /// per-view arrays below (positions/matrices) may be longer than this, so always iterate
+        /// <c>[0, numActiveViews)</c> and never rely on <c>array.Length</c>.
         /// </summary>
         public int numActiveViews
         {
@@ -536,7 +743,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The camera positions in world space for the current frame.
+        /// Absolute world-space camera position per view, current frame (length: use <see cref="numActiveViews"/>).
+        /// These are always absolute, even when <see cref="viewMatrices"/> are camera-relative (camera translation
+        /// stripped from the matrix, e.g. HDRP). Reconstruct an absolute view matrix by combining the two; do not assume
+        /// the view matrix carries the world translation.
         /// </summary>
         public Vector3[] worldSpaceCameraPositions
         {
@@ -590,7 +800,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The view matrices for the current frame.
+        /// View matrices per view, current frame, in the pipeline's render space — these may be CAMERA-RELATIVE (camera
+        /// translation removed, e.g. HDRP) for precision. Use <see cref="worldSpaceCameraPositions"/> for the absolute
+        /// camera position; do not derive world position from the view-matrix translation. Length: use
+        /// <see cref="numActiveViews"/>.
         /// </summary>
         public Matrix4x4[] viewMatrices
         {
@@ -688,12 +901,21 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Indicates if Hardware Dynamic Resolution Scaling (HW DRS) is enabled.
+        /// The active Dynamic Resolution Scaling state for this frame, or <c>null</c> when DRS is inactive.
+        /// <list type="bullet">
+        /// <item><c>null</c> — no DRS; the render resolution is fixed this frame (fixed-ratio upscaling).</item>
+        /// <item><see cref="DynamicResolutionType.Hardware"/> — render targets are allocated at display resolution
+        /// and scaled via hardware memory aliasing; history/RTHandles should be sized at <see cref="postUpscaleResolution"/>.</item>
+        /// <item><see cref="DynamicResolutionType.Software"/> — the render resolution may vary frame-to-frame with the
+        /// target allocated at the render resolution.</item>
+        /// </list>
+        /// Convenience: <c>dynamicResolution.HasValue</c> means DRS is active; <c>dynamicResolution == DynamicResolutionType.Hardware</c>
+        /// gates display-resolution history allocation. Upscalers using native plugin-managed history (DLSS, FSR2) can ignore the distinction.
         /// </summary>
-        public bool enableHwDrs
+        public DynamicResolutionType? dynamicResolution
         {
-            get { return m_EnableHwDrs; }
-            set { m_EnableHwDrs = value; }
+            get { return m_DynamicResolution; }
+            set { m_DynamicResolution = value; }
         }
         #endregion
 
@@ -711,17 +933,38 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The sub-pixel jitter offset applied to the projection matrix this frame.
-        /// Populated by the pipeline after calling IUpscaler.CalculateJitter().
-        /// Values are typically in the range [-0.5, 0.5].
-        /// Temporal upscalers pass this to their native APIs to inform them of the jitter applied.
+        /// The sub-pixel jitter offset for this frame, in the same convention your
+        /// <see cref="IUpscaler.CalculateJitter"/> returns. Pass it to your native upscaler's jitter-offset input
+        /// unchanged. Values are typically in the range [-0.5, 0.5].
         /// </summary>
+        /// <remarks>
+        /// The pipeline derives this from your <see cref="IUpscaler.CalculateJitter"/> result and applies it to the
+        /// projection before handing it back here. Read it in RecordRenderGraph; do not recompute jitter there.
+        /// </remarks>
         public Vector2 subpixelJitter
         {
             get { return m_SubpixelJitter; }
             set { m_SubpixelJitter = value; }
         }
         private Vector2 m_SubpixelJitter;
+
+        /// <summary>
+        /// The current upscaler options for this frame/camera.
+        /// Populated by the pipeline before calling RecordRenderGraph().
+        /// Upscalers should read per-frame settings (sharpness, etc.) from this property.
+        /// Context-creation settings (quality mode, presets) are stored in the context itself.
+        /// </summary>
+        /// <remarks>
+        /// This separation enables dynamic settings changes without context recreation:
+        /// - Quality mode changes: Invalidate context via IsValidForOptions(), recreate
+        /// - Sharpness changes: Context stays valid, read new value from io.options
+        /// </remarks>
+        public UpscalerOptions options
+        {
+            get { return m_Options; }
+            set { m_Options = value; }
+        }
+        private UpscalerOptions m_Options;
         #endregion
 
 
@@ -730,11 +973,13 @@ namespace UnityEngine.Rendering
         {
             context = null;
             subpixelJitter = Vector2.zero;
+            options = null;
             cameraColor = TextureHandle.nullHandle;
             cameraDepth = TextureHandle.nullHandle;
             motionVectorColor = TextureHandle.nullHandle;
             exposureTexture = TextureHandle.nullHandle;
             preUpscaleResolution = new();
+            maxPreUpscaleResolution = new();
             previousPreUpscaleResolution = new();
             postUpscaleResolution = new();
             enableTexArray = false;
@@ -771,7 +1016,7 @@ namespace UnityEngine.Rendering
             previousDeltaTime = 0f;
 
             enableMotionScaling = false;
-            enableHwDrs = false;
+            dynamicResolution = null;
         }
     }
 }

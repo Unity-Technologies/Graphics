@@ -37,3 +37,7 @@ The dropdown in the Terrain Texture node sets the texture or mask that the node 
 |**Holes**|Sets the input as the holes texture in the **Input** Terrain Layer. The holes are in the red channel.|
 
 For more information, refer to [Terrain Layers](https://docs.unity3d.com/Manual/class-TerrainLayer.html).
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

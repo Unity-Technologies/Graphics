@@ -28,3 +28,7 @@ This node blends all the properties of the Iris and the Sclera so that they can 
 | **Specular Normal**          | Output        | Vector3           | Normal of the specular lobes.                                |
 | **EyeSmoothness**            | Output        | float             | Final smoothness of the Eye.                                 |
 | **SurfaceDiffusionProfile**  | Output        | Diffusion Profile | Diffusion profile of the target fragment.                    |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

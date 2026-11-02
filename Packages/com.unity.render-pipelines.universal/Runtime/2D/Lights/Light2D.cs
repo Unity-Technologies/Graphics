@@ -177,6 +177,11 @@ namespace UnityEngine.Rendering.Universal
 
         Mesh m_Mesh;
 
+        // m_Mesh either points at a Mesh this component allocated through lightMesh, or at one handed over by
+        // Light2DProvider.GetMesh(). That contract only returns a mesh to render and does not transfer ownership,
+        // so provider meshes may be shared between lights and must never be destroyed from here.
+        bool m_OwnsMesh;
+
         [NonSerialized]
         private LightUtility.LightMeshVertex[] m_Vertices = new LightUtility.LightMeshVertex[1];
 
@@ -211,9 +216,43 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (null == m_Mesh)
+                {
                     m_Mesh = new Mesh();
+                    m_OwnsMesh = true;
+                }
                 return m_Mesh;
             }
+        }
+
+        // Takes the mesh a Light2DProvider handed us and returns its bounds, releasing any mesh we allocated ourselves
+        // first so replacing it does not leak. A null mesh means "draw nothing": we keep one empty mesh we own, so the
+        // render path never sees null and lightMesh does not allocate a new one every frame.
+        Bounds SetProviderMesh(Mesh providerMesh)
+        {
+            if (providerMesh == null)
+            {
+                // Drop the provider's mesh without destroying it; it is not ours. lightMesh then allocates our own.
+                if (!m_OwnsMesh)
+                    m_Mesh = null;
+
+                var emptyMesh = lightMesh;
+                if (emptyMesh.vertexCount != 0)
+                    emptyMesh.Clear();
+
+                return kEmptyBounds;
+            }
+
+            // A provider is free to hand back the mesh we already hold, in which case ownership is unchanged.
+            if (m_Mesh != providerMesh)
+            {
+                if (m_OwnsMesh)
+                    CoreUtils.Destroy(m_Mesh);
+
+                m_Mesh = providerMesh;
+                m_OwnsMesh = false;
+            }
+
+            return providerMesh.bounds;
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
@@ -519,14 +558,11 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        // A provider light can legitimately have no provider -- the script backing it was deleted, for instance --
+        // and that draws nothing, the same as a provider that returns no mesh.
         internal Bounds UpdateProviderMesh()
         {
-            m_Mesh = light2DProvider.GetMesh();
-
-            if (m_Mesh != null)
-                return m_Mesh.bounds;
-            else
-                return kEmptyBounds;
+            return SetProviderMesh(light2DProvider?.GetMesh());
         }
 
         internal void UpdateCookieSpriteTexture()
@@ -582,19 +618,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (light2DProvider != null)
-                {
-                    if (m_Mesh != null)
-                    {
-                        m_Mesh = light2DProvider.GetMesh();
-                        m_LocalBounds = m_Mesh.bounds;
-                    }
-                }
-                else
-                {
-                    m_Mesh.Clear();
-                    m_LocalBounds = kEmptyBounds;
-                }
+                m_LocalBounds = UpdateProviderMesh();
             }
         }
 
@@ -660,6 +684,16 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        private void OnDestroy()
+        {
+            // Only the mesh we allocated ourselves is ours to destroy; a provider owns the one it returned.
+            if (m_OwnsMesh)
+                CoreUtils.Destroy(m_Mesh);
+
+            m_Mesh = null;
+            m_OwnsMesh = false;
+        }
+
         private void OnDisable()
         {
             Light2DManager.DeregisterLight(this);
@@ -714,6 +748,19 @@ namespace UnityEngine.Rendering.Universal
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        // OnAfterDeserialize can run off the main thread, where the Unity null check throws.
+        // The Editor reads an unassigned reference as a fake null object, which has no entity ID.
+        static bool IsAssigned(UnityEngine.Object reference)
+        {
+            if ((object)reference == null)
+                return false;
+#if UNITY_EDITOR
+            return reference.GetEntityIdForSerializationUnchecked() != EntityId.None;
+#else
+            return true;
+#endif
+        }
+
         /// <summary>
         /// OnAfterSerialize implementation.
         /// </summary>
@@ -746,10 +793,13 @@ namespace UnityEngine.Rendering.Universal
             if (m_ComponentVersion < ComponentVersions.Version_4)
             {
 #pragma warning disable CS0618
-                if (m_LightType == LightType.Point && (object)m_DeprecatedPointLightCookieSprite != null)
+                // Version_3 data from the 6000.0 and 6000.3 ports is already migrated, so only a set deprecated cookie is applied (UUM-156931)
+                if (m_LightType == LightType.Point &&
+                    (m_ComponentVersion < ComponentVersions.Version_3 || IsAssigned(m_DeprecatedPointLightCookieSprite)))
                 {
                     m_LightCookieSprite = m_DeprecatedPointLightCookieSprite;
                 }
+                m_DeprecatedPointLightCookieSprite = null;
 #pragma warning restore CS0618
             }
         }

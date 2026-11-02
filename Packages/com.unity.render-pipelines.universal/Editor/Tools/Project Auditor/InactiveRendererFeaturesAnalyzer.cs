@@ -15,10 +15,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             Areas.Quality | Areas.Memory,
             "One or more renderer data assets contain inactive renderer features. Consider removing them if they are not needed.",
             "Remove inactive renderer features or activate them if they should be used"
-        )
-        {
-            DefaultSeverity = Severity.Warning,
-        };
+        );
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()
         {

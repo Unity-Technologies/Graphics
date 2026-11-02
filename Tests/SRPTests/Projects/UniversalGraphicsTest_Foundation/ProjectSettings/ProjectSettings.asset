@@ -926,7 +926,7 @@ PlayerSettings:
     m_VersionCode: 1
     m_VersionName: 
   hmiPlayerDataPath: 
-  hmiForceSRGBBlit: 1
+  hmiForceSRGBBlit: 0
   embeddedLinuxEnableGamepadInput: 1
   hmiCpuConfiguration: {_typeName: int, _data: }
   hmiLogStartupTiming: 0

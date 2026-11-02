@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_LightShader, value, nameof(m_LightShader));
         }
 
+        [SerializeField, ResourcePath("Shaders/2D/RenderingLayerMask.shader")]
+        Shader m_RenderingLayerMaskShader;
+
+        internal Shader renderingLayerMaskShader
+        {
+            get => m_RenderingLayerMaskShader;
+            set => this.SetValueAndNotify(ref m_RenderingLayerMaskShader, value, nameof(m_RenderingLayerMaskShader));
+        }
+
         [SerializeField, ResourcePath("Shaders/2D/Shadow2D-Projected.shader")]
         Shader m_ProjectedShadowShader;
         internal Shader projectedShadowShader

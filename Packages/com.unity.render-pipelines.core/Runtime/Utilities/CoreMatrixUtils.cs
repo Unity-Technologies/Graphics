@@ -162,5 +162,31 @@ namespace UnityEngine.Rendering
                 ? MultiplyOrthoMatrixCentered(projMatrix, rhs)
                 : MultiplyPerspectiveMatrix(projMatrix, rhs);
         }
+
+        /// <summary>
+        /// Returns the world-space camera position from a view matrix whose rotation is orthonormal, computing
+        /// <c>-transpose(R) * t</c> (R = upper-left 3x3 rotation, t = column 3 translation). This is faster than inverting
+        /// the full matrix (<c>viewMatrix.inverse.GetColumn(3)</c>), at roughly nine multiplies.
+        /// </summary>
+        /// <remarks>
+        /// The result is correct only under two preconditions:
+        /// <list type="bullet">
+        /// <item>The rotation R must be orthonormal, so that transpose(R) == inverse(R). A pure rotation/translation view
+        /// matrix qualifies (Unity's view-space Z flip is fine); a matrix with scale, skew, or projection does not, so
+        /// invert the full matrix for those.</item>
+        /// <item>The view matrix must be world-absolute. A camera-relative matrix (for example, HDRP strips the camera
+        /// translation) yields a camera-relative result, not the absolute world position.</item>
+        /// </list>
+        /// </remarks>
+        /// <param name="viewMatrix">The world-absolute view matrix, with orthonormal rotation, to extract the camera position from.</param>
+        /// <returns>The world-space camera position.</returns>
+        public static Vector3 GetWorldPositionFromOrthonormalViewMatrix(in Matrix4x4 viewMatrix)
+        {
+            Vector3 t = viewMatrix.GetPosition();
+            return new Vector3(
+                -(viewMatrix.m00 * t.x + viewMatrix.m10 * t.y + viewMatrix.m20 * t.z),
+                -(viewMatrix.m01 * t.x + viewMatrix.m11 * t.y + viewMatrix.m21 * t.z),
+                -(viewMatrix.m02 * t.x + viewMatrix.m12 * t.y + viewMatrix.m22 * t.z));
+        }
     }
 }

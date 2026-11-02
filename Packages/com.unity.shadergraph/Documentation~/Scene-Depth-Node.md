@@ -42,3 +42,7 @@ void Unity_SceneDepth_Raw_float(float4 UV, out float Out)
     Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

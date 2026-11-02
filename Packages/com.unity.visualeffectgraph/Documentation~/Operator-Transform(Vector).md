@@ -1,6 +1,6 @@
-# Transform (Vector)
+# Transform (Vector) Operator
 
-Menu Path : **Operator > Math > Geometry > Transform (Vector)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Transform (Vector)**
 
 The **Transform (Vector)** Operator applies a transformation to a Vector to offset, rotate, or scale it.
 

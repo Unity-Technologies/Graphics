@@ -2,7 +2,7 @@ Shader "Hidden/Core/ProbeVolumeDebug"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "UniversalPipeline" "RenderType" = "Opaque" }
+        Tags{ "RenderType" = "Opaque" }
         LOD 100
 
         HLSLINCLUDE

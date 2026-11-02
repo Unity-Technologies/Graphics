@@ -319,17 +319,48 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", false);
         }
 
-        static bool FindPassIndex(Material material, string passName, out int passIndex)
+        #if UNITY_EDITOR
+        static readonly GlobalKeyword[] k_WaterShaderKeywords =
         {
-            passIndex = material.FindPass(passName);
-            #if UNITY_EDITOR
-            if (!UnityEditor.ShaderUtil.IsPassCompiled(material, passIndex))
+            GlobalKeyword.Create("WATER_DECAL_PARTIAL"),
+            GlobalKeyword.Create("WATER_DECAL_COMPLETE"),
+            GlobalKeyword.Create("WATER_ONE_BAND"),
+            GlobalKeyword.Create("WATER_TWO_BANDS"),
+            GlobalKeyword.Create("WATER_THREE_BANDS"),
+            GlobalKeyword.Create("WATER_LOCAL_CURRENT"),
+        };
+
+        static int SetGlobalWaterShaderKeywords(int keywordMask)
+        {
+            int previousMask = 0;
+            for (int i = 0; i < k_WaterShaderKeywords.Length; ++i)
             {
-                UnityEditor.ShaderUtil.CompilePass(material, passIndex);
-                return false;
+                if (Shader.IsKeywordEnabled(k_WaterShaderKeywords[i]))
+                    previousMask |= 1 << i;
+                Shader.SetKeyword(k_WaterShaderKeywords[i], (keywordMask & (1 << i)) != 0);
             }
-            #endif
+            return previousMask;
+        }
+        #endif
+
+        static bool FindPassIndex(WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData, string passName, out int passIndex)
+        {
+            passIndex = surfaceData.waterMaterial.FindPass(passName);
+            #if UNITY_EDITOR
+            int keywordMask = (parameters.decalWorkflow ? 1 << 1 : 1 << 0)
+                | (surfaceData.numActiveBands == 1 ? 1 << 2 : 0)
+                | (surfaceData.numActiveBands == 2 ? 1 << 3 : 0)
+                | (surfaceData.numActiveBands == 3 ? 1 << 4 : 0)
+                | (surfaceData.activeCurrent ? 1 << 5 : 0);
+            int previousKeywordMask = SetGlobalWaterShaderKeywords(keywordMask);
+            bool compiled = UnityEditor.ShaderUtil.IsPassCompiled(surfaceData.waterMaterial, passIndex);
+            if (!compiled)
+                UnityEditor.ShaderUtil.CompilePass(surfaceData.waterMaterial, passIndex);
+            SetGlobalWaterShaderKeywords(previousKeywordMask);
+            return compiled;
+            #else
             return true;
+            #endif
         }
 
         static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData, int passIndex, int lowResPassIndex)
@@ -392,9 +423,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static void DrawWaterSurface(CommandBuffer cmd, string[] passNames, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData)
         {
             int lowResPassIndex = 0;
-            bool missingPass = !FindPassIndex(surfaceData.waterMaterial, passNames[0], out var passIndex);
+            bool missingPass = !FindPassIndex(parameters, ref surfaceData, passNames[0], out var passIndex);
             if (surfaceData.instancedQuads)
-                missingPass |= !FindPassIndex(surfaceData.waterMaterial, passNames[1], out lowResPassIndex);
+                missingPass |= !FindPassIndex(parameters, ref surfaceData, passNames[1], out lowResPassIndex);
             if (missingPass)
                 return;
 

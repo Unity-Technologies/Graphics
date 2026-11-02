@@ -81,7 +81,8 @@ void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2A
 
 ///<funchints>
 ///     <sg:ProviderKey>Core.Particles.GetParticleTexcoords</sg:ProviderKey>
-///     <sg:DisplayName>Particle Texcoords</sg:DisplayName>
+///     <sg:DisplayName>Flipbook</sg:DisplayName>
+///     <sg:GroupKey>Core.Particles.TexCoords, 10, Particle Texcoords, Mode</sg:GroupKey>
 ///     <sg:SearchCategory>VFX/Particles</sg:SearchCategory>
 ///     <sg:SearchName>Texcoords</sg:SearchName>
 ///     <sg:SearchTerms>Particle, Texcoords, UV</sg:SearchTerms>
@@ -103,9 +104,9 @@ void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)
 
 ///<funchints>
 ///     <sg:ProviderKey>Core.Particles.TexCoordsFlipbookBlending</sg:ProviderKey>
-///     <sg:DisplayName>Particle Texcoords & Blend</sg:DisplayName>
+///     <sg:DisplayName>Flipbook Blending</sg:DisplayName>
+///     <sg:GroupKey>Core.Particles.TexCoords</sg:GroupKey>
 ///     <sg:SearchCategory>VFX/Particles</sg:SearchCategory>
-///     <sg:SearchName>Texcoords & Blend</sg:SearchName>
 ///     <sg:SearchTerms>Particle, Flipbook, Texcoords, UV</sg:SearchTerms>
 ///</funchints>
 ///<paramhints name = "inputTexcoord">
@@ -151,40 +152,6 @@ void GetParticleAnimFrame(inout float animFrame)
     UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
     animFrame = data.animFrame;
 #endif
-}
-
-// Sample a texture and do blending for texture sheet animation if needed
-///<funchints>
-///     <sg:ProviderKey>Core.Particles.BlendTexture</sg:ProviderKey>
-///     <sg:DisplayName>Particle Flipbook Blending</sg:DisplayName>
-///     <sg:ReturnDisplayName>Color</sg:ReturnDisplayName>
-///     <sg:SearchCategory>VFX/Particles</sg:SearchCategory>
-///     <sg:SearchName>Flipbook Blending</sg:SearchName>
-///     <sg:SearchTerms>Particle, Blend</sg:SearchTerms>
-///</funchints>
-///<paramhints name = "Tex">
-///     <sg:DisplayName>Texture</sg:DisplayName>
-///</paramhints>
-///<paramhints name = "inputTexcoord">
-///     <sg:DisplayName>UV</sg:DisplayName>
-///     <UV />
-///     <Default>UV0</Default>
-///</paramhints>
-///<paramhints name = "blend">
-///     <sg:DisplayName>Blend Vertex Stream</sg:DisplayName>
-///</paramhints>
-UNITY_EXPORT_REFLECTION
-half4 FlipBookBlendTexture(UnityTexture2D Tex, float2 inputTexcoord, float blend)
-{
-    float3 dummyTexcoord2AndBlend = 0.0;
-    float2 outputTexcoord;
-    GetParticleTexcoords(outputTexcoord, dummyTexcoord2AndBlend, inputTexcoord.xyxy, blend);
-    half4 color = half4(Tex.Sample(Tex.samplerstate, outputTexcoord));
-#ifdef _FLIPBOOKBLENDING_ON
-    half4 color2 = half4(Tex.Sample(Tex.samplerstate, dummyTexcoord2AndBlend.xy));
-    color = lerp(color, color2, half(dummyTexcoord2AndBlend.z));
-#endif
-    return color;
 }
 
 #endif // CORE_PARTICLES_INCLUDED

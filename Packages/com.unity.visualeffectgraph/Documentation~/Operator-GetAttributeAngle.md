@@ -1,4 +1,4 @@
-# Get Attribute: angle
+# Get Attribute: angle Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: angle**
 

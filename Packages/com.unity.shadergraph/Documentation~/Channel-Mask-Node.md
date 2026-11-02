@@ -27,3 +27,7 @@ void Unity_ChannelMask_RedGreen_float4(float4 In, out float4 Out)
     Out = float4(0, 0, In.b, In.a);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

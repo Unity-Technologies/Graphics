@@ -18,3 +18,7 @@ Calculates the intensity of the Limbal ring, a darkening feature of eyes.
 | **LimbalRingFade**         | Input         | float   | Normalized [0, 1] value that defines strength of the fade out of the limbal ring. |
 | **LimbalRingIntensity**    | Input         | float   | Positive value that defines how dark the limbal ring is.     |
 | **Iris Limbal Ring Color** | Output        | Color   | Intensity of the limbal ring.                                |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

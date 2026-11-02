@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering
             if (panel == null)
                 return;
 
-            DebugManager.instance.RequestEditorWindowPanel(k_PanelTitle);
+            DebugManager.instance.RequestPanelSelection(k_PanelTitle);
 
             // Try to select the given volume component in the component selector drop down
             if (volumeComponent != null &&

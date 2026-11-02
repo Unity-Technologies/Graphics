@@ -8,6 +8,7 @@ A Sub Graph is a type of shader graph that you include in other shader graphs. U
 | [Create a Sub Graph](Create-Sub-Graph.md) | Create a Sub Graph from existing nodes, or create an empty Sub Graph. |
 | [Add a Sub Graph to a shader graph](Add-Sub-Graph-To-Shader-Graph.md) | Add a Sub Graph node to a shader graph. |
 | [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md) | To pass data in and out of a Sub Graph, create input and output ports. |
+| [Change how Sub Graph inputs appear on a node](Sub-Graph-Input-Display.md) | Display a float input as a slider or dropdown, or set an input value on the node instead of a port. |
 | [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md) | Add default values for the inputs of a Sub Graph. |
 | [Change the behavior of a Sub Graph with a dropdown](Change-Behaviour-Sub-Graph-Dropdown.md) | Add a Dropdown node to change the behavior of a Sub Graph using a dropdown menu. |
 | [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md) | Set a property or keyword as belonging to the main shader instead of a Sub Graph. This process is known as promoting the property, or creating a nested property. |

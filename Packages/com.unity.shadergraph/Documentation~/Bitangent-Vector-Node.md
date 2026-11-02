@@ -19,3 +19,7 @@ You can select the coordinate space of the output with the **Space** dropdown pa
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of **Bitangent Vector** to output. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

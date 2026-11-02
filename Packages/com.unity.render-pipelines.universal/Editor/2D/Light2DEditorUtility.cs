@@ -8,17 +8,35 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {
+        internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
+
+        // The Undo entry for a pick in the Light Type dropdown, shared by every place that applies one.
+        internal const string k_ChangeLightTypeUndoName = "Change Light Type";
+
         private static class Styles
         {
-            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
-            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
-            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+            static GUIContent s_LightTypeFreeform;
+            static GUIContent s_LightTypeSprite;
+            static GUIContent s_LightTypePoint;
+            static GUIContent s_LightTypeGlobal;
+
+            public static GUIContent lightTypeFreeform => s_LightTypeFreeform ??= new GUIContent("Freeform", LoadIcon("FreeformLight.png"));
+            public static GUIContent lightTypeSprite => s_LightTypeSprite ??= new GUIContent("Sprite", LoadIcon("SpriteLight.png"));
+            public static GUIContent lightTypePoint => s_LightTypePoint ??= new GUIContent("Spot", LoadIcon("PointLight.png"));
+            public static GUIContent lightTypeGlobal => s_LightTypeGlobal ??= new GUIContent("Global", LoadIcon("GlobalLight.png"));
+
+            static Texture LoadIcon(string fileName) => AssetDatabase.LoadAssetAtPath<Texture>(ResourcePath + "InspectorIcons/" + fileName);
         }
 
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
+
+        // Without the runtime's 2D Common tessellator, a Freeform light renders only its falloff edge.
+        internal static bool ShouldShowMissing2DCommonError(Light2D.LightType type)
+        {
+            return type == Light2D.LightType.Freeform && !LightUtility.canTessellateFreeformInterior;
+        }
 
         /// <summary>
         /// Draws the Light Type dropdown for a Light2D component using the provider system.
@@ -57,29 +75,7 @@ namespace UnityEditor.Rendering.Universal
             if (sources == null)
                 return;
 
-            // Set up the built-in light types
-            List<SelectionSource> additionalSources = new List<SelectionSource>
-            {
-                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
-                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
-            };
-
-            // Refresh sources to scan for custom providers on the GameObject
-            int selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
-
-            // Add built-in types
-            var additionalSourcesList = sources.GetAdditionalSources();
-            if (additionalSourcesList != null)
-            {
-                additionalSourcesList.Clear();
-                foreach (var source in additionalSources)
-                    additionalSourcesList.Add(source);
-            }
-
-            // Refresh again to include the built-in types
-            selectedIndex = Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+            int selectedIndex = RefreshLightSources(light2D, sources);
 
             // Sync m_SelectionSources with the actual m_LightType value
             // This is needed because Light Explorer may have changed m_LightType directly
@@ -107,12 +103,82 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Only apply changes if the user actually changed the value
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && newSelectedIndex >= 0)
             {
-                Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(sources, newSelectedIndex);
-                selectionSources.boxedValue = sources;
-                Light2DProviderSources.SetSourceType(selectionSources);
+                ApplyLightTypeSelection(serializedObject, sourceNames[newSelectedIndex]);
             }
+        }
+
+        /// <summary>
+        /// Applies the entry the user picked to the light, and reports the clash when that pick is what
+        /// turned the light Global.
+        /// </summary>
+        /// <remarks>
+        /// The report belongs here, on the path both the Inspector and the Light Explorer take, because the
+        /// Light Explorer has no equivalent of the Inspector's CheckForExistingGlobalLight: picking Global
+        /// in its Light Type column used to go unreported.
+        /// </remarks>
+        static internal void ApplyLightTypeSelection(SerializedObject serializedObject, GUIContent chosen)
+        {
+            Light2D light = serializedObject.targetObject as Light2D;
+            if (light == null)
+                return;
+
+            SerializedProperty selectionSources = serializedObject.FindProperty("m_SelectionSources");
+            Light2DProviderSources sources = selectionSources?.boxedValue as Light2DProviderSources;
+            if (sources == null)
+                return;
+
+            RefreshLightSources(light, sources);
+
+            // Read before the selection is written, so this tells whether the pick is what made it Global.
+            bool wasGlobal = light.lightType == Light2D.LightType.Global;
+
+            GUIContent[] sourceNames = sources.GetSourceNames();
+            for (int i = 0; i < sourceNames.Length; i++)
+            {
+                if (sourceNames[i].text != chosen.text)
+                    continue;
+
+                Light2DProviderSources.ApplySelectionFromIndex(selectionSources, i, k_ChangeLightTypeUndoName);
+
+                // Only a light that just became Global reports; ErrorIfDuplicateGlobalLight skips other types.
+                // Lights that were already Global stay quiet, so the clash is not logged once per global light.
+                if (!wasGlobal && light.isActiveAndEnabled)
+                    Light2DManager.ErrorIfDuplicateGlobalLight(light);
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Scans <paramref name="light2D"/> for custom providers, adds the built-in light types, and returns
+        /// the index of the currently selected source, or -1 when the stored selection matches none of them.
+        /// </summary>
+        static internal int RefreshLightSources(Light2D light2D, Light2DProviderSources sources)
+        {
+            // Set up the built-in light types
+            List<SelectionSource> additionalSources = new List<SelectionSource>
+            {
+                new Light2DSource_BuiltIn(Styles.lightTypePoint, Light2D.LightType.Point, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeFreeform, Light2D.LightType.Freeform, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeSprite, Light2D.LightType.Sprite, 0),
+                new Light2DSource_BuiltIn(Styles.lightTypeGlobal, Light2D.LightType.Global, 0),
+            };
+
+            // Refresh sources to scan for custom providers on the GameObject
+            Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
+
+            // Add built-in types
+            var additionalSourcesList = sources.GetAdditionalSources();
+            if (additionalSourcesList != null)
+            {
+                additionalSourcesList.Clear();
+                foreach (var source in additionalSources)
+                    additionalSourcesList.Add(source);
+            }
+
+            // Refresh again to include the built-in types
+            return Provider2DSources<Light2DProvider, Light2DProviderSource>.RefreshSources(sources, light2D.gameObject, 0);
         }
 
         static internal bool ContainsVisibleInspectorProperites(Provider2D provider)

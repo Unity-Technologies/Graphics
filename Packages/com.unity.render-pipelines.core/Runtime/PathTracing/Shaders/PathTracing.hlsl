@@ -314,7 +314,7 @@ bool IntersectionExecute(UnifiedRT::HitContext hitContext, out float hitT, out f
     if (hit && hitT < hitContext.RayTCurrent() && hitT >= hitContext.RayTMin())
     {
         uvAttributes = hitUv;
-        additionalAttribs.isFrontFace = frontFaceHit;
+        additionalAttribs.isFrontFace = frontFaceHit ? 1u : 0u;
         return true;
     }
     return false;
@@ -366,7 +366,7 @@ void ClosestHitExecute(UnifiedRT::HitContext hitContext, inout PathTracingPayloa
         hit.instanceID = hitContext.InstanceID();
         hit.primitiveIndex = hitContext.PrimitiveIndex();
         hit.uvBarycentrics = hitContext.UvBarycentrics();
-        hit.isFrontFace = hitContext.PrimitiveType() == UnifiedRT::kCommittedProceduralHit ? proceduralHitAttribs.isFrontFace : hitContext.IsFrontFace();
+        hit.isFrontFace = hitContext.PrimitiveType() == UnifiedRT::kCommittedProceduralHit ? proceduralHitAttribs.isFrontFace != 0 : hitContext.IsFrontFace();
         hit.hitDistance = hitContext.RayTCurrent();
 
         payload.SetHit(hit);

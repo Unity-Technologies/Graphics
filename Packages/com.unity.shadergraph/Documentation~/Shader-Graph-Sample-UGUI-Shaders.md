@@ -24,7 +24,6 @@ This sample set covers two main objectives:
 
 * [Getting started](Shader-Graph-Sample-UGUI-Shaders-Getting-Started.md)
 * [Custom UI components](Shader-Graph-Sample-UGUI-Shaders-Custom-UI-components.md)
-* [Custom nodes](Shader-Graph-Sample-UGUI-Shaders-Custom-nodes.md)
 * [Subgraph nodes](Shader-Graph-Sample-UGUI-Shaders-Subgraph-nodes.md)
 * [Examples](Shader-Graph-Sample-UGUI-Shaders-Examples.md)
 * [How tos](Shader-Graph-Sample-UGUI-Shaders-How-tos.md)

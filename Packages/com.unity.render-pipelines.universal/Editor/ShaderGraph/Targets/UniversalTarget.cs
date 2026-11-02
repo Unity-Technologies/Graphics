@@ -1169,7 +1169,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.MotionVectors,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.MotionVectors,
+                includes = new IncludeCollection { CoreIncludes.MotionVectors },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1215,7 +1215,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.XRMotionVectors,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.XRMotionVectors,
+                includes = new IncludeCollection { CoreIncludes.XRMotionVectors },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common

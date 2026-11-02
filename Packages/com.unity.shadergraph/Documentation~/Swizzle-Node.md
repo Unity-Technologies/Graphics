@@ -35,3 +35,8 @@ The following example code represents one possible outcome of this node.
 
 ```
 float4 _Swizzle_Out = In.wzyx;
+```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

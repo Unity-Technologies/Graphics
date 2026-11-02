@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
@@ -9,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal static class HDProbeSystem
     {
+        [NoAutoStaticsCleanup] // Live HDProbe components hold registrations; disposed via beforeAssemblyReload/quitting.
         static HDProbeSystemInternal s_Instance;
 
         static HDProbeSystem()
@@ -25,15 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Don't set the reference to null
         // Only dispose resources
         static void DisposeStaticInstance() => s_Instance.Dispose();
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance?.Dispose();
-            s_Instance = new HDProbeSystemInternal();
-        }
-#endif
 
         public static ReflectionSystemParameters Parameters
         {

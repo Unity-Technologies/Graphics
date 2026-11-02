@@ -1,4 +1,4 @@
-# Cylinder
+# Cylinder Operator
 
 Menu Path : **Operator > Inline > Cylinder**
 

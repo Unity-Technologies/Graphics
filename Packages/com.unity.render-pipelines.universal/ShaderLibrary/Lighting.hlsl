@@ -135,7 +135,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     light.direction = lightDirectionWS;
     light.distanceAttenuation = lightAttenuation;
     light.shadowAttenuation   = 1;
-    return LightingPhysicallyBased(brdfData, light, viewDirectionWS, specularHighlightsOff, specularHighlightsOff);
+    return LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS, specularHighlightsOff);
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)

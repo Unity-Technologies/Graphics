@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
         private SSAOUtils.BlurTypes m_BlurType = SSAOUtils.BlurTypes.Bilateral;
         private ProfilingSampler m_ProfilingSampler = URPProfilingSamplers.SSAO;
         private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
+        private bool m_WarnedMissingTextures;
 
         // Raster path state
         private SSAOUtils.SSAOMaterialParams m_SSAOParamsPrev = new SSAOUtils.SSAOMaterialParams();
@@ -414,6 +415,19 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
+            if (!resourceData.cameraDepthTexture.IsValid() || !resourceData.cameraNormalsTexture.IsValid())
+            {
+                if (Debug.isDebugBuild && !m_WarnedMissingTextures)
+                {
+                    m_WarnedMissingTextures = true;
+                    Debug.LogWarning("Screen Space Ambient Occlusion: skipped because the active renderer does not provide the required camera depth/normals textures.");
+                }
+                return;
+            }
+
+            if (Debug.isDebugBuild) // Saw valid textures: reset so a later renderer without them warns again.
+                m_WarnedMissingTextures = false;
+
             // Builds a TextureDesc compatible with the active camera color target, safe for both intermediate render textures and imported back-buffer handles.
             TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, resourceData.activeColorTexture, cameraData.camera.allowDynamicResolution);
 
@@ -567,11 +581,9 @@ namespace UnityEngine.Rendering.Universal
                 passData.aoTexture = aoTexture;
                 builder.UseTexture(aoTexture, AccessFlags.Write);
 
-                Debug.Assert(depthTexture.IsValid(), "Camera depth texture is invalid. GTAO compute requires a depth texture.");
                 passData.depthTexture = depthTexture;
                 builder.UseTexture(depthTexture, AccessFlags.Read);
 
-                Debug.Assert(normalsTexture.IsValid(), "Camera normals texture is invalid. GTAO compute requires a normals texture.");
                 passData.normalsTexture = normalsTexture;
                 builder.UseTexture(normalsTexture, AccessFlags.Read);
 

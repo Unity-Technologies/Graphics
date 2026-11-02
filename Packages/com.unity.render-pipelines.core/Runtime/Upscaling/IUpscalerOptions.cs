@@ -35,11 +35,28 @@ namespace UnityEngine.Rendering
             set => m_InjectionPoint = value;
         }
 
+        /// <summary>
+        /// Selects how the render resolution is determined for this upscaler. Only meaningful for upscalers that
+        /// expose a quality mode (<see cref="IUpscaler.hasQualityMode"/>); for the others it is dormant and the
+        /// upscaler always behaves as <see cref="UpscalerResolutionMode.CustomScaling"/>.
+        /// </summary>
+        public UpscalerResolutionMode resolutionMode
+        {
+            get => m_ResolutionMode;
+            set => m_ResolutionMode = value;
+        }
+
         [SerializeField, HideInInspector]
         private string m_UpscalerName = "";
 
         [SerializeField, HideInInspector] // hide in inspector for URP, HDRP manually renders it
         private UpsamplerScheduleType m_InjectionPoint = UpsamplerScheduleType.BeforePost;
+
+        [SerializeField]
+        [Tooltip("Determines how the render resolution is selected: from the upscaler's quality preset (Quality " +
+                 "Mode), or driven by the pipeline's own render scaling / dynamic resolution (Custom Scaling). " +
+                 "Ignored by upscalers without a quality mode.")]
+        private UpscalerResolutionMode m_ResolutionMode = UpscalerResolutionMode.QualityMode;
 
 #if UNITY_EDITOR
         /// <summary>

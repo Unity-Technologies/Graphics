@@ -1,4 +1,4 @@
-# Direction
+# Direction Operator
 
 Menu Path : **Operator > Inline > Direction**
 

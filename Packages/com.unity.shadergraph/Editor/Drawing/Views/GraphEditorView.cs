@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static GUIContent HelpIcon =>
             helpIcon ??= new GUIContent(EditorGUIUtility.IconContent("_Help").image, "Open Shader Graph User Manual");
 
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName, bool disablePreviewsForTesting = false)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_AssetName = graphName;
             m_MessageManager = messageManager;
-            previewManager = new PreviewManager(graph, messageManager);
+            previewManager = new PreviewManager(graph, messageManager, disablePreviewsForTesting);
             previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
@@ -530,8 +530,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
-            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
+            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this.
+            // Skip while a GradientPicker is open so the inspector rebuild doesn't tear it down.
+            Undo.undoRedoPerformed += (() =>
+            {
+                if (GradientPicker.visible)
+                    return;
+                m_InspectorView?.TriggerInspectorUpdate(graphView?.selection);
+            });
 
             graphView.OnSelectionChange += RecordSelectionHistory;
             Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler, CustomValidator);
@@ -905,11 +911,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GraphView.wasUndoRedoPerformed = wasUndoRedoPerformed;
 
-            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
+            // On undo, defer inspector/selection until after node views are recreated below.
+            if (!wasUndoRedoPerformed && m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
-
-            if (wasUndoRedoPerformed)
-                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
 
             m_GroupHashSet.Clear();
 
@@ -1063,6 +1067,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.checkAutoAddRemoveBlocks = false;
                 // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
                 HandleRemovedNodes(lookupTable);
+            }
+
+            // Restore selection after node views are recreated, so GetElementByGuid resolves.
+            if (wasUndoRedoPerformed)
+            {
+                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
+                m_InspectorView.Update();
             }
 
             UpdateBadges();

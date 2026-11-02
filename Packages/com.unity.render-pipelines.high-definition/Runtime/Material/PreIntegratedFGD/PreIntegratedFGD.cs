@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -10,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Resolution = 64
         }
 
+        [NoAutoStaticsCleanup] // Refcounted by the surviving HDRenderPipeline; Build/Cleanup run only from pipeline construction/disposal.
         static PreIntegratedFGD s_Instance;
 
         public static PreIntegratedFGD instance
@@ -22,14 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return s_Instance;
             }
         }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = null;
-        }
-#endif
 
         public enum FGDIndex
         {

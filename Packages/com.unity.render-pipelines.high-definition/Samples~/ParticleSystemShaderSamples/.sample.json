@@ -1,5 +1,0 @@
-{
-    "displayName":"Particle System Shader Samples",
-    "description": "Adds Particle System Shader samples to your project. Open the SampleScene to see examples of various lit and unlit particle effects.",
-    "createSeparatePackage": false
-}

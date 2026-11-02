@@ -23,3 +23,7 @@ void Unity_NormalReconstructZ_float(float2 In, out float3 Out)
     Out = normalize(normalVector);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -194,7 +194,11 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
 #else
+#ifdef HALF_RESOLUTION
     float depth = SampleDepth(pixelCoord * _ScreenSize.zw, true);
+#else
+    float depth = LoadCameraDepth(pixelCoord.xy);
+#endif // HALF_RESOLUTION
 #endif // ENABLE_MSAA
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileId);

@@ -26,3 +26,7 @@ void Unity_RandomRange_float(float2 Seed, float Min, float Max, out float Out)
     Out = lerp(Min, Max, randomno);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

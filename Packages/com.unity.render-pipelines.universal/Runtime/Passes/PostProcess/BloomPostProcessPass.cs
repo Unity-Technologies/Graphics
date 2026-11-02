@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
         BloomMipPyramid m_MipPyramid;
 
         bool m_IsValid;
+        bool m_IsDependency;
 
         public BloomMipPyramid mipPyramid => m_MipPyramid;
 
@@ -48,6 +49,8 @@ namespace UnityEngine.Rendering.Universal
                 m_IsValid &= m_MaterialPyramid[i] != null;
 
             m_MipPyramid = new BloomMipPyramid(k_MaxPyramidSize);
+
+            m_IsDependency = false;
         }
 
         public override void Dispose()
@@ -55,6 +58,12 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_Material);
             for(int i = 0; i < k_MaxPyramidSize; i++)
                 CoreUtils.Destroy(m_MaterialPyramid[i]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Setup(bool runAsDependency)
+        {
+            m_IsDependency = runAsDependency;
         }
 
         private class BloomPassData
@@ -73,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             var bloom = volumeStack.GetComponent<Bloom>();
-            if (!bloom.IsActive())
+            if (!bloom.IsActive() && !m_IsDependency)
                 return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();

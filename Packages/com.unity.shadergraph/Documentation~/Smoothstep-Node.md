@@ -25,3 +25,7 @@ void Unity_Smoothstep_float4(float4 Edge1, float4 Edge2, float4 In, out float4 O
     Out = smoothstep(Edge1, Edge2, In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

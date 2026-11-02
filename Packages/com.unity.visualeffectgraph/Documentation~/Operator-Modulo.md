@@ -1,4 +1,4 @@
-# Modulo
+# Modulo Operator
 
 Menu Path : **Operator > Math > Arithmetic > Modulo**
 

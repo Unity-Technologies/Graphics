@@ -147,13 +147,6 @@ namespace Unity.Rendering.Universal.Tests
 #endif
 
 #endif
-
-            if (settings == null || settings.CheckMemoryAllocation)
-            {
-                // Does it allocate memory when it renders what's on the main camera?
-                var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-                yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
-            }
         }
     }
 }

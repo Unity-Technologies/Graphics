@@ -105,6 +105,7 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
+    $include("TerrainPassFunctions.template.hlsl")
     $features.graphVertex: $include("BuildTerrainVertexDescriptionInputs.template.hlsl")
     $features.graphPixel: $include("BuildTerrainSurfaceDescriptionInputs.template.hlsl")
 

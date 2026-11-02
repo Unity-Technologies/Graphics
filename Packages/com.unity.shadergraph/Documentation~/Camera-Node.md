@@ -36,3 +36,7 @@ float _Camera_ZBufferSign = _ProjectionParams.x;
 float _Camera_Width = unity_OrthoParams.x;
 float _Camera_Height = unity_OrthoParams.y;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

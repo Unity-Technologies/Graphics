@@ -1,6 +1,6 @@
-# Spawn Over Distance
+# Spawn Over Distance Block
 
-Menu Path: **Spawn > Custom > Spawn Over Distance**
+Menu Path: **Spawn** > **Custom** > **Spawn Over Distance**
 
 The **Spawn Over Distance** Block calculates the displacement of a position relative to the previous frame's value. Depending on this size of the displacement and the **Rate Per Unit** property, the system spawns a particle.
 
@@ -10,7 +10,7 @@ The **Spawn Over Distance** Block calculates the displacement of a position rela
 
 This Block is compatible with the following Contexts:
 
-- [Spawn](Context-Spawn.md)
+- [Spawn Context](Context-Spawn.md)
 
 ## Block properties
 

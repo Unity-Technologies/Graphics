@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.Tests
                 supportsGpuFrameTime = false; // Linux + OpenGLCore
             if (Application.platform == RuntimePlatform.WebGLPlayer)
                 supportsGpuFrameTime = false; // WebGL/WebGPU
+            if ((Application.platform == RuntimePlatform.EmbeddedLinuxArm64 || Application.platform == RuntimePlatform.EmbeddedLinuxX64) && SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                supportsGpuFrameTime = false; // EmbeddedLinux GLES (no GL_EXT_disjoint_timer_query)
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (XRSettings.enabled)
                 supportsGpuFrameTime = false; // XR

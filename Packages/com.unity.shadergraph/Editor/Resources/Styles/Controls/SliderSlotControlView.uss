@@ -5,6 +5,10 @@ SliderControlView {
     padding-bottom: 4px;
 }
 
+SliderSlotControlView Slider > Label {
+    padding-left: 4px;
+}
+
 SliderControlView > #SliderPanel {
     padding-bottom: 4px;
     flex-direction: row;

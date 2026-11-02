@@ -1,4 +1,4 @@
-# Cubemap
+# Cubemap Operator
 
 Menu Path : **Operator > Inline > Cubemap**
 

@@ -11,8 +11,8 @@ If you change the **Behavior** property of the block, the Block changes to the f
 
 You can add the Trigger Shape Block to the following Contexts:
 
-- [Initialize](Context-Initialize.md)
-- [Update](Context-Update.md)
+- [Initialize Particle Context](Context-Initialize.md)
+- [Update Particle Context](Context-Update.md)
 
 To add a Trigger Shape Block to your graph, [open the menu for adding a graph element](VisualEffectGraphWindow.md#adding-graph-elements) then select **Collision** > **Trigger Shape**.
 

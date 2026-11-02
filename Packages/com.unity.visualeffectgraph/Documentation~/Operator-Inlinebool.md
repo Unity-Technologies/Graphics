@@ -1,4 +1,4 @@
-# bool
+# bool Operator
 
 Menu Path : **Operator > Inline > bool**
 

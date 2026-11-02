@@ -237,7 +237,11 @@ namespace UnityEditor.LightBaking.Tests
             // Tests need higher threshold on AMD due to platform-specific rasterization differences.
             bool isAMD = SystemInfo.graphicsDeviceVendor.Contains("amd", StringComparison.InvariantCultureIgnoreCase) ||
                          SystemInfo.graphicsDeviceVendor.Contains("ati", StringComparison.InvariantCultureIgnoreCase);
-float rmseThreshold = isAMD ? Math.Max(0.02f, metaPassTest.RMSEThreshold) : metaPassTest.RMSEThreshold;
+            float rmseThreshold = isAMD ? Math.Max(0.02f, metaPassTest.RMSEThreshold) : metaPassTest.RMSEThreshold;
+
+            // Vulkan diverges on sub-texel sampling boundaries in meta-pass extraction (UUM-134767).
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan)
+                rmseThreshold = Math.Max(0.035f, rmseThreshold);
 
             ImageComparisonSettings imageComparisonSettings =
                 new()

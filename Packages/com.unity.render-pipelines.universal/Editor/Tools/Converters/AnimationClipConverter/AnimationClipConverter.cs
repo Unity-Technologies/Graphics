@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal
     /// ensuring animations continue to work after material conversion.
     /// </summary>
     [Serializable]
-    [URPHelpURL("features/rp-converter")]
+    [URPHelpURL("urp/features/rp-converter")]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [BatchModeConverterClassInfo("BuiltInToURP", "AnimationClip")]
     [ElementInfo(Name = "Animation Clip",

@@ -24,3 +24,7 @@ The following example code represents one possible outcome of this node.
 float _Screen_Width = _ScreenParams.x;
 float _Screen_Height = _ScreenParams.y;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

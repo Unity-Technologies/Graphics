@@ -42,3 +42,7 @@ void Unity_NormalUnpackRGB_float(float4 In, out float3 Out)
     Out = UnpackNormalmapRGB(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

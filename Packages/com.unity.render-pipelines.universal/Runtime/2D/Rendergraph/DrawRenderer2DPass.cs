@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
 
-        private static readonly List<ShaderTagId> k_ShaderTags =
+        internal static readonly List<ShaderTagId> k_ShaderTags =
             new List<ShaderTagId>() {k_LegacyPassName, k_CombinedRenderingPassName};
 
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                 // Set color and depth attachments
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
 
-                if (Renderer2D.IsDepthUsageAllowed(frameData, rendererData))
+                if (commonResourceData.activeDepthTexture.IsValid())
                     builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
 
                 builder.AllowGlobalStateModification(true);

@@ -3,6 +3,7 @@ using UnityEngine.Jobs;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -553,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private const int ArrayCapacity = 100;
+        [NoAutoStaticsCleanup] // Surviving HDAdditionalLightData hold entity indices into this database; disposed on last release / by the finalizer.
         private static HDLightRenderDatabase s_Instance = null;
 
         private int m_Capacity = 0;
@@ -660,14 +662,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DeleteArrays();
         }
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = null;
-        }
-#endif
 
         #endregion
     }

@@ -15,10 +15,6 @@ public class DLSSOptions : UpscalerOptions
     [Tooltip("Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS).")]
     private DLSSQuality m_DLSSQualityMode = DLSSQuality.MaximumQuality;
 
-    [SerializeField]
-    [Tooltip("Forces a fixed resolution scale derived from the selected quality mode, ignoring dynamic resolution.")]
-    private bool m_FixedResolutionMode = false;
-
     [Header("Render Presets")]
     [SerializeField]
     [Tooltip("DLSS will use the specified render preset for the Quality mode.")]
@@ -49,15 +45,6 @@ public class DLSSOptions : UpscalerOptions
     {
         get { return m_DLSSQualityMode; }
         set { m_DLSSQualityMode = value; }
-    }
-
-    /// <summary>
-    /// If true, forces a fixed resolution scale derived from the quality mode, ignoring dynamic resolution settings.
-    /// </summary>
-    public bool fixedResolutionMode
-    {
-        get { return m_FixedResolutionMode; }
-        set { m_FixedResolutionMode = value; }
     }
 
     /// <summary>
@@ -114,8 +101,8 @@ public class DLSSOptions : UpscalerOptions
         if (other == null)
             return false;
 
-        return m_DLSSQualityMode == other.m_DLSSQualityMode &&
-               m_FixedResolutionMode == other.m_FixedResolutionMode &&
+        return resolutionMode == other.resolutionMode &&
+               m_DLSSQualityMode == other.m_DLSSQualityMode &&
                m_DLSSRenderPresetQuality == other.m_DLSSRenderPresetQuality &&
                m_DLSSRenderPresetBalanced == other.m_DLSSRenderPresetBalanced &&
                m_DLSSRenderPresetPerformance == other.m_DLSSRenderPresetPerformance &&
@@ -131,8 +118,8 @@ public class DLSSOptions : UpscalerOptions
         if (other == null)
             return;
 
+        resolutionMode = other.resolutionMode;
         m_DLSSQualityMode = other.m_DLSSQualityMode;
-        m_FixedResolutionMode = other.m_FixedResolutionMode;
         m_DLSSRenderPresetQuality = other.m_DLSSRenderPresetQuality;
         m_DLSSRenderPresetBalanced = other.m_DLSSRenderPresetBalanced;
         m_DLSSRenderPresetPerformance = other.m_DLSSRenderPresetPerformance;

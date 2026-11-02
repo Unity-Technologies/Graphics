@@ -24,11 +24,9 @@
     <ui:MultiColumnTreeView name="converterItemsTreeView" class="render-pipeline-converter-list-view" show-alternating-row-backgrounds="All">
         <!-- Columns and Column aren't Visual Elements or controls; they are considered attributes of MultiColumnListView. -->
         <ui:Columns reorderable="false">
-            <ui:Column name="selected" width="40" resizable="false" />
-            <ui:Column name="icon" width="30" resizable="false"/>
-            <ui:Column name="name" title="Name" width="200" min-width="100" sortable="true"/>
-            <ui:Column name="info" title="Info" />
-            <ui:Column name="state" />
+            <ui:Column name="name" title="Name" width="400" min-width="200" sortable="false"/>
+            <ui:Column name="info" title="Info" sortable="false"/>
+            <ui:Column name="state" title="Status" width="80" min-width="80" sortable="false"/>
         </ui:Columns>
     </ui:MultiColumnTreeView>
     </uir:HeaderFoldout>

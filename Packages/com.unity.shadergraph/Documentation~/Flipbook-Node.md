@@ -42,3 +42,7 @@ void Unity_Flipbook_float(float2 UV, float Width, float Height, float Tile, floa
     Out = (UV + float2(tileX, tileY)) * tileCount;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

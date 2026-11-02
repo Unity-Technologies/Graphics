@@ -4,8 +4,8 @@ Generate random values or select random outputs.
 
 | **Page** | **Description** |
 | --- | --- |
-| [Random Number](Operator-RandomNumber.md) | Generate a pseudo-random number within a specified range. |
-| [Random Selector Weighted](Operator-RandomSelectorWeighted.md) | Select an output at random with custom weights. |
+| [Random Number Operator](Operator-RandomNumber.md) | Generate a pseudo-random number within a specified range. |
+| [Random Selector Weighted Operator](Operator-RandomSelectorWeighted.md) | Select an output at random with custom weights. |
 
 ## Additional resources
 

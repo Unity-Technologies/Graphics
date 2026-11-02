@@ -1,4 +1,4 @@
-# Saturate
+# Saturate Operator
 
 Menu Path : **Operator > Math > Clamp > Saturate**
 

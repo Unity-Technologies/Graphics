@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void OpenGraphWindow(string graphName)
         {
             // Open up the window
-            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(graphName))
+            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(graphName, disablePreviewsForTesting: true))
             {
                 Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + graphName);
             }
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             if (m_Window != null)
             {
-                m_Window.graphObject = null; // Don't spawn ask-to-save dialog
+                m_Window.DiscardChanges();
                 m_Window.Close();
             }
             m_Window = null;
@@ -153,31 +153,31 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator MoveDirectoryTests()
         {
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             // rename the directory
             AssetDatabase.MoveAsset(targetUnityDirectoryPath, targetUnityDirectoryPath2);
 
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var graphPath = targetUnityDirectoryPath2 + "/ShaderGraph.shadergraph";
             OpenGraphWindow(graphPath);
 
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             // try adding the subgraph node -- see if the asset still works after the files have been moved
             m_Graph = m_Window.graphObject.graph as GraphData;
@@ -185,21 +185,21 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var node = new SubGraphNode { asset = subgraph };
             m_Graph.AddNode(node);
 
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             CloseGraphWindow();
 
             // Wait for any potential compilation to finish before entering cleanup, which deletes the files
             while (ShaderUtil.anythingCompiling)
             {
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
         }
     }

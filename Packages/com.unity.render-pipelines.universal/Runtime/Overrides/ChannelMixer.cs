@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Channel Mixer")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Channel-Mixer")]
+    [URPHelpURL("urp/Post-Processing-Channel-Mixer")]
     public sealed class ChannelMixer : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

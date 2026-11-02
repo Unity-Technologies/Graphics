@@ -164,8 +164,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 displayName = "DecalMesh BiasType",
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
-                enumNames = { "Depth Bias", "View Bias" },
-                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
+                enumNames = new() { "Depth Bias", "View Bias" },
+                enumValues = new() { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
                 hidden = true
             });
 
@@ -966,17 +966,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static KeywordCollection ForwardEmissiveProjector = new KeywordCollection
             {
                 { Descriptors.DecalLayers },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection ScreenSpaceMeshGl = new KeywordCollection

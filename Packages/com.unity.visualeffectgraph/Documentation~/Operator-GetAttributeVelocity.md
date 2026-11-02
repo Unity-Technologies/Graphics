@@ -1,4 +1,4 @@
-# Get Attribute: velocity
+# Get Attribute: velocity Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: velocity**
 

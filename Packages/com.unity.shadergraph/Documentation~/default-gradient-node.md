@@ -24,3 +24,4 @@ You can use the Default Gradient node combined with other nodes to create custom
 - [Default SDF Text node](xref:default-sdf-text-node)
 - [Default Bitmap Text node](xref:default-bitmap-text-node)
 - [Render Type Branch node](xref:render-type-branch-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

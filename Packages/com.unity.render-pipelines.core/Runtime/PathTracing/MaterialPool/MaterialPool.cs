@@ -104,6 +104,10 @@ namespace UnityEngine.PathTracing.Core
         private readonly TextureSlotAllocator _albedoTextureAllocator;
         private readonly TextureSlotAllocator _emissionTextureAllocator;
         private readonly TextureSlotAllocator _transmissionTextureAllocator;
+
+        // Avoid overflowing the graphics ring buffer when adding textures to the atlases.
+        private const int k_TextureFlushThreshold = 128;
+        private int _textureBlitsSinceLastFlush;
         public RenderTexture AlbedoTextures => _albedoTextureAllocator.Texture;
         public RenderTexture EmissionTextures => _emissionTextureAllocator.Texture;
         public RenderTexture TransmissionTextures => _transmissionTextureAllocator.Texture;
@@ -566,6 +570,12 @@ namespace UnityEngine.PathTracing.Core
             else
             {
                 location = allocator.AddTexture(texture, scale, offset);
+            }
+
+            if (++_textureBlitsSinceLastFlush >= k_TextureFlushThreshold)
+            {
+                GL.Flush();
+                _textureBlitsSinceLastFlush = 0;
             }
         }
 

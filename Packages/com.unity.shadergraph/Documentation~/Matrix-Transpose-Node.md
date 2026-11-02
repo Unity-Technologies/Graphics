@@ -21,3 +21,7 @@ void Unity_MatrixTranspose_float4x4(float4x4 In, out float4x4 Out)
     Out = transpose(In);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

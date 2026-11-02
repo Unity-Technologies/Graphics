@@ -1,4 +1,4 @@
-# Get Skinned Mesh Index Count
+# Get Skinned Mesh Index Count Operator
 
 Menu Path: **Operator > Sampling > Get Skinned Mesh Index Count**
 

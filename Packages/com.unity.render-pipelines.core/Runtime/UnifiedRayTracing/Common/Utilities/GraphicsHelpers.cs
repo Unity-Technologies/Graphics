@@ -54,6 +54,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         public static long MaxGraphicsBufferSizeInBytes => SystemInfo.maxGraphicsBufferSize;
         public static float MaxGraphicsBufferSizeInGigaBytes => MaxGraphicsBufferSizeInBytes / 1024f / 1024f / 1024f;
+
+        // Element capacity of a GraphicsBuffer / BlockAllocator-backed buffer for a given byte budget.
+        // The capacity is an int (BlockAllocator's backing NativeList is int-indexed), so we compute the
+        // budget in long and clamp to int.MaxValue.
+        static public int MaxElementCount(long maxBufferSizeInBytes, int elementSizeInBytes)
+            => (int)math.min((long)int.MaxValue, maxBufferSizeInBytes / (long)elementSizeInBytes);
+
+        static public int MaxElementCount(int elementSizeInBytes)
+            => MaxElementCount(MaxGraphicsBufferSizeInBytes, elementSizeInBytes);
+
         static public int DivUp(int x, int y) => (x + y - 1) / y;
         static public int DivUp(int x, uint y) => (x + (int)y - 1) / (int)y;
         static public uint DivUp(uint x, uint y) => (x + y - 1) / y;

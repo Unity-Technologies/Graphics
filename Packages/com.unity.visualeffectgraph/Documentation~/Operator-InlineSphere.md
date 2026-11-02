@@ -1,4 +1,4 @@
-# Sphere
+# Sphere Operator
 
 Menu Path : **Operator > Inline > Sphere**
 

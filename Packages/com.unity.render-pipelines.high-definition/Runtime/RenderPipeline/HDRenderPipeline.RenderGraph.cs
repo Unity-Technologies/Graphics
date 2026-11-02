@@ -743,6 +743,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
             public Vector2 blitScaleBias;
             public bool flipY;
+            public int passIndex;
         }
 
         void CopyDepth(RenderGraph renderGraph, HDCamera hdCamera, in TextureHandle depthBuffer, in TextureHandle output, bool copyForXR)
@@ -759,6 +760,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.blitScaleBias = copyForXR ? new Vector2(hdCamera.actualWidth / hdCamera.finalViewport.width, hdCamera.actualHeight / hdCamera.finalViewport.height)
                                                    : RTHandles.rtHandleProperties.rtHandleScale;
                 passData.flipY = copyForXR;
+                passData.passIndex = renderGraph.GetTextureDesc(depthBuffer).msaaSamples != MSAASamples.None ? 1 : 0;
+                Debug.Assert(!(copyForXR && passData.passIndex != 0), "MSAA depth copies do not support XR scaling and Y-flipping.");
 
                 builder.SetRenderFunc(
                     static (CopyXRDepthPassData data, UnsafeGraphContext ctx) =>
@@ -769,7 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, data.blitScaleBias);
                         mpb.SetInt(HDShaderIDs._FlipY, data.flipY ? 1 : 0);
 
-                        CoreUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.copyDepth, mpb);
+                        CoreUtils.DrawFullScreen(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.copyDepth, mpb, data.passIndex);
                     });
             }
         }
@@ -1745,7 +1748,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange: GetTransparentRenderQueueRange(hdCamera, false)));
 
             // Copy depth buffer for refraction
-            CopyDepth(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, output.depthBufferPreRefraction, false);
+            CopyDepth(renderGraph, hdCamera, prepassOutput.depthBuffer, output.depthBufferPreRefraction, false);
 
             if (hasWater)
             {

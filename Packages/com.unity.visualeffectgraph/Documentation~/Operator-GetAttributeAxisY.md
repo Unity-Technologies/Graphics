@@ -1,4 +1,4 @@
-# Get Attribute: axisY
+# Get Attribute: axisY Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: axisY**
 

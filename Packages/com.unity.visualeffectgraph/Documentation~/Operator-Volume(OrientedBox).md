@@ -1,6 +1,6 @@
-# Volume (Oriented Box)
+# Volume (Oriented Box) Operator
 
-Menu Path : **Operator > Math > Geometry > Volume (Oriented Box)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Volume (Oriented Box)**
 
 The **Volume (Oriented Box)** Operator calculates the volume of an oriented box. This is equal to **x y z** where **x** is the width, **y** is the height, and **z** is the length of the box.
 

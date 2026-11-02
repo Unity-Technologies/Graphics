@@ -110,3 +110,19 @@
     min-height: auto;
     margin-left: -15px;
 }
+
+/* Fix column header height and alignment */
+.render-pipeline-converter-list-view .unity-multi-column-header__column {
+    height: 20px;
+    min-height: 20px;
+    flex-direction: row-reverse;
+}
+
+.render-pipeline-converter-list-view .unity-multi-column-header__column-title {
+    flex-direction: row;
+    align-items: center;
+}
+
+.render-pipeline-converter-list-view .unity-multi-column-header__sort-indicator {
+    margin-right: 4px;
+}

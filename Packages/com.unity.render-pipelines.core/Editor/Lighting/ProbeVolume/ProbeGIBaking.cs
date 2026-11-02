@@ -1306,11 +1306,6 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet))
                 return false;
 
-            if (!Lightmapping.TryGetLightingSettings(out LightingSettings lightingSettings))
-            {
-                m_BakingSet.skyOcclusion = false;
-            }
-
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip
@@ -1905,6 +1900,14 @@ namespace UnityEngine.Rendering
 
 
         static int _asyncBakeTaskId = -1;
+
+        // Always go through this, the runtime assembly can't read isRunning and uses the mirrored flag instead.
+        static void SetAsyncBakeTaskId(int taskId)
+        {
+            _asyncBakeTaskId = taskId;
+            ProbeReferenceVolume.instance.isBakingAdaptiveProbeVolumes = taskId != -1;
+        }
+
         internal static void AsyncBakeCallback()
         {
             float progress = 0.0f;
@@ -1917,7 +1920,7 @@ namespace UnityEngine.Rendering
                 Progress.Remove(_asyncBakeTaskId);
 
                 EditorApplication.update -= AsyncBakeCallback;
-                _asyncBakeTaskId = -1;
+                SetAsyncBakeTaskId(-1);
             }
         }
 
@@ -1930,12 +1933,12 @@ namespace UnityEngine.Rendering
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking(BakeType.ApvOnly, DoProbePlacement, AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests))
                 return false;
 
-            _asyncBakeTaskId = Progress.Start("Bake Adaptive Probe Volumes");
+            SetAsyncBakeTaskId(Progress.Start("Bake Adaptive Probe Volumes", options: Progress.Options.Synchronous));
             Progress.RegisterCancelCallback(_asyncBakeTaskId, () =>
             {
                 OnBakeCancelled();
                 EditorApplication.update -= AsyncBakeCallback;
-                _asyncBakeTaskId = -1;
+                SetAsyncBakeTaskId(-1);
                 return true;
             });
 

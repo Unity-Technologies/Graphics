@@ -1,4 +1,4 @@
-# Value Noise
+# Value Noise Operator
 
 Menu Path : **Operator > Noise > Value Noise**
 

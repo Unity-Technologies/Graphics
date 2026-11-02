@@ -1,4 +1,4 @@
-# Distance
+# Distance Operator
 
 Menu Path : **Operator > Math > Vector**
 

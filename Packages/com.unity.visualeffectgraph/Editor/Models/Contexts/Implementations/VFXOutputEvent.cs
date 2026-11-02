@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputEvent")]
     [VFXInfo(name = "Output Event", category = "#1Event")]
     class VFXOutputEvent : VFXContext
     {

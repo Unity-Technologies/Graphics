@@ -1,4 +1,4 @@
-# Get Attribute: mass
+# Get Attribute: mass Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: mass**
 

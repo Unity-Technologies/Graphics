@@ -484,7 +484,7 @@ namespace UnityEditor.VFX
 
         public string FindUniqueName(string name)
         {
-            var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
+            var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true), StringComparer.OrdinalIgnoreCase);
             return VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength);
         }
 
@@ -498,7 +498,7 @@ namespace UnityEditor.VFX
                     return true;
                 }
 
-                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
+                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true), StringComparer.OrdinalIgnoreCase);
                 var rejectedCandidateNames = new List<string>();
                 name = VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength, rejectedCandidateNames);
                 foreach (var candidateName in rejectedCandidateNames)

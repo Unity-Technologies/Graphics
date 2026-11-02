@@ -1,4 +1,4 @@
-# Set Attribute
+# Set Attribute Block
 
 Menu Path : **Attribute > Set > [Add/Blend/Inherit/Multiply/Set] \<Attribute> **
 

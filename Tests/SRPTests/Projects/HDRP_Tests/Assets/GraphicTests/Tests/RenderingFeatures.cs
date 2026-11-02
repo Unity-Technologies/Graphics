@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -24,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/9x_Other/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
         [IgnoreGraphicsTest(
@@ -51,11 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "9920_WaterSurface$",
             "Diverges in the wave-modifier edges.",
             GraphicsDeviceType.Metal
-        )]
-        [IgnoreGraphicsTest(
-            "9920_WaterSurface",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-141715",
-            RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
             "9921_UnderWater$",
@@ -108,14 +103,21 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
         )]
         [IgnoreGraphicsTest(
-            "9800_Compositor",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
+            "9701_CustomPass_DrawRenderers",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
             RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
-            "9801_ShurikenLightModule",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-138001",
-            RuntimePlatform.WindowsEditor
+            "9001_LODTransition",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "9302_MotionVectorsOn-DefferedDecal-Dynamic",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-149524",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Vulkan
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)
         {

@@ -103,7 +103,8 @@ namespace UnityEditor.VFX.UI
 
         private void OnEditTextSucceed(FocusOutEvent evt)
         {
-            OnEditTextSucceed(m_TextField);
+            if (m_TextField.style.display != DisplayStyle.None)
+                OnEditTextSucceed(m_TextField);
         }
 
         private void OnAttachToPanel(AttachToPanelEvent evt)

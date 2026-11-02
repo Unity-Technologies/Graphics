@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -46,6 +47,12 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Use this attribute to define documentation url for the current Render Pipeline.
     /// </summary>
+    /// <remarks>
+    /// The URL is resolved at access time based on the active <c>RenderPipelineAsset</c>
+    /// type. If that type carries a <see cref="DocumentationInfo.SourceAttribute"/> the URL is
+    /// built for the declared <see cref="DocumentationInfo.Location"/>; otherwise it falls back
+    /// to the package documentation site for the package that owns the pipeline asset.
+    /// </remarks>
     /// <example>
     /// [CurrentPipelineHelpURLAttribute("Volume")]
     /// public class Volume : MonoBehaviour
@@ -55,7 +62,7 @@ namespace UnityEngine.Rendering
     public class CurrentPipelineHelpURLAttribute : HelpURLAttribute
     {
         private string pageName { get; }
-        
+
         private string pageHash { get; }
         /// <summary>
         /// The constructor of the attribute
@@ -70,7 +77,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Returns the URL to the given page in the current Render Pipeline package documentation site.
+        /// Returns the URL to the given page in the current Render Pipeline documentation.
         /// </summary>
         public override string URL
         {
@@ -80,16 +87,14 @@ namespace UnityEngine.Rendering
                 if (!GraphicsSettings.isScriptableRenderPipelineEnabled)
                     return string.Empty;
 
-                if (DocumentationUtils.TryGetPackageInfoForType(GraphicsSettings.currentRenderPipelineAssetType, out var package, out var version))
-                {
-                    return DocumentationInfo.GetPackageLink(package, version, pageName, pageHash);
-                }
-#endif
+                return DocumentationInfo.BuildPipelineHelpUrl(GraphicsSettings.currentRenderPipelineAssetType, pageName, pageHash);
+#else
                 return string.Empty;
+#endif
             }
         }
     }
-    
+
     /// <summary>
     /// Use this attribute to define a documentation URL that is only active when a specific Render Pipeline is in use.
     /// </summary>
@@ -111,9 +116,9 @@ namespace UnityEngine.Rendering
         private string pipelineName { get; }
 
         private string pageName { get; }
-        
+
         private string pageHash { get; }
-        
+
         /// <summary>
         /// Initializes the attribute to link to a specific documentation page for a named Render Pipeline.
         /// </summary>
@@ -148,11 +153,11 @@ namespace UnityEngine.Rendering
                 var pipelineType = GraphicsSettings.currentRenderPipelineAssetType;
                 if (pipelineType.Name != pipelineName)
                     return string.Empty;
-                
-                if (DocumentationUtils.TryGetPackageInfoForType(pipelineType, out var package, out var version))
-                    return DocumentationInfo.GetPackageLink(package, version, pageName, pageHash);
-#endif
+
+                return DocumentationInfo.BuildPipelineHelpUrl(pipelineType, pageName, pageHash);
+#else
                 return string.Empty;
+#endif
             }
         }
     }
@@ -163,9 +168,85 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class DocumentationInfo
     {
+        /// <summary>
+        /// Identifies where a Render Pipeline's user-facing documentation lives, so that
+        /// <see cref="CurrentPipelineHelpURLAttribute"/> and <see cref="PipelineHelpURLAttribute"/>
+        /// build URLs against the right base location.
+        /// </summary>
+        public enum Location
+        {
+            /// <summary>
+            /// Pages live on the package documentation site
+            /// (<c>https://docs.unity3d.com/Packages/&lt;package&gt;@&lt;version&gt;/manual/&lt;page&gt;.html</c>).
+            /// This is the default when no <see cref="SourceAttribute"/> is present.
+            /// </summary>
+            Package,
+
+            /// <summary>
+            /// Pages live in the Unity Manual
+            /// (<c>https://docs.unity3d.com/&lt;version&gt;/Documentation/Manual/&lt;page&gt;.html</c>).
+            /// </summary>
+            Manual,
+        }
+
+        /// <summary>
+        /// Apply this attribute to a <c>RenderPipelineAsset</c> type to declare where its
+        /// user-facing documentation is hosted. Consumed by <see cref="CurrentPipelineHelpURLAttribute"/>
+        /// and <see cref="PipelineHelpURLAttribute"/> to choose between Unity Manual URLs and
+        /// the package documentation site.
+        /// </summary>
+        /// <remarks>
+        /// Editor-only: the attribute is stripped from non-Editor builds via
+        /// <see cref="ConditionalAttribute"/>, since the help URL machinery only runs in the Editor.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// [DocumentationInfo.Source(DocumentationInfo.Location.Manual)]
+        /// public class UniversalRenderPipelineAsset : RenderPipelineAsset { /* ... */ }
+        /// </code>
+        /// </example>
+        [Conditional("UNITY_EDITOR")]
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+        public sealed class SourceAttribute : Attribute
+        {
+            /// <summary>The documentation location for the decorated pipeline asset type.</summary>
+            public Location Location { get; }
+
+            /// <summary>Creates the attribute with the given documentation location.</summary>
+            /// <param name="location">Where the pipeline's documentation pages are hosted.</param>
+            public SourceAttribute(Location location)
+            {
+                Location = location;
+            }
+        }
+
         const string fallbackVersion = "13.1";
         const string packageDocumentationUrl = "https://docs.unity3d.com/Packages/{0}@{1}/manual/";
         const string url = packageDocumentationUrl + "{2}.html{3}";
+
+        const string k_ManualUrlFormat = "https://docs.unity3d.com/{0}/Documentation/Manual/{1}.html{2}";
+        const string k_ManualFallbackUrlFormat = "https://docs.unity3d.com/Manual/{0}.html{1}";
+
+#if UNITY_EDITOR
+        // Resolves a help URL for a page documented under a specific pipeline asset type.
+        // The location (Unity Manual vs package site) is taken from a DocumentationInfo.SourceAttribute
+        // on the pipeline asset type; without one, falls back to the package site for the
+        // package that owns the type.
+        internal static string BuildPipelineHelpUrl(Type pipelineAssetType, string pageName, string pageHash)
+        {
+            if (pipelineAssetType == null)
+                return string.Empty;
+
+            var source = pipelineAssetType.GetCustomAttribute<SourceAttribute>(inherit: false);
+            if (source != null && source.Location == Location.Manual)
+                return GetManualLink(pageName, pageHash);
+
+            if (DocumentationUtils.TryGetPackageInfoForType(pipelineAssetType, out var package, out var version))
+                return GetPackageLink(package, version, pageName, pageHash);
+
+            return string.Empty;
+        }
+#endif
 
         /// <summary>
         /// Current version of the documentation.
@@ -190,7 +271,7 @@ namespace UnityEngine.Rendering
         /// <param name="pageName">The page name without the extension.</param>
         /// <returns>The full URL of the page.</returns>
         public static string GetPackageLink(string packageName, string packageVersion, string pageName) => string.Format(url, packageName, packageVersion, pageName, "");
-        
+
         /// <summary>
         /// Generates a help URL for the given package, page name and section name.
         /// </summary>
@@ -242,6 +323,42 @@ namespace UnityEngine.Rendering
         /// <param name="packageName">The name of the package.</param>
         /// <returns>The full URL to the default package documentation page.</returns>
         public static string GetDefaultPackageLink(string packageName) => string.Format(packageDocumentationUrl, packageName, version);
+
+        /// <summary>
+        /// Generates a Unity Manual help URL for the given page.
+        /// </summary>
+        /// <param name="pageName">The page path relative to the Manual root, without the <c>.html</c> extension (for example <c>"urp/Volumes"</c>).</param>
+        /// <param name="pageHash">Optional section anchor on the page, with or without the leading <c>#</c>.</param>
+        /// <returns>
+        /// A versioned Manual URL such as
+        /// <c>https://docs.unity3d.com/6000.6/Documentation/Manual/urp/Volumes.html</c> when
+        /// the running Unity version can be determined, otherwise the unversioned
+        /// fallback <c>https://docs.unity3d.com/Manual/urp/Volumes.html</c>.
+        /// </returns>
+        /// <example>
+        /// <code>
+        /// // Versioned: https://docs.unity3d.com/6000.6/Documentation/Manual/urp/Volumes.html
+        /// // Fallback:  https://docs.unity3d.com/Manual/urp/Volumes.html
+        /// var url = DocumentationInfo.GetManualLink("urp/Volumes");
+        ///
+        /// // With a section anchor.
+        /// var sectionUrl = DocumentationInfo.GetManualLink("urp/features/rendering-debugger-reference", "lighting");
+        /// </code>
+        /// </example>
+        public static string GetManualLink(string pageName, string pageHash = "")
+        {
+            if (!string.IsNullOrEmpty(pageHash) && !pageHash.StartsWith("#"))
+                pageHash = "#" + pageHash;
+
+#if UNITY_EDITOR
+            if (UnityEditor.AssetDatabase.IsAssetImportWorkerProcess())
+                return string.Format(k_ManualFallbackUrlFormat, pageName, pageHash);
+            var unityVersion = UnityEditorInternal.InternalEditorUtility.GetUnityVersion();
+            return string.Format(k_ManualUrlFormat, $"{unityVersion.Major}.{unityVersion.Minor}", pageName, pageHash);
+#else
+            return string.Format(k_ManualFallbackUrlFormat, pageName, pageHash);
+#endif
+        }
     }
 
     /// <summary>

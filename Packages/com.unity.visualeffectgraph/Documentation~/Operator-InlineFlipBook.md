@@ -1,4 +1,4 @@
-# FlipBook
+# FlipBook Operator
 
 Menu Path : **Operator > Inline > FlipBook**
 

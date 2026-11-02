@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Graph.CollectShaderProperties(m_Collector, GenerationMode.ForReals);
 
             // Open up the window
-            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName))
+            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName, disablePreviewsForTesting: true))
             {
                 Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + kGraphName);
             }
@@ -73,9 +73,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [OneTimeTearDown]
         public void Cleanup()
         {
-            // Don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
-            m_Window.Close();
+            if (m_Window != null)
+            {
+                m_Window.DiscardChanges();
+                m_Window.Close();
+            }
+            m_Window = null;
         }
 
         [Test]
@@ -112,7 +115,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
 
                 // Wait a frame for the inspector updates to trigger
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
 
                 // Cannot actually spawn the right click menu for testing due to ContextMenuManipulators spawning
@@ -138,7 +141,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var item = menuItems[i];
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
                 menuFunction?.Invoke();
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var fieldViewElements = m_GraphEditorView.Query("SGBlackboardField");
@@ -157,7 +160,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Undo.IncrementCurrentGroup();
 
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var lastSelection = selectionOrder[^1];
@@ -166,7 +169,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(lastSelection, currentSelection);
 
             EditorApplication.ExecuteMenuItem("Edit/Previous Selection");
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             var secondToLastSelection = selectionOrder[^2];
             currentSelection = m_GraphEditorView.graphView.selection[0];
@@ -174,7 +177,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(secondToLastSelection, currentSelection);
 
             EditorApplication.ExecuteMenuItem("Edit/Previous Selection");
-            yield return new WaitForSecondsRealtime(0.1f);
+            LogAssert.ignoreFailingMessages = true;
+            try { yield return new WaitForSecondsRealtime(0.1f); }
+            finally { LogAssert.ignoreFailingMessages = false; }
 
             var thirdToLastSelection = selectionOrder[^3];
             currentSelection = m_GraphEditorView.graphView.selection[0];
@@ -182,14 +187,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(thirdToLastSelection, currentSelection);
 
             EditorApplication.ExecuteMenuItem("Edit/Next Selection");
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             currentSelection = m_GraphEditorView.graphView.selection[0];
 
             Assert.AreEqual(secondToLastSelection, currentSelection);
 
             EditorApplication.ExecuteMenuItem("Edit/Next Selection");
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             currentSelection = m_GraphEditorView.graphView.selection[0];
 
@@ -208,7 +213,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
                 menuFunction?.Invoke();
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
         }
 
@@ -225,7 +230,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
                 menuFunction?.Invoke();
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
@@ -238,10 +243,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_GraphEditorView.graphView.ClearSelection();
                 m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
@@ -254,15 +259,15 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_GraphEditorView.graphView.ClearSelection();
                 m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             // Should be no properties, keywords, dropdowns
             Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.dropdowns.Count() == 0);
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
         }
 
         [Test]
@@ -320,7 +325,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
                 menuFunction?.Invoke();
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
@@ -333,10 +338,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_GraphEditorView.graphView.ClearSelection();
                 m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             }
 
             var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
@@ -349,10 +354,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_GraphEditorView.graphView.ClearSelection();
                 m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
                 Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
                 ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
+                yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             }
         }
@@ -377,7 +382,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
                     menuFunction?.Invoke();
-                    yield return null;
+                    yield return ShaderGraphUITestHelpers.SuppressLogFailures();
                     addedFloat = true;
                     break;
                 }
@@ -385,12 +390,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             if (!addedFloat)
                 Assert.Fail("Failed to add a Float property.");
-            
+
             var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
             var property = cachedPropertyList.Last();   //< last is property added above.
             var vector1Property = property as Vector1ShaderProperty;
 
-            Assert.IsNotNull(vector1Property, "Last property is not Float.");            
+            Assert.IsNotNull(vector1Property, "Last property is not Float.");
             var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
             Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
             var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
@@ -403,14 +408,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Window.graphObject.RegisterCompleteObjectUndo("Property Change");
             vector1Property.value = 0.245f;
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             Assert.AreEqual("Property Change", Undo.GetCurrentGroupName(), "Failed to register undo.");
 
 
             Undo.PerformUndo();
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
             Undo.PerformRedo();
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.AreEqual(1, m_GraphEditorView.graphView.selection.Count(), "Failed to restore select property!");
         }

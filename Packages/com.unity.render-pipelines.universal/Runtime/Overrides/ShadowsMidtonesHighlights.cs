@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="MinFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Shadows-Midtones-Highlights")]
+    [URPHelpURL("urp/Post-Processing-Shadows-Midtones-Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

@@ -96,7 +96,10 @@ public class RendererListRenderFeature : ScriptableRendererFeature
                 
                 // Setup as a render target via UseTextureFragment and UseTextureFragmentDepth, which are the equivalent of using the old cmd.SetRenderTarget(color,depth)
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
-                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+
+                // The active depth texture is not valid when the renderer has no depth buffer.
+                if (resourceData.activeDepthTexture.IsValid())
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
 
                 // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass.
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => ExecutePass(data, context));

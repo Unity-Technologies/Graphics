@@ -1,4 +1,4 @@
-# Power
+# Power Operator
 
 Menu Path : **Operator > Math > Arithmetic > Power**
 

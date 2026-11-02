@@ -1,4 +1,4 @@
-# Get Attribute: seed
+# Get Attribute: seed Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: seed**
 

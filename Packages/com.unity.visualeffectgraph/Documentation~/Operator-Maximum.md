@@ -1,4 +1,4 @@
-# Maximum
+# Maximum Operator
 
 Menu Path : **Operator > Math > Clamp > Maximum**
 

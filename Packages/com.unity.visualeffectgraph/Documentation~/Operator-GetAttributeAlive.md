@@ -1,4 +1,4 @@
-# Get Attribute: alive
+# Get Attribute: alive Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: alive**
 

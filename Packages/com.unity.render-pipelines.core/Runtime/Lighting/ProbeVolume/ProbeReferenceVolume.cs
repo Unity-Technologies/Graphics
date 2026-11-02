@@ -719,6 +719,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Action checksDuringBakeAction = null;
 
+        // Mirrors AdaptiveProbeVolumes.isRunning, set by ProbeGIBaking.cs. Runtime can't reference the editor
+        // assembly directly, and TrackActiveScene needs it to avoid reacting to a scene change mid-bake.
+        internal bool isBakingAdaptiveProbeVolumes;
+
         // Information of the probe volume scenes that is being loaded (if one is pending)
         Dictionary<string, (ProbeVolumeBakingSet, List<int>)> m_PendingScenesToBeLoaded = new Dictionary<string, (ProbeVolumeBakingSet, List<int>)>();
 
@@ -917,11 +921,12 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Loads the baking set the given scene is part of if it exists.
+        /// Does nothing when the scene has no baked data, so that the set the other loaded scenes are using is kept.
         /// </summary>
         /// <param name="scene">The scene for which to load the baking set.</param>
         public void SetActiveScene(Scene scene)
         {
-            if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
+            if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData) && perSceneData.serializedBakingSet != null)
                 SetActiveBakingSet(perSceneData.serializedBakingSet);
         }
 
@@ -1001,7 +1006,12 @@ namespace UnityEngine.Rendering
         {
             perSceneDataList.Remove(data);
             if (perSceneDataList.Count == 0)
+            {
                 UnloadBakingSet();
+#if UNITY_EDITOR
+                m_TrackedActiveScene = default;
+#endif
+            }
         }
 
         internal bool TryGetPerSceneData(string sceneGUID, out ProbeVolumePerSceneData perSceneData)
@@ -1624,11 +1634,36 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             checksDuringBakeAction?.Invoke();
+            TrackActiveScene();
 #endif
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();
         }
+
+#if UNITY_EDITOR
+        Scene m_TrackedActiveScene;
+
+        // Keeps the current baking set in sync with the active scene. Skipped while a bake is running, since the
+        // current set is owned by EnsureCurrentBakingSet for its duration; the mismatch is picked up again once the
+        // bake ends, on whichever call to PerformPendingOperations comes first.
+        internal void TrackActiveScene()
+        {
+            if (Application.isPlaying || UnityEditor.Lightmapping.isRunning || isBakingAdaptiveProbeVolumes)
+                return;
+
+            var activeScene = SceneManager.GetActiveScene();
+            if (activeScene == m_TrackedActiveScene)
+                return;
+
+            if (ProbeVolumeBakingSet.GetBakingSetForScene(activeScene) != null
+                && (!TryGetPerSceneData(GetSceneGUID(activeScene), out var perSceneData) || perSceneData.serializedBakingSet == null))
+                return;
+
+            m_TrackedActiveScene = activeScene;
+            SetActiveScene(activeScene);
+        }
+#endif
 
         internal void InitializeGlobalIndirection()
         {

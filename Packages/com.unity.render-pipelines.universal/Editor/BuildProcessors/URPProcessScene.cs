@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal
                     }
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER && ENABLE_VR && ENABLE_XR_MODULE
-                    if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                    if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                     {
                         Camera[] cameras = root.GetComponentsInChildren<Camera>();
                         foreach (Camera camera in cameras)

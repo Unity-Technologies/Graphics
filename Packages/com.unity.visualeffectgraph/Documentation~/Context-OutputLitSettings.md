@@ -1,4 +1,4 @@
-# Lit Output Settings
+# Lit Output Settings Context
 
 Menu Path : **Context > Output [Data Type] Lit [Type]**
 

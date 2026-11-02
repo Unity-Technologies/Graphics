@@ -1,0 +1,6 @@
+{
+  "displayName": "Particle Shaders",
+  "interactiveImport": "false",
+      "description": "This sample helps you create customized shaders for your Particle Systems.",
+  "createSeparatePackage": true
+}

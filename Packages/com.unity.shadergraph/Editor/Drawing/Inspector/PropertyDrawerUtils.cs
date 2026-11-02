@@ -238,5 +238,44 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 fieldObj.SetEnabled(false);
             parentElement.Add(propertyRow);
         }
+
+        internal static void AddCustomIntegerProperty(
+            VisualElement parentElement, AbstractMaterialNode node,
+            Action setNodesAsDirtyCallback, Action updateNodeViewsCallback,
+            String label,
+            String undoLabel,
+            int min,
+            int max,
+            Func<int> GetterFn,
+            Action<int> SetterFn)
+        {
+            var fieldObj = new IntegerField { isDelayed = true };
+            fieldObj.value = GetterFn();
+            var propertyRow = new PropertyRow(new Label(label));
+            propertyRow.Add(fieldObj, (field) =>
+            {
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    int clamped = Mathf.Clamp(evt.newValue, min, max);
+                    if (clamped != evt.newValue)
+                        fieldObj.SetValueWithoutNotify(clamped);
+
+                    if (clamped.Equals(GetterFn()))
+                        return;
+
+                    setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo(undoLabel);
+                    SetterFn(clamped);
+                    node.owner.ValidateGraph();
+                    updateNodeViewsCallback?.Invoke();
+                    // Topological (not Graph): an integer can drive the node's slot set (e.g. a sample count),
+                    // and only a topological modification makes the node view add/remove and re-order ports.
+                    node.Dirty(ModificationScope.Topological);
+                });
+            });
+            if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                fieldObj.SetEnabled(false);
+            parentElement.Add(propertyRow);
+        }
     }
 }

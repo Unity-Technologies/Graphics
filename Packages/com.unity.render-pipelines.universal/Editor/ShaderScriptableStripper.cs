@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_XRMirrorViewShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMirrorView");
         Shader m_XRMotionVectorShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMotionVector");
         Shader m_Light2DShader = Shader.Find("Hidden/Light2D");
+        Shader m_RenderingLayerMask2DShader = Shader.Find("Hidden/2D/RenderingLayerMask");
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -134,6 +135,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kPassNameXRMotionVectors = "XRMotionVectors";
         public static readonly string kPassNameXRUberPost = "UberPostXR";
         public static readonly string kPassNameXRFinalPost = "FinalPostXR";
+        public static readonly string kPassNameRenderingLayerMask2D = "Rendering Layer Mask";
 
         // Keywords
         LocalKeyword m_MainLightShadows;
@@ -878,6 +880,14 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompile(m_PointSampling, ShaderFeatures.PointSamplingUpsampling);
         }
 
+        internal bool StripUnusedFeatures_RenderingLayerMask2D(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_RenderingLayerMask2DShader)
+                return false;
+
+            return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LightLayers);
+        }
+
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedFeatures_DebugDisplay(ref strippingData))
@@ -995,6 +1005,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_PointSamplingUpsampling(ref strippingData, ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_RenderingLayerMask2D(ref strippingData))
                 return true;
 
             return false;
@@ -1206,6 +1219,14 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripUnusedPass_RenderingLayerMask2D(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip the Sprite Lit and Sprite Custom Lit Rendering Layer Mask pass (including VFX Graph outputs) if rendering layers are disabled
+            if (strippingData.passName == kPassNameRenderingLayerMask2D && !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LightLayers))
+                return true;
+            return false;
+        }
+
         internal bool StripUnusedPass(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedPass_2D(ref strippingData))
@@ -1227,6 +1248,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedPass_XRFinalPost(ref strippingData))
+                return true;
+
+            if (StripUnusedPass_RenderingLayerMask2D(ref strippingData))
                 return true;
             return false;
         }

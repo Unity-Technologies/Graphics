@@ -1,4 +1,4 @@
-# float
+# float Operator
 
 Menu Path : **Operator > Inline > float**
 

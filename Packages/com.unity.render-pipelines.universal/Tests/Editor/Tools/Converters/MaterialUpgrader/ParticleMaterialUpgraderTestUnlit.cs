@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 [Category("Graphics Tools")]
 class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgrader>
@@ -142,8 +143,8 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
                 "Given_EmissionEnabledParticleStandardUnlit_WhenUpgrading_Then_TheEmissionParticleURPUnlitPreserve",
             setup = material =>
             {
-                //enable emission _EmissionEnabled
-                material.SetFloat("_EmissionEnabled", 1.0f);
+                //enable emission keyword
+                CoreUtils.SetKeyword(material, "_EMISSION", true);
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
             },
             verify = material =>
@@ -159,13 +160,16 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
                 "Given_EmissionDisabledParticleStandardUnlit_WhenUpgrading_Then_TheEmissionParticleURPUnlitPreserve",
             setup = material =>
             {
-                //enable emission _EmissionDisabled
-                material.SetFloat("_EmissionEnabled", 0.0f);
+                //disable emission keyword
+                CoreUtils.SetKeyword(material, "_EMISSION", false);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             },
             verify = material =>
             {
                 //check emission is disabled
                 Assert.IsFalse(material.IsKeywordEnabled("_EMISSION"));
+                // Should be set to EmissiveIsBlack to match BiRP behavior when emission unchecked
+                Assert.AreEqual(MaterialGlobalIlluminationFlags.EmissiveIsBlack, material.globalIlluminationFlags);
             }
         };
 
@@ -175,8 +179,8 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
                 "Given_EmissionRedColorParticleStandardUnlit_WhenUpgrading_Then_TheEmissionRedColorParticleURPUnlitPreserve",
             setup = material =>
             {
-                //enable emission _EmissionEnabled
-                material.SetFloat("_EmissionEnabled", 1.0f);
+                //enable emission keyword
+                CoreUtils.SetKeyword(material, "_EMISSION", true);
                 material.SetColor("_EmissionColor", Color.red);
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
                 },
@@ -470,7 +474,6 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
         {
             name =
                 "Given_RenderingModeSubtractiveStandardParticleUnlitMaterial_When_Upgrading_Then_SurfaceTypeURPParticleUnlitMaterialDropdownNotBlank",
-            ignore = true,
             setup = material =>
             {
                 //set the material to Subtractive
@@ -478,9 +481,76 @@ class ParticleMaterialUpgraderTestUnlit : MaterialUpgraderTestBase<ParticleUpgra
             },
             verify = material =>
             {
-                //check material surface type is not blank
-                float surfaceType = material.GetFloat("_Surface");
-                Assert.IsTrue(surfaceType == 0.0f || surfaceType == 1.0f, "Surface type is blank.");
+                //check material surface type is transparent
+                Assert.AreEqual(1.0f, material.GetFloat("_Surface"));
+                //check color mode is subtractive
+                Assert.AreEqual(2.0f, material.GetFloat("_ColorMode"));
+                //check blend mode is alpha
+                Assert.AreEqual(0.0f, material.GetFloat("_Blend"));
+                //check that the _COLORADDSUBDIFF_ON keyword is enabled
+                Assert.IsTrue(material.IsKeywordEnabled("_COLORADDSUBDIFF_ON"));
+                //check that _BaseColorAddSubDiff is set correctly for subtractive mode
+                Assert.AreEqual(new Vector4(-1.0f, 0.0f, 0.0f, 0.0f), material.GetVector("_BaseColorAddSubDiff"));
+            }
+        };
+
+        yield return new MaterialUpgradeTestCase
+        {
+            name =
+                "Given_OpaqueEmissionKeywordEnabledStandardUnlit_WhenUpgrading_Then_TheOpaqueURPParticleUnlitPreserveEmissionKeyword",
+            setup = material =>
+            {
+                //set the material to opaque with emission keyword enabled
+                material.SetFloat("_Mode", 0.0f); // Opaque
+                CoreUtils.SetKeyword(material, "_EMISSION", true);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+            },
+            verify = material =>
+            {
+                //check the material emission keyword is preserved
+                Assert.IsTrue(material.IsKeywordEnabled("_EMISSION"));
+                Assert.AreNotEqual(MaterialGlobalIlluminationFlags.None, material.globalIlluminationFlags);
+                Assert.AreNotEqual(MaterialGlobalIlluminationFlags.EmissiveIsBlack, material.globalIlluminationFlags);
+            }
+        };
+
+        yield return new MaterialUpgradeTestCase
+        {
+            name =
+                "Given_OpaqueEmissionDisabledStandardUnlit_WhenUpgrading_Then_TheOpaqueURPParticleUnlitEmissionRemainsDisabled",
+            setup = material =>
+            {
+                //set the material to opaque without emission enabled (no keyword, None flags)
+                material.SetFloat("_Mode", 0.0f); // Opaque
+                CoreUtils.SetKeyword(material, "_EMISSION", false);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            },
+            verify = material =>
+            {
+                //check the material emission remains disabled
+                Assert.IsFalse(material.IsKeywordEnabled("_EMISSION"));
+                // Should be set to EmissiveIsBlack to match BiRP behavior when emission unchecked
+                Assert.AreEqual(MaterialGlobalIlluminationFlags.EmissiveIsBlack, material.globalIlluminationFlags);
+            }
+        };
+
+        yield return new MaterialUpgradeTestCase
+        {
+            name =
+                "Given_TransparentEmissionKeywordEnabledStandardUnlit_WhenUpgrading_Then_TheTransparentURPParticleUnlitPreserveEmissionKeyword",
+            setup = material =>
+            {
+                //set the material to transparent with emission keyword enabled
+                material.SetFloat("_Mode", 3.0f); // Transparent
+                CoreUtils.SetKeyword(material, "_EMISSION", true);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+            },
+            verify = material =>
+            {
+                //check the material emission keyword is preserved
+                Assert.IsTrue(material.IsKeywordEnabled("_EMISSION"));
+                Assert.AreNotEqual(MaterialGlobalIlluminationFlags.None, material.globalIlluminationFlags);
+                Assert.AreNotEqual(MaterialGlobalIlluminationFlags.EmissiveIsBlack, material.globalIlluminationFlags);
             }
         };
     }

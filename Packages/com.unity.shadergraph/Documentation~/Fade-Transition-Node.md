@@ -32,3 +32,7 @@ float Result = Unity_FadeTransitionNode_ApplyFade_float(
         _FadeValue,
         _FadeContrast);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

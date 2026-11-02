@@ -1,4 +1,4 @@
-# Floor
+# Floor Operator
 
 Menu Path : **Operator > Math > Clamp > Floor**
 

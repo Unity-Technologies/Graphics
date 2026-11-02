@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- ISGControlledElement implementation
 
         [Inspectable("Shader Input", null)]
-        public ShaderInput shaderInput => ViewModel.model;
+        public ShaderInput shaderInput => ViewModel?.model;
 
         public string inspectorTitle => ViewModel.inputName + " " + ViewModel.inputTypeName;
 

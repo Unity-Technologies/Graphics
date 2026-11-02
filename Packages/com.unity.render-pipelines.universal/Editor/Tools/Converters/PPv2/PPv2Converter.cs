@@ -20,7 +20,7 @@ using URPRendering = UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [URPHelpURL("features/rp-converter")]
+    [URPHelpURL("urp/features/rp-converter")]
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (Universal Renderer)")]
     [BatchModeConverterClassInfo("BuiltInToURP", "PPv2")]
@@ -489,7 +489,7 @@ namespace UnityEditor.Rendering.Universal
         }
 #else
         public override bool isEnabled => false;
-        public override string isDisabledMessage => "Post Processing package is not installed. Please install the Post Processing package package to enable this converter.";
+        public override string isDisabledMessage => "Post Processing package is not installed. Please install the Post Processing package to enable this converter.";
         protected override List<(string query, string description)> contextSearchQueriesAndIds
             => null;
         protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message) { return Status.Error; }

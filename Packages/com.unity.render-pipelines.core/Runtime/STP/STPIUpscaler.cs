@@ -65,15 +65,7 @@ public class STPIUpscaler : AbstractUpscaler
 {
     public static readonly string upscalerName = "Spatial-Temporal Post-Processing";
 
-    STPOptions m_Options; // contains injection point (for HDRP at this time)
     private const string k_UpscaledColorTargetName = "_UpscaledCameraColor";
-
-    public STPIUpscaler(STPOptions optionsIn)
-    {
-        m_Options = optionsIn;
-    }
-
-    public override UpscalerOptions options => m_Options;
 
     public override string name => upscalerName;
 
@@ -157,12 +149,12 @@ public class STPIUpscaler : AbstractUpscaler
                 STP.HistoryUpdateInfo info;
                 info.preUpscaleSize = io.preUpscaleResolution;
                 info.postUpscaleSize = io.postUpscaleResolution;
-                info.useHwDrs = io.enableHwDrs;
+                info.useHwDrs = io.dynamicResolution == DynamicResolutionType.Hardware;
                 info.useTexArray = io.enableTexArray;
                 hasValidHistory = upscalerContext.historyContext.Update(ref info);
             }
             config.historyContext = upscalerContext.historyContext;
-            config.enableHwDrs = io.enableHwDrs;
+            config.enableHwDrs = io.dynamicResolution == DynamicResolutionType.Hardware;
             config.hasValidHistory = !io.resetHistory && hasValidHistory;
 
 

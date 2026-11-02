@@ -24,3 +24,7 @@ void Unity_SphereMask_float4(float4 Coords, float4 Center, float Radius, float H
     Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

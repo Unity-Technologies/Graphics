@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="Vector4Parameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Lift-Gamma-Gain")]
+    [URPHelpURL("urp/Post-Processing-Lift-Gamma-Gain")]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

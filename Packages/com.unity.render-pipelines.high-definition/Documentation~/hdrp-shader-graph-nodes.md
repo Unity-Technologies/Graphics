@@ -10,6 +10,7 @@ HDRP adds the following Shader Graph Nodes:
 * [HD Scene Color](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/HD-Scene-Color-Node.html)
 * [HD Scene Depth](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/HD-Scene-Depth-Node.html)
 * [HD Sample Buffer](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/HD-Sample-Buffer-Node.html)
+* [Surface Gradient Resolve Normal](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/Surface-Gradient-Resolve-Normal-Node.html)
 * Eye Shader Graph utilities
   * [CirclePupilAnimation](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/Circle-Pupil-Animation-Node.html)
   * [CorneaRefraction](https://docs.unity3d.com/Packages/com.unity.shadergraph@16.0/manual/Cornea-Refraction-Node.html)

@@ -137,7 +137,6 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
             return null;
         }
 
-        //@TODO: Only do this when it exceeds memory consumption...
         static void SaveAssetsAndFreeMemory()
         {
             AssetDatabase.SaveAssets();
@@ -303,6 +302,8 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
             {
                 s_UpgradeLog.AppendLine($"{progressBarName}");
 
+                bool anyMaterialModified = false;
+
                 for (int materialIndex = 0; materialIndex < materialUpgrades.Count; ++materialIndex)
                 {
                     var entry = materialUpgrades[materialIndex];
@@ -323,11 +324,16 @@ internal static readonly string k_DialogKey = $"{nameof(UnityEditor)}.{nameof(Re
                     else
                     {
                         s_UpgradeLog.AppendLine($"Upgrading material: {entry.MaterialInfo.Name} using shader: {entry.MaterialInfo.ShaderName}");
-                        Upgrade(entry.MaterialInfo.Material, upgraders, flags);
+                        if (entry.MaterialInfo.Material != null)
+                        {
+                            Upgrade(entry.MaterialInfo.Material, upgraders, flags);
+                            anyMaterialModified = true;
+                        }
                     }
                 }
 
-                AssetDatabase.SaveAssets();
+                if (anyMaterialModified)
+                    AssetDatabase.SaveAssets();
 
                 if (showProgressBar)
                     EditorUtility.ClearProgressBar();

@@ -1,4 +1,4 @@
-# ArcTorus
+# ArcTorus Operator
 
 Menu Path : **Operator > Inline > ArcTorus**
 

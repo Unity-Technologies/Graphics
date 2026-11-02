@@ -10,5 +10,7 @@ namespace UnityEditor.Rendering.Universal
     internal class Light2DProviderSources_PropertyDrawer : Provider2DSources_PropertyDrawer<Light2DProvider, Light2DProviderSource>
     {
         public override int GetProviderType() { return (int)Light2D.LightType.Provider; }
+
+        public override string GetUndoName() { return Light2DEditorUtility.k_ChangeLightTypeUndoName; }
     }
 }

@@ -1,8 +1,6 @@
+# Sample Graphics Buffer Operator
 
-
-# Sample Graphics Buffer
-
-**Menu Path : Operator > Sampling > Sample Graphics Buffer**
+Menu Path : **Operator** > **Sampling** > **Sample Graphics Buffer**
 
 The Sample Graphics Buffer Operator enables you to fetch and sample a structured buffer. A structured buffer is a [GraphicsBuffer](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.html) created using the [Structured](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.Target.Structured.html) target.
 

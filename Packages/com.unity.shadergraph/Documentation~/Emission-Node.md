@@ -40,3 +40,4 @@ float3 Unity_HDRP_GetEmissionHDRColor_float(float3 ldrColor, float luminanceInte
 ## Additional resources
 
 - [Add light emission to a material](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterEmission.html)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

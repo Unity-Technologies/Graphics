@@ -1,4 +1,4 @@
-# Dot Product
+# Dot Product Operator
 
 Menu Path : **Operator > Math > Vector**
 

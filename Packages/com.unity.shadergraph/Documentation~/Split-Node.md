@@ -24,3 +24,7 @@ float _Split_G = In[1];
 float _Split_B = 0;
 float _Split_A = 0;
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

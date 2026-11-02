@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
                     displayName = $"Open {panelName} Tab...",
                     action = () =>
                     {
-                        DebugManager.instance.RequestEditorWindowPanel(panelName);
+                        DebugManager.instance.RequestPanelSelection(panelName);
                     }
                 };
             }

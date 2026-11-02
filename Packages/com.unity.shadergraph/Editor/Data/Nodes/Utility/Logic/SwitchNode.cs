@@ -15,6 +15,9 @@ namespace UnityEditor.ShaderGraph
         const int kOutputSlot = 2;
         const int kFirstCaseSlot = 3;
 
+        // Case labels are 'A' + index; beyond 'Z' they sanitize to colliding HLSL identifiers.
+        internal const int kMaxCases = 26;
+
         public override bool hasPreview => true;
 
         [Serializable]

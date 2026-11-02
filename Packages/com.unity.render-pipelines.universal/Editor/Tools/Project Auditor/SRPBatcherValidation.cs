@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
         )
         {
             Fixer = FixSRPBatcher,
-            DefaultSeverity = Severity.Warning,
             MessageFormat = "URP: SRPBatcher disabled in {0}.asset in {1}",
         };
 

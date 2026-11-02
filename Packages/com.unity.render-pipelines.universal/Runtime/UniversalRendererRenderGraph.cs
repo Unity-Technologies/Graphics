@@ -670,6 +670,9 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing, m_DrawOverlayUIPass.RequiresComposition());
 
+            // Report this camera's real back buffer MSAA need to the pipeline.
+            ReportRealBackbufferMSAA(cameraData, s_RequiresIntermediateAttachments);
+
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
             m_ValidationHandler.active = cameraData.cameraType == CameraType.Game;
@@ -756,6 +759,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
+            SetupShadowCasterPasses(cameraData, shadowData);
+
             if (m_MainLightShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
             {
                 resourceData.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, frameData);
@@ -785,6 +790,8 @@ namespace UnityEngine.Rendering.Universal
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
+
+            SetupShadowCasterPasses(cameraData, shadowData);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
@@ -1515,7 +1522,8 @@ namespace UnityEngine.Rendering.Universal
                     var cameraDepthDesc = renderGraph.GetTextureDesc(in cameraDepth);
 
                     // Using the cameraDepth avoids switching the depth target, that would break the native render pass.
-                    depth = HasMatchingAttachmentProperties(backbufferInfo, cameraDepthDesc) ? cameraDepth : resourceData.activeDepthTexture;
+                    bool isDynamicScaled = cameraDepthDesc.useDynamicScale && IsScalableBufferManagerUsed(cameraData);
+                    depth = (!isDynamicScaled && HasMatchingAttachmentProperties(backbufferInfo, cameraDepthDesc)) ? cameraDepth : resourceData.activeDepthTexture;
                 }
                 else
                 {

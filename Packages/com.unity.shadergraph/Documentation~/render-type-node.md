@@ -21,3 +21,4 @@ The Render Type node outputs the current render type the shader is processing. Y
 ## Additional resources
 
 - [Render Type Branch node](xref:render-type-branch-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

@@ -21,3 +21,7 @@ The following example code represents one possible outcome of this node.
 ```
 float4 _Vector4_Out = float4(X, Y, Z, W);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

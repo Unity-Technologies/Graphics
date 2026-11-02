@@ -13,3 +13,4 @@ The Shader Graph package offers many different samples that demonstrate how to u
 | [Custom Material Property Drawers sample](Shader-Graph-Sample-Custom-Material-Property-Drawers.md) | Learn how to set up a shader graph to display a property in the form of a min/max slider and add a help box in the material's Inspector UI. |
 | [Custom Lighting sample](Shader-Graph-Sample-Custom-Lighting.md) | Learn how to create custom lighting models in Shader Graph. |
 | [Terrain Shaders sample](Shader-Graph-Sample-Terrain.md) | Learn how to build terrain shaders with Shader Graph. |
+| [Particle Shaders sample](Shader-Graph-Sample-Particle-Shaders.md) | Learn how to build shaders for particle systems with Shader Graph. |

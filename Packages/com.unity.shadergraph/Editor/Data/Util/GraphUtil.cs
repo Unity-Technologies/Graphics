@@ -11,7 +11,6 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using UnityEditor.ProjectWindowCallback;
 #if UNITY_6000_5_OR_NEWER
 using UnityEngine.Assemblies;
@@ -190,7 +189,7 @@ namespace UnityEditor.ShaderGraph
             if (File.Exists(templateFullPath))
             {
                 // Copy the file manually because we do not want any of the template metadata.
-                var templateString = File.ReadAllText(templateFullPath);
+                var templateString = FileUtilities.ReadAllTextUTF8(templateFullPath);
                 File.WriteAllText(pathName, templateString);
             }
             else

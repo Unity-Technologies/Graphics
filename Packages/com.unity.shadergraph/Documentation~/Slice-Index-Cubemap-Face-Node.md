@@ -20,3 +20,7 @@ The following example code represents one possible outcome of this node.
 ```
 _CustomRenderTextureCubeFace
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

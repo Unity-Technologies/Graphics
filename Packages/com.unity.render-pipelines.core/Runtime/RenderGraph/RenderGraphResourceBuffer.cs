@@ -91,14 +91,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Hash function
         /// </summary>
         /// <returns>The texture descriptor hash.</returns>
-        public override int GetHashCode()
+        public override int GetHashCode() => ComputeDescHash().value;
+
+        internal HashFNV1A32 ComputeDescHash()
         {
             var hashCode = HashFNV1A32.Create();
             hashCode.Append(count);
             hashCode.Append(stride);
             hashCode.Append((int) target);
             hashCode.Append((int) usageFlags);
-            return hashCode.value;
+            return hashCode;
         }
     }
 
@@ -114,7 +116,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 return desc.name;
         }
 
-        public override int GetDescHashCode() { return desc.GetHashCode(); }
+        public override HashFNV1A32 GetDescHash() { return desc.ComputeDescHash(); }
 
         public override void CreateGraphicsResource()
         {

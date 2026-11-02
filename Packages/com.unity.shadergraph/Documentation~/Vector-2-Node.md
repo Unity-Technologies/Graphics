@@ -19,3 +19,7 @@ The following example code represents one possible outcome of this node.
 ```
 float2 _Vector2_Out = float2(X, Y);
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

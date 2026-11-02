@@ -1,4 +1,4 @@
-# Mesh
+# Mesh Operator
 
 Menu Path : **Operator > Inline > Mesh**
 

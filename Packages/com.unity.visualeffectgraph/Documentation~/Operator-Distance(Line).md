@@ -1,6 +1,6 @@
-# Distance (Line)
+# Distance (Line) Operator
 
-Menu Path : **Operator > Math > Geometry > Distance (Line)**
+Menu Path : **Operator** > **Math** > **Geometry** > **Distance (Line)**
 
 The **Distance (Line)** Operator takes a line and a position and calculates:
 

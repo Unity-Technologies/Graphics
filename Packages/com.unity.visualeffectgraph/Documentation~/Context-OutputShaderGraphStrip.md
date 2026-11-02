@@ -1,6 +1,6 @@
-# Output ShaderGraph Strip
+# Output ParticleStrip ShaderGraph Context
 
-Menu Path : **Context > Output Particle ShaderGraph Strip**
+Menu Path : **Context** > **Output ParticleStrip ShaderGraph**
 
 [!include[](Snippets/Context-OutputShaderGraph-InlineIntro.md)]
 
@@ -10,7 +10,7 @@ This output is similar to Output ParticleStrip Quad.
 
 | Setting | Type | Description |
 | ------- | ---- | ----------- |
-| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) Unity uses to render particles this output produces. When you are assigning a Shader Graph to this property, the Inspector exposes all the Surface Options from the Shader Graph which allows you to edit the Shader Graph properties inside the Inspector for the context.<br />The context properties will be populated with compatible exposed input from the shaderGraph.<br />For more information on the Surface Options this adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html). |
+| **Shader Graph** | ShaderGraphVfxAsset | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) Unity uses to render particles this output produces. When you assign a Shader Graph to this property, the Inspector exposes all the Surface Options from the Shader Graph which allows you to edit the Shader Graph properties inside the Inspector for the context.<br />The context properties are populated with compatible exposed input from the shaderGraph.<br />For more information on the Surface Options this adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html).<br />To create a new Shader Graph asset instead of assigning an existing one, select **New**. This opens the [Shader Graph template browser](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/template-browser.html), filtered to show only templates that support the Visual Effect Graph. |
 | **Tiling Mode** | Enum | Specifies how the output generates texture coordinates within a strip. The options are:<br/>&#8226; **Stretch**: Stretches the mapping along the whole strip.<br/>&#8226; **Repeat Per Segment**: Restarts the mapping for every segment of the strip.<br/>&#8226; **Custom**: Manually provides the reference texture coordinate.<br/> |
 | **Swap UV** | Bool | Invert the two channels of texture coordinates. |
 

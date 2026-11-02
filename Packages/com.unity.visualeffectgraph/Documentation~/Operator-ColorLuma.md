@@ -1,4 +1,4 @@
-# Color Luma
+# Color Luma Operator
 
 Menu Path : **Operator > Color > Color Luma**
 

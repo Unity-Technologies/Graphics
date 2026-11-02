@@ -19,9 +19,6 @@ using System.Collections.Generic;
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
-    [UnityPlatform(exclude = new RuntimePlatform[] {
-        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-141869
-    })]
     internal class SaveLoadTests
     {
         GraphEditorView m_GraphEditorView;
@@ -82,7 +79,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void OpenGraphWindow(string graphName)
         {
             // Open up the window
-            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(graphName))
+            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(graphName, disablePreviewsForTesting: true))
             {
                 Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + graphName);
             }
@@ -108,7 +105,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             if (m_Window != null)
             {
-                m_Window.graphObject = null; // Don't spawn ask-to-save dialog
+                m_Window.DiscardChanges();
                 m_Window.Close();
             }
             m_Window = null;
@@ -132,13 +129,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // Load!
             OpenGraphWindow(assetPath);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             string originalFile = File.ReadAllText(assetPath);
             var fileInfo = new FileInfo(assetPath);
             var originalModifiedTime = fileInfo.LastWriteTime;
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.IsFalse(m_Window.FileOnDiskHasChanged(), $"Loading the graph window should not change the file on disk ({assetPath}).");
             bool firstSaveChanged = m_Window.GraphHasChangedSinceLastSerialization();
@@ -154,21 +151,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(originalModifiedTime.Equals(firstSaveModifiedTime), Is.EqualTo(!changedOnFirstSave), $"SaveAsset should return true only when the file on disk is modified ({assetPath}).");
             Assert.That(originalFile.Equals(firstSaveFile), Is.EqualTo(!firstSaveChanged), $"GraphHasChangedSinceLastSerialization should only return true when the serialized file would be different ({assetPath}).");
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             CloseGraphWindow();
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             #if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
             // attempt to workaround an issue with file timestamp granularity
-            yield return new WaitForSecondsRealtime(1.5f);
+            LogAssert.ignoreFailingMessages = true;
+            try { yield return new WaitForSecondsRealtime(1.5f); }
+            finally { LogAssert.ignoreFailingMessages = false; }
             #endif
 
             // Load!
             OpenGraphWindow(assetPath);
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             Assert.IsFalse(m_Window.FileOnDiskHasChanged(), $"Loading the graph window should not change the file on disk 2 ({assetPath}).");
             bool secondSaveDirty = m_Window.GraphHasChangedSinceLastSerialization();
@@ -187,11 +186,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.That(firstSaveFile.Equals(secondSaveFile), Is.True, $"Loading and saving a graph file twice should not result in changes to the file on disk ({assetPath}).");
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
 
             CloseGraphWindow();
 
-            yield return null;
+            yield return ShaderGraphUITestHelpers.SuppressLogFailures();
         }
     }
 }

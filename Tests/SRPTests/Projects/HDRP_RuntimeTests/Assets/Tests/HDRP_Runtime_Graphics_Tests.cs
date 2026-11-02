@@ -87,6 +87,12 @@ public class HDRP_Runtime_Graphics_Tests
         "https://jira.unity3d.com/browse/UUM-70791",
         RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch, RuntimePlatform.Switch2
     )]
+    [TestNotSupportedOn(
+        "011-HighQualityLines$",
+        "HQ Line Rendering needs a 1024-thread compute threadgroup; Intel Mac Metal caps below that. https://jira.unity3d.com/browse/UUM-147457",
+        GraphicsDeviceType.Metal,
+        Architecture.X64
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);

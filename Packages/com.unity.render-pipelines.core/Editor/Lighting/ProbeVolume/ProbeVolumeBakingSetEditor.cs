@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent skyOcclusionBakingBounces = new GUIContent("Bounces", "The maximum number of bounces allowed for each Sky Occlusion sample. Increasing this value particularly improves the accuracy of occlusion data in areas of the Scene with complicated routes to the sky.");
             public static readonly GUIContent skyOcclusionAverageAlbedo = new GUIContent("Albedo Override", "Sky Occlusion does not consider the albedo of materials in the Scene when calculating bounced light from the sky. Albedo Override determines the value used instead. Lower values darken and higher values will brighten the Scene.");
             public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "For each probe, additionally bake the most suitable direction to use for sampling the Scene’s Ambient Probe. When disabled, surface normals are used instead. Sky Direction improves visual quality at the expense of memory.");
-            public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("Sky Occlusion is not supported by the current lightmapper. Ensure that Progressive GPU is selected in Lightmapper Settings.");
+            public static readonly GUIContent cpuLightmapperSkyOcclusionWarning = new GUIContent("Sky Occlusion double counts bounced sky lighting with the Progressive CPU lightmapper. Disable Sky Occlusion or use a different lightmapper.");
 
             // Probe Invalidity section
             public static readonly GUIContent resetDilation = new GUIContent("Reset Dilation Settings");
@@ -430,27 +430,21 @@ namespace UnityEditor.Rendering
 
             using var scope = new EditorGUI.IndentLevelScope();
 
-            var lightmapper = ProbeVolumeLightingTab.GetLightingSettings().lightmapper;
-#pragma warning disable 618 // ProgressiveCPU is deprecated; comparison guards APV sky-occlusion UI when CPU is selected.
-            bool cpuLightmapperSelected = lightmapper == LightingSettings.Lightmapper.ProgressiveCPU;
-#pragma warning restore 618
-            if (cpuLightmapperSelected)
-            {
-                EditorGUILayout.HelpBox(Styles.cpuLightmapperNotSupportedWarning.text, MessageType.Warning);
-            }
-            using (new EditorGUI.DisabledScope(cpuLightmapperSelected))
-            {
-                EditorGUILayout.PropertyField(m_SkyOcclusion, Styles.skyOcclusion);
+            EditorGUILayout.PropertyField(m_SkyOcclusion, Styles.skyOcclusion);
 
-                if (m_SkyOcclusion.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_SkyOcclusionBakingSamples, Styles.skyOcclusionBakingSamples);
-                    EditorGUILayout.PropertyField(m_SkyOcclusionBakingBounces, Styles.skyOcclusionBakingBounces);
-                    EditorGUILayout.PropertyField(m_SkyOcclusionAverageAlbedo, Styles.skyOcclusionAverageAlbedo);
-                    EditorGUILayout.PropertyField(m_SkyOcclusionShadingDirection, Styles.skyOcclusionShadingDirection);
-                    EditorGUI.indentLevel--;
-                }
+            if (m_SkyOcclusion.boolValue)
+            {
+#pragma warning disable 618 // ProgressiveCPU is deprecated; it never consumes ignoreIndirectEnvironment, so baked probes double count sky lighting.
+                if (ProbeVolumeLightingTab.GetLightingSettings().lightmapper == LightingSettings.Lightmapper.ProgressiveCPU)
+                    EditorGUILayout.HelpBox(Styles.cpuLightmapperSkyOcclusionWarning.text, MessageType.Warning);
+#pragma warning restore 618
+
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_SkyOcclusionBakingSamples, Styles.skyOcclusionBakingSamples);
+                EditorGUILayout.PropertyField(m_SkyOcclusionBakingBounces, Styles.skyOcclusionBakingBounces);
+                EditorGUILayout.PropertyField(m_SkyOcclusionAverageAlbedo, Styles.skyOcclusionAverageAlbedo);
+                EditorGUILayout.PropertyField(m_SkyOcclusionShadingDirection, Styles.skyOcclusionShadingDirection);
+                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.Space();

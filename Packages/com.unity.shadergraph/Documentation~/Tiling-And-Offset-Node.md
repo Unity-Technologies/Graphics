@@ -23,3 +23,7 @@ void Unity_TilingAndOffset_float(float2 UV, float2 Tiling, float2 Offset, out fl
     Out = UV * Tiling + Offset;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

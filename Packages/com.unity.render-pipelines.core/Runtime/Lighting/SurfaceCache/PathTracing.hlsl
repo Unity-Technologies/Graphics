@@ -143,7 +143,7 @@ PunctualLightBounceRadianceSample SamplePunctualLightBounceRadiance(
 {
     PunctualLightBounceRadianceSample result = (PunctualLightBounceRadianceSample)0;
 
-    PunctualLightSample punctualLightSample = punctualLightSamples[min(punctualLightSampleCount, uniformRand * punctualLightSampleCount)];
+    PunctualLightSample punctualLightSample = punctualLightSamples[min(uniformRand * punctualLightSampleCount, punctualLightSampleCount - 1)];
     if (punctualLightSample.HasHit())
     {
         const float epsilon = 0.01f;

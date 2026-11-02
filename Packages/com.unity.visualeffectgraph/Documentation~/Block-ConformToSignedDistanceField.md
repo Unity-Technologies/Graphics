@@ -1,4 +1,4 @@
-# Attractor Shape Signed Distance Field
+# Attractor Shape Signed Distance Field Block
 
 Menu Path : **Force > Attractor Shape Signed Distance Field**
 

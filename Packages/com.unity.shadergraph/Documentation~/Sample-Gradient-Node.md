@@ -39,3 +39,7 @@ void Unity_SampleGradient_float(float4 Gradient, float Time, out float4 Out)
     Out = float4(color, alpha);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

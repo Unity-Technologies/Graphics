@@ -1,5 +1,8 @@
 using System.Runtime.CompilerServices;
 
+// Core
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
+
 // HDRP
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor.Tests")]

@@ -1,4 +1,4 @@
-# Subpixel Anti-Aliasing
+# Subpixel Anti-Aliasing Block
 
 Menu Path : **Output > Subpixel Anti-Aliasing**
 

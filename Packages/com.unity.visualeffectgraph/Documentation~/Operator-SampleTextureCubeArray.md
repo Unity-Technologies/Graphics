@@ -1,4 +1,4 @@
-# Sample TextureCubeArray
+# Sample TextureCubeArray Operator
 
 Menu Path : **Operator > Sampling > Sample TextureCubeArray**
 

@@ -18,6 +18,10 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<int> values;
 
+        // Raised when CopyDefaultValue swaps in new entries; EnumSlotControlView rebuilds the dropdown.
+        [NonSerialized]
+        internal Action entriesChanged;
+
         internal Vector1MaterialEnumSlot() { }
 
         public Vector1MaterialEnumSlot(
@@ -54,6 +58,35 @@ namespace UnityEditor.ShaderGraph
                 value = 0;
         }
 
+        // AddSlot's modify-in-place path calls this; copy entries so Sub Graph property edits propagate.
+        public override void CopyDefaultValue(MaterialSlot other)
+        {
+            base.CopyDefaultValue(other);
+            if (other is Vector1MaterialEnumSlot enumSlot && !EntriesEqual(enumSlot))
+            {
+                options = enumSlot.options != null ? new List<string>(enumSlot.options) : new List<string>();
+                values = enumSlot.values != null ? new List<int>(enumSlot.values) : new List<int>();
+                if (!values.Contains((int)value))
+                    value = values.Count > 0 ? values[0] : 0;
+                entriesChanged?.Invoke();
+            }
+        }
+
+        bool EntriesEqual(Vector1MaterialEnumSlot other)
+        {
+            if (options == null || other.options == null || values == null || other.values == null)
+                return options == other.options && values == other.values;
+            if (options.Count != other.options.Count || values.Count != other.values.Count)
+                return false;
+            for (int i = 0; i < options.Count; i++)
+                if (options[i] != other.options[i])
+                    return false;
+            for (int i = 0; i < values.Count; i++)
+                if (values[i] != other.values[i])
+                    return false;
+            return true;
+        }
+
         public override VisualElement InstantiateControl()
         {
             return new EnumSlotControlView(this);
@@ -62,28 +95,45 @@ namespace UnityEditor.ShaderGraph
         class EnumSlotControlView : VisualElement
         {
             Vector1MaterialEnumSlot m_Slot;
+            DropdownField m_DropdownField;
 
             public EnumSlotControlView(Vector1MaterialEnumSlot slot)
             {
                 m_Slot = slot;
+                BuildDropdown();
 
-                int idx = m_Slot.values.FindIndex(e => e == (int)slot.value);
-                if (idx < 0 || idx >= slot.options.Count)
+                RegisterCallback<AttachToPanelEvent>(_ => m_Slot.entriesChanged += RebuildDropdown);
+                RegisterCallback<DetachFromPanelEvent>(_ => m_Slot.entriesChanged -= RebuildDropdown);
+            }
+
+            void BuildDropdown()
+            {
+                int idx = m_Slot.values.FindIndex(e => e == (int)m_Slot.value);
+                if (idx < 0 || idx >= m_Slot.options.Count)
                     idx = 0;
 
-                var dropdownField = slot.hideConnector
-                    ? new DropdownField(slot.RawDisplayName(), slot.options, idx)
-                    : new DropdownField(slot.options, idx);
+                m_DropdownField = m_Slot.hideConnector
+                    ? new DropdownField(m_Slot.RawDisplayName(), new List<string>(m_Slot.options), idx)
+                    : new DropdownField(new List<string>(m_Slot.options), idx);
 
-                dropdownField.RegisterValueChangedCallback(OnValueChange);
-                Add(dropdownField);
+                m_DropdownField.RegisterValueChangedCallback(OnValueChange);
+                Add(m_DropdownField);
+            }
+
+            void RebuildDropdown()
+            {
+                if (m_DropdownField != null)
+                    Remove(m_DropdownField);
+                BuildDropdown();
             }
 
             void OnValueChange(ChangeEvent<string> evt)
             {
                 int newIndex = m_Slot.options.FindIndex(e => e == evt.newValue);
+                if (newIndex < 0 || newIndex >= m_Slot.values.Count)
+                    return;
 
-                int newValue = m_Slot.values[newIndex]; // TODO Safety
+                int newValue = m_Slot.values[newIndex];
 
                 if (newValue != m_Slot.value)
                 {

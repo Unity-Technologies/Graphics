@@ -132,6 +132,11 @@ namespace UnityEngine.Rendering.Universal
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MotionVectorRenderPass m_MotionVectorPass;
+        // Shadow passes per stack camera (0 is the base camera, i + 1 is overlay i), only used with Quad Views shadow map caching in XR.
+        // Otherwise, every camera uses index 0.
+        readonly List<MainLightShadowCasterPass> m_MainLightShadowCasterPasses = new List<MainLightShadowCasterPass>();
+        readonly List<AdditionalLightsShadowCasterPass> m_AdditionalLightsShadowCasterPasses = new List<AdditionalLightsShadowCasterPass>();
+        // Shadow passes of the stack camera currently being rendered, selected by SetupShadowCasterPasses().
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -185,6 +190,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitHDRMaterial = null;
         Material m_SamplingMaterial = null;
         Material m_BlitOffscreenUICoverMaterial = null;
+        Material m_BackdropFilterCompositeMaterial = null;
         Material m_StencilDeferredMaterial = null;
         Material m_ClusterDeferredMaterial = null;
         Material m_CameraMotionVecMaterial = null;
@@ -236,6 +242,7 @@ namespace UnityEngine.Rendering.Universal
                 m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
                 // Share viewport for all the cameras.
                 m_BlitOffscreenUICoverMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_BackdropFilterCompositeMaterial = CoreUtils.CreateEngineMaterial(shadersResources.uiBackdropFilterCompositePS);
             }
 
             Shader copyDephPS = null;
@@ -268,6 +275,13 @@ namespace UnityEngine.Rendering.Universal
 
             // The On-Tile Renderer does not support WebGL. 
             if (useTileOnlyMode && IsWebGL())
+            {
+                useTileOnlyMode = false;
+            }
+
+            // Tile-Only can't do the linear->sRGB present conversion on-tile: a non-sRGB
+            // backbuffer forces a sampling final blit, which the on-tile path forbids.
+            if (useTileOnlyMode && Display.main.requiresSrgbBlitToBackbuffer)
             {
                 useTileOnlyMode = false;
             }
@@ -336,8 +350,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            AddShadowCasterPasses();
+            m_MainLightShadowCasterPass = m_MainLightShadowCasterPasses[0];
+            m_AdditionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPasses[0];
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
@@ -410,7 +425,7 @@ namespace UnityEngine.Rendering.Universal
             m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, customPassName: "Copy Depth Raw History");
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, shadersResources?.uiBackdropFilterCompositePS, shadersResources?.coreBlitPS); // after m_FinalBlitPass
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, m_BackdropFilterCompositeMaterial, m_BlitMaterial); // after m_FinalBlitPass
 
             if (postProcessEnabled)
             {
@@ -512,6 +527,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_BlitOffscreenUICoverMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_BackdropFilterCompositeMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
             CoreUtils.Destroy(m_ClusterDeferredMaterial);
             CoreUtils.Destroy(m_CameraMotionVecMaterial);
@@ -527,8 +543,32 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void ReleaseRenderTargets()
         {
-            m_MainLightShadowCasterPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.Dispose();
+            foreach (var mainLightShadowCasterPass in m_MainLightShadowCasterPasses)
+                mainLightShadowCasterPass?.Dispose();
+            foreach (var additionalLightsShadowCasterPass in m_AdditionalLightsShadowCasterPasses)
+                additionalLightsShadowCasterPass?.Dispose();
+        }
+
+        void AddShadowCasterPasses()
+        {
+            m_MainLightShadowCasterPasses.Add(new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows));
+            m_AdditionalLightsShadowCasterPasses.Add(new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows));
+        }
+
+        // Selects the shadow passes used by the camera currently being rendered. With Quad Views shadow map caching, every
+        // camera of the stack owns its shadowmaps, so that the inner pass can reuse the ones cached by the outer pass.
+        void SetupShadowCasterPasses(UniversalCameraData cameraData, UniversalShadowData shadowData)
+        {
+            int stackCameraIndex = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (shadowData.supportShadowMapCaching)
+                stackCameraIndex = cameraData.xrUniversal.stackCameraIndex;
+#endif
+            while (m_MainLightShadowCasterPasses.Count <= stackCameraIndex)
+                AddShadowCasterPasses();
+
+            m_MainLightShadowCasterPass = m_MainLightShadowCasterPasses[stackCameraIndex];
+            m_AdditionalLightsShadowCasterPass = m_AdditionalLightsShadowCasterPasses[stackCameraIndex];
         }
 
         /// <summary>

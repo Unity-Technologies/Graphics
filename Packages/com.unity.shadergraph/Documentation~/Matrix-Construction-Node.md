@@ -56,3 +56,7 @@ void Unity_MatrixConstruction_Column_float(float4 M0, float4 M1, float4 M2, floa
     Out2x2 = float2x2(M0.x, M1.x, M0.y, M1.y);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

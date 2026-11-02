@@ -1,4 +1,4 @@
-# Get Texture Dimensions
+# Get Texture Dimensions Operator
 
 Menu Path : **Operator > Sampling > Get Texture Dimensions**
 

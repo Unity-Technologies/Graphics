@@ -1,6 +1,6 @@
-# Set Spawn Time
+# Set Spawn Time Block
 
-Menu Path: **Spawn > Custom > Set Spawn Time**
+Menu Path: **Spawn** > **Custom** > **Set Spawn Time**
 
 The **Set Spawn Time** Block allows following Initialize Contexts to use the time since the spawn Context’s last play event (see [totalTime](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerState-totalTime.html)).
 
@@ -12,7 +12,7 @@ In this example, the left system uses source spawnTime, which resets for each st
 
 This Block is compatible with the following Contexts:
 
-- [Spawn](Context-Spawn.md)
+- [Spawn Context](Context-Spawn.md)
 
 ## Remarks
 

@@ -45,6 +45,34 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Releases the <c>Mesh</c> this instance built.
+        /// </summary>
+        /// <remarks>
+        /// The mesh is created at runtime and is not serialized, so nothing else owns it and nothing
+        /// else will free it: destroying the managed wrapper is not enough, because a
+        /// <c>UnityEngine.Object</c> wrapper being collected does not destroy the native object
+        /// behind it. Left alone, one mesh per caster outlives the caster.
+        ///
+        /// Called from <c>ShadowCaster2D.OnDestroy</c> rather than from the finalizer below, because
+        /// <c>Object.Destroy</c> is not legal off the main thread.
+        ///
+        /// The geometry buffers are deliberately left alone. They are released by the finalizer, and
+        /// dropping them here would leave a caster that Undo brings back with no geometry until
+        /// something happened to rebuild it.
+        /// </remarks>
+        internal void DestroyMesh()
+        {
+            if (m_Mesh == null)
+                return;
+
+            CoreUtils.Destroy(m_Mesh);
+            m_Mesh = null;
+
+            // So a later access rebuilds from the buffers instead of handing out null.
+            m_IsDirty = true;
+        }
+
         public void Clear()
         {
             m_Vertices = null;
@@ -248,6 +276,35 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
+        // Clipper scales incoming coordinates by ShadowUtility's fixed point precision and keeps them in a 64 bit
+        // integer. Its own range test is compiled out when exceptions are disabled, as they are in player builds, so
+        // a coordinate past this bound overflows inside native Clipper and faults instead of being rejected. Staying
+        // within Clipper's low range (0x3FFFFFFF) after scaling by the precision (65536) keeps that arithmetic valid.
+        const float k_MaxClipperCoordinate = 16383.0f;
+
+        static bool IsRepresentableCoordinate(float value)
+        {
+            // Both comparisons are false for NaN, so this also rejects NaN and infinities.
+            return value >= -k_MaxClipperCoordinate && value <= k_MaxClipperCoordinate;
+        }
+
+        // Returns true when any vertex holds a coordinate Clipper cannot represent, which makes the whole shape
+        // unusable. Callers must bail out instead of passing the data on to native code.
+        static bool HasUnrepresentableVertices(NativeArray<Vector3> vertices)
+        {
+            if (vertices == null)
+                return true;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 vertex = vertices[i];
+                if (!IsRepresentableCoordinate(vertex.x) || !IsRepresentableCoordinate(vertex.y))
+                    return true;
+            }
+
+            return false;
+        }
+
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTriming = true, bool createInteriorGeometry = false, bool inWorldSpace = false)
         {
             m_IsTransformable = !inWorldSpace;
@@ -265,12 +322,12 @@ namespace UnityEngine.Rendering.Universal
             calculatedStartingEdges.Dispose();
         }
 
-
-
-
         bool AreDegenerateVertices(NativeArray<Vector3> vertices)
         {
             if (vertices == null || vertices.Length == 0)
+                return true;
+
+            if (HasUnrepresentableVertices(vertices))
                 return true;
 
             // This should is a trade off between perfomance and accuracy. This may need to be refined later if we find cases where this is not good enough.
@@ -418,6 +475,17 @@ namespace UnityEngine.Rendering.Universal
             m_BoundingSphere = new BoundingSphere(center, radius);
         }
 
+        // Sets the bounding sphere from world bounds. Only the x and y extents size it, so the bounds'
+        // z depth cannot inflate it. The center's z is given by the caller.
+        internal void SetBoundingSphere(Bounds worldBounds, float z)
+        {
+            var center = new Vector3(worldBounds.center.x, worldBounds.center.y, z);
+            var extents = worldBounds.extents;
+            var radius = new Vector2(extents.x, extents.y).magnitude;
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
+        }
+
         ~ShadowMesh2D()
         {
             if(m_NativeIndices.IsCreated)
@@ -432,7 +500,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_TrimEdge == k_TrimEdgeUninitialized)
                 m_TrimEdge = m_InitialTrim;
 
-            if (indices.Length == 0)
+            if (indices.Length == 0 || HasUnrepresentableVertices(vertices))
             {
                 Clear();
                 generatedIndices = new NativeArray<int>();

@@ -17,3 +17,7 @@ Another term you may hear for tiling in this context is scale. Both terms refer 
 | Tiling       | Output    | Vector 2  | Amount of tiling to apply per channel, set via the Material Inspector. |
 | Offset       | Output    | Vector 2  | Amount of offset to apply per channel, set via the Material Inspector. |
 | Texture Only | Output    | Vector 2  | The input Texture2D, without tiling and offset data. |
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

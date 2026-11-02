@@ -1,4 +1,4 @@
-# Fractional
+# Fractional Operator
 
 Menu Path : **Operator > Math > Arithmetic > Fractional**
 

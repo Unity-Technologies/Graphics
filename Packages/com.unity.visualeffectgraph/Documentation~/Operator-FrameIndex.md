@@ -1,4 +1,4 @@
-# Frame Index
+# Frame Index Operator
 
 Menu Path : **Operator > BuiltIn > Frame Index**
 

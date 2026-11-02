@@ -1,4 +1,4 @@
-# Camera
+# Camera Operator
 
 Menu Path : **Operator > Inline > Camera**
 

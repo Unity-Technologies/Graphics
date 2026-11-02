@@ -9,12 +9,15 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
     public int gridCount;
     public float offset;
     public bool useInstancing;
+    public bool useMaterialPropertyBlock;
+    public bool useRandomColor = true;
     public SpriteMaskInteraction maskInteraction;
     public string sortingLayerName = "Default";
     public int sortingOrder = 0;
 
     private int instanceCount;
     MyInstanceData[] instanceData;
+    MaterialPropertyBlock materialPropertyBlock;
 
     struct MyInstanceData
     {
@@ -31,9 +34,10 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
 
         instanceData = new MyInstanceData[instanceCount];
 
-        var startOffset = gridCount / 2 * offset;
-        if (gridCount % 2 == 0)
-            startOffset -= offset / 2;
+        // Center the grid on the GameObject: the full span is (gridCount - 1) * offset,
+        // so the first cell starts half a span before the center. This spaces cells evenly
+        // for both odd and even grid counts.
+        var startOffset = (gridCount - 1) * offset * 0.5f;
 
         var startPos = new Vector3(transform.position.x - startOffset, transform.position.y - startOffset, 0f);
 
@@ -43,9 +47,15 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
             for (int x = 0; x < gridCount; x++)
             {
                 var pos = new Vector3(startPos.x + x * offset, startPos.y + y * offset, 0f);
-                instanceData[y * gridCount + x].objectToWorld = Matrix4x4.TRS(pos + transform.position, transform.rotation, transform.localScale);
-                instanceData[y * gridCount + x].spriteColor = new Color(Random.Range(0, 1f), Random.Range(0, 1f), Random.Range(0, 1f), 1);
+                instanceData[y * gridCount + x].objectToWorld = Matrix4x4.TRS(pos, transform.rotation, transform.localScale);
+                instanceData[y * gridCount + x].spriteColor = useRandomColor ? new Color(Random.Range(0, 1f), Random.Range(0, 1f), Random.Range(0, 1f), 1) : Color.white;
             }
+        }
+
+        if (useMaterialPropertyBlock)
+        {
+            materialPropertyBlock = new MaterialPropertyBlock();
+            materialPropertyBlock.SetColor("_TestColor", Color.red);
         }
 
         RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
@@ -63,6 +73,8 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
             RenderParams rp = new RenderParams(drawMaterial);
             rp.sortingLayerID = SortingLayer.NameToID(sortingLayerName);
             rp.sortingOrder = sortingOrder;
+            if (useMaterialPropertyBlock)
+                rp.matProps = materialPropertyBlock;
 
             if (useInstancing)
             {

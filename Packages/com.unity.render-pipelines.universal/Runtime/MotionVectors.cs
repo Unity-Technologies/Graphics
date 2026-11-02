@@ -34,6 +34,22 @@ namespace UnityEngine.Rendering.Universal
         Vector3 m_previousWorldSpaceCameraPos;
         Vector3 m_previousPreviousWorldSpaceCameraPos;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        // Per-view array form of the scalar camera-position history above, consumed by the upscaler IO
+        // (io.worldSpaceCameraPositions is a Vector3[] — per-view so XR-capable pipelines can supply distinct per-eye
+        // positions). NOT independent data: the scalars remain the authoritative store; these are filled by replicating
+        // them across views (URP currently has only a mono camera position, so every view gets the same value — a known
+        // XR limitation; true per-eye positions would derive from the per-view view matrices). Kept as reusable
+        // per-camera buffers, resized only on view-count change, so populating the array doesn't allocate per frame and
+        // stays valid from render-graph record to execute. Upscaling-only state.
+        Vector3[] m_WorldSpaceCameraPosViews;
+        Vector3[] m_PreviousWorldSpaceCameraPosViews;
+        Vector3[] m_PreviousPreviousWorldSpaceCameraPosViews;
+#endif
+
+        // Resolution tracking for DRS support in upscaling framework
+        Vector2Int m_previousPreUpscaleResolution;
+
         #endregion
 
         #region Constructors
@@ -132,6 +148,30 @@ namespace UnityEngine.Rendering.Universal
             get => m_previousPreviousWorldSpaceCameraPos;
         }
 
+        /// <summary>
+        /// Previous frame's pre-upscale resolution.
+        /// Used by temporal upscalers to detect resolution changes for history management.
+        /// </summary>
+        internal Vector2Int previousPreUpscaleResolution
+        {
+            get => m_previousPreUpscaleResolution;
+            set => m_previousPreUpscaleResolution = value;
+        }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        static Vector3[] EnsureViewBuffer(ref Vector3[] buffer, int viewCount)
+        {
+            if (buffer == null || buffer.Length < viewCount)
+                buffer = new Vector3[viewCount];
+            return buffer;
+        }
+
+        // Per-view camera-position buffers for the upscaler IO, reused across frames (no per-frame GC alloc). The caller
+        // fills them each frame; length == viewCount (callers use io.numActiveViews as the authoritative per-view count).
+        internal Vector3[] GetWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_WorldSpaceCameraPosViews, viewCount);
+        internal Vector3[] GetPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousWorldSpaceCameraPosViews, viewCount);
+        internal Vector3[] GetPreviousPreviousWorldSpaceCameraPosViews(int viewCount) => EnsureViewBuffer(ref m_PreviousPreviousWorldSpaceCameraPosViews, viewCount);
+#endif
         #endregion
 
         public void Reset()
@@ -160,6 +200,8 @@ namespace UnityEngine.Rendering.Universal
             m_worldSpaceCameraPos = Vector3.zero;
             m_previousWorldSpaceCameraPos = Vector3.zero;
             m_previousPreviousWorldSpaceCameraPos = Vector3.zero;
+
+            m_previousPreUpscaleResolution = Vector2Int.zero;
         }
 
         static private int GetXRMultiPassId(XRPass xr)

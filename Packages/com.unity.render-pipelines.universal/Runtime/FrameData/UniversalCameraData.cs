@@ -151,6 +151,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public int scaledHeight;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        // The hardware dynamic resolution (ScalableBufferManager) scale captured once per camera at setup, so upscaler
+        // passes read a stable per-camera value instead of the live, global, mid-frame-mutable SBM factors (which other
+        // passes could change between the camera color being aliased and the upscaler reading it). Vector2.one when the
+        // camera does not use hardware dynamic resolution.
+        internal Vector2 hardwareDynamicResolutionScale;
+#endif
+
         // NOTE: This is internal instead of private to allow ref return in the old CameraData compatibility property.
         // We can make this private when it is removed.
         //
@@ -650,6 +658,7 @@ namespace UnityEngine.Rendering.Universal
             imageScalingMode = ImageScalingMode.None;
 #if ENABLE_UPSCALER_FRAMEWORK
             resolvedUpscalerHash = -1;
+            hardwareDynamicResolutionScale = Vector2.one;
 #else
             upscalingFilter = ImageUpscalingFilter.Point;
 #endif

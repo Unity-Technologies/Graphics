@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ClampedFloatParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Panini Projection")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [URPHelpURL("Post-Processing-Panini-Projection")]
+    [URPHelpURL("urp/Post-Processing-Panini-Projection")]
     public sealed class PaniniProjection : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

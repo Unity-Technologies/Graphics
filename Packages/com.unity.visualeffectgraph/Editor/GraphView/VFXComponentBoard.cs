@@ -163,7 +163,7 @@ namespace UnityEditor.VFX.UI
 
             m_PlayRateMenu = this.Query<DropdownField>("play-rate-menu");
             m_PlayRateMenu.choices = VisualEffectControl.setPlaybackValues.Select(x => x.ToString()).ToList();
-            m_PlayRateMenu.formatListItemCallback = x => $"{x} %";
+            m_PlayRateMenu.formatListItemCallback = x => $"{x}%";
             m_PlayRateMenu.formatSelectedValueCallback = x => "Set";
             m_PlayRateMenu.RegisterValueChangedCallback(SetPlayRate);
 

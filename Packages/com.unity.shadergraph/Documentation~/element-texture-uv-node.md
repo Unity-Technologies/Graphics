@@ -24,3 +24,4 @@ The texture UV can also originate from a custom mesh when you call [`MeshGenerat
 
 - [Element Layout UV node](xref:element-layout-uv-node)
 - [Element Texture Size node](xref:element-texture-size-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

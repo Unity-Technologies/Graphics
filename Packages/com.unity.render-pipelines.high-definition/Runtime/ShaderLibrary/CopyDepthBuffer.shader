@@ -76,6 +76,59 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "Copy Depth MSAA"
+
+            Cull   Off
+            ZTest  Always
+            ZWrite On
+            Blend  Off
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma editor_sync_compilation
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
+            #pragma fragment Frag
+            #pragma vertex Vert
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            TEXTURE2D_X_MSAA(float, _InputDepthTexture);
+
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_Position;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                return output;
+            }
+
+            // SV_SampleIndex forces per-sample execution so each sample of the destination gets its own source sample.
+            float Frag(Varyings input, uint sampleIndex : SV_SampleIndex) : SV_Depth
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                return LOAD_TEXTURE2D_X_MSAA(_InputDepthTexture, int2(input.positionCS.xy), sampleIndex).x;
+            }
+
+            ENDHLSL
+        }
     }
     Fallback Off
 }

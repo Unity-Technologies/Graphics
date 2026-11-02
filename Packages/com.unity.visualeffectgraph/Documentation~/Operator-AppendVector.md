@@ -1,4 +1,4 @@
-# Append Vector
+# Append Vector Operator
 
 Menu Path : **Operator > Math > Vector**
 

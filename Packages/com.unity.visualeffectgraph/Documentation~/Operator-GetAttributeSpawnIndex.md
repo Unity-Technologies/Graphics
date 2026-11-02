@@ -1,4 +1,4 @@
-# Get Attribute: spawnIndex
+# Get Attribute: spawnIndex Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: spawnIndex**
 

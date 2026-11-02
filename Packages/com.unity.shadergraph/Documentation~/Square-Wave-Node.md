@@ -21,3 +21,7 @@ void Unity_SquareWave_float4(float4 In, out float4 Out)
     Out = 1.0 - 2.0 * round(frac(In));
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

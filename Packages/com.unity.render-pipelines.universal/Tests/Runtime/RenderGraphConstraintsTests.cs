@@ -249,7 +249,11 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             yield return null;
 
-            Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            // No need to go further if we don't support memoryless textures
+            if (SystemInfo.supportsMemorylessTextures)    
+            {
+                Assert.That(OnlyBackbufferOrMemoryless(outputNonMemoryless: true), Is.True, "Non-memoryless intermediate targets were produced.");
+            }
             LogAssert.ignoreFailingMessages = false;
         }
 
@@ -257,6 +261,9 @@ namespace UnityEngine.Rendering.Universal.Tests
         [UnityTest]
         public IEnumerator CameraStackingProduceWarning()
         {
+            if (Display.main.requiresSrgbBlitToBackbuffer)
+                Assert.Ignore("Tile-Only Mode falls back to normal rendering when the display requires an sRGB present blit; the overlay-unsupported warning won't be produced.");
+
             // Arrange
             var gameObject = new GameObject();
             var camera = gameObject.AddComponent<Camera>();

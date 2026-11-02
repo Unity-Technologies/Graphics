@@ -23,3 +23,7 @@ void Unity_Branch_float4(float Predicate, float4 True, float4 False, out float4 
     Out = Predicate ? True : False;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

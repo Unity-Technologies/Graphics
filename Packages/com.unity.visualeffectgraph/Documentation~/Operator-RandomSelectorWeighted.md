@@ -1,8 +1,8 @@
-# Random Selector Weighted
+# Random Selector Weighted Operator
 
 
 
-Menu Path : **Operator > Logic > Random Selector Weighted**
+Menu Path : **Operator** > **Logic** > **Random Selector Weighted**
 
 The **Random Selector Weighted** Operator performs a kind of switch/case operation where a weight controls the probability of selecting a case. If all weights are equal, this Operator produces a uniform distribution of the different output values.
 

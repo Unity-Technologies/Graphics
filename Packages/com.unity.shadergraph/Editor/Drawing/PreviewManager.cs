@@ -72,8 +72,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(GraphData graph, MessageManager messenger)
+        bool m_DisablePreviewsForTesting;
+
+        public PreviewManager(GraphData graph, MessageManager messenger, bool disablePreviewsForTesting = false)
         {
+            m_DisablePreviewsForTesting = disablePreviewsForTesting;
             m_SharedPreviewPropertyBlock = new MaterialPropertyBlock();
             m_SharedPreviewProperties = new Dictionary<string, PreviewProperty>();
             m_Graph = graph;
@@ -636,8 +639,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
         private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
         private float previewTime = 0;
+
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
+            if (m_DisablePreviewsForTesting)
+                return;
+
             using (RenderPreviewsMarker.Auto())
             using (UnityEngine.Pool.ListPool<PreviewRenderData>.Get(out var renderList2D))
             using (UnityEngine.Pool.ListPool<PreviewRenderData>.Get(out var renderList3D))

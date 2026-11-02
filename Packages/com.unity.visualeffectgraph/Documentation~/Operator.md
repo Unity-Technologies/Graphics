@@ -12,7 +12,7 @@ Calculate, convert, and manipulate data for particles and effects.
 | [Custom HLSL Operator](Operator-CustomHLSL.md) | Write an HLSL function that takes inputs and produces outputs. |
 | [Inline Operators](Inline.md) | Store values, vectors, shapes, and textures. |
 | [Logic Operators](Logic.md) | Perform Boolean operations and conditional branching. |
-| [Math](Math.md) | Perform mathematical calculations on input data. |
+| [Math Operators](Math.md) | Perform mathematical calculations on input data. |
 | [Noise Operators](Noise.md) | Generate procedural noise patterns, for example to control the behavior of particles over time. |
 | [Random Operators](Random.md) | Generate random values or select random outputs. |
 | [Sampling Operators](Sampling.md) | Fetch data from buffers, meshes, and textures. |

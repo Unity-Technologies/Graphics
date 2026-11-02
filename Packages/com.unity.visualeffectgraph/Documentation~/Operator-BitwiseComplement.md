@@ -1,6 +1,6 @@
-# Complement (Bitwise)
+# Complement (Bitwise) Operator
 
-Menu Path : **Operator > Bitwise > Complement**
+Menu Path : **Operator** > **Bitwise** > **Complement**
 
 The **Complement** Operator applies a bitwise logical *NOT* operation to each bit of a number in its binary form. This inverts each bit, meaning bits that are 0 become 1 and bits that are 1 become 0. For example:
 

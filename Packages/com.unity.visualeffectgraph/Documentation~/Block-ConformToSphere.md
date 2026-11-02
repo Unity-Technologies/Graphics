@@ -1,4 +1,4 @@
-# Attractor Shape Sphere
+# Attractor Shape Sphere Block
 
 Menu Path : **Force > Attractor Shape Sphere**
 

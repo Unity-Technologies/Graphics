@@ -22,3 +22,4 @@ Outputs the text color set for bitmap text rendering and includes a tint input y
 - [Default Texture node](xref:default-texture-node)
 - [Default SDF Text node](xref:default-sdf-text-node)
 - [Render Type Branch node](xref:render-type-branch-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

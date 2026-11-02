@@ -1,4 +1,4 @@
-# Output Particle URP Lit Decal
+# Output Particle URP Lit Decal Context
 
 The **Output Particle URP Lit Decal** Context uses a decal to render a particle system. A decal is a box that the Visual Effect Graph projects a texture into. Unity renders that texture on any geometry that intersects the decal along its xy plane. This means decal particles that don’t intersect any geometry are not visible. When a decal is not visible, it still contributes to the resource intensity required to simulate and render the system.
 
@@ -21,7 +21,7 @@ The particles project their properties along their positive Z-axis.
 
 Below is a list of settings and properties specific to the Output Particle URP Lit Decal Context. For information about the generic output settings this Context shares with all other Contexts, see [Output Lit Settings and Properties](Context-OutputLitSettings.md).
 
-# Context Settings
+## Context Settings
 
 | **Input**                  | **Type** | **Description**                                              |
 | -------------------------- | -------- | ------------------------------------------------------------ |
@@ -39,7 +39,7 @@ Below is a list of settings and properties specific to the Output Particle URP L
 
 
 
-# Context Properties
+## Context Properties
 
 | **Input**             | **Type** | **Description**                                              |
 | --------------------- | -------- | ------------------------------------------------------------ |
@@ -50,7 +50,7 @@ Below is a list of settings and properties specific to the Output Particle URP L
 
 
 
-# Limitations
+## Limitations
 
 - This Output does not support Shader Graph.
 - For this Context to work, add the[ Decal Renderer Feature](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?subfolder=/manual/renderer-feature-decal.html) to your Renderer.

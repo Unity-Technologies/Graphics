@@ -224,6 +224,9 @@ namespace UnityEditor.VFX
         public static readonly string k_IndirectBufferName = "indirectBuffer";
         public static readonly string k_SortedIndirectBufferName = "sortedIndirectBuffer";
 
+        // Matches the runtime's worst-case merge-pass threshold so the sort scratch buffer allocation below never under-allocates.
+        const uint k_MinSortMergePassCapacityThreshold = 2048;
+
         public VFXDataParticle()
         {
             m_GraphValuesLayout.uniformBlocks = new List<List<VFXExpression>>();
@@ -1480,7 +1483,7 @@ namespace UnityEditor.VFX
 
                             sortTaskDesc.buffers = new VFXMapping[3];
                             sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", GetBufferIndex(task, k_IndirectBufferName) + j);
-                            if (capacity > 4096) // Add scratch buffer
+                            if (capacity > k_MinSortMergePassCapacityThreshold) // Add scratch buffer
                             {
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", outBufferDescs.Count);
                                 outBufferDescs.Add(new VFXGPUBufferDesc() { debugName = "VFXScratchSortBuffer", target = GraphicsBuffer.Target.Structured, size = capacity + 1, stride = 8 });

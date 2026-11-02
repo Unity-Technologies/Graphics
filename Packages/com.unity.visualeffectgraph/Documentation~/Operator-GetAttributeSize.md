@@ -1,4 +1,4 @@
-# Get Attribute: size
+# Get Attribute: size Operator
 
 Menu Path : **Operator > Attribute > Get Attribute: size**
 

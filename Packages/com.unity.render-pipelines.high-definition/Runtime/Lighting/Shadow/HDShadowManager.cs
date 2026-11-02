@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
@@ -652,20 +653,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Safe under HDRP's current synchronous record -> execute model, but would require revisiting if multiple cameras interleave record and execute phases.
         NativeHashMap<int, int> m_DataIndexToLightIndexMap;
 
+        [NoAutoStaticsCleanup] // Cached by the surviving HDRenderPipeline at construction; native collections disposed via beforeAssemblyReload/quitting.
         private static HDShadowManager s_Instance = new HDShadowManager();
 
         public static HDShadowManager instance { get { return s_Instance; } }
         public static HDCachedShadowManager cachedShadowManager {  get { return HDCachedShadowManager.instance; } }
 
         internal NativeList<HDShadowResolutionRequest> shadowResolutionRequestStorage => m_ShadowResolutionRequestStorage;
-
-#if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void ResetStaticsOnLoad()
-        {
-            s_Instance = new HDShadowManager();
-        }
-#endif
 
         private HDShadowManager()
         {

@@ -30,3 +30,4 @@ UI Shader Graph provides default nodes, such as the [Default Solid node](xref:de
 - [Default SDF Text node](xref:default-sdf-text-node)
 - [Default Bitmap Text node](xref:default-bitmap-text-node)
 - [Default Gradient node](xref:default-gradient-node)
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

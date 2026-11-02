@@ -59,9 +59,23 @@ namespace UnityEditor.Rendering.Universal.Tools
             {
                 Assert.IsTrue(scanItems.Count > 0, "Initialization did not found the item to convert");
 
+                // Find the Quality folder (RenderSettingsConverter returns Graphics and Quality folders)
+                IFolderRenderPipelineConverterItem qualityFolder = null;
+                foreach (var item in scanItems)
+                {
+                    if (item is IFolderRenderPipelineConverterItem folder && folder.name == "Quality")
+                    {
+                        qualityFolder = folder;
+                        break;
+                    }
+                }
+
+                Assert.IsNotNull(qualityFolder, "Quality folder not found in scan results");
+                Assert.IsTrue(qualityFolder.children.Count > m_QualityLevel, $"Quality level {m_QualityLevel} out of range for {qualityFolder.children.Count} quality levels");
+
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
-                
-                var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
+
+                var status = renderSettingsConverter.Convert(qualityFolder.children[m_QualityLevel], out string msg);
                 Assert.IsTrue(status != Status.Error, msg);
 
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");
@@ -126,9 +140,23 @@ namespace UnityEditor.Rendering.Universal.Tools
             {
                 Assert.IsTrue(scanItems.Count > 0, "Initialization did not found the item to convert");
 
+                // Find the Quality folder (RenderSettingsConverter returns Graphics and Quality folders)
+                IFolderRenderPipelineConverterItem qualityFolder = null;
+                foreach (var item in scanItems)
+                {
+                    if (item is IFolderRenderPipelineConverterItem folder && folder.name == "Quality")
+                    {
+                        qualityFolder = folder;
+                        break;
+                    }
+                }
+
+                Assert.IsNotNull(qualityFolder, "Quality folder not found in scan results");
+                Assert.IsTrue(qualityFolder.children.Count > m_QualityLevel, $"Quality level {m_QualityLevel} out of range for {qualityFolder.children.Count} quality levels");
+
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Initialization did not rollback quality level");
 
-                var status = renderSettingsConverter.Convert(scanItems[m_QualityLevel], out string msg);
+                var status = renderSettingsConverter.Convert(qualityFolder.children[m_QualityLevel], out string msg);
                 Assert.IsTrue(status != Status.Error, msg);
 
                 Assert.AreEqual(m_QualityLevel, QualitySettings.GetQualityLevel(), "Run did not rollback quality level");

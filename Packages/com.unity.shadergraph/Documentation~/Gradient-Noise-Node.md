@@ -52,3 +52,7 @@ void Unity_GradientNoise_float(float2 UV, float Scale, out float Out)
     Out = unity_gradientNoise(UV * Scale) + 0.5;
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

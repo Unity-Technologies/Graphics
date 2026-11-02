@@ -318,6 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
             m_DLSSPass = null;
+            m_FSR2Pass?.Cleanup();
             m_FSR2Pass = null;
         }
 
@@ -519,6 +520,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         CurrentUpsamplerData? GetCurrentUpsamplerData(HDCamera hdCamera)
         {
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (hdCamera.IsIUpscalerEnabled())
+            {
+                return new CurrentUpsamplerData
+                {
+                    isAdvancedUpsampler = true,
+                    advancedUpsampler = AdvancedUpscalers.IUpscaler,
+                    schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                };
+            }
+#endif
+
             // Check if DLSS or FSR can run:
             int dlssMask = (1 << (int)AdvancedUpscalers.DLSS);
             int fsrMask = (1 << (int)AdvancedUpscalers.FSR2);
@@ -583,18 +596,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-#if ENABLE_UPSCALER_FRAMEWORK
-            if (hdCamera.IsIUpscalerEnabled())
-            {
-                return new CurrentUpsamplerData
-                {
-                    isAdvancedUpsampler = true,
-                    advancedUpsampler = AdvancedUpscalers.IUpscaler,
-                    schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
-                };
-            }
-#endif
-
             if (hdCamera.DynResRequest.enabled)
             {
                 if (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
@@ -628,12 +629,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             source = upsamplerDataData switch
             {
-                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
-                    => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
 #if ENABLE_UPSCALER_FRAMEWORK
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.IUpscaler }
                     => DoIUpscalerPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
 #endif
+                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
+                    => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.DLSS}
                     => DoDLSSPasses(renderGraph, hdCamera, upsamplerDataData.schedule, source, depthBuffer, motionVectors),
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.FSR2}
@@ -1074,6 +1075,9 @@ namespace UnityEngine.Rendering.HighDefinition
             io.motionVectorTextureSize = hdCamera.historyRTHandleProperties.currentViewportSize; // is there ever a scenario where MVs are smaller than input color? if not, remove this.
             io.jitteredMotionVectors = false; // HDRP has no jittering in MVs
             io.preUpscaleResolution = hdCamera.historyRTHandleProperties.currentViewportSize;
+            // Max render size = the RTHandle allocation (the reference/render-target size). Under dynamic resolution the
+            // viewport (preUpscaleResolution) is a sub-rect of it; upscalers allocate history at this stable max.
+            io.maxPreUpscaleResolution = hdCamera.historyRTHandleProperties.currentRenderTargetSize;
             io.previousPreUpscaleResolution = hdCamera.historyRTHandleProperties.previousViewportSize;
             io.postUpscaleResolution = new Vector2Int((int)hdCamera.finalViewport.width, (int)hdCamera.finalViewport.height);
             io.enableTexArray = TextureXR.useTexArray;
@@ -1138,30 +1142,45 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             io.enableMotionScaling = true;
 #endif
-            // Hardware Dynamic Resolution Scaling
+            // Dynamic Resolution Scaling
             {
                 // When HW DRS is not enabled, STP is only functional when the dynamic resolution is forced to a fixed value
                 if (hdCamera.DynResRequest.enabled && !hdCamera.DynResRequest.hardwareEnabled)
                     Debug.Assert(hdCamera.DynResRequest.forcingResolution);
 
-                io.enableHwDrs = hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.hardwareEnabled;
+                io.dynamicResolution = !hdCamera.DynResRequest.enabled
+                    ? (DynamicResolutionType?)null
+                    : (hdCamera.DynResRequest.hardwareEnabled ? DynamicResolutionType.Hardware : DynamicResolutionType.Software);
             }
 
             // Insert the active upscaler's render graph passes
             IUpscaler upscaler = upscaling.activeUpscaler;
             Debug.Assert(upscaler != null);
 
+            // Fetch the framework-owned options for this upscaler (per-camera overrides are future work).
+            UpscalerOptions upscalerOptions = upscaling.GetGlobalOptions(upscaler);
+
             // Acquire the per-camera context for the active upscaler
             // HDRP already has separate HDCamera instances per eye in multi-pass XR, so cameraInstanceID is already unique per view
             io.context = upscaling.AcquireContext(
                 io.cameraInstanceID,
                 upscaler,
-                upscaler.options,
+                upscalerOptions,
                 io.postUpscaleResolution
             );
 
-            // Use jitter already computed during camera setup (stored in taaJitter with correct sign)
-            io.subpixelJitter = new Vector2(hdCamera.taaJitter.x, hdCamera.taaJitter.y);
+            // Jitter offset handed to the temporal upscaler's native SDK. The framework upscalers (DLSS/FSR2) pass
+            // io.subpixelJitter straight through to their SDK execute data, so it must already be in the SDK's sign
+            // convention. HDRP and URP jitter the projection with OPPOSITE sign conventions (HDRP perturbs the frustum
+            // planes; URP applies a clip-space Translate), so the same SDK offset corresponds to +appliedJitter in URP
+            // but -appliedJitter in HDRP. URP feeds +subpixelJitter; HDRP must feed -taaJitter — exactly what the native
+            // HDRP DLSS/FSR2 passes do (DLSSPass: jitterX = -taaJitter.x; FSR2Pass: jitterOffsetX = -taaJitter.x).
+            // Passing +taaJitter here (the URP convention) makes the upscaler correct against the jitter instead of
+            // cancelling it -> the image shakes (most visible at higher upscale ratios, e.g. DLSS Performance).
+            io.subpixelJitter = new Vector2(-hdCamera.taaJitter.x, -hdCamera.taaJitter.y);
+
+            // Provide current options for per-frame settings (sharpness, etc.)
+            io.options = upscalerOptions;
 
             upscaler.RecordRenderGraph(renderGraph, hdCamera.contextContainer);
 
@@ -5575,6 +5594,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 alphaScaleBias;
 
+            public bool exposureCompensationEnabled;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle logLut;
@@ -5642,6 +5663,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareUberBloomParameters(passData, hdCamera);
                 PrepareAlphaScaleParameters(passData, hdCamera);
 
+                passData.exposureCompensationEnabled = !hdCamera.resetPostProcessingHistory && !hdCamera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(hdCamera);
+
                 passData.source = source;
                 builder.UseTexture(passData.source, AccessFlags.Read);
                 passData.bloomTexture = bloomTexture;
@@ -5684,6 +5707,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Alpha scale and bias (only used when alpha is enabled)
                         natCmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);
+
+                        natCmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._PreExposureCorrectionParams, new Vector4(data.exposureCompensationEnabled ? 1f : 0f, 0f, 0f, 0f));
 
                         // Dispatch uber post
                         natCmd.SetComputeVectorParam(data.uberPostCS, "_DebugFlags", new Vector4(data.outputColorLog ? 1 : 0, 0, 0, data.isSearchingInHierarchy ? 1 : 0));

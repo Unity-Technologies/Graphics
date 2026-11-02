@@ -104,6 +104,8 @@ namespace Preview
                 var testObject = ProduceNewObject(objectFactory, renderPipelineAssetType, out m_CreatedObjectPath);
                 var loadIcon = LoadIcon(TestContext.CurrentContext.Test.Name);
 
+                yield return new WaitForEndOfFrame();
+
                 //Act
                 yield return WaitForShadersToCompile(testObject, m_CreatedObjectPath);
                 var tex = AssetPreviewUpdater.CreatePreviewForAsset(testObject, null, m_CreatedObjectPath);
@@ -180,6 +182,9 @@ namespace Preview
 
                             Assert.IsNotNull(generatedPreview, $"The generated preview at {previewFilename} should be loadable");
                             var referenceImage = LoadIcon(String.Format("{0}_{1}", TestContext.CurrentContext.Test.Name, previewFilename));
+
+                            yield return new WaitForEndOfFrame();
+
                             //Assert
                             ImageAssert.AreEqual(referenceImage, generatedPreview, new ImageComparisonSettings
                             {

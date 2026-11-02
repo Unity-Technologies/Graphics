@@ -4,8 +4,8 @@ Update the position and rotation of particles.
 
 | **Page** | **Description** |
 | --- | --- |
-| [Integration: Update Position](Block-UpdatePosition.md) | Update the positions of particles. |
-| [Integration: Update Rotation](Block-UpdateRotation.md) | Update the rotation of particles. |
+| [Integration: Update Position Block](Block-UpdatePosition.md) | Update the positions of particles. |
+| [Integration: Update Rotation Block](Block-UpdateRotation.md) | Update the rotation of particles. |
 
 ## Additional resources
 

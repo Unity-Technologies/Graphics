@@ -1,4 +1,4 @@
-# Triangle Wave
+# Triangle Wave Operator
 
 Menu Path : **Operator > Math > Wave > Triangle Wave**
 

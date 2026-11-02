@@ -28,3 +28,7 @@ void Unity_Combine_float(float R, float G, float B, float A, out float4 RGBA, ou
     RG = float2(R, G);
 }
 ```
+
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

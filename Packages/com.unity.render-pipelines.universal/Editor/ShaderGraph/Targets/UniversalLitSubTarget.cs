@@ -445,7 +445,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { },
                     keywords = new KeywordCollection() { keywords },
-                    includes = LitIncludes.Forward,
+                    includes = new IncludeCollection { LitIncludes.Forward },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -699,7 +699,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness },
+                    keywords = new KeywordCollection { CoreKeywordDescriptors.WriteSmoothness, CoreKeywordDescriptors.GBufferNormalsOct },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support

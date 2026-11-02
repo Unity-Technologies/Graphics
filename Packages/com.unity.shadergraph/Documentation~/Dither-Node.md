@@ -34,3 +34,6 @@ void Unity_Dither_float4(float4 In, float4 ScreenPosition, out float4 Out)
 }
 ```
 
+## Additional resources
+
+[!include[nodes-example-samples](./snippets/nodes-example-samples.md)]

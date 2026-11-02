@@ -500,7 +500,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Hash function
         /// </summary>
         /// <returns>The texture descriptor hash.</returns>
-        public override int GetHashCode()
+        public override int GetHashCode() => ComputeDescHash().value;
+
+        internal HashFNV1A32 ComputeDescHash()
         {
             var hashCode = HashFNV1A32.Create();
             switch (sizeMode)
@@ -536,7 +538,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             hashCode.Append((int) msaaSamples);
             hashCode.Append(fastMemoryDesc.inFastMemory);
             hashCode.Append(enableShadingRate);
-            return hashCode.value;
+            return hashCode;
         }
 
         /// <summary>
@@ -581,7 +583,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetDescHashCode() { return desc.GetHashCode(); }
+        public override HashFNV1A32 GetDescHash() { return desc.ComputeDescHash(); }
 
         public override void CreateGraphicsResource()
         {

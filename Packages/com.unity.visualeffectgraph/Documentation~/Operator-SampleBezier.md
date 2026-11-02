@@ -1,4 +1,4 @@
-# Sample Bezier
+# Sample Bezier Operator
 
 Menu Path : **Operator > Math > Vector**
 

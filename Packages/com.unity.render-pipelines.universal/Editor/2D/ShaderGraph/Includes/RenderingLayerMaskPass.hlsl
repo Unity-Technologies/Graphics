@@ -24,7 +24,7 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-uint frag(PackedVaryings packedInput) : SV_TARGET
+void frag(PackedVaryings packedInput, out uint outRenderingLayers : SV_Target0)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -40,13 +40,11 @@ uint frag(PackedVaryings packedInput) : SV_TARGET
 
     if (color.a == 0.0)
         discard;
-    
+
 #if ALPHA_CLIP_THRESHOLD
     clip(color.a - surfaceDescription.AlphaClipThreshold);
 #endif
 
-    uint meshRenderingLayers = GetMeshRenderingLayer();
-
-    return meshRenderingLayers;
+    outRenderingLayers = GetMeshRenderingLayer();
 }
 

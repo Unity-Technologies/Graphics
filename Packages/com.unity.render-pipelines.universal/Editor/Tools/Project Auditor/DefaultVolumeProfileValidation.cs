@@ -17,10 +17,7 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor
             Areas.Quality,
             "The default Volume Profile is not assigned in Graphics Settings. Without a default volume profile, post-processing and other volume-based effects may not work correctly. This setting is configured in Project Settings > Graphics > URP.",
             "Assign a default Volume Profile in Project Settings > Graphics > URP section"
-        )
-        {
-            DefaultSeverity = Severity.Warning,
-        };
+        );
 
         public IEnumerable<RenderingSettingsIssue> EnumerateIssues()
         {

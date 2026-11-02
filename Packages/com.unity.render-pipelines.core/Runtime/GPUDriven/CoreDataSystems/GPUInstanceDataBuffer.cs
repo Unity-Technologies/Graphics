@@ -735,8 +735,7 @@ namespace UnityEngine.Rendering
         {
             var jaggedInstanceData = instanceData.Reinterpret<byte>(UnsafeUtility.SizeOf<T>()).ToJaggedSpan(Allocator.TempJob);
             JobHandle jobHandle = ScheduleWriteComponentsJob(jaggedInstanceData, component, UnsafeUtility.SizeOf<T>(), uploadBuffer);
-            jaggedInstanceData.Dispose(jobHandle);
-            return jobHandle;
+            return jaggedInstanceData.Dispose(jobHandle);
         }
 
         public unsafe JobHandle ScheduleWriteComponentsJob(JaggedSpan<byte> instanceData, GPUComponentHandle component, int componentSize, NativeArray<uint> uploadBuffer)
@@ -782,9 +781,7 @@ namespace UnityEngine.Rendering
                     UploadBuffer = uploadBuffer.Reinterpret<byte>(sizeof(uint))
                 }
                 .Schedule(jobRanges);
-                jobRanges.Dispose(jobHandle);
-
-                return jobHandle;
+                return jobRanges.Dispose(jobHandle);
             }
             else
             {

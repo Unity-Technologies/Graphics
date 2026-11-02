@@ -119,8 +119,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [UnityTest]
-		[Timeout(840000)]
-        public IEnumerator TransformABC()
+        [Timeout(420000)]
+        public IEnumerator TransformABC_Position() { yield return TransformABCImpl(ConversionType.Position); }
+
+        [UnityTest]
+        [Timeout(420000)]
+        public IEnumerator TransformABC_Direction() { yield return TransformABCImpl(ConversionType.Direction); }
+
+        [UnityTest]
+        [Timeout(420000)]
+        public IEnumerator TransformABC_Normal() { yield return TransformABCImpl(ConversionType.Normal); }
+
+        IEnumerator TransformABCImpl(ConversionType conversionType)
         {
             // Test that transforming from A->B then B->C is the same as A->C (for all A,B,C)
             string graphPath = "Assets/CommonAssets/Graphs/NodeTests/TransformABC.shadergraph";
@@ -132,39 +142,37 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var A_to_B = xforms.FirstOrDefault(n => (n.conversion.from == CoordinateSpace.Object) && (n.conversion.to == CoordinateSpace.View));
             var B_to_C = xforms.FirstOrDefault(n => (n.conversion.from == CoordinateSpace.View) && (n.conversion.to == CoordinateSpace.Tangent));
 
-            // check all possible settings
-            foreach (ConversionType conversionType in Enum.GetValues(typeof(ConversionType)))
+            foreach (CoordinateSpace A in Enum.GetValues(typeof(CoordinateSpace)))
             {
-                foreach (CoordinateSpace A in Enum.GetValues(typeof(CoordinateSpace)))
+                foreach (CoordinateSpace B in Enum.GetValues(typeof(CoordinateSpace)))
                 {
-                    foreach (CoordinateSpace B in Enum.GetValues(typeof(CoordinateSpace)))
+                    foreach (CoordinateSpace C in Enum.GetValues(typeof(CoordinateSpace)))
                     {
-                        foreach (CoordinateSpace C in Enum.GetValues(typeof(CoordinateSpace)))
-                        {
-                            // Transforming from or through screen space appears to be lossy in our current implementations.
-                            if (A == CoordinateSpace.Screen || B == CoordinateSpace.Screen)
-                                continue;
+                        // Transforming from or through screen space appears to be lossy in our current implementations.
+                        if (A == CoordinateSpace.Screen || B == CoordinateSpace.Screen)
+                            continue;
 
-                            // setup transforms
-                            A_to_C.conversion = new CoordinateSpaceConversion(A, C);
-                            A_to_C.conversionType = conversionType;
-                            A_to_C.normalize = false;
+                        if (A == B || B == C)
+                            continue;
 
-                            A_to_B.conversion = new CoordinateSpaceConversion(A, B);
-                            A_to_B.conversionType = conversionType;
-                            A_to_B.normalize = false;
+                        A_to_C.conversion = new CoordinateSpaceConversion(A, C);
+                        A_to_C.conversionType = conversionType;
+                        A_to_C.normalize = false;
 
-                            B_to_C.conversion = new CoordinateSpaceConversion(B, C);
-                            B_to_C.conversionType = conversionType;
-                            B_to_C.normalize = false;
+                        A_to_B.conversion = new CoordinateSpaceConversion(A, B);
+                        A_to_B.conversionType = conversionType;
+                        A_to_B.normalize = false;
 
-                            RunNodeTest(graph, $"TransformABC_{A}_{B}_{C}_{conversionType}", errorThreshold: 1);
-                        }
+                        B_to_C.conversion = new CoordinateSpaceConversion(B, C);
+                        B_to_C.conversionType = conversionType;
+                        B_to_C.normalize = false;
 
-                        // have to yield to let a frame pass or it will break
-                        // (unity only releases some resources at the end of the frame)
-                        yield return null;
+                        RunNodeTest(graph, $"TransformABC_{A}_{B}_{C}_{conversionType}", errorThreshold: 1);
                     }
+
+                    // have to yield to let a frame pass or it will break
+                    // (unity only releases some resources at the end of the frame)
+                    yield return null;
                 }
             }
             ReportTests();

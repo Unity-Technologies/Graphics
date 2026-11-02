@@ -1,4 +1,4 @@
-# Lerp
+# Lerp Operator
 
 Menu Path : **Operator > Math > Arithmetic > Lerp**
 

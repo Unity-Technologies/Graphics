@@ -22,10 +22,6 @@ Additional Post-Processing Data gives you access to Textures you can use with po
 
 The Procedural Skyis a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](understand-volumes.md). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
 
-## Particle System shader samples
-
-This Sample includes various examples of lit and unlit particle effects.
-
 ## Material samples
 
 ![The Materials sample scene. A display of various materials, each with a description panel.](Images/MaterialSamples.png)
