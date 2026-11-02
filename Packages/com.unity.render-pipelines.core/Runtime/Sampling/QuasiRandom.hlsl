@@ -168,11 +168,11 @@ struct QrngKronecker2D
         uint cranleyPattersonRot = cranleyPattersonSeed + 3646589397 * (dimension / 4);
 
 #ifdef QRNG_KRONECKER_ENHANCED_QUALITY // add small scale jitter as explained in paper
-        const float alphaJitter[] = { 2681146017, 685201898 };
+        const uint alphaJitter[] = { 2681146017, 685201898 };
 
         uint jitter = alphaJitter[dimension % 2] * shuffledSampleIndex;
         float amplitude = 0.05 * 0.78 / sqrt(2) * rsqrt(float(sampleIndex));
-        cranleyPattersonRot += jitter * uint(amplitude);
+        cranleyPattersonRot += uint(jitter * amplitude);
 #endif
         // Kronecker sequence evaluation
         return UintToFloat01(cranleyPattersonRot + alphas[dimension % 4] * shuffledSampleIndex);
