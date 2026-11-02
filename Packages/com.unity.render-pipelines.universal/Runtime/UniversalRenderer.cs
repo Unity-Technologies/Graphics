@@ -197,6 +197,9 @@ namespace UnityEngine.Rendering.Universal
         bool m_ShadowmapStencil;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
+#if VOLUMETRIC_FOG
+        FogVolumeManager m_FogVolumeManager;
+#endif
         IntermediateTextureMode m_IntermediateTextureMode;
 
         // Materials used in URP Scriptable Render Passes
@@ -221,6 +224,7 @@ namespace UnityEngine.Rendering.Universal
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 #if VOLUMETRIC_FOG
         internal ForwardLights forwardLights { get => m_ForwardLights; }
+        internal FogVolumeManager fogVolumeManager { get => m_FogVolumeManager; }
 #endif
         internal LayerMask prepassLayerMask { get; set; }
         internal LayerMask opaqueLayerMask { get; set; }
@@ -325,6 +329,10 @@ namespace UnityEngine.Rendering.Universal
 
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
+
+#if VOLUMETRIC_FOG
+            m_FogVolumeManager = new FogVolumeManager();
+#endif
 
             this.stripShadowsOffVariants = data.stripShadowsOffVariants;
             this.stripAdditionalLightOffVariants = data.stripAdditionalLightOffVariants;
@@ -511,6 +519,9 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
+#if VOLUMETRIC_FOG
+            m_FogVolumeManager.Dispose();
+#endif
             m_GlobalShaderVariablesUploader?.Release();
 
             m_FinalBlitPass?.Dispose();

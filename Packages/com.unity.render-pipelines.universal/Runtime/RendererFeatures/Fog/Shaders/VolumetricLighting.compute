@@ -173,8 +173,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (voxelCoord.x >= (uint)_VBufferSize.x || voxelCoord.y >= (uint)_VBufferSize.y)
         return;
 
-    // View forward direction: the center voxel maps approximately to the camera forward axis.
-    float3 F = normalize(mul(-float4(0.5 * _VBufferSize.x, 0.5 * _VBufferSize.y, 1, 1), _VBufferCoordToViewDirWS).xyz);
+    // Rows 0 and 1 are the camera right and up axes, so their cross product is the forward axis, even with lens shift.
+    float3 F = normalize(cross(_VBufferCoordToViewDirWS[0].xyz, _VBufferCoordToViewDirWS[1].xyz));
     // No camera up matrix is exposed, so pick a world axis to derive a perpendicular basis from F.
     float3 U = abs(F.y) < 0.999 ? float3(0, 1, 0) : float3(1, 0, 0);
 

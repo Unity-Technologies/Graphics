@@ -44,12 +44,12 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (voxelCoord.x >= (uint)_VBufferSize.x || voxelCoord.y >= (uint)_VBufferSize.y)
         return;
 
-    // World-space view ray through the column center, starting at the near plane.
-    float3 F = normalize(mul(-float4(0.5 * _VBufferSize.x, 0.5 * _VBufferSize.y, 1, 1), _VBufferCoordToViewDirWS).xyz);
+    // View ray through the column center. Its view-space depth is 1, so it meets the near plane at near * length.
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
     float3 rayDirWS = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS).xyz;
-    float3 dirWS  = rayDirWS * rsqrt(dot(rayDirWS, rayDirWS));
-    float  tStart = _CameraNearPlane / dot(F, dirWS);
+    float  rayLength = length(rayDirWS);
+    float3 dirWS  = rayDirWS / rayLength;
+    float  tStart = _CameraNearPlane * rayLength;
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {

@@ -17,10 +17,10 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 decodingParams;      // logarithmic-depth decoding
         public Matrix4x4 coordToViewDirWS;  // pixel coord → world-space view direction
 
-        internal VBufferParams(Camera camera, RenderTextureDescriptor descriptor, float screenFraction, int sliceCount, float cutoffDistance, float sliceDistributionUniformity)
+        internal VBufferParams(UniversalCameraData cameraData, float screenFraction, int sliceCount, float cutoffDistance, float sliceDistributionUniformity)
         {
-            int screenWidth = descriptor.width;
-            int screenHeight = descriptor.height;
+            int screenWidth = cameraData.cameraTargetDescriptor.width;
+            int screenHeight = cameraData.cameraTargetDescriptor.height;
 
             // At the default 12.5% this gives the same results as a fixed 8-pixel
             // voxel for screen sizes that are multiples of 8.
@@ -29,9 +29,12 @@ namespace UnityEngine.Rendering.Universal
             voxelSize = 1.0f / screenFraction;
             this.sliceCount = sliceCount;
 
-            float nearPlane = camera.nearClipPlane;
-            float vFoV = camera.fieldOfView * Mathf.Deg2Rad;
-            float tanHalfVertFoV = Mathf.Tan(0.5f * vFoV);
+            // Uses the projection rather than fieldOfView so gate fit and lens shift match the rendered image.
+            Matrix4x4 projection = cameraData.GetProjectionMatrixNoJitter();
+            float nearPlane = cameraData.camera.nearClipPlane;
+            float tanHalfVertFoV = 1.0f / projection.m11;
+            float tanHalfHorzFoV = 1.0f / projection.m00;
+            float vFoV = 2.0f * Mathf.Atan(tanHalfVertFoV);
             viewportSize = new Vector4(vbufferW, vbufferH, 1.0f / vbufferW, 1.0f / vbufferH);
             unitDepthTexelSpacing = tanHalfVertFoV * (2.0f / vbufferH);
             halfVoxelArcLength = vFoV * 0.5f / vbufferH;
@@ -54,11 +57,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Pixel-coord to world-space view-direction matrix
             {
-                float aspectRatio = viewportSize.x * viewportSize.w;
-                float m00 = -2.0f * viewportSize.z * tanHalfVertFoV * aspectRatio;
+                float m00 = -2.0f * viewportSize.z * tanHalfHorzFoV;
                 float m11 = -2.0f * viewportSize.w * tanHalfVertFoV;
-                float m20 = tanHalfVertFoV * aspectRatio;
-                float m21 = tanHalfVertFoV;
+                float m20 = (1.0f - projection.m02) * tanHalfHorzFoV;
+                float m21 = (1.0f - projection.m12) * tanHalfVertFoV;
 
                 var viewSpaceRasterTransform = new Matrix4x4(
                     new Vector4(m00, 0.0f, 0.0f, 0.0f),
@@ -66,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
                     new Vector4(m20, m21, -1.0f, 0.0f),
                     new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
                 viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
                 viewMatrix.SetRow(2, -viewMatrix.GetRow(2));
                 coordToViewDirWS = Matrix4x4.Transpose(viewMatrix.transpose * viewSpaceRasterTransform);

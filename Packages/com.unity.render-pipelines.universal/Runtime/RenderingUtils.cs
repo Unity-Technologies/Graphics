@@ -315,6 +315,27 @@ namespace UnityEngine.Rendering.Universal
             rl = renderGraph.CreateRendererList(param);
         }
 
+        internal static ulong GetSceneCullingMaskFromCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (camera.overrideSceneCullingMask != 0)
+                return camera.overrideSceneCullingMask;
+
+            if (camera.scene.IsValid())
+                return UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(camera.scene);
+
+            switch (camera.cameraType)
+            {
+                case CameraType.SceneView:
+                    return UnityEditor.SceneManagement.SceneCullingMasks.MainStageSceneViewObjects;
+                default:
+                    return UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects;
+            }
+#else
+            return 0;
+#endif
+        }
+
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
         static readonly Dictionary<RenderTextureFormat, bool> s_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
 

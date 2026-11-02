@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(FogVolumeComponent))]
-    sealed class FogVolumeEditor : VolumeComponentEditor
+    sealed class FogEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_AnalyticFogEnabled;
         SerializedDataParameter m_VolumetricFogEnabled;
