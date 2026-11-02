@@ -3,7 +3,16 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
-#include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
+#include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/Particles.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitFeatures.hlsl"
+
+// Realtime shadows are never sampled when Receive Shadows is off at compile time;
+// drop the vertex shadow-coord interpolator.
+#if _RECEIVE_SHADOWS_OFF_STATICALLY_ENABLED
+    #undef USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
+#endif
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
@@ -13,32 +22,37 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData.positionWS = input.positionWS.xyz;
     inputData.positionCS = input.clipPos;
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    if (UseNormalMap())
+    {
+        inputData.normalWS = TransformTangentToWorld(normalTS,
+            half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    }
+    else
+    {
+        inputData.normalWS = input.normalWS.xyz;
+    }
 #else
     half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
 
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
 #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 
     inputData.fogCoord = 0; // not used for deferred shading
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -68,16 +82,22 @@ inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out S
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    outSurfaceData.normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap));
-    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams);
-    outSurfaceData.albedo = AlphaModulate(albedo.rgb, albedo.a);
+    outSurfaceData.normalTS = half3(0.0, 0.0, 1.0);
+    if (UseNormalMap())
+        outSurfaceData.normalTS = SampleParticleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), half(1.0));
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams, UseAlphaPremultiply());
+    outSurfaceData.albedo = albedo.rgb;
+    if (UseAlphaModulate())
+        outSurfaceData.albedo = ApplyAlphaModulate(albedo.rgb, albedo.a);
     outSurfaceData.alpha = albedo.a;
-#if defined(_EMISSION)
-    outSurfaceData.emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-#else
-    outSurfaceData.emission = half3(0, 0, 0);
-#endif
-    half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, UnityBuildTexture2DStructNoScaleNoTexelSize(_SpecGlossMap));
+    outSurfaceData.emission = UseEmission() ? BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb : half3(0, 0, 0);
+    half4 specularGloss = half4(0, 0, 0, 1);
+    if (UseSpecGlossMap())
+        specularGloss = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_SpecGlossMap), particleParams.uv, particleParams.blendUv);
+    else if (UseSpecularColor())
+        specularGloss = _SpecColor;
+    if (UseGlossinessFromBaseAlpha())
+        specularGloss.a = albedo.a;
     outSurfaceData.specular = specularGloss.rgb;
     outSurfaceData.smoothness = specularGloss.a;
 
@@ -105,7 +125,7 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
     VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -135,8 +155,8 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
     output.projectedPosition = vertexInput.positionNDC;
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 
     return output;
@@ -157,7 +177,7 @@ GBufferFragOutput ParticlesLitGBufferFragment(VaryingsParticle input)
 
     URP_LIGHT_ACCUM4 color = URP_LIGHT_ACCUM4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 
-    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb));
+    return PackGBuffersSurfaceData(surfaceData, inputData, ClampExposed(inputData.preExposureMultiplier * color.rgb), ReceiveShadows());
 
 }
 

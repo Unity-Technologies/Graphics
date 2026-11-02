@@ -240,11 +240,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
 
-            // Always emit _Cull so the engine can detect two-pass rendering (BackToFront/FrontToBack)
-            // even when allowMaterialOverride is false and the cull mode is baked into the shader.
-            if (!target.allowMaterialOverride)
-                collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);
-
             // Marker for the material UI: this shader bakes stencil writes into the ShadowCaster pass.
             // BaseShaderGUI uses this to show a warning when the URP renderer's Shadowmap Stencil is off.
             if (target.overrideStencilState && target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
@@ -1016,7 +1011,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeRotation },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
-                { CoreKeywordDescriptors.LightFalloffLinear },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },

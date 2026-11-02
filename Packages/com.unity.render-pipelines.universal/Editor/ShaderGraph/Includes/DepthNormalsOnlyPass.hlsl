@@ -1,6 +1,8 @@
 #ifndef SG_DEPTH_NORMALS_PASS_INCLUDED
 #define SG_DEPTH_NORMALS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
 PackedVaryings vert(Attributes input)
@@ -29,9 +31,7 @@ void frag(
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
-        LODFadeCrossFade(unpacked.positionCS);
-    #endif
+    LODFadeCrossFade(unpacked.positionCS);
 
     // Retrieve the normal from the bump map or mesh normal
     #if defined(_NORMALMAP)

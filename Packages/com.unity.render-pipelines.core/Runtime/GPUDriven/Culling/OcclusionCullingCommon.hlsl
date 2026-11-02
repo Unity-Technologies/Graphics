@@ -88,10 +88,11 @@ bool IsOcclusionVisibleRect(float queryClosestDepth, float2 centerPosNDC, float2
             mipLevel += 1;
     }
 
-    if (mipLevel >= OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS)
-        return true;
+    bool isVisible = true;
+    if (mipLevel < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS)
+        isVisible = IsOcclusionVisibleAtMip(queryClosestDepth, centerCoordInTopMip, mipLevel, subviewIndex);
 
-    return IsOcclusionVisibleAtMip(queryClosestDepth, centerCoordInTopMip, mipLevel, subviewIndex);
+    return isVisible;
 }
 
 bool IsOcclusionVisible(float3 frontCenterPosRWS, float2 centerPosNDC, float2 radialPosNDC, int subviewIndex)
@@ -106,10 +107,12 @@ bool IsOcclusionVisible(float3 frontCenterPosRWS, float2 centerPosNDC, float2 ra
     float mipPartExponent = 0.0f;
     frexp(radiusInPixels, mipPartExponent);
     int mipLevel = max((int) mipPartExponent + 1, 0);
-    if (mipLevel >= OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS || isBehindCamera)
-        return true;
 
-    return IsOcclusionVisibleAtMip(queryClosestDepth, centerCoordInTopMip, mipLevel, subviewIndex);
+    bool isVisible = true;
+    if (mipLevel < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS && !isBehindCamera)
+        isVisible = IsOcclusionVisibleAtMip(queryClosestDepth, centerCoordInTopMip, mipLevel, subviewIndex);
+
+    return isVisible;
 }
 
 bool IsOcclusionVisibleOBB(float3 boundsCenter, float3 boundsExtents, float4x4 localToWorld, int subviewIndex)
@@ -126,48 +129,52 @@ bool IsOcclusionVisibleOBB(float3 boundsCenter, float3 boundsExtents, float4x4 l
     float4 clipY = mul(viewProjMatrix, float4(axisY, 0.0f));
     float4 clipZ = mul(viewProjMatrix, float4(axisZ, 0.0f));
 
+    bool isVisible = true;
+
     // conservatively visible if any corner could reach the near plane
     float minW = clipC.w - (abs(clipX.w) + abs(clipY.w) + abs(clipZ.w));
-    if (minW <= 1e-6f)
-        return true;
-
-    float3 facingDir = _FacingDirWorldSpace[subviewIndex].xyz;
-    float facingSupport = abs(dot(axisX, facingDir)) + abs(dot(axisY, facingDir)) + abs(dot(axisZ, facingDir));
-    if ((dot(centerRWS, facingDir) + facingSupport) >= 0.f)
-        return true;
-
-    float2 ndcMin = 1.0e10f;
-    float2 ndcMax = -1.0e10f;
-    float queryClosestDepth = 0.0f;
-
-    [unroll]
-    for (uint i = 0; i < 8; ++i)
+    if (minW > 1e-6f)
     {
-        float4 clipPos = clipC;
-        clipPos += (i & 1) ? clipX : -clipX;
-        clipPos += (i & 2) ? clipY : -clipY;
-        clipPos += (i & 4) ? clipZ : -clipZ;
+        float3 facingDir = _FacingDirWorldSpace[subviewIndex].xyz;
+        float facingSupport = abs(dot(axisX, facingDir)) + abs(dot(axisY, facingDir)) + abs(dot(axisZ, facingDir));
+        if ((dot(centerRWS, facingDir) + facingSupport) < 0.f)
+        {
+            float2 ndcMin = 1.0e10f;
+            float2 ndcMax = -1.0e10f;
+            float queryClosestDepth = 0.0f;
 
-        #if UNITY_UV_STARTS_AT_TOP
-        clipPos.y = -clipPos.y;
-        #endif
-        float3 ndc = clipPos.xyz * rcp(clipPos.w);
-        ndc.xy = ndc.xy * 0.5f + 0.5f;
+            [unroll]
+            for (uint i = 0; i < 8; ++i)
+            {
+                float4 clipPos = clipC;
+                clipPos += (i & 1) ? clipX : -clipX;
+                clipPos += (i & 2) ? clipY : -clipY;
+                clipPos += (i & 4) ? clipZ : -clipZ;
 
-        ndcMin = min(ndcMin, ndc.xy);
-        ndcMax = max(ndcMax, ndc.xy);
-        queryClosestDepth = (i == 0) ? ndc.z : ClosestDepth(queryClosestDepth, ndc.z);
+                #if UNITY_UV_STARTS_AT_TOP
+                clipPos.y = -clipPos.y;
+                #endif
+                float3 ndc = clipPos.xyz * rcp(clipPos.w);
+                ndc.xy = ndc.xy * 0.5f + 0.5f;
+
+                ndcMin = min(ndcMin, ndc.xy);
+                ndcMax = max(ndcMax, ndc.xy);
+                queryClosestDepth = (i == 0) ? ndc.z : ClosestDepth(queryClosestDepth, ndc.z);
+            }
+
+            // A flat OBB (quad, plane) projects exactly onto the occluder depth its own surface rendered, so the strict depth comparison would classify it as occluded by itself.
+            // Pull the query depth slightly closer (a small fraction of eye depth) so a surface never culls itself.
+            const float kSelfOcclusionDepthSlack = 1.0f / 256.0f;
+            queryClosestDepth = PullDepthTowardsCamera(queryClosestDepth, kSelfOcclusionDepthSlack);
+
+            // rect test: dominant-axis footprint with alignment-aware mip selection
+            float2 centerPosNDC = 0.5f * (ndcMin + ndcMax);
+            float2 halfSizeNDC = 0.5f * (ndcMax - ndcMin);
+            isVisible = IsOcclusionVisibleRect(queryClosestDepth, centerPosNDC, halfSizeNDC, subviewIndex);
+        }
     }
 
-    // A flat OBB (quad, plane) projects exactly onto the occluder depth its own surface rendered, so the strict depth comparison would classify it as occluded by itself.
-    // Pull the query depth slightly closer (a small fraction of eye depth) so a surface never culls itself.
-    const float kSelfOcclusionDepthSlack = 1.0f / 256.0f;
-    queryClosestDepth = PullDepthTowardsCamera(queryClosestDepth, kSelfOcclusionDepthSlack);
-
-    // rect test: dominant-axis footprint with alignment-aware mip selection
-    float2 centerPosNDC = 0.5f * (ndcMin + ndcMax);
-    float2 halfSizeNDC = 0.5f * (ndcMax - ndcMin);
-    return IsOcclusionVisibleRect(queryClosestDepth, centerPosNDC, halfSizeNDC, subviewIndex);
+    return isVisible;
 }
 
 bool IsOcclusionVisible(BoundingObjectData data, int subviewIndex)

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEngine.AMD;
 #endif
 using System;
@@ -12,7 +12,7 @@ using System;
 using UnityEditor;
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 
 [Serializable]
 public class FSR2Options : UpscalerOptions
@@ -76,4 +76,4 @@ public class FSR2Options : UpscalerOptions
     }
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#endif // ENABLE_AMD && ENABLE_AMD_MODULE

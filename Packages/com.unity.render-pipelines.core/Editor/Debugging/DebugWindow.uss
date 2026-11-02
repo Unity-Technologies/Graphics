@@ -141,3 +141,15 @@
     display: none;
     -unity-text-align: middle-center;
 }
+
+.hide-overlays-toggle {
+    width: 24px;
+    background-position: center;
+    background-size: 16px 16px;
+}
+
+#debug-window-overlays-hidden-notice {
+    display: none;
+    flex-shrink: 0;
+    margin: 2px 2px 2px 2px;
+}

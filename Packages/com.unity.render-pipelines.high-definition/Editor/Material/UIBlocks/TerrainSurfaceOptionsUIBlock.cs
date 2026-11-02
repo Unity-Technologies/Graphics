@@ -108,6 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Undo.RecordObject(terrainLayer, "Terrain Layer Diffuse Texture");
                 terrainLayer.diffuseTexture = diffuseTexture;
             }
+            // Anchor before validation, which may insert help boxes.
+            var diffuseFieldRect = GUILayoutUtility.GetLastRect();
             TerrainLayerUtility.ValidateDiffuseTextureUI(terrainLayer.diffuseTexture);
 
             var diffuseRemapMin = terrainLayer.diffuseRemapMin;
@@ -117,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableDensity = false;
             if (terrainLayer.diffuseTexture != null)
             {
-                var rect = GUILayoutUtility.GetLastRect();
+                var rect = diffuseFieldRect;
                 rect.y += 16 + 4;
                 rect.width = EditorGUIUtility.labelWidth + 64;
                 rect.height = 16;
@@ -156,11 +158,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 Undo.RecordObject(terrainLayer, "Terrain Layer Normal Map");
                 terrainLayer.normalMapTexture = normalMapTexture;
             }
+            // Anchor before validation, which may insert help boxes.
+            var normalMapFieldRect = GUILayoutUtility.GetLastRect();
             TerrainLayerUtility.ValidateNormalMapTextureUI(terrainLayer.normalMapTexture, TerrainLayerUtility.CheckNormalMapTextureType(terrainLayer.normalMapTexture));
 
             if (terrainLayer.normalMapTexture != null)
             {
-                var rect = GUILayoutUtility.GetLastRect();
+                var rect = normalMapFieldRect;
                 rect.y += 16 + 4;
                 rect.width = EditorGUIUtility.labelWidth + 64;
                 rect.height = 16;

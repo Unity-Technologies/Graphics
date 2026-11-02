@@ -8,15 +8,18 @@ namespace UnityEditor.Rendering.Converter
     [Serializable]
     internal class RenderPipelineConverterMaterialUpgraderItem : IRenderPipelineConverterItem
     {
-        public string assetPath { get; }
-        public List<string> variantsPaths { get; }
+        [SerializeField]
+        private string m_AssetPath;
+        public string assetPath => m_AssetPath;
 
-        public string name { get; }
-
-        public string info { get; }
-
-        public bool isEnabled { get; set; } = true;
-        public string isDisabledMessage { get; set; } = string.Empty;
+        [SerializeField]
+        private List<string> m_VariantsPaths;
+        public List<string> variantsPaths => m_VariantsPaths;
+        
+        [field:SerializeField] public string name { get; set; }
+        [field:SerializeField] public string info { get; set; }
+        [field:SerializeField] public bool isEnabled { get; set; } = true;
+        [field:SerializeField] public string isDisabledMessage { get; set; }
 
         public Texture2D icon
         {
@@ -42,8 +45,8 @@ namespace UnityEditor.Rendering.Converter
             if (string.IsNullOrEmpty(materialPath))
                 throw new ArgumentException(nameof(materialPath));
 
-            assetPath = materialPath;
-            this.variantsPaths = variantsPaths;
+            m_AssetPath = materialPath;
+            m_VariantsPaths = variantsPaths;
 
             if (material == null)
                 throw new ArgumentException($"Unable to load material at path {materialPath}");
@@ -170,6 +173,9 @@ namespace UnityEditor.Rendering.Converter
 
         public Status Convert(IRenderPipelineConverterItem item, out string message)
         {
+            // Lazy initialization of upgraders cache (needed after assembly reload since it's not serialized)
+            m_UpgradersCache ??= upgraders;
+
             if (item is not RenderPipelineConverterMaterialUpgraderItem materialUpgraderItem)
             {
                 message = $"Item is not a {nameof(RenderPipelineConverterMaterialUpgraderItem)}.";

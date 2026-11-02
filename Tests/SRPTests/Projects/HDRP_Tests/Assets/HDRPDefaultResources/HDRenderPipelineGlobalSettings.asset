@@ -215,6 +215,7 @@ MonoBehaviour:
       - rid: 6535566473957998597
       - rid: 6535566473957998598
       - rid: 7182773092123672577
+      - rid: 7830723193898795008
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -959,3 +960,7 @@ MonoBehaviour:
         m_EmissiveTriangleRemovalComputeShader: {fileID: 7200000, guid: 3d386645a85b4e758a7b7eb1bf87fa24, type: 3}
         m_EstimationComputeShader: {fileID: -6772857160820960102, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
         m_EstimationRayTracingShader: {fileID: -5126288278712620388, guid: 94a39d12848d8d64ca962a72b74e7c50, type: 3}
+    - rid: 7830723193898795008
+      type: {class: AlphaUpscaler/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_AlphaUpscaleCS: {fileID: 7200000, guid: f10c23179af641eea368ee165b2e97cf, type: 3}

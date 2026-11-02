@@ -31,6 +31,18 @@ SAMPLER(sampler_BlitTexture);
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+
+#if defined(_GTAO_DEPTH_PYRAMID)
+// Prefiltered depth pyramid, every MIP packed into one surface with MIP 0 at the AO resolution.
+TYPED_TEXTURE2D_X(float, _GTAODepthPyramid);
+float4 _GTAODepthPyramidSize;               // xy = MIP 0 viewport size
+float4 _GTAODepthPyramidParams;             // x = MIP sampling offset, y = highest usable MIP level, z = MIP footprint cap
+float4 _GTAODepthPyramidMipLevelOffsets[4]; // xy = where each MIP sits in the packed pyramid
+
+#define SSAO_COMMON_LOAD_PYRAMID_DEPTH(coord)  LOAD_TEXTURE2D_X(_GTAODepthPyramid, coord).r
+#define SSAO_COMMON_PYRAMID_MIP_OFFSET(mip)    int2(_GTAODepthPyramidMipLevelOffsets[mip].xy)
+#endif
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAOCommon.hlsl"
 
 // Fragment-specific uniform params
@@ -171,7 +183,7 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 }
 
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
-float3 ReconstructViewPos(float2 uv, float linearDepth)
+float3 ReconstructViewPos(float2 uv, float eyeDepth)
 {
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -186,13 +198,13 @@ float3 ReconstructViewPos(float2 uv, float linearDepth)
     // view pos in world space
     float3 viewPos;
 #if defined(_ORTHOGRAPHIC)
-    float zScale = linearDepth * _ProjectionParams.w; // divide by far plane
+    float zScale = eyeDepth * _ProjectionParams.w; // divide by far plane
     viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                         + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                         + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
                         + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
 #else
-    float zScale = linearDepth * _ProjectionParams2.x; // divide by near plane
+    float zScale = eyeDepth * _ProjectionParams2.x; // divide by near plane
     viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                         + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                         + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
@@ -208,7 +220,7 @@ float3 ReconstructViewPos(float2 uv, float linearDepth)
 // High:   5 taps on each direction: | z | x | * | y | w |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelDensity)
+half3 ReconstructNormal(float2 uv, float eyeDepth, float3 vpos, float2 pixelDensity)
 {
     #if defined(_SOURCE_DEPTH_LOW)
         return half3(normalize(cross(ddy(vpos), ddx(vpos))));
@@ -238,8 +250,8 @@ half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelD
             float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = SampleAndGetLinearEyeDepth(u2.xy); // Up2
             float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = SampleAndGetLinearEyeDepth(d2.xy); // Down2
 
-            const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - linearDepth) < abs( (2.0 * r1.z - r2.z) - linearDepth) ? 0 : 1;
-            const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - linearDepth) < abs( (2.0 * u1.z - u2.z) - linearDepth) ? 0 : 1;
+            const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - eyeDepth) < abs( (2.0 * r1.z - r2.z) - eyeDepth) ? 0 : 1;
+            const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - eyeDepth) < abs( (2.0 * u1.z - u2.z) - eyeDepth) ? 0 : 1;
         #endif
 
         // Calculate the triangle, in a counter-clockwize order, to
@@ -267,13 +279,13 @@ half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelD
     #endif
 }
 
-half3 SampleNormal(float2 uv, float linearDepth, float2 pixelDensity)
+half3 SampleNormal(float2 uv, float eyeDepth, float2 pixelDensity)
 {
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
-        float3 vpos = ReconstructViewPos(uv, linearDepth);
-        return ReconstructNormal(uv, linearDepth, vpos, pixelDensity);
+        float3 vpos = ReconstructViewPos(uv, eyeDepth);
+        return ReconstructNormal(uv, eyeDepth, vpos, pixelDensity);
     #endif
 }
 
@@ -286,9 +298,9 @@ half4 FragSSAO(Varyings input)
     float2 uv = input.texcoord;
 
     float centerRawDepth = SampleDepth(uv, DOWNSAMPLE);
-    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
-    half centerHalfLinearDepth = half(centerLinearDepth);
-    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, FALLOFF))
+    float centerEyeDepth = GetLinearEyeDepth(centerRawDepth);
+    half centerHalfEyeDepth = half(centerEyeDepth);
+    if (ShouldSkipAO(centerRawDepth, centerHalfEyeDepth, FALLOFF))
         return PackAOAndNormal(HALF_ZERO, HALF_ZERO);
 
     float2 pixelDensity;
@@ -304,10 +316,10 @@ half4 FragSSAO(Varyings input)
     }
 
     // Normal for this fragment
-    half3 centerNormal = SampleNormal(uv, centerLinearDepth, pixelDensity);
+    half3 centerNormal = SampleNormal(uv, centerEyeDepth, pixelDensity);
 
     // View position for this fragment
-    float3 centerViewPos = ReconstructViewPos(uv, centerLinearDepth);
+    float3 centerViewPos = ReconstructViewPos(uv, centerEyeDepth);
 
     // Parameters used in coordinate conversion
     half3 camTransform000102 = half3(_CameraViewProjections[unity_eyeIndex]._m00, _CameraViewProjections[unity_eyeIndex]._m01, _CameraViewProjections[unity_eyeIndex]._m02);
@@ -332,7 +344,7 @@ half4 FragSSAO(Varyings input)
         half zDist;
         half2 uv_s1_01;
         #if defined(_ORTHOGRAPHIC)
-            zDist = centerHalfLinearDepth;
+            zDist = centerHalfEyeDepth;
             uv_s1_01 = saturate((spos_s1 + HALF_ONE) * HALF_HALF);
         #else
             zDist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
@@ -348,18 +360,18 @@ half4 FragSSAO(Varyings input)
 
         // Relative depth of the sample point
         float rawDepth_s = SampleDepth(uv_s1_01, DOWNSAMPLE);
-        float linearDepth_s = GetLinearEyeDepth(rawDepth_s);
+        float eyeDepth_s = GetLinearEyeDepth(rawDepth_s);
 
         // We need to make sure we not use the AO value if the sample point it's outside the radius or if it's the sky...
-        half halfLinearDepth_s = half(linearDepth_s);
-        half isInsideRadius = abs(zDist - halfLinearDepth_s) < RADIUS ? 1.0 : 0.0;
+        half halfEyeDepth_s = half(eyeDepth_s);
+        half isInsideRadius = abs(zDist - halfEyeDepth_s) < RADIUS ? 1.0 : 0.0;
         isInsideRadius *= rawDepth_s > SKY_DEPTH_VALUE ? 1.0 : 0.0;
 
         // Relative postition of the sample point
-        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, linearDepth_s) - centerViewPos);
+        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, eyeDepth_s) - centerViewPos);
 
         // Estimate the obscurance value
-        half dotVal = dot(v_s2, centerNormal) - kBeta * centerHalfLinearDepth;
+        half dotVal = dot(v_s2, centerNormal) - kBeta * centerHalfEyeDepth;
         half a1 = max(dotVal, HALF_ZERO);
         half a2 = dot(v_s2, v_s2) + kEpsilon;
         ao += a1 * rcp(a2) * isInsideRadius;
@@ -369,7 +381,7 @@ half4 FragSSAO(Varyings input)
     ao *= RADIUS;
 
     // Calculate falloff...
-    half falloff = HALF_ONE - centerHalfLinearDepth * half(rcp(FALLOFF));
+    half falloff = HALF_ONE - centerHalfEyeDepth * half(rcp(FALLOFF));
     falloff = falloff*falloff;
 
     // Apply contrast + intensity + falloff^2
@@ -390,10 +402,16 @@ half4 FragGTAO(Varyings input)
     float2 uv = input.texcoord;
 
     GTAOConfig config = CreateGTAOConfig(_SSAOParams, _SSAOParams2, _AODepthToViewParams, BlueNoiseScale, BlueNoiseOffset, TemporalRotation, TemporalOffset);
+#if defined(_GTAO_DEPTH_PYRAMID)
+    SetGTAODepthPyramidConfig(config, _GTAODepthPyramidSize, _GTAODepthPyramidParams);
+#endif
+
+    float2 positionSS = input.positionCS.xy;
 
     float centerRawDepth = SampleDepth(uv, config.downsample);
-    float centerLinearDepth = GetLinearEyeDepth(centerRawDepth);
-    half centerHalfLinearDepth = half(centerLinearDepth);
+    float centerEyeDepth = GetGTAOCenterEyeDepth(config, positionSS, centerRawDepth);
+    // Skip on this pixel's own depth, not the far-biased pyramid MIP 0.
+    half centerRawEyeDepth = half(GetLinearEyeDepth(centerRawDepth));
 
     float2 pixelDensity;
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -406,16 +424,15 @@ half4 FragGTAO(Varyings input)
     {
         pixelDensity = float2(1.0f, 1.0f);
     }
-    half3 centerNormal = SampleNormal(uv, centerLinearDepth, pixelDensity);
+    half3 centerNormal = SampleNormal(uv, centerEyeDepth, pixelDensity);
 
-    if (ShouldSkipAO(centerRawDepth, centerHalfLinearDepth, config.falloff))
+    if (ShouldSkipAO(centerRawDepth, centerRawEyeDepth, config.falloff))
         return PackAOAndNormal(HALF_ZERO, centerNormal);
 
-    float2 positionSS = input.positionCS.xy;
-    float3 positionVS = GetPositionVS(positionSS, centerRawDepth, config.depthToViewParams);
+    float3 positionVS = GetPositionVSFromEyeDepth(positionSS, centerEyeDepth, config.depthToViewParams);
     half3 V = GetViewVectorVS(positionVS);
 
-    return EvaluateGTAO(config, uv, positionSS, positionVS, V, centerNormal, centerLinearDepth);
+    return EvaluateGTAO(config, uv, positionSS, positionVS, V, centerNormal, centerEyeDepth);
 }
 
 // ------------------------------------------------------------------
@@ -423,7 +440,7 @@ half4 FragGTAO(Varyings input)
 // ------------------------------------------------------------------
 half4 SSAO(Varyings input) : SV_Target
 {
-#if _GTAO_MODE
+#if defined(_GTAO_MODE) || defined(_GTAO_DEPTH_PYRAMID)
     return FragGTAO(input);
 #else
     return FragSSAO(input);

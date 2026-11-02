@@ -11,9 +11,12 @@ namespace UnityEditor.Rendering.Universal
     {
         private const string k_UnsupportedRayTracingBackendMessage = "Surface Cache GI will not run on this device because it does not support hardware ray tracing or compute shaders.";
 
-        private static readonly GUIContent s_StaticBatchingError = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Error, null);
-        private static readonly GUIContent s_StaticBatchingWarning = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Warning, null);
-        private static readonly GUIContent s_OpenButton = L10n.TextContent("Open", null, null, null);
+        static class Styles
+        {
+            public static readonly GUIContent staticBatchingError = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Error, null);
+            public static readonly GUIContent staticBatchingWarning = L10n.TextContentWithIcon(SurfaceCacheGIRendererFeature.k_StaticBatchingErrorMesssage, MessageType.Warning, null);
+            public static readonly GUIContent openButton = L10n.TextContent("Open", null, null, null);
+        }
 
         private static GUIStyle s_FixMeBoxStyle;
 
@@ -62,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (PlayerSettings.GetStaticBatchingForPlatform(activeBuildTarget))
             {
-                DrawFixMeBox(surfaceCacheGIRendererFeature.isActive ? s_StaticBatchingError : s_StaticBatchingWarning, s_OpenButton, () =>
+                DrawFixMeBox(surfaceCacheGIRendererFeature.isActive ? Styles.staticBatchingError : Styles.staticBatchingWarning, Styles.openButton, () =>
                     PlayerSettingsInspectorUtility.OpenAndScrollTo(PlayerSettingsInspectorUtility.Section.OtherSettings, "Static Batching"));
             }
             else if (EditorGraphicsSettings.defaultMeshBufferTarget != DefaultMeshBufferTarget.Raw)

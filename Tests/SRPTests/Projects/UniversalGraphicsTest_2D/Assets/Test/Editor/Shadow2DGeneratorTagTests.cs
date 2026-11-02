@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// Shadow2DGeometrySettings.geometryVersion, so the tag no longer selects anything at runtime; what
     /// is left to protect is that Hidden/Shadow2D's authored tag and the C# copy of it agree.
     /// </remarks>
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class Shadow2DGeneratorTagTests
     {
         readonly List<Object> m_Created = new List<Object>();

@@ -10,7 +10,7 @@ CBUFFER_START(InstanceData)
 CBUFFER_END
 #endif
 
-RWTexture3D<float>  _Output : register(u4);
+RWTexture3D<float4> _Output : register(u4);
 float               _OutputSize;
 float3              _VolumeWorldOffset;
 float3              _VolumeSize;
@@ -153,6 +153,7 @@ float3 LoadVertexPosition(ByteAddressBuffer buffer, uint vertexStride, uint vert
     const uint4 vertexBufferData = buffer.Load4(byteOffset - wordOffset);
 
     float3 output;
+    [unroll]
     for (uint i = 0; i < 3; ++i)
     {
         const uint localOffset = i * 4;
@@ -291,7 +292,7 @@ VertexToFragment MeshVert(uint instanceID : SV_InstanceID, uint vertexIndex : SV
         triangle2dCellPos01[1] = triangle3dCellPos01[1].yz;
         triangle2dCellPos01[2] = triangle3dCellPos01[2].yz;
         break;
-    case 2: // up
+    default: // up
         triangle2dCellPos01[0] = triangle3dCellPos01[0].zx;
         triangle2dCellPos01[1] = triangle3dCellPos01[1].zx;
         triangle2dCellPos01[2] = triangle3dCellPos01[2].zx;
@@ -345,7 +346,7 @@ VertexToFragment MeshVert(uint instanceID : SV_InstanceID, uint vertexIndex : SV
             rayOrigin  = float3(0, dilated2dCellPos.xy);
             rayDir = float3(1, 0, 0);
             break;
-        case 2: // up
+        default: // up
             rayOrigin  = float3(dilated2dCellPos.y, 0, dilated2dCellPos.x);
             rayDir = float3(0, 1, 0);
             break;

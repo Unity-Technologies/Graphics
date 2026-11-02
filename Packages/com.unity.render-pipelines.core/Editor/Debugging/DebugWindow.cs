@@ -73,6 +73,12 @@ namespace UnityEditor.Rendering
 
         VisualElement m_LeftPaneElement;
         VisualElement m_RightPaneElement;
+        ToolbarToggle m_HideOverlaysToggle;
+        HelpBox m_OverlaysHiddenNotice;
+
+        static readonly string k_HideOverlaysTooltip = L10n.Tr("Temporarily hide all active debug overlays to see the final view. Your current selection of active overlays will be preserved.", null);
+        static readonly string k_ShowOverlaysTooltip = L10n.Tr("Show the debug overlays that are currently hidden.", null);
+        static readonly string k_OverlaysHiddenNotice = L10n.Tr("All active debug overlays are currently hidden. Use the Hide/Show Overlays button in the toolbar above to make them visible again.", null);
 
         const string k_UssCommon = "Packages/com.unity.render-pipelines.core/Runtime/Debugging/Runtime UI Resources/DebugWindowCommon.uss";
         const string k_Uss = "Packages/com.unity.render-pipelines.core/Editor/Debugging/DebugWindow.uss";
@@ -239,6 +245,8 @@ namespace UnityEditor.Rendering
             resetButton.clicked -= ResetClicked;
             resetButton.clicked += ResetClicked;
 
+            SetupHideOverlaysControls();
+
             var uiPanels = DebugUIExtensions.CreatePanels(activePanels, DebugUI.Context.Editor);
 
             foreach (var (tab, panel)  in uiPanels)
@@ -277,6 +285,54 @@ namespace UnityEditor.Rendering
             RecreateGUI();
 
             DebugDisplaySerializer.LoadFoldoutStates();
+        }
+
+        void SetupHideOverlaysControls()
+        {
+            m_HideOverlaysToggle = rootVisualElement.Q<ToolbarToggle>(name: "btn-hide-overlays");
+            m_OverlaysHiddenNotice = rootVisualElement.Q<HelpBox>(name: "debug-window-overlays-hidden-notice");
+
+            if (!DebugManager.instance.supportsHidingDebugOverlays)
+            {
+                m_HideOverlaysToggle?.RemoveFromHierarchy();
+                m_HideOverlaysToggle = null;
+                return;
+            }
+
+            m_HideOverlaysToggle.UnregisterValueChangedCallback(HideOverlaysChanged);
+            m_HideOverlaysToggle.RegisterValueChangedCallback(HideOverlaysChanged);
+
+            if (m_OverlaysHiddenNotice != null)
+                m_OverlaysHiddenNotice.text = k_OverlaysHiddenNotice;
+
+            UpdateHideOverlaysControls();
+        }
+
+        void HideOverlaysChanged(ChangeEvent<bool> evt)
+        {
+            DebugDisplaySerializer.areDebugOverlaysHidden = evt.newValue;
+
+            UpdateHideOverlaysControls();
+
+            // The pipeline only picks up the new state on the next frame it renders
+            SceneView.RepaintAll();
+            EditorApplication.QueuePlayerLoopUpdate();
+        }
+
+        void UpdateHideOverlaysControls()
+        {
+            bool hidden = DebugDisplaySerializer.areDebugOverlaysHidden;
+
+            if (m_HideOverlaysToggle != null)
+            {
+                m_HideOverlaysToggle.SetValueWithoutNotify(hidden);
+                m_HideOverlaysToggle.tooltip = hidden ? k_ShowOverlaysTooltip : k_HideOverlaysTooltip;
+                m_HideOverlaysToggle.style.backgroundImage = new StyleBackground(
+                    EditorGUIUtility.IconContent(hidden ? "animationvisibilitytoggleoff" : "animationvisibilitytoggleon").image as Texture2D);
+            }
+
+            if (m_OverlaysHiddenNotice != null)
+                m_OverlaysHiddenNotice.style.display = hidden ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         internal void SetSelectedPanel(string panelName) // internal for tests

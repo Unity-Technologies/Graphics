@@ -164,8 +164,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 displayName = "DecalMesh BiasType",
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
-                enumNames = { "Depth Bias", "View Bias" },
-                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
+                enumNames = new() { "Depth Bias", "View Bias" },
+                enumValues = new() { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
                 hidden = true
             });
 
@@ -951,7 +951,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Descriptors.AffectsNormal, 1, new FieldCondition(AffectsNormal, true) },
                 { Descriptors.AffectsNormalBlend, 1, new FieldCondition(AffectsNormalBlend, true) },
                 { Descriptors.AffectsMAOS, 1, new FieldCondition(AffectsMAOS, true) },
-                { CoreKeywordDescriptors.UseUnityCrossFade, 1, new FieldCondition(Fields.LodCrossFade, true) }
             };
 
             public static DefineCollection MeshEmission = new DefineCollection
@@ -1032,7 +1031,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
-                { CoreKeywordDescriptors.LightFalloffLinear },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
@@ -1056,7 +1055,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.AdditionalLights },
-                { CoreKeywordDescriptors.LightFalloffLinear },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ClusterLightLoop },

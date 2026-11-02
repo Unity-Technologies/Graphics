@@ -1,5 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
-#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 
@@ -14,9 +12,11 @@ namespace UnityEngine.Rendering
         private readonly Dictionary<ScriptableObject, Editor> m_EditorCache = new Dictionary<ScriptableObject, Editor>();
 
         /// <summary>
-        /// Gets a cached editor for the given @options. If the editor is not
+        /// Gets a cached editor for the given options object. If the editor is not
         /// found in the cache, a new editor is created and then cached.
         /// </summary>
+        /// <param name="options">An instance of one of child classes of <see cref="UpscalerOptions"/>.</param>
+        /// <returns>An editor instance for the given options object.</returns>
         public Editor? GetOrCreateEditor(ScriptableObject options)
         {
             if (options == null)
@@ -48,5 +48,3 @@ namespace UnityEngine.Rendering
 
 #nullable disable
 }
-#endif
-#endif // ENABLE_UPSCALER_FRAMEWORK

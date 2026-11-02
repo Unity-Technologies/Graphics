@@ -4,9 +4,17 @@
 // Available semantic start from TEXCOORD4
 struct AttributesPass
 {
+#if defined(ATTRIBUTES_NEED_TEXCOORD4)
+    float4 previousPositionOS : TEXCOORD4; // SG declared TexCoord4 as float4
+#else
     float3 previousPositionOS : TEXCOORD4; // Contain previous transform position (in case of skinning for example)
+#endif
 #if defined (_ADD_PRECOMPUTED_VELOCITY)
+    #if defined(ATTRIBUTES_NEED_TEXCOORD5)
+    float4 precomputedVelocity    : TEXCOORD5; // SG declared TexCoord5 as float4
+    #else
     float3 precomputedVelocity    : TEXCOORD5; // Add Precomputed Velocity (Alembic computes velocities on runtime side).
+    #endif
 #endif
 };
 
@@ -149,7 +157,7 @@ VaryingsType MotionVectorVS_Internal(VaryingsType varyingsType, AttributesMesh i
         effectivePositionOS = inputMesh.positionOS; //no skin or morph target in vfx
 #else
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
-        effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+        effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS.xyz : inputMesh.positionOS);
 #endif
 
         // See _TransparentCameraOnlyMotionVectors in HDCamera.cs
@@ -223,7 +231,7 @@ VaryingsType MotionVectorVS_Internal(VaryingsType varyingsType, AttributesMesh i
 #endif
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
-            previousMesh.positionOS -= inputPass.precomputedVelocity;
+            previousMesh.positionOS -= inputPass.precomputedVelocity.xyz;
 #endif
 
 #if defined(HAVE_VFX_MODIFICATION) && VFX_WORLD_SPACE
@@ -246,7 +254,7 @@ VaryingsType MotionVectorVS_Internal(VaryingsType varyingsType, AttributesMesh i
 #endif
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
-            effectivePositionOS -= inputPass.precomputedVelocity;
+            effectivePositionOS -= inputPass.precomputedVelocity.xyz;
 #endif
 
             previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);

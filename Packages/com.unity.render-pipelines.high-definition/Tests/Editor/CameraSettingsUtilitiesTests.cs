@@ -35,7 +35,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     culling = new CameraSettings.Culling
                     {
                         cullingMask = RandomUtilities.RandomInt(i),
+                        #pragma warning disable CS0618
                         useOcclusionCulling = RandomUtilities.RandomBool(i + 0.5f),
+                        #pragma warning restore CS0618
                     },
                     renderingPathCustomFrameSettings = default,
                     renderingPathCustomFrameSettingsOverrideMask = default,
@@ -103,7 +105,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                         break;
                 }
                 // Culling
+                #pragma warning disable CS0618
                 Assert.AreEqual(settings.culling.useOcclusionCulling, cam.useOcclusionCulling);
+                #pragma warning restore CS0618
                 Assert.AreEqual(settings.culling.cullingMask, (LayerMask)cam.cullingMask);
                 // Buffer clearing
                 Assert.AreEqual(settings.bufferClearing.clearColorMode, add.clearColorMode);

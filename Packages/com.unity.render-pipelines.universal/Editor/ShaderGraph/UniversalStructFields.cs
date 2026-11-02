@@ -8,15 +8,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static string name = "Varyings";
             public static FieldDescriptor staticLightmapUV = new FieldDescriptor(Varyings.name, "staticLightmapUV", "", ShaderValueType.Float2,
-                preprocessor: "defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
+                preprocessor: "USE_LIGHTMAP_UV_INTERPOLATOR", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor dynamicLightmapUV = new FieldDescriptor(Varyings.name, "dynamicLightmapUV", "", ShaderValueType.Float2,
-                preprocessor: "defined(DYNAMICLIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
+                preprocessor: "USE_DYNAMICLIGHTMAP_UV_INTERPOLATOR", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor sh = new FieldDescriptor(Varyings.name, "sh", "", ShaderValueType.Float3,
-                preprocessor: "!defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
+                preprocessor: "USE_VERTEX_SH_INTERPOLATOR", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor fogFactorAndVertexLight = new FieldDescriptor(Varyings.name, "fogFactorAndVertexLight", "VARYINGS_NEED_FOG_AND_VERTEX_LIGHT", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor shadowCoord = new FieldDescriptor(Varyings.name, "shadowCoord", "VARYINGS_NEED_SHADOWCOORD", ShaderValueType.Float4,
-                subscriptOptions: StructFieldOptions.Optional, preprocessor: "defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)");
+                subscriptOptions: StructFieldOptions.Optional, preprocessor: "USE_VERTEX_SHADOW_COORD_INTERPOLATOR");
             public static FieldDescriptor probeOcclusion = new FieldDescriptor(Varyings.name, "probeOcclusion", "", ShaderValueType.Float4,
                 preprocessor: "defined(USE_APV_PROBE_OCCLUSION)", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor stereoTargetEyeIndexAsRTArrayIdx = new FieldDescriptor(Varyings.name, "stereoTargetEyeIndexAsRTArrayIdx", "", ShaderValueType.Uint,

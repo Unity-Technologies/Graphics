@@ -265,6 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ApplyExposure,
         TemporalAntialiasing,
         UpscalerColorMask,
+        IUpscalerReactiveMask,
         FSR2,
         DeepLearningSuperSampling,
         DepthOfField,

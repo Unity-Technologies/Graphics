@@ -168,8 +168,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
@@ -210,8 +208,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
@@ -235,8 +231,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("frag") },
             };
 
-            public static readonly string kBaseMapPass = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapGenPass.hlsl";
-
             public static readonly IncludeCollection BaseGenMainTexIncludes = new IncludeCollection
             {
                 // Pre-graph
@@ -247,7 +241,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { TerrainCoreIncludes.CorePostgraph },
-                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection BaseGenMetallicTexIncludes = new IncludeCollection
@@ -260,7 +253,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Post-graph
                 { TerrainCoreIncludes.CorePostgraph },
-                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly AdditionalCommandCollection BaseMapMainTex = new AdditionalCommandCollection()

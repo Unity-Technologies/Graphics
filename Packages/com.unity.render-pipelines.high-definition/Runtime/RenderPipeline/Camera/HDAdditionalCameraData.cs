@@ -463,7 +463,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal bool cameraCanRenderSTP = false;
 
-#if ENABLE_UPSCALER_FRAMEWORK
         /// internal state set by the runtime whether the upscaler framework is enabled or not on this camera, depending on the results of all other settings.
         [ExcludeCopy]
         internal bool cameraCanRenderIUpscaler = false;
@@ -471,7 +470,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // internal state set by the runtime whether the upscaler using the framework is a temporal upscaler or not.
         [ExcludeCopy]
         internal bool cameraIUpscalerIsTemporalUpscaler = false;
-#endif
 
         #region FSR1_OVERRIDES
         /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>

@@ -1,9 +1,15 @@
 #ifndef UNIVERSAL_UNLIT_INPUT_INCLUDED
 #define UNIVERSAL_UNLIT_INPUT_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
+TEXTURE2D(_BaseMap);
+SAMPLER(sampler_BaseMap);
+UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_BaseMap);
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
@@ -40,5 +46,7 @@ void SetupDOTSUnlitMaterialPropertyCaches()
 #define _Blend              unity_DOTS_Sampled_Blend
 
 #endif
+
+half4 SampleBaseMap(float2 uv) { return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv); }
 
 #endif

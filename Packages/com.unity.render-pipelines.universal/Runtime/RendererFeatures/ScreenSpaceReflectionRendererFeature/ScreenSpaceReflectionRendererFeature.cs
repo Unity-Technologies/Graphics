@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering.Universal
             if (UniversalRenderer.IsOffscreenDepthTexture(universalCameraData))
                 return;
 
+            // Only allow in preview cameras via the RenderRequest API (i.e. 'Cameras' overlay in scene view)
+            // Don't allow regular preview cameras (i.e. thumbnails, material previews)
+            if (universalCameraData.isPreviewCamera && !universalCameraData.camera.isProcessingRenderRequest)
+                return;
+
             // Currently no orthographic support, so ignore these cameras.
             if (universalCameraData.camera.orthographic)
                 return;

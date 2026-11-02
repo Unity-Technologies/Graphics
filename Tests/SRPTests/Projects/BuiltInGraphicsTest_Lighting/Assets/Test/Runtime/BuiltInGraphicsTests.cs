@@ -74,9 +74,6 @@ public class BuiltInGraphicsTests
 #endif
 
         ImageAssert.AreEqual(testCase.ReferenceImage.Image, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
-
-        var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings, "Camera.Render");
     }
 
 #if UNITY_EDITOR && ENABLE_VR

@@ -13,41 +13,6 @@ using UnityEditor.U2D.Common.Path;
 
 namespace UnityEditor.Rendering.Universal
 {
-#if USING_2DCOMMON
-    internal class ShadowCasterPath : ScriptablePath
-    {
-        internal Bounds GetBounds()
-        {
-            ShadowCaster2D shadowCaster = (ShadowCaster2D)owner;
-            Renderer m_Renderer = shadowCaster.GetComponent<Renderer>();
-            if (m_Renderer != null)
-            {
-                return m_Renderer.bounds;
-            }
-            else
-            {
-                Collider2D collider = shadowCaster.GetComponent<Collider2D>();
-                if (collider != null)
-                    return collider.bounds;
-            }
-
-            return new Bounds(shadowCaster.transform.position, shadowCaster.transform.lossyScale);
-        }
-
-        internal void SetDefaultShape()
-        {
-            Clear();
-            Bounds bounds = GetBounds();
-
-            AddPoint(new ControlPoint() {position = bounds.min});
-            AddPoint(new ControlPoint() {position = new Vector3(bounds.min.x, bounds.max.y)});
-            AddPoint(new ControlPoint() {position = bounds.max});
-            AddPoint(new ControlPoint() {position = new Vector3(bounds.max.x, bounds.min.y)});
-        }
-    }
-
-#endif
-
     [CustomEditor(typeof(ShadowCaster2D))]
     [CanEditMultipleObjects]
     internal class ShadowCaster2DEditor
@@ -127,8 +92,6 @@ namespace UnityEditor.Rendering.Universal
         public void ShadowCaster2DSceneGUI()
         {
             ShadowCaster2D shadowCaster = target as ShadowCaster2D;
-
-            Transform t = shadowCaster.transform;
             shadowCaster.DrawPreviewOutline();
         }
 
@@ -142,10 +105,17 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnSceneGUI()
         {
-            // Gated on the castsShadows property, not the legacy m_CastsShadows field -- nothing
-            // has written that field since Version_2 folded it into m_CastingOption.
+            // Not gated on the casting option. The outline shows the caster's SHAPE, which every
+            // option uses: Self Shadow shades that shape, No Shadow keeps it unshadowed against
+            // overlapping casters. Only the shape source decides whether there is anything to draw,
+            // and DrawPreviewOutline already checks that.
+            //
+            // The old gate read the legacy m_CastsShadows field, which nothing has written since
+            // Version_2 folded it into m_CastingOption, so it was stuck at its default of true and
+            // the outline always drew. Reading castsShadows instead made a dead gate live and hid
+            // the outline for Self Shadow and No Shadow.
             ShadowCaster2D shadowCaster = target as ShadowCaster2D;
-            if (shadowCaster != null && shadowCaster.castsShadows)
+            if (shadowCaster != null)
                 ShadowCaster2DSceneGUI();
         }
 

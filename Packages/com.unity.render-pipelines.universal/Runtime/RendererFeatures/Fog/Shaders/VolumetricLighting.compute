@@ -24,7 +24,7 @@
 #pragma multi_compile_local _ ENABLE_REPROJECTION
 #pragma multi_compile_local _ SUPPORT_LOCAL_LIGHTS SUPPORT_LOCAL_LIGHTS_SHADOWS
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-#pragma multi_compile _ _LIGHT_FALLOFF_LINEAR
+#pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
 #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 #pragma multi_compile _ _LIGHT_COOKIES
 

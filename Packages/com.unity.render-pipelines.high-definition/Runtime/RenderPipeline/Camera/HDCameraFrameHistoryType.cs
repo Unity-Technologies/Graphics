@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracingVolumetricFogDenoised,
         /// <summary>Variable rate shading.</summary>
         Vrs,
+        /// <summary>Alpha channel history used to accumulate the upscaled alpha alongside color-only upscalers (DLSS, FSR2, STP).</summary>
+        AlphaUpscale,
 
         // For retro compatibility
         /// <summary>Main path tracing output buffer. It is recommended to use the PathTracingOutput enum value instead.</summary>

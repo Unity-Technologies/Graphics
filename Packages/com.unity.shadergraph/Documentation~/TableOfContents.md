@@ -30,6 +30,7 @@
         * [Create a Sub Graph](Create-Sub-Graph.md)
         * [Add a Sub Graph to a shader graph](Add-Sub-Graph-To-Shader-Graph.md)
         * [Add inputs and outputs to a Sub Graph](Add-Inputs-Outputs-Sub-Graph.md)
+        * [Change how Sub Graph inputs appear on a node](Sub-Graph-Input-Display.md)
         * [Set default inputs for a Sub Graph](Sub-Graph-Default-Property-Values.md)
         * [Change the behavior of a Sub Graph](Change-Behaviour-Sub-Graph-Dropdown.md)
         * [Expose a Sub Graph property in the Inspector window](Sub-Graph-Promote-Property.md)
@@ -185,6 +186,9 @@
             * [Element Texture Size](element-texture-size-node.md)
             * [Element Texture UV](element-texture-uv-node.md)
             * [Element Tint](element-tint-node.md)
+            * [SDF Text Parameters](sdf-text-parameters-node.md)
+        * Universal Render Pipeline
+            * [URP Sample Buffer](URP-Sample-Buffer-Node.md)
     * [Keyword](Keyword-Node.md)
         * [Material Quality](Material-Quality-Keyword-Node.md)
         * [Raytracing Quality](Raytracing-Quality-Keyword-Node.md)
@@ -301,6 +305,7 @@
         * [Default SDF Text](default-sdf-text-node.md)
         * [Default Solid](default-solid-node.md)
         * [Default Texture](default-texture-node.md)
+        * [Is Forced Gamma](is-forced-gamma-node.md)
         * [Render Type](render-type-node.md)
         * [Render Type Branch](render-type-branch-node.md)
         * [Sample Element Texture](sample-element-texture-node.md)
@@ -323,6 +328,8 @@
               * [ScleraUVLocation](Sclera-UV-Location-Node.md)
             * Fabric
               * [ThreadMapDetail](ThreadMapDetail-Node.md)
+            * Surface Gradient
+              * [Surface Gradient Resolve Normal](Surface-Gradient-Resolve-Normal-Node.md)
         * Logic
             * [All](All-Node.md)
             * [And](And-Node.md)

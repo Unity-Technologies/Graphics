@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
 using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Categorization;
 using UnityEngine.Rendering;
@@ -69,42 +70,59 @@ namespace UnityEditor.Rendering.Universal
                 },
                 (item, description) =>
                 {
-                    // Direct conversion - works for both assets and scene objects
-                    var unityObject = item.ToObject();
-
-                    if (unityObject == null)
-                        return;
-
-                    // Ensure we're always working with GameObjects
-                    GameObject go = null;
-
-                    if (unityObject is GameObject gameObject)
-                        go = gameObject;
-                    else if (unityObject is Component component)
-                        go = component.gameObject;
-                    else
-                        return; // Not a GameObject or Component
-
-                    var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
-                    if (!processedIds.Add(gid.ToString()))
-                        return;
-
-                    int type = gid.identifierType; // 1=Asset, 2=SceneObject
-
-                    var isPrefab = type == 1;
-                    var lightUpgraderItem = new ParametricToFreeformLightUpgraderItem(gid.ToString())
-                    {
-                        info = isPrefab
-                            ? $"Prefab: {AssetDatabase.GetAssetPath(unityObject)}"
-                            : $"Scene: {go.scene.path}",
-                        type = type
-                    };
-
-
-                    returnList.Add(lightUpgraderItem);
+                    var lightUpgraderItem = CreateItem(item);
+                    if (lightUpgraderItem != null && processedIds.Add(lightUpgraderItem.GlobalObjectId))
+                        returnList.Add(lightUpgraderItem);
                 },
                 OnSearchFinish
             );
+        }
+
+        internal static ParametricToFreeformLightUpgraderItem CreateItem(SearchItem item)
+        {
+            // Direct conversion - works for both assets and scene objects
+            var unityObject = item.ToObject();
+
+            if (unityObject == null)
+                return CreateUnloadedSceneObjectItem(item);
+
+            // Ensure we're always working with GameObjects
+            GameObject go = null;
+
+            if (unityObject is GameObject gameObject)
+                go = gameObject;
+            else if (unityObject is Component component)
+                go = component.gameObject;
+            else
+                return null; // Not a GameObject or Component
+
+            var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+
+            int type = gid.identifierType; // 1=Asset, 2=SceneObject
+
+            var isPrefab = type == 1;
+            return new ParametricToFreeformLightUpgraderItem(gid.ToString())
+            {
+                info = isPrefab
+                    ? $"Prefab: {AssetDatabase.GetAssetPath(unityObject)}"
+                    : $"Scene: {go.scene.path}",
+                type = type
+            };
+        }
+
+        // A scene object only loads while its scene is open, so build the item from the search result and let
+        // Convert open the scene
+        static ParametricToFreeformLightUpgraderItem CreateUnloadedSceneObjectItem(SearchItem item)
+        {
+            var scenePath = AssetsConverter.GetUnloadedScenePath(item.id);
+            if (scenePath == null)
+                return null;
+
+            return new ParametricToFreeformLightUpgraderItem(item.id)
+            {
+                info = $"Scene: {scenePath}",
+                type = GlobalObjectIdentifierType.SceneObject
+            };
         }
 
         const float k_EnscribedSquareDiagonalLength = 0.70710678118654752440084436210485f;

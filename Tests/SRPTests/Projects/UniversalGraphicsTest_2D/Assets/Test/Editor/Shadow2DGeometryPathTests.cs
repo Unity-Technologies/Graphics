@@ -19,7 +19,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// 14-float layout verified to 1e-12 against the Python model, where a shared-layout bug fails
     /// loudly rather than by byte comparison.
     /// </remarks>
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class Shadow2DGeometryPathTests
     {
         NativeArray<Vector3> m_Vertices;
@@ -183,17 +182,23 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
-        public void MeshBoundsMatchTheGeneratedGeometry()
+        public void MeshBoundsAreLeftUnsetSoThatPS4StillDraws()
         {
-            // GenerateShadowMesh writes the vertex buffer directly, so bounds have to be assigned
-            // explicitly; they used to stay at zero, which reads as "no geometry" to anything that
-            // culls or frames by bounds.
+            // Inverted from what this test originally asserted, on purpose.
+            //
+            // UUM-151894: assigning bounds on this mesh makes PS4 drop every draw of it, whatever
+            // value is assigned -- the exact vertex AABB, the outline AABB and a deliberately huge
+            // box all fail, and only leaving them unset renders. Nothing consumes these bounds:
+            // no managed code reads Mesh.bounds for this mesh, and CommandBuffer.DrawMesh is not
+            // frustum-culled against them. URP's 2D shadow culling uses the caster bounding sphere
+            // built from ShadowMesh2D.m_LocalBounds, which is a separate value and unaffected.
+            //
+            // This test exists to stop the assignment being reintroduced as an "obvious" fix.
             var shadowMesh = BuildWith(LegacyShadowGeometryGenerator.k_Id);
-            Bounds bounds = shadowMesh.mesh.bounds;
 
-            Assert.AreNotEqual(Vector3.zero, bounds.size, "Mesh bounds were never assigned.");
-            Assert.That(bounds.extents.x, Is.GreaterThan(0.5f).And.LessThanOrEqualTo(1.5f), "Bounds do not enclose the unit square outline.");
-            Assert.That(bounds.extents.y, Is.GreaterThan(0.5f).And.LessThanOrEqualTo(1.5f), "Bounds do not enclose the unit square outline.");
+            Assert.Greater(shadowMesh.mesh.vertexCount, 0, "Sanity: the shape must produce geometry.");
+            Assert.AreEqual(Vector3.zero, shadowMesh.mesh.bounds.size,
+                "Shadow mesh bounds must stay unset -- assigning them reintroduces UUM-151894 on PS4.");
         }
 
         [Test]

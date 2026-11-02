@@ -8,24 +8,30 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.deprecated.hlsl"
 
-#if defined(LIGHTMAP_ON)
-    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
-    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
-    #define OUTPUT_SH4(absolutePositionWS, normalWS, viewDir, OUT, OUT_OCCLUSION)
-    #define OUTPUT_SH(normalWS, OUT)
-#else
-    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) half3 shName : TEXCOORD##index
-    #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
-    #ifdef USE_APV_PROBE_OCCLUSION
-        #define OUTPUT_SH4(absolutePositionWS, normalWS, viewDir, OUT, OUT_OCCLUSION) OUT.xyz = SampleProbeSHVertex(absolutePositionWS, normalWS, viewDir, OUT_OCCLUSION)
-    #else
-        #define OUTPUT_SH4(absolutePositionWS, normalWS, viewDir, OUT, OUT_OCCLUSION) OUT.xyz = SampleProbeSHVertex(absolutePositionWS, normalWS, viewDir)
+#if !defined(_LIGHT_LAYERS_KEYWORD_DECLARED)
+    #if !defined(_LIGHT_LAYERS)
+        static const bool _LIGHT_LAYERS = 0;
+    #elif DEFINED_NONZERO(_LIGHT_LAYERS)
+        #undef _LIGHT_LAYERS
+        #define _LIGHT_LAYERS 1
     #endif
-    // Note: This is the legacy function, which does not support APV.
-    // Kept to avoid breaking shaders still calling it (UUM-37723)
-    #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
+
+bool LightLayersAvailable()
+{
+    return _LIGHT_LAYERS;
+}
+
+bool IsMatchingLightLayer(Light light, uint renderingLayers)
+{
+    bool isMatching = true;
+    if (_LIGHT_LAYERS)
+        isMatching = IsMatchingLightLayer(light.layerMask, renderingLayers);
+    return isMatching;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //                      Lighting Functions                                   //
@@ -49,7 +55,7 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
     half3 lightColor, half3 lightDirectionWS, float lightAttenuation,
     half3 normalWS, half3 viewDirectionWS,
-    half clearCoatMask, bool specularHighlightsOff)
+    half clearCoatMask, bool useSpecularHighlights, bool useClearCoat)
 {
 #if (UNITY_PLATFORM_META_QUEST)
     half NdotL = dot(normalWS, lightDirectionWS);
@@ -60,35 +66,34 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
 #if (UNITY_PLATFORM_META_QUEST)
     [branch]
     if (NdotL > 0.0)
-    {    
+    {
         half3 radiance = lightColor * (lightAttenuation * saturate(NdotL));
 #else
         half3 radiance = lightColor * (lightAttenuation * NdotL);
 #endif
         half3 brdf = brdfData.diffuse;
-#ifndef _SPECULARHIGHLIGHTS_OFF
         [branch]
-        if (!specularHighlightsOff)
+        if (useSpecularHighlights)
         {
             brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-            // Clear coat evaluates the specular a second time and has some common terms with the base specular.
-            // We rely on the compiler to merge these and compute them only once.
-            half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
+            if (useClearCoat)
+            {
+                // Clear coat evaluates the specular a second time and has some common terms with the base specular.
+                // We rely on the compiler to merge these and compute them only once.
+                half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
 
-            // Mix clear coat and base layer using khronos glTF recommended formula
-            // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
-            // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
-            half NoV = saturate(dot(normalWS, viewDirectionWS));
-            // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
-            // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
-            half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
+                // Mix clear coat and base layer using khronos glTF recommended formula
+                // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
+                // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
+                half NoV = saturate(dot(normalWS, viewDirectionWS));
+                // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
+                // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
+                half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
 
-            brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
-#endif // _CLEARCOAT
+                brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
+            }
         }
-#endif // _SPECULARHIGHLIGHTS_OFF
         return brdf * radiance;
 #if (UNITY_PLATFORM_META_QUEST)
     }
@@ -96,54 +101,15 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
     return 0.0;
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlightsOff)
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool useSpecularHighlights, bool useClearCoat)
 {
-    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS, clearCoatMask, specularHighlightsOff);
+    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS, clearCoatMask, useSpecularHighlights, useClearCoat);
 }
 
-// Backwards compatibility
-// Pre-exposure is fixed to 1
-half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool useSpecularHighlights, bool useClearCoat)
 {
-    #ifdef _SPECULARHIGHLIGHTS_OFF
-    bool specularHighlightsOff = true;
-#else
-    bool specularHighlightsOff = false;
-#endif
-    const BRDFData noClearCoat = (BRDFData)0;
-    return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
-}
-
-// Backwards compatibility
-// Pre-exposure is fixed to 1
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS)
-{
-    Light light;
-    light.color = lightColor;
-    light.direction = lightDirectionWS;
-    light.distanceAttenuation = lightAttenuation;
-    light.shadowAttenuation   = 1;
-    return LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS);
-}
-
-// Backwards compatibility
-// Pre-exposure is fixed to 1
-half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
-{
-    const BRDFData noClearCoat = (BRDFData)0;
-    return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
-}
-
-// Backwards compatibility
-// Pre-exposure is fixed to 1
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
-{
-    Light light;
-    light.color = lightColor;
-    light.direction = lightDirectionWS;
-    light.distanceAttenuation = lightAttenuation;
-    light.shadowAttenuation   = 1;
-    return LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS, specularHighlightsOff);
+    const BRDFData noClearCoat = CreateEmptyBRDFData();
+    return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, useSpecularHighlights, useClearCoat);
 }
 
 URP_LIGHT_ACCUM3 VertexLighting(float3 positionWS, half3 normalWS)
@@ -157,9 +123,7 @@ URP_LIGHT_ACCUM3 VertexLighting(float3 positionWS, half3 normalWS)
     LIGHT_LOOP_BEGIN(lightsCount)
         Light light = GetAdditionalLight(lightIndex, positionWS);
 
-#ifdef _LIGHT_LAYERS
-    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-#endif
+    if (IsMatchingLightLayer(light, meshRenderingLayers))
     {
 #if defined(UNITY_PLATFORM_META_QUEST)
         if(light.distanceAttenuation > 0.0)
@@ -255,23 +219,23 @@ LightingData CreateLightingData(InputData inputData, SurfaceData surfaceData)
     return lightingData;
 }
 
-half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
+// useSpecularHighlights: the material provides a specular color (_SPECGLOSSMAP or _SPECULAR_COLOR).
+half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData, bool useSpecularHighlights, bool useAlphaPremultiply)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
     half3 lightDiffuseColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
 
     half3 lightSpecularColor = half3(0,0,0);
-    #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    half smoothness = exp2(10 * surfaceData.smoothness + 1);
+    if (useSpecularHighlights)
+    {
+        half smoothness = exp2(10 * surfaceData.smoothness + 1);
+        lightSpecularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+    }
 
-    lightSpecularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
-    #endif
+    if (useAlphaPremultiply)
+        lightDiffuseColor *= surfaceData.alpha;
 
-#if _ALPHAPREMULTIPLY_ON
-    return lightDiffuseColor * surfaceData.albedo * surfaceData.alpha + lightSpecularColor;
-#else
     return lightDiffuseColor * surfaceData.albedo + lightSpecularColor;
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -282,17 +246,9 @@ half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceD
 ////////////////////////////////////////////////////////////////////////////////
 /// PBR lighting...
 ////////////////////////////////////////////////////////////////////////////////
-URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool isSpecularSetup, bool useSpecularHighlights, bool useAlphaPremultiply, bool useClearCoat, bool receiveShadows, bool isSurfaceTypeTransparent, bool useEnvironmentReflections)
 {
-    #if defined(_SPECULARHIGHLIGHTS_OFF)
-    bool specularHighlightsOff = true;
-    #else
-    bool specularHighlightsOff = false;
-    #endif
-    BRDFData brdfData;
-
-    // NOTE: can modify "surfaceData"...
-    InitializeBRDFData(surfaceData, brdfData);
+    BRDFData brdfData = InitializeBRDFData(surfaceData, isSpecularSetup, useAlphaPremultiply);
 
     #if defined(DEBUG_DISPLAY)
     float4 debugColor;
@@ -303,10 +259,14 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
     }
     #endif
 
-    // Clear-coat calculation...
-    BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
+    BRDFData brdfDataClearCoat = CreateEmptyBRDFData();
+    if (useClearCoat)
+    {
+        // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+        brdfDataClearCoat = InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData);
+    }
     half4 shadowMask = CalculateShadowMask(inputData);
-    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData, isSurfaceTypeTransparent);
     uint meshRenderingLayers = GetMeshRenderingLayer();
 
 #if (UNITY_PLATFORM_META_QUEST)
@@ -315,8 +275,8 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
         inputData.shadowCoord.z = -1; // Force outside of shadowmap
     }
 #endif
-    
-    Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+
+    Light mainLight = GetMainLight(inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
 
     // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
@@ -325,15 +285,14 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                               inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
-                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
-#ifdef _LIGHT_LAYERS
-    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
-#endif
+                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV, useClearCoat, useEnvironmentReflections);
+
+    if (IsMatchingLightLayer(mainLight, meshRenderingLayers))
     {
         lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                                               mainLight,
                                                               inputData.normalWS, inputData.viewDirectionWS,
-                                                              surfaceData.clearCoatMask, specularHighlightsOff);
+                                                              surfaceData.clearCoatMask, useSpecularHighlights, useClearCoat);
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
@@ -344,32 +303,28 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
 
-#ifdef _LIGHT_LAYERS
-        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-#endif
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
             lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
                                                                           inputData.normalWS, inputData.viewDirectionWS,
-                                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+                                                                          surfaceData.clearCoatMask, useSpecularHighlights, useClearCoat);
         }
     }
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
 
-#ifdef _LIGHT_LAYERS
-        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-#endif
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
 #if defined(UNITY_PLATFORM_META_QUEST)
             if(light.distanceAttenuation > 0.0)
 #endif
             lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
                                                                           inputData.normalWS, inputData.viewDirectionWS,
-                                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+                                                                          surfaceData.clearCoatMask, useSpecularHighlights, useClearCoat);
         }
     LIGHT_LOOP_END
     #endif
@@ -386,30 +341,10 @@ URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceDa
 #endif
 }
 
-// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
-{
-    SurfaceData surfaceData;
-
-    surfaceData.albedo = albedo;
-    surfaceData.specular = specular;
-    surfaceData.metallic = metallic;
-    surfaceData.smoothness = smoothness;
-    surfaceData.normalTS = half3(0, 0, 1);
-    surfaceData.emission = emission;
-    surfaceData.occlusion = occlusion;
-    surfaceData.alpha = alpha;
-    surfaceData.clearCoatMask = 0;
-    surfaceData.clearCoatSmoothness = 1;
-
-    return UniversalFragmentPBR(inputData, surfaceData);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool useSpecularHighlights, bool useAlphaPremultiply, bool receiveShadows, bool isSurfaceTypeTransparent)
 {
     #if defined(DEBUG_DISPLAY)
     float4 debugColor;
@@ -422,19 +357,18 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData su
 
     uint meshRenderingLayers = GetMeshRenderingLayer();
     half4 shadowMask = CalculateShadowMask(inputData);
-    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
-    Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData, isSurfaceTypeTransparent);
+    Light mainLight = GetMainLight(inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, aoFactor);
 
     inputData.bakedGI *= surfaceData.albedo;
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
-#ifdef _LIGHT_LAYERS
-    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
-#endif
+
+    if (IsMatchingLightLayer(mainLight, meshRenderingLayers))
     {
-        lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
+        lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData, useSpecularHighlights, useAlphaPremultiply);
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
@@ -445,26 +379,24 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData su
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
-#ifdef _LIGHT_LAYERS
-        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-#endif
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
-            lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
+            lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData, useSpecularHighlights, useAlphaPremultiply);
         }
     }
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
-#ifdef _LIGHT_LAYERS
-        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-#endif
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, receiveShadows, isSurfaceTypeTransparent);
+
+        if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
 #if defined(UNITY_PLATFORM_META_QUEST)
             if(light.distanceAttenuation > 0.0)
 #endif
-            lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
+            lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData, useSpecularHighlights, useAlphaPremultiply);
         }
     LIGHT_LOOP_END
     #endif
@@ -476,29 +408,10 @@ URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData su
     return CalculateFinalColor(lightingData, surfaceData.alpha);
 }
 
-// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
-{
-    SurfaceData surfaceData;
-
-    surfaceData.albedo = diffuse;
-    surfaceData.alpha = alpha;
-    surfaceData.emission = emission;
-    surfaceData.metallic = 0;
-    surfaceData.occlusion = 1;
-    surfaceData.smoothness = smoothness;
-    surfaceData.specular = specularGloss.rgb;
-    surfaceData.clearCoatMask = 0;
-    surfaceData.clearCoatSmoothness = 1;
-    surfaceData.normalTS = normalTS;
-
-    return UniversalFragmentBlinnPhong(inputData, surfaceData);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Unlit
 ////////////////////////////////////////////////////////////////////////////////
-URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
+URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData, bool isSurfaceTypeTransparent)
 {
     #if defined(DEBUG_DISPLAY)
     float4 debugColor;
@@ -509,7 +422,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surf
     }
     #endif
 
-    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData, isSurfaceTypeTransparent);
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
@@ -519,25 +432,6 @@ URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surf
 
     // Fog is applied by the caller via BlendDistanceFog(color, positionCS).
     return half4(CalculateLightingColor(lightingData, surfaceData.albedo), surfaceData.alpha);
-}
-
-// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
-URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
-{
-    SurfaceData surfaceData;
-
-    surfaceData.albedo = color;
-    surfaceData.alpha = alpha;
-    surfaceData.emission = half3(0, 0, 0);
-    surfaceData.metallic = 0;
-    surfaceData.occlusion = 1;
-    surfaceData.smoothness = 1;
-    surfaceData.specular = half3(0, 0, 0);
-    surfaceData.clearCoatMask = 0;
-    surfaceData.clearCoatSmoothness = 1;
-    surfaceData.normalTS = normalTS;
-
-    return UniversalFragmentBakedLit(inputData, surfaceData);
 }
 
 #endif

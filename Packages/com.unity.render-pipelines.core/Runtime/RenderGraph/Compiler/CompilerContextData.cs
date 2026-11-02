@@ -7,29 +7,18 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
-    // Debug-only name storage: only allocated and populated in UNITY_ENABLE_CHECKS builds.
-    internal static class NameTableExtensions
+#if UNITY_ENABLE_CHECKS
+    internal readonly struct Name
     {
-        public static void AllocateOrClear(ref NativeList<FixedString64Bytes> names, int estimatedEntries)
+        public readonly string name;
+        public readonly int utf8ByteCount;
+        public Name(string name, bool computeUTF8ByteCount = false)
         {
-            if (!names.IsCreated)
-                names = new NativeList<FixedString64Bytes>(estimatedEntries, AllocatorManager.Persistent);
-            else
-                names.Clear();
-        }
-
-        public static void AddTruncated(this NativeList<FixedString64Bytes> names, string name)
-        {
-            var fixedName = new FixedString64Bytes();
-            fixedName.CopyFromTruncated(name);
-            names.Add(fixedName);
-        }
-
-        public static string GetNameOrEmpty(this in NativeList<FixedString64Bytes> names, int index)
-        {
-            return names.IsCreated && (uint)index < (uint)names.Length ? names[index].ToString() : "";
+            this.name = name;
+            this.utf8ByteCount = ((name?.Length > 0) && computeUTF8ByteCount) ? System.Text.Encoding.UTF8.GetByteCount((ReadOnlySpan<char>)name) : 0;
         }
     }
+#endif
 
     // Helper extensions for NativeList
     internal static class NativeListExtensions
@@ -59,6 +48,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             fences = new Dictionary<int, GraphicsFence>();
             resources = new ResourcesData();
+#if UNITY_ENABLE_CHECKS
+            passNames = new DynamicArray<Name>(NativePassCompiler.k_EstimatedPassCount, false);
+#endif
         }
 
         void AllocateNativeDataStructuresIfNeeded(int estimatedNumPasses)
@@ -88,7 +80,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             resources.Initialize(resourceRegistry);
 #if UNITY_ENABLE_CHECKS
-            NameTableExtensions.AllocateOrClear(ref passNames, estimatedNumPasses);
+            passNames.Clear();
 #endif
             AllocateNativeDataStructuresIfNeeded(estimatedNumPasses);
         }
@@ -156,7 +148,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<PassData> compactedNonCulledRasterPasses;
         public Dictionary<int, GraphicsFence> fences;
 #if UNITY_ENABLE_CHECKS
-        public NativeList<FixedString64Bytes> passNames;
+        public DynamicArray<Name> passNames;
 #endif
 
         // Tightly packed lists all passes, add to these lists then index in it using offset+count
@@ -215,10 +207,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
 #if UNITY_ENABLE_CHECKS
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetPassName(int passId) => passNames.GetNameOrEmpty(passId);
+        public string GetPassName(int passId) => passNames[passId].name;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetResourceName(in ResourceHandle h) => resources.resourceNames[h.iType].GetNameOrEmpty(h.index);
+        public string GetResourceName(in ResourceHandle h) => resources.resourceNames[h.iType][h.index].name;
 #else
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetPassName(int passId) => "";
@@ -383,10 +375,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         void Cleanup()
         {
             resources.Dispose();
-#if UNITY_ENABLE_CHECKS
-            if (passNames.IsCreated)
-                passNames.Dispose();
-#endif
 
             if (m_AreNativeListsAllocated)
             {

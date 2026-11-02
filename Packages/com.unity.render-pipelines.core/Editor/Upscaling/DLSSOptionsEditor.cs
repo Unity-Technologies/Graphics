@@ -1,4 +1,4 @@
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.NVIDIA;

@@ -145,15 +145,15 @@ PackedVaryings vert(Attributes input)
     SoftShadowSoftness softness;
 
     pointAttributes.positionOS.xy = payload.positionOS.xy;
-    { VertexDescription d = BuildVertexDescription(pointAttributes); pV  = d.Position.xy; disp.v     = d.ShadowDisplacement; softness.side = _SoftShadowAngle * saturate(d.ShadowSideSoftness); softness.back     = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
+    { VertexDescription d = BuildVertexDescription(pointAttributes); pV  = d.Position.xy; disp.v     = SoftShadowWorldDirectionToLocal(d.ShadowDisplacement); softness.side = _SoftShadowAngle * saturate(d.ShadowSideSoftness); softness.back     = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
     pointAttributes.positionOS.xy = payload.tangent.zw;
-    { VertexDescription d = BuildVertexDescription(pointAttributes); pP  = d.Position.xy; disp.prev  = d.ShadowDisplacement; softness.backPrev = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
+    { VertexDescription d = BuildVertexDescription(pointAttributes); pP  = d.Position.xy; disp.prev  = SoftShadowWorldDirectionToLocal(d.ShadowDisplacement); softness.backPrev = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
     pointAttributes.positionOS.xy = payload.next.xy;
-    { VertexDescription d = BuildVertexDescription(pointAttributes); pN  = d.Position.xy; disp.next  = d.ShadowDisplacement; softness.backNext = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
+    { VertexDescription d = BuildVertexDescription(pointAttributes); pN  = d.Position.xy; disp.next  = SoftShadowWorldDirectionToLocal(d.ShadowDisplacement); softness.backNext = _SoftShadowAngle * saturate(d.ShadowBackSoftness); }
     pointAttributes.positionOS.xy = payload.neighbor2.xy;
-    { VertexDescription d = BuildVertexDescription(pointAttributes); pP2 = d.Position.xy; disp.prev2 = d.ShadowDisplacement; }
+    { VertexDescription d = BuildVertexDescription(pointAttributes); pP2 = d.Position.xy; disp.prev2 = SoftShadowWorldDirectionToLocal(d.ShadowDisplacement); }
     pointAttributes.positionOS.xy = payload.neighbor2.zw;
-    { VertexDescription d = BuildVertexDescription(pointAttributes); pN2 = d.Position.xy; disp.next2 = d.ShadowDisplacement; }
+    { VertexDescription d = BuildVertexDescription(pointAttributes); pN2 = d.Position.xy; disp.next2 = SoftShadowWorldDirectionToLocal(d.ShadowDisplacement); }
 
     payload.positionOS.xy = pV;
     payload.tangent.zw    = pP;
@@ -175,24 +175,32 @@ PackedVaryings vert(Attributes input)
     // caster meets the B-channel unshadow interlock, which assumes the projected shadow leaves the
     // caster. That composite is outside what this file can guard.
 
-    // The displacement is read in the CASTER'S OWN FRAME and needs no transform at all.
+    // The displacement is authored in WORLD space, and converted into the caster's frame at each of
+    // the five reads above.
     //
-    // That frame is the space the projection runs in, and it reaches world through _ShadowModelMatrix,
-    // which ShadowCaster2D.CacheValues builds as TRS with only a +/-1 flip for scale -- an isometry. So
-    // a displacement here is a world-length offset along the caster's local axes, and (0, -2) means
-    // "two units along this sprite's own down", not "two units along world -Y".
+    // The projection runs in the caster's own frame, which reaches world through _ShadowModelMatrix --
+    // built by ShadowCaster2D.CacheValues as TRS with only a +/-1 flip for scale, so an isometry. Its
+    // inverse therefore carries a world direction into that frame without changing its length, which is
+    // all SoftShadowWorldDirectionToLocal does. So (0, -2) means "two units along world -Y", whatever
+    // the sprite's rotation or flip, and the offset is still a world LENGTH.
     //
-    // This is what makes a rigid transform of an entire scene -- camera, lights and casters together --
-    // leave the rendered shadow unchanged: the caster's frame rotates with the scene, so a constant
-    // typed into the port rotates with it too. Reading the port as WORLD instead cannot have that
-    // property, because a graph literal does not rotate while _ShadowModelInvMatrix does, and the
-    // shadow swings by the scene's own rotation. A graph that computes its displacement from world
-    // quantities -- Position (World), the Active Shadow2D Light node -- must therefore convert,
-    // either with a Transform (World -> Object) node or by working in this frame to begin with, which
-    // is what SoftShadowLightLocal / SoftShadowPointToLocal give a Custom Function node directly.
+    // World rather than the caster's frame because that is what an author means by a shadow offset: one
+    // constant throws every caster the same way, and a sun does not care how a sprite is rotated. Read
+    // in the caster's frame, the same literal pointed a different direction per caster, and nothing in
+    // the UI said which space the port was in or that a conversion was needed. See UUM-152815.
     //
-    // The flip travels with the frame: a flipped sprite mirrors its local axes, so its authored
-    // displacement mirrors too, which is the behaviour a flipped sprite's shadow wants.
+    // THE COST, and it is real. A rigid transform of an entire scene -- camera, lights and casters
+    // together -- no longer leaves the rendered shadow unchanged, because a graph literal does not
+    // rotate with the scene while the conversion above does. That invariance is now the graph's to keep
+    // rather than the port's to guarantee. A graph that wants it states its displacement in the caster's
+    // frame and converts back with a Transform (Object -> World) node, or works from SoftShadowLightLocal
+    // / SoftShadowPointToLocal and converts the result the same way. Both helpers still report the
+    // caster's frame and are unchanged.
+    //
+    // The flip no longer reaches the authored value. Undoing it here and reapplying it in
+    // _ShadowModelMatrix cancels exactly, so a flipped sprite throws its shadow the same way in world as
+    // an unflipped one -- which is what a world-space offset has to mean. That is a deliberate reversal:
+    // the caster-frame port mirrored the authored displacement with the sprite.
     float2 light;
     SoftShadowPrepare(payload, light);
 

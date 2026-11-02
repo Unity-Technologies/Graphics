@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceReflection = (1L << 55),
         RenderObjectDepthInputAttachment = (1L << 56),
         VolumetricFog = (1L << 57),
-        LightFalloffLinear = (1L << 58),
+        LightFalloffQuadratic = (1L << 58),
         All = ~0
     }
 
@@ -674,8 +674,8 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 
-            if (urpAsset.lightFalloffMode == LightFalloffMode.Linear)
-                urpAssetShaderFeatures |= ShaderFeatures.LightFalloffLinear;
+            if (urpAsset.lightFalloffMode == LightFalloffMode.Quadratic)
+                urpAssetShaderFeatures |= ShaderFeatures.LightFalloffQuadratic;
 
             if (urpAsset.supportScreenSpaceLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.ScreenSpaceLensFlare;
@@ -696,11 +696,7 @@ namespace UnityEditor.Rendering.Universal
             if(urpAsset.allowPostProcessAlphaOutput)
                 urpAssetShaderFeatures |= ShaderFeatures.AlphaOutput;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             if (urpAsset.IsUpscalerUsed(UniversalRenderPipeline.k_UpscalerId_Point))
-#else
-            if (urpAsset.upscalingFilter == UpscalingFilterSelection.Point)
-#endif
                 urpAssetShaderFeatures |= ShaderFeatures.PointSamplingUpsampling;
 
             // Check each renderer & renderer feature
@@ -1145,6 +1141,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
             spd.stripScreenSpaceIrradiance = stripScreenSpaceIrradiance;
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
+            spd.stripVolumetricFog = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.VolumetricFog);
 
             // Rendering Modes
             // Check if only Deferred is being used

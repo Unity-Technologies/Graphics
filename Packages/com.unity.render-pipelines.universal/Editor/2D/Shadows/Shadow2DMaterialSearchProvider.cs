@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 priority = 100,
                 filterId = "shadow2d:",
+                // Picker-only: keep it out of the main Search window.
+                isExplicitProvider = true,
                 fetchItems = (context, items, provider) => FetchCompatibleMaterials(context, provider),
                 fetchThumbnail = (item, context) => AssetPreview.GetMiniThumbnail(ResolveMaterial(item)),
                 toObject = (item, type) => ResolveMaterial(item)

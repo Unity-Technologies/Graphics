@@ -873,7 +873,7 @@ namespace UnityEngine.Rendering
         {
             if (isLocalLight)
             {
-                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS, !camera.orthographic);
+                return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.worldToCameraMatrix, camera.transform.position, positionWS, !camera.orthographic);
             }
             else
             {
@@ -881,34 +881,65 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 cameraPosWS, Vector3 positionWS, bool isPerspective)
+        static Vector3 WorldToViewportLocal(bool isCameraRelative, Matrix4x4 viewProjMatrix, Matrix4x4 worldToCameraMatrix, Vector3 cameraPosWS, Vector3 positionWS, bool isPerspective)
         {
             Vector3 localPositionWS = positionWS;
             if (isCameraRelative)
             {
                 localPositionWS -= cameraPosWS;
             }
-            Vector4 viewportPos4 = viewProjMatrix * localPositionWS;
-            Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
+            Vector4 viewportPos4 = viewProjMatrix * new Vector4(localPositionWS.x, localPositionWS.y, localPositionWS.z, isCameraRelative ? 0.0f : 1.0f);
+            Vector3 viewportPos;
             if (isPerspective)
-                viewportPos /= viewportPos4.w;
+            {
+                float eyeDepth = viewportPos4.w;
+                viewportPos = new Vector3(viewportPos4.x / eyeDepth, viewportPos4.y / eyeDepth, eyeDepth);
+            }
+            else
+            {
+                // An orthographic clip space w is always 1.
+                // Take the eye depth from the view matrix instead.
+                float eyeDepth = -worldToCameraMatrix.MultiplyPoint3x4(positionWS).z;
+                viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, eyeDepth);
+            }
             viewportPos.x = viewportPos.x * 0.5f + 0.5f;
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
             viewportPos.y = 1.0f - viewportPos.y;
-            viewportPos.z = viewportPos4.w;
             return viewportPos;
         }
 
         static Vector3 WorldToViewportDistance(Camera cam, Vector3 positionWS, bool isPerspective)
         {
-            Vector4 camPos = cam.worldToCameraMatrix * positionWS;
-            Vector4 viewportPos4 = cam.projectionMatrix * camPos;
-            Vector3 viewportPos = new Vector3(viewportPos4.x, viewportPos4.y, 0f);
+            // positionWS is a world point anchored at the camera, so transform as a point.
+            Vector3 viewPos = cam.worldToCameraMatrix.MultiplyPoint3x4(positionWS);
+            Vector3 viewportPos;
             if (isPerspective)
-                viewportPos /= viewportPos4.w;
+            {
+                Vector4 viewportPos4 = cam.projectionMatrix * new Vector4(viewPos.x, viewPos.y, viewPos.z, 1.0f);
+                float eyeDepth = viewportPos4.w;
+                viewportPos = new Vector3(viewportPos4.x / eyeDepth, viewportPos4.y / eyeDepth, eyeDepth);
+            }
+            else
+            {
+                // A directional light under an orthographic camera has no screen position
+                // because there is no vanishing point for the direction to converge on.
+                //
+                // Instead, we place the flare where the light source itself would be drawn in the skybox.
+                // For example, the common case of the sun.
+                // Unity draws the skybox of an orthographic camera with an identity projection that
+                // passes w into z (See Skybox::SetupSkyboxMatrices).
+                // ndc.xy = viewPos.xy / -viewPos.z.
+                float eyeDepth = -viewPos.z;
+                if (eyeDepth <= 0.0f)
+                {
+                    // The light is behind the camera or parallel to the image plane.
+                    // Use negative depth to reject the flare.
+                    return new Vector3(0.0f, 0.0f, -1.0f);
+                }
+                viewportPos = new Vector3(viewPos.x / eyeDepth, viewPos.y / eyeDepth, eyeDepth);
+            }
             viewportPos.x = viewportPos.x * 0.5f + 0.5f;
             viewportPos.y = viewportPos.y * 0.5f + 0.5f;
-            viewportPos.z = viewportPos4.w;
             return viewportPos;
         }
 
@@ -1194,7 +1225,8 @@ namespace UnityEngine.Rendering
 
                 if (light != null && light.type == LightType.Directional)
                 {
-                    flarePosWS = -light.transform.forward * cam.farClipPlane;
+                    // Anchor at the camera, so flarePosWS - cameraPositionWS is the direction to the light.
+                    flarePosWS = cameraPositionWS - light.transform.forward * cam.farClipPlane;
                     isDirLight = true;
                 }
                 else

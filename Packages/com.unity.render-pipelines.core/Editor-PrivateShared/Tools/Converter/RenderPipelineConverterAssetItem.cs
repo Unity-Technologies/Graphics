@@ -79,8 +79,21 @@ namespace UnityEditor.Rendering.Converter
             set => m_Info = value;
         }
 
-        public bool isEnabled { get; set; } = true;
-        public string isDisabledMessage { get; set; } = string.Empty;
+        [SerializeField]
+        private bool m_IsEnabled = true;
+        public bool isEnabled
+        {
+            get => m_IsEnabled;
+            set => m_IsEnabled = value;
+        }
+
+        [SerializeField]
+        private string m_IsDisabledMessage = string.Empty;
+        public string isDisabledMessage
+        {
+            get => m_IsDisabledMessage;
+            set => m_IsDisabledMessage = value;
+        }
 
         public Texture2D icon
         {

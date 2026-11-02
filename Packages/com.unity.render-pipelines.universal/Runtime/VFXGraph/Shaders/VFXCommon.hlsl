@@ -1,3 +1,4 @@
+#pragma once
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
@@ -11,6 +12,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Runtime/VFXGraph/Shaders/VFXCommon.deprecated.hlsl"
 
 float3 _LightDirection;
 
@@ -170,13 +173,14 @@ void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
     posCS = VFXTransformPositionWorldToClip(posWS);
 }
 
-float4 VFXApplyAO(float4 color, float4 posCS)
+float4 VFXApplyAO(float4 color, float4 posCS, bool isSurfaceTypeTransparent)
 {
-#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(posCS);
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
-    color.rgb *= aoFactor.directAmbientOcclusion;
-#endif
+    if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable())
+    {
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(posCS);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV, isSurfaceTypeTransparent);
+        color.rgb *= aoFactor.directAmbientOcclusion;
+    }
 
     return color;
 }
@@ -189,7 +193,7 @@ float4 VFXTransformFinalColor(float4 color, float4 posCS)
         color = VFXApplyAO(color, posCS);
     }
 
-#ifdef _DBUFFER
+#if defined(_DBUFFER) && !defined(_SURFACE_TYPE_TRANSPARENT)
     float3 decalColor = color.rgb;
     ApplyDecalToBaseColor(posCS, decalColor);
     color.rgb = decalColor;
@@ -208,14 +212,14 @@ float4 VFXApplyVolumetricFog(float4 color, float4 posCS)
 #else
     const half fogBlendMode = 0.0;
 #endif
-    color.rgb = MixVolumetricFog(color.rgb, color.a, fogBlendMode, posCS);
+    color.rgb = MixVolumetricFog(color.rgb, color.a, fogBlendMode, false, posCS);
 #endif
     return color;
 }
 
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
-   if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+   if (DistanceFogAvailable())
    {
        float4 fog = (float4)0;
        fog.rgb = ClampExposed(GetPreExposureMultiplier() * unity_FogColor.rgb);
@@ -237,7 +241,4 @@ float3 VFXGetCameraWorldDirection()
     return unity_CameraToWorld._m02_m12_m22;
 }
 
-#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
-{ \
-    outNormalBuffer = float4(PackNormalWSToTexture(normalWS), 0.0); \
-}
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) { outNormalBuffer = float4(PackNormalWSToTexture(normalWS), 0.0); }

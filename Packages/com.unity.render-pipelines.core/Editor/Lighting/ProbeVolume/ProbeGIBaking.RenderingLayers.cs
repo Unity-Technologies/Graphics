@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering
                     if (mesh == null)
                         continue;
 
-                    if (renderer.component is SkinnedMeshRenderer)
+                    if (renderer.component is not MeshRenderer)
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;

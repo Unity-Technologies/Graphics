@@ -5,6 +5,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -732,6 +733,154 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void EightColorAttachmentsPlusDepthFitInOneNativePass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(9, passes[0].attachments.size);
+        }
+
+        [Test]
+        public void NineColorAttachmentsWithoutDepthBreakPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i + 5], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.AttachmentLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void EightColorAttachmentsDepthAndShadingRateImageFitInOneNativePass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(ShadingRateInfo.supportsPerImageTile ? 10 : 9, passes[0].attachments.size);
+        }
+
+        [Test]
+        public void EightColorAttachmentsAndShadingRateImageWithoutDepthBreakPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[9], 0, AccessFlags.Write);
+                builder.SetShadingRateImageAttachment(renderTargets.extraTextures[8]);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.AttachmentLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void EightColorAttachmentsMergeWithDepthInputAttachmentPass()
+        {
+            if (!SystemInfo.supportsDepthAttachmentAsInputAttachment)
+                Assert.Ignore("Depth attachment as input attachment is not supported on this device.");
+
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i], i, AccessFlags.Write);
+                }
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.DepthAttachmentAsInputAttachment);
+                builder.SetInputAttachment(renderTargets.depthBuffer, 0, AccessFlags.Read);
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(9, passes[0].attachments.size);
+        }
+
+        [Test]
         public void NativeSubPassesLimitNotExceeded()
         {
             var g = AllocateRenderGraph();
@@ -756,6 +905,107 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, passes.Count);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numGraphPasses);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.SubPassLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void NativeSubPassesLimitIgnoresGraphPassesMergedIntoSameSubPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // More graph passes than the native subpasses limit, all using the same attachments so they share a single native subpass
+            for (int i = 0; i < Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 2; i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            // Different color attachment, so this graph pass needs a second native subpass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass_NewSubPass", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 3, passes[0].numGraphPasses);
+            Assert.AreEqual(2, passes[0].numNativeSubPasses);
+        }
+
+        [Test]
+        public void NativeSubPassesLimitReachedWithMultipleGraphPassesPerSubPass()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // Two graph passes per native subpass, alternating the color attachment so that each pair needs a new native subpass,
+            // one pair more than the native subpasses limit
+            for (int i = 0; i < 2 * (Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 1); i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[(i / 2) % 2], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(2 * Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numGraphPasses);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numNativeSubPasses);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.SubPassLimitReached, passes[0].breakAudit.reason);
+            Assert.AreEqual(2, passes[1].numGraphPasses);
+            Assert.AreEqual(1, passes[1].numNativeSubPasses);
+        }
+
+        [Test]
+        public void NativeSubPassesLimitNotExceededWhenMergedPassAddsDepth()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            // As many graph passes as the native subpasses limit, without depth and alternating the color attachment, so one native subpass each
+            for (int i = 0; i < Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass; i++)
+            {
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData))
+                {
+                    builder.SetRenderAttachment(renderTargets.extraTextures[i % 2], 0, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                    builder.AllowPassCulling(false);
+                }
+            }
+
+            // Same color attachment as the last native subpass, but this graph pass brings the depth attachment of the native pass,
+            // which changes the flags of the existing native subpasses when merged
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass_AddsDepth", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(renderTargets.extraTextureDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass - 1) % 2], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            foreach (var pass in passes)
+            {
+                Assert.LessOrEqual(pass.numNativeSubPasses, Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass);
+            }
         }
 
         [Test]
@@ -2077,6 +2327,49 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 2);
         }
 
+        [Test]
+        public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead_AndItsImplicitReaderIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var renderTargets = ImportAndCreateRenderTargets(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Producer", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("ProducerReader", out var passData))
+            {
+                builder.UseTexture(renderTargets.extraTextures[0], AccessFlags.Read);
+                builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Intermediate", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NotCullable", out var passData))
+            {
+                builder.SetRenderAttachment(renderTargets.extraTextures[2], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.extraTextures[1], 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            Assert.IsFalse(result.contextData.passData[0].culled, "Producer");
+            Assert.IsFalse(result.contextData.passData[1].culled, "ProducerReader");
+            Assert.IsTrue(result.contextData.passData[2].culled, "Intermediate");
+            Assert.IsFalse(result.contextData.passData[3].culled, "NotCullable");
+        }
+
         // Test using a texture as both a texture and render attachment, one will require topleft and one bottom left so this should throw.
         [Test]
         public void TextureUVOrigin_CheckInvalidMixedUVOriginUseTextureCompiler()
@@ -2491,8 +2784,32 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void CompiledGraphPreservesLongPassAndResourceNames()
+        {
+            var g = AllocateRenderGraph();
+            var longPassName = new string('P', 100);
+            var longTextureName = new string('T', 100);
+            var texture = g.CreateTexture(SimpleTextureDesc(longTextureName, 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>(longPassName, out var passData))
+            {
+                builder.SetRenderAttachment(texture, 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            Assert.AreEqual(longPassName, result.contextData.GetPassName(0));
+            Assert.AreEqual(longTextureName, result.contextData.GetResourceName(texture.handle));
+        }
+
+        [Test]
         public void CompileOnFreshCompilationCacheEntry_DoesNotAllocateGCMemory()
         {
+            if (Coverage.enabled)
+                Assert.Ignore("Test disabled for code coverage runs.");
+
             RenderGraph.s_EnableCompilationCachingForTests = true;
             NativePassCompiler.s_ForceGenerateAuditsForTests = false;
             try

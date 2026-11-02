@@ -74,9 +74,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
                 IgnoreWithLog("Platform resolves MSAA explicitly (no multisampled back buffer); the real back buffer MSAA request is always 1, so there is nothing to test here.");
 
-            // Under XR, URP renders into the XR-owned back buffer and never multisamples it directly, so the
-            // optimization is inactive. A global gate (rather than URP's per-camera xr.enabled check) is enough
-            // to skip the device XR and mock-XR jobs, where the fixture is meaningless.
+            // Under XR, the cameras here render into the XR eye textures, not the real back buffer, so this
+            // fixture's checks don't apply (XRDisplayMSAATests covers the eye textures). A global gate (rather
+            // than URP's per-camera xr.enabled check) is enough to skip the device XR and mock-XR jobs.
             if (XRSystem.displayActive || XRGraphicsAutomatedTests.enabled)
                 IgnoreWithLog("XR is active; URP renders into the XR-owned back buffer and never multisamples it directly, so there is nothing to test here.");
 
@@ -275,6 +275,31 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Object.DestroyImmediate(tileOnlyAsset);
                 if (rendererData != null)
                     Object.DestroyImmediate(rendererData);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TileOnlyDeferred_DirectCamera_KeepsMSAA_FallsBackToForward()
+        {
+            // Tile-only Deferred doesn't support MSAA, but must still request it so the renderer falls back to Forward instead of silently dropping MSAA.
+            m_RendererData.renderingMode = RenderingMode.Deferred;
+            m_RendererData.tileOnlyMode = true;
+            try
+            {
+                CreateScreenCamera(intermediate: false);
+
+                yield return null;
+                var renderer = m_Asset.GetRenderer(0) as UniversalRenderer;
+                if (renderer == null || !renderer.useTileOnlyMode)
+                    Assert.Ignore("Tile-only mode is not active on this platform.");
+
+                yield return SettleAndAssert(needsRealBackbufferMSAA: true);
+                Assert.AreEqual(RenderingMode.Forward, renderer.renderingModeActual, "Tile-only Deferred with MSAA should fall back to Forward.");
+            }
+            finally
+            {
+                m_RendererData.renderingMode = RenderingMode.Forward;
+                m_RendererData.tileOnlyMode = false;
             }
         }
 

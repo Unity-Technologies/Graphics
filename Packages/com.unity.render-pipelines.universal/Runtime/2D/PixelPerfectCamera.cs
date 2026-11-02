@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera")]
     [RequireComponent(typeof(Camera))]
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
+    [Icon("Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/PixelPerfectCamera.png")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {

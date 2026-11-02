@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEditorInternal;
@@ -277,7 +276,50 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
-        static bool IsAndroidXRTargetted() //Include Quest platform
+        internal const string k_XRProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
+
+        // Built lazily: EditorStyles is not available during static initialization.
+        static GUIStyle s_XRInfoLabelStyle;
+
+        // Hand-laid-out because CoreEditorUtils.DrawFixMeBox places the button inline and overlaps the text
+        // once it wraps.
+        internal static void DrawXRProjectValidationInfoBox(string message, string buttonLabel)
+        {
+            s_XRInfoLabelStyle ??= new GUIStyle(EditorStyles.label) { wordWrap = true };
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                // Reserved outside the box so it aligns with other help boxes, then zeroed so the contents
+                // position relative to the box rather than the inspector.
+                float indent = EditorGUI.indentLevel * 15f - EditorStyles.helpBox.margin.left;
+                if (indent > 0f)
+                    GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(false));
+
+                int oldIndent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(EditorGUIUtility.IconContent("console.infoicon"),
+                            GUILayout.Width(32f), GUILayout.Height(32f));
+                        GUILayout.Label(message, s_XRInfoLabelStyle);
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(buttonLabel, EditorStyles.miniButton))
+                            SettingsService.OpenProjectSettings(k_XRProjectValidationSettingsPath);
+                    }
+                }
+
+                EditorGUI.indentLevel = oldIndent;
+            }
+        }
+
+        internal static bool IsAndroidXRTargetted() //Include Quest platform
         {
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
@@ -328,7 +370,6 @@ namespace UnityEditor.Rendering.Universal
             float minRenderScale = UniversalRenderPipeline.minRenderScale;
             float maxRenderScale = UniversalRenderPipeline.maxRenderScale;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             EditorGUILayout.PropertyField(serialized.scalingMode, Styles.scalingModeText);
 
             // The mode decides which side of native resolution is reachable, so Render Scale can't contradict it.
@@ -340,29 +381,27 @@ namespace UnityEditor.Rendering.Universal
             // When None, renderScale is fixed at 1.0.
             if (scalingMode != ScalingMode.None)
             {
-#endif
-            using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
-            {
-                EditorGUI.BeginChangeCheck();
-                float newRenderScale = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, minRenderScale, maxRenderScale);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderScale.floatValue = newRenderScale;
-            }
+				using (new EditorGUI.MixedValueScope(serialized.renderScale.hasMultipleDifferentValues))
+				{
+					EditorGUI.BeginChangeCheck();
+					float newRenderScale = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, minRenderScale, maxRenderScale);
+					if (EditorGUI.EndChangeCheck())
+						serialized.renderScale.floatValue = newRenderScale;
+				}
 
-            DisplayTileOnlyHelpBox(
-                serialized.renderScale,
-                p =>
-                {
-                    // Usual threshold is 0.05f, but display warning to users even when RenderScale not actually applied since users are not aware of threshold
-                    bool userAttemptingRenderScale = !Mathf.Approximately(p.floatValue, 1.0f);
-                    if (!userAttemptingRenderScale)
-                        return false;
+				DisplayTileOnlyHelpBox(
+					serialized.renderScale,
+					p =>
+					{
+						// Usual threshold is 0.05f, but display warning to users even when RenderScale not actually applied since users are not aware of threshold
+						bool userAttemptingRenderScale = !Mathf.Approximately(p.floatValue, 1.0f);
+						if (!userAttemptingRenderScale)
+							return false;
 
-                    // This operation is actually ok on Quest
-                    return !IsAndroidXRTargetted();
-                },
-                Styles.renderScaleText);
-#if ENABLE_UPSCALER_FRAMEWORK
+						// This operation is actually ok on Quest
+						return !IsAndroidXRTargetted();
+					},
+					Styles.renderScaleText);
             }
 
             // The priority list only has meaning while upscaling, so it stays hidden in the other modes.
@@ -373,27 +412,22 @@ namespace UnityEditor.Rendering.Universal
 
                 DrawUpscalerListAndOptions(serialized, ownerEditor);
             }
-#else
-            DrawUpscalerListAndOptions(serialized, ownerEditor);
-#endif
 
-#if ENABLE_UPSCALER_FRAMEWORK
             bool upscalingSelected = scalingMode == ScalingMode.Upscaling;
-#else
-            bool upscalingSelected = serialized.renderScale.floatValue < 1.0f
-                || serialized.asset.upscalingFilter == UpscalingFilterSelection.STP
-                || serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR;
-#endif
 
             if (upscalingSelected)
             {
                 EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass when upscaling is applied.", MessageType.Warning, true);
             }
+
+            if (IsAndroidXRTargetted() && upscalingSelected)
+            {
+                DrawXRProjectValidationInfoBox(Styles.xrUpscalingInfo, Styles.xrUpscalingInfoButton);
+            }
         }
 
         static void DrawUpscalerListAndOptions(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             UniversalRenderPipelineAssetEditor urpEditor = ownerEditor as UniversalRenderPipelineAssetEditor;
             ReorderableList priorityList = urpEditor?.upscalerPriorityList;
             if (priorityList == null)
@@ -422,88 +456,8 @@ namespace UnityEditor.Rendering.Universal
                 if (!string.IsNullOrEmpty(upscalerId) && UpscalerRegistry.s_RegisteredUpscalers.ContainsKey(upscalerId))
                     DrawUpscalerOptions(serialized, urpEditor, upscalerId);
             }
-#else
-            // Count builtin upscalers
-            int numBuiltInUpscalers = (int)UpscalingFilterSelection.STP + 1;
-            int numTotalUpscalers = numBuiltInUpscalers;
-
-            // Create arrays for options and enum values
-            string[] names = new string[numTotalUpscalers];
-
-            // Get names and values for builtin upscalers
-            {
-                var bnames = Enum.GetNames(typeof(UpscalingFilterSelection));
-
-                for (int i = 0; i < numBuiltInUpscalers; i++)
-                {
-                    // Get the display name from the InspectorName attribute if it exists
-                    var field = typeof(UpscalingFilterSelection).GetField(bnames[i]);
-                    var inspectorNameAttribute = field.GetCustomAttribute<InspectorNameAttribute>();
-                    names[i] = inspectorNameAttribute != null ? inspectorNameAttribute.displayName : bnames[i];
-                }
-            }
-
-            // Get the current enum value
-            UpscalingFilterSelection curUpscaler =
-                (UpscalingFilterSelection)serialized.upscalingFilter.enumValueIndex;
-
-            // Find the current selected index
-            int selectedIndex = 0;           // [0, iUpscalerCount + BuiltinUpscalerCount)
-            {
-                selectedIndex = serialized.upscalingFilter.enumValueIndex;
-            }
-
-            // --------------------------------------------------- GUI ---------------------------------------------------
-
-            // Show the dropdown
-            EditorGUI.BeginChangeCheck();
-            selectedIndex = EditorGUILayout.Popup(Styles.upscalingFilterText, selectedIndex, names);
-            if (EditorGUI.EndChangeCheck())
-            {
-                serialized.upscalingFilter.enumValueIndex = Math.Min(selectedIndex, (int)UpscalingFilterSelection.STP);
-            }
-
-            DisplayTileOnlyHelpBox(serialized.upscalingFilter, p => p.intValue != (int)UpscalingFilterSelection.Auto, Styles.upscalingFilterText);
-
-            // draw upscaler options, if any
-            switch (serialized.asset.upscalingFilter)
-            {
-                case UpscalingFilterSelection.FSR:
-                    {
-                        ++EditorGUI.indentLevel;
-
-                        EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-
-                        // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
-                        if (serialized.fsrOverrideSharpness.boolValue)
-                        {
-                            using (new EditorGUI.MixedValueScope(serialized.fsrSharpness.hasMultipleDifferentValues))
-                            {
-                                EditorGUI.BeginChangeCheck();
-                                float newFsrSharpness = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
-                                if (EditorGUI.EndChangeCheck())
-                                    serialized.fsrSharpness.floatValue = newFsrSharpness;
-                            }
-                        }
-
-                        --EditorGUI.indentLevel;
-                    }
-                    break;
-
-                case UpscalingFilterSelection.STP:
-                    {
-                        // Warn users about performance expectations if they attempt to enable STP on a mobile platform
-                        if (PlatformAutoDetect.isShaderAPIMobileDefined)
-                        {
-                            EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
-                        }
-                    }
-                    break;
-            }
-#endif
         }
 
-#if ENABLE_UPSCALER_FRAMEWORK
         // Upscalers only display a foldout if they have options to configure.
         static bool UpscalerHasOptions(SerializedUniversalRenderPipelineAsset serialized, UniversalRenderPipelineAssetEditor urpEditor, string upscalerId)
         {
@@ -602,8 +556,6 @@ namespace UnityEditor.Rendering.Universal
 
             --EditorGUI.indentLevel;
         }
-
-#endif
 
         public static readonly string disabledPostprocessing = L10n.Tr("HDR is not supported by one of the Universal Render Pipeline renderers.", null);
 

@@ -62,17 +62,6 @@
     min-height: 0;
 }
 
-.converter-bottom-buttons {
-    flex-direction: column;
-    flex-shrink: 0;
-    padding-left: 0;
-    padding-right: 0;
-    margin-top: 10px;
-    width: auto;
-    align-items: stretch;
-    flex-grow: 0;
-}
-
 .render-pipeline-converter-helpbox-error {
     flex-grow: 1;
     padding-top: 2px;
@@ -86,13 +75,15 @@
     justify-content: flex-end; /* right align */
     flex-wrap: wrap;           /* allow wrapping */
     margin-top: 10px;
+    margin-bottom: 10px;
     flex-shrink: 0;
-    min-height: 40px;
 }
 
 .converter-button {
     flex-shrink: 0;
     min-width: 100px;         /* adjust to your layout */
+    min-height: 20px;         /* on the button, not the row: a min-height on a wrapping
+                                 container is applied to every flex line */
     align-self: flex-end;
 }
 

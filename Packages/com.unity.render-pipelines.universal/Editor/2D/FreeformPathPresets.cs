@@ -5,19 +5,6 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class FreeformPathPresets
     {
-        public static Vector3[] CreateSquare()
-        {
-            Vector3[] returnPath = new Vector3[4]
-            {
-                new Vector3(-0.5f, -0.5f),
-                new Vector3(0.5f, -0.5f),
-                new Vector3(0.5f, 0.5f),
-                new Vector3(-0.5f, 0.5f)
-            };
-
-            return returnPath;
-        }
-
         public static Vector3[] CreateIsometricDiamond()
         {
             Vector3[] returnPath = new Vector3[4]

@@ -1079,7 +1079,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal bool CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index)
+        internal bool CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index, bool usedByAsyncComputePass)
         {
             Debug.Assert(index != 0, "Index 0 indicates the null object it can't be used here");
 
@@ -1087,17 +1087,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
             {
-                resource.CreatePooledGraphicsResource(m_CurrentFrameIndex, m_ExecutionCount);
+                resource.CreatePooledGraphicsResource(m_CurrentFrameIndex, m_ExecutionCount, usedByAsyncComputePass);
                 executedWork = m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
 
             return executedWork ?? false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool CreatePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
-        {
-            return CreatePooledResource(rgContext, handle.iType, handle.index);
         }
 
         // Only modified by native compiler when using native render pass

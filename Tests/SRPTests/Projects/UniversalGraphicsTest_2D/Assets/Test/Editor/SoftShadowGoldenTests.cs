@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     // META line pins the parameters, so a change to them fails loudly rather than silently comparing
     // against the wrong configuration.
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowGoldenTests
     {
         const string k_GoldenFile = "Test/Editor/softshadow_goldens.txt";

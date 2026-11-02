@@ -6,12 +6,14 @@
 #endif
 
 #ifdef EFFECT_BUMP
-    #define _NORMALMAP
+    #define _NORMALMAP 1
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 
 #ifdef ENABLE_WIND
     #define WIND_QUALITY_NONE       0
@@ -30,6 +32,13 @@
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 float4 _MainTex_TexelSize;
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+
+half GetBumpScale()            { return half(1.0); }
+
+half4 SampleBaseMap(float2 uv) { return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv); }
+half4 SampleBumpMap(float2 uv) { return SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv); }
 
 #ifdef EFFECT_HUE_VARIATION
     half4 _HueVariation;

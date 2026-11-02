@@ -26,14 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/9x_Other/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
         [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
         [IgnoreGraphicsTest("9602_SkinnedMeshBatching-On$", "Outdated ref-image.")]
-        [IgnoreGraphicsTest(
-            "9701_CustomPass_DrawRenderers",
-            "Unstable - see https://jira.unity3d.com/browse/UUM-130183",
-            GraphicsDeviceType.Metal
-        )]
         [IgnoreGraphicsTest(
             "9703_SampleColorBuffer_InjectionPoints_Scaling$",
             "Small differences in texture-sampling. Could be related to the forced-trilinear issue?",
@@ -53,11 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "9920_WaterSurface$",
             "Diverges in the wave-modifier edges.",
             GraphicsDeviceType.Metal
-        )]
-        [IgnoreGraphicsTest(
-            "9920_WaterSurface",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-141715",
-            RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
             "9921_UnderWater$",
@@ -108,11 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest(
             "9950-LineRendering",
             "Also fails because of Alembic removal https://jira.unity3d.com/browse/UUM-136889"
-        )]
-        [IgnoreGraphicsTest(
-            "9701_CustomPass_DrawRenderers",
-            "Disabled for Instability https://jira.unity3d.com/browse/UUM-145446",
-            RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
             "9001_LODTransition",

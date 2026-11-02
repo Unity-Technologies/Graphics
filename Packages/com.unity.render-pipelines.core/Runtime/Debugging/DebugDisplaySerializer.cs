@@ -32,6 +32,18 @@ namespace UnityEngine.Rendering
         [SerializeField]
         SerializedDictionary<string, bool> m_FoldoutStates = new();
 
+        [SerializeField]
+        bool m_AreDebugOverlaysHidden;
+
+        /// <summary>
+        /// Whether the Rendering Debugger is currently hiding debug overlays.
+        /// </summary>
+        internal static bool areDebugOverlaysHidden
+        {
+            get => instance.m_AreDebugOverlaysHidden;
+            set => instance.m_AreDebugOverlaysHidden = value;
+        }
+
         ISerializedDebugDisplaySettings GetOrCreate(Type type)
         {
             var setting = Get(type);

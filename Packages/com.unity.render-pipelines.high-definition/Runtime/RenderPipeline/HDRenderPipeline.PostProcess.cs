@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
 
+        // Upscaler reactive mask
+        Material m_ReactiveMaskMaterial;
+
         // Bloom data
         const int k_MaxBloomMipCount = 16;
         Vector4 m_BloomBicubicParams; // Needed for uber pass
@@ -197,6 +200,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensFlareScreenSpaceShader = CoreUtils.CreateEngineMaterial(runtimeShaders.lensFlareScreenSpacePS);
             m_LensFlareScreenSpaceShader.SetOverrideTag("RenderType", "Transparent");
 
+            var reactiveMaskResources = GraphicsSettings.GetRenderPipelineSettings<UpscalerReactiveMaskResources>();
+            m_ReactiveMaskMaterial = CoreUtils.CreateEngineMaterial(reactiveMaskResources?.reactiveMaskPS);
+
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
             m_UseSafePath = SystemInfo.graphicsDeviceVendor.Contains("intel", StringComparison.InvariantCultureIgnoreCase);
@@ -304,6 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.Destroy(m_ReactiveMaskMaterial);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
@@ -314,10 +321,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
             m_TemporalAAMaterial = null;
+            m_ReactiveMaskMaterial = null;
             m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
             m_DLSSPass = null;
+            m_FSR2Pass?.Cleanup();
             m_FSR2Pass = null;
         }
 
@@ -390,9 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnabledAdvancedUpscalerPassMask |= m_DLSSPass != null && camera.IsDLSSEnabled() ? (1 << (int)AdvancedUpscalers.DLSS): 0;
             m_EnabledAdvancedUpscalerPassMask |= m_FSR2Pass != null && camera.IsFSR2Enabled() ? (1 << (int)AdvancedUpscalers.FSR2): 0;
             m_EnabledAdvancedUpscalerPassMask |= camera.IsSTPEnabled() ? (1 << (int)AdvancedUpscalers.STP): 0;
-#if ENABLE_UPSCALER_FRAMEWORK
             m_EnabledAdvancedUpscalerPassMask |= camera.IsIUpscalerEnabled() ? (1 << (int)AdvancedUpscalers.IUpscaler): 0;
-#endif
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -519,7 +526,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         CurrentUpsamplerData? GetCurrentUpsamplerData(HDCamera hdCamera)
         {
-#if ENABLE_UPSCALER_FRAMEWORK
             if (hdCamera.IsIUpscalerEnabled())
             {
                 return new CurrentUpsamplerData
@@ -529,7 +535,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
                 };
             }
-#endif
 
             // Check if DLSS or FSR can run:
             int dlssMask = (1 << (int)AdvancedUpscalers.DLSS);
@@ -621,17 +626,141 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        TextureHandle DoAlphaUpscaling(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle preUpscaleColor, TextureHandle upscaledColor,
+            in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, bool isTemporalUpscaler)
+        {
+            AlphaUpscaler.Config config = default;
+            config.preUpscaleAlpha = preUpscaleColor;
+            config.upscaledColor = upscaledColor;
+            config.preUpscaleSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+            // HDRP color textures are allocated at the maximum RTHandle size and rendered into a
+            // viewport-sized sub-rect; with hardware DRS the allocation itself is scaled as well.
+            var preUpscalePhysicalSize = new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight);
+            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                preUpscalePhysicalSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(preUpscalePhysicalSize);
+            config.preUpscalePhysicalSize = preUpscalePhysicalSize;
+            config.postUpscaleSize = new Vector2Int(Mathf.RoundToInt(hdCamera.finalViewport.width), Mathf.RoundToInt(hdCamera.finalViewport.height));
+            config.jitter = new Vector2(hdCamera.taaJitter.x, hdCamera.taaJitter.y);
+            config.enableTexArray = TextureXR.useTexArray;
+            config.viewCount = hdCamera.viewCount;
+
+            // Spatial upscalers render without jitter, so there is no per-frame phase
+            // variance to accumulate away; the default config (no motion vectors, depth,
+            // stencil or history) runs the spatial-only reconstruction.
+            if (isTemporalUpscaler)
+            {
+                bool validHistory = GrabPostProcessHistoryTextures(hdCamera, HDCameraFrameHistoryType.AlphaUpscale, "Alpha Upscale History", GraphicsFormat.R16_SFloat, out var prevAlphaHistory, out var nextAlphaHistory);
+
+                config.motionVectors = motionVectors;
+                config.cameraDepth = depthBuffer;
+                config.reactiveMask = stencilBuffer;
+                config.stencilExcludeBit = (int)StencilUsage.ExcludeFromTUAndAA;
+                config.prevAlphaHistory = renderGraph.ImportTexture(prevAlphaHistory);
+                config.nextAlphaHistory = renderGraph.ImportTexture(nextAlphaHistory);
+                config.historyBlendFactor = (validHistory && !hdCamera.resetPostProcessingHistory) ? AlphaUpscaler.defaultHistoryBlendFactor : 0.0f;
+            }
+
+            return AlphaUpscaler.Execute(renderGraph, ref config);
+        }
+
+        static bool RequiresReactiveMaskPass(HDCamera camera, IUpscaler upscaler, UpscalerOptions upscalerOptions)
+        {
+            return camera.IsIUpscalerEnabled() && upscaler != null && upscaler.reactiveMaskSource != ReactiveMaskSource.None && upscalerOptions != null && upscalerOptions.enableReactiveMaskPass;
+        }
+
+        static TextureHandle UpscalerReactiveMaskPass(RenderGraph renderGraph, IUpscaler upscaler, UpscalerOptions upscalerOptions, Material material, TextureHandle cameraColorPreAlpha, TextureHandle cameraColorPostAlpha, Vector2Int preUpscaleResolution, bool enableTexArray, bool hdrInput)
+        {
+            if (upscalerOptions == null || upscaler.reactiveMaskSource == ReactiveMaskSource.None)
+                return TextureHandle.nullHandle;
+
+            TextureHandle output = TextureHandle.nullHandle;
+
+            using (var builder = renderGraph.AddUnsafePass<UpscalerReactiveMask.PassData>("Upscaler Reactive Mask", out var passData, ProfilingSampler.Get(HDProfileId.IUpscalerReactiveMask)))
+            {
+                int passId = 0;
+                if (upscaler.reactiveMaskSource == ReactiveMaskSource.Color)
+                {
+                    output = renderGraph.CreateTexture(
+                        new TextureDesc(preUpscaleResolution.x, preUpscaleResolution.y, xrReady: enableTexArray)
+                        {
+                            format = GraphicsFormat.R8_UNorm,
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Upscaler Reactive Mask"
+                        });
+                    builder.SetRenderAttachment(output, 0);
+
+                    passId = 0;
+                }
+                else if (upscaler.reactiveMaskSource == ReactiveMaskSource.Stencil)
+                {
+                    output = renderGraph.CreateTexture(
+                        new TextureDesc(preUpscaleResolution.x, preUpscaleResolution.y, xrReady: enableTexArray)
+                        {
+                            format = GraphicsFormatUtility.GetDepthStencilFormat(1, 8), // Vulkan: Can't use stencil-only format for depth attachment
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Upscaler Reactive Mask"
+                        });
+                    builder.SetRenderAttachmentDepth(output, AccessFlags.Write);
+
+                    passId = 1;
+                }
+
+                CoreUtils.SetKeyword(material, UpscalerReactiveMask.ShaderKeywords.k_InputTextureArrayKeyword, enableTexArray);
+
+                uint reactiveFlags = 0;
+                if (hdrInput)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyTonemap;
+                if (upscalerOptions.reactiveMaskUseComponentMax)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._UseComponentMax;
+                if (upscalerOptions.applyReactiveMaskThreshold)
+                    reactiveFlags |= UpscalerReactiveMask.ReactiveFlags._ApplyThreshold;
+
+                passData.reactiveMaskMaterial = material;
+                passData.reactiveMaskPassId = passId;
+                passData.destWidth = preUpscaleResolution.x;
+                passData.destHeight = preUpscaleResolution.y;
+                passData.reactiveScale = upscalerOptions.reactiveMaskScale;
+                passData.reactiveThreshold = upscalerOptions.reactiveMaskThreshold;
+                passData.reactiveBinaryValue = upscalerOptions.reactiveMaskBinaryValue;
+                passData.reactiveFlags = reactiveFlags;
+                passData.cameraColorPreAlpha = cameraColorPreAlpha;
+                passData.cameraColorPostAlpha = cameraColorPostAlpha;
+
+                builder.UseTexture(passData.cameraColorPreAlpha, AccessFlags.Read);
+                builder.UseTexture(passData.cameraColorPostAlpha, AccessFlags.Read);
+
+                builder.SetRenderFunc((UpscalerReactiveMask.PassData data, UnsafeGraphContext ctx) =>
+                {
+                    var material = data.reactiveMaskMaterial;
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveScale, data.reactiveScale);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveThreshold, data.reactiveThreshold);
+                    material.SetFloat(UpscalerReactiveMask.ShaderConstants._ReactiveBinaryValue, data.reactiveBinaryValue);
+                    material.SetInteger(UpscalerReactiveMask.ShaderConstants._ReactiveFlags, (int)data.reactiveFlags);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPreAlpha, data.cameraColorPreAlpha);
+                    material.SetTexture(UpscalerReactiveMask.ShaderConstants._ColorPostAlpha, data.cameraColorPostAlpha);
+
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                    cmd.SetViewport(new Rect(0, 0, data.destWidth, data.destHeight));
+                    Blitter.BlitTexture(cmd, new Vector4(1, 1, 0, 0), material, data.reactiveMaskPassId);
+                });
+            }
+
+            return output;
+        }
+
         TextureHandle DoUpscalingAndAntiAliasing(RenderGraph renderGraph, HDCamera hdCamera, CurrentUpsamplerData upsamplerDataData,
             TextureHandle source, in TextureHandle depthBuffer, in TextureHandle motionVectors, in TextureHandle stencilBuffer, in TextureHandle depthBufferMipChain)
         {
             bool taaUsesCAS = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing && hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening;
 
+            TextureHandle preUpscaleColor = source;
+
             source = upsamplerDataData switch
             {
-#if ENABLE_UPSCALER_FRAMEWORK
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.IUpscaler }
                     => DoIUpscalerPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
-#endif
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
                     => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.DLSS}
@@ -646,6 +775,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     => EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source),
                 _ => source
             };
+
+            // Advanced upscalers (including IUpscalers without alpha upscaling support) only upscale the RGB channels
+            // and leave the output alpha undefined, so rebuild it here from the pre-upscale alpha.
+            if (upsamplerDataData.isAdvancedUpsampler && source != preUpscaleColor && PostProcessEnableAlpha(hdCamera))
+            {
+                bool supportsAlphaUpscaling = false;
+                bool isTemporalUpscaler = true;
+                if (upsamplerDataData.advancedUpsampler == AdvancedUpscalers.IUpscaler)
+                {
+                    supportsAlphaUpscaling = upscaling.activeUpscaler.supportsAlphaUpscaling;
+                    isTemporalUpscaler = upscaling.activeUpscaler.isTemporal;
+                }
+                if (!supportsAlphaUpscaling)
+                    source = DoAlphaUpscaling(renderGraph, hdCamera, preUpscaleColor, source, depthBuffer, motionVectors, stencilBuffer, isTemporalUpscaler);
+            }
 
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
 
@@ -662,6 +806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle uiBuffer,
             TextureHandle afterPostProcessBuffer,
             TextureHandle opticalFogTransmittance,
+            TextureHandle beforeTransparencyBuffer,
             CullingResults cullResults,
             HDCamera hdCamera,
             CubemapFace cubemapFace,
@@ -702,6 +847,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
                 source = StopNaNsPass(renderGraph, hdCamera, source);
+
+                {
+                    var io = hdCamera.contextContainer.Get<UpscalingIO>();
+                    var upscaler = upscaling.activeUpscaler;
+                    var upscalerOptions = upscaling.GetGlobalOptions(upscaling.activeUpscaler);
+
+                    // Should be same as DoIUpscalerPasses()
+                    var preUpscaleResolution = hdCamera.historyRTHandleProperties.currentViewportSize;
+                    var enableTexArray = TextureXR.useTexArray;
+                    var hdrInput = GraphicsFormatUtility.IsHDRFormat(inputColor.GetDescriptor(renderGraph).format);
+
+                    if (RequiresReactiveMaskPass(hdCamera, upscaler, upscalerOptions) && beforeTransparencyBuffer != TextureHandle.nullHandle)
+                        io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, upscaler, upscalerOptions, m_ReactiveMaskMaterial, beforeTransparencyBuffer, inputColor, preUpscaleResolution, enableTexArray, hdrInput);
+                    else
+                        io.reactiveMask = TextureHandle.nullHandle;
+                }
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
@@ -1053,7 +1214,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region IUpscaler
-#if ENABLE_UPSCALER_FRAMEWORK
         TextureHandle DoIUpscalerPasses(
             RenderGraph renderGraph,
             HDCamera hdCamera,
@@ -1095,15 +1255,20 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(numActiveViews <= STP.perViewConfigs.Length);
 
             io.numActiveViews = numActiveViews;
-            io.worldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.previousWorldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.previousPreviousWorldSpaceCameraPositions = new Vector3[numActiveViews];
-            io.projectionMatrices = new Matrix4x4[numActiveViews];
-            io.previousProjectionMatrices = new Matrix4x4[numActiveViews];
-            io.previousPreviousProjectionMatrices = new Matrix4x4[numActiveViews];
-            io.viewMatrices = new Matrix4x4[numActiveViews];
-            io.previousViewMatrices = new Matrix4x4[numActiveViews];
-            io.previousPreviousViewMatrices = new Matrix4x4[numActiveViews];
+
+            if (io.worldSpaceCameraPositions == null || io.worldSpaceCameraPositions.Length != numActiveViews)
+            {
+                io.worldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.previousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.previousPreviousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+                io.projectionMatrices = new Matrix4x4[numActiveViews];
+                io.previousProjectionMatrices = new Matrix4x4[numActiveViews];
+                io.previousPreviousProjectionMatrices = new Matrix4x4[numActiveViews];
+                io.viewMatrices = new Matrix4x4[numActiveViews];
+                io.previousViewMatrices = new Matrix4x4[numActiveViews];
+                io.previousPreviousViewMatrices = new Matrix4x4[numActiveViews];
+            }
+            
             for (int i = 0; i < numActiveViews; i++)
             {
                 // NOTE: STP assumes the view matrices also contain the camera position. However, HDRP may be configured to perform camera relative rendering which
@@ -1185,7 +1350,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return io.cameraColor;
         }
-#endif
         #endregion
 
         #region Copy Alpha

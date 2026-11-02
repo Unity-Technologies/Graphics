@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.Universal.Tests
     /// concluded the opposite and inferred that preview render state and passes could be ignored.
     /// </summary>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class ShadowCaster2DPreviewTests
     {
         // Built exactly as NewGraphAction does, so this is the graph the Create menu produces.

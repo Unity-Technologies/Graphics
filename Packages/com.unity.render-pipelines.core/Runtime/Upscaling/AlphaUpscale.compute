@@ -1,0 +1,360 @@
+#pragma kernel UpscaleAlphaAndMergeColor
+
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+#pragma multi_compile _ DIRECT_STENCIL_SAMPLE REACTIVE_MASK
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore webgpu
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+// Include TextureXR.hlsl for XR macros
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+
+#if UNITY_REVERSED_Z
+    #define COMPARE_DEPTH(a, b) step(b, a)
+#else
+    #define COMPARE_DEPTH(a, b) step(a, b)
+#endif
+
+TEXTURE2D_X(_UpscaledColor);
+// Pre-upscale color at rendering resolution. Only the alpha channel is read.
+TEXTURE2D_X(_PreUpscaleAlpha);
+
+// Depth at rendering resolution, used to dilate the motion vectors at silhouettes.
+TEXTURE2D_X(_DepthTexture);
+// Motion vectors at rendering resolution, in UV space (current - previous frame position).
+TEXTURE2D_X(_MotionVectorTexture);
+// Post-upscale alpha accumulated over the previous frames.
+TEXTURE2D_X(_AlphaHistory);
+
+#if defined(DIRECT_STENCIL_SAMPLE)
+// Stencil at rendering resolution: pixels whose stencil equals _ExcludeTAABit skip the temporal
+// accumulation, matching the TAA exclusion of FragTAA.
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
+uint _ExcludeTAABit;
+#endif
+
+#if defined(REACTIVE_MASK)
+TEXTURE2D_X(_ReactiveMaskTexture);
+#endif
+
+RW_TEXTURE2D_X(float4, _OutputTexture);
+RW_TEXTURE2D_X(float, _AlphaHistoryOutput);
+
+SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_point_clamp_sampler);
+
+// xy: input (pre-upscale) viewport size in pixels, zw: rcp of the input texture size
+float4 _AlphaUpscaleParams0;
+// xy: output viewport size in pixels, zw: camera jitter of the current frame in input pixels
+float4 _AlphaUpscaleParams1;
+// x: history blend weight (0 disables the temporal accumulation for this frame),
+// y: history buffers available (0 disables the history read and write entirely),
+// zw: rcp of the history texture size
+float4 _AlphaUpscaleParams2;
+
+// ------------------------------------------------------------------------------------------------
+// Scalar port of the TAA_UPSAMPLE path of HDRP's TAA, applied to the alpha channel only.
+// Differences from HDRP's TAA:
+// - The alpha value replaces the color luma in the luma-driven heuristics.
+// - Color-only logic is not ported: YCoCg/tonemap/perceptual weighting, the upsample confidence
+//   and final blend-factor clamp, and the ENABLE_ALPHA color guards.
+// - Fixed to a default TAAU camera configuration: bilinear history resampling, no
+//   history-contrast anti-flicker, no velocity rejection.
+// ------------------------------------------------------------------------------------------------
+
+// output over input scale and its inverse
+#define _TAAUScale (_AlphaUpscaleParams1.x / _AlphaUpscaleParams0.x)
+#define _TAAURenderScale (_AlphaUpscaleParams0.x / _AlphaUpscaleParams1.x)
+// The current frame weight
+#define _BaseBlendFactor (1.0 - _AlphaUpscaleParams2.x)
+// Input and history viewport sizes and their reciprocals
+#define _InputSize float4(_AlphaUpscaleParams0.xy, rcp(_AlphaUpscaleParams0.xy))
+#define _TaaHistorySize float4(_AlphaUpscaleParams1.xy, rcp(_AlphaUpscaleParams1.xy))
+// The camera jitter in input pixels (xy) and input UV (zw)
+#define _TaaJitterStrength float4(_AlphaUpscaleParams1.zw, _AlphaUpscaleParams1.zw * rcp(_AlphaUpscaleParams0.xy))
+// The RTHandle scales: viewport over physical texture size
+#define _RTHandleScaleForTAA (_AlphaUpscaleParams0.xy * _AlphaUpscaleParams0.zw)
+#define _RTHandleScaleForTAAHistory (_AlphaUpscaleParams1.xy * _AlphaUpscaleParams2.zw)
+
+// _AntiFlickerIntensity / _ContrastForMaxAntiFlicker: PrepareTAAPassData values for the default
+// camera taaAntiFlicker of 0.5: lerp(0, 3.5, 0.5) and 0.7 - lerp(0, 0.3, SmoothStep(0.5, 1, 0.5))
+#define _AntiFlickerIntensity 1.75
+#define _ContrastForMaxAntiFlicker 0.7
+
+#define NEIGHBOUR_COUNT 8
+#define SAMPLE_COUNT (NEIGHBOUR_COUNT + 1)
+
+static const int2 NeighbourOffsets[NEIGHBOUR_COUNT] =
+{
+    int2(0, 1), int2(1, 0), int2(-1, 0), int2(0, -1),
+    int2(-1, 1), int2(1, -1), int2(1, 1), int2(-1, -1)
+};
+
+struct NeighbourhoodSamples
+{
+    float neighbours[NEIGHBOUR_COUNT];
+    float central;
+    float minNeighbour;
+    float maxNeighbour;
+};
+
+// ------------------------------------------------------------------------------------------------
+// Input tile cached in groupshared memory: all alpha and depth taps land on input-resolution
+// texel centers, so the threads of a group cooperatively load the input footprint of their
+// output tile once (each texel fetched by one thread) instead of tapping the textures per pixel. Tap values match the direct taps, with the borders clamped
+// to the input viewport. Since the pass only upscales, the footprint of GROUP_SIZE output
+// pixels stays within GROUP_SIZE input texels, plus the one-texel neighbourhood/dilation border.
+// ------------------------------------------------------------------------------------------------
+
+#define GROUP_SIZE 16
+#define TILE_BORDER 1
+#define TILE_SIZE (GROUP_SIZE + 2 * TILE_BORDER)
+
+groupshared float gs_TileAlpha[TILE_SIZE * TILE_SIZE];
+groupshared float gs_TileDepth[TILE_SIZE * TILE_SIZE];
+
+float TileAlpha(int2 tileCoord)
+{
+    return gs_TileAlpha[tileCoord.y * TILE_SIZE + tileCoord.x];
+}
+
+float TileDepth(int2 tileCoord)
+{
+    return gs_TileDepth[tileCoord.y * TILE_SIZE + tileCoord.x];
+}
+
+// The input texel containing the dejittered position of the group's first output pixel, minus the border.
+int2 GetTileOrigin(uint2 groupOrigin)
+{
+    float2 firstPixInInput = (((float2)groupOrigin + 0.5) / _AlphaUpscaleParams1.xy) * _InputSize.xy - _TaaJitterStrength.xy;
+    return int2(floor(firstPixInInput)) - TILE_BORDER;
+}
+
+void LoadInputTile(int2 tileOrigin, uint groupIndex)
+{
+    const int2 maxCoord = int2(_InputSize.xy) - 1;
+    const uint tileSize = TILE_SIZE;
+
+    for (uint i = groupIndex; i < tileSize * tileSize; i += GROUP_SIZE * GROUP_SIZE)
+    {
+        int2 coord = clamp(tileOrigin + int2(i % tileSize, i / tileSize), 0, maxCoord);
+        gs_TileAlpha[i] = LOAD_TEXTURE2D_X_LOD(_PreUpscaleAlpha, coord, 0).a;
+        gs_TileDepth[i] = LOAD_TEXTURE2D_X_LOD(_DepthTexture, coord, 0).r;
+    }
+}
+
+float FetchHistory(float2 coords, float2 scale)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_AlphaHistory, s_linear_clamp_sampler, coords * scale, 0).x;
+}
+
+float2 GetClosestFragmentOffset(int2 tileCoord)
+{
+    float center = TileDepth(tileCoord);
+
+    int2 offset0 = int2( 1,  1);
+    int2 offset1 = int2(-1,  1);
+    int2 offset2 = int2( 1, -1);
+    int2 offset3 = int2(-1, -1);
+
+    float s3 = TileDepth(tileCoord + offset3);
+    float s2 = TileDepth(tileCoord + offset2);
+    float s1 = TileDepth(tileCoord + offset1);
+    float s0 = TileDepth(tileCoord + offset0);
+
+    float3 closest = float3(0.0, 0.0, center);
+    closest = COMPARE_DEPTH(s0, closest.z) ? float3(offset0, s0) : closest;
+    closest = COMPARE_DEPTH(s3, closest.z) ? float3(offset3, s3) : closest;
+    closest = COMPARE_DEPTH(s2, closest.z) ? float3(offset2, s2) : closest;
+    closest = COMPARE_DEPTH(s1, closest.z) ? float3(offset1, s1) : closest;
+
+    return closest.xy;
+}
+
+float2 GetMotionVector(float2 uv, int2 tileCoord, float2 inputTexelSize, float2 inputScale)
+{
+    float2 closestOffset = GetClosestFragmentOffset(tileCoord);
+
+    float2 motionVector = SAMPLE_TEXTURE2D_X_LOD(_MotionVectorTexture, s_point_clamp_sampler, (uv + closestOffset * inputTexelSize) * inputScale, 0).xy;
+    return motionVector.x > 1.0 ? 0.0 : motionVector;
+}
+
+void GatherNeighbourhood(int2 tileCoord, float centralAlpha, out NeighbourhoodSamples samples)
+{
+    ZERO_INITIALIZE(NeighbourhoodSamples, samples);
+
+    samples.central = centralAlpha;
+
+    [unroll]
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    {
+        samples.neighbours[i] = TileAlpha(tileCoord + NeighbourOffsets[i]);
+    }
+}
+
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyAlpha, float filteredAlpha, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
+{
+    float moment1 = 0.0;
+    float moment2 = 0.0;
+
+    [unroll]
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    {
+        moment1 += samples.neighbours[i];
+        moment2 += samples.neighbours[i] * samples.neighbours[i];
+    }
+
+    moment1 += samples.central;
+    moment2 += samples.central * samples.central;
+
+    moment1 *= rcp(SAMPLE_COUNT);
+    moment2 *= rcp(SAMPLE_COUNT);
+
+    float stdDev = sqrt(abs(moment2 - moment1 * moment1));
+
+    float stDevMultiplier = 1.5;
+
+    float aggressiveStdDev = stdDev * 0.5;
+    float aggressiveClampedHistory = clamp(historyAlpha, moment1 - aggressiveStdDev, moment1 + aggressiveStdDev);
+
+    const float maxFactorScale = 2.25f; // when stationary
+    const float minFactorScale = 0.8f; // when moving more than slightly
+
+    float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVecLenInPixels)));
+
+    float temporalContrast = saturate(abs(filteredAlpha - aggressiveClampedHistory) / Max3(0.15, filteredAlpha, aggressiveClampedHistory));
+    stDevMultiplier += lerp(0.0, localizedAntiFlicker, smoothstep(0.05, antiFlickerParams.y, temporalContrast));
+
+    stDevMultiplier = lerp(stDevMultiplier, 0.75, saturate(motionVecLenInPixels / 50.0f));
+
+    // We shrink the bounding box when upscaling as ghosting is more likely.
+    stDevMultiplier = lerp(0.9f, stDevMultiplier, saturate(downsampleFactor));
+
+    samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
+    samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
+}
+
+// Polynomial approximation of the Gaussian sample weight in the following link.
+// https://www.desmos.com/calculator/g2hr2hzj84
+float GetSampleWeight(float2 offsets, float4 filterParameters)
+{
+    const float2 inputToOutputVec = filterParameters.zw;
+    const float resolutionScale2 = filterParameters.y * filterParameters.y;
+    float2 d = offsets - inputToOutputVec;
+
+    float x2 = saturate(resolutionScale2 * dot(d, d));
+    float f = 0.9656852 * x2 - 1;
+    return f * f;
+}
+
+float FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters)
+{
+    float totalWeight = GetSampleWeight(0, filterParameters); // center
+    float filtered = samples.central * totalWeight;
+
+    [unroll]
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    {
+        float w = GetSampleWeight(NeighbourOffsets[i], filterParameters);
+        filtered += samples.neighbours[i] * w;
+        totalWeight += w;
+    }
+    filtered *= rcp(totalWeight);
+    return filtered;
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void UpscaleAlphaAndMergeColor(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    int2 tileOrigin = GetTileOrigin(groupId.xy * GROUP_SIZE);
+    LoadInputTile(tileOrigin, groupIndex);
+    GroupMemoryBarrierWithGroupSync();
+
+    uint2 pos = dispatchThreadId.xy;
+    if (any(pos >= uint2(_AlphaUpscaleParams1.xy)))
+        return;
+
+    float3 color = LOAD_TEXTURE2D_X(_UpscaledColor, pos).rgb;
+
+    // The output pixel's dejittered position in the input,
+    // with the tap UV snapped to the center of the containing input texel (the sub-texel
+    // part goes into the filter weights below).
+    float2 outputUV = ((float2)pos + 0.5) / _AlphaUpscaleParams1.xy;
+    float2 outputPixInInput = outputUV * _InputSize.xy - _TaaJitterStrength.xy;
+    float2 uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
+
+    // The containing texel in tile coordinates.
+    int2 tileCoord = clamp(int2(floor(outputPixInInput)) - tileOrigin, TILE_BORDER, TILE_SIZE - 1 - TILE_BORDER);
+
+    bool excludeTAABit = false;
+#if DIRECT_STENCIL_SAMPLE
+    uint stencil = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, int2(outputPixInInput)));
+    excludeTAABit = (stencil == _ExcludeTAABit);
+#endif
+
+#if REACTIVE_MASK
+    float reactiveMask = LOAD_TEXTURE2D_X(_ReactiveMaskTexture, int2(outputPixInInput)).x;
+#endif
+
+    // --------------- Get closest motion vector ---------------
+    float2 motionVector = GetMotionVector(uv, tileCoord, _InputSize.zw, _RTHandleScaleForTAA);
+
+    // --------------- Get resampled history ---------------
+    float2 prevUV = outputUV - motionVector;
+
+    float history = FetchHistory(prevUV, _RTHandleScaleForTAAHistory);
+    bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
+
+    // --------------- Gather neigbourhood data ---------------
+    float alpha = TileAlpha(tileCoord);
+
+    if (!excludeTAABit)
+    {
+        NeighbourhoodSamples samples;
+        GatherNeighbourhood(tileCoord, alpha, samples);
+
+        // --------------- Filter central sample ---------------
+        float4 filterParams = 0;
+        filterParams.y = _TAAUScale;
+        filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
+
+        float filteredAlpha = FilterCentralColor(samples, filterParams);
+
+        if (offScreen)
+            history = filteredAlpha;
+
+        // --------------- Get neighbourhood information and clamp history ---------------
+        float motionVectorLenInPixels = length(motionVector) * length(_InputSize.xy);
+
+        VarianceNeighbourhood(samples, history, filteredAlpha, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+
+        // GetClippedHistory with DIRECT_CLIP reduces to a clamp for a scalar
+        history = clamp(history, samples.minNeighbour, samples.maxNeighbour);
+
+        // --------------- Compute blend factor for history ---------------
+        // On a history reset, and in the spatial-only mode (no history buffers provided, dummy
+        // textures bound), the history weight is 0, so the blend factor is 1 and the result falls
+        // through to the filtered alpha.
+        float blendFactor = _BaseBlendFactor;
+        // BLEND_FACTOR_MV_TUNE
+        blendFactor = lerp(blendFactor, saturate(2.0f * blendFactor), saturate(motionVectorLenInPixels / 50.0f));
+
+#if REACTIVE_MASK
+        blendFactor = lerp(blendFactor, 1.0f, reactiveMask);
+#endif
+
+        // --------------- Alpha handling ---------------
+        alpha = lerp(history, filteredAlpha, blendFactor);
+    }
+    // Keep NaNs out of the history feedback loop, where they would otherwise persist.
+    alpha = saturate(alpha);
+
+    if (_AlphaUpscaleParams2.y != 0.0)
+        _AlphaHistoryOutput[COORD_TEXTURE2D_X(pos)] = alpha;
+
+    _OutputTexture[COORD_TEXTURE2D_X(pos)] = float4(color, alpha);
+}

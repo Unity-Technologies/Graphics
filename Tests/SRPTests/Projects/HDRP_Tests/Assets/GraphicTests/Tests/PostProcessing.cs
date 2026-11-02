@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
         [Timeout(450 * 1000)]
-        [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
@@ -100,12 +99,29 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [TestOnlySupportedOn(
             "4111_DRS-DLSS-With-CustomPass",
-            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only
+            "Platform not supported", // DLSS is DX12/DX11/Vulkan on PC-only, and needs an NVIDIA GPU.
             GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Vulkan,
-            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer
+            RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer,
+            GraphicsVendor.Nvidia
+        )]
+        [TestOnlySupportedOn(
+            "4113_DRS-MetalFXTemporal-Hardware|4114_DRS-MetalFXSpatial-Hardware",
+            "Platform not supported", // MetalFX is Metal on Apple platforms only
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer
         )]
         [IgnoreGraphicsTest(
-            "4075_PhysicalCamera-gateFit|4111_DRS-DLSS-With-CustomPass",
+            "4113_DRS-MetalFXTemporal-Hardware",
+            "MetalFX Temporal is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXTemporalSupport.TemporalUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4114_DRS-MetalFXSpatial-Hardware",
+            "MetalFX Spatial is not supported on this device (needs macOS 13 and a capable GPU)",
+            MetalFXSpatialSupport.SpatialUnsupported
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-134786",
             RuntimePlatform.WindowsEditor
         )]
@@ -123,18 +139,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-135194",
             RuntimePlatform.WindowsEditor
         )]
-        [IgnoreGraphicsTest(
-            "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass)).*",
-            "Upscaler-only job — non-upscaler tests excluded when ENABLE_UPSCALER_FRAMEWORK is defined",
-            UpscalerFrameworkContext.UpscalerFrameworkEnabled
-        )]
         [TestNotSupportedOn(
-            "4011|4013|4014|4038|4060|4061|4099|4100",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
             "Not XR compatible",
             StereoRenderingContext.StereoEnabled
         )]
         [TestNotSupportedOn(
-            "4011|4013|4014|4038|4060|4061|4099|4100",
+            "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
             "Not XR compatible", XrDevice.Any
         )]
         public IEnumerator GraphicsTest(SceneGraphicsTestCase testCase)

@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
             _dispatcher.EnableTypeTracking<Light>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
             _dispatcher.EnableTransformTracking<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
             _dispatcher.EnableTypeTracking<Material>(ObjectDispatcher.TypeTrackingFlags.SceneObjects | ObjectDispatcher.TypeTrackingFlags.Assets);
+            _dispatcher.EnableTypeTracking<Mesh>(ObjectDispatcher.TypeTrackingFlags.SceneObjects | ObjectDispatcher.TypeTrackingFlags.Assets);
 #if ENABLE_TERRAIN_MODULE
             _dispatcher.EnableTypeTracking<Terrain>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
             _dispatcher.EnableTransformTracking<Terrain>(ObjectDispatcher.TransformTrackingType.GlobalTRS);
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
             var lightTransforms = _dispatcher.GetTransformChangesAndClear<Light>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
             var lightTypeChanges = _dispatcher.GetTypeChangesAndClear<Light>(Allocator.Temp);
             var materialTypeChanges = _dispatcher.GetTypeChangesAndClear<Material>(Allocator.Temp);
+            var meshTypeChanges = _dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.Temp, noScriptingArray: true);
 #if ENABLE_TERRAIN_MODULE
             var terrainTransforms = _dispatcher.GetTransformChangesAndClear<Terrain>(ObjectDispatcher.TransformTrackingType.GlobalTRS, false);
             var terrainTypeChanges = _dispatcher.GetTypeChangesAndClear<Terrain>(Allocator.Temp);
@@ -56,6 +58,7 @@ namespace UnityEngine.Rendering.Universal
                 LightChangedList = lightTypeChanges.changed,
                 LightDestroyedList = lightTypeChanges.destroyedID,
                 MaterialChangedList = materialTypeChanges.changed,
+                MeshDestroyedList = meshTypeChanges.destroyedID,
 #if ENABLE_TERRAIN_MODULE
                 TerrainTransformChangedList = terrainTransforms,
                 TerrainChangedList = terrainTypeChanges.changed,
@@ -69,7 +72,8 @@ namespace UnityEngine.Rendering.Universal
                 meshRendererTransforms,
                 meshRendererTypeChanges,
                 lightTypeChanges,
-                materialTypeChanges
+                materialTypeChanges,
+                meshTypeChanges
 #if ENABLE_TERRAIN_MODULE
                 , terrainTypeChanges
                 , terrainDataTypeChanges
@@ -89,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
         readonly TypeDispatchData _meshRendererTypeChanges;
         readonly TypeDispatchData _lightTypeChanges;
         readonly TypeDispatchData _materialTypeChanges;
+        readonly TypeDispatchData _meshTypeChanges;
 #if ENABLE_TERRAIN_MODULE
         readonly TypeDispatchData _terrainTypeChanges;
         readonly TypeDispatchData _terrainDataTypeChanges;
@@ -101,7 +106,8 @@ namespace UnityEngine.Rendering.Universal
             TransformDispatchData meshRendererTransforms,
             TypeDispatchData meshRendererTypeChanges,
             TypeDispatchData lightTypeChanges,
-            TypeDispatchData materialTypeChanges
+            TypeDispatchData materialTypeChanges,
+            TypeDispatchData meshTypeChanges
 #if ENABLE_TERRAIN_MODULE
             , TypeDispatchData terrainTypeChanges
             , TypeDispatchData terrainDataTypeChanges
@@ -113,6 +119,7 @@ namespace UnityEngine.Rendering.Universal
             _meshRendererTypeChanges = meshRendererTypeChanges;
             _lightTypeChanges = lightTypeChanges;
             _materialTypeChanges = materialTypeChanges;
+            _meshTypeChanges = meshTypeChanges;
 #if ENABLE_TERRAIN_MODULE
             _terrainTypeChanges = terrainTypeChanges;
             _terrainDataTypeChanges = terrainDataTypeChanges;
@@ -125,6 +132,7 @@ namespace UnityEngine.Rendering.Universal
             _meshRendererTypeChanges.Dispose();
             _lightTypeChanges.Dispose();
             _materialTypeChanges.Dispose();
+            _meshTypeChanges.Dispose();
 #if ENABLE_TERRAIN_MODULE
             _terrainTypeChanges.Dispose();
             _terrainDataTypeChanges.Dispose();

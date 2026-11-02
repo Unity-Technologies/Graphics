@@ -63,12 +63,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv3:                                      output.uv3 = input.texCoord3;
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor = input.color;
     $SurfaceDescriptionInputs.TimeParameters:                           output.TimeParameters = _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
-#ifdef UNIVERSAL_TERRAIN_SPLAT01
-    $SurfaceDescriptionInputs.uvSplat01:                                output.uvSplat01 = input.uvSplat01;
-#endif
-#ifdef UNIVERSAL_TERRAIN_SPLAT23
-    $SurfaceDescriptionInputs.uvSplat23:                                output.uvSplat23 = input.uvSplat23;
-#endif
 #if defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)
 #define BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN output.FaceSign = IS_FRONT_VFACE(input.cullFace, true, false);
 #else

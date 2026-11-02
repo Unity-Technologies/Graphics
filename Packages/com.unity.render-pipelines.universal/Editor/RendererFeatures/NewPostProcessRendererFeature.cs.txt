@@ -1,3 +1,4 @@
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -84,6 +85,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         private RTHandle m_CopiedColor;
 
         // Declare a property block to set additional properties for the material.
+        [NoAutoStaticsCleanup]
         private static MaterialPropertyBlock s_SharedPropertyBlock = new MaterialPropertyBlock();
 
         // Declare a property that enables or disables the render pass that samples the color texture.

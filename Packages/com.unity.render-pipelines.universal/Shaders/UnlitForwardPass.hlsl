@@ -1,4 +1,3 @@
-
 #ifndef URP_UNLIT_FORWARD_PASS_INCLUDED
 #define URP_UNLIT_FORWARD_PASS_INCLUDED
 
@@ -6,9 +5,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitFeatures.hlsl"
 
 struct Attributes
 {
@@ -103,36 +101,38 @@ void UnlitPassFragment(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+    half4 texColor = SampleBaseMap(uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
 
     alpha = AlphaDiscard(alpha, _Cutoff);
-    color = AlphaModulate(color, alpha);
+    if (UseAlphaModulate())
+        color = ApplyAlphaModulate(color, alpha);
 
-#ifdef LOD_FADE_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
 
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
 #ifdef _DBUFFER
-    ApplyDecalToBaseColor(input.positionCS, color);
+    if (!IsSurfaceTypeTransparent())
+        ApplyDecalToBaseColor(input.positionCS, color);
 #endif
 
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
-#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
-    finalColor.rgb *= aoFactor.directAmbientOcclusion;
-#endif
+    if (ScreenSpaceOcclusionAvailable() && !IsSurfaceTypeTransparent())
+    {
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV, IsSurfaceTypeTransparent());
+        finalColor.rgb *= aoFactor.directAmbientOcclusion;
+    }
 
     finalColor.rgb = ClampExposed(BlendDistanceFogExposed(finalColor.rgb, input.positionCS, inputData.preExposureMultiplier));
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
-    finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, input.positionCS);
+#if defined(_TRANSPARENT_RECEIVE_FOG)
+    if (IsSurfaceTypeTransparent())
+        finalColor.rgb = MixVolumetricFog(finalColor.rgb, finalColor.a, _Blend, UseAlphaPremultiply(), input.positionCS);
 #endif
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent());
 

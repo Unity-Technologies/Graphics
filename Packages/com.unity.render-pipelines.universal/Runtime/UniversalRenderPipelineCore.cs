@@ -67,9 +67,7 @@ namespace UnityEngine.Rendering.Universal
     /// Enumeration that indicates what kind of upscaling filter is being used
     /// </summary>
     ///
-#if ENABLE_UPSCALER_FRAMEWORK
     [Obsolete("ImageUpscalingFilter is no longer used #from(6000.3)")]
-#endif
     internal enum ImageUpscalingFilter
     {
         /// Bilinear filtering
@@ -84,9 +82,7 @@ namespace UnityEngine.Rendering.Universal
         /// Spatial-Temporal Post-Processing
         STP,
 
-#if ENABLE_UPSCALER_FRAMEWORK
         IUpscaler
-#endif
     }
 
     /// <summary>
@@ -331,9 +327,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ref float renderScale => ref frameData.Get<UniversalCameraData>().renderScale;
         internal ref ImageScalingMode imageScalingMode => ref frameData.Get<UniversalCameraData>().imageScalingMode;
-#if ENABLE_UPSCALER_FRAMEWORK
         [Obsolete("upscalingFilter is no longer used #from(6000.3)")]
-#endif
         internal ref ImageUpscalingFilter upscalingFilter => ref frameData.Get<UniversalCameraData>().upscalingFilter;
         internal ref bool fsrOverrideSharpness => ref frameData.Get<UniversalCameraData>().fsrOverrideSharpness;
         internal ref float fsrSharpness => ref frameData.Get<UniversalCameraData>().fsrSharpness;
@@ -1006,7 +1000,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
-        public static readonly GlobalKeyword LightFalloffLinear = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffLinear);
+        public static readonly GlobalKeyword LightFalloffQuadratic = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffQuadratic);
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1427,7 +1421,7 @@ namespace UnityEngine.Rendering.Universal
         public const string DEPTH_AS_INPUT_ATTACHMENT_MSAA = "_DEPTH_AS_INPUT_ATTACHMENT_MSAA";
 
         /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
-        public const string LightFalloffLinear = "_LIGHT_FALLOFF_LINEAR";
+        public const string LightFalloffQuadratic = "_LIGHT_FALLOFF_QUADRATIC";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1636,6 +1630,7 @@ namespace UnityEngine.Rendering.Universal
             desc.msaaSamples = msaaSamples;
             desc.enableRandomWrite = false;
             desc.bindMS = false;
+            desc.shadowSamplingMode = ShadowSamplingMode.None;
             desc.useDynamicScale = camera.allowDynamicResolution;
 
             // Check that the requested MSAA samples count is supported by the current platform. If it's not supported,
@@ -1658,7 +1653,7 @@ namespace UnityEngine.Rendering.Universal
             // This ensures that the baked punctual light intensity matches realtime intensity. (See GFXLIGHT-1755)
             const float piCorrection = Mathf.PI;
 
-            FalloffType punctualFalloff = IsLinearFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
+            FalloffType punctualFalloff = IsQuadraticFalloffEnabled() ? FalloffType.Legacy : FalloffType.InverseSquared;
 
 #if UNITY_EDITOR
             // Always extract lights in the Editor.
@@ -1883,9 +1878,9 @@ namespace UnityEngine.Rendering.Universal
             lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
         }
 
-        internal static bool IsLinearFalloffEnabled()
+        internal static bool IsQuadraticFalloffEnabled()
         {
-            return asset != null && asset.lightFalloffMode == LightFalloffMode.Linear;
+            return asset != null && asset.lightFalloffMode == LightFalloffMode.Quadratic;
         }
 
         /// <summary>

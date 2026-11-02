@@ -138,6 +138,28 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Selects the source at <paramref name="index"/> and applies its type as one undoable change.
+        /// </summary>
+        /// <remarks>
+        /// The boxedValue of a [SerializeReference] field is the live instance. So the selection fields change
+        /// on the object itself, and the object must be recorded first or Undo captures the changed state.
+        /// Writing the instance back through boxedValue is not needed, and would be dropped anyway by the
+        /// Update() that SetSourceType starts with. The sources are read from <paramref name="property"/>, so
+        /// the instance that changes always belongs to the object that was recorded. Call RefreshSources on
+        /// that same instance first, so <paramref name="index"/> points into its current list.
+        /// </remarks>
+        public static void ApplySelectionFromIndex(SerializedProperty property, int index, string undoName)
+        {
+            Undo.RecordObject(property.serializedObject.targetObject, undoName);
+            UpdateSelectionFromIndex(property.boxedValue as IProvider2DSources, index);
+            SetSourceType(property);
+
+            // SetSourceType applies its edits through ApplyModifiedProperties, which records under its own
+            // name. Name the group so Undo shows the pick, not the property it happened to write.
+            Undo.SetCurrentGroupName(undoName);
+        }
+
         public GUIContent[] GetSourceNames()
         {
             GUIContent[] content = new GUIContent[m_Sources.Count];

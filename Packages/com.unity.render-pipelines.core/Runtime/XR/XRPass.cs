@@ -24,6 +24,10 @@ namespace UnityEngine.Experimental.Rendering
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
+        internal bool hasMotionVectorStencil;
+        internal uint motionVectorStencilValue;
+        internal uint motionVectorStencilMask;
+        internal bool isTemporalPixelSynthesisActive;
         internal bool skipFDMForFinalPasses;
         internal XRLayoutType xrLayoutType;
         internal Vector4 uvScales;
@@ -130,6 +134,32 @@ namespace UnityEngine.Experimental.Rendering
         /// > application is using the Vulkan graphics API.
         /// </remarks>
         public bool spaceWarpRightHandedNDC { get; private set; }
+
+        /// <summary>
+        /// If true, the runtime requests a stencil aspect on the motion-vector target, to be written by the
+        /// render pipeline and consumed by Temporal Pixel Synthesis.
+        /// </summary>
+        public bool hasMotionVectorStencil { get; private set; }
+
+        /// <summary>
+        /// Reference stencil value for the Temporal Pixel Synthesis exclusion test.
+        /// Pixels where <c>(stencilBuffer &amp; motionVectorStencilMask) == motionVectorStencilValue</c>
+        /// are excluded from temporal pixel synthesis. Constraint: <c>(value &amp; mask) == value</c>.
+        /// </summary>
+        public uint motionVectorStencilValue { get; private set; }
+
+        /// <summary>
+        /// Bitmask of stencil bits tested by Temporal Pixel Synthesis. Must be non-zero when
+        /// <see cref="hasMotionVectorStencil"/> is true, and must not overlap pipeline-private stencil bits.
+        /// </summary>
+        public uint motionVectorStencilMask { get; private set; }
+
+        /// <summary>
+        /// True when Temporal Pixel Synthesis is active for this pass. The render pipeline uses this to
+        /// suppress its own temporal resolve (TAA/STP), jitter, and upscaling, because the compositor
+        /// becomes the resolver.
+        /// </summary>
+        public bool isTemporalPixelSynthesisActive { get; private set; }
 
         /// <summary>
         /// When true, the Fragment Density Map (FDM) is not attached to the FinalBlit and UberPost passes.
@@ -623,6 +653,10 @@ namespace UnityEngine.Experimental.Rendering
             motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
             hasMotionVectorPass = createInfo.hasMotionVectorPass;
             spaceWarpRightHandedNDC = createInfo.spaceWarpRightHandedNDC;
+            hasMotionVectorStencil = createInfo.hasMotionVectorStencil;
+            motionVectorStencilValue = createInfo.motionVectorStencilValue;
+            motionVectorStencilMask = createInfo.motionVectorStencilMask;
+            isTemporalPixelSynthesisActive = createInfo.isTemporalPixelSynthesisActive;
             skipFDMForFinalPasses = createInfo.skipFDMForFinalPasses;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;

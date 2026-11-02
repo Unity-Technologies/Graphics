@@ -34,7 +34,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma vertex Vert
                 #pragma fragment SSAO
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-                #pragma multi_compile_local_fragment _ _GTAO_MODE
+                #pragma multi_compile_local_fragment _ _GTAO_MODE _GTAO_DEPTH_PYRAMID
                 #pragma multi_compile_local_fragment _INTERLEAVED_GRADIENT _BLUE_NOISE
                 #pragma multi_compile_local_fragment _SOURCE_DEPTH_LOW _SOURCE_DEPTH_MEDIUM _SOURCE_DEPTH_HIGH _SOURCE_DEPTH_NORMALS
                 #pragma multi_compile_local_fragment _ _ORTHOGRAPHIC

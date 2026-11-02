@@ -1,4 +1,4 @@
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AMD;

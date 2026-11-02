@@ -28,6 +28,19 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class LightUtility
     {
+        // GenerateShapeMesh fills a Freeform light's interior only when this assembly has the 2D Common tessellator.
+        // Editor code must read this instead of its own USING_2DCOMMON, because the asmdefs use different version thresholds.
+        internal static bool canTessellateFreeformInterior
+        {
+            get
+            {
+#if USING_2DCOMMON
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
 
         public static int ProviderToHash(Provider2D provider, Component component)
         {
@@ -382,7 +395,9 @@ namespace UnityEngine.Rendering.Universal
 
 #if USING_2DCOMMON
             int tessOutEdgeCount = 0;
-            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, false);
+            // runPlanarGraph must stay true: the user can drag a Freeform shape until its edges cross,
+            // and the tessellator overruns its edge buffer unless crossing edges are split first.
+            UnityEngine.U2D.Common.UTess.ModuleHandle.Tessellate(Allocator.Temp, tessInVertices, tessInEdges, ref tessOutVertices, out tessOutVertexCount, ref tessOutIndices, out tessOutIndexCount, ref tessOutEdges, out tessOutEdgeCount, true);
 #endif
 
             // Create falloff geometry with random noise to account for collinear points

@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>frustum.projectionMatrix</summary>
         frustumProjectionMatrix = 1 << 11,
         /// <summary>culling.useOcclusionCulling</summary>
+        [Obsolete("CameraSettingsFields.cullingUseOcclusionCulling is deprecated and will be removed in a future release. Consider migrating to GPU Occlusion Culling where your target platform supports it. #from(6000.7)", false)]
         cullingUseOcclusionCulling = 1 << 12,
         /// <summary>culling.cullingMask</summary>
         cullingCullingMask = 1 << 13,
@@ -279,14 +280,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly Culling @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
+            #pragma warning disable CS0618
             public static Culling NewDefault() => new Culling
             {
                 cullingMask = -1,
                 useOcclusionCulling = true,
                 sceneCullingMaskOverride = 0
             };
+            #pragma warning restore CS0618
 
             /// <summary>True when occlusion culling will be performed during rendering, false otherwise.</summary>
+            [Obsolete("CameraSettings.Culling.useOcclusionCulling is deprecated and will be removed in a future release. Consider migrating to GPU Occlusion Culling where your target platform supports it. #from(6000.7)", false)]
             public bool useOcclusionCulling;
             /// <summary>The mask for visible objects.</summary>
             public LayerMask cullingMask;
@@ -325,7 +329,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var settings = defaultCameraSettingsNonAlloc;
             settings.culling.cullingMask = hdCamera.camera.cullingMask;
+            #pragma warning disable CS0618
             settings.culling.useOcclusionCulling = hdCamera.camera.useOcclusionCulling;
+            #pragma warning restore CS0618
             settings.culling.sceneCullingMaskOverride = HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
             settings.frustum.aspect = hdCamera.camera.aspect;
             settings.frustum.farClipPlaneRaw = hdCamera.camera.farClipPlane;

@@ -11,24 +11,27 @@ namespace UnityEngine.Rendering.Universal
         // Ids and matrices as the dispatcher produced them; parallel arrays, same length.
         public NativeArray<EntityId> MeshRendererTransformChangedIds { get; set; }
         public NativeArray<Matrix4x4> MeshRendererTransformChangedLocalToWorlds { get; set; }
-        public IEnumerable<Object> MeshRendererChangedList { get; set; } = Array.Empty<Object>();
-        public IEnumerable<EntityId> MeshRendererDestroyedList { get; set; } = Array.Empty<EntityId>();
+        public IReadOnlyList<Object> MeshRendererChangedList { get; set; } = Array.Empty<Object>();
+        public NativeArray<EntityId> MeshRendererDestroyedList { get; set; }
 
-        public IEnumerable<Component> LightTransformChangedList { get; set; } = Array.Empty<Component>();
-        public IEnumerable<Object> LightChangedList { get; set; } = Array.Empty<Object>();
-        public IEnumerable<EntityId> LightDestroyedList { get; set; } = Array.Empty<EntityId>();
+        public IReadOnlyList<Component> LightTransformChangedList { get; set; } = Array.Empty<Component>();
+        public IReadOnlyList<Object> LightChangedList { get; set; } = Array.Empty<Object>();
+        public NativeArray<EntityId> LightDestroyedList { get; set; }
 
-        public IEnumerable<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
+        public IReadOnlyList<Object> MaterialChangedList { get; set; } = Array.Empty<Object>();
 
-        public IEnumerable<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; } = Array.Empty<SurfaceCacheEntityInstanceRecord>();
+        public NativeArray<EntityId> MeshDestroyedList { get; set; }
+
+        public NativeArray<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; }
+        public NativeArray<SurfaceCacheSubMeshMaterial> EntityInstanceMaterialList { get; set; }
         public NativeArray<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; }
-        public IEnumerable<EntityId> EntityInstanceDestroyedList { get; set; } = Array.Empty<EntityId>();
+        public NativeArray<EntityId> EntityInstanceDestroyedList { get; set; }
 
 #if ENABLE_TERRAIN_MODULE
-        public IEnumerable<Component> TerrainTransformChangedList { get; set; } = Array.Empty<Component>();
-        public IEnumerable<Object> TerrainChangedList { get; set; } = Array.Empty<Object>();
-        public IEnumerable<EntityId> TerrainDestroyedList { get; set; } = Array.Empty<EntityId>();
-        public IEnumerable<Object> TerrainDataChangedList { get; set; } = Array.Empty<Object>();
+        public IReadOnlyList<Component> TerrainTransformChangedList { get; set; } = Array.Empty<Component>();
+        public IReadOnlyList<Object> TerrainChangedList { get; set; } = Array.Empty<Object>();
+        public NativeArray<EntityId> TerrainDestroyedList { get; set; }
+        public IReadOnlyList<Object> TerrainDataChangedList { get; set; } = Array.Empty<Object>();
 #endif
     }
 }

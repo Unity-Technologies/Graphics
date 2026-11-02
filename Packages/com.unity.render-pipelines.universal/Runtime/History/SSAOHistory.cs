@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
         /// Set SSAO accumulation texture version.
         /// </summary>
         /// <param name="eyeIndex">Eye index for XR multi-pass.</param>
-        /// <param name="version">Version to set (typically Time.frameCount).</param>
+        /// <param name="version">Version to set (the motion vector frame index).</param>
         internal void SetAccumulationVersion(int eyeIndex, int version)
         {
             m_AccumulationVersions[eyeIndex] = version;

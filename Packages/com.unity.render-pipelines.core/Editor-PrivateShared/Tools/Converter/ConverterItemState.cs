@@ -16,29 +16,34 @@ namespace UnityEditor.Rendering.Converter
         /// </summary>
         public static (bool isChecked, bool isIndeterminate) CalculateCheckboxState(IEnumerable<IConverterItemState> childItems)
         {
-            int selectedCount = 0;
-            int enabledCount = 0;
+            bool hasSelected = false;
+            bool hasUnselected = false;
 
             foreach (var child in childItems)
             {
                 if (child.item.isEnabled)
                 {
-                    enabledCount++;
                     if (child.isSelected == true)
-                        selectedCount++;
+                        hasSelected = true;
+                    else
+                        hasUnselected = true;
+
+                    // Early exit: mixed state found
+                    if (hasSelected && hasUnselected)
+                        return (false, true);
                 }
             }
 
-            if (enabledCount == 0)
-                return (false, false); // No enabled children
+            // No enabled children
+            if (!hasSelected && !hasUnselected)
+                return (false, false);
 
-            if (selectedCount == 0)
-                return (false, false); // None selected
+            // All selected (hasSelected && !hasUnselected)
+            if (hasSelected)
+                return (true, false);
 
-            if (selectedCount == enabledCount)
-                return (true, false); // All selected
-
-            return (false, true); // Mixed state (some selected)
+            // None selected (!hasSelected && hasUnselected)
+            return (false, false);
         }
 
         /// <summary>
@@ -59,6 +64,7 @@ namespace UnityEditor.Rendering.Converter
     interface IConverterItemState
     {
         bool? isSelected { get; set; }
+        bool isExpanded { get; set; }
         IRenderPipelineConverterItem item { get; }
         (Status Status, string Message) conversionResult { get; }
         bool hasConverted { get; }
@@ -70,6 +76,7 @@ namespace UnityEditor.Rendering.Converter
         void SetSelectionChangedHandler(Action<bool> handler);
         void Clear();
         int CountItemsWithStatus(Status status);
+        int CountSelectedItemsWithStatus(Status status);
         int GetTotalItemCount();
         int GetSelectedItemCount();
         bool IsFolder();
@@ -89,6 +96,7 @@ namespace UnityEditor.Rendering.Converter
             set => m_OnIsSelectedChanged = value;
         }
 
+        [SerializeField]
         private bool m_IsSelected;
         public bool? isSelected
         {
@@ -103,16 +111,27 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
+        // Leaf items are never expanded
+        public bool isExpanded { get => false; set { } }
+
+        [field:SerializeReference]
         public IRenderPipelineConverterItem item { get; set; }
 
-        [NonSerialized]
-        private (Status Status, string Message) m_ConversionResult = (Status.Pending, string.Empty);
+        [SerializeField]
+        private Status m_ConversionStatus = Status.Pending;
+        [SerializeField]
+        private string m_ConversionMessage = string.Empty;
+
         public (Status Status, string Message) conversionResult
         {
-            get => m_ConversionResult;
-            set => m_ConversionResult = value;
+            get => (m_ConversionStatus, m_ConversionMessage);
+            set
+            {
+                m_ConversionStatus = value.Status;
+                m_ConversionMessage = value.Message;
+            }
         }
-        public bool hasConverted => m_ConversionResult.Status != Status.Pending;
+        public bool hasConverted => m_ConversionStatus != Status.Pending;
 
         public void OnSelectionChanged(ClickEvent _)
         {
@@ -136,7 +155,12 @@ namespace UnityEditor.Rendering.Converter
 
         public int CountItemsWithStatus(Status status)
         {
-            return m_ConversionResult.Status == status ? 1 : 0;
+            return m_ConversionStatus == status ? 1 : 0;
+        }
+
+        public int CountSelectedItemsWithStatus(Status status)
+        {
+            return (m_IsSelected && m_ConversionStatus == status) ? 1 : 0;
         }
 
         public int GetTotalItemCount()
@@ -160,7 +184,18 @@ namespace UnityEditor.Rendering.Converter
 
         public int CompareTo(IConverterItemState other)
         {
+            if (other == null)
+                return 1;
+
             if (other.IsFolder())
+                return 1;
+
+            // Handle null items gracefully
+            if (item == null && other.item == null)
+                return 0;
+            if (item == null)
+                return -1;
+            if (other.item == null)
                 return 1;
 
             return string.Compare(item.name, other.item.name, StringComparison.Ordinal);
@@ -168,7 +203,7 @@ namespace UnityEditor.Rendering.Converter
 
         public DisplayFilter GetDisplayFilter()
         {
-            return m_ConversionResult.Status switch
+            return m_ConversionStatus switch
             {
                 Status.Pending => DisplayFilter.Pending,
                 Status.Warning => DisplayFilter.Warnings,
@@ -209,14 +244,30 @@ namespace UnityEditor.Rendering.Converter
             }
         }
 
+        [SerializeField]
+        private bool m_IsExpanded = true; // Default to true so folders are expanded by default
+        public bool isExpanded
+        {
+            get => m_IsExpanded;
+            set => m_IsExpanded = value;
+        }
+
+        [field:SerializeReference]
         public IRenderPipelineConverterItem item { get; set; }
 
-        [NonSerialized]
-        private (Status Status, string Message) m_ConversionResult = (Status.Pending, string.Empty);
+        [SerializeField]
+        private Status m_ConversionStatus = Status.Pending;
+        [SerializeField]
+        private string m_ConversionMessage = string.Empty;
+
         public (Status Status, string Message) conversionResult
         {
-            get => m_ConversionResult;
-            set => m_ConversionResult = value;
+            get => (m_ConversionStatus, m_ConversionMessage);
+            set
+            {
+                m_ConversionStatus = value.Status;
+                m_ConversionMessage = value.Message;
+            }
         }
         public bool hasConverted => false;
 
@@ -262,6 +313,30 @@ namespace UnityEditor.Rendering.Converter
 
                 if (child is FolderItemState childFolder)
                     childFolder.SubscribeToChildren();
+            }
+        }
+
+        /// <summary>
+        /// Recalculates folder selection state from children.
+        /// Called after deserialization since nullable bool can't be serialized.
+        /// </summary>
+        public void RecalculateSelectionFromChildren()
+        {
+            // Recursively recalculate for nested folders first, so this folder
+            // aggregates up-to-date child states
+            foreach (var child in children)
+            {
+                if (child is FolderItemState childFolder)
+                    childFolder.RecalculateSelectionFromChildren();
+            }
+
+            m_IsSelected = CheckboxStateHelper.CalculateSelectionState(children);
+
+            // Recursively recalculate for nested folders
+            foreach (var child in children)
+            {
+                if (child is FolderItemState childFolder)
+                    childFolder.RecalculateSelectionFromChildren();
             }
         }
 
@@ -315,6 +390,16 @@ namespace UnityEditor.Rendering.Converter
             return count;
         }
 
+        public int CountSelectedItemsWithStatus(Status status)
+        {
+            int count = 0;
+            foreach (var child in children)
+            {
+                count += child.CountSelectedItemsWithStatus(status);
+            }
+            return count;
+        }
+
         public int GetTotalItemCount()
         {
             int count = 0;
@@ -347,8 +432,19 @@ namespace UnityEditor.Rendering.Converter
 
         public int CompareTo(IConverterItemState other)
         {
+            if (other == null)
+                return 1;
+
             if (!other.IsFolder())
                 return -1;
+
+            // Handle null items gracefully
+            if (item == null && other.item == null)
+                return 0;
+            if (item == null)
+                return -1;
+            if (other.item == null)
+                return 1;
 
             return string.Compare(item.name, other.item.name, StringComparison.Ordinal);
         }

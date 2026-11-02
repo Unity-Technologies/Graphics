@@ -126,6 +126,7 @@ half4 _ScreenSpaceReflectionParam;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 #define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
 #define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+#define URP_FP_TILE_COUNT_Y ((uint)_FPParams2.z)
 #define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
 
 #define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)

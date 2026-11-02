@@ -34,7 +34,6 @@ RWStructuredBuffer<uint> g_buffer : register(u0);
 #define KEYS_PER_THREAD 4u
 groupshared int lds_histograms[NUM_BINS];
 
-//[RootSignature(ROOT_SIGNATURE)]
 #pragma kernel BitHistogram
 [numthreads(GROUP_SIZE, 1, 1)]
 void BitHistogram(

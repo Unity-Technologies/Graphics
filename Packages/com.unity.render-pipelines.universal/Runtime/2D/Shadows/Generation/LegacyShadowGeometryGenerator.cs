@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void UploadMesh(ref Mesh mesh, in ShadowGeometryResult result)
         {
-            ShadowUtility.GenerateShadowMesh(ref mesh, result.vertices, result.indices, vertexLayout, result.localBounds);
+            ShadowUtility.GenerateShadowMesh(ref mesh, result.vertices, result.indices, vertexLayout);
         }
 
         // ------------------------------------------------------------------------------------

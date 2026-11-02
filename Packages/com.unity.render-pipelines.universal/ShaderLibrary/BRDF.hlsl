@@ -6,25 +6,11 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDFData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.deprecated.hlsl"
 
 #define kDielectricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
-
-struct BRDFData
-{
-    half3 albedo;
-    half3 diffuse;
-    half3 specular;
-    half reflectivity;
-    half perceptualRoughness;
-    half roughness;
-    half roughness2;
-    half grazingTerm;
-
-    // We save some light invariant BRDF terms so we don't have to recompute
-    // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
-    half normalizationTerm;     // roughness * 4.0 + 2.0
-    half roughness2MinusOne;    // roughness^2 - 1.0
-};
 
 half ReflectivitySpecular(half3 specular)
 {
@@ -48,58 +34,59 @@ half MetallicFromReflectivity(half reflectivity)
     return (reflectivity - kDielectricSpec.r) / oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFDataDirect(half3 albedo, half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+inline BRDFData InitializeBRDFDataDirect(half3 albedo, half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, half alpha, bool useAlphaPremultiply)
 {
-    outBRDFData = (BRDFData)0;
-    outBRDFData.albedo = albedo;
-    outBRDFData.diffuse = diffuse;
-    outBRDFData.specular = specular;
-    outBRDFData.reflectivity = reflectivity;
+    BRDFData brdfData = (BRDFData)0;
+    brdfData.albedo = albedo;
+    brdfData.diffuse = diffuse;
+    brdfData.specular = specular;
+    brdfData.reflectivity = reflectivity;
 
-    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
-    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
-    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
-    outBRDFData.grazingTerm         = saturate(smoothness + reflectivity);
-    outBRDFData.normalizationTerm   = outBRDFData.roughness * half(4.0) + half(2.0);
-    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - half(1.0);
+    brdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
+    brdfData.roughness           = max(PerceptualRoughnessToRoughness(brdfData.perceptualRoughness), HALF_MIN_SQRT);
+    brdfData.roughness2          = max(brdfData.roughness * brdfData.roughness, HALF_MIN);
+    brdfData.grazingTerm         = saturate(smoothness + reflectivity);
+    brdfData.normalizationTerm   = brdfData.roughness * half(4.0) + half(2.0);
+    brdfData.roughness2MinusOne  = brdfData.roughness2 - half(1.0);
 
     // Input is expected to be non-alpha-premultiplied while ROP is set to pre-multiplied blend.
     // We use input color for specular, but (pre-)multiply the diffuse with alpha to complete the standard alpha blend equation.
     // In shader: Cs' = Cs * As, in ROP: Cs' + Cd(1-As);
     // i.e. we only alpha blend the diffuse part to background (transmittance).
-    #if defined(_ALPHAPREMULTIPLY_ON)
-        // TODO: would be clearer to multiply this once to accumulated diffuse lighting at end instead of the surface property.
-        outBRDFData.diffuse *= alpha;
-    #endif
+    if (useAlphaPremultiply)
+        brdfData.diffuse *= alpha; // TODO: would be clearer to multiply this once to accumulated diffuse lighting at end instead of the surface property.
+
+    return brdfData;
 }
 
-// Legacy: do not call, will not correctly initialize albedo property.
-inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+// Initialize BRDFData for material, managing both specular and metallic setup using the isSpecularSetup flag (shader keyword _SPECULAR_SETUP).
+inline BRDFData InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, bool isSpecularSetup, bool useAlphaPremultiply)
 {
-    InitializeBRDFDataDirect(half3(0.0, 0.0, 0.0), diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
+    half reflectivity;
+    half oneMinusReflectivity;
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
+    if (isSpecularSetup)
+    {
+        reflectivity = ReflectivitySpecular(specular);
+        oneMinusReflectivity = half(1.0) - reflectivity;
+        brdfDiffuse = albedo * oneMinusReflectivity;
+        brdfSpecular = specular;
+    }
+    else
+    {
+        oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
+        reflectivity = half(1.0) - oneMinusReflectivity;
+        brdfDiffuse = albedo * oneMinusReflectivity;
+        brdfSpecular = lerp(kDielectricSpec.rgb, albedo, metallic);
+    }
+
+    return InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, useAlphaPremultiply);
 }
 
-// Initialize BRDFData for material, managing both specular and metallic setup using shader keyword _SPECULAR_SETUP.
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha, out BRDFData outBRDFData)
+inline BRDFData InitializeBRDFData(SurfaceData surfaceData, bool isSpecularSetup, bool useAlphaPremultiply)
 {
-#ifdef _SPECULAR_SETUP
-    half reflectivity = ReflectivitySpecular(specular);
-    half oneMinusReflectivity = half(1.0) - reflectivity;
-    half3 brdfDiffuse = albedo * oneMinusReflectivity;
-    half3 brdfSpecular = specular;
-#else
-    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
-    half reflectivity = half(1.0) - oneMinusReflectivity;
-    half3 brdfDiffuse = albedo * oneMinusReflectivity;
-    half3 brdfSpecular = lerp(kDielectricSpec.rgb, albedo, metallic);
-#endif
-
-    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
-}
-
-inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfData)
-{
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    return InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, isSpecularSetup, useAlphaPremultiply);
 }
 
 half3 ConvertF0ForClearCoat15(half3 f0)
@@ -107,22 +94,22 @@ half3 ConvertF0ForClearCoat15(half3 f0)
     return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
 }
 
-inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
+inline BRDFData InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData)
 {
-    outBRDFData = (BRDFData)0;
-    outBRDFData.albedo = half(1.0);
+    BRDFData coatBRDFData = (BRDFData)0;
+    coatBRDFData.albedo = half(1.0);
 
     // Calculate Roughness of Clear Coat layer
-    outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
-    outBRDFData.specular            = kDielectricSpec.rgb;
-    outBRDFData.reflectivity        = kDielectricSpec.r;
+    coatBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
+    coatBRDFData.specular            = kDielectricSpec.rgb;
+    coatBRDFData.reflectivity        = kDielectricSpec.r;
 
-    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
-    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
-    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
-    outBRDFData.normalizationTerm   = outBRDFData.roughness * half(4.0) + half(2.0);
-    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - half(1.0);
-    outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
+    coatBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
+    coatBRDFData.roughness           = max(PerceptualRoughnessToRoughness(coatBRDFData.perceptualRoughness), HALF_MIN_SQRT);
+    coatBRDFData.roughness2          = max(coatBRDFData.roughness * coatBRDFData.roughness, HALF_MIN);
+    coatBRDFData.normalizationTerm   = coatBRDFData.roughness * half(4.0) + half(2.0);
+    coatBRDFData.roughness2MinusOne  = coatBRDFData.roughness2 - half(1.0);
+    coatBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
     // Modify Roughness of base layer using coat IOR
     half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
@@ -140,18 +127,18 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
     baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
+
+    return coatBRDFData;
 }
 
-BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)
+// Placeholder for BRDFData that a disabled feature path leaves unused. The normalization term
+// is the roughness-0 value (4 * roughness + 2) so a constant-folded disabled path cannot divide
+// by zero in DirectBRDFSpecular, which the compiler reports as a warning.
+BRDFData CreateEmptyBRDFData()
 {
-    BRDFData brdfDataClearCoat = (BRDFData)0;
-
-    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
-    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
-    #endif
-
-    return brdfDataClearCoat;
+    BRDFData brdfData = (BRDFData)0;
+    brdfData.normalizationTerm = half(2.0);
+    return brdfData;
 }
 
 // Computes the specular term for EnvironmentBRDF
@@ -280,13 +267,11 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 // * NDF [Modified] GGX
 // * Modified Kelemen and Szirmay-Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
-half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS, bool useSpecularHighlights)
 {
-#ifndef _SPECULARHIGHLIGHTS_OFF
-    return brdfData.diffuse + DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * brdfData.specular;
-#else
+    if (useSpecularHighlights)
+        return brdfData.diffuse + DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * brdfData.specular;
     return brdfData.diffuse;
-#endif
 }
 
 #endif

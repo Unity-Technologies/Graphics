@@ -42,14 +42,42 @@ For more information about clipping planes, refer to [Introduction to the camera
 
 The following example code represents one possible outcome of this node.
 
-```
-void Unity_FetchSceneDepth_Raw_float(float4 clipPos, out float Out)
+### Linear 01:
+
+```hlsl
+void Unity_FetchSceneDepth_Linear01_float(float4 ClipPos, out float Out)
 {
     #if defined(_DEPTH_AS_INPUT_ATTACHMENT) || defined(_DEPTH_AS_INPUT_ATTACHMENT_MSAA)
-        // Fetches raw depth from on-chip memory using an input attachment.
-        Out = shadergraph_LWFetchSceneDepth(clipPos.xy);
+        float rawDepth = shadergraph_LWFetchSceneDepth(ClipPos.xy);
+        Out = Linear01Depth(rawDepth, _ZBufferParams);
     #else
-        // There is explicitly no fallback here.
+        Out = 0;
+    #endif
+}
+```
+
+### Raw:
+
+```hlsl
+void Unity_FetchSceneDepth_Raw_float(float4 ClipPos, out float Out)
+{
+    #if defined(_DEPTH_AS_INPUT_ATTACHMENT) || defined(_DEPTH_AS_INPUT_ATTACHMENT_MSAA)
+        Out = shadergraph_LWFetchSceneDepth(ClipPos.xy);
+    #else
+        Out = 0;
+    #endif
+}
+```
+
+### Eye:
+
+```hlsl
+void Unity_FetchSceneDepth_Eye_float(float4 ClipPos, out float Out)
+{
+    #if defined(_DEPTH_AS_INPUT_ATTACHMENT) || defined(_DEPTH_AS_INPUT_ATTACHMENT_MSAA)
+        float rawDepth = shadergraph_LWFetchSceneDepth(ClipPos.xy);
+        Out = LinearEyeDepth(rawDepth, _ZBufferParams);
+    #else
         Out = 0;
     #endif
 }

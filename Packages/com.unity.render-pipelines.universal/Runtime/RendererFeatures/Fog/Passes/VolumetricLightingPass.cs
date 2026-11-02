@@ -148,9 +148,9 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle additionalCookieAtlas;
             public float additionalCookieFormat;
 
-            // Linear (Built-in compatible) light falloff
-            public LocalKeyword lightFalloffLinearKeyword;
-            public bool useLinearFalloff;
+            // Quadratic (Built-in compatible) light falloff
+            public LocalKeyword lightFalloffQuadraticKeyword;
+            public bool useQuadraticFalloff;
 
             // Zero-filled stand-in
             public GraphicsBuffer zeroLightCB;
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
                     var pixelSize = cameraData.pixelRect.size;
                     passData.fpParams0 = new Vector4(forwardLights.zBinScale, forwardLights.zBinOffset, forwardLights.lightCount, forwardLights.directionalLightCount);
                     passData.fpParams1 = new Vector4(pixelSize.x / forwardLights.actualTileWidth, pixelSize.y / forwardLights.actualTileWidth, forwardLights.tileResolution.x, forwardLights.wordsPerTile);
-                    passData.fpParams2 = new Vector4(forwardLights.binCount, forwardLights.tileResolution.x * forwardLights.tileResolution.y, 0, 0);
+                    passData.fpParams2 = new Vector4(forwardLights.binCount, forwardLights.tileResolution.x * forwardLights.tileResolution.y, forwardLights.tileResolution.y, 0);
                 }
 
                 passData.additionalLightsCB = forwardLights.additionalLightsConstantBuffer;
@@ -338,10 +338,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(passData.additionalCookieAtlas, AccessFlags.Read);
                 }
 
-                // Linear (Built-in compatible) light falloff
+                // Quadratic (Built-in compatible) light falloff
                 {
-                    passData.lightFalloffLinearKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.LightFalloffLinear);
-                    passData.useLinearFalloff = applyLocalLights && UniversalRenderPipeline.IsLinearFalloffEnabled();
+                    passData.lightFalloffQuadraticKeyword = new LocalKeyword(m_Shader, ShaderKeywordStrings.LightFalloffQuadratic);
+                    passData.useQuadraticFalloff = applyLocalLights && UniversalRenderPipeline.IsQuadraticFalloffEnabled();
                 }
 
                 passData.fogAnisotropy = fogData.fogAnisotropy;
@@ -612,8 +612,8 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetComputeConstantBufferParam(cs, ShaderIDs.LightCookies, lightCookieCB, 0, lightCookieCBSizeBytes);
                     }
 
-                    // Linear (Built-in compatible) light falloff
-                    cmd.SetKeyword(cs, data.lightFalloffLinearKeyword, data.useLinearFalloff);
+                    // Quadratic (Built-in compatible) light falloff
+                    cmd.SetKeyword(cs, data.lightFalloffQuadraticKeyword, data.useQuadraticFalloff);
 
                     if (data.enableReprojection)
                     {

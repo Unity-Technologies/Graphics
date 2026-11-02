@@ -391,7 +391,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 worldToViews = worldToViews,
                 lights = localLights,
-                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount)
+                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount),
+                near = nearClipPlane
             };
             // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
             var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(localLightCount * viewCount, 32, new JobHandle());
@@ -651,7 +652,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
 
-                cmd.SetKeyword(ShaderGlobalKeywords.LightFalloffLinear, UniversalRenderPipeline.IsLinearFalloffEnabled());
+                cmd.SetKeyword(ShaderGlobalKeywords.LightFalloffQuadratic, UniversalRenderPipeline.IsQuadraticFalloffEnabled());
 
                 var stack = VolumeManager.instance.stack;
                 ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
@@ -799,7 +800,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 vars._FPParams0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
                 vars._FPParams1 = math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
-                vars._FPParams2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, 0, 0);
+                vars._FPParams2 = math.float4(m_BinCount, m_TileResolution.x * m_TileResolution.y, m_TileResolution.y, 0);
             }
 
             // Light Cookies

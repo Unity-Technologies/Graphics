@@ -21,6 +21,9 @@
 #undef _ADDITIONAL_LIGHTS_VERTEX
 #endif
 
+#undef REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR 1
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"

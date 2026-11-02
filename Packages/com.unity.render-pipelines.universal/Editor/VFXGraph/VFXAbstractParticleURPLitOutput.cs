@@ -766,13 +766,13 @@ namespace UnityEditor.VFX.URP
                 // URP Forward specific defines
                 var forwardDefines = new VFXShaderWriter();
                 if (workflowMode == WorkflowMode.Specular)
-                    forwardDefines.Write("#define _SPECULAR_SETUP");
+                    forwardDefines.Write("#define _SPECULAR_SETUP 1");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
 
                 // URP GBuffer specific defines
                 var gbufferDefines = new VFXShaderWriter();
                 if (workflowMode == WorkflowMode.Specular)
-                    gbufferDefines.Write("#define _SPECULAR_SETUP");
+                    gbufferDefines.Write("#define _SPECULAR_SETUP 1");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPGBufferDefines}", gbufferDefines);
 
                 var forwardPassLightMode = new VFXShaderWriter();

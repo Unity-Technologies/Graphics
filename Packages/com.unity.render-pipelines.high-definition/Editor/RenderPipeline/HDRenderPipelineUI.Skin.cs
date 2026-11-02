@@ -267,7 +267,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent directionalFilteringQuality = L10n.TextContent("Directional Shadow Filtering Quality", "Specifies the quality of directional shadows. See the documentation for details on the algorithm HDRP uses for each preset.", null, null);
             public static readonly GUIContent areaFilteringQuality = L10n.TextContent("Area Shadow Filtering Quality", "Specifies the quality of area shadows. See the documentation for details on the algorithm HDRP uses for each preset.", null, null);
 
-
             public static readonly GUIContent DLSSTitle = L10n.TextContent("NVIDIA Deep Learning Super Sampling (DLSS)", null, null, null);
             public static readonly GUIContent enabled = L10n.TextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.", null, null);
             public static readonly GUIContent enableDLSS = L10n.TextContent("Enable DLSS", "Enables NVIDIA Deep Learning Super Sampling (DLSS).", null, null);
@@ -276,9 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent defaultInjectionPoint = L10n.TextContent("Injection Point", "The injection point at which to apply the upscaling.", null, null);
             public static readonly GUIContent TAAUInjectionPoint = L10n.TextContent("TAA Upscale Injection Point", "The injection point at which to apply the upscaling.", null, null);
             public static readonly GUIContent STPInjectionPoint = L10n.TextContent("STP Injection Point", "The injection point at which to apply the upscaling.", null, null);
-#if ENABLE_UPSCALER_FRAMEWORK
-            public static readonly GUIContent IUpscalerInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
-#endif
+            public static readonly GUIContent IUpscalerInjectionPoint = L10n.TextContent("Injection Point", "The injection point at which to apply the upscaling.", null, null);
             public static readonly GUIContent DLSSUseOptimalSettingsContent = L10n.TextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.", null, null);
             public static readonly GUIContent DLSSRenderPresetsContent = L10n.TextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.", null, null);
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -388,14 +385,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent forceScreenPercentage = L10n.TextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.", null, null);
             public static readonly GUIContent forcedScreenPercentage = L10n.TextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.", null, null);
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // Contextual help for a framework upscaler's Resolution Mode (drawn under the dropdown in the IUpscaler section).
             public static readonly string iUpscalerQualityModeInfo = L10n.Tr("Quality Mode fixes the render resolution from the upscaler's quality preset. The Dynamic Resolution screen-percentage range is ignored for cameras using this upscaler. Switch to Custom Scaling to drive the render resolution from Dynamic Resolution.", null);
             public static readonly string iUpscalerCustomSingleResInfo = L10n.Tr("This quality preset supports a single render resolution (~{0:0}% render scale), so Dynamic Resolution is ignored (the render resolution is pinned to that recommended size).", null);
             public static readonly string iUpscalerCustomClampInfo = L10n.Tr("Dynamic Resolution drives the render resolution, clamped to this upscaler's supported range [{0:0}%..{1:0}%]. Values outside the range are clamped at runtime.", null);
             public static readonly string iUpscalerCustomMinBelowRangeWarning = L10n.Tr("Minimum Screen Percentage ({0:0}%) is below {2}'s supported minimum ({1:0}%); it will be clamped at runtime. Raise the minimum to stay within the upscaler's range.", null);
             public static readonly string iUpscalerCustomAdvisoryInfo = L10n.Tr("Dynamic Resolution drives the render resolution. Below about {0:0}% render scale this upscaler still works but quality degrades (advisory; not clamped).", null);
-#endif
+
             public static readonly GUIContent lowResTransparencyMinimumThreshold = L10n.TextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.", null, null);
             public static readonly GUIContent lowResSSGIMinimumThreshold = L10n.TextContent("Low Res Screen Space GI Min Threshold", "The minimum percentage threshold allowed to clamp low resolution Screen Space Global Illumination. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.", null, null);
             public static readonly GUIContent lowResVolumetricCloudsMinimumThreshold = L10n.TextContent("Low Res Volumetric Clouds Min Threshold", "The minimum percentage threshold allowed to clamp tracing resolution for Volumetric Clouds. When the resolution percentage falls below this threshold, HDRP will trace the Volumetric Clouds in half res.", null, null);

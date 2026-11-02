@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
         Legacy,
 
         /// <summary>
-        /// The depth bias value drives the rasterizer's slope-scaled depth bias, interpreted as a normalized [0..1] multiplier: surfaces at a grazing angle to the light receive a proportionally larger depth offset.
+        /// The depth bias value drives the rasterizer's slope-scaled depth bias, interpreted as a normalized [0..1] multiplier: surfaces at a grazing angle to the light receive a proportionally larger depth offset. The slope never drops below the fixed slope of the legacy mode.
         /// </summary>
         [InspectorName("Slope-Scale Depth Bias")]
         SlopeScale,

@@ -2,11 +2,10 @@
 #define UNIVERSAL_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SpecGloss.hlsl"
 
 struct Attributes
 {
@@ -59,14 +58,16 @@ void DepthNormalsFragment(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if defined(_ALPHATEST_ON)
-        Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+        half albedoAlpha = SampleBaseMap(input.uv).a;
+        half alpha = albedoAlpha * _BaseColor.a;
+        if (UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha())
+            alpha = _BaseColor.a;
+        AlphaDiscard(alpha, _Cutoff);
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE)
-        LODFadeCrossFade(input.positionCS);
-    #endif
+    LODFadeCrossFade(input.positionCS);
 
-    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normalWS)), 0.0);
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normalWS, UseNormalMap())), 0.0);
 
     #ifdef _WRITE_RENDERING_LAYERS
     outRenderingLayers = EncodeMeshRenderingLayer();

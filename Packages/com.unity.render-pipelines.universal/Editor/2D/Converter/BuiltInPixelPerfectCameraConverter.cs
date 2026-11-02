@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Categorization;
 
@@ -28,11 +29,74 @@ namespace UnityEditor.Rendering.Universal
 
     [Serializable]
     [PipelineConverter("Built-in", "Universal Render Pipeline (2D Renderer)")]
+    [BatchModeConverterClassInfo("BuiltInToURP2D", "PixelPerfectCamera")]
     [ElementInfo(Name = "Pixel Perfect Camera Converter",
              Order = 1000,
-             Description = "This will upgrade all 2D Pixel Perfect Camera (com.unity.2d.pixelperfect) to the Universal Render Pipeline version.")]
+             Description = "This will upgrade all 2D Pixel Perfect Camera (com.unity.2d.pixel-perfect) to the Universal Render Pipeline version.")]
     internal class BuiltInPixelPerfectCameraConverter : IRenderPipelineConverter
     {
+        internal static T FindComponent<T>(GameObject root, string globalObjectId) where T : Component
+        {
+            foreach (var component in root.GetComponentsInChildren<T>(true))
+            {
+                if (GlobalObjectId.GetGlobalObjectIdSlow(component.gameObject).ToString() == globalObjectId)
+                    return component;
+            }
+
+            return null;
+        }
+
+        internal static PixelPerfectCameraConverterItem CreateItem(SearchItem item)
+        {
+            // Direct conversion - works for both assets and scene objects
+            var unityObject = item.ToObject();
+
+            if (unityObject == null)
+                return CreateUnloadedSceneObjectItem(item);
+
+            // Ensure we're always working with GameObjects
+            GameObject go = null;
+
+            if (unityObject is GameObject gameObject)
+                go = gameObject;
+            else if (unityObject is Component component)
+                go = component.gameObject;
+            else
+                return null; // Not a GameObject or Component
+
+            var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+
+            if (gid.identifierType == GlobalObjectIdentifierType.ImportedAsset)
+            {
+                return new PixelPerfectCameraConverterItem(gid.ToString())
+                {
+                    name = $"{unityObject.name} (Prefab)",
+                    info = AssetDatabase.GetAssetPath(unityObject),
+                };
+            }
+
+            return new PixelPerfectCameraConverterItem(gid.ToString())
+            {
+                name = AssetsConverter.GetSceneObjectName(UnityEditor.Search.SearchUtils.GetTransformPath(go.transform)),
+                info = go.scene.path,
+            };
+        }
+
+        // A scene object only loads while its scene is open, so build the item from the search result and let
+        // Convert open the scene
+        static PixelPerfectCameraConverterItem CreateUnloadedSceneObjectItem(SearchItem item)
+        {
+            var scenePath = AssetsConverter.GetUnloadedScenePath(item.id);
+            if (scenePath == null)
+                return null;
+
+            // Search labels scene objects with their path in the hierarchy
+            return new PixelPerfectCameraConverterItem(item.id)
+            {
+                name = AssetsConverter.GetSceneObjectName(item.GetLabel(item.context, true) ?? string.Empty),
+                info = scenePath,
+            };
+        }
 
 #if PIXEL_PERFECT_2D_EXISTS
         public bool isEnabled => true;
@@ -85,14 +149,6 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
-        void UpgradeGameObject(GameObject go)
-        {
-            var cam = go.GetComponentInChildren<U2DPackage.PixelPerfectCamera>();
-
-            if (cam != null)
-                UpgradePixelPerfectCamera(cam);
-        }
-
 #else
         public bool isEnabled => false;
         public string isDisabledMessage => "Pixel Perfect package is not installed. Please install the Pixel Perfect package to enable this converter.";
@@ -115,41 +171,14 @@ namespace UnityEditor.Rendering.Universal
                 new List<(string query, string description)> { ("t:UnityEngine.U2D.PixelPerfectCamera", "Game Objects Referencing a U2D Pixel Perfect Camera") },
                 (item, description) =>
                 {
-                    // Direct conversion - works for both assets and scene objects
-                    var unityObject = item.ToObject();
-
-                    if (unityObject == null)
-                        return;
-
-                    // Ensure we're always working with GameObjects
-                    GameObject go = null;
-
-                    if (unityObject is GameObject gameObject)
-                        go = gameObject;
-                    else if (unityObject is Component component)
-                        go = component.gameObject;
-                    else
-                        return; // Not a GameObject or Component
-
-                    var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
-                    if (!processedIds.Add(gid.ToString()))
-                        return;
-
-                    int type = gid.identifierType; // 1=Asset, 2=SceneObject
-
-                    var go = unityObject as GameObject;
-                    var ppCameraItem = new PixelPerfectCameraConverterItem(gid.ToString())
-                    {
-                        name = $"{unityObject.name} ({(type == 1 ? "Prefab" : "SceneObject")})",
-                        info = type == 1 ? AssetDatabase.GetAssetPath(unityObject) : go.scene.path,
-                    };
-
-                    returnList.Add(ppCameraItem);
+                    var ppCameraItem = CreateItem(item);
+                    if (ppCameraItem != null && processedIds.Add(ppCameraItem.GlobalObjectId))
+                        returnList.Add(ppCameraItem);
                 },
                 OnSearchFinish
             );
 #else
-            throw new InvalidOperationException();
+            onScanFinish?.Invoke(new List<IRenderPipelineConverterItem>());
 #endif
         }
 
@@ -160,8 +189,28 @@ namespace UnityEditor.Rendering.Universal
 #if PIXEL_PERFECT_2D_EXISTS
             if (item is PixelPerfectCameraConverterItem ppCameraItem)
             {
-                if (ppCameraItem.type == 1) URP2DConverterUtility.UpgradePrefab(ppCameraItem.info, UpgradeGameObject);
-                else URP2DConverterUtility.UpgradeScene(ppCameraItem.info, UpgradeGameObject);
+                if (!GlobalObjectId.TryParse(ppCameraItem.GlobalObjectId, out var gid))
+                {
+                    message = $"Unable to parse the Global Object Id of {ppCameraItem.name}.";
+                    return Status.Error;
+                }
+
+                var upgraded = false;
+
+                void UpgradeTarget(GameObject root)
+                {
+                    if (!upgraded)
+                        upgraded = UpgradePixelPerfectCamera(FindComponent<U2DPackage.PixelPerfectCamera>(root, ppCameraItem.GlobalObjectId));
+                }
+
+                if (gid.identifierType == GlobalObjectIdentifierType.ImportedAsset) URP2DConverterUtility.UpgradePrefab(ppCameraItem.info, UpgradeTarget);
+                else URP2DConverterUtility.UpgradeScene(ppCameraItem.info, UpgradeTarget);
+
+                if (!upgraded)
+                {
+                    message = $"Unable to find the Pixel Perfect Camera of {ppCameraItem.name} in {ppCameraItem.info}.";
+                    return Status.Error;
+                }
 
                 return Status.Success;
             }

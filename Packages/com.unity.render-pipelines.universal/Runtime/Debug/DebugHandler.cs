@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
+            AreAnySettingsActive && (
             m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
             m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
             m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
             m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
             m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None ||
-            m_DebugDisplaySettings.renderingSettings.batchingTypeViewEnabled;
+            m_DebugDisplaySettings.renderingSettings.batchingTypeViewEnabled);
 
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
@@ -162,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal bool IsDepthPrimingCompatible => RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.Wireframe;
+        internal bool IsDepthPrimingCompatible => !AreAnySettingsActive || RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.Wireframe;
 
         internal int stpDebugViewIndex { get { return RenderingSettings.stpDebugViewIndex; } }
 

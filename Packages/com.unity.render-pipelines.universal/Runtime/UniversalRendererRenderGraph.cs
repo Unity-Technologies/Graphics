@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
                 CreateOffscreenUITexture(renderGraph, cameraDescriptor);
         }
 
-        internal readonly struct ClearCameraParams
+        private readonly struct ClearCameraParams
         {
             internal readonly bool mustClearColor;
             internal readonly bool mustClearDepth;
@@ -515,14 +515,18 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearCameraTargets(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, bool isCameraTargetOffscreenDepth)
         {
-            var clearParams = GetClearCameraParams(cameraData);
-
-            // Offscreen depth cameras have no color target and always clear depth, matching the unconditional
-            // clearOnFirstUse that ImportBackBuffers sets on their backbuffer depth.
+            // Offscreen depth cameras have no color target, and always clear depth through the unconditional
+            // clearOnFirstUse parameter that ImportBackBuffers sets on their backbuffer depth.
             if (isCameraTargetOffscreenDepth)
-                ClearTargetsPass.Render(renderGraph, TextureHandle.nullHandle, resourceData.backBufferDepth, RTClearFlags.DepthStencil, clearParams.clearValue);
-            else
-                ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearParams);
+            {
+                InitializeCameraTargetsPass.Render(renderGraph, TextureHandle.nullHandle, resourceData.backBufferDepth);
+                return;
+            }
+
+            // The clear pass is only required if either color or depth needs clearing.
+            var clearParams = GetClearCameraParams(cameraData);
+            if (clearParams.mustClearColor || clearParams.mustClearDepth)
+                InitializeCameraTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture);
         }
 
         void SetupTargetHandles(UniversalCameraData cameraData)
@@ -728,8 +732,9 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.UpdateGlobalShaderVariables(uploader, cameraData, lightData);
 
             // Shadows
-            m_ShadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
-            m_ShadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowPassGroup.mainLightShadowmapPass.UpdateGlobalShaderVariables(uploader, lightData, shadowData);
+            shadowPassGroup.additionalLightShadowmapPass.UpdateGlobalShaderVariables(uploader, shadowData.supportsSoftShadows);
         }
 
         private class InitPassData
@@ -754,7 +759,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cameraData = frameData.Get<UniversalCameraData>();
                 passData.shaderData = frameData.Get<UniversalGlobalShaderData>();
-                passData.shadowPassGroup = m_ShadowPassGroup;
+                passData.shadowPassGroup = GetShadowPassGroup(passData.cameraData, frameData.Get<UniversalShadowData>());
 
                 builder.AllowGlobalStateModification(true);
 
@@ -914,7 +919,7 @@ namespace UnityEngine.Rendering.Universal
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing, m_DrawOverlayUIPass.RequiresComposition());
 
             // Report this camera's real back buffer MSAA need to the pipeline.
-            ReportRealBackbufferMSAA(cameraData, s_RequiresIntermediateAttachments);
+            ReportDisplayTargetMSAA(cameraData, s_RequiresIntermediateAttachments);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
             m_ExposurePass.RecordRenderGraph(renderGraph, frameData);
@@ -927,9 +932,9 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler.Setup(renderGraph, cameraData.isPreviewCamera);
 
             // Color/depth clears are normally implemented through the first use load actions of the camera targets,
-            // and the opaque pass is normally the first use that triggers them. When it is skipped, record an explicit
-            // clear to still honor the camera clear flags. It has to be recorded before any pass that draws into the
-            // camera targets, otherwise it would discard what they drew.
+            // and the opaque pass is normally the first use that triggers them. When it is skipped, record a pass that
+            // uses the targets to still honor the camera clear flags. It has to be recorded before any pass that draws
+            // into the camera targets, otherwise the clear would discard what they drew.
             if (!renderStages.drawOpaquePass)
                 ClearCameraTargets(renderGraph, resourceData, cameraData, isCameraTargetOffscreenDepth);
 
@@ -1019,10 +1024,11 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            shadowData.shadowPassGroup = m_ShadowPassGroup;
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowData.shadowPassGroup = shadowPassGroup;
 
-            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
-            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            bool willRenderShadowGeometry = shadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            willRenderShadowGeometry |= shadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
 
             // Both shadow passes force the empty path for Depth-format targets, so calling SetupRenderGraphCameraProperties() is not needed
             Debug.Assert(!willRenderShadowGeometry, "Offscreen Depth Texture rendering should not be rendering shadow geometry, as that would invalidate camera parameters that are not being re-setup here.");
@@ -1051,12 +1057,13 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights.PreSetup(renderingData, cameraData, lightData);
 
-            shadowData.shadowPassGroup = m_ShadowPassGroup;
+            ShadowPassGroup shadowPassGroup = GetShadowPassGroup(cameraData, shadowData);
+            shadowData.shadowPassGroup = shadowPassGroup;
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows);
 
-            bool willRenderShadowGeometry = m_ShadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
-            willRenderShadowGeometry |= m_ShadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            bool willRenderShadowGeometry = shadowPassGroup.RenderMainLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
+            willRenderShadowGeometry |= shadowPassGroup.RenderAdditionalLightShadows(renderGraph, frameData, shadowmapStencil, renderStages.drawShadowPasses);
 
             // The camera needs to be set up again if actual shadow geometry was rendered, because it overwrites camera properties.
             if (willRenderShadowGeometry)
@@ -1623,7 +1630,7 @@ namespace UnityEngine.Rendering.Universal
                 SetupRenderGraphFinalPassDebug(renderGraph, frameData);
 
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
-            bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
+            bool drawGizmos = !UniversalRenderPipelineDebugDisplaySettings.Instance.isSceneOverrideActive;
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, GizmoSubset.PreImageEffects);
@@ -1633,15 +1640,12 @@ namespace UnityEngine.Rendering.Universal
             // There's at least a camera in the camera stack that applies post-processing
             bool anyPostProcessing = postProcessingData.isEnabled && this.postProcessEnabled;
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // A standalone (non-embedded) spatial upscaler resolves through the FinalPost pass:
             // FSR1 and any spatial upscaler qualify.
             IUpscaler activeUpscaler = postProcessingData.activeUpscaler;
             bool requiresFinalPostUpscale = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1
                             || (activeUpscaler != null && !activeUpscaler.isTemporal && !postProcessingData.activeUpscalerIsEmbedded);
-#else
-            bool requiresFinalPostUpscale = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
-#endif
+			
             // When FXAA or scaling is active, we must perform an additional pass at the end of the frame for the following reasons:
             // 1. FXAA expects to be the last shader running on the image before it's presented to the screen. Since users are allowed
             //    to add additional render passes after post processing occurs, we can't run FXAA until all of those passes complete as well.
@@ -1898,8 +1902,8 @@ namespace UnityEngine.Rendering.Universal
             if (renderPassInputs.requiresDepthTexture && !CanCopyDepth(cameraData))
                 return false;
 
-            // Depth Priming causes rendering errors with WebGL and WebGPU on Apple Arm64 GPUs.
-            bool isNotWebGL = !IsWebGL();
+            // Depth Priming causes rendering errors with WebGL2 on Apple Arm64 GPUs.
+            bool isNotWebGL = !(IsWebGL() && IsGLDevice());
             bool depthPrimingRequested = (depthPrimingRecommended && depthPrimingMode == DepthPrimingMode.Auto) || depthPrimingMode == DepthPrimingMode.Forced;
             bool isNotMSAA = cameraData.cameraTargetDescriptor.msaaSamples == 1;
 
@@ -2237,43 +2241,29 @@ namespace UnityEngine.Rendering.Universal
             }
         }
     }
-    class ClearTargetsPass
+
+    // Uses the camera targets without drawing anything, so that their clearOnFirstUse load actions are triggered.
+    // NOTE: We are intentionally not calling ClearRenderTarget, because it would be redundant with the load action,
+    // and it's implemented as a full screen quad draw on many platforms.
+    class InitializeCameraTargetsPass
     {
-        static private readonly ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
+        static private readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Initialize Camera Targets");
 
-        private class PassData
+        private class PassData { }
+
+        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle)
         {
-            internal RTClearFlags clearFlags;
-            internal Color clearColor;
-        }
-
-        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle, in UniversalRenderer.ClearCameraParams clearParams)
-        {
-            RTClearFlags clearFlags = (clearParams.mustClearColor ? RTClearFlags.Color : RTClearFlags.None)
-                                    | (clearParams.mustClearDepth ? RTClearFlags.DepthStencil : RTClearFlags.None);
-
-            if (clearFlags != RTClearFlags.None)
-                Render(graph, colorHandle, depthHandle, clearFlags, clearParams.clearValue);
-        }
-
-        internal static void Render(RenderGraph graph, TextureHandle colorHandle, TextureHandle depthHandle, RTClearFlags clearFlags, Color clearColor)
-        {
-            using (var builder = graph.AddRasterRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Initialize Camera Targets", out _, s_ProfilingSampler))
             {
                 if (colorHandle.IsValid())
                     builder.SetRenderAttachment(colorHandle, 0, AccessFlags.Write);
                 if (depthHandle.IsValid())
                     builder.SetRenderAttachmentDepth(depthHandle, AccessFlags.Write);
 
-                passData.clearFlags = clearFlags;
-                passData.clearColor = clearColor;
-
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
-                {
-                    context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
-                });
+                // Empty render func. We are only marking the textures as used which triggers a clear.
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => { });
             }
         }
     }

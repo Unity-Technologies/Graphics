@@ -43,6 +43,11 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #endif // SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
     uint2 tileCoord = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
+
+    // Clamp to avoid out-of-bounds indexing of the tile buffer.
+    uint2 tileCount = uint2(URP_FP_TILE_COUNT_X, URP_FP_TILE_COUNT_Y);
+    tileCoord = min(tileCoord, tileCount - 1);
+
     uint tileIndex = tileCoord.y * URP_FP_TILE_COUNT_X + tileCoord.x;
 #if defined(USING_STEREO_MATRICES)
     tileIndex += URP_FP_TILE_COUNT * unity_StereoEyeIndex;
@@ -102,7 +107,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #if !URP_FP_DISABLE_ZBINNING
             LoadZBin(zBinWordIndex) &
 #endif
-            (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
+            (0xFFFFFFFFu << (header & 0x1F)) & ~(0xFFFFFFFEu << (header >> 16));
     }
 #endif
 
@@ -128,7 +133,7 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
             LoadZBin(zBinWordIndex) &
 #endif
             // Mask out the beginning and end of the word.
-            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
+            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & ~(0xFFFFFFFEu << min(31, maxIndex - wordIndex * 32));
         // The light index can start at a non-multiple of 32, but the following iterations should always be multiples of 32.
         // So we add 32 and mask out the lower bits.
         it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;

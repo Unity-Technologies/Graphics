@@ -4,6 +4,8 @@
 
 // Ensure that we always include "DebuggingCommon.hlsl" even if we don't use it - saves extraneous includes elsewhere...
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.deprecated.hlsl"
 
 #if defined(DEBUG_DISPLAY)
 
@@ -48,7 +50,7 @@ void SetupDebugDataTerrain(inout InputData inputData)
     inputData.streamInfo = TERRAIN_STREAM_INFO;
 }
 
-bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
+bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData, bool useNormalMap)
 {
     bool changed = false;
 
@@ -83,11 +85,10 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
     {
         const half3 normalTS = half3(0, 0, 1);
-        #if defined(_NORMALMAP)
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-        #else
-        inputData.normalWS = inputData.normalWS;
-        #endif
+        if (useNormalMap)
+            inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        else
+            inputData.normalWS = inputData.normalWS;
         surfaceData.normalTS = normalTS;
         changed = true;
     }
@@ -321,18 +322,17 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
                 #if defined(_SCREEN_SPACE_IRRADIANCE)
                 // In screen space irradiance mode the final pixel values have already been resolved so we cannot reevaluate here.
-                #elif defined(DYNAMICLIGHTMAP_ON)
-                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
-                #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-                inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
-                    GetAbsolutePositionWS(inputData.positionWS),
-                    inputData.normalWS,
-                    inputData.viewDirectionWS,
-                    inputData.positionCS.xy,
-                    inputData.probeOcclusion,
-                    inputData.shadowMask);
                 #else
-                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
+                GIParams giParams = (GIParams)0;
+                giParams.staticLightmapUV = inputData.staticLightmapUV;
+                giParams.dynamicLightmapUV = inputData.dynamicLightmapUV;
+                giParams.vertexSH = inputData.vertexSH;
+                giParams.positionWS = inputData.positionWS;
+                giParams.normalWS = inputData.normalWS;
+                giParams.viewDirWS = inputData.viewDirectionWS;
+                giParams.positionSS = inputData.positionCS.xy;
+                giParams.vertexProbeOcclusion = inputData.probeOcclusion;
+                InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
                 #endif
             }
         }
@@ -373,18 +373,17 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
                 #if defined(_SCREEN_SPACE_IRRADIANCE)
                 // In screen space irradiance mode the final pixel values have already been resolved so we cannot reevaluate here.
-                #elif defined(DYNAMICLIGHTMAP_ON)
-                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
-                #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-                inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
-                    GetAbsolutePositionWS(inputData.positionWS),
-                    inputData.normalWS,
-                    inputData.viewDirectionWS,
-                    inputData.positionCS.xy,
-                    inputData.probeOcclusion,
-                    inputData.shadowMask);
                 #else
-                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
+                GIParams giParams = (GIParams)0;
+                giParams.staticLightmapUV = inputData.staticLightmapUV;
+                giParams.dynamicLightmapUV = inputData.dynamicLightmapUV;
+                giParams.vertexSH = inputData.vertexSH;
+                giParams.positionWS = inputData.positionWS;
+                giParams.normalWS = inputData.normalWS;
+                giParams.viewDirWS = inputData.viewDirectionWS;
+                giParams.positionSS = inputData.positionCS.xy;
+                giParams.vertexProbeOcclusion = inputData.probeOcclusion;
+                InitializeBakedGI(giParams, inputData.bakedGI, inputData.shadowMask);
                 #endif
             }
         }

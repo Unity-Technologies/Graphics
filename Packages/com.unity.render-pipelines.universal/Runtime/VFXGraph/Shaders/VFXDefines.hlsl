@@ -1,3 +1,4 @@
+#pragma once
 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -14,16 +15,16 @@
 #endif
 
 #if IS_TRANSPARENT_PARTICLE
-#define _SURFACE_TYPE_TRANSPARENT
+#define _SURFACE_TYPE_TRANSPARENT 1
 #endif
 
 #if VFX_SIX_WAY_COLOR_ABSORPTION
-    #define _SIX_WAY_COLOR_ABSORPTION
+#define _SIX_WAY_COLOR_ABSORPTION 1
 #endif
 
 //URP currently does not allow to know the blend mode in the shader in general, but we have this information in VFX generated shaders.
 #if VFX_BLENDMODE_PREMULTIPLY
-#define _BLENDMODE_PREMULTIPLY
+#define _BLENDMODE_PREMULTIPLY 1
 #endif
 // this is only necessary for the old VFXTarget pathway
 // it defines the macro used to access hybrid instanced properties

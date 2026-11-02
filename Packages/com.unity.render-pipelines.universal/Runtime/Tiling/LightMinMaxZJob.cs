@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> lights;
         public NativeArray<float2> minMaxZs;
 
+        public float near;
+
         public void Execute(int index)
         {
             var lightIndex = index % lights.Length;
@@ -40,7 +42,8 @@ namespace UnityEngine.Rendering.Universal
                 var angleB = math.PI * 0.5f - angleA;
                 var coneRadius = light.range * cosAngleA * math.sin(angleA) / math.sin(angleB);
                 var a = endPointVS - originVS;
-                var e = math.sqrt(1.0f - a.z * a.z / math.dot(a, a));
+                // Saturate: rounding can push the argument slightly below 0, where sqrt returns NaN.
+                var e = math.sqrt(math.saturate(1.0f - a.z * a.z / math.dot(a, a)));
 
                 // `-a.z` and `a.z` is `dot(a, {0, 0, -1}).z` and `dot(a, {0, 0, 1}).z` optimized
                 // `cosAngleA` is multiplied by `coneHeight` to avoid normalizing `a`, which we know has length `coneHeight`
@@ -55,8 +58,9 @@ namespace UnityEngine.Rendering.Universal
                 minMax.y = float.MinValue;
             }
 
-            minMax.x = math.max(minMax.x, 0);
-            minMax.y = math.max(minMax.y, 0);
+            // Clamp to near, not 0: an orthographic near plane can be negative.
+            minMax.x = math.max(minMax.x, near);
+            minMax.y = math.max(minMax.y, near);
             minMaxZs[index] = minMax;
         }
     }

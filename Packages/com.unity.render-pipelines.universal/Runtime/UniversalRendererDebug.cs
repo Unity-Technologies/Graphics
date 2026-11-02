@@ -6,8 +6,6 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
-        Material m_DebugBlitMaterial = Blitter.GetBlitMaterial(TextureXR.dimension);
-
         bool DebugHandlerRequireDepthPass(UniversalCameraData cameraData)
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
@@ -25,6 +23,8 @@ namespace UnityEngine.Rendering.Universal
             debugTexDescriptor.useMipMap = false;
             debugTexDescriptor.autoGenerateMips = false;
             debugTexDescriptor.bindMS = false;
+            // The debug texture is only sampled as a fullscreen overlay, it is never a multisampled attachment.
+            debugTexDescriptor.msaaSamples = 1;
             debugTexDescriptor.depthStencilFormat = GraphicsFormat.None;
 
             RenderingUtils.ReAllocateHandleIfNeeded(ref s_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
                                 }
                                 case DebugFullScreenMode.MotionVector:
                                 {
-                                    BlitToDebugTexture(renderGraph, resourceData.motionVectorColor, debugTexture, isSourceTextureColor: true);
+                                    BlitToDebugTexture(renderGraph, resourceData.motionVectorColor, debugTexture);
                                     supportsStereo = true;
                                     // Motion vectors are in signed UV space, zoom in and normalize for visualization. (note: maybe add an option to use (angle, mag) visualization)
                                     const float zoom = 0.01f;
@@ -230,25 +230,14 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle dest;
         }
 
-        private void BlitToDebugTexture(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, bool isSourceTextureColor = false)
+        private void BlitToDebugTexture(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination)
         {
             if (source.IsValid())
             {
-                if (isSourceTextureColor) // Use AddCopyPass (RasterRenderPass) when we can
-                {
-                    renderGraph.AddCopyPass(source, destination);
-                }
-                else // Use direct blit (UnsafePass)
-                {
-                    var blitMaterialParameters =
-                        new RenderGraphModule.Util.RenderGraphUtils.BlitMaterialParameters(
-                            source, destination,
-                            m_DebugBlitMaterial, 0);
-
-                    renderGraph.AddBlitPass(blitMaterialParameters);
-                }
+                // AddBlitPass does implicit CopyPass optimization when compatible.
+                renderGraph.AddBlitPass(source, destination, Vector2.one, Vector2.zero, filterMode: RenderGraphModule.Util.RenderGraphUtils.BlitFilterMode.ClampNearest);
             }
-            else // Texture is invalid, just show a black view
+            else
             {
                 BlitEmptyTexture(renderGraph, destination);
             }

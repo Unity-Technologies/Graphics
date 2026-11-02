@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
     {
         public abstract int GetProviderType();
 
+        public abstract string GetUndoName();
+
         public int DrawDropdown(Rect popupRect, GUIContent label, int selectedIndex, GUIContent[] menuOptions)
         {
             if (menuOptions == null || menuOptions.Length == 0)
@@ -122,10 +124,7 @@ namespace UnityEditor.Rendering.Universal
                     GUIContent content = savedGuiContent[j];
                     if (content.text.GetHashCode() == newSelectedContent.text.GetHashCode())
                     {
-                        Provider2DSources<T, U>.UpdateSelectionFromIndex(targetSources, j);
-                        // Persist the selection change by updating both the provider selection and m_LightType
-                        targetProperty.boxedValue = targetSources;
-                        Provider2DSources<T, U>.SetSourceType(targetProperty);
+                        Provider2DSources<T, U>.ApplySelectionFromIndex(targetProperty, j, GetUndoName());
                         break;
                     }
                 }

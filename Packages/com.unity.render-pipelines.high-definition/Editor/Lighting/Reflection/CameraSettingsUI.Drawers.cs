@@ -43,9 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 | CameraSettingsFields.bufferClearColorMode;
             const CameraSettingsFields volumesFields = CameraSettingsFields.volumesAnchorOverride
                 | CameraSettingsFields.volumesLayerMask;
+            #pragma warning disable CS0618
             const CameraSettingsFields cullingFields = CameraSettingsFields.cullingCullingMask
                 | CameraSettingsFields.cullingInvertFaceCulling
                 | CameraSettingsFields.cullingUseOcclusionCulling;
+            #pragma warning restore CS0618
             const CameraSettingsFields frustumFields = CameraSettingsFields.frustumAspect
                 | CameraSettingsFields.frustumFarClipPlane
                 | CameraSettingsFields.frustumMode
@@ -71,7 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((displayedFields.camera & cullingFields) != 0)
             {
+                #pragma warning disable CS0618
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, Styles.cullingUseOcclusionCulling, displayedFields.camera);
+                #pragma warning restore CS0618
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingCullingMask, serialized.cullingCullingMask, Styles.cullingCullingMask, displayedFields.camera);
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingInvertFaceCulling, serialized.cullingInvertFaceCulling, Styles.cullingInvertFaceCulling, displayedFields.camera);
                 EditorGUILayout.Space();

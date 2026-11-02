@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine.TestTools;
 using UnityEngine;
 
@@ -143,6 +145,24 @@ namespace UnityEditor.Rendering.Universal.Tools
             protected override List<MaterialUpgrader> upgraders => new();
         }
 
+        // Records whether searches have to complete synchronously while it scans
+        class SynchronousFlagConverter : IRenderPipelineConverter
+        {
+            public static bool synchronousDuringScan;
+
+            public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+            {
+                synchronousDuringScan = SearchServiceUtils.synchronous;
+                onScanFinish(new List<IRenderPipelineConverterItem>());
+            }
+
+            public Status Convert(IRenderPipelineConverterItem item, out string message)
+            {
+                message = null;
+                return Status.Success;
+            }
+        }
+
         class ThrowingScanConverter : IRenderPipelineConverter
         {
             public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
@@ -188,6 +208,25 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 
         [Test]
+        public void ScanToFile_CmdLineRelativeFileName_IsWrittenToProjectRootInsteadOfTemp()
+        {
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(ScanOnlyConverter) },
+                Converters.GetCmdLineScanFilePath("ConverterCmdLineScanTest.json"));
+
+            try
+            {
+                // Unity deletes Temp/ when it exits, so command-line results must be written elsewhere
+                var projectRoot = Path.GetDirectoryName(Application.dataPath);
+                Assert.AreEqual(Path.GetFullPath(Path.Combine(projectRoot, "ConverterCmdLineScanTest.json")), Path.GetFullPath(filePath));
+                FileAssert.Exists(filePath);
+            }
+            finally
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        [Test]
         public void ScanToFile_ReportsScanInProgressUntilConvertersFinish()
         {
             string finishedStatus = null;
@@ -217,6 +256,37 @@ namespace UnityEditor.Rendering.Universal.Tools
             Assert.AreEqual("Completed", scanFile.status);
             Assert.AreEqual(1, scanFile.convertersCompleted);
             CollectionAssert.AreEqual(new[] { "DeferredItem" }, scanFile.converters[0].items.ConvertAll(item => item.name));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ScanToFile_SynchronousFlagIsOnlySetWhileScanning(bool synchronous)
+        {
+            SynchronousFlagConverter.synchronousDuringScan = !synchronous;
+
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(SynchronousFlagConverter) },
+                "ConverterScanSynchronousTest.json", null, synchronous);
+            File.Delete(filePath);
+
+            Assert.AreEqual(synchronous, SynchronousFlagConverter.synchronousDuringScan);
+            Assert.IsFalse(SearchServiceUtils.synchronous, "The synchronous flag must not outlive the scan.");
+        }
+
+        [Test]
+        public void ScanToFile_ScanAlreadyInProgress_DoesNotLeaveSynchronousFlagSet()
+        {
+            Converters.ScanToFile(new List<Type> { typeof(DeferredScanConverter) }, "ConverterScanBusyTest.json");
+
+            try
+            {
+                Assert.Throws<InvalidOperationException>(() => Converters.ScanToFile(
+                    new List<Type> { typeof(ScanOnlyConverter) }, "ConverterScanBusyTest2.json", null, true));
+                Assert.IsFalse(SearchServiceUtils.synchronous, "A scan which could not start must not leave the flag set.");
+            }
+            finally
+            {
+                Converters.CancelScan();
+            }
         }
 
         [Test]
@@ -273,6 +343,19 @@ namespace UnityEditor.Rendering.Universal.Tools
             }
         }
 
+        // Renames each object it converts, the way material converters edit the objects they load
+        class RenamingAssetsConverter : NoQueriesAssetsConverter
+        {
+            public const string convertedName = "Converted";
+
+            protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
+            {
+                obj.name = convertedName;
+                EditorUtility.SetDirty(obj);
+                return Status.Success;
+            }
+        }
+
         // A converter with nothing to scan for must not leave the scan waiting for it.
         [TestCase(typeof(NoQueriesAssetsConverter), TestName = "{m}(Assets converter with no search queries)")]
         [TestCase(typeof(EmptyQueriesAssetsConverter), TestName = "{m}(Assets converter with empty search queries)")]
@@ -318,6 +401,27 @@ namespace UnityEditor.Rendering.Universal.Tools
         }
 #endif
 
+#if !PIXEL_PERFECT_2D_EXISTS
+        // Without the Pixel Perfect package the Pixel Perfect Camera converter has nothing to search for.
+        [Test]
+        public void ScanToFile_PixelPerfectCameraConverterWithoutPixelPerfectPackage_FinishesScan()
+        {
+            string finishedStatus = null;
+            var filePath = Converters.ScanToFile(new List<Type> { typeof(BuiltInPixelPerfectCameraConverter) },
+                "ConverterScanPixelPerfectTest.json", status => finishedStatus = status);
+
+            Assert.IsFalse(Converters.IsScanInProgress, "The Pixel Perfect Camera converter must not leave the scan hanging.");
+            Assert.AreEqual("Completed", finishedStatus);
+
+            var scanFile = ReadScanFile(filePath);
+            File.Delete(filePath);
+
+            Assert.AreEqual("Completed", scanFile.status);
+            Assert.AreEqual("PixelPerfectCamera", scanFile.converters[0].converterType);
+            Assert.That(scanFile.converters[0].items, Is.Null.Or.Empty);
+        }
+#endif
+
         [Test]
         public void ScanToFile_NoConverterCanBeCreated_ReportsFailure()
         {
@@ -353,24 +457,269 @@ namespace UnityEditor.Rendering.Universal.Tools
             Assert.AreEqual(1, scanFile.converters.Count);
         }
 
+        // Search finds objects in scenes that are not open, and they are only loaded when converted
+        [Test]
+        public void CreateAssetItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/ConverterClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                // Replacing the scene closes it
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                // Search labels a scene object with its path in the hierarchy
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+
+                Assert.IsNotNull(assetItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, assetItem.GlobalObjectId);
+                Assert.AreEqual("Cube (SceneObject)", assetItem.name);
+                Assert.AreEqual(scenePath, assetItem.info);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        // Loads the object of a search result while its scene is open, like the asset provider
+        static readonly SearchProvider k_LoadingSearchProvider = new("converterTestLoading", "Converter Test Loading")
+        {
+            toObject = (item, type) => GlobalObjectId.TryParse(item.id, out var gid) ? GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid) : null
+        };
+
+        // GameObject names can contain '/', so the name of a nested object can't be told apart from its parents' in
+        // the hierarchy path that Search labels it with
+        [Test]
+        public void CreateAssetItem_NestedObjectWithSlashInName_HasSameNameWhetherSceneIsOpenOrClosed()
+        {
+            const string scenePath = "Assets/ConverterSlashNameTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var root = new GameObject("Root");
+                var go = new GameObject("Slash/Name");
+                go.transform.SetParent(root.transform);
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var label = UnityEditor.Search.SearchUtils.GetTransformPath(go.transform);
+
+                var openSceneItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var closedSceneItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                Assert.AreEqual("Root/Slash/Name (SceneObject)", openSceneItem.name);
+                Assert.AreEqual(openSceneItem.name, closedSceneItem.name);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void Convert_ObjectInClosedScene_SavesTheConvertedScene()
+        {
+            const string scenePath = "Assets/ConverterClosedSceneConvertTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+                Assert.AreEqual(Status.Success, new RenamingAssetsConverter().Convert(assetItem, out _));
+
+                // Leaving the scene discards anything that was not saved
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+                Assert.IsTrue(GlobalObjectId.TryParse(gidString, out var gid));
+                var convertedObject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                Assert.IsNotNull(convertedObject);
+                Assert.AreEqual(RenamingAssetsConverter.convertedName, convertedObject.name,
+                    "The conversion of an object in a closed scene must be saved to that scene.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void Convert_SceneOpenedByEarlierConversion_DoesNotSaveUnrelatedEdits()
+        {
+            const string scenePath = "Assets/ConverterEarlierConversionTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                var other = new GameObject("Other");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var otherGidString = GlobalObjectId.GetGlobalObjectIdSlow(other).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                // The first conversion opens the closed scene
+                var converter = new RenamingAssetsConverter();
+                var assetItem = AssetsConverter.CreateAssetItem(new SearchItem(gidString) { label = "/Cube" });
+                converter.BeforeConvert();
+                Assert.AreEqual(Status.Success, converter.Convert(assetItem, out _));
+                converter.AfterConvert();
+
+                // The user then edits another object in the scene, which is still open
+                Assert.IsTrue(GlobalObjectId.TryParse(otherGidString, out var otherGid));
+                var otherObject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(otherGid);
+                otherObject.name = "Edited";
+                EditorUtility.SetDirty(otherObject);
+
+                // A later conversion of an object in the open scene must leave saving it to the user
+                converter.BeforeConvert();
+                Assert.AreEqual(Status.Success, converter.Convert(assetItem, out _));
+                converter.AfterConvert();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+                Assert.AreEqual("Other", GlobalObjectId.GlobalObjectIdentifierToObjectSlow(otherGid).name,
+                    "A scene opened by an earlier conversion must not be saved by a later one.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void ParametricToFreeformLightUpgraderCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/LightUpgraderClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Light");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var lightItem = ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Light" });
+
+                Assert.IsNotNull(lightItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, lightItem.GlobalObjectId);
+                Assert.AreEqual(scenePath, lightItem.assetPath);
+                Assert.AreEqual($"Scene: {scenePath}", lightItem.info);
+                Assert.AreEqual(GlobalObjectIdentifierType.SceneObject, lightItem.type);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Camera");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var ppCameraItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Camera" });
+
+                Assert.IsNotNull(ppCameraItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, ppCameraItem.GlobalObjectId);
+                Assert.AreEqual("Camera (SceneObject)", ppCameraItem.name);
+                Assert.AreEqual(scenePath, ppCameraItem.info);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_NestedObject_HasSameNameWhetherSceneIsOpenOrClosed()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraNestedNameTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var root = new GameObject("Root");
+                var go = new GameObject("Camera");
+                go.transform.SetParent(root.transform);
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var label = UnityEditor.Search.SearchUtils.GetTransformPath(go.transform);
+
+                var openSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var closedSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                Assert.AreEqual("Root/Camera (SceneObject)", openSceneItem.name);
+                Assert.AreEqual(openSceneItem.name, closedSceneItem.name);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        // An object that is gone from an open scene has nothing left to convert
+        [Test]
+        public void ConverterCreateItem_ObjectDeletedFromOpenScene_IsSkipped()
+        {
+            const string scenePath = "Assets/ConverterDeletedObjectTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Deleted");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                UnityEngine.Object.DestroyImmediate(go);
+
+                Assert.IsNull(ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+                Assert.IsNull(BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
         [Test]
         public void BatchModeFails()
         {
             bool ok = Converters.RunInBatchMode(new List<Type>() { typeof(NotAConverterType) });
             Assert.IsFalse(ok);
-        }
-
-        [Test]
-        public void RunInBatchMode_LogsUsageWarning()
-        {
-            LogAssert.Expect(
-                LogType.Warning,
-                "Using this API can lead to incomplete or unpredictable conversion outcomes. " +
-                "For reliable results, please perform the conversion via the dedicated window: " +
-                "Window > Rendering > Render Pipeline Converter."
-            );
-
-            bool _ = Converters.RunInBatchMode(new List<Type>() {});
         }
 
         public static IEnumerable<TestCaseData> TestCases()
@@ -433,6 +782,8 @@ namespace UnityEditor.Rendering.Universal.Tools
                  {
                     typeof(BuiltInToURP2DRenderSettingsConverter),
                     typeof(BuiltInToURP2DReadonlyMaterialConverter),
+                    typeof(BuiltInToURP2DShaderConverter),
+                    typeof(BuiltInPixelPerfectCameraConverter),
                  }
             ).SetName("{m}(BuiltInToURP2D - When Using Exclusive filter with no converters. The filter returns everything)");
 

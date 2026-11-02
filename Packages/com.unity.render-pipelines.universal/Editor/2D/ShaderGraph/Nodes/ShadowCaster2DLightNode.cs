@@ -18,18 +18,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     /// Three components on purpose, and world so that it pairs with Position (World) without the author
     /// having to know which space the projection runs in.
     ///
-    /// DO NOT build a fake-3D shadow length out of this. The obvious construction -- difference this
-    /// against Position (World), split off a world axis as "height", take the rest as planar distance,
-    /// similar triangles -- hard-codes the world axes as the game's frame, and is wrong the moment
-    /// anything is rotated out of them. Rotating an entire scene as a rigid body then changes the
-    /// shadows, which is not a visible change and should not produce one. Do that arithmetic against
-    /// the caster's own plane instead: <c>SoftShadowLightLocal</c> and <c>SoftShadowPointToLocal</c>
-    /// are declared pre-graph by ShadowCaster2DGlobals.hlsl, so a Custom Function node can call them
-    /// and reach the light and the point in a frame with no world axis named anywhere.
+    /// This feeds Shadow Displacement directly. That port is read in WORLD space and this node reports
+    /// the light in world space, so a displacement built from it and Position (World) needs no
+    /// conversion node. Before UUM-152815 the port was read in the caster's frame and a Transform
+    /// (World -> Object) was required; graphs written against that need the node removed.
     ///
-    /// Nor can this be fed to Shadow Displacement directly: that port is read in the CASTER'S frame, so
-    /// a world vector derived from this node needs a Transform (World -> Object) first. A projection
-    /// built on those two helpers stays in the caster's frame throughout and needs no conversion.
+    /// Know what a fake-3D shadow length built out of this costs. The obvious construction --
+    /// difference this against Position (World), split off a world axis as "height", take the rest as
+    /// planar distance, similar triangles -- hard-codes the world axes as the game's frame, so rotating
+    /// an entire scene as a rigid body changes the shadows. Shadow Displacement is itself read in world
+    /// now, so that invariance is no longer something the port preserves either: this is a trade-off to
+    /// take knowingly, and it is the right one whenever the game's ground plane is the world's.
+    ///
+    /// To keep the invariance, do the arithmetic against the caster's own plane: <c>SoftShadowLightLocal</c>
+    /// and <c>SoftShadowPointToLocal</c> are declared pre-graph by ShadowCaster2DGlobals.hlsl, so a
+    /// Custom Function node can call them and reach the light and the point in a frame with no world
+    /// axis named anywhere -- then convert the result back with a Transform (Object -> World) before it
+    /// reaches the port.
     ///
     /// What it is still good for is anything that wants the light itself rather than a projection: the
     /// distance to it, a falloff, a flicker keyed to which light is drawing.

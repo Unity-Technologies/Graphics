@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Tests
             SolidColorShader = testResources.solidColorShader,
         };
 
-        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute, uint sampleCount = 1, uint defragCount = 0, bool multiBounce = false, bool bouncePatchAllocation = false, float volumeSize = 1f, uint volumeResolution = 4)
+        public TestHarness(RayTracingBackend backend = RayTracingBackend.Compute, uint sampleCount = 1, uint defragCount = 0, bool multiBounce = false, bool bouncePatchAllocation = false, float volumeSize = 1f, uint volumeResolution = 4, uint punctualLightCandidateCount = 1)
         {
             var volParams = new SurfaceCacheVolumeParameterSet
             {
@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.Tests
                 MultiBounce = multiBounce,
                 BouncePatchAllocation = bouncePatchAllocation,
                 WarmUpSampleMultiplier = 1,
+                PunctualLightCandidateCount = punctualLightCandidateCount,
                 DistanceFallback = false
             };
             _cache.SetEstimationParams(_estimationParams);

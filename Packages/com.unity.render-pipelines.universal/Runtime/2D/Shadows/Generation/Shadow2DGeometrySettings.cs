@@ -108,7 +108,14 @@ namespace UnityEngine.Rendering.Universal
         internal GeometryVersion geometryVersion
         {
             get => m_GeometryVersion;
-            set => m_GeometryVersion = value;
+            set
+            {
+                m_GeometryVersion = value;
+
+                // Shadow2DGeometry caches this value; a change from script must not wait for the
+                // editor's end-of-frame refresh, and a player has no such refresh.
+                Shadow2DGeometry.InvalidateCache();
+            }
         }
 
         /// <summary>The generator id <see cref="geometryVersion"/> selects.</summary>

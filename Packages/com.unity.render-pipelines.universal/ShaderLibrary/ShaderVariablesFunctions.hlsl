@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
@@ -247,9 +248,9 @@ real AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
     return alpha;
 }
 
-half OutputAlpha(half alpha, bool isTransparent)
+half OutputAlpha(half alpha, bool isSurfaceTypeTransparent)
 {
-    if (isTransparent)
+    if (isSurfaceTypeTransparent)
     {
         return alpha;
     }
@@ -264,29 +265,22 @@ half OutputAlpha(half alpha, bool isTransparent)
     }
 }
 
-half3 AlphaModulate(half3 albedo, half alpha)
+half3 ApplyAlphaModulate(half3 albedo, half alpha)
 {
     // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.
     // Manual adjustment for "lighter" multiply effect (similar to "premultiplied alpha")
     // would be painting whiter pixels in the texture.
     // This emulates that procedure in shader, so it should be applied to the base/source color.
-#if defined(_ALPHAMODULATE_ON)
     return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
-#else
-    return albedo;
-#endif
 }
 
-half3 AlphaPremultiply(half3 albedo, half alpha)
+half3 ApplyAlphaPremultiply(half3 albedo, half alpha)
 {
     // Multiply alpha into albedo only for Preserve Specular material diffuse part.
     // Preserve Specular material (glass like) has different alpha for diffuse and specular lighting.
     // Logically this is "variable" Alpha blending.
     // (HW blend mode is premultiply, but with alpha multiply in shader.)
-#if defined(_ALPHAPREMULTIPLY_ON)
     return albedo * alpha;
-#endif
-    return albedo;
 }
 
 // Normalization used to depend on SHADER_QUALITY
@@ -302,38 +296,37 @@ float3 NormalizeNormalPerVertex(float3 normalWS)
     return normalize(normalWS);
 }
 
-half3 NormalizeNormalPerPixel(half3 normalWS)
+half3 NormalizeNormalPerPixel(half3 normalWS, bool useNormalMap)
 {
+    half3 result;
 // With XYZ normal map encoding we sporadically sample normals with near-zero-length causing Inf/NaN
-#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
-    return SafeNormalize(normalWS);
+#if defined(UNITY_NO_DXT5nm)
+    if (useNormalMap)
+        result = SafeNormalize(normalWS);
+    else
+        result = normalize(normalWS);
 #else
-    return normalize(normalWS);
+    result = normalize(normalWS);
 #endif
+    return result;
 }
 
-float3 NormalizeNormalPerPixel(float3 normalWS)
+float3 NormalizeNormalPerPixel(float3 normalWS, bool useNormalMap)
 {
-#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
-    return SafeNormalize(normalWS);
+    float3 result;
+#if defined(UNITY_NO_DXT5nm)
+    if (useNormalMap)
+        result = SafeNormalize(normalWS);
+    else
+        result = normalize(normalWS);
 #else
-    return normalize(normalWS);
+    result = normalize(normalWS);
 #endif
+    return result;
 }
-
 
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.deprecated.hlsl"
-
-half3 MixFogExposed(half3 fragColor, half fogFactor, float preExposureMultiplier)
-{
-    return MixFogColor(fragColor, preExposureMultiplier * half3(unity_FogColor.rgb), fogFactor);
-}
-
-float3 MixFogExposed(float3 fragColor, float fogFactor, float preExposureMultiplier)
-{
-    return MixFogColor(fragColor, preExposureMultiplier * float3(unity_FogColor.rgb), fogFactor);
-}
 
 // Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
 half LinearDepthToEyeDepth(half rawDepth)

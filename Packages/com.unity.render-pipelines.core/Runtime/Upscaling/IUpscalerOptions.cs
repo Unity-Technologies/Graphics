@@ -1,4 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -90,7 +89,7 @@ namespace UnityEngine.Rendering
 
         [SerializeField]
         [Tooltip("Execute reactive mask generation pass if current upscaler supports reactive mask.")]
-        private bool m_EnableReactiveMaskPass = true;
+        private bool m_EnableReactiveMaskPass = false;
 
         [SerializeField]
         [Tooltip("Use max difference among R, G, B channels instead of length of delta of (R, G, B) when calculating reactivity. This option is applied before thresholding.")]
@@ -272,4 +271,3 @@ namespace UnityEngine.Rendering
 
 #nullable disable
 }
-#endif // ENABLE_UPSCALER_FRAMEWORK

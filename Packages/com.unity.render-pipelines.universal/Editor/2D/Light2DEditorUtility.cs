@@ -9,13 +9,25 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class Light2DEditorUtility
     {
+        internal static readonly string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/ResourceIcons/";
+
+        // The Undo entry for a pick in the Light Type dropdown, shared by every place that applies one.
+        internal const string k_ChangeLightTypeUndoName = "Change Light Type";
+
         private static class Styles
         {
-            public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
-            public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
-            public static GUIContent lightTypePoint = new GUIContent("Spot", Resources.Load("InspectorIcons/PointLight") as Texture);
-            public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
+            static GUIContent s_LightTypeFreeform;
+            static GUIContent s_LightTypeSprite;
+            static GUIContent s_LightTypePoint;
+            static GUIContent s_LightTypeGlobal;
 
+            public static GUIContent lightTypeFreeform => s_LightTypeFreeform ??= new GUIContent("Freeform", LoadIcon("FreeformLight.png"));
+            public static GUIContent lightTypeSprite => s_LightTypeSprite ??= new GUIContent("Sprite", LoadIcon("SpriteLight.png"));
+            public static GUIContent lightTypePoint => s_LightTypePoint ??= new GUIContent("Spot", LoadIcon("PointLight.png"));
+            public static GUIContent lightTypeGlobal => s_LightTypeGlobal ??= new GUIContent("Global", LoadIcon("GlobalLight.png"));
+
+            static Texture LoadIcon(string fileName) => AssetDatabase.LoadAssetAtPath<Texture>(ResourcePath + "InspectorIcons/" + fileName);
+            
             public static GUIContent lightTypeMissing = new GUIContent("Missing", "The Light Type this light is set to is not available on this GameObject.");
             public static GUIContent lightTypeParametricDeprecated = new GUIContent("Parametric (Deprecated)", "Parametric lights are deprecated. Upgrade this light to a Freeform light.");
 
@@ -26,6 +38,12 @@ namespace UnityEditor.Rendering.Universal
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
         static Mesh k_MeshQuad_Cache;
         static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
+
+        // Without the runtime's 2D Common tessellator, a Freeform light renders only its falloff edge.
+        internal static bool ShouldShowMissing2DCommonError(Light2D.LightType type)
+        {
+            return type == Light2D.LightType.Freeform && !LightUtility.canTessellateFreeformInterior;
+        }
 
         /// <summary>
         /// Draws the Light Type dropdown for a Light2D component using the provider system.
@@ -209,15 +227,19 @@ namespace UnityEditor.Rendering.Universal
 
                 RefreshLightSources(light, targetSources);
 
+                bool wasGlobal = light.lightType == Light2D.LightType.Global;
                 GUIContent[] targetNames = targetSources.GetSourceNames();
                 for (int j = 0; j < targetNames.Length; j++)
                 {
                     if (targetNames[j].text != chosen.text)
                         continue;
 
-                    Provider2DSources<Light2DProvider, Light2DProviderSource>.UpdateSelectionFromIndex(targetSources, j);
-                    targetSelectionSources.boxedValue = targetSources;
-                    Light2DProviderSources.SetSourceType(targetSelectionSources);
+                    Light2DProviderSources.ApplySelectionFromIndex(targetSelectionSources, j, k_ChangeLightTypeUndoName);
+
+                    // Only a light that just became Global reports; ErrorIfDuplicateGlobalLight skips other types.
+                    // Lights that were already Global stay quiet, so the clash is not logged once per global light.
+                    if (!wasGlobal && light.isActiveAndEnabled)
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
                     break;
                 }
             }
@@ -304,8 +326,102 @@ namespace UnityEditor.Rendering.Universal
         static internal void DrawFilteredMaterialField(SerializedProperty property, GUIContent label, Func<Material, bool> isCompatible)
         {
             Rect position = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(property, label, true));
+            AcceptShaderGraphDrag(GetObjectFieldDropRect(position, label), property, isCompatible);
             RejectIncompatibleMaterialDrag(position, isCompatible);
             EditorGUI.PropertyField(position, property, label, true);
+        }
+
+        // The part of `position` where the object field takes a drop: the rect EditorGUI.PrefixLabel
+        // leaves for the field. A drop on the label does not assign a Material, so it should not
+        // assign a Shader Graph either.
+        static Rect GetObjectFieldDropRect(Rect position, GUIContent label)
+        {
+            const float k_PrefixPaddingRight = 2f;
+
+            if (label != null && string.IsNullOrEmpty(label.text) && label.image == null)
+                return EditorGUI.IndentedRect(position);
+
+            float labelWidth = EditorGUIUtility.labelWidth + k_PrefixPaddingRight;
+            return new Rect(position.x + labelWidth, position.y, position.width - labelWidth, position.height);
+        }
+
+        // Returns the current event when it is a drag over `position` that an enabled field may handle.
+        static Event GetDragOver(Rect position)
+        {
+            Event evt = Event.current;
+            if (evt == null || (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform))
+                return null;
+
+            if (!GUI.enabled || !position.Contains(evt.mousePosition))
+                return null;
+
+            return evt;
+        }
+
+        // Handles a drag over `position` that carries a Shader Graph asset rather than a Material.
+        // A Project-window drag of a .shadergraph carries its main asset, which is a Shader.
+        // The object field rejects a Shader on type. The picker, though, lists the Material sub-asset
+        // the importer adds beside it, so a drop assigns that Material instead.
+        // The drag payload itself is left as it is.
+        static void AcceptShaderGraphDrag(Rect position, SerializedProperty property, Func<Material, bool> isCompatible)
+        {
+            Event evt = GetDragOver(position);
+            if (evt == null)
+                return;
+
+            Material material = GetShaderGraphMaterial(DragAndDrop.objectReferences);
+            if (material == null)
+                return;
+
+            if (!isCompatible(material))
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                evt.Use();
+                return;
+            }
+
+            if (evt.type == EventType.DragPerform)
+            {
+                DragAndDrop.AcceptDrag();
+                property.objectReferenceValue = material;
+                GUI.changed = true;
+            }
+            else
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+            }
+
+            evt.Use();
+        }
+
+        /// <summary>
+        /// Returns the Material sub-asset of the first Shader main asset in a drag that has one.
+        /// Returns null when the payload holds a Material, or holds no Shader with a Material beside it.
+        /// </summary>
+        /// <remarks>
+        /// A payload with any Material in it is left to the usual path, so this only changes drops the
+        /// object field would reject anyway.
+        /// </remarks>
+        static internal Material GetShaderGraphMaterial(UnityEngine.Object[] draggedObjects)
+        {
+            if (draggedObjects == null)
+                return null;
+
+            Material found = null;
+            for (int i = 0; i < draggedObjects.Length; i++)
+            {
+                if (draggedObjects[i] is Material)
+                    return null;
+
+                if (found != null)
+                    continue;
+
+                Shader shader = draggedObjects[i] as Shader;
+                if (shader != null && AssetDatabase.IsMainAsset(shader))
+                    found = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(shader));
+            }
+
+            return found;
         }
 
         // Consumes a drag over `position` whose payload holds a Material this field cannot take.
@@ -314,11 +430,8 @@ namespace UnityEditor.Rendering.Universal
         // pointer is over the field.
         static void RejectIncompatibleMaterialDrag(Rect position, Func<Material, bool> isCompatible)
         {
-            Event evt = Event.current;
-            if (evt == null || (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform))
-                return;
-
-            if (!GUI.enabled || !position.Contains(evt.mousePosition))
+            Event evt = GetDragOver(position);
+            if (evt == null)
                 return;
 
             if (IsMaterialDragAcceptable(DragAndDrop.objectReferences, isCompatible))

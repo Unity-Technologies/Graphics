@@ -15,6 +15,7 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Fragment
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
@@ -40,8 +41,8 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
                     && normalizedScreenSpaceUV.x < (_OutputAdjustParams.x + (1.0 / _OutputAdjustParams.z))
                     && normalizedScreenSpaceUV.y < (_OutputAdjustParams.y + (1.0 / _OutputAdjustParams.w)))
                 {
-                    float3 normals = SampleSceneNormalsRaw(normalizedScreenSpaceUV);
-                    return half4(normals,1);
+                    float3 normals = SampleSceneNormals(normalizedScreenSpaceUV);
+                    return half4(normals * 0.5 + 0.5, 1);
                 }
                 else
                 {

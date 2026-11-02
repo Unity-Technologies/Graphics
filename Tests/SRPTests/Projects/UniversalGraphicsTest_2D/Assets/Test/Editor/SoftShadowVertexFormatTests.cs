@@ -25,7 +25,6 @@ using UnityEngine.Rendering;
 // These tests deliberately declare their own copy of the struct and layout rather than referencing
 // the generator, so they are meaningful before it exists and keep working if it moves.
 [TestFixture]
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class SoftShadowVertexFormatTests
 {
     // The payload, mirroring SoftShadowGeometryGenerator.SoftShadowMeshVertex:

@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// region, which either statistic catches easily; what they tolerate is a one-pixel seam.
     /// </remarks>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowRenderMatchTests
     {
         const string k_MaterialPath =

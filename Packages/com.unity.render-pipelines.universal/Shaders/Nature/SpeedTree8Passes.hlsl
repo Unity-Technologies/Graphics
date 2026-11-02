@@ -7,10 +7,21 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Nature/SpeedTreeCommon.hlsl"
 #include "SpeedTreeUtility.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/AlphaBlend.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ClearCoat.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ReceiveShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SpecularHighlights.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/EnvironmentReflections.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
+
+#if FEATURES_NORMALMAP
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
 struct SpeedTreeVertexInput
@@ -34,7 +45,7 @@ struct SpeedTreeVertexOutput
 
     URP_LIGHT_ACCUM4 fogFactorAndVertexLight   : TEXCOORD2;    // x: fogFactor, yzw: vertex light
 
-    #ifdef EFFECT_BUMP
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 normalWS              : TEXCOORD3;    // xyz: normal, w: viewDir.x
         half4 tangentWS             : TEXCOORD4;    // xyz: tangent, w: viewDir.y
         half4 bitangentWS           : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
@@ -43,7 +54,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
@@ -69,7 +80,7 @@ struct SpeedTreeVertexDepthNormalOutput
     half2 uv                        : TEXCOORD0;
     half4 color                     : TEXCOORD1;
 
-    #ifdef EFFECT_BUMP
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         half4 normalWS              : TEXCOORD2;    // xyz: normal, w: viewDir.x
         half4 tangentWS             : TEXCOORD3;    // xyz: tangent, w: viewDir.y
         half4 bitangentWS           : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
@@ -258,11 +269,14 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = normalWS;
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;
@@ -275,8 +289,8 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     output.positionWS = vertexInput.positionWS;
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        output.shadowCoord = GetShadowCoord(vertexInput);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     output.clipPos = vertexInput.positionCS;
@@ -328,27 +342,28 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.positionWS = input.interpolated.positionWS.xyz;
     inputData.positionCS = input.interpolated.clipPos;
 
-#ifdef EFFECT_BUMP
-    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = input.interpolated.normalWS;
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     inputData.viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
+    if (UseNormalMap())
+    {
+        inputData.tangentToWorld = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+    }
 #else
-    inputData.normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
     inputData.viewDirectionWS = input.interpolated.viewDirWS;
 #endif
-
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
     inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = input.interpolated.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.interpolated.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     inputData.bakedGI = SAMPLE_GI(input.interpolated.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -363,12 +378,8 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
-    #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
+    #if defined(DEBUG_DISPLAY)
     inputData.vertexSH = input.interpolated.vertexSH;
-    #endif
-
-    #if defined(_NORMALMAP)
-    inputData.tangentToWorld = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
 }
 
@@ -382,14 +393,12 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
     half2 uv = input.interpolated.uv;
-    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
+    half4 diffuse = SampleBaseMap(uv) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
     alpha = AlphaDiscard(alpha, 0.3333);
 
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(input.interpolated.clipPos);
-    #endif
+    LODFadeCrossFade(input.interpolated.clipPos);
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -413,10 +422,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     #endif
 
     // normal
-    #ifdef EFFECT_BUMP
-        half3 normalTs = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    #else
-        half3 normalTs = half3(0, 0, 1);
+    half3 normalTs = half3(0, 0, 1);
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+            normalTs = SampleNormal(uv);
     #endif
 
     // flip normal on backsides
@@ -447,7 +456,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv);
 
 #if defined(GBUFFER) || defined(EFFECT_SUBSURFACE)
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask, ReceiveShadows(), IsSurfaceTypeTransparent());
 #endif
 
     // subsurface (hijack emissive)
@@ -455,8 +464,8 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half fSubsurfaceRough = 0.7 - smoothness * 0.5;
     half fSubsurface = D_GGX(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough);
 
-    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
+    half realtimeShadow = ReceiveShadows() ? SampleMainLightRealtimeShadow(shadowCoord, IsSurfaceTypeTransparent()) : half(1.0);
     float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
         float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * realtimeShadow;
     float3 indirectSubsurface = tintedSubsurface.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
@@ -466,14 +475,14 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #ifdef GBUFFER
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
-    BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    BRDFData brdfData = InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, IsSpecularSetup(), UseAlphaPremultiply());
 
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     URP_LIGHT_ACCUM3 color = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
-                                     inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+                                     inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV,
+                                     UseClearCoat() || UseClearCoatMap(), UseEnvironmentReflections());
 
-    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * (emission + color)), occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * (emission + color)), occlusion, ReceiveShadows(), IsSpecularSetup(), UseSpecularHighlights());
 
 #else
     SurfaceData surfaceData;
@@ -493,7 +502,9 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     inputData.uv = uv;
 #endif
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData,
+        IsSpecularSetup(), UseSpecularHighlights(), UseAlphaPremultiply(),
+        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections());
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.interpolated.clipPos));
     color.a = OutputAlpha(color.a, _Surface);
@@ -509,14 +520,12 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
+    half4 diffuse = SampleBaseMap(uv) * _Color;
 
     half alpha = diffuse.a * input.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(input.clipPos);
-    #endif
+    LODFadeCrossFade(input.clipPos);
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -541,11 +550,14 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-    #ifdef EFFECT_BUMP
-        real sign = input.tangent.w * GetOddNegativeScale();
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         output.normalWS.xyz = normalWS;
-        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
-        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        if (UseNormalMap())
+        {
+            real sign = input.tangent.w * GetOddNegativeScale();
+            output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+            output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+        }
 
         // View dir packed in w.
         output.normalWS.w = viewDirWS.x;
@@ -566,20 +578,18 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
     half2 uv = input.interpolated.uv;
-    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
+    half4 diffuse = SampleBaseMap(uv) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-    #ifdef LOD_FADE_CROSSFADE
-        LODFadeCrossFade(input.interpolated.clipPos);
-    #endif
+    LODFadeCrossFade(input.interpolated.clipPos);
 
     // normal
-    #if defined(EFFECT_BUMP)
-        half3 normalTs = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    #else
-        half3 normalTs = half3(0, 0, 1);
+    half3 normalTs = half3(0, 0, 1);
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+            normalTs = SampleNormal(uv);
     #endif
 
     // flip normal on backsides
@@ -606,19 +616,13 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
         #endif
     #endif
 
-    #if defined(EFFECT_BUMP)
-        float3 normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
-    #else
-        float3 normalWS = input.interpolated.normalWS;
+    half3 normalWS = input.interpolated.normalWS.xyz;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap())
+            normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
     #endif
 
-    #if defined(_GBUFFER_NORMALS_OCT)
-        float2 octNormalWS = PackNormalOctQuadEncode(normalize(normalWS)); // values between [-1, +1], must use fp32 on some platforms.
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);    // values between [ 0,  1]
-        return half4(PackFloat2To888(remappedOctNormalWS), outputAlpha);   // values between [ 0,  1]
-    #else
-        return half4(NormalizeNormalPerPixel(normalWS), outputAlpha);
-    #endif
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), outputAlpha);
 }
 
 #endif

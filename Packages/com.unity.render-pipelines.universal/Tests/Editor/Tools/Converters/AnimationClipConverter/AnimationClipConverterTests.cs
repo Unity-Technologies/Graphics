@@ -215,6 +215,61 @@ namespace UnityEditor.Rendering.Universal.Tools
                 Assert.IsTrue(b.propertyName.Contains(expectedBindingPropertyName));
             }
         }
+
+        [Test]
+        public void GivenExceptionDuringConversion_WhenConverting_ThenReturnsError()
+        {
+            AnimationClipConverterItem animationClipConverterItem = new(GlobalObjectId.GetGlobalObjectIdSlow(m_AnimationClip), AssetDatabase.GetAssetPath(m_AnimationClip));
+
+            var go = CreatePrefabForTest(new Material[] { GetURPDefaultMaterial() }, m_AnimationClip, k_TestsPath + $"{TestContext.CurrentContext.Test.Name}/");
+
+            animationClipConverterItem.dependencies.Add(
+                new RenderPipelineConverterAssetItem(
+                    GlobalObjectId.GetGlobalObjectIdSlow(go),
+                    AssetDatabase.GetAssetPath(go))
+            );
+
+            // Skipping BeforeConvert leaves the upgrade paths cache null, so the conversion throws internally
+            var converter = new AnimationClipConverter();
+            var status = converter.Convert(animationClipConverterItem, out var message);
+
+            Assert.AreEqual(Status.Error, status, $"Expected status {Status.Error} but got {status} with {message}");
+            StringAssert.Contains("Error converting", message);
+        }
+
+        [Test]
+        public void GivenNullItem_WhenConverting_ThenReturnsError()
+        {
+            var status = m_Converter.Convert(null, out var message);
+
+            Assert.AreEqual(Status.Error, status, $"Expected status {Status.Error} but got {status} with {message}");
+        }
+
+        [Test]
+        public void GivenItemOfWrongType_WhenConverting_ThenReturnsError()
+        {
+            var item = new RenderPipelineConverterAssetItem(GlobalObjectId.GetGlobalObjectIdSlow(m_AnimationClip), AssetDatabase.GetAssetPath(m_AnimationClip));
+
+            var status = m_Converter.Convert(item, out var message);
+
+            Assert.AreEqual(Status.Error, status, $"Expected status {Status.Error} but got {status} with {message}");
+        }
+
+        [Test]
+        public void GivenClipWithoutMaterialBindings_WhenConverting_ThenMessageContainsAssetPath()
+        {
+            var clip = new AnimationClip();
+            clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Linear(0f, 0f, 1f, 1f));
+            string path = k_TestsPath + "NoMaterialBindings.anim";
+            AssetDatabase.CreateAsset(clip, path);
+
+            AnimationClipConverterItem animationClipConverterItem = new(GlobalObjectId.GetGlobalObjectIdSlow(clip), path);
+
+            var status = m_Converter.Convert(animationClipConverterItem, out var message);
+
+            Assert.AreEqual(Status.Error, status, $"Expected status {Status.Error} but got {status} with {message}");
+            StringAssert.Contains(path, message);
+        }
     }
 
 }

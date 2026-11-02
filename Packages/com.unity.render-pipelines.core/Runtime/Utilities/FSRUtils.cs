@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEngine.AMD;
 #endif
 
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering
 
         #region FSR2/3/4 Temporal Upscaling (AMD Plugin)
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 
         /// <summary>
         /// Checks if the AMD plugin and graphics device are available for FSR2/3/4.
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#endif // ENABLE_AMD && ENABLE_AMD_MODULE
 
         #endregion
     }

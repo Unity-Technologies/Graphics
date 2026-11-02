@@ -87,14 +87,6 @@ namespace Preview
         [UnityTest]
         public IEnumerator CreatePreview_Material()
         {
-            var threadingMode = SystemInfo.renderingThreadingMode;
-            bool nativeGfxJobs = threadingMode == RenderingThreadingMode.NativeGraphicsJobs
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread
-                || threadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading;
-            bool isD3D12 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
-            if (m_PipelineName == "HDRP" && isD3D12 && nativeGfxJobs)
-                Assert.Ignore("HDRP material preview renders blank under native/split graphics jobs on D3D12. Tracking: UUM-147205");
-
             yield return CreatePreviewInternal(new MaterialFactory($"TestMaterial-{GetPipelineName()}"), "Material");
         }
 

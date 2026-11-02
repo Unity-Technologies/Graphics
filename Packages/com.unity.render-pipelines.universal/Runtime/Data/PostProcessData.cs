@@ -180,12 +180,6 @@ namespace UnityEngine.Rendering.Universal
             [ResourcePath("Shaders/PostProcessing/FinalPost.shader")]
             public Shader finalPostPassPS;
 
-            /// <summary>
-            /// The Upscaler Reactive Mask shader.
-            /// </summary>
-            [ResourcePath("Shaders/PostProcessing/UpscalerReactiveMask.shader")]
-            public Shader reactiveMaskPS;
-
 #if UNITY_EDITOR
             /// <summary>
             /// Copies all fields and resources from a source <see cref="ShaderResources"/> object into this object.

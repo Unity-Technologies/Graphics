@@ -26,3 +26,4 @@ using System.Runtime.CompilerServices;
 
 // Access for URP Tests so they use internals from Core Runtime
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.Tests")]

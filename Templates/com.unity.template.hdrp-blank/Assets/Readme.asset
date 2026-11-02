@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcf7219bab7fe46a1ad266029b2fee19, type: 3}
   m_Name: Readme
   m_EditorClassIdentifier: 
+  commonStyle: {fileID: 7433441132597879392, guid: d2c670ece470f4c4fa6712b8dc28a9bb, type: 3}
+  darkStyle: {fileID: 7433441132597879392, guid: 1f902e57f049a7f47986618de93f5ee1, type: 3}
+  lightStyle: {fileID: 7433441132597879392, guid: 69e7ab73923f93149821ac3a88b84856, type: 3}
   icon: {fileID: 2800000, guid: d19680cd422524695938fbe55cc3b3bd, type: 3}
   title: HDRP Empty Template
   sections:
   - heading: Welcome to the HDRP Empty Template
-    text: This template includes the settings and assets you need to start creating
-      with HDRP.
+    text: This template includes the settings and assets you need to start creating with HDRP.
     linkText: 
     url: 
   - heading: Documentation
@@ -27,13 +29,12 @@ MonoBehaviour:
   - heading: Samples
     text: 
     linkText: Samples and content you can use in your project
-    url: https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/HDRP-Sample-Content.html
+    url: https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/HDRP-Sample-Content.html
   - heading: Forums
     text: 
     linkText: Get answers and support
-    url: https://forum.unity.com/forums/high-definition-render-pipeline.386/
+    url: https://discussions.unity.com/tags/c/graphics/133/all/high-definition-render-pipeline/159335
   - heading: Bugs
     text: 
     linkText: Report any bugs
     url: https://unity3d.com/unity/qa/bug-reporting
-  loadedLayout: 1

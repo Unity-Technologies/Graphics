@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal.Tests
     /// include, and without a test like this the first sign of trouble is an unhelpfully pink shadow.
     /// </remarks>
     [TestFixture]
-    [Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
     class SoftShadowShaderTests
     {
         const string k_ShaderName = "Test/Shadow2D-SoftShadow";

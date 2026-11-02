@@ -29,4 +29,10 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
     {
         public static int GetMotionVectorFrameIndex() => UnityEngine.Rendering.RendererUpdateManagerBridge.motionVectorFrameIndex;
     }
+
+    internal static class RenderingDebuggerBridge
+    {
+        public static void SetSupportsHidingDebugOverlays(bool value)
+            => UnityEngine.Rendering.DebugManager.instance.supportsHidingDebugOverlays = value;
+    }
 }

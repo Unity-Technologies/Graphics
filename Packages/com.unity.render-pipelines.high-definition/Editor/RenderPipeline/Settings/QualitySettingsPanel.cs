@@ -125,18 +125,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     var labelRect = _rect;
                     EditorStyles.label.CalcMinMaxWidth(label, out var minWidth, out var maxWidth);
-                    labelRect.width = EditorStyles.label.CalcSize(label).x;
-                    labelRect.height = EditorStyles.label.CalcSize(label).y;
-                    var height = EditorStyles.label.CalcHeight(label,labelRect.width);
-                    labelRect.y += height/4f;
-                    labelRect.x -= minWidth;
+                    var labelSize = EditorStyles.label.CalcSize(label);
+                    labelRect.width = labelSize.x;
+                    labelRect.height = labelSize.y;
+                    labelRect.x -= labelRect.width + 4f; // Add 4px spacing between tags
+                    labelRect.y += (rect.height - labelRect.height) * 0.5f; // Center vertically
                     var style = new GUIStyle(EditorStyles.label);
                     style.normal.background = Texture2D.grayTexture;
                     GUI.Box(labelRect, label, style);
+                    _rect.x = labelRect.x; // Update x position for next tag
                 }
 
                 var asset = m_HDRPAssets[index];
-                EditorGUI.LabelField(rect, asset.asset.name);
+
+                // Calculate space needed for tags
+                float tagsWidth = 0f;
+                if (asset.isDefault)
+                {
+                    tagsWidth += EditorStyles.label.CalcSize(Styles.@default).x + 4f;
+                }
+                for (var i = 0; i < asset.indices.Count; ++i)
+                {
+                    s_CachedGUIContent.text = QualitySettings.names[asset.indices[i]];
+                    tagsWidth += EditorStyles.label.CalcSize(s_CachedGUIContent).x + 4f;
+                }
+
+                // Draw asset name with reduced width to prevent overlap
+                var nameRect = rect;
+                nameRect.width = rect.width - tagsWidth - 8f; // Reserve space for tags + extra margin
+                EditorGUI.LabelField(nameRect, asset.asset.name);
 
                 rect.x = rect.x + rect.width;
                 if (asset.isDefault)

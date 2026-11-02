@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal
                 m_WarnedMissingTextures = false;
 
             // Builds a TextureDesc compatible with the active camera color target, safe for both intermediate render textures and imported back-buffer handles.
-            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, resourceData.activeColorTexture, cameraData.camera.allowDynamicResolution);
+            TextureDesc cameraColorDesc = SSAOUtils.GetCameraColorDescriptor(renderGraph, cameraData, resourceData.activeColorTexture);
 
             SSAOUtils.CreateRenderTextureHandles(renderGraph, resourceData, cameraColorDesc,
                 m_CurrentSettings, m_SupportsR8RenderTextureFormat, m_BlurType, enableRandomWrite: false,
@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.Universal
             SSAOUtils.SetupCameraViewMatrices(cameraData, ref m_CameraViewData);
             m_BlueNoiseTextureIndex = SSAOUtils.AdvanceBlueNoiseIndex(m_CurrentSettings, m_BlueNoiseTextures, m_BlueNoiseTextureIndex);
 
-            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, ref m_SSAOParamsPrev);
-            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc);
+            SSAOUtils.SetupKeywordsAndParameters(m_Material, m_CurrentSettings, cameraData, cameraColorDesc, ref m_CameraViewData, m_BlueNoiseTextures, m_BlueNoiseTextureIndex, useDepthPyramid: false, ref m_SSAOParamsPrev);
+            SSAOUtils.RecordRasterAOPass(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, aoTexture, cameraDepthTexture, cameraNormalsTexture, cameraColorDesc, depthPyramid: default);
             SSAOUtils.RecordBlurChain(renderGraph, m_ProfilingSampler, m_Material, m_CurrentSettings, cameraData, aoTexture, blurTexture, finalTexture);
 
             if (!m_CurrentSettings.AfterOpaque)

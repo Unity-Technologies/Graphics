@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.Universal
             // Use renderScale as default
             UpscalerQualityInfo qualityInfo = UpscalerQualityInfo.FromFloat(urpAsset.renderScale);
 
-#if ENABLE_UPSCALER_FRAMEWORK
             // No upscaler selected — null is handled as an empty list.
             if (urpAsset.upscalerPriority.Count == 0)
                 return null;
@@ -47,12 +46,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return upscalerInfoPairs;
-#else
-            // Legacy upscaler
-            string upscalerName = urpAsset.upscalingFilter.ToString();
-
-            return new List<(string, UpscalerQualityInfo)> { (upscalerName, qualityInfo) };
-#endif
         }
 
         public int callbackOrder => 0;

@@ -4,8 +4,8 @@ using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class Provider2DMultiSelectTests : Provider2DTestBase
 {
     static readonly Shadow2DProviderSources_PropertyDrawer s_ShadowDrawer = new Shadow2DProviderSources_PropertyDrawer();
@@ -58,6 +58,11 @@ class Provider2DMultiSelectTests : Provider2DTestBase
         var lightB = NewLight("lightB");
 
         var serializedObject = new SerializedObject(new UnityEngine.Object[] { lightA, lightB });
+
+        // Both lights target every sorting layer, so lightB turning Global clashes with lightA once per layer.
+        foreach (var layer in SortingLayer.layers)
+            LogAssert.Expect(LogType.Error, $"More than one global light on layer {layer.name} for light blend style index 0");
+
         Light2DEditorUtility.ApplyLightTypeSelection(serializedObject, PickLightSource(serializedObject, "Global"));
 
         Assert.AreEqual(Light2D.LightType.Global, lightA.lightType, "lightA type");

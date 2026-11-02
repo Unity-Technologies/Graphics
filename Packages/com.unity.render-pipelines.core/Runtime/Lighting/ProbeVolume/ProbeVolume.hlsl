@@ -6,6 +6,7 @@
 #endif // SHADER_API_MOBILE || SHADER_API_SWITCH || SHADER_API_SWITCH2
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
@@ -89,8 +90,12 @@ struct APVResourcesRW
 
 #ifndef USE_APV_PROBE_OCCLUSION
 // If we are rendering a probe lit renderer, and we have APV enabled, and we are using subtractive or shadowmask mode, we sample occlusion from APV.
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) && (defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK))
-#define USE_APV_PROBE_OCCLUSION 1
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    #if (LIGHTMAP_SHADOW_MIXING_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING) || (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
+        #define USE_APV_PROBE_OCCLUSION 1
+    #elif defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
+        #define USE_APV_PROBE_OCCLUSION 1
+    #endif
 #endif
 #endif
 
@@ -279,11 +284,8 @@ bool LoadCellIndexMetaData(uint cellFlatIdx, out uint chunkIndex, out int stepSi
     return metaData.x != 0xFFFFFFFF;
 }
 
-uint GetIndexData(APVResources apvRes, float3 posWS)
+uint GetIndexData(APVResources apvRes, float3 entryPos, float3 residualPosWS)
 {
-    float3 entryPos = floor(posWS * _APVRcpIndirectionEntryDim);
-    float3 topLeftEntryWS = entryPos * _APVIndirectionEntryDim;
-
     bool isALoadedCell = all(entryPos >= _APVMinLoadedCellInEntries) && all(entryPos <= _APVMaxLoadedCellInEntries);
 
     // Make sure we start from 0
@@ -300,7 +302,6 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         uint chunkIdx;
         if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, sizeOfValid))
         {
-            float3 residualPosWS = posWS - topLeftEntryWS;
             uint3 localBrickIndex = floor(residualPosWS / (_APVMinBrickSize * stepSize));
             localBrickIndex = min(localBrickIndex, (uint3)(3 * 3 * 3 - 1)); // due to floating point issue, we may query an invalid brick
             localBrickIndex -= minRelativeIdx; // Relative to valid region
@@ -349,8 +350,10 @@ APVResources FillAPVResources()
 
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out float3 uvw, out uint subdiv)
 {
-    // resolve the index
-    uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
+    float3 posInEntries = posWSForSample.xyz * _APVRcpIndirectionEntryDim;
+    float3 entryPos = floor(posInEntries); // integer coord of indirection entry
+    float3 residualPosWS = min(posInEntries - entryPos, 0.999999) * _APVIndirectionEntryDim; // WS position relative to indirection entry
+    uint packed_pool_idx = GetIndexData(apvRes, entryPos, residualPosWS);
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
@@ -364,8 +367,17 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out fl
     pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _APVPoolDim.x));
 
     // calculate uv offset and scale
-    float brickSizeWS = pow(3.0, subdiv) * _APVMinBrickSize;
-    float3 offset = frac(posWSForSample.xyz / brickSizeWS);  // [0;1] in brick space
+    float brickSizeWS = round(pow(3.0, subdiv)) * _APVMinBrickSize;
+    float3 offset = frac(residualPosWS / brickSizeWS);  // [0;1] in brick space
+
+    // special case when bricks are large enough to span multiple indirection entries
+    if (brickSizeWS > _APVIndirectionEntryDim)
+    {
+        float entriesPerBrick = round(brickSizeWS * _APVRcpIndirectionEntryDim);
+        float3 entryOffsetInBrick = entryPos - entriesPerBrick * floor(entryPos / entriesPerBrick); // entryPos mod entriesPerBrick
+        entryOffsetInBrick = VECTOR_LOGIC_SELECT(entryOffsetInBrick >= entriesPerBrick, entryOffsetInBrick - entriesPerBrick, entryOffsetInBrick);
+        offset = min((entryOffsetInBrick * _APVIndirectionEntryDim + residualPosWS) / brickSizeWS, 0.9999);
+    }
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
 
     uvw = (pool_idx + 0.5 + (3.0 * offset)) * _APVRcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space

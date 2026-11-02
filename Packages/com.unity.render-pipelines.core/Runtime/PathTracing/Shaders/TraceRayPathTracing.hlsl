@@ -52,7 +52,7 @@ struct PathTracingPayload
 
 struct ProceduralIntersectionAttribs
 {
-    bool isFrontFace;
+    uint isFrontFace;
 };
 
 #ifndef UNIFIED_RT_RAYGEN_FUNC

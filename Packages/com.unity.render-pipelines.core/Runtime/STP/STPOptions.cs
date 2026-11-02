@@ -1,4 +1,3 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -9,6 +8,9 @@ using System;
 using UnityEditor;
 #endif
 
+/// <summary>
+/// Configuration options for <see cref="STPIUpscaler"/>.
+/// </summary>
 [Serializable]
 public class STPOptions : UpscalerOptions
 {
@@ -20,5 +22,3 @@ public class STPOptions : UpscalerOptions
     // If no options are defined & registered for an IUpscaler, there won't be a dropdown
     // in the Render Pipeline settings to change the injection point. 
 }
-
-#endif

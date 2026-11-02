@@ -1,7 +1,4 @@
-#if ENABLE_UPSCALER_FRAMEWORK
-#if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 /// <summary>
@@ -42,8 +39,10 @@ public class UpscalerOptionsEditor : Editor
     /// <summary>Override to true for quality-mode upscalers so the Resolution Mode dropdown is shown.</summary>
     protected virtual bool showsResolutionMode => false;
 
+    /// <summary>Override to true for upscalers that supports reactive mask parameter.</summary>
     protected virtual bool showsReactiveMaskGeneration => false;
 
+    /// <summary>Called when the object is loaded.</summary>
     protected virtual void OnEnable()
     {
         m_ResolutionMode = serializedObject.FindProperty("m_ResolutionMode");
@@ -56,6 +55,7 @@ public class UpscalerOptionsEditor : Editor
         m_ReactiveMaskBinaryValue = serializedObject.FindProperty("m_ReactiveMaskBinaryValue");
     }
 
+    /// <summary>Invoked when displaying upscaler options in the inspector.</summary>
     public sealed override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -102,5 +102,3 @@ public class UpscalerOptionsEditor : Editor
             "m_EnableReactiveMaskPass", "m_ReactiveMaskUseComponentMax", "m_ReactiveMaskScale", "m_ApplyReactiveMaskThreshold", "m_ReactiveMaskThreshold", "m_ReactiveMaskBinaryValue");
     }
 }
-#endif
-#endif

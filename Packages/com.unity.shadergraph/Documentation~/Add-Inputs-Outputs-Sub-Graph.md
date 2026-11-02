@@ -12,6 +12,8 @@ To create an input port, add a property to the blackboard of the Sub Graph. Foll
 
 When you add the Sub Graph to a shader graph, the property appears as an input port on the Sub Graph Node.
 
+To display a float input as a slider or dropdown, or set an input value on the node instead of a port, refer to [Change how Sub Graph inputs appear on a node](Sub-Graph-Input-Display.md).
+
 ## Create an output port
 
 To create an output port, add a port to the **Output** Node of the Sub Graph. Follow these steps:
@@ -41,4 +43,5 @@ For more information, refer to [Custom Port Menu](Custom-Port-Menu.md).
 
 ## Additional resources
 
+- [Change how sub graph inputs appear on a node](Sub-Graph-Input-Display.md)
 - [Branch On Input Connection node](Branch-On-Input-Connection-Node.md)

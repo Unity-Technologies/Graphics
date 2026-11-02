@@ -2,6 +2,9 @@
 #define UNIVERSAL_WAVING_GRASS_DEPTH_NORMAL_PASSE_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/MetallicSpecGloss.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SpecGloss.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 
 struct GrassVertexDepthNormalInput
 {
@@ -69,9 +72,11 @@ GrassVertexDepthNormalOutput DepthNormalOnlyBillboardVertex(GrassVertexDepthNorm
 
 half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
+    half albedoAlpha = SampleBaseMap(input.uv).a;
+    AlphaDiscard((UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha()) ? input.color.a : albedoAlpha * input.color.a, _Cutoff);
 
-    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normal)), 0.0);
+    return half4(PackNormalWSToTexture(NormalizeNormalPerPixel(input.normal, UseNormalMap())), 0.0);
+
 }
 
 #endif

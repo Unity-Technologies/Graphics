@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 using UnityEngine.AMD;
 #endif
 using System;
@@ -12,7 +12,7 @@ using System;
 using UnityEditor;
 #endif
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#if ENABLE_AMD && ENABLE_AMD_MODULE
 
 #if UNITY_EDITOR
 [InitializeOnLoad]
@@ -104,7 +104,9 @@ public class FSR2UpscalerContext : PluginUpscalerContext<FSR2Context, FSR2Option
 #endif
 public class FSR2IUpscaler : AbstractUpscaler
 {
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
     public static readonly string registeredId = "amd.fsr2";
+    /// <summary>Display name for this upscaler.</summary>
     public static readonly string registeredName = "FidelityFX Super Resolution 2";
 
 #region FSR2_UTILITIES
@@ -128,7 +130,6 @@ public class FSR2IUpscaler : AbstractUpscaler
         return true;
     }
 #endregion // FSR2_UTILITIES
-    
 
 #region RENDERGRAPH_INTERFACE_DATA
     class FSR2GraphData
@@ -154,12 +155,19 @@ public class FSR2IUpscaler : AbstractUpscaler
             () => GraphicsDevice.device.GetUpscaleRatioFromQualityMode(FSR2Quality.Quality));
     }
 
+    /// <inheritdoc/>
     public override string upscalerId => registeredId;
+    /// <inheritdoc/>
     public override string name => registeredName;
+    /// <inheritdoc/>
     public override bool isSupportedOnDevice => m_FSR2Ready;
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => true;
+    /// <inheritdoc/>
     public override bool hasQualityMode => true;
+    /// <inheritdoc/>
     public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Color;
 
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
@@ -311,4 +319,4 @@ public class FSR2IUpscaler : AbstractUpscaler
 #endregion
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_AMD && ENABLE_AMD_MODULE
+#endif // ENABLE_AMD && ENABLE_AMD_MODULE

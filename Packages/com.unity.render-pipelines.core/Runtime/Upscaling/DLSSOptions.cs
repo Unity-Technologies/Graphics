@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 using UnityEngine.NVIDIA;
 #endif
 using System;
 
-#if ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 
 [Serializable]
 public class DLSSOptions : UpscalerOptions
@@ -128,4 +128,4 @@ public class DLSSOptions : UpscalerOptions
     }
 }
 
-#endif // ENABLE_UPSCALER_FRAMEWORK && ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+#endif // ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE

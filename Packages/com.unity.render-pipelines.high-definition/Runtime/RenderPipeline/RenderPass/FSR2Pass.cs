@@ -56,6 +56,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        public void Cleanup()
+        {
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            foreach (var cameraState in m_CameraStates.cameras.Values)
+                m_CameraStates.InvalidateState(cameraState);
+            CleanupCameraStates();
+            m_CommandBuffer.Release();
+#endif
+        }
+
         public void SetupDRSScaling(bool enableAutomaticSettings, Camera camera, in HDAdditionalCameraData hdCam, XRPass xrPass, ref GlobalDynamicResolutionSettings dynamicResolutionSettings)
         {
 #if ENABLE_AMD && ENABLE_AMD_MODULE

@@ -85,12 +85,13 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the combination of settings is compatible with Tile-Only Mode on the Universal Renderer.
         /// </summary>
-        internal bool IsCompatibleWithTileOnlyMode()
+        /// <param name="usesDeferredLighting">True when the renderer actually runs the Deferred (or Deferred+) path.</param>
+        internal bool IsCompatibleWithTileOnlyMode(bool usesDeferredLighting)
         {
             // These checks must match the Tile-Only Mode validation in FullScreenPassRendererFeatureEditor.
             if (fetchColorBuffer)
                 return false;
-            return RenderingUtils.IsCompatibleWithTileOnlyMode(requirements, (RenderPassEvent)injectionPoint);
+            return RenderingUtils.IsCompatibleWithTileOnlyMode(requirements, (RenderPassEvent)injectionPoint, usesDeferredLighting);
         }
 
         /// <inheritdoc/>
@@ -110,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            if (renderer is UniversalRenderer universalRenderer && universalRenderer.useTileOnlyMode && !IsCompatibleWithTileOnlyMode())
+            if (renderer is UniversalRenderer universalRenderer && universalRenderer.useTileOnlyMode && !IsCompatibleWithTileOnlyMode(universalRenderer.usesDeferredLighting))
             {
                 Debug.LogErrorFormat(
                     "Full Screen Renderer Feature \"{0}\": the current settings are not compatible with Tile-Only Mode. Open the Universal Renderer \"{1}\" in the Inspector for more information.",

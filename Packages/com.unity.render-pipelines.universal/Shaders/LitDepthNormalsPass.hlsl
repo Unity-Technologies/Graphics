@@ -1,25 +1,23 @@
 #ifndef UNIVERSAL_FORWARD_LIT_DEPTH_NORMALS_PASS_INCLUDED
 #define UNIVERSAL_FORWARD_LIT_DEPTH_NORMALS_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/DetailMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ParallaxMap.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/LitFeatures.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#if defined(LOD_FADE_CROSSFADE)
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PackNormalsTexture.hlsl"
 
-#if defined(_DETAIL_MULX2) || defined(_DETAIL_SCALED)
-#define _DETAIL
+#if FEATURES_PARALLAXMAP
+#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR 1
 #endif
 
-#if defined(_PARALLAXMAP)
-#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#if (FEATURES_NORMALMAP || FEATURES_DETAILMAP)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR 1
 #endif
 
-#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR))) || defined(_DETAIL)
-#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
-#endif
-
-#if defined(_ALPHATEST_ON) || defined(_PARALLAXMAP) || defined(_NORMALMAP) || defined(_DETAIL) || defined(_WRITE_SMOOTHNESS)
+#if defined(_ALPHATEST_ON) || FEATURES_PARALLAXMAP || FEATURES_NORMALMAP || FEATURES_DETAILMAP || defined(_WRITE_SMOOTHNESS)
 #define REQUIRES_UV_INTERPOLATOR
 #endif
 
@@ -35,16 +33,16 @@ struct Attributes
 struct Varyings
 {
     float4 positionCS  : SV_POSITION;
+
     #if defined(REQUIRES_UV_INTERPOLATOR)
     float2 uv          : TEXCOORD1;
     #endif
+
     half3 normalWS     : TEXCOORD2;
 
     #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     half4 tangentWS    : TEXCOORD4;    // xyz: tangent, w: sign
     #endif
-
-    half3 viewDirWS    : TEXCOORD5;
 
     #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS    : TEXCOORD8;
@@ -100,47 +98,59 @@ void DepthNormalsFragment(
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    #if defined(_PARALLAXMAP)
-        #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-            half3 viewDirTS = input.viewDirTS;
-        #else
-            half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, input.viewDirWS);
-        #endif
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+        half3 viewDirTS = input.viewDirTS;
         ApplyPerPixelDisplacement(viewDirTS, input.uv);
     #endif
 
     #if defined(_ALPHATEST_ON) || defined(_WRITE_SMOOTHNESS)
-        float alpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a;
+        float alpha = SampleBaseMap(input.uv).a;
     #endif
 
     #if defined(_ALPHATEST_ON)
-        Alpha(alpha, _BaseColor, _Cutoff);
+        half discardAlpha = half(alpha) * GetBaseColor().a;
+        if (UseSmoothnessTextureAlbedoChannelA() || UseGlossinessFromBaseAlpha())
+            discardAlpha = GetBaseColor().a;
+        AlphaDiscard(discardAlpha, GetCutoff());
     #endif
 
-    #if defined(LOD_FADE_CROSSFADE)
-        LODFadeCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
+
+    half3 normalWS = input.normalWS;
+
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        if (UseNormalMap() || UseDetailMap())
+        {
+            float sgn = input.tangentWS.w;      // should be either +1 or -1
+            float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+            half3 normalTS = SampleNormal(input.uv);
+
+            if (UseDetailMap())
+            {
+                half detailMask = SampleDetailMask(input.uv).a;
+                float2 detailUv = input.uv * GetDetailAlbedoMapST().xy + GetDetailAlbedoMapST().zw;
+                normalTS = ApplyDetailNormal(detailUv, normalTS, detailMask);
+            }
+
+            normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+        }
     #endif
 
-    #if defined(_NORMALMAP) || defined(_DETAIL)
-        float sgn = input.tangentWS.w;      // should be either +1 or -1
-        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-        float3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
-
-        #if defined(_DETAIL)
-            half detailMask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, input.uv).a;
-            float2 detailUv = input.uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
-            normalTS = ApplyDetailNormal(detailUv, normalTS, detailMask);
-        #endif
-
-        float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
-    #else
-        float3 normalWS = input.normalWS;
-    #endif
-
-    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS)), 0.0);
+    outNormalWS = half4(PackNormalWSToTexture(NormalizeNormalPerPixel(normalWS, UseNormalMap())), 0.0);
 
     #if defined(_WRITE_SMOOTHNESS) && !defined(_SCREENSPACEREFLECTIONS_OFF)
-        outNormalWS.a = SampleMetallicSpecGloss(input.uv, alpha).a;
+        half4 specGloss;
+        if (UseMetallicSpecGlossMap())
+        {
+            specGloss = IsSpecularSetup() ? SampleSpecGlossMap(input.uv) : SampleMetallicGlossMap(input.uv);
+            specGloss.a = UseSmoothnessTextureAlbedoChannelA() ? alpha * _Smoothness : specGloss.a * _Smoothness;
+        }
+        else
+        {
+            specGloss.rgb = IsSpecularSetup() ? _SpecColor.rgb : _Metallic.rrr;
+            specGloss.a = UseSmoothnessTextureAlbedoChannelA() ? alpha * _Smoothness : _Smoothness;
+        }
+        outNormalWS.a = specGloss.a;
     #endif
 
     #ifdef _WRITE_RENDERING_LAYERS

@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent historyLength = EditorGUIUtility.TrTextContent("History Length", "Controls the length of the temporal history. Higher values produce smoother, more stable results but can increase ghosting.");
             public static readonly GUIContent useComputeShader = EditorGUIUtility.TrTextContent("Use Compute Shader", "When enabled, uses compute shaders for GTAO calculation. Provides temporal filtering support and configurable direction/step counts.");
             public static readonly GUIContent spatialFilter = EditorGUIUtility.TrTextContent("Spatial Filter", "Spatial filter used by the GTAO compute path.");
+            public static readonly GUIContent depthSampling = EditorGUIUtility.TrTextContent("Depth Sampling", "The depth data to use for the GTAO horizon search. When set to 'Depth Pyramid', Unity generates a depth pyramid and samples coarser levels for distant taps, which improves performance at high resolutions and large radii. Requires compute shader support and is not supported with non-uniform foveated rendering; otherwise 'Camera Depth' is used.");
         }
 
         SerializedDataParameter m_Mode;
@@ -39,6 +40,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_MinimumRadiusInPixels;
         SerializedDataParameter m_UseComputeShader;
         SerializedDataParameter m_SpatialFilter;
+        SerializedDataParameter m_DepthSampling;
 
         SerializedDataParameter m_TemporalFilter;
         SerializedDataParameter m_GhostingMitigation;
@@ -75,6 +77,7 @@ namespace UnityEditor.Rendering.Universal
             m_MinimumRadiusInPixels = Unpack(o.Find("m_MinimumRadiusInPixels"));
             m_UseComputeShader = Unpack(o.Find("m_UseComputeShader"));
             m_SpatialFilter = Unpack(o.Find("m_SpatialFilter"));
+            m_DepthSampling = Unpack(o.Find("m_DepthSampling"));
 
             m_TemporalFilter = Unpack(o.Find("m_TemporalFilter"));
             m_GhostingMitigation = Unpack(o.Find("m_GhostingMitigation"));
@@ -115,6 +118,7 @@ namespace UnityEditor.Rendering.Universal
             if (isGTAO)
             {
                 PropertyField(m_MinimumRadiusInPixels, Styles.minimumRadiusInPixels);
+                PropertyField(m_DepthSampling, Styles.depthSampling);
                 PropertyField(m_UseComputeShader, Styles.useComputeShader);
             }
 
@@ -125,9 +129,14 @@ namespace UnityEditor.Rendering.Universal
                     PropertyField(m_SpatialFilter, Styles.spatialFilter);
             }
 
-            if (!SystemInfo.supportsComputeShaders && useComputeShader)
+            bool useDepthPyramid = isGTAO && m_DepthSampling.value.intValue == (int)ScreenSpaceAmbientOcclusionDepthSampling.DepthPyramid;
+            if (!SystemInfo.supportsComputeShaders)
             {
-                EditorGUILayout.HelpBox("Compute shaders are not supported on this platform. GTAO with compute shaders will not function correctly.", MessageType.Warning);
+                if (useComputeShader)
+                    EditorGUILayout.HelpBox("Compute shaders are not supported on this platform. GTAO with compute shaders will not function correctly.", MessageType.Warning);
+
+                if (useDepthPyramid)
+                    EditorGUILayout.HelpBox("Compute shaders are not supported on this platform. Depth Pyramid is unavailable and Camera Depth will be used instead.", MessageType.Warning);
             }
 
             EditorGUILayout.Space();

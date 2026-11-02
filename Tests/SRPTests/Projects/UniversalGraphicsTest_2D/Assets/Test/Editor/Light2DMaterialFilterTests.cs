@@ -5,7 +5,6 @@ using UnityEngine.Rendering.Universal;
 
 // The Light2D material field offers only Materials whose shader declares the passes the renderer
 // draws, the same way the shadow material field does.
-[Ignore("TEMP-DISABLED-PR-123379: disabled to land PR #123379; re-enable per docs/pr/123379-disabled-tests.md")]
 class Light2DMaterialFilterTests
 {
     // Declares both Light2D passes.

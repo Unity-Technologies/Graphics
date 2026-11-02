@@ -198,14 +198,26 @@ EditorBuildSettings:
     path: Assets/Scenes/022_Normals_FlipXY.unity
     guid: 0fd9ba64f5114634b81f084fb92123e1
   - enabled: 1
-    path: Assets/Scenes/056_2D_Lights-Shadows.unity
+    path: Assets/Scenes/056_2D_Lights_Shadows.unity
     guid: 4f7a50da47cfeca46b45fe14be17081d
   - enabled: 1
     path: Assets/Scenes/056_2D_Lights.unity
     guid: c0c276a91b93d254b957277941d2329b
   - enabled: 1
+    path: Assets/Scenes/056_2D_Lights_Material_Override.unity
+    guid: 72a131eb80d04134aaee267020f5672d
+  - enabled: 1
     path: Assets/Scenes/056_2D_Lights_Shader_Graph.unity
     guid: 381306730e4f1b141bf8e0e1c35f16e9
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights_Shader_Graph_Material_Override.unity
+    guid: 805a46958fade0b4a8e91dcd9c586fe4
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights_Simple.unity
+    guid: 37b237f218ffbca44b34db6596537473
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights_Simple_NoVolumetric.unity
+    guid: 41625d32980ba9c4a9986fdd1ddd28a5
   - enabled: 1
     path: Assets/Scenes/057_2D_Lights_Blending.unity
     guid: f6eb3eed1eb0a004797f00a2a4435f32

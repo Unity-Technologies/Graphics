@@ -89,7 +89,19 @@ namespace UnityEditor.Rendering.Converter
             }
             return count;
         }
+
+        private int CountSelectedItemWithFlag(Status status)
+        {
+            int count = 0;
+            foreach (var itemState in items)
+            {
+                count += itemState.CountSelectedItemsWithStatus(status);
+            }
+            return count;
+        }
+
         public int pending => CountItemWithFlag(Status.Pending);
+        public int selectedPending => CountSelectedItemWithFlag(Status.Pending);
         public int warnings => CountItemWithFlag(Status.Warning);
         public int errors => CountItemWithFlag(Status.Error);
         public int success => CountItemWithFlag(Status.Success);
@@ -111,6 +123,10 @@ namespace UnityEditor.Rendering.Converter
             m_FilteredItemsTree.Clear();
             m_CachedFullTree.Clear();
             m_TreeCacheDirty = true;
+
+            // Reset filter to show all items when re-scanning
+            // (prevents blank tree when filter doesn't match new scan results)
+            currentFilter = DisplayFilter.All;
         }
 
         private bool IsVisible(DisplayFilter filter)
@@ -131,6 +147,76 @@ namespace UnityEditor.Rendering.Converter
             {
                 itemState.SetSelectionChangedHandler(onRootSelectionChanged);
             }
+        }
+
+        /// <summary>
+        /// Cleans up invalid items after deserialization.
+        /// Called automatically after assembly reload.
+        /// Note: Root event handlers are re-established by the window during CreateGUI.
+        /// Note: Tree cache rebuild is deferred - window should call ApplyFilter() before using filteredItemsTree.
+        /// </summary>
+        internal void OnAfterDeserialize()
+        {
+            // Recursively validate and clean up items
+            bool hasValidItems = ValidateAndCleanItems(items);
+
+            if (!hasValidItems)
+            {
+                isInitialized = false;
+                return;
+            }
+
+            // Re-subscribe folder items to their children's selection changes
+            // and recalculate folder selection states from children
+            foreach (var itemState in items)
+            {
+                if (itemState is FolderItemState folderState)
+                {
+                    folderState.SubscribeToChildren();
+                    folderState.RecalculateSelectionFromChildren();
+                }
+            }
+
+            // Mark tree cache as dirty - window will call ApplyFilter() when needed
+            m_TreeCacheDirty = true;
+        }
+
+        /// <summary>
+        /// Recursively validates items and removes invalid ones.
+        /// Returns true if any valid items remain.
+        /// </summary>
+        private bool ValidateAndCleanItems(List<IConverterItemState> itemList)
+        {
+            bool hasValidItems = false;
+
+            for (int i = itemList.Count - 1; i >= 0; i--)
+            {
+                var itemState = itemList[i];
+                if (itemState == null || itemState.item == null)
+                {
+                    itemList.RemoveAt(i);
+                }
+                else
+                {
+                    hasValidItems = true;
+
+                    // Recursively validate children of folders
+                    if (itemState is FolderItemState folderState && folderState.children != null && folderState.children.Count > 0)
+                    {
+                        ValidateAndCleanItems(folderState.children);
+                    }
+                }
+            }
+
+            return hasValidItems;
+        }
+
+        /// <summary>
+        /// No-op - event handlers are [NonSerialized] and don't need cleanup.
+        /// Kept for ISerializationCallbackReceiver contract.
+        /// </summary>
+        internal void OnBeforeSerialize()
+        {
         }
 
         /// <summary>

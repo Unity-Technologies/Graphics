@@ -55,7 +55,7 @@
 }
 
 .light-icon {
-    background-image: url('../../../../../Editor/2D/Resources/InspectorIcons/SpriteLight.png');
+    background-image: url('../../../../../Editor/2D/ResourceIcons/InspectorIcons/SpriteLight.png');
 }
 
 .category-icon {

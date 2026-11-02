@@ -2,6 +2,7 @@
 #define UNIVERSAL_PARTICLES_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/NormalMap.hlsl"
 
 struct AttributesParticle
 {
@@ -35,7 +36,7 @@ struct VaryingsParticle
     #if !defined(PARTICLES_EDITOR_META_PASS)
         float4 positionWS           : TEXCOORD1;
 
-        #ifdef _NORMALMAP
+        #if FEATURES_NORMALMAP
             half4 normalWS         : TEXCOORD2;    // xyz: normal, w: viewDir.x
             half4 tangentWS        : TEXCOORD3;    // xyz: tangent, w: viewDir.y
             half4 bitangentWS      : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
@@ -48,7 +49,7 @@ struct VaryingsParticle
             float4 projectedPosition: TEXCOORD6;
         #endif
 
-        #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
             float4 shadowCoord      : TEXCOORD7;
         #endif
 
@@ -140,7 +141,7 @@ struct AttributesDepthNormalsParticle
         half4 color                     : COLOR;
     #endif
 
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP
         #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
             float4 texcoords            : TEXCOORD0;
             float texcoordBlend         : TEXCOORD1;
@@ -164,7 +165,7 @@ struct VaryingsDepthNormalsParticle
         half4 color                     : COLOR;
     #endif
 
-    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP) || defined(_WRITE_SMOOTHNESS)
+    #if defined(_ALPHATEST_ON) || FEATURES_NORMALMAP || defined(_WRITE_SMOOTHNESS)
         float2 texcoord                 : TEXCOORD0;
 
         #if defined(_FLIPBOOKBLENDING_ON)
@@ -172,7 +173,7 @@ struct VaryingsDepthNormalsParticle
         #endif
     #endif
 
-    #if defined(_NORMALMAP)
+    #if FEATURES_NORMALMAP
         float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
         float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
         float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z

@@ -186,10 +186,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
 
-            // Always emit _Cull so the engine can detect two-pass rendering (BackToFront/FrontToBack)
-            if (!target.allowMaterialOverride)
-                collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);
-
             collector.AddFloatProperty(Property.WritesColor, writesColor ? 1.0f : 0.0f);
 
             // Marker for the material UI: this shader bakes stencil writes into the ShadowCaster pass.
@@ -556,7 +552,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 CorePasses.AddStencilStateControlToPass(ref result, target,
                     useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.Prepass));
@@ -600,10 +596,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
                 CorePasses.AddDepthStateControlToPass(ref result, target, useDefaults: !target.depthStencilPassMask.Has(DepthStencilPassMask.ColorPass));
-
                 if (target.activeSubTarget is UniversalUnlitSubTarget unlitSubTarget)
                 {
                     UnlitPasses.AddDefaultDecalBlendingControlToPass(ref result, unlitSubTarget);
@@ -716,7 +711,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
-                { CoreKeywordDescriptors.LightFalloffLinear },
+                { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ReflectionProbeBlending },
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },

@@ -148,8 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideReferenceName = "_DecalMeshBiasType",
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
-                enumNames = { "Depth Bias", "View Bias" },
-                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
+                enumNames = new() { "Depth Bias", "View Bias" },
+                enumValues = new() { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
                 hidden = true
             });
 

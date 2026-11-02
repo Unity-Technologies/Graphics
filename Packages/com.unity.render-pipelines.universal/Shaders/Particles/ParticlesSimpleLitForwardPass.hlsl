@@ -4,7 +4,15 @@
 #include "ParticlesSimpleLitInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DistanceFog.hlsl"
-#include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitFeatures.hlsl"
+
+// Realtime shadows are never sampled when Receive Shadows is off at compile time;
+// drop the vertex shadow-coord interpolator.
+#if _RECEIVE_SHADOWS_OFF_STATICALLY_ENABLED
+    #undef USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    #define USE_VERTEX_SHADOW_COORD_INTERPOLATOR 0
+#endif
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
@@ -13,31 +21,36 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 
     inputData.positionWS = input.positionWS.xyz;
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+    if (UseNormalMap())
+    {
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+    }
+    else
+    {
+        inputData.normalWS = input.normalWS.xyz;
+    }
 #else
     half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
 
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent());
 #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -76,7 +89,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     VertexNormalInputs normalInput = GetParticleVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
-#ifdef _NORMALMAP
+#if FEATURES_NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -108,8 +121,8 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.projectedPosition = vertexInput.positionNDC;
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
+#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
+    output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent()) : float4(0, 0, 0, 0);
 #endif
 
     return output;
@@ -123,16 +136,22 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap));
-    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams);
-    half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
+    half3 normalTS = half3(0.0, 0.0, 1.0);
+    if (UseNormalMap())
+        normalTS = SampleParticleNormalTS(particleParams.uv, particleParams.blendUv, UnityBuildTexture2DStructNoScaleNoTexelSize(_BumpMap), half(1.0));
+    half4 albedo = SampleAlbedo(UnityBuildTexture2DStructNoScaleNoTexelSize(_BaseMap), particleParams, UseAlphaPremultiply());
+    half3 diffuse = albedo.rgb;
+    if (UseAlphaModulate())
+        diffuse = ApplyAlphaModulate(albedo.rgb, albedo.a);
     half alpha = albedo.a;
-#if defined(_EMISSION)
-    half3 emission = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-#else
-    half3 emission = half3(0, 0, 0);
-#endif
-    half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, UnityBuildTexture2DStructNoScaleNoTexelSize(_SpecGlossMap));
+    half3 emission = UseEmission() ? BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb : half3(0, 0, 0);
+    half4 specularGloss = half4(0, 0, 0, 1);
+    if (UseSpecGlossMap())
+        specularGloss = BlendTexture(UnityBuildTexture2DStructNoScaleNoTexelSize(_SpecGlossMap), particleParams.uv, particleParams.blendUv);
+    else if (UseSpecularColor())
+        specularGloss = _SpecColor;
+    if (UseGlossinessFromBaseAlpha())
+        specularGloss.a = albedo.a;
 
 #if defined(_DISTORTION_ON)
     diffuse = Distortion(half4(diffuse, alpha), normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
@@ -144,8 +163,9 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_TRANSPARENT_RECEIVE_FOG)
-    color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, input.clipPos);
+#if defined(_TRANSPARENT_RECEIVE_FOG)
+    if (IsSurfaceTypeTransparent())
+        color.rgb = MixVolumetricFog(color.rgb, color.a, _Blend, UseAlphaPremultiply(), input.clipPos);
 #endif
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent());
 

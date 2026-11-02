@@ -25,8 +25,10 @@ namespace UnityEditor.Rendering.Universal
         private HeaderBool m_ShowQualitySettings;
         private HeaderBool m_ShowDeprecatedSettings;
         private bool m_ShowAfterOpaqueTileOnlyError;
+        private bool m_ShowDeferredTileOnlyError;
 
         private static readonly string k_AfterOpaqueIncompatibleWithTileOnlyMode = L10n.Tr("'After Opaque' is incompatible with the enabled 'Tile-Only Mode'. Disable After Opaque.", null);
+        private static readonly string k_DeferredIncompatibleWithTileOnlyMode = L10n.Tr("When the Deferred rendering path is active, Screen Space Ambient Occlusion is incompatible with the enabled 'Tile-Only Mode' and is skipped. Change the Rendering Path to Forward or disable 'Tile-Only Mode'.", null);
 
         /// <summary>
         /// The renderer data that owns the feature when the inspector is drawn.
@@ -106,6 +108,15 @@ namespace UnityEditor.Rendering.Universal
                 "Screen Space Ambient Occlusion is controlled exclusively by the Screen Space Ambient Occlusion Volume Override. The fields below are inactive and shown only to aid in migrating to the volume system. You may copy these values into your Volume Override manually.",
                 MessageType.Info);
 
+            if (Event.current.type == EventType.Layout)
+            {
+                var rendererData = (this as IOwningRendererDataConsumer).owningRendererData as UniversalRendererData;
+                m_ShowDeferredTileOnlyError = rendererData != null && rendererData.tileOnlyMode && rendererData.usesDeferredLighting;
+            }
+
+            if (m_ShowDeferredTileOnlyError)
+                EditorGUILayout.HelpBox(k_DeferredIncompatibleWithTileOnlyMode, MessageType.Error, true);
+
             EditorGUILayout.Space(5);
             m_ShowDeprecatedSettings.SetValue(EditorGUILayout.Foldout(m_ShowDeprecatedSettings.value, "Settings (Reference Only)"));
             if (m_ShowDeprecatedSettings.value)
@@ -135,11 +146,9 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                // Selecting source is not available for Deferred Rendering...
                 using (new EditorGUI.DisabledScope(readOnly || isDeferredRenderingMode))
                     EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
-                // We only enable this field when depth source is selected...
                 using (new EditorGUI.DisabledScope(readOnly || isDeferredRenderingMode || m_Source.enumValueIndex != (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth))
                 {
                     EditorGUI.indentLevel++;
@@ -183,7 +192,6 @@ namespace UnityEditor.Rendering.Universal
             if (ssaoFeature == null || pipelineAsset == null)
                 return false;
 
-            // We have to find the renderer related to the SSAO feature, then test if it is in deferred mode.
             var rendererDataList = pipelineAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataList.Length; ++rendererIndex)
             {

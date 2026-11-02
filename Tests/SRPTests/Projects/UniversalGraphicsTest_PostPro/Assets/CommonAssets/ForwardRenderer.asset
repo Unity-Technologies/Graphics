@@ -188,7 +188,8 @@ MonoBehaviour:
   - {fileID: -3335404936333121951}
   - {fileID: -6013470097145452660}
   - {fileID: -3626063803437354403}
-  m_RendererFeatureMap: a53e77578376031beeb81c22f96decc1b449cb42e29eab32e724dd8896132ae9aa54f039e62662935813bc18adacf219a61d2aa0fd28d0fe61a6c7d3e142b6d18c2736b0cedc8bac5df236b72ea2adcd
+  - {fileID: 2833333333333333333}
+  m_RendererFeatureMap: a53e77578376031beeb81c22f96decc1b449cb42e29eab32e724dd8896132ae9aa54f039e62662935813bc18adacf219a61d2aa0fd28d0fe61a6c7d3e142b6d18c2736b0cedc8bac5df236b72ea2adcd55559bafa7055227
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -294,9 +295,29 @@ MonoBehaviour:
   passIndex: 0
   bindDepthStencilAttachment: 0
   m_Version: 1
+--- !u!114 &2833333333333333333
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00045f12942b46c698459096c89274e, type: 3}
+  m_Name: 283DisplayAlpha
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  injectionPoint: 600
+  fetchColorBuffer: 1
+  requirements: 0
+  passMaterial: {fileID: 2100000, guid: 0bc87505314942309c92f5f08614e5ad, type: 2}
+  passIndex: 0
+  bindDepthStencilAttachment: 0
+  m_Version: 1
 --- !u!114 &3651186617534335412
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}

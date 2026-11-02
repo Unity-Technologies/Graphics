@@ -459,7 +459,7 @@ namespace UnityEngine.Rendering.Universal
         // NON-BURST WRAPPER - Mesh operations are not Burst compatible
         // vertexLayout comes from the calling ShadowGeometryGenerator rather than a static here,
         // so a generator cannot declare one vertex format and upload another.
-        static public void GenerateShadowMesh(ref Mesh mesh, NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, VertexAttributeDescriptor[] vertexLayout, Bounds localBounds)
+        static public void GenerateShadowMesh(ref Mesh mesh, NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, VertexAttributeDescriptor[] vertexLayout)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -471,13 +471,26 @@ namespace UnityEngine.Rendering.Universal
                 mesh.SetVertexBufferData<ShadowMeshVertex>(inVertices, 0, 0, inVertices.Length);
                 mesh.SetIndexBufferParams(inIndices.Length, IndexFormat.UInt32);
                 mesh.SetIndexBufferData<int>(inIndices, 0, 0, inIndices.Length);
-                // Bounds are assigned rather than recalculated: the caller already has them, and
-                // RecalculateBounds would walk the whole vertex buffer on every upload.
-                SubMeshDescriptor subMesh = new SubMeshDescriptor(0, inIndices.Length);
-                subMesh.bounds = localBounds;
-                mesh.SetSubMesh(0, subMesh, MeshUpdateFlags.DontRecalculateBounds);
+                // Bounds are deliberately left unset on this mesh.
+                //
+                // UUM-151894: assigning them makes PS4 drop every draw of this mesh, whatever
+                // value is assigned. A correct AABB of the uploaded vertices fails (Yamato
+                // 75212051), a deliberately huge box fails (75212047), the outline AABB fails
+                // (75212045), and only leaving them unset passes (75212050, 75267226). Device
+                // instrumentation measured zero containment violations, so the numbers were never
+                // wrong. The mechanism is unexplained and sits in native draw submission.
+                //
+                // Nothing consumes these bounds. No managed code reads Mesh.bounds for this mesh,
+                // and CommandBuffer.DrawMesh is not frustum-culled against them -- URP's own 2D
+                // shadow culling uses the caster bounding sphere built from
+                // ShadowMesh2D.m_LocalBounds, which is unaffected by this. Leaving them unset is
+                // measurably rendering-neutral: zero deltaE on both PS4 and StandaloneWindows64
+                // (75267226, 75278638).
+                //
+                // Do not reintroduce an assignment here. It buys nothing -- computing a correct
+                // bounds still walks the whole vertex buffer -- and it reintroduces UUM-151894.
+                mesh.SetSubMesh(0, new SubMeshDescriptor(0, inIndices.Length));
                 mesh.subMeshCount = 1;
-                mesh.bounds = localBounds;
             }
             else
             {

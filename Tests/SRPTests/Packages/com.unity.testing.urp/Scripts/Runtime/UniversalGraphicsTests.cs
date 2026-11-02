@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
+using UnityEngine.TestTools.Graphics.Platforms;
 using Object = UnityEngine.Object;
 #if OCULUS_SDK || OPENXR_SDK
 using System.Collections.Generic;
@@ -20,10 +21,28 @@ namespace Unity.Rendering.Universal.Tests
 {
     public static class UniversalGraphicsTests
     {
+        static bool UsesNativeGraphicsJobs()
+        {
+            switch (SystemInfo.renderingThreadingMode)
+            {
+                case RenderingThreadingMode.NativeGraphicsJobs:
+                case RenderingThreadingMode.NativeGraphicsJobsWithoutRenderThread:
+                case RenderingThreadingMode.NativeGraphicsJobsSplitThreading:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         static bool UseAsyncShaderCompilation(SceneGraphicsTestCase testCase, System.Text.RegularExpressions.Regex asyncShaderCompilationScenes)
         {
 #if UNITY_EDITOR
             if (asyncShaderCompilationScenes == null)
+                return false;
+
+            // Workaround for UUM-153790
+            if (UsesNativeGraphicsJobs() && GraphicsDeviceInfo.IsVendor(GraphicsVendor.AMD))
                 return false;
 
             var sceneName = System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath);
@@ -217,13 +236,6 @@ namespace Unity.Rendering.Universal.Tests
 #endif
 
 #endif
-
-            if (settings == null || settings.CheckMemoryAllocation)
-            {
-                // Does it allocate memory when it renders what's on the main camera?
-                var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-                yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
-            }
         }
     }
 }

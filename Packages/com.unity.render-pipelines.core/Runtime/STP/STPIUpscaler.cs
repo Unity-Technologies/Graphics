@@ -1,8 +1,8 @@
-#if ENABLE_UPSCALER_FRAMEWORK
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Scripting;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -34,8 +34,15 @@ public class STPUpscalerContext : IUpscalerContext
     /// <inheritdoc/>
     public int lastUsedFrame { get; set; }
 
+    /// <summary>
+    /// The STP history state this context owns, carried across frames so STP can reproject previous frames.
+    /// </summary>
     public STP.HistoryContext historyContext => m_HistoryContext;
 
+    /// <summary>
+    /// Creates a context holding fresh STP history for the given display resolution.
+    /// </summary>
+    /// <param name="displayResolution">The display (post-upscale) resolution this context is created for.</param>
     public STPUpscalerContext(Vector2Int displayResolution)
     {
         m_HistoryContext = new STP.HistoryContext();
@@ -61,29 +68,42 @@ public class STPUpscalerContext : IUpscalerContext
     }
 }
 
+/// <summary>
+/// Spatial-Temporal Post-processing (STP) exposed as an <see cref="IUpscaler"/>.
+/// </summary>
 #if UNITY_EDITOR
 [UpscalerUnsupportedBuildTarget(graphicsDeviceTypes = new[] { GraphicsDeviceType.OpenGLES3 })]
 #endif
+[Preserve]
 public class STPIUpscaler : AbstractUpscaler
 {
+    /// <summary>Unique string ID for this upscaler. See <see cref="upscalerId" />.</summary>
     public static readonly string registeredId = "unity.stp";
+    /// <summary>Display name for this upscaler.</summary>
     public static readonly string registeredName = "Spatial-Temporal Post-Processing";
 
     private const string k_UpscaledColorTargetName = "_UpscaledCameraColor";
 
+    /// <inheritdoc/>
     public override string upscalerId => registeredId;
+    /// <inheritdoc/>
     public override string name => registeredName;
+    /// <inheritdoc/>
     public override bool isSupportedOnDevice => STP.IsSupported();
-
+    /// <inheritdoc/>
     public override bool isTemporal => true;
+    /// <inheritdoc/>
     public override bool supportsSharpening => true;
+    /// <inheritdoc/>
     public override ReactiveMaskSource reactiveMaskSource => ReactiveMaskSource.Stencil;
 
+    /// <inheritdoc/>
     public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
     {
         return new STPUpscalerContext(displayResolution);
     }
 
+    /// <inheritdoc/>
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
         UpscalingIO io = frameData.Get<UpscalingIO>();
@@ -208,4 +228,3 @@ public class STPIUpscaler : AbstractUpscaler
         io.cameraColor = outputColor;
     }
 }
-#endif

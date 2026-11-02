@@ -237,6 +237,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedPass_XR(shader);
             TestStripUnusedPass_ShadowCaster(shader);
             TestStripUnusedPass_Decals(shader);
+            TestStripUnusedPass_RenderingLayerMask2D(shader);
         }
 
         public void TestStripUnusedPass_2D(Shader shader)
@@ -296,6 +297,25 @@ namespace ShaderStrippingAndPrefiltering
             helper.data.passName = ShaderScriptableStripper.kPassNameXRFinalPost;
             helper.IsTrue(helper.stripper.StripUnusedPass_XRFinalPost(ref helper.data));
             helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+        }
+
+        public void TestStripUnusedPass_RenderingLayerMask2D(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameRenderingLayerMask2D;
+            helper.IsTrue(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
+            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.LightLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameRenderingLayerMask2D;
+            helper.IsFalse(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUniversal2D;
+            helper.IsFalse(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
         }
 
         public void TestStripUnusedPass_ShadowCaster(Shader shader)
@@ -840,7 +860,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_AccurateGbufferNormals(shader);
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_VolumetricFog(shader);
-            TestStripUnusedFeatures_LightFalloffLinear(shader);
+            TestStripUnusedFeatures_LightFalloffQuadratic(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
             TestStripUnusedFeatures_SHAuto(shader);
             TestStripUnusedFeatures_DataDrivenLensFlare(shader);
@@ -2441,27 +2461,27 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedFeatures_VolumetricFog(ref helper.data, ref helper.featureStripTool));
         }
 
-        public void TestStripUnusedFeatures_LightFalloffLinear(Shader shader)
+        public void TestStripUnusedFeatures_LightFalloffQuadratic(Shader shader)
         {
             TestHelper helper;
 
             helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffLinear(ref helper.featureStripTool));
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_LightFalloffLinear(ref helper.featureStripTool));
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
 
-            helper = new TestHelper(shader, ShaderFeatures.LightFalloffLinear);
-            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffLinear(ref helper.featureStripTool));
+            helper = new TestHelper(shader, ShaderFeatures.LightFalloffQuadratic);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
 
-            helper = new TestHelper(shader, ShaderFeatures.LightFalloffLinear);
-            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffLinear };
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffLinear(ref helper.featureStripTool));
+            helper = new TestHelper(shader, ShaderFeatures.LightFalloffQuadratic);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_ProbesVolumes(Shader shader)
