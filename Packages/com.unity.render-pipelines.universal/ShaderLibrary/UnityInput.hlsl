@@ -107,12 +107,10 @@ float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
 float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube0_Rotation;
-float4 unity_SpecCube0_Exposure;        // Only the x value is used
 float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
 float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube1_Rotation;
-float4 unity_SpecCube1_Exposure;        // Only the x value is used
 
 // Lightmap block feature
 float4 unity_LightmapST;
@@ -167,6 +165,11 @@ uint unity_LightProbeUsagePropertyEntry;
 // UniversalDOTSInstancing.hlsl that are included after this file. A function would bind to the
 // static-const fallback at parse time and miss the per-instance override.
 #define IsLightProbeSamplingEnabled() (unity_LightProbeUsage != 0u)
+
+// The probe capture exposure (EV) is carried in unity_SpecCubeN_HDR.z. These keep the exposure multiplier (2^EV in x)
+// available to custom shaders under its previous name, without extra per-draw data.
+#define unity_SpecCube0_Exposure float4(exp2((float)unity_SpecCube0_HDR.z), 0.0, 0.0, 0.0)
+#define unity_SpecCube1_Exposure float4(exp2((float)unity_SpecCube1_HDR.z), 0.0, 0.0, 0.0)
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

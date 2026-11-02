@@ -105,7 +105,8 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 #if USE_CLUSTER_LIGHT_LOOP
     return SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVec, lod).rgb;
 #else
-    return DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, lod), unity_SpecCube0_HDR);
+    // The probe's capture exposure (EV) is carried in the decode bias (z)
+    return SelectProbeExposureMultiplier(exp2((float)unity_SpecCube0_HDR.z)) * DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, lod), unity_SpecCube0_HDR);
 #endif
 }
 
