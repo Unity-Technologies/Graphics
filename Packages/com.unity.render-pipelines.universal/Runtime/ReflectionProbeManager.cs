@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
         const int k_ReflectionProbeChannelCount = k_ExposureMultiplierChannel + 1;
         NativeArray<Vector4> m_ReflectionProbeData;
         GraphicsBuffer m_ReflectionProbeBuffer;
+        bool m_ReflectionProbeBufferUploaded;
 
         // loose uniform fallback path
         Vector4[] m_BoxMax;
@@ -76,8 +77,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int ProbePosition = Shader.PropertyToID("urp_ReflProbes_ProbePosition");
             public static readonly int MipScaleOffset = Shader.PropertyToID("urp_ReflProbes_MipScaleOffset");
             public static readonly int Rotation = Shader.PropertyToID("urp_ReflProbes_Rotation");
-
-            public static readonly int Count = Shader.PropertyToID("urp_ReflProbes_Count");
             public static readonly int Atlas = Shader.PropertyToID("urp_ReflProbes_Atlas");
             public static readonly int ExposureMultipliers = Shader.PropertyToID("urp_ReflProbes_ExposureMultipliers");
         }
@@ -95,7 +94,6 @@ namespace UnityEngine.Rendering.Universal
                 if (m_UseConstantBuffer)
                 {
                     DisposeReflectionProbeConstantBuffer();
-                    CreateReflectionProbeConstantBuffer();
                 }
                 else
                 {
@@ -151,17 +149,21 @@ namespace UnityEngine.Rendering.Universal
             m_NeedsUpdate = new List<EntityId>(m_MaxReflectionProbes);
             m_NeedsRemove = new List<EntityId>(m_MaxReflectionProbes);
 
-            if (m_UseConstantBuffer)
-                CreateReflectionProbeConstantBuffer();
-            else
+            // The constant buffer is allocated on first use, a Forward+ renderer that never runs the reflection
+            // probe atlas path does not pay for it.
+            if (!m_UseConstantBuffer)
                 CreateReflectionProbeLooseUniformArrays();
         }
 
-        void CreateReflectionProbeConstantBuffer()
+        void EnsureReflectionProbeConstantBuffer()
         {
+            if (m_ReflectionProbeData.IsCreated)
+                return;
+
             int length = m_MaxReflectionProbes * k_ReflectionProbeChannelCount;
 
             m_ReflectionProbeData = new NativeArray<Vector4>(length, Allocator.Persistent);
+            m_ReflectionProbeBufferUploaded = false;
 
             // GraphicsBuffer ctor will throw for zero length
             if (length > 0)
@@ -203,6 +205,11 @@ namespace UnityEngine.Rendering.Universal
             var probeCount = math.min(probes.Length, maxProbes);
             var frameIndex = Time.renderedFrameCount;
             var probeBeingRendered = cameraData.cameraType == CameraType.Reflection ? cameraData.camera.reflectionProbeRendered : null;
+
+            // Created on the first camera that runs the atlas path, even if it sees no probe, and bound for every such
+            // camera from then on.
+            if (m_UseConstantBuffer)
+                EnsureReflectionProbeConstantBuffer();
 
             // Populate list of probes we need to remove to avoid modifying dictionary while iterating.
             foreach (var (id, cachedProbe) in m_Cache)
@@ -447,11 +454,25 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                var validProbeCount = probeCount - skipCount;
+
                 if (m_UseConstantBuffer)
                 {
                     if (m_ReflectionProbeBuffer != null)
                     {
-                        m_ReflectionProbeBuffer.SetData(m_ReflectionProbeData);
+                        // Without a valid probe the loop above writes nothing, so m_ReflectionProbeData still holds
+                        // what was last uploaded and the GPU copy already matches it. The shader can still read the
+                        // buffer, since the clusters are built from all visible probes, including the skipped ones,
+                        // but re-uploading the same data would be pure overhead. This matters for every camera that
+                        // sees no probe at all, camera stacks in particular where each camera runs this path.
+                        // The first upload is always performed so the GPU buffer is never left uninitialized.
+                        if (validProbeCount > 0 || !m_ReflectionProbeBufferUploaded)
+                        {
+                            m_ReflectionProbeBuffer.SetData(m_ReflectionProbeData);
+                            m_ReflectionProbeBufferUploaded = true;
+                        }
+
+                        // The buffer stays bound even when empty.
                         cmd.SetGlobalConstantBuffer(m_ReflectionProbeBuffer, ShaderProperties.ReflectionProbeBuffer, 0, m_ReflectionProbeData.Length * UnsafeUtility.SizeOf<Vector4>());
                     }
                 }
@@ -464,7 +485,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVectorArray(ShaderProperties.Rotation, m_Rotations);
                     cmd.SetGlobalVectorArray(ShaderProperties.ExposureMultipliers, m_ExposureMultipliers);
                 }
-                cmd.SetGlobalFloat(ShaderProperties.Count, probeCount - skipCount);
                 cmd.SetGlobalTexture(ShaderProperties.Atlas, m_AtlasTexture0);
             }
 

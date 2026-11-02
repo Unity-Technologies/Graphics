@@ -172,7 +172,6 @@ StructuredBuffer<uint> urp_Tiles;
 #endif
 
 TEXTURE2D(urp_ReflProbes_Atlas);
-float urp_ReflProbes_Count;
 
 // 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
 #define samplerurp_ReflProbes_Atlas sampler_LinearClamp

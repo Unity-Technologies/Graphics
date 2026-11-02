@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseAdditionalLightsConstantBuffer)
             {
-                CreateAdditionalLightsConstantBuffer();
+                CreateAdditionalLightsConstantBufferSideArrays();
             }
             else
             {
@@ -165,8 +165,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        void CreateAdditionalLightsConstantBuffer()
+        // CPU side arrays of the constant buffer path. They are not GPU resources and consumers read them
+        // unconditionally (volumetric fog), so unlike the buffer itself they stay allocated with the renderer.
+        void CreateAdditionalLightsConstantBufferSideArrays()
         {
+            m_AdditionalLightsLayerMasks = new float[m_MaxVisibleAdditionalLights];
+#if VOLUMETRIC_FOG
+            m_AdditionalLightsVolumetricParams = new Vector4[m_MaxVisibleAdditionalLights];
+#endif
+        }
+
+        // The GPU side is allocated on first use, so content without any additional light never pays for it.
+        // PreSetup calls it when the frame is recorded, because volumetric fog reads the buffer when its pass is
+        // recorded. SetupAdditionalLightConstants calls it again before filling the buffer, for the cameras recorded
+        // without PreSetup (offscreen depth targets).
+        void EnsureAdditionalLightsConstantBuffer()
+        {
+            if (m_AdditionalLightsData.IsCreated)
+                return;
+
             int length = m_MaxVisibleAdditionalLights * k_AdditionalLightsChannelCount;
             m_AdditionalLightsData = new NativeArray<Vector4>(length, Allocator.Persistent);
 
@@ -178,10 +195,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     name = k_AdditionalLightsCBName
                 };
             }
-            m_AdditionalLightsLayerMasks = new float[m_MaxVisibleAdditionalLights];
-#if VOLUMETRIC_FOG
-            m_AdditionalLightsVolumetricParams = new Vector4[m_MaxVisibleAdditionalLights];
-#endif
         }
 
         void DisposeAdditionalLightsConstantBuffer()
@@ -232,8 +245,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MaxVisibleAdditionalLights = maxLights;
             if (m_UseAdditionalLightsConstantBuffer)
             {
+                // The buffer is allocated again, with the new max count, by the next EnsureAdditionalLightsConstantBuffer.
                 DisposeAdditionalLightsConstantBuffer();
-                CreateAdditionalLightsConstantBuffer();
+                CreateAdditionalLightsConstantBufferSideArrays();
             }
             else
             {
@@ -479,6 +493,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 ResizeAdditionalLightsBuffer(maxLights);
             }
+
+            if (m_UseAdditionalLightsConstantBuffer && lightData.additionalLightsCount > 0)
+                EnsureAdditionalLightsConstantBuffer();
 
             if (m_UseForwardPlus)
             {
@@ -843,6 +860,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int mainLight = lightData.mainLightIndex;
                 if (m_UseAdditionalLightsConstantBuffer)
                 {
+                    EnsureAdditionalLightsConstantBuffer();
+
                     int positionOffset    = maxAdditionalLightsCount * k_AdditionalLightsPositionChannel;
                     int colorOffset       = maxAdditionalLightsCount * k_AdditionalLightsColorChannel;
                     int attenuationOffset = maxAdditionalLightsCount * k_AdditionalLightsAttenuationChannel;
@@ -887,12 +906,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     if (m_AdditionalLightsBuffer != null)
-                    {
                         m_AdditionalLightsBuffer.SetData(m_AdditionalLightsData);
-
-                        cmd.SetGlobalConstantBuffer(m_AdditionalLightsBuffer, LightShaderPropertyId._AdditionalLightsBuffer, 0,
-                            m_AdditionalLightsData.Length * UnsafeUtility.SizeOf<Vector4>());
-                    }
 
                     if (supportsLightLayers)
                         cmd.SetGlobalFloatArray(LightShaderPropertyId._AdditionalLightsLayerMasks, m_AdditionalLightsLayerMasks);
@@ -933,6 +947,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (supportsLightLayers)
                         cmd.SetGlobalFloatArray(LightShaderPropertyId._AdditionalLightsLayerMasks, m_AdditionalLightsLayerMasks);
                 }
+            }
+
+            // Once created, the buffer is bound for every camera, also when the count is 0, like the reflection probe
+            // buffer. The shaders read only the first _AdditionalLightsCount entries, so the stale ones are never read.
+            if (m_AdditionalLightsBuffer != null)
+            {
+                cmd.SetGlobalConstantBuffer(m_AdditionalLightsBuffer, LightShaderPropertyId._AdditionalLightsBuffer, 0,
+                    m_AdditionalLightsData.Length * UnsafeUtility.SizeOf<Vector4>());
             }
         }
 
