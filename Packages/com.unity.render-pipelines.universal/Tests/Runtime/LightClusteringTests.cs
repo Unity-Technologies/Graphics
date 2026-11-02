@@ -1,611 +1,177 @@
-// Unit tests for light clustering code used in Forward+ and Deferred+ rendering
-// modes.
+// Unit tests for light clustering code used in Forward+ and Deferred+ rendering modes. Each scene is checked against
+// LightClusteringOracle: no light or probe may be missing from a tile or z-bin it reaches, and none may be in a tile or
+// z-bin its volume stays clear of.
 
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Universal.Tests
 {
+    [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
     class LightClusteringTests
     {
-        [Description("The tiling job calculates an intersection between an XZ plane and the light volume to determine the range of tiles that the light affects. In the cases where this range falls completely outside of the screen, this test ensures that the ranges are clamped correctly to screen boundaries. If not tested, this bug affects the cone section of spot lights, the cap section of spot lights, and also point lights. This test was added due to UUM-84591.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_WhenLightVolumeIntersectionWithXZPlaneIsOutsideTheScreen_ZBinsAndTileMasksAreCorrect()
+        const float k_Diagonal = 0.57735026f;
+        const float k_Half = 0.70710677f;
+        static readonly int2 k_SmallScreen = new int2(64, 64);
+        static readonly int2 k_Screen = new int2(480, 270);
+
+        static ClusteringScene Perspective(float fovYDeg, float aspect, float near, float far, int2 screenSize, ClusteringItem itemVS) =>
+            ClusteringScene.PerspectiveViewSpace(fovYDeg, aspect, near, far, screenSize, itemVS);
+
+        static ClusteringScene Perspective(float p00, float p11, float2 lensShift, float near, float far, int2 screenSize, ClusteringItem itemVS) =>
+            ClusteringScene.PerspectiveViewSpace(p00, p11, lensShift, near, far, screenSize, itemVS);
+
+        static ClusteringScene Orthographic(float halfWidth, float halfHeight, float near, float far, int2 screenSize, ClusteringItem itemVS) =>
+            ClusteringScene.OrthographicViewSpace(halfWidth, halfHeight, near, far, screenSize, itemVS);
+
+        static TestCaseData Case(string name, string description, ClusteringScene scene) =>
+            new TestCaseData(scene).SetName($"LightClustering_IsExact({name})").SetDescription(description);
+
+        static IEnumerable<TestCaseData> ExactScenes()
         {
-            NativeArray<VisibleLight> lights = new(1, Allocator.TempJob);
-            // Light world transform:
-            // UnityEditor.TransformWorldPlacementJSON:{"position":{"x":3.0,"y":3.0,"z":0.0},"rotation":{"x":0.511572539806366,"y":0.3068491518497467,"z":-0.7767189145088196,"w":0.20210090279579163},"scale":{"x":1.0,"y":1.0,"z":1.0}}
-            lights[0] = new VisibleLight()
             {
-                lightType = LightType.Spot,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = new Matrix4x4(
-                    new Vector4(-0.394897342f, 0, -0.918725133f, 0),
-                    new Vector4(0.627902389f, -0.729997516f, -0.269892514f, 0),
-                    new Vector4(-0.670667171f, -0.683449626f, 0.288274288f, 0),
-                    new Vector4(3, 3, 0, 1)
-                ),
-                range = 10,
-                spotAngle = 100,
-                intersectsNearPlane = true,
-                intersectsFarPlane = false,
-            };
-            NativeArray<VisibleReflectionProbe> probes = new(0, Allocator.TempJob);
-            NativeArray<uint> zBins = new(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            NativeArray<uint> tileMasks = new (UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-
-            // Camera world transform:
-            // UnityEditor.TransformWorldPlacementJSON:{"position":{"x":-4.0,"y":1.0,"z":2.0},"rotation":{"x":0.32139381766319277,"y":0.663413941860199,"z":-0.3830222189426422,"w":0.5566704273223877},"scale":{"x":1.0,"y":1.0,"z":1.0}}
-            float4x4 worldToView = new float4x4(
-                new float4(-0.1736481f, 0.8528686f, -0.4924039f, 0f),
-                new float4(0f, 0.5f, 0.8660254f, 0f),
-                new float4(-0.9848078f, -0.1503837f, 0.08682406f, 0f),
-                new float4(1.275023f, 3.212242f, -3.009289f, 1f)
-            );
-            var worldToViews = new Fixed2<float4x4>(worldToView, worldToView);
-            float4x4 viewToClip = new float4x4(
-                new float4(0.7968904f, 0f, 0f, 0f),
-                new float4(0f, 1.732051f, 0f, 0f),
-                new float4(0f, 0f, -1.0006f, -1f),
-                new float4(0f, 0f, -0.60018f, 0f)
-            );
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = new(128, 128);
-            float nearPlane = 0.3f;
-            float farPlane = 1000f;
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false,
-                true,
-                lights,
-                probes,
-                zBins,
-                tileMasks,
-                worldToViews,
-                viewToClips,
-                1,
-                screenResolution,
-                nearPlane,
-                farPlane,
-                false,
-                out int localLightCount,
-                out int directionalLightCount,
-                out int binCount,
-                out float zBinScale,
-                out float zBinOffset,
-                out int2 tileResolution,
-                out int actualTileWidth,
-                out int wordsPerTile
-            );
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            // Uncomment temporarily if the reference arrays need to be updated.
-            // Debug.Log(string.Join(",", zBins));
-            // Debug.Log(string.Join(",", tileMasks));
-
-            // If the following assertions fail, there isn't currently good
-            // tooling to visualize the difference. A 3D texture slice viewer
-            // can be built that would fix this issue. But the cost-benefit is
-            // not worth it at the moment, since the diff of a PR that fails
-            // this test can be enough to go on.
-            //
-            // Also, these assertions can fail if a change is made includes more
-            // false positives, i.e. lights contributing to _more_ clusters than
-            // expected due to increased conservatism, or lights contributing to
-            // _less_ clusters due increased accuracy. In either of these cases,
-            // it is up to the author of these code changes to update the
-            // expected values.
-            CollectionAssert.AreEqual(expectedZBins1, zBins);
-            CollectionAssert.AreEqual(expectedTileMasks1, tileMasks);
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
-        }
-
-        // Identity world-to-view, 90-degree FOV; tiling negates view Z, so view (x, y, z) is world (x, y, -z).
-        static bool PointLightCoversTile(float3 lightPositionVS, float range, int2 tile)
-        {
-            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
-            lights[0] = new VisibleLight()
-            {
-                lightType = LightType.Point,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = new Matrix4x4(
-                    new Vector4(1, 0, 0, 0),
-                    new Vector4(0, 1, 0, 0),
-                    new Vector4(0, 0, 1, 0),
-                    new Vector4(lightPositionVS.x, lightPositionVS.y, -lightPositionVS.z, 1)
-                ),
-                range = range,
-                spotAngle = 0,
-                intersectsNearPlane = true,
-                intersectsFarPlane = false,
-            };
-            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
-            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-
-            var worldToView = float4x4.identity;
-            var worldToViews = new Fixed2<float4x4>(worldToView, worldToView);
-
-            const float near = 0.5f;
-            const float far = 100f;
-            float p22 = -(far + near) / (far - near);
-            float p23 = -(2f * far * near) / (far - near);
-            var viewToClip = new float4x4(
-                new float4(1, 0, 0, 0),
-                new float4(0, 1, 0, 0),
-                new float4(0, 0, p22, -1),
-                new float4(0, 0, p23, 0)
-            );
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = new(64, 64);
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false, true, lights, probes, zBins, tileMasks,
-                worldToViews, viewToClips, 1, screenResolution, near, far, false,
-                out _, out _, out _, out _, out _, out int2 tileResolution, out _, out int wordsPerTile);
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            int maskIndex = (tile.y * tileResolution.x + tile.x) * wordsPerTile;
-            bool covered = (tileMasks[maskIndex] & 1u) != 0u;
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
-            return covered;
-        }
-
-        [Description("A point light crossing the near plane covers the tile at its horizon extreme.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_PointLightCrossingNearPlane_CoversHorizonTileInFrontOfNear()
-        {
-            Assert.IsTrue(
-                PointLightCoversTile(new float3(1.6040f, -1.6087f, 0.8924f), 1.2312f, new int2(7, 2)),
-                "Tile (7,2) is covered by the light volume but is missing from the tile mask.");
-        }
-
-        [Description("A point light above the frustum covers the edge tile row.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_PointLightOutsideFrustumVertically_CoversEdgeRowTile()
-        {
-            Assert.IsTrue(
-                PointLightCoversTile(new float3(-4.4307f, 7.2440f, 5.7363f), 1.9306f, new int2(0, 7)),
-                "Edge-row tile (0,7) is covered by the light volume but is missing from the tile mask.");
-        }
-
-        // Identity world-to-view; tiling negates view Z, so view (x, y, z) is world (x, y, -z).
-        static bool SpotLightCoversTile(float fovYDeg, float aspect, float near, float3 posVS, float3 dirVS, float range, float spotAngle, int2 tile, int2? screenSize = null)
-        {
-            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
-            lights[0] = new VisibleLight()
-            {
-                lightType = LightType.Spot,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = new Matrix4x4(
-                    new Vector4(1, 0, 0, 0),
-                    new Vector4(0, 1, 0, 0),
-                    new Vector4(dirVS.x, dirVS.y, -dirVS.z, 0),
-                    new Vector4(posVS.x, posVS.y, -posVS.z, 1)
-                ),
-                range = range,
-                spotAngle = spotAngle,
-                intersectsNearPlane = true,
-                intersectsFarPlane = false,
-            };
-            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
-            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-
-            var worldToView = float4x4.identity;
-            var worldToViews = new Fixed2<float4x4>(worldToView, worldToView);
-
-            const float far = 1000f;
-            float p11 = 1f / math.tan(math.radians(fovYDeg) * 0.5f);
-            float p00 = p11 / aspect;
-            var viewToClip = new float4x4(
-                new float4(p00, 0, 0, 0),
-                new float4(0, p11, 0, 0),
-                new float4(0, 0, -(far + near) / (far - near), -1),
-                new float4(0, 0, -(2f * far * near) / (far - near), 0)
-            );
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = screenSize ?? new int2(64, 64);
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false, true, lights, probes, zBins, tileMasks,
-                worldToViews, viewToClips, 1, screenResolution, near, far, false,
-                out _, out _, out _, out _, out _, out int2 tileResolution, out _, out int wordsPerTile);
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            int maskIndex = (tile.y * tileResolution.x + tile.x) * wordsPerTile;
-            bool covered = (tileMasks[maskIndex] & 1u) != 0u;
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
-            return covered;
-        }
-
-        [Description("A spot light in front of the near plane covers a tile inside its cone.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_SpotLightInFrontOfNear_CoversInteriorTile()
-        {
-            Assert.IsTrue(
-                SpotLightCoversTile(72.032f, 1.3333f, 0.412f, new float3(1.5852f, -1.4977f, 6.9015f), new float3(-0.1672f, -0.2562f, 0.9520f), 2.227f, 75.974f, new int2(4, 2)),
-                "Spot cone covers tile (4,2) but it is missing from the tile mask.");
-        }
-
-        [Description("A spot light crossing the near plane covers a tile inside its cone.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_SpotLightCrossingNear_CoversInteriorTile()
-        {
-            Assert.IsTrue(
-                SpotLightCoversTile(58.880f, 1.3333f, 0.461f, new float3(0.4470f, 1.0636f, 1.4462f), new float3(0.0110f, -0.1210f, 0.9926f), 2.017f, 112.675f, new int2(4, 6)),
-                "Spot cone covers tile (4,6) but it is missing from the tile mask.");
-        }
-
-        [Description("A spot light whose vertex lies in the camera plane covers the tiles along both sides of its cone.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_SpotVertexInCameraPlane_CoversConeSideTiles()
-        {
-            var posVS = new float3(-4.8e-7f, -0.2f, 0f);
-            var dirVS = new float3(3.7e-9f, 0f, 1f);
-            var screenSize = new int2(480, 270);
-            Assert.IsTrue(
-                SpotLightCoversTile(60f, 16f / 9f, 0.3f, posVS, dirVS, 50f, 55f, new int2(16, 6), screenSize),
-                "Spot cone covers tile (16,6) but it is missing from the tile mask.");
-            Assert.IsTrue(
-                SpotLightCoversTile(60f, 16f / 9f, 0.3f, posVS, dirVS, 50f, 55f, new int2(43, 6), screenSize),
-                "Spot cone covers tile (43,6) but it is missing from the tile mask.");
-        }
-
-        [Description("A spot light whose silhouette leaves the screen does not cover the edge column.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_SpotSilhouetteOffScreenEdge_DoesNotOverCoverEdgeColumn()
-        {
-            Assert.IsFalse(
-                SpotLightCoversTile(86.3651f, 0.9666f, 0.3570f, new float3(-0.0080f, -0.1112f, -2.0052f), new float3(-0.9652f, -0.1627f, 0.2046f), 4.0016f, 66.8309f, new int2(0, 1)),
-                "Edge-column tile (0,1) is outside the spot cone but was marked (edge over-coverage).");
-        }
-
-        // Orthographic camera; half-width = aspect * orthoHalfHeight.
-        static bool OrthoSpotLightCoversTile(float orthoHalfHeight, float aspect, float near, float3 posVS, float3 dirVS, float range, float spotAngle, int2 tile)
-        {
-            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
-            lights[0] = new VisibleLight()
-            {
-                lightType = LightType.Spot,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = new Matrix4x4(
-                    new Vector4(1, 0, 0, 0),
-                    new Vector4(0, 1, 0, 0),
-                    new Vector4(dirVS.x, dirVS.y, -dirVS.z, 0),
-                    new Vector4(posVS.x, posVS.y, -posVS.z, 1)
-                ),
-                range = range,
-                spotAngle = spotAngle,
-                intersectsNearPlane = true,
-                intersectsFarPlane = false,
-            };
-            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
-            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-
-            var worldToView = float4x4.identity;
-            var worldToViews = new Fixed2<float4x4>(worldToView, worldToView);
-
-            const float far = 1000f;
-            float p00 = 1f / (aspect * orthoHalfHeight);
-            float p11 = 1f / orthoHalfHeight;
-            var viewToClip = new float4x4(
-                new float4(p00, 0, 0, 0),
-                new float4(0, p11, 0, 0),
-                new float4(0, 0, -2f / (far - near), 0),
-                new float4(0, 0, -(far + near) / (far - near), 1)
-            );
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = new(64, 64);
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false, true, lights, probes, zBins, tileMasks,
-                worldToViews, viewToClips, 1, screenResolution, near, far, true,
-                out _, out _, out _, out _, out _, out int2 tileResolution, out _, out int wordsPerTile);
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            int maskIndex = (tile.y * tileResolution.x + tile.x) * wordsPerTile;
-            bool covered = (tileMasks[maskIndex] & 1u) != 0u;
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
-            return covered;
-        }
-
-        [Description("An orthographic spot light off the right screen edge covers the edge tile.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_OrthographicSpotOffRightEdge_CoversEdgeTile()
-        {
-            Assert.IsTrue(
-                OrthoSpotLightCoversTile(11.7982f, 0.5184f, 0.4803f, new float3(6.6041f, 6.1272f, 2.8334f), new float3(-0.4904f, 0.868f, -0.0783f), 2.6565f, 56.2812f, new int2(7, 6)),
-                "Orthographic spot covers tile (7,6) but it is missing from the tile mask.");
-        }
-
-        // Orthographic camera; returns whether the z-bin at view depth viewZ contains the light.
-        static bool OrthoPointLightCoversZBinAtDepth(float3 lightPositionVS, float range, float near, float far, float viewZ)
-        {
-            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
-            lights[0] = new VisibleLight()
-            {
-                lightType = LightType.Point,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = new Matrix4x4(
-                    new Vector4(1, 0, 0, 0),
-                    new Vector4(0, 1, 0, 0),
-                    new Vector4(0, 0, 1, 0),
-                    new Vector4(lightPositionVS.x, lightPositionVS.y, -lightPositionVS.z, 1)
-                ),
-                range = range,
-                spotAngle = 0,
-                intersectsNearPlane = true,
-                intersectsFarPlane = false,
-            };
-            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
-            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-
-            var worldToView = float4x4.identity;
-            var worldToViews = new Fixed2<float4x4>(worldToView, worldToView);
-
-            // Only the half-size and center terms are read by the tiling setup.
-            const float halfSize = 6f;
-            var viewToClip = new float4x4(
-                new float4(1f / halfSize, 0, 0, 0),
-                new float4(0, 1f / halfSize, 0, 0),
-                new float4(0, 0, -2f / (far - near), 0),
-                new float4(0, 0, -(far + near) / (far - near), 1)
-            );
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-            int2 screenResolution = new(64, 64);
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false, true, lights, probes, zBins, tileMasks,
-                worldToViews, viewToClips, 1, screenResolution, near, far, true,
-                out _, out _, out _, out float zBinScale, out float zBinOffset, out _, out _, out int wordsPerTile);
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            // Orthographic z-bin index is linear in view-space Z (matches the shader).
-            int binIndex = (int)(viewZ * zBinScale + zBinOffset);
-            int stride = 2 + wordsPerTile; // 2 header words + bitmask words
-            bool covered = (zBins[binIndex * stride + 2] & 1u) != 0u;
-
-            lights.Dispose();
-            probes.Dispose();
-            zBins.Dispose();
-            tileMasks.Dispose();
-            return covered;
-        }
-
-        [Description("With a negative orthographic near plane, a light at negative depth is in its z-bin.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [Test]
-        public void LightClustering_OrthographicNegativeNearPlane_PointLightCoversZBinAtItsDepth()
-        {
-            Assert.IsTrue(
-                OrthoPointLightCoversZBinAtDepth(new float3(0f, 0f, -2f), 1f, -5f, 10f, -2f),
-                "Light at view-space Z -2 is missing from the z-bin at depth -2 (negative near plane).");
-        }
-
-        // Identity world-to-view, 64x64 screen (8x8 tiles), square view plane of half-size halfSize (at Z=1 for
-        // perspective); tiling negates view Z, so view (x, y, z) is world (x, y, -z). Returns item 0's tile coverage.
-        static bool[,] ComputeTileCoverage(NativeArray<VisibleLight> lights, NativeArray<VisibleReflectionProbe> probes, bool orthographic, float halfSize)
-        {
-            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
-            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
-            var worldToViews = new Fixed2<float4x4>(float4x4.identity, float4x4.identity);
-
-            const float near = 0.5f;
-            const float far = 100f;
-            var viewToClip = orthographic
-                ? new float4x4(
-                    new float4(1f / halfSize, 0, 0, 0),
-                    new float4(0, 1f / halfSize, 0, 0),
-                    new float4(0, 0, -2f / (far - near), 0),
-                    new float4(0, 0, -(far + near) / (far - near), 1))
-                : new float4x4(
-                    new float4(1f / halfSize, 0, 0, 0),
-                    new float4(0, 1f / halfSize, 0, 0),
-                    new float4(0, 0, -(far + near) / (far - near), -1),
-                    new float4(0, 0, -(2f * far * near) / (far - near), 0));
-            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
-
-            JobHandle handle = ForwardLights.ScheduleClusteringJobs(
-                false, true, lights, probes, zBins, tileMasks,
-                worldToViews, viewToClips, 1, new int2(64, 64), near, far, orthographic,
-                out _, out _, out _, out _, out _, out int2 tileResolution, out _, out int wordsPerTile);
-            JobHandle.ScheduleBatchedJobs();
-            handle.Complete();
-
-            var coverage = new bool[tileResolution.x, tileResolution.y];
-            for (var y = 0; y < tileResolution.y; y++)
-                for (var x = 0; x < tileResolution.x; x++)
-                    coverage[x, y] = (tileMasks[(y * tileResolution.x + x) * wordsPerTile] & 1u) != 0u;
-
-            zBins.Dispose();
-            tileMasks.Dispose();
-            return coverage;
-        }
-
-        static bool[,] ComputePointLightTileCoverage(float3 lightPositionVS, float range, bool orthographic, float halfSize)
-        {
-            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
-            lights[0] = new VisibleLight()
-            {
-                lightType = LightType.Point,
-                finalColor = Color.white,
-                screenRect = new Rect(0, 0, 1, 1),
-                localToWorldMatrix = Matrix4x4.Translate(new Vector3(lightPositionVS.x, lightPositionVS.y, -lightPositionVS.z)),
-                range = range,
-                spotAngle = 0,
-                intersectsNearPlane = false,
-                intersectsFarPlane = false,
-            };
-            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
-            try
-            {
-                return ComputeTileCoverage(lights, probes, orthographic, halfSize);
-            }
-            finally
-            {
-                lights.Dispose();
-                probes.Dispose();
-            }
-        }
-
-        static string FormatTiles(List<int2> tiles) => string.Join(", ", tiles.ConvertAll(t => $"({t.x},{t.y})"));
-
-        // The orthographic footprint of a point light is a disk, so the exact set of tiles it overlaps is known.
-        [Description("An orthographic point light covers exactly the tiles its disk overlaps.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
-        [TestCase(0.3f, 0.2f, 1.3f, TestName = "LightClustering_OrthographicPointLight_CoversExactlyItsDiskTiles(Centered)")]
-        [TestCase(-5f, -3.5f, 1.1f, TestName = "LightClustering_OrthographicPointLight_CoversExactlyItsDiskTiles(OffLeftEdge)")]
-        public void LightClustering_OrthographicPointLight_CoversExactlyItsDiskTiles(float x, float y, float range)
-        {
-            const float halfSize = 4f;
-            var coverage = ComputePointLightTileCoverage(new float3(x, y, 5f), range, true, halfSize);
-
-            // A tile the disk only touches (zero-area overlap) may go either way, depending on float rounding.
-            const float tangentTolerance = 1e-4f;
-            var tileSize = 2f * halfSize / coverage.GetLength(0);
-            var missing = new List<int2>();
-            var extra = new List<int2>();
-            for (var ty = 0; ty < coverage.GetLength(1); ty++)
-            {
-                for (var tx = 0; tx < coverage.GetLength(0); tx++)
-                {
-                    var tileMin = -halfSize + tileSize * new float2(tx, ty);
-                    var closest = math.clamp(new float2(x, y), tileMin, tileMin + tileSize);
-                    var distance = math.distance(closest, new float2(x, y));
-                    if (distance < range - tangentTolerance && !coverage[tx, ty]) missing.Add(new int2(tx, ty));
-                    if (distance > range + tangentTolerance && coverage[tx, ty]) extra.Add(new int2(tx, ty));
-                }
+                var scene = new ClusteringScene { near = 0.3f, far = 1000f, screenSize = new int2(128, 128) };
+                scene.worldToViews[0] = scene.worldToViews[1] = new float4x4(
+                    new float4(-0.1736481f, 0.8528686f, -0.4924039f, 0f),
+                    new float4(0f, 0.5f, 0.8660254f, 0f),
+                    new float4(-0.9848078f, -0.1503837f, 0.08682406f, 0f),
+                    new float4(1.275023f, 3.212242f, -3.009289f, 1f));
+                scene.viewToClips[0] = scene.viewToClips[1] = ClusteringScene.Perspective(0.7968904f, 1.732051f, float2.zero, scene.near, scene.far);
+                scene.items.Add(ClusteringItem.Spot(new float3(3f, 3f, 0f), new float3(-0.670667171f, -0.683449626f, 0.288274288f), 10f, 100f));
+                yield return Case("SpotRangeOutsideScreenInXZPlane", "A spot light whose intersection with an XZ plane falls outside the screen (UUM-84591).", scene);
             }
 
-            Assert.IsEmpty(missing, $"Tiles overlapped by the light are not covered: {FormatTiles(missing)}");
-            Assert.IsEmpty(extra, $"Tiles outside the light are covered: {FormatTiles(extra)}");
+            yield return Case("PointLightCrossingNearPlane", "A point light crossing the near plane.",
+                Perspective(1f, 1f, float2.zero, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(1.604f, -1.6087f, 0.8924f), 1.2312f)));
+            yield return Case("PointLightAboveFrustum", "A point light above the frustum reaching the top tile row.",
+                Perspective(1f, 1f, float2.zero, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(-4.4307f, 7.244f, 5.7363f), 1.9306f)));
+            yield return Case("PointLightInFrontOfCamera", "A point light in front of the camera.",
+                Perspective(1f, 1f, float2.zero, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(0.3f, 0.2f, 5f), 1.3f)));
+            yield return Case("PointLightCrossingFarPlane", "A point light crossing the far plane.",
+                Perspective(60f, 16f / 9f, 0.3f, 27f, k_Screen, ClusteringItem.Point(new float3(0.5f, 0.3f, 30f), 5f)));
+            yield return Case("PointLightCrossingNearPlaneOffCenter", "A point light crossing the near plane whose vertical extent on screen comes from its section with the near plane.",
+                Perspective(0.7515261f, 1.1239314f, new float2(-0.35771352f, 0.24809685f), 0.6553464f, 2306.9248f, new int2(250, 141), ClusteringItem.Point(new float3(-5.5001135f, -5.4904704f, 0.96593094f), 6.838029f)));
+            yield return Case("PointLightFarOffScreenNearCamera", "A point light so far to the side of a camera with a close near plane that its tile coordinates exceed the 16-bit range of the tile ranges.",
+                Perspective(60f, 16f / 9f, 0.01f, 1000f, k_Screen, ClusteringItem.Point(new float3(22f, 0f, 0.3f), 0.35f)));
+            yield return Case("PointLightBehindCamera", "A point light entirely behind the camera is in no tile or z-bin.",
+                Perspective(60f, 16f / 9f, 0.3f, 1000f, k_Screen, ClusteringItem.Point(new float3(0f, 0f, -5f), 2f)));
+
+            yield return Case("SpotLightInFrontOfNearPlane", "A spot light in front of the near plane.",
+                Perspective(72.032f, 1.3333f, 0.412f, 1000f, k_SmallScreen, ClusteringItem.Spot(new float3(1.5852f, -1.4977f, 6.9015f), new float3(-0.1672f, -0.2562f, 0.952f), 2.227f, 75.974f)));
+            yield return Case("SpotLightCrossingNearPlane", "A spot light crossing the near plane.",
+                Perspective(58.88f, 1.3333f, 0.461f, 1000f, k_SmallScreen, ClusteringItem.Spot(new float3(0.447f, 1.0636f, 1.4462f), new float3(0.011f, -0.121f, 0.9926f), 2.017f, 112.675f)));
+            yield return Case("SpotSilhouetteOffScreenEdge", "A spot light whose silhouette leaves the screen.",
+                Perspective(86.3651f, 0.9666f, 0.357f, 1000f, k_SmallScreen, ClusteringItem.Spot(new float3(-0.008f, -0.1112f, -2.0052f), new float3(-0.9652f, -0.1627f, 0.2046f), 4.0016f, 66.8309f)));
+            yield return Case("SpotVertexInCameraPlane", "A spot light whose vertex lies in the camera plane (UUM-154016).",
+                Perspective(60f, 16f / 9f, 0.3f, 1000f, k_Screen, ClusteringItem.Spot(new float3(-4.8e-7f, -0.2f, 0f), new float3(3.7e-9f, 0f, 1f), 50f, 55f)));
+            yield return Case("SpotBehindCameraAlongViewAxis", "A spot light behind the camera whose axis is the view direction (UUM-159132).",
+                Perspective(60f, 989f / 485f, 0.3f, 1000f, new int2(989, 485), ClusteringItem.Spot(new float3(0.25f, 0f, -2f), new float3(0f, 0f, 1f), 6f, 30f)));
+            yield return Case("SpotAxisAt45DegreesInXZ", "A spot light whose axis is at exactly 45 degrees in the XZ plane.",
+                Perspective(0.89631605f, 1.0262334f, float2.zero, 0.11539972f, 1000f, k_Screen, ClusteringItem.Spot(new float3(0f, 0f, 12.25f), new float3(k_Half, 0f, k_Half), 40f, 90f)));
+            yield return Case("SpotAxisAlongViewDiagonal", "A spot light whose axis is the view-space diagonal (1, 1, 1).",
+                Perspective(0.44447416f, 0.85071206f, float2.zero, 0.78974074f, 1000f, k_Screen, ClusteringItem.Spot(new float3(-4.25f, 0.25f, 0f), new float3(k_Diagonal, k_Diagonal, k_Diagonal), 5f, 45f)));
+            yield return Case("SpotVertexOnNearPlane", "A wide spot light whose vertex lies on the near plane.",
+                Perspective(0.45082957f, 1.0431756f, float2.zero, 0.8158224f, 1000f, k_Screen, ClusteringItem.Spot(new float3(3f, -0.5f, 0.8158224f), new float3(0f, k_Half, k_Half), 6f, 110f)));
+            yield return Case("SpotVertexJustBehindNearPlane", "A nearly hemispherical spot light whose vertex lies just behind the near plane.",
+                Perspective(0.5678351f, 1.0830803f, float2.zero, 0.3802336f, 1000f, k_Screen, ClusteringItem.Spot(new float3(24.75f, -35.25f, 0.37797466f), new float3(k_Half, k_Half, 0f), 55f, 179f)));
+            yield return Case("SpotWithUnboundedNearPlaneSection", "A spot light whose section with the near plane has no finite extremes.",
+                Perspective(0.8330596f, 1.219217f, new float2(-0.2787532f, 0.22271621f), 0.50425756f, 1000f, k_Screen, ClusteringItem.Spot(new float3(0f, 0f, 0.25f), new float3(k_Diagonal, k_Diagonal, k_Diagonal), 10f, 109.47122f)));
+            yield return Case("SpotLightCrossingFarPlane", "A spot light crossing the far plane.",
+                Perspective(60f, 16f / 9f, 0.3f, 25f, k_Screen, ClusteringItem.Spot(new float3(0.5f, 0.3f, 20f), new float3(0f, 0f, 1f), 15f, 60f)));
+            {
+                var scene = new ClusteringScene { near = 0.54576063f, far = 1000f, screenSize = new int2(160, 90) };
+                scene.worldToViews[0] = scene.worldToViews[1] = new float4x4(
+                    new float4(-0.1186f, -0.44585413f, 0.8872137f, 0f),
+                    new float4(0.22589295f, 0.85797536f, 0.46135753f, 0f),
+                    new float4(0.9669056f, -0.25513235f, 0.0010405704f, 0f),
+                    new float4(19.057278f, -13.34542f, -38.808697f, 1f));
+                scene.viewToClips[0] = scene.viewToClips[1] = ClusteringScene.Perspective(1.2988923f, 2.8259869f, new float2(0.19827574f, -0.04960227f), scene.near, scene.far);
+                scene.items.Add(ClusteringItem.Spot(new float3(30.4875f, 25.492296f, -1.2410641f), new float3(-0.11860001f, 0.22589296f, 0.9669056f), 33f, 179f));
+                yield return Case("SpotBaseCircleAroundCamera", "A wide spot light whose base circle surrounds the camera in a side view.", scene);
+            }
+
+            yield return Case("ReflectionProbeCrossingFarPlane", "A reflection probe crossing the far plane.",
+                Perspective(60f, 16f / 9f, 0.3f, 28f, k_Screen, ClusteringItem.Probe(new float3(20f, 0f, 30f), new float3(5f, 5f, 5f), quaternion.identity)));
+            yield return Case("ReflectionProbeBehindCamera", "A reflection probe entirely behind the camera is in no tile or z-bin.",
+                Perspective(60f, 16f / 9f, 0.3f, 1000f, k_Screen, ClusteringItem.Probe(new float3(0f, 0f, -5f), new float3(1f, 1f, 1f), quaternion.identity)));
+
+            yield return Case("OrthographicPointLightCentered", "An orthographic point light.",
+                Orthographic(4f, 4f, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(0.3f, 0.2f, 5f), 1.3f)));
+            yield return Case("OrthographicPointLightOffLeftEdge", "An orthographic point light partly off the left screen edge.",
+                Orthographic(4f, 4f, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(-5f, -3.5f, 5f), 1.1f)));
+            yield return Case("OrthographicPointLightAtNegativeDepth", "An orthographic point light at negative depth with a negative near plane.",
+                Orthographic(6f, 6f, -5f, 10f, k_SmallScreen, ClusteringItem.Point(new float3(0f, 0f, -2f), 1f)));
+            yield return Case("OrthographicPointLightCrossingNearPlane", "An orthographic point light crossing the near plane.",
+                Orthographic(8f, 4.5f, 1f, 100f, k_Screen, ClusteringItem.Point(new float3(0.5f, 0.3f, 0f), 2f)));
+            yield return Case("OrthographicSpotOffRightEdge", "An orthographic spot light off the right screen edge.",
+                Orthographic(0.5184f * 11.7982f, 11.7982f, 0.4803f, 1000f, k_SmallScreen, ClusteringItem.Spot(new float3(6.6041f, 6.1272f, 2.8334f), new float3(-0.4904f, 0.868f, -0.0783f), 2.6565f, 56.2812f)));
+            yield return Case("OrthographicSpotCrossingNearAndFarPlanes", "An orthographic spot light crossing the near and far planes.",
+                Orthographic(8f, 4.5f, 1f, 4f, k_Screen, ClusteringItem.Spot(new float3(-3f, 0.3f, -1f), new float3(k_Half, 0f, k_Half), 9f, 60f)));
+            yield return Case("OrthographicReflectionProbeOnTileBoundaries", "An orthographic axis-aligned reflection probe whose edges lie on tile boundaries.",
+                Orthographic(4f, 4f, 0.5f, 100f, k_SmallScreen, ClusteringItem.Probe(new float3(0f, 0f, 5f), new float3(1f, 2f, 1f), quaternion.identity)));
         }
 
-        [Description("A perspective point light covers no tile outside its projected screen-space bounds.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
+        [TestCaseSource(nameof(ExactScenes))]
+        public void LightClustering_IsExact(ClusteringScene scene)
+        {
+            var result = LightClusteringOracle.Check(scene);
+            if (result.failed)
+                Assert.Fail($"{result}{scene}");
+        }
+
+        [Description("The horizon of a projected circle is missing, not a far-away point, when the camera is inside the ellipse.")]
         [Test]
-        public void LightClustering_PerspectivePointLight_CoversNoTileOutsideItsProjectedBounds()
+        public void LightClustering_ProjectedCircleHorizonAroundCamera_IsMissing()
         {
-            const float halfSize = 1f;
-            var position = new float3(0.3f, 0.2f, 5f);
-            const float range = 1.3f;
-            var coverage = ComputePointLightTileCoverage(position, range, false, halfSize);
-
-            // Tangent lines from the eye bound the sphere's projection on each axis.
-            float2 ProjectedTileBounds(float lateral, float tileCount)
-            {
-                var angle = math.atan2(lateral, position.z);
-                var halfAngle = math.asin(range / math.length(new float2(lateral, position.z)));
-                var ndc = math.tan(new float2(angle - halfAngle, angle + halfAngle)) / halfSize;
-                return math.floor((ndc * 0.5f + 0.5f) * tileCount);
-            }
-            var boundsX = ProjectedTileBounds(position.x, coverage.GetLength(0));
-            var boundsY = ProjectedTileBounds(position.y, coverage.GetLength(1));
-
-            var extra = new List<int2>();
-            for (var ty = 0; ty < coverage.GetLength(1); ty++)
-                for (var tx = 0; tx < coverage.GetLength(0); tx++)
-                    if (coverage[tx, ty] && (tx < boundsX.x || tx > boundsX.y || ty < boundsY.x || ty > boundsY.y))
-                        extra.Add(new int2(tx, ty));
-
-            Assert.IsTrue(coverage[4, 4], "The tile containing the light center is not covered.");
-            Assert.IsEmpty(extra, $"Tiles outside the light's projected bounds are covered: {FormatTiles(extra)}");
+            // A cone base circle facing the camera sideways, with the camera inside its projection onto the YZ plane.
+            TilingJob.GetProjectedCircleHorizon(new float2(-4.750001f, 2.279692E-09f), 32.998745f, new float2(1f, 0f), new float2(0f, 1f), out var uv1, out var uv2);
+            Assert.IsTrue(math.any(math.isnan(uv1)) && math.any(math.isnan(uv2)), $"Expected no horizon, got {uv1} and {uv2}.");
         }
 
-        // Horizontal hull edges lying exactly on tile row boundaries hit the 0/0 case of the edge-plane intersection.
-        [Description("An orthographic axis-aligned reflection probe with edges on tile boundaries covers no tile outside its bounds.")]
-        [UnityPlatform(include = new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.WindowsPlayer, RuntimePlatform.OSXEditor, RuntimePlatform.OSXPlayer })]
+        [Description("Cone section points are accepted on or inside the cone up to its base, and rejected outside its angle, which degenerate sections can produce.")]
         [Test]
-        public void LightClustering_OrthographicReflectionProbeOnTileBoundaries_CoversNoTileOutsideItsBounds()
+        public void LightClustering_ConeSectionPointCheck_RejectsPointsOutsideTheCone()
         {
-            const float halfSize = 4f;
-            var center = new float3(0f, 0f, 5f);
-            var extents = new float3(1f, 2f, 1f);
+            var vertex = new float3(1f, 2f, 3f);
+            var axis = math.normalize(new float3(0.3f, -0.2f, 1f));
+            var halfAngle = math.radians(20f);
+            var cosHalfAngle = math.cos(halfAngle);
+            var sinHalfAngle = math.sin(halfAngle);
+            const float range = 10f;
+            var coneHeight = range * cosHalfAngle;
+            var tolerance = 1e-5f * (math.length(vertex) + range);
+            var side = math.normalize(math.cross(axis, new float3(1f, 0f, 0f)));
+            bool IsOnCone(float angle, float distance) =>
+                TilingJob.IsOnCone(vertex + (math.cos(angle) * axis + math.sin(angle) * side) * distance, vertex, axis, cosHalfAngle, sinHalfAngle, coneHeight, tolerance);
 
-            var lights = new NativeArray<VisibleLight>(0, Allocator.TempJob);
-            var probes = new NativeArray<VisibleReflectionProbe>(1, Allocator.TempJob);
-            probes[0] = new VisibleReflectionProbe()
-            {
-                bounds = new Bounds(new Vector3(center.x, center.y, -center.z), 2f * (Vector3)extents),
-                localToWorldMatrix = Matrix4x4.Translate(new Vector3(center.x, center.y, -center.z)),
-            };
-            bool[,] coverage;
-            try
-            {
-                coverage = ComputeTileCoverage(lights, probes, true, halfSize);
-            }
-            finally
-            {
-                lights.Dispose();
-                probes.Dispose();
-            }
-
-            // Closed bounds: a tile that only touches the probe along a tile boundary may be covered.
-            var tileCount = new float2(coverage.GetLength(0), coverage.GetLength(1));
-            var boundsMin = math.ceil(((center.xy - extents.xy) / halfSize * 0.5f + 0.5f) * tileCount) - 1f;
-            var boundsMax = math.floor(((center.xy + extents.xy) / halfSize * 0.5f + 0.5f) * tileCount);
-
-            var extra = new List<int2>();
-            for (var ty = 0; ty < coverage.GetLength(1); ty++)
-                for (var tx = 0; tx < coverage.GetLength(0); tx++)
-                    if (coverage[tx, ty] && (tx < boundsMin.x || tx > boundsMax.x || ty < boundsMin.y || ty > boundsMax.y))
-                        extra.Add(new int2(tx, ty));
-
-            Assert.IsTrue(coverage[3, 3], "A tile inside the probe is not covered.");
-            Assert.IsEmpty(extra, $"Tiles outside the probe bounds are covered: {FormatTiles(extra)}");
+            Assert.IsTrue(IsOnCone(halfAngle, 5f), "A point on the cone was rejected.");
+            Assert.IsTrue(IsOnCone(0f, 5f), "A point on the axis was rejected.");
+            Assert.IsFalse(IsOnCone(halfAngle + math.radians(10f), 5f), "A point outside the cone angle was accepted.");
+            Assert.IsFalse(IsOnCone(halfAngle, 0.5f * range / cosHalfAngle + range), "A point beyond the cone base was accepted.");
+            Assert.IsFalse(IsOnCone(math.PI - halfAngle, 5f), "A point on the opposite nappe was accepted.");
         }
 
-        static readonly uint[] expectedZBins1 =
+        [Description("Randomized check of light clustering on scenes biased towards degenerate configurations. The scenes depend on floating-point math that can differ between platforms, so this is not deterministic and is run manually. Configure it with URP_LIGHT_CLUSTERING_FUZZ_COUNT, URP_LIGHT_CLUSTERING_FUZZ_SEED and URP_LIGHT_CLUSTERING_FUZZ_MAX_ITEMS.")]
+        [Explicit("Randomized and not deterministic across platforms; run manually.")]
+        [Test]
+        public void LightClustering_RandomScenes_AreExact()
         {
-            0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,0,65535,1,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,65535,65535,0,0
-        };
-
-        static readonly uint[] expectedTileMasks1 =
-        {
-            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-        };
-        
+            static int Read(string name, int fallback) => int.TryParse(Environment.GetEnvironmentVariable(name), out var value) ? value : fallback;
+            var seed = (uint)Read("URP_LIGHT_CLUSTERING_FUZZ_SEED", 1);
+            var count = Read("URP_LIGHT_CLUSTERING_FUZZ_COUNT", 1000);
+            var maxItems = Read("URP_LIGHT_CLUSTERING_FUZZ_MAX_ITEMS", 40);
+            var screenSizes = new[] { new int2(160, 90), new int2(250, 141), new int2(97, 203), new int2(64, 64) };
+            var rng = new Unity.Mathematics.Random(seed);
+            for (var i = 0; i < count; i++)
+            {
+                var scene = LightClusteringOracle.RandomScene(ref rng, screenSizes[i % screenSizes.Length], maxItems);
+                var result = LightClusteringOracle.Check(scene);
+                if (result.failed)
+                    Assert.Fail($"Scene {i} (seed {seed}, max items {maxItems}):\n{result}{scene}");
+            }
+        }
     }
 }

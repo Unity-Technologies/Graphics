@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
         public Fixed2<float4> viewToViewportScaleBiases;
         public int2 tileCount;
         public float near;
+        public float far;
         public bool isOrthographic;
 
         InclusiveRange m_TileYRange;
@@ -75,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
             var lightToWorld = (float4x4)light.localToWorldMatrix;
             var lightPositionVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c3.xyz, 1)).xyz;
             lightPositionVS.z *= -1;
-            if (lightPositionVS.z >= near) ExpandY(lightPositionVS);
+            if (IsInDepthRange(lightPositionVS)) ExpandY(lightPositionVS);
             var lightDirectionVS = math.normalize(math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c2.xyz, 0)).xyz);
             lightDirectionVS.z *= -1;
 
@@ -84,39 +85,25 @@ namespace UnityEngine.Rendering.Universal
             var rangesq = square(range);
             var cosHalfAngle = math.cos(halfAngle);
             var coneHeight = cosHalfAngle * range;
+            var isSpot = light.lightType == LightType.Spot;
 
-            // Radius of circle formed by intersection of sphere and near plane.
-            // Found using Pythagoras with a right triangle formed by three points:
-            // (a) light position
-            // (b) light position projected to near plane
-            // (c) a point on the near plane at a distance `range` from the light position
-            //     (i.e. lies both on the sphere and the near plane)
-            // Thus the hypotenuse is formed by (a) and (c) with length `range`, and the known side is formed
-            // by (a) and (b) with length equal to the distance between the near plane and the light position.
-            // The remaining unknown side is formed by (b) and (c) with length equal to the radius of the circle.
-            // m_ClipCircleRadius = sqrt(sq(light.range) - sq(m_Near - m_LightPosition.z));
-            var sphereClipRadius = math.sqrt(rangesq - square(near - lightPositionVS.z));
-
-            // Assumes a point on the sphere, i.e. at distance `range` from the light position.
-            // If spot light, we check the angle between the direction vector from the light position and the light direction vector.
-            // Note that division by range is to normalize the vector, as we know that the resulting vector will have length `range`.
-            bool SpherePointIsValid(float3 p) => light.lightType == LightType.Point ||
-                math.dot(math.normalize(p - lightPositionVS), lightDirectionVS) >= cosHalfAngle;
-
-            // Project light sphere onto YZ plane, find the horizon points, and re-construct view space position of found points.
-            // CalculateSphereYBounds(lightPositionVS, range, near, sphereClipRadius, out var sphereBoundY0, out var sphereBoundY1);
-            GetSphereHorizon(lightPositionVS.yz, range, near, sphereClipRadius, out var sphereBoundYZ0, out var sphereBoundYZ1);
-            var sphereBoundY0 = math.float3(lightPositionVS.x, sphereBoundYZ0);
-            var sphereBoundY1 = math.float3(lightPositionVS.x, sphereBoundYZ1);
-            if (SpherePointIsValid(sphereBoundY0)) ExpandY(sphereBoundY0);
-            if (SpherePointIsValid(sphereBoundY1)) ExpandY(sphereBoundY1);
-
-            // Project light sphere onto XZ plane, find the horizon points, and re-construct view space position of found points.
-            GetSphereHorizon(lightPositionVS.xz, range, near, sphereClipRadius, out var sphereBoundXZ0, out var sphereBoundXZ1);
-            var sphereBoundX0 = math.float3(sphereBoundXZ0.x, lightPositionVS.y, sphereBoundXZ0.y);
-            var sphereBoundX1 = math.float3(sphereBoundXZ1.x, lightPositionVS.y, sphereBoundXZ1.y);
-            if (SpherePointIsValid(sphereBoundX0)) ExpandY(sphereBoundX0);
-            if (SpherePointIsValid(sphereBoundX1)) ExpandY(sphereBoundX1);
+            // Outline of the sphere projected onto the YZ and XZ planes: the horizon as seen from the camera, and the
+            // extremes of the circles cut by the near and far planes. Missing points are NaN.
+            GetCircleHorizon(lightPositionVS.yz, range, out var horizonY0, out var horizonY1);
+            GetCircleHorizon(lightPositionVS.xz, range, out var horizonX0, out var horizonX1);
+            ExpandYIfInSphereCap(math.float3(lightPositionVS.x, horizonY0), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+            ExpandYIfInSphereCap(math.float3(lightPositionVS.x, horizonY1), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+            ExpandYIfInSphereCap(math.float3(horizonX0.x, lightPositionVS.y, horizonX0.y), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+            ExpandYIfInSphereCap(math.float3(horizonX1.x, lightPositionVS.y, horizonX1.y), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+            for (var i = 0; i < 2; i++)
+            {
+                var depth = i == 0 ? near : far;
+                var sectionRadius = math.sqrt(rangesq - square(depth - lightPositionVS.z));
+                ExpandYIfInSphereCap(math.float3(lightPositionVS.x, lightPositionVS.y - sectionRadius, depth), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                ExpandYIfInSphereCap(math.float3(lightPositionVS.x, lightPositionVS.y + sectionRadius, depth), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                ExpandYIfInSphereCap(math.float3(lightPositionVS.x - sectionRadius, lightPositionVS.y, depth), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                ExpandYIfInSphereCap(math.float3(lightPositionVS.x + sectionRadius, lightPositionVS.y, depth), lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+            }
 
             if (light.lightType == LightType.Spot)
             {
@@ -137,8 +124,8 @@ namespace UnityEngine.Rendering.Universal
                 GetProjectedCircleHorizon(baseCenter.yz, baseRadius, baseUY.yz, baseVY.yz, out var baseY1UV, out var baseY2UV);
                 var baseY1 = baseCenter + baseY1UV.x * baseUY + baseY1UV.y * baseVY;
                 var baseY2 = baseCenter + baseY2UV.x * baseUY + baseY2UV.y * baseVY;
-                if (baseY1.z >= near) ExpandY(baseY1);
-                if (baseY2.z >= near) ExpandY(baseY2);
+                if (IsInDepthRange(baseY1)) ExpandY(baseY1);
+                if (IsInDepthRange(baseY2)) ExpandY(baseY2);
 
                 // Project cone base into the XZ plane, find the horizon points, and re-construct view space position of found points.
                 // See comment for YZ plane for details.
@@ -147,66 +134,62 @@ namespace UnityEngine.Rendering.Universal
                 GetProjectedCircleHorizon(baseCenter.xz, baseRadius, baseUX.xz, baseVX.xz, out var baseX1UV, out var baseX2UV);
                 var baseX1 = baseCenter + baseX1UV.x * baseUX + baseX1UV.y * baseVX;
                 var baseX2 = baseCenter + baseX2UV.x * baseUX + baseX2UV.y * baseVX;
-                if (baseX1.z >= near) ExpandY(baseX1);
-                if (baseX2.z >= near) ExpandY(baseX2);
+                if (IsInDepthRange(baseX1)) ExpandY(baseX1);
+                if (IsInDepthRange(baseX2)) ExpandY(baseX2);
 
-                // Handle base circle clipping by intersecting it with the near-plane if needed.
+                // Handle base circle clipping by intersecting it with the near and far planes if needed.
                 if (GetCircleClipPoints(baseCenter, lightDirectionVS, baseRadius, near, out var baseClip0, out var baseClip1))
                 {
                     ExpandY(baseClip0);
                     ExpandY(baseClip1);
                 }
+                if (GetCircleClipPoints(baseCenter, lightDirectionVS, baseRadius, far, out var baseFarClip0, out var baseFarClip1))
+                {
+                    ExpandY(baseFarClip0);
+                    ExpandY(baseFarClip1);
+                }
 
-                bool ConicPointIsValid(float3 p) =>
-                    math.dot(math.normalize(p - lightPositionVS), lightDirectionVS) >= 0 &&
-                    math.dot(p - lightPositionVS, lightDirectionVS) <= coneHeight;
+                var sinHalfAngle = math.sin(halfAngle);
+                var coneDistanceTolerance = 1e-5f * (math.length(lightPositionVS) + range);
+                bool ConicPointIsValid(float3 p) => IsOnCone(p, lightPositionVS, lightDirectionVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance);
 
-                // Calculate Z bounds of cone and check if it's overlapping with the near plane.
+                // Calculate Z bounds of cone and check if it's overlapping with the near and far planes.
                 // From https://www.iquilezles.org/www/articles/diskbbox/diskbbox.htm
-                var baseExtentZ = baseRadius * math.sqrt(1.0f - square(lightDirectionVS.z));
-                var coneIsClipping = near >= math.min(baseCenter.z - baseExtentZ, lightPositionVS.z) && near <= math.max(baseCenter.z + baseExtentZ, lightPositionVS.z);
+                var baseExtentZ = baseRadius * math.sqrt(math.saturate(1.0f - square(lightDirectionVS.z)));
+                var coneMinZ = math.min(baseCenter.z - baseExtentZ, lightPositionVS.z);
+                var coneMaxZ = math.max(baseCenter.z + baseExtentZ, lightPositionVS.z);
+                var coneIsClipping = near >= coneMinZ && near <= coneMaxZ;
+                var coneCrossesFar = far >= coneMinZ && far <= coneMaxZ;
 
-                var coneU = math.cross(lightDirectionVS, lightPositionVS);
-                // The cross product will be the 0-vector if the light-direction and camera-to-light-position vectors are parallel.
-                // In that case, {1, 0, 0} is orthogonal to the light direction and we use that instead.
-                coneU = math.csum(coneU) != 0f ? math.normalize(coneU) : math.float3(1, 0, 0);
+                // Any frame orthogonal to the axis works; cross with the view axis least aligned with it to keep it well conditioned.
+                var coneU = math.normalize(math.cross(lightDirectionVS, math.abs(lightDirectionVS.x) < 0.5f ? math.float3(1, 0, 0) : math.float3(0, 1, 0)));
                 var coneV = math.cross(lightDirectionVS, coneU);
 
-                if (coneIsClipping)
+                var nearSection = new ConeSection(near, lightPositionVS, lightDirectionVS, cosHalfAngle, sinHalfAngle);
+                var farSection = new ConeSection(far, lightPositionVS, lightDirectionVS, cosHalfAngle, sinHalfAngle);
+                for (var i = 0; i < 2; i++)
                 {
-                    var r = baseRadius / coneHeight;
-
-                    // Find the Y bounds of the near-plane cone intersection, i.e. where y' = 0
-                    var thetaY = FindNearConicTangentTheta(lightPositionVS.yz, lightDirectionVS.yz, r, coneU.yz, coneV.yz);
-                    var p0Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaY.x);
-                    var p1Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaY.y);
+                    if (i == 0 ? !coneIsClipping : !coneCrossesFar)
+                        continue;
+                    var section = i == 0 ? nearSection : farSection;
+                    section.GetYExtremes(out var p0Y, out var p1Y);
                     if (ConicPointIsValid(p0Y)) ExpandY(p0Y);
                     if (ConicPointIsValid(p1Y)) ExpandY(p1Y);
 
-                    // Find the X bounds of the near-plane cone intersection, i.e. where x' = 0
-                    var thetaX = FindNearConicTangentTheta(lightPositionVS.xz, lightDirectionVS.xz, r, coneU.xz, coneV.xz);
-                    var p0X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaX.x);
-                    var p1X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaX.y);
+                    section.GetXExtremes(out var p0X, out var p1X);
                     if (ConicPointIsValid(p0X)) ExpandY(p0X);
                     if (ConicPointIsValid(p1X)) ExpandY(p1X);
                 }
 
                 // Calculate the lines making up the sides of the cone as seen from the camera. `l1` and `l2` form lines
                 // from the light position.
-                GetConeSideTangentPoints(lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, coneU, coneV, out var l1, out var l2);
+                GetConeSideTangentPoints(-lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, coneU, coneV, out var l1, out var l2);
 
-                {
-                    var planeNormal = math.float3(0, 1, viewPlaneBottoms[m_ViewIndex]);
-                    var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
-                    var l1x = lightPositionVS + l1 * l1t;
-                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
-                }
-                {
-                    var planeNormal = math.float3(0, 1, viewPlaneTops[m_ViewIndex]);
-                    var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
-                    var l1x = lightPositionVS + l1 * l1t;
-                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
-                }
+                // Where the cone sides cross the bottom and top of the screen.
+                ExpandYAtViewPlane(lightPositionVS, l1, viewPlaneBottoms[m_ViewIndex]);
+                ExpandYAtViewPlane(lightPositionVS, l1, viewPlaneTops[m_ViewIndex]);
+                ExpandYAtViewPlane(lightPositionVS, l2, viewPlaneBottoms[m_ViewIndex]);
+                ExpandYAtViewPlane(lightPositionVS, l2, viewPlaneTops[m_ViewIndex]);
 
                 m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
 
@@ -223,25 +206,28 @@ namespace UnityEngine.Rendering.Universal
                     // Intersect lines with y-plane and clip if needed.
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
-                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandTileX(ref planeRange, ViewToTileSpace(l1x).x);
+                    if (l1t >= 0 && l1t <= 1 && IsInDepthRange(l1x)) ExpandTileX(ref planeRange, ViewToTileSpace(l1x).x);
 
                     var l2t = math.dot(-lightPositionVS, planeNormal) / math.dot(l2, planeNormal);
                     var l2x = lightPositionVS + l2 * l2t;
-                    if (l2t >= 0 && l2t <= 1 && l2x.z >= near) ExpandTileX(ref planeRange, ViewToTileSpace(l2x).x);
+                    if (l2t >= 0 && l2t <= 1 && IsInDepthRange(l2x)) ExpandTileX(ref planeRange, ViewToTileSpace(l2x).x);
 
-                    if (IntersectCircleYPlane(planeY, baseCenter, lightDirectionVS, baseUY, baseVY, baseRadius, out var circleTile0, out var circleTile1))
+                    if (IntersectCirclePlane(math.float4(0, 1, -planeY, 0), baseCenter, baseUY, baseVY, baseRadius, out var circleTile0, out var circleTile1))
                     {
-                        if (circleTile0.z >= near) ExpandTileX(ref planeRange, ViewToTileSpace(circleTile0).x);
-                        if (circleTile1.z >= near) ExpandTileX(ref planeRange, ViewToTileSpace(circleTile1).x);
+                        if (IsInDepthRange(circleTile0)) ExpandTileX(ref planeRange, ViewToTileSpace(circleTile0).x);
+                        if (IsInDepthRange(circleTile1)) ExpandTileX(ref planeRange, ViewToTileSpace(circleTile1).x);
                     }
 
                     if (coneIsClipping)
                     {
-                        var y = planeY * near;
-                        var r = baseRadius / coneHeight;
-                        var theta = FindNearConicYTheta(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, y);
-                        var p0 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.x).x, y, near);
-                        var p1 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.y).x, y, near);
+                        nearSection.IntersectRow(planeY * near, out var p0, out var p1);
+                        if (ConicPointIsValid(p0)) ExpandTileX(ref planeRange, ViewToTileSpace(p0).x);
+                        if (ConicPointIsValid(p1)) ExpandTileX(ref planeRange, ViewToTileSpace(p1).x);
+                    }
+
+                    if (coneCrossesFar)
+                    {
+                        farSection.IntersectRow(planeY * far, out var p0, out var p1);
                         if (ConicPointIsValid(p0)) ExpandTileX(ref planeRange, ViewToTileSpace(p0).x);
                         if (ConicPointIsValid(p1)) ExpandTileX(ref planeRange, ViewToTileSpace(p1).x);
                     }
@@ -258,9 +244,15 @@ namespace UnityEngine.Rendering.Universal
                 var planeRange = InclusiveRange.empty;
 
                 var planeY = math.lerp(viewPlaneBottoms[m_ViewIndex], viewPlaneTops[m_ViewIndex], planeIndex * tileScaleInv.y);
-                GetSphereYPlaneHorizon(lightPositionVS, range, near, sphereClipRadius, planeY, out var sphereTile0, out var sphereTile1);
-                if (SpherePointIsValid(sphereTile0)) ExpandTileX(ref planeRange, ViewToTileSpace(sphereTile0).x);
-                if (SpherePointIsValid(sphereTile1)) ExpandTileX(ref planeRange, ViewToTileSpace(sphereTile1).x);
+                GetSphereYPlaneHorizon(lightPositionVS, range, planeY, out var sphereTile0, out var sphereTile1);
+                ExpandTileXIfInSphereCap(ref planeRange, sphereTile0, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                ExpandTileXIfInSphereCap(ref planeRange, sphereTile1, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                for (var i = 0; i < 2; i++)
+                {
+                    GetSphereSectionRowPoints(lightPositionVS, rangesq, i == 0 ? near : far, planeY, out var section0, out var section1);
+                    ExpandTileXIfInSphereCap(ref planeRange, section0, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                    ExpandTileXIfInSphereCap(ref planeRange, section1, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot);
+                }
 
                 MergeTileRangeRows(planeIndex, planeRange);
             }
@@ -271,116 +263,158 @@ namespace UnityEngine.Rendering.Universal
         void TileLightOrthographic(int lightIndex)
         {
             var light = lights[lightIndex];
+            if (light.lightType != LightType.Point && light.lightType != LightType.Spot)
+            {
+                return;
+            }
+
             var lightToWorld = (float4x4)light.localToWorldMatrix;
             var lightPosVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c3.xyz, 1)).xyz;
             lightPosVS.z *= -1;
-            ExpandOrthographic(lightPosVS);
+            if (IsInDepthRange(lightPosVS)) ExpandOrthographic(lightPosVS);
             var lightDirVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c2.xyz, 0)).xyz;
             lightDirVS.z *= -1;
             lightDirVS = math.normalize(lightDirVS);
 
+            var isSpot = light.lightType == LightType.Spot;
             var halfAngle = math.radians(light.spotAngle * 0.5f);
             var range = light.range;
             var rangeSq = square(range);
             var cosHalfAngle = math.cos(halfAngle);
+            var sinHalfAngle = math.sin(halfAngle);
             var coneHeight = cosHalfAngle * range;
-            var coneHeightSq = square(coneHeight);
-            var coneHeightInv = 1f / coneHeight;
-            var coneHeightInvSq = square(coneHeightInv);
 
-            bool SpherePointIsValid(float3 p) => light.lightType == LightType.Point ||
-                math.dot(math.normalize(p - lightPosVS), lightDirVS) >= cosHalfAngle;
-
-            var sphereBoundY0 = lightPosVS - math.float3(0, range, 0);
-            var sphereBoundY1 = lightPosVS + math.float3(0, range, 0);
-            var sphereBoundX0 = lightPosVS - math.float3(range, 0, 0);
-            var sphereBoundX1 = lightPosVS + math.float3(range, 0, 0);
-
-            if (SpherePointIsValid(sphereBoundY0)) ExpandOrthographic(sphereBoundY0);
-            if (SpherePointIsValid(sphereBoundY1)) ExpandOrthographic(sphereBoundY1);
-            if (SpherePointIsValid(sphereBoundX0)) ExpandOrthographic(sphereBoundX0);
-            if (SpherePointIsValid(sphereBoundX1)) ExpandOrthographic(sphereBoundX1);
+            // The outline of the sphere is its equator facing the camera, clipped to the depth range, and the circles cut by
+            // the near and far planes.
+            var sphereOutline = math.bool3(IsInDepthRange(lightPosVS), math.abs(near - lightPosVS.z) <= range, math.abs(far - lightPosVS.z) <= range);
+            for (var i = 0; i < 3; i++)
+            {
+                if (!sphereOutline[i])
+                    continue;
+                var depth = i == 0 ? lightPosVS.z : i == 1 ? near : far;
+                var radius = math.sqrt(rangeSq - square(depth - lightPosVS.z));
+                ExpandOrthographicIfInSphereCap(math.float3(lightPosVS.x - radius, lightPosVS.y, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+                ExpandOrthographicIfInSphereCap(math.float3(lightPosVS.x + radius, lightPosVS.y, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+                ExpandOrthographicIfInSphereCap(math.float3(lightPosVS.x, lightPosVS.y - radius, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+                ExpandOrthographicIfInSphereCap(math.float3(lightPosVS.x, lightPosVS.y + radius, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+            }
 
             var circleCenter = lightPosVS + lightDirVS * coneHeight;
-            var circleRadius = math.sqrt(rangeSq - coneHeightSq);
-            var circleRadiusSq = square(circleRadius);
-            var circleUp = math.normalize(math.float3(0, 1, 0) - lightDirVS * lightDirVS.y);
-            var circleRight = math.normalize(math.float3(1, 0, 0) - lightDirVS * lightDirVS.x);
-            var circleBoundY0 = circleCenter - circleUp * circleRadius;
-            var circleBoundY1 = circleCenter + circleUp * circleRadius;
+            var circleRadius = range * sinHalfAngle;
+            var coneU = math.normalize(math.cross(lightDirVS, math.abs(lightDirVS.x) < 0.5f ? math.float3(1, 0, 0) : math.float3(0, 1, 0)));
+            var coneV = math.cross(lightDirVS, coneU);
+            var nearSection = new ConeSection(near, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle);
+            var farSection = new ConeSection(far, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle);
+            var circleExtentZ = circleRadius * math.sqrt(math.saturate(1.0f - square(lightDirVS.z)));
+            var coneMinZ = math.min(circleCenter.z - circleExtentZ, lightPosVS.z);
+            var coneMaxZ = math.max(circleCenter.z + circleExtentZ, lightPosVS.z);
+            var coneCrosses = math.bool2(near >= coneMinZ && near <= coneMaxZ, far >= coneMinZ && far <= coneMaxZ);
+            float3 l1 = 0, l2 = 0;
+            var coneDistanceTolerance = 1e-5f * (math.length(lightPosVS) + range);
 
-            if (light.lightType == LightType.Spot)
+            if (isSpot)
             {
-                var circleBoundX0 = circleCenter - circleRight * circleRadius;
-                var circleBoundX1 = circleCenter + circleRight * circleRadius;
-                ExpandOrthographic(circleBoundY0);
-                ExpandOrthographic(circleBoundY1);
-                ExpandOrthographic(circleBoundX0);
-                ExpandOrthographic(circleBoundX1);
+                // Extremes of the cone base circle, and its points on the near and far planes.
+                var circleUp = math.normalize(math.float3(0, 1, 0) - lightDirVS * lightDirVS.y) * circleRadius;
+                var circleRight = math.normalize(math.float3(1, 0, 0) - lightDirVS * lightDirVS.x) * circleRadius;
+                ExpandOrthographicIfInDepthRange(circleCenter - circleUp);
+                ExpandOrthographicIfInDepthRange(circleCenter + circleUp);
+                ExpandOrthographicIfInDepthRange(circleCenter - circleRight);
+                ExpandOrthographicIfInDepthRange(circleCenter + circleRight);
+                for (var i = 0; i < 2; i++)
+                {
+                    if (GetCircleClipPoints(circleCenter, lightDirVS, circleRadius, i == 0 ? near : far, out var clip0, out var clip1))
+                    {
+                        ExpandOrthographic(clip0);
+                        ExpandOrthographic(clip1);
+                    }
+                }
+
+                // Extremes of the cone sections with the near and far planes.
+                for (var i = 0; i < 2; i++)
+                {
+                    if (!coneCrosses[i])
+                        continue;
+                    var section = i == 0 ? nearSection : farSection;
+                    section.GetYExtremes(out var p0Y, out var p1Y);
+                    section.GetXExtremes(out var p0X, out var p1X);
+                    if (IsOnCone(p0Y, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandOrthographic(p0Y);
+                    if (IsOnCone(p1Y, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandOrthographic(p1Y);
+                    if (IsOnCone(p0X, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandOrthographic(p0X);
+                    if (IsOnCone(p1X, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandOrthographic(p1X);
+                }
+
+                // Silhouette lines of the cone as seen along the view direction.
+                GetConeSideTangentPoints(math.float3(0, 0, -1), lightDirVS, cosHalfAngle, circleRadius, coneHeight, range, coneU, coneV, out l1, out l2);
             }
 
             m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
 
-            // Find two lines in screen-space for the cone if the light is a spot.
-            float coneDir0X = 0, coneDir0YInv = 0, coneDir1X = 0, coneDir1YInv = 0;
-            if (light.lightType == LightType.Spot)
-            {
-                // Distance from light position to and radius of sphere fitted to the end of the cone.
-                var sphereDistance = coneHeight + circleRadiusSq * coneHeightInv;
-                var sphereRadius = math.sqrt(square(circleRadiusSq) * coneHeightInvSq + circleRadiusSq);
-                var directionXYSqInv = math.rcp(math.lengthsq(lightDirVS.xy));
-                var polarIntersection = -circleRadiusSq * coneHeightInv * directionXYSqInv * lightDirVS.xy;
-                var polarDir = math.sqrt((square(sphereRadius) - math.lengthsq(polarIntersection)) * directionXYSqInv) * math.float2(lightDirVS.y, -lightDirVS.x);
-                var conePBase = lightPosVS.xy + sphereDistance * lightDirVS.xy + polarIntersection;
-                var coneP0 = conePBase - polarDir;
-                var coneP1 = conePBase + polarDir;
-
-                coneDir0X = coneP0.x - lightPosVS.x;
-                coneDir0YInv = math.rcp(coneP0.y - lightPosVS.y);
-                coneDir1X = coneP1.x - lightPosVS.x;
-                coneDir1YInv = math.rcp(coneP1.y - lightPosVS.y);
-            }
-
-            // Tile plane ranges
+            // Tile plane ranges; the rows are the planes y = planeY.
             for (var planeIndex = m_TileYRange.start; planeIndex <= m_TileYRange.end + 1; planeIndex++)
             {
                 var planeRange = InclusiveRange.empty;
-
-                // Sphere
                 var planeY = math.lerp(viewPlaneBottoms[m_ViewIndex], viewPlaneTops[m_ViewIndex], planeIndex * tileScaleInv.y);
-                var sphereX = math.sqrt(rangeSq - square(planeY - lightPosVS.y));
-                var sphereX0 = math.float3(lightPosVS.x - sphereX, planeY, lightPosVS.z);
-                var sphereX1 = math.float3(lightPosVS.x + sphereX, planeY, lightPosVS.z);
-                if (SpherePointIsValid(sphereX0)) { ExpandRangeOrthographic(ref planeRange, sphereX0.x); }
-                if (SpherePointIsValid(sphereX1)) { ExpandRangeOrthographic(ref planeRange, sphereX1.x); }
 
-                if (light.lightType == LightType.Spot)
+                for (var i = 0; i < 3; i++)
                 {
-                    // Circle
-                    if (planeY >= circleBoundY0.y && planeY <= circleBoundY1.y)
+                    if (!sphereOutline[i])
+                        continue;
+                    var depth = i == 0 ? lightPosVS.z : i == 1 ? near : far;
+                    var halfWidth = math.sqrt(rangeSq - square(depth - lightPosVS.z) - square(planeY - lightPosVS.y));
+                    ExpandRangeOrthographicIfInSphereCap(ref planeRange, math.float3(lightPosVS.x - halfWidth, planeY, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+                    ExpandRangeOrthographicIfInSphereCap(ref planeRange, math.float3(lightPosVS.x + halfWidth, planeY, depth), lightPosVS, lightDirVS, cosHalfAngle, isSpot);
+                }
+
+                if (isSpot)
+                {
+                    if (IntersectCirclePlane(math.float4(0, 1, 0, -planeY), circleCenter, coneU, coneV, circleRadius, out var circle0, out var circle1))
                     {
-                        var intersectionDistance = (planeY - circleCenter.y) / circleUp.y;
-                        var closestPointX = circleCenter.x + intersectionDistance * circleUp.x;
-                        var intersectionDirX = -lightDirVS.z / math.length(math.float3(-lightDirVS.z, 0, lightDirVS.x));
-                        var sideDistance = math.sqrt(square(circleRadius) - square(intersectionDistance));
-                        var circleX0 = closestPointX - sideDistance * intersectionDirX;
-                        var circleX1 = closestPointX + sideDistance * intersectionDirX;
-                        ExpandRangeOrthographic(ref planeRange, circleX0);
-                        ExpandRangeOrthographic(ref planeRange, circleX1);
+                        if (IsInDepthRange(circle0)) ExpandRangeOrthographic(ref planeRange, circle0.x);
+                        if (IsInDepthRange(circle1)) ExpandRangeOrthographic(ref planeRange, circle1.x);
                     }
 
-                    // Cone
-                    var deltaY = planeY - lightPosVS.y;
-                    var coneT0 = deltaY * coneDir0YInv;
-                    var coneT1 = deltaY * coneDir1YInv;
-                    if (coneT0 >= 0 && coneT0 <= 1) { ExpandRangeOrthographic(ref planeRange, lightPosVS.x + coneT0 * coneDir0X); }
-                    if (coneT1 >= 0 && coneT1 <= 1) { ExpandRangeOrthographic(ref planeRange, lightPosVS.x + coneT1 * coneDir1X); }
+                    var line0 = lightPosVS + l1 * ((planeY - lightPosVS.y) / l1.y);
+                    var line1 = lightPosVS + l2 * ((planeY - lightPosVS.y) / l2.y);
+                    if (IsOnSegment(line0, lightPosVS, l1)) ExpandRangeOrthographic(ref planeRange, line0.x);
+                    if (IsOnSegment(line1, lightPosVS, l2)) ExpandRangeOrthographic(ref planeRange, line1.x);
+
+                    for (var i = 0; i < 2; i++)
+                    {
+                        if (!coneCrosses[i])
+                            continue;
+                        (i == 0 ? nearSection : farSection).IntersectRow(planeY, out var p0, out var p1);
+                        if (IsOnCone(p0, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandRangeOrthographic(ref planeRange, p0.x);
+                        if (IsOnCone(p1, lightPosVS, lightDirVS, cosHalfAngle, sinHalfAngle, coneHeight, coneDistanceTolerance)) ExpandRangeOrthographic(ref planeRange, p1.x);
+                    }
                 }
 
                 MergeTileRangeRows(planeIndex, planeRange);
             }
 
             tileRanges[m_Offset] = m_TileYRange;
+        }
+
+        // Whether p = origin + t * line lies on the segment (t in [0, 1]) and in the depth range.
+        bool IsOnSegment(float3 p, float3 origin, float3 line)
+        {
+            var t = math.dot(p - origin, line) / math.lengthsq(line);
+            return t >= 0 && t <= 1 && IsInDepthRange(p);
+        }
+
+        void ExpandOrthographicIfInDepthRange(float3 positionVS)
+        {
+            if (IsInDepthRange(positionVS)) ExpandOrthographic(positionVS);
+        }
+
+        void ExpandOrthographicIfInSphereCap(float3 positionVS, float3 lightPositionVS, float3 lightDirectionVS, float cosHalfAngle, bool isSpot)
+        {
+            if (IsInSphereCap(positionVS, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot)) ExpandOrthographic(positionVS);
+        }
+
+        void ExpandRangeOrthographicIfInSphereCap(ref InclusiveRange range, float3 positionVS, float3 lightPositionVS, float3 lightDirectionVS, float cosHalfAngle, bool isSpot)
+        {
+            if (IsInSphereCap(positionVS, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot)) ExpandRangeOrthographic(ref range, positionVS.x);
         }
 
         static readonly float3[] k_CubePoints =
@@ -428,8 +462,9 @@ namespace UnityEngine.Rendering.Universal
 
             // The vertices of the cube in view space.
             var points = new NativeArray<float3>(k_CubePoints.Length, Allocator.Temp);
-            // This is initially filled with just the cube vertices that lie in front of the near plane.
-            var clippedPoints = new NativeArray<float2>(k_CubePoints.Length + k_CubeLineIndices.Length * 3, Allocator.Temp);
+            // This is initially filled with just the cube vertices that lie between the near and far planes. Each edge can add
+            // two more points where it crosses them.
+            var clippedPoints = new NativeArray<float2>(k_CubePoints.Length + k_CubeLineIndices.Length * 3 * 2, Allocator.Temp);
             var clippedPointsCount = 0;
             var leftmostIndex = 0;
             for (var i = 0; i < k_CubePoints.Length; i++)
@@ -438,7 +473,7 @@ namespace UnityEngine.Rendering.Universal
                 var point = math.mul(worldToViews[m_ViewIndex], math.float4(rotatedPointsWS, 1)).xyz;
                 point.z *= -1;
                 points[i] = point;
-                if (point.z >= near)
+                if (IsInDepthRange(point))
                 {
                     var clippedPoint = isOrthographic ? point.xy : point.xy/point.z;
                     var clippedIndex = clippedPointsCount++;
@@ -447,8 +482,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Clip the cube's line segments with the near plane, and add the new vertices to clippedPoints. Only lines
-            // that are clipped will generate new vertices.
+            // Clip the cube's line segments with the near and far planes, and add the new vertices to clippedPoints. Only
+            // lines that cross a plane generate new vertices.
             for (var i = 0; i < k_CubeLineIndices.Length; i++)
             {
                 var indices = k_CubeLineIndices[i];
@@ -456,12 +491,11 @@ namespace UnityEngine.Rendering.Universal
                 for (var j = 0; j < 3; j++)
                 {
                     var p1 = points[indices[j+1]];
-                    // The entire line is in front of the near plane.
-                    if (p0.z < near && p1.z < near) continue;
-                    // Check whether the line needs clipping.
-                    if (p0.z < near || p1.z < near)
+                    for (var k = 0; k < 2; k++)
                     {
-                        var d = (near - p0.z) / (p1.z - p0.z);
+                        var depth = k == 0 ? near : far;
+                        if ((p0.z < depth) == (p1.z < depth)) continue;
+                        var d = (depth - p0.z) / (p1.z - p0.z);
                         var p = math.lerp(p0, p1, d);
                         var clippedPoint = isOrthographic ? p.xy : p.xy/p.z;
                         var clippedIndex = clippedPointsCount++;
@@ -560,6 +594,42 @@ namespace UnityEngine.Rendering.Universal
 
         void ExpandY(float3 positionVS) => ExpandTile(ViewToTileSpace(positionVS));
 
+        bool IsInDepthRange(float3 positionVS) => positionVS.z >= near && positionVS.z <= far;
+
+        // Whether a point of a cone section lies on the cone, up to its base. Also rejects points off the cone, which
+        // degenerate sections can produce. Tolerates ~1e-4 rad, or a distance from the surface on the order of the float
+        // precision of the light's coordinates.
+        internal static bool IsOnCone(float3 p, float3 vertex, float3 axis, float cosHalfAngle, float sinHalfAngle, float coneHeight, float distanceTolerance)
+        {
+            var q = p - vertex;
+            var length = math.length(q);
+            var axial = math.dot(q, axis);
+            return axial >= cosHalfAngle * length - sinHalfAngle * (1e-4f * length + distanceTolerance) && axial <= coneHeight;
+        }
+
+        // For points on a light's sphere: skips points outside the depth range and, for spot lights, outside the cone.
+        bool IsInSphereCap(float3 positionVS, float3 lightPositionVS, float3 lightDirectionVS, float cosHalfAngle, bool isSpot) =>
+            IsInDepthRange(positionVS) && (!isSpot || math.dot(math.normalize(positionVS - lightPositionVS), lightDirectionVS) >= cosHalfAngle);
+
+        void ExpandYIfInSphereCap(float3 positionVS, float3 lightPositionVS, float3 lightDirectionVS, float cosHalfAngle, bool isSpot)
+        {
+            if (IsInSphereCap(positionVS, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot)) ExpandY(positionVS);
+        }
+
+        void ExpandTileXIfInSphereCap(ref InclusiveRange range, float3 positionVS, float3 lightPositionVS, float3 lightDirectionVS, float cosHalfAngle, bool isSpot)
+        {
+            if (IsInSphereCap(positionVS, lightPositionVS, lightDirectionVS, cosHalfAngle, isSpot)) ExpandTileX(ref range, ViewToTileSpace(positionVS).x);
+        }
+
+        // Expands the tile Y range where the segment from origin to origin + line crosses the view plane y = planeY * z.
+        void ExpandYAtViewPlane(float3 origin, float3 line, float planeY)
+        {
+            var planeNormal = math.float3(0, 1, -planeY);
+            var t = math.dot(-origin, planeNormal) / math.dot(line, planeNormal);
+            var positionVS = origin + line * t;
+            if (t >= 0 && t <= 1 && IsInDepthRange(positionVS)) ExpandY(positionVS);
+        }
+
         void ExpandOrthographic(float3 positionVS) => ExpandTile(ViewToTileSpaceOrthographic(positionVS));
 
         void ExpandRangeOrthographic(ref InclusiveRange range, float xVS) => ExpandTileX(ref range, ViewToTileSpaceOrthographic(xVS).x);
@@ -609,138 +679,53 @@ namespace UnityEngine.Rendering.Universal
         static float square(float x) => x * x;
 
         /// <summary>
-        /// Finds the two horizon points seen from (0, 0) of a sphere projected onto either XZ or YZ. Takes clipping into account.
+        /// Returns the points where the tangents from the origin touch a 2D circle, or NaN if the origin is inside it.
         /// </summary>
-        static void GetSphereHorizon(float2 center, float radius, float near, float clipRadius, out float2 p0, out float2 p1)
+        static void GetCircleHorizon(float2 center, float radius, out float2 p0, out float2 p1)
         {
-            var direction = math.normalize(center);
-
-            // Distance from camera to center of sphere
-            var d = math.length(center);
-
-            // Distance from camera to sphere horizon edge
-            var l = math.sqrt(d * d - radius * radius);
-
-            // Height of circle horizon
-            var h = l * radius / d;
-
-            // Center of circle horizon
-            var c = direction * (l * h / radius);
-
-            p0 = math.float2(float.MinValue, 1f);
-            p1 = math.float2(float.MaxValue, 1f);
-
-            // Handle clipping
-            if (center.y - radius < near)
-            {
-                p0 = math.float2(center.x + clipRadius, near);
-                p1 = math.float2(center.x - clipRadius, near);
-            }
-
-            // Compare by x/z, not x: clip and horizon points lie at different depths.
-            var c0 = c + math.float2(-direction.y, direction.x) * h;
-            if (square(d) >= square(radius) && c0.y >= near)
-            {
-                if (c0.x / c0.y > p0.x / p0.y) { p0 = c0; }
-                if (c0.x / c0.y < p1.x / p1.y) { p1 = c0; }
-            }
-
-            var c1 = c + math.float2(direction.y, -direction.x) * h;
-            if (square(d) >= square(radius) && c1.y >= near)
-            {
-                if (c1.x / c1.y > p0.x / p0.y) { p0 = c1; }
-                if (c1.x / c1.y < p1.x / p1.y) { p1 = c1; }
-            }
-        }
-
-        static void GetSphereYPlaneHorizon(float3 center, float sphereRadius, float near, float clipRadius, float y, out float3 left, out float3 right)
-        {
-            // Note: The y-plane is the plane that is determined by `y` in that it contains the vector (1, 0, 0)
-            // and goes through the points (0, y, 1) and (0, 0, 0). This would become a straight line in screen-space, and so it
-            // represents the boundary between two rows of tiles.
-
-            // Near-plane clipping - will get overwritten if no clipping is needed.
-            // `y` is given for the view plane (Z=1), scale it so that it is on the near plane instead.
-            var yNear = y * near;
-            // Find the two points of intersection between the clip circle of the sphere and the y-plane.
-            // Found using Pythagoras with a right triangle formed by three points:
-            // (a) center of the clip circle
-            // (b) a point straight above the clip circle center on the y-plane
-            // (c) a point that is both on the circle and the y-plane (this is the point we want to find in the end)
-            // The hypotenuse is formed by (a) and (c) with length equal to the clip radius. The known side is
-            // formed by (a) and (b) and is simply the distance from the center to the y-plane along the y-axis.
-            // The remaining side gives us the x-displacement needed to find the intersection points.
-            var clipHalfWidth = math.sqrt(square(clipRadius) - square(yNear - center.y));
-            left = math.float3(center.x - clipHalfWidth, yNear, near);
-            right = math.float3(center.x + clipHalfWidth, yNear, near);
-
-            // Basis vectors in the y-plane for being able to parameterize the plane.
-            var planeU = math.normalize(math.float3(0, y, 1));
-            var planeV = math.float3(1, 0, 0);
-
-            // Calculate the normal of the y-plane. Found from: (0, y, 1) × (1, 0, 0) = (0, 1, -y)
-            // This is used to represent the plane along with the origin, which is just 0 and thus doesn't show up
-            // in the calculations.
-            var normal = math.normalize(math.float3(0, 1, -y));
-
-            // We want to first find the circle from the intersection of the y-plane and the sphere.
-
-            // The shortest distance from the sphere center and the y-plane. The sign determines which side of the plane
-            // the center is on.
-            var signedDistance = math.dot(normal, center);
-
-            // Unsigned shortest distance from the sphere center to the plane.
-            var distanceToPlane = math.abs(signedDistance);
-
-            // The center of the intersection circle in the y-plane, which is the point on the plane closest to the
-            // sphere center. I.e. this is at `distanceToPlane` from the center.
-            var centerOnPlane = math.float2(math.dot(center, planeU), math.dot(center, planeV));
-
-            // Distance from origin to the circle center.
-            var distanceInPlane = math.length(centerOnPlane);
-
-            // Direction from origin to the circle center.
-            var directionPS = centerOnPlane / distanceInPlane;
-
-            // Calculate the radius of the circle using Pythagoras. We know that any point on the circle is a point on
-            // the sphere. Thus we can construct a triangle with the sphere center, circle center, and a point on the
-            // circle. We then want to find its distance to the circle center, as that will be equal to the radius. As
-            // the point is on the sphere, it must be `sphereRadius` from the sphere center, forming the hypotenuse. The
-            // other side is between the sphere and circle centers, which we've already calculated to be
-            // `distanceToPlane`.
-            var circleRadius = math.sqrt(square(sphereRadius) - square(distanceToPlane));
-
-            // Now that we have the circle, we can find the horizon points. Since we've parametrized the plane, we can
-            // just do this in 2D.
-
-            // Any of these conditions will yield NaN due to negative square roots. They are signs that clipping is needed,
-            // so we fallback on the already calculated values in that case.
-            if (square(distanceToPlane) <= square(sphereRadius) && square(circleRadius) <= square(distanceInPlane))
-            {
-                // Distance from origin to circle horizon edge.
-                var l = math.sqrt(square(distanceInPlane) - square(circleRadius));
-
-                // Height of circle horizon.
-                var h = l * circleRadius / distanceInPlane;
-
-                // Center of circle horizon.
-                var c = directionPS * (l * h / circleRadius);
-
-                // Calculate the horizon points in the plane.
-                var leftOnPlane = c + math.float2(directionPS.y, -directionPS.x) * h;
-                var rightOnPlane = c + math.float2(-directionPS.y, directionPS.x) * h;
-
-                // Transform horizon points to view space and use if not clipped.
-                var leftCandidate = leftOnPlane.x * planeU + leftOnPlane.y * planeV;
-                if (leftCandidate.z >= near) left = leftCandidate;
-
-                var rightCandidate = rightOnPlane.x * planeU + rightOnPlane.y * planeV;
-                if (rightCandidate.z >= near) right = rightCandidate;
-            }
+            // With d the distance to the center and l the tangent length, the points are (l^2 * center +- l * r * perp(center)) / d^2.
+            var dSq = math.lengthsq(center);
+            var l = math.sqrt(dSq - square(radius));
+            var side = l * radius * math.float2(-center.y, center.x);
+            p0 = (square(l) * center + side) / dSq;
+            p1 = (square(l) * center - side) / dSq;
         }
 
         /// <summary>
-        /// Finds the two points of intersection of a 3D circle and the near plane.
+        /// Returns the horizon points, as seen from the origin, of the circle cut from a sphere by the plane through the
+        /// origin and the view-plane row at height y. NaN if the plane misses the sphere or the origin is inside the circle.
+        /// </summary>
+        static void GetSphereYPlaneHorizon(float3 center, float sphereRadius, float y, out float3 left, out float3 right)
+        {
+            // Basis vectors in the y-plane, which contains (1, 0, 0) and (0, y, 1), and its normal (0, 1, -y).
+            var planeU = math.normalize(math.float3(0, y, 1));
+            var planeV = math.float3(1, 0, 0);
+            var normal = math.normalize(math.float3(0, 1, -y));
+
+            // The section circle is centered at the point of the plane closest to the sphere center.
+            var distanceToPlane = math.dot(normal, center);
+            var centerOnPlane = math.float2(math.dot(center, planeU), math.dot(center, planeV));
+            var circleRadius = math.sqrt(square(sphereRadius) - square(distanceToPlane));
+
+            GetCircleHorizon(centerOnPlane, circleRadius, out var leftOnPlane, out var rightOnPlane);
+            left = leftOnPlane.x * planeU + leftOnPlane.y * planeV;
+            right = rightOnPlane.x * planeU + rightOnPlane.y * planeV;
+        }
+
+        /// <summary>
+        /// Returns the points where the plane through the origin and the view-plane row at height planeY crosses the
+        /// circle cut from a sphere by the plane z = depth, or NaN if there are none.
+        /// </summary>
+        static void GetSphereSectionRowPoints(float3 center, float radiusSq, float depth, float planeY, out float3 p0, out float3 p1)
+        {
+            var y = planeY * depth;
+            var halfWidth = math.sqrt(radiusSq - square(depth - center.z) - square(y - center.y));
+            p0 = math.float3(center.x - halfWidth, y, depth);
+            p1 = math.float3(center.x + halfWidth, y, depth);
+        }
+
+        /// <summary>
+        /// Finds the two points of intersection of a 3D circle and the plane z = near.
         /// </summary>
         static bool GetCircleClipPoints(float3 circleCenter, float3 circleNormal, float circleRadius, float near, out float3 p0, out float3 p1)
         {
@@ -777,32 +762,6 @@ namespace UnityEngine.Rendering.Universal
             return math.abs(distance) <= circleRadius;
         }
 
-        static (float, float) IntersectEllipseLine(float a, float b, float3 line)
-        {
-            // The line is represented as a homogenous 2D line {u, v, w} such that ux + vy + w = 0.
-            // The ellipse is represented by the implicit equation x^2/a^2 + y^2/b^2 = 1.
-            // We solve the line equation for y:  y = (ux + w) / v
-            // We then substitute this into the ellipse equation and expand and re-arrange a bit:
-            //   x^2/a^2 + ((ux + w) / v)^2/b^2 = 1 =>
-            //   x^2/a^2 + ((ux + w)^2 / v^2)/b^2 = 1 =>
-            //   x^2/a^2 + (ux + w)^2/(v^2 b^2) = 1 =>
-            //   x^2/a^2 + (u^2 x^2 + w^2 + 2 u x w)/(v^2 b^2) = 1 =>
-            //   x^2/a^2 + x^2 u^2 / (v^2 b^2) + w^2/(v^2 b^2) + x 2 u w / (v^2 b^2) = 1 =>
-            //   x^2 (1/a^2 + u^2 / (v^2 b^2)) + x 2 u w / (v^2 b^2) + w^2 / (v^2 b^2) - 1 = 0
-            // We now have a quadratic equation with:
-            //   a = 1/a^2 + u^2 / (v^2 b^2)
-            //   b = 2 u w / (v^2 b^2)
-            //   c = w^2 / (v^2 b^2) - 1
-            var div = math.rcp(square(line.y) * square(b));
-            var qa = 1f / square(a) + square(line.x) * div;
-            var qb = 2f * line.x * line.z * div;
-            var qc = square(line.z) * div - 1f;
-            var sqrtD = math.sqrt(qb * qb - 4f * qa * qc);
-            var x1 = (-qb + sqrtD) / (2f * qa);
-            var x2 = (-qb - sqrtD) / (2f * qa);
-            return (x1, x2);
-        }
-
         /// <summary>
         /// Calculates the horizon of a circle orthogonally projected to a plane as seen from the origin on the plane.
         /// </summary>
@@ -812,7 +771,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="V">The minor axis of the ellipse formed by the projection of the circle.</param>
         /// <param name="uv1">The first horizon point expressed as factors of <paramref name="U"/> and <paramref name="V"/>.</param>
         /// <param name="uv2">The second horizon point expressed as factors of <paramref name="U"/> and <paramref name="V"/>.</param>
-        static void GetProjectedCircleHorizon(float2 center, float radius, float2 U, float2 V, out float2 uv1, out float2 uv2)
+        internal static void GetProjectedCircleHorizon(float2 center, float radius, float2 U, float2 V, out float2 uv1, out float2 uv2)
         {
             // U is assumed to be constructed such that it is never 0, but V can be if the circle projects to a line segment.
             // In that case, the solution can be trivially found using U only.
@@ -825,76 +784,47 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 var ul = math.length(U);
-                var ulinv = math.rcp(ul);
-                var vlinv = math.rcp(vl);
 
                 // Normalize U and V in the plane.
-                var u = U * ulinv;
-                var v = V * vlinv;
+                var u = U / ul;
+                var v = V / vl;
 
                 // Major and minor axis of the ellipse.
                 var a = ul * radius;
                 var b = vl * radius;
 
-                // Project the camera position into a 2D coordinate system with the circle at (0, 0) and
-                // the ellipse major and minor axes as the coordinate system axes. This allows us to use the standard
-                // form of the ellipse equation, greatly simplifying the calculations.
-                var cameraUV = math.float2(math.dot(-center, u), math.dot(-center, v));
-
-                // Find the polar line of the camera position in the normalized UV coordinate system.
-                var polar = math.float3(cameraUV.x / square(a), cameraUV.y / square(b), -1);
-                var (t1, t2) = IntersectEllipseLine(a, b, polar);
-
-                // Find Y by putting polar into line equation and solving. Denormalize by dividing by U and V lengths.
-                uv1 = math.float2(t1 * ulinv, (-polar.x / polar.y * t1 - polar.z / polar.y) * vlinv);
-                uv2 = math.float2(t2 * ulinv, (-polar.x / polar.y * t2 - polar.z / polar.y) * vlinv);
+                // Scale the ellipse to the unit circle, where the tangent points from the camera q are
+                // (q +- sqrt(|q|^2 - 1) * perp(q)) / |q|^2. A camera inside the ellipse has no horizon and yields NaN.
+                var q = math.float2(math.dot(-center, u), math.dot(-center, v)) / math.float2(a, b);
+                var qq = math.lengthsq(q);
+                var side = math.sqrt(qq - 1f) * math.float2(-q.y, q.x);
+                uv1 = (q + side) / qq * radius;
+                uv2 = (q - side) / qq * radius;
             }
         }
 
-        static bool IntersectCircleYPlane(
-            float y, float3 circleCenter, float3 circleNormal, float3 circleU, float3 circleV, float circleRadius,
+        /// <summary>
+        /// Intersects a 3D circle with the plane dot(plane.xyz, p) + plane.w = 0.
+        /// </summary>
+        static bool IntersectCirclePlane(
+            float4 plane, float3 circleCenter, float3 circleU, float3 circleV, float circleRadius,
             out float3 p1, out float3 p2)
         {
             p1 = p2 = 0;
 
-            // Intersecting a circle with a plane yields 2 points, or the whole circle if the plane and the plane of the
-            // circle are the same, or nothing if the planes are parallel but offset. We're only interested in the first
-            // case. Our other tests will catch the other cases.
+            // In circle coordinates (s, t), the plane is the line a * s + b * t + k = 0. Parallel planes (a = b = 0)
+            // give the whole circle or nothing, which the other bounds cover.
+            var lineNormal = math.float2(math.dot(plane.xyz, circleU), math.dot(plane.xyz, circleV));
+            var lineNormalLengthSq = math.lengthsq(lineNormal);
+            if (lineNormalLengthSq == 0f) return false;
 
-            // The two points will be on the line of intersection of the two planes. Thus we first have to find that line.
+            var k = math.dot(plane.xyz, circleCenter) + plane.w;
+            var distToLineSq = k * k / lineNormalLengthSq;
+            if (distToLineSq > circleRadius * circleRadius) return false;
 
-            // Shoot 2 rays along the y-plane and intersect the circle plane. We then transform them into the circle
-            // plane, so that we can work in 2D.
-            var CdotN = math.dot(circleCenter, circleNormal);
-            var h1v = math.float3(1, y, 1) * CdotN / math.dot(math.float3(1, y, 1), circleNormal) - circleCenter;
-            var h1 = math.float2(math.dot(h1v, circleU), math.dot(h1v, circleV));
-            var h2v = math.float3(-1, y, 1) * CdotN / math.dot(math.float3(-1, y, 1), circleNormal) - circleCenter;
-            var h2 = math.float2(math.dot(h2v, circleU), math.dot(h2v, circleV));
-
-            var lineDirection = math.normalize(h2 - h1);
-            // We now have the direction of the line, and would like to find the point on it that is closest to the
-            // circle center. A line in 2D is similar to a plane in 3D. So we can calculate a normal, which is just a
-            // perpendicular/orthogonal direction, and then take the dot product to find the distance. This is similar
-            // to when calculating the d-term for a plane in 3D, which is also just calculating the closest distance
-            // from the origin to the plane.
-            var lineNormal = math.float2(lineDirection.y, -lineDirection.x);
-            var distToLine = math.dot(h1, lineNormal);
-            // We can then get that point on the line by following our normal with the distance we just calculated.
-            var lineCenter = lineNormal * distToLine;
-
-            // Avoid negative square roots, as this means we've hit one of the cases that we do not care about.
-            if (distToLine > circleRadius) return false;
-
-            // What's left now is to intersect the line with the circle. We can do so with Pythagoras. Our triangle
-            // is made up of `lineCenter`, the circle center and one of the intersection points.
-            // We know the distance from `lineCenter` to the circle center (`distToLine`), and the distance from
-            // the circle center to one of the intersection points must be the circle radius, as it lies on the
-            // circle, forming the hypotenuse.
-            var l = math.sqrt(circleRadius * circleRadius - distToLine * distToLine);
-
-            // What we found above is the distance from `lineCenter` to each of the intersection points. So we just
-            // scrub along the line in both directions using the found distance, and then transform back into view
-            // space.
+            var lineCenter = -k / lineNormalLengthSq * lineNormal;
+            var lineDirection = math.float2(-lineNormal.y, lineNormal.x) * math.rsqrt(lineNormalLengthSq);
+            var l = math.sqrt(circleRadius * circleRadius - distToLineSq);
             var x1 = lineCenter + l * lineDirection;
             var x2 = lineCenter - l * lineDirection;
             p1 = circleCenter + x1.x * circleU + x1.y * circleV;
@@ -903,11 +833,14 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        static void GetConeSideTangentPoints(float3 vertex, float3 axis, float cosHalfAngle, float circleRadius, float coneHeight, float range, float3 circleU, float3 circleV, out float3 l1, out float3 l2)
+        /// <summary>
+        /// Finds the cone's silhouette lines from its vertex, as seen along toCamera: the vector from the vertex to the
+        /// camera, or the direction towards the camera for an orthographic projection.
+        /// </summary>
+        static void GetConeSideTangentPoints(float3 toCamera, float3 axis, float cosHalfAngle, float circleRadius, float coneHeight, float range, float3 circleU, float3 circleV, out float3 l1, out float3 l2)
         {
             l1 = l2 = 0;
 
-            var toCamera = -vertex;
             if (math.dot(math.normalize(toCamera), axis) >= cosHalfAngle)
             {
                 return;
@@ -933,26 +866,77 @@ namespace UnityEngine.Rendering.Universal
             l2 = (cosHalfAngle * axis + sinHalfAngle * (e2.x * circleU + e2.y * circleV)) * range;
         }
 
-        static float3 EvaluateNearConic(float near, float3 o, float3 d, float r, float3 u, float3 v, float theta)
+        /// <summary>
+        /// Section of a cone with the plane z = depth. With q = p - vertex = (x, y, z) and z = depth - vertex.z fixed, the cone
+        /// is dot(q, axis)^2 = cos^2 * dot(q, q), which is solved directly in the plane to stay stable when the vertex is close to it.
+        /// </summary>
+        internal struct ConeSection
         {
-            var h = (near - o.z) / (d.z + r * u.z * math.cos(theta) + r * v.z * math.sin(theta));
-            return math.float3(o.xy + h * (d.xy + r * u.xy * math.cos(theta) + r * v.xy * math.sin(theta)), near);
+            float3 m_Vertex;
+            float3 m_Axis;
+            float m_Depth;
+            float m_Z;
+            float m_CosSq;
+            float m_SinSq;
+
+            public ConeSection(float depth, float3 vertex, float3 axis, float cosHalfAngle, float sinHalfAngle)
+            {
+                m_Vertex = vertex;
+                m_Axis = axis;
+                m_Depth = depth;
+                m_Z = depth - vertex.z;
+                m_CosSq = cosHalfAngle * cosHalfAngle;
+                m_SinSq = sinHalfAngle * sinHalfAngle;
+            }
+
+            /// <summary>
+            /// Returns the points with extreme y, NaN or infinite where there are none.
+            /// </summary>
+            public void GetYExtremes(out float3 p0, out float3 p1)
+            {
+                var d = m_Axis;
+                var y = SolveQuadratic(d.z * d.z - m_SinSq, -d.y * d.z * m_Z, m_Z * m_Z * (d.y * d.y - m_SinSq));
+                var x = -d.x * (d.y * y + d.z * m_Z) / (d.x * d.x - m_CosSq);
+                p0 = ToView(x.x, y.x);
+                p1 = ToView(x.y, y.y);
+            }
+
+            /// <summary>
+            /// Returns the points with extreme x, NaN or infinite where there are none.
+            /// </summary>
+            public void GetXExtremes(out float3 p0, out float3 p1)
+            {
+                var d = m_Axis;
+                var x = SolveQuadratic(d.z * d.z - m_SinSq, -d.x * d.z * m_Z, m_Z * m_Z * (d.x * d.x - m_SinSq));
+                var y = -d.y * (d.x * x + d.z * m_Z) / (d.y * d.y - m_CosSq);
+                p0 = ToView(x.x, y.x);
+                p1 = ToView(x.y, y.y);
+            }
+
+            /// <summary>
+            /// Returns the points at view-space height y, NaN or infinite where there are none.
+            /// </summary>
+            public void IntersectRow(float yVS, out float3 p0, out float3 p1)
+            {
+                var d = m_Axis;
+                var y = yVS - m_Vertex.y;
+                var k = d.y * y + d.z * m_Z;
+                var x = SolveQuadratic(d.x * d.x - m_CosSq, d.x * k, k * k - m_CosSq * (y * y + m_Z * m_Z));
+                p0 = ToView(x.x, y);
+                p1 = ToView(x.y, y);
+            }
+
+            float3 ToView(float x, float y) => math.float3(m_Vertex.xy + math.float2(x, y), m_Depth);
         }
 
-        // o, d, u and v are expected to contain {x or y, z}. I.e. pass in x values to find tangents where x' = 0
-        // Returns the two theta values as a float2.
-        static float2 FindNearConicTangentTheta(float2 o, float2 d, float r, float2 u, float2 v)
+        /// <summary>
+        /// Returns the roots of a * t^2 + 2 * b * t + c = 0: NaN if there are none, and one is infinite if a is 0.
+        /// </summary>
+        static float2 SolveQuadratic(float a, float b, float c)
         {
-            var sqrt = math.sqrt(square(d.x) * square(u.y) + square(d.x) * square(v.y) - 2f * d.x * d.y * u.x * u.y - 2f * d.x * d.y * v.x * v.y + square(d.y) * square(u.x) + square(d.y) * square(v.x) - square(r) * square(u.x) * square(v.y) + 2f * square(r) * u.x * u.y * v.x * v.y - square(r) * square(u.y) * square(v.x));
-            var denom = d.x * v.y - d.y * v.x - r * u.x * v.y + r * u.y * v.x;
-            return 2 * math.atan((-d.x * u.y + d.y * u.x + math.float2(1, -1) * sqrt) / denom);
-        }
-
-        static float2 FindNearConicYTheta(float near, float3 o, float3 d, float r, float3 u, float3 v, float y)
-        {
-            var sqrt = math.sqrt(-square(d.y) * square(o.z) + 2 * square(d.y) * o.z * near - square(d.y) * square(near) + 2 * d.y * d.z * o.y * o.z - 2 * d.y * d.z * o.y * near - 2 * d.y * d.z * o.z * y + 2 * d.y * d.z * y * near - square(d.z) * square(o.y) + 2 * square(d.z) * o.y * y - square(d.z) * square(y) + square(o.y) * square(r) * square(u.z) + square(o.y) * square(r) * square(v.z) - 2 * o.y * o.z * square(r) * u.y * u.z - 2 * o.y * o.z * square(r) * v.y * v.z - 2 * o.y * y * square(r) * square(u.z) - 2 * o.y * y * square(r) * square(v.z) + 2 * o.y * square(r) * u.y * u.z * near + 2 * o.y * square(r) * v.y * v.z * near + square(o.z) * square(r) * square(u.y) + square(o.z) * square(r) * square(v.y) + 2 * o.z * y * square(r) * u.y * u.z + 2 * o.z * y * square(r) * v.y * v.z - 2 * o.z * square(r) * square(u.y) * near - 2 * o.z * square(r) * square(v.y) * near + square(y) * square(r) * square(u.z) + square(y) * square(r) * square(v.z) - 2 * y * square(r) * u.y * u.z * near - 2 * y * square(r) * v.y * v.z * near + square(r) * square(u.y) * square(near) + square(r) * square(v.y) * square(near));
-            var denom = d.y * o.z - d.y * near - d.z * o.y + d.z * y + o.y * r * u.z - o.z * r * u.y - y * r * u.z + r * u.y * near;
-            return 2 * math.atan((r * (o.y * v.z - o.z * v.y - y * v.z + v.y * near) + math.float2(1, -1) * sqrt) / denom);
+            // Avoids the cancellation in -b + sqrt(b^2 - ac) by computing that root as c / q.
+            var q = -(b + (b < 0f ? -math.sqrt(b * b - a * c) : math.sqrt(b * b - a * c)));
+            return math.float2(q / a, c / q);
         }
     }
 }
