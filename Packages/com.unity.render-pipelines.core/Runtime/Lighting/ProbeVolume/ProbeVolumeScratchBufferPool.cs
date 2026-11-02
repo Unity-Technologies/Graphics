@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
             m_ValidityLayerCount = bakingSet.bakedMaskCount;
             m_SkyOcclusionSize = bakingSet.sharedSkyOcclusionL0L1ChunkSize;
             m_SkyShadingDirectionSize = bakingSet.sharedSkyShadingDirectionIndicesChunkSize;
-            m_L2Size = bakingSet.L2TextureChunkSize;
+            m_L2Size = shBands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? bakingSet.L2TextureChunkSize : 0;
             m_ProbeOcclusionSize = bakingSet.ProbeOcclusionChunkSize;
         }
 
