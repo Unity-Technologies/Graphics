@@ -323,12 +323,20 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             meshBuildInfo.baseVertex = 0;
             meshBuildInfo.triangleIndices = indexBuffer;
             meshBuildInfo.vertexCount = (uint)blas.blasVertices.block.count;
-            meshBuildInfo.triangleCount = (uint)submeshDescriptor.indexCount / 3;
-            meshBuildInfo.indicesStartOffset = submeshDescriptor.indexStart;
+            meshBuildInfo.triangleCount = mesh.GetIndexCount(submeshIndex) / 3;
+            meshBuildInfo.indicesStartOffset = (int)mesh.GetIndexStart(submeshIndex);
             meshBuildInfo.baseIndex = -submeshDescriptor.firstVertex;
             meshBuildInfo.indexFormat = mesh.indexFormat == IndexFormat.UInt32 ? RadeonRays.IndexFormat.Int32 : RadeonRays.IndexFormat.Int16;
             meshBuildInfo.vertexStride = 3;
             blas.buildInfo = meshBuildInfo;
+
+            if (IsEmpty(blas))
+            {
+                blas.bvhInternalNodesAlloc = AllocateBlasInternalNodes(0);
+                blas.bvhLeafNodesAlloc = AllocateBlasLeafNodes(0);
+                blas.bvhBuilt = true;
+                return;
+            }
 
             #if UNITY_EDITOR
             if (m_UseCpuBuild)
@@ -391,6 +399,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             var buffer = mesh.GetVertexBuffer(stream);
             Debug.Assert((buffer.target & GraphicsBuffer.Target.Raw) != 0, "Mesh vertex buffer target must include Raw.");
             return buffer;
+        }
+
+        static bool IsEmpty(Blas blas)
+        {
+            return blas is MeshBlas { buildInfo: { triangleCount: 0 } };
         }
 
         void DeleteMeshBlas((int mesh, int subMeshIndex) geomKey, MeshBlas blas)
@@ -559,9 +572,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         void BuildTopLevelAccelStruct(CommandBuffer cmd, GraphicsBuffer scratchBuffer)
         {
-            var radeonRaysInstances = new RadeonRays.Instance[m_RadeonInstances.Count];
-            int i = 0;
+            var nonEmptyInstances = new List<RadeonRaysInstance>(m_RadeonInstances.Count);
             foreach (var instance in m_RadeonInstances.Values)
+            {
+                if (!IsEmpty(instance.blas))
+                    nonEmptyInstances.Add(instance);
+            }
+
+            var radeonRaysInstances = new RadeonRays.Instance[nonEmptyInstances.Count];
+            int i = 0;
+            foreach (var instance in nonEmptyInstances)
             {
                 if (instance.blas is MeshBlas meshBlas)
                 {
@@ -587,7 +607,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             #if UNITY_EDITOR
             if (m_UseCpuBuild)
-                m_TopLevelAccelStruct = CpuBuildForTopLevelAccelStruct(cmd, radeonRaysInstances);
+                m_TopLevelAccelStruct = CpuBuildForTopLevelAccelStruct(cmd, nonEmptyInstances, radeonRaysInstances);
             else
             #endif
                 m_TopLevelAccelStruct = m_RadeonRaysAPI.BuildSceneAccelStruct(cmd, m_BlasInternalNodesBuffer, radeonRaysInstances, scratchBuffer);
@@ -704,11 +724,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         }
 
 
-        TopLevelAccelStruct CpuBuildForTopLevelAccelStruct(CommandBuffer cmd, RadeonRays.Instance[] radeonRaysInstances)
+        TopLevelAccelStruct CpuBuildForTopLevelAccelStruct(CommandBuffer cmd, List<RadeonRaysInstance> instances, RadeonRays.Instance[] radeonRaysInstances)
         {
-            var prims = new GpuBvhPrimitiveDescriptor[m_RadeonInstances.Count];
+            var prims = new GpuBvhPrimitiveDescriptor[instances.Count];
             int i = 0;
-            foreach (var instance in m_RadeonInstances.Values)
+            foreach (var instance in instances)
             {
                 Blas blas = instance.blas;
                 AABB aabb = blas.aabbForCpuBuild;
@@ -732,7 +752,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 i++;
             }
 
-            if (m_RadeonInstances.Count != 0)
+            if (instances.Count != 0)
             {
                 var options = ConvertFlagsToCpuBuild(m_BuildFlags, true);
 

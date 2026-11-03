@@ -473,6 +473,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 for (int submeshIndex = 0; submeshIndex < mesh.subMeshCount; ++submeshIndex)
                 {
                     SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(submeshIndex);
+                    int submeshIndexCount = (int)mesh.GetIndexCount(submeshIndex);
                     var newMeshChunk = MeshChunk.Invalid;
 
                     newMeshChunk.vertexAlloc = m_VertexAllocator.Allocate(submeshDescriptor.vertexCount);
@@ -487,10 +488,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                         m_MaxVertCounts = newCapacity;
                     }
 
-                    newMeshChunk.indexAlloc = m_IndexAllocator.Allocate(submeshDescriptor.indexCount);
+                    newMeshChunk.indexAlloc = m_IndexAllocator.Allocate(submeshIndexCount);
                     if (!newMeshChunk.indexAlloc.valid)
                     {
-                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshDescriptor.indexCount, GraphicsHelpers.MaxElementCount(sizeof(int)), out int oldCapacity, out int newCapacity);
+                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshIndexCount, GraphicsHelpers.MaxElementCount(sizeof(int)), out int oldCapacity, out int newCapacity);
                         if (!newMeshChunk.indexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
@@ -623,7 +624,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     AddIndexUpdateCommand(
                         cmdBuffer,
                         mesh.indexFormat, buffer, targetMeshChunk.indexAlloc, submeshDescriptor.firstVertex,
-                        submeshDescriptor.indexStart, submeshDescriptor.indexCount, 0,
+                        (int)mesh.GetIndexStart(submeshIndex), (int)mesh.GetIndexCount(submeshIndex), 0,
                         m_GlobalIndexBuffer);
 
                     meshChunkAllocationTable[submeshIndex] = targetMeshChunk.EncodeGPUEntry();
