@@ -14,6 +14,7 @@ class RuntimeTests
     Camera camera;
     RenderPipelineAsset currentAssetGraphics;
     RenderPipelineAsset currentAssetQuality;
+    RenderTexture m_Destination;
 
     [SetUp]
     public void Setup()
@@ -30,6 +31,12 @@ class RuntimeTests
         GraphicsSettings.defaultRenderPipeline = currentAssetGraphics;
         QualitySettings.renderPipeline = currentAssetQuality;
         Object.DestroyImmediate(go);
+        if (m_Destination != null)
+        {
+            m_Destination.Release();
+            Object.DestroyImmediate(m_Destination);
+            m_Destination = null;
+        }
     }
 
     static readonly (int tier, string textTier)[] k_ShadowResolutions =
@@ -116,6 +123,90 @@ class RuntimeTests
 
         Assert.AreEqual(QualitySettings.activeColorSpace == ColorSpace.Linear, GraphicsSettings.lightsUseLinearIntensity,
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
+    }
+
+    [UnityTest]
+    public IEnumerator RenderRequest_WithCubemapDestination_RendersIntoRequestedFace(
+        [Values] bool useSingleCameraRequest,
+        [Values] bool destinationHasDepth)
+    {
+        AssetCheck();
+
+        if ((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) == 0)
+            Assert.Ignore("Render requests into a cubemap require CopyTextureSupport.DifferentTypes.");
+
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = Color.red;
+        camera.cullingMask = 0;
+
+        var depthStencilFormat = destinationHasDepth
+            ? CoreUtils.GetDefaultDepthStencilFormat()
+            : UnityEngine.Experimental.Rendering.GraphicsFormat.None;
+        m_Destination = new RenderTexture(64, 64, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm,
+            depthStencilFormat)
+        {
+            dimension = TextureDimension.Cube
+        };
+        m_Destination.Create();
+
+        if (useSingleCameraRequest)
+        {
+            RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest
+            {
+                destination = m_Destination,
+                face = CubemapFace.PositiveX
+            });
+        }
+        else
+        {
+            RenderPipeline.SubmitRenderRequest(camera, new RenderPipeline.StandardRequest
+            {
+                destination = m_Destination,
+                face = CubemapFace.PositiveX
+            });
+        }
+        yield return null;
+
+        var faceCopy = new RenderTexture(m_Destination.width, m_Destination.height, 0, m_Destination.graphicsFormat);
+        Texture2D readback = null;
+        var previousActive = RenderTexture.active;
+        try
+        {
+            Graphics.CopyTexture(m_Destination, (int)CubemapFace.PositiveX, 0, faceCopy, 0, 0);
+
+            int centerX = faceCopy.width / 2;
+            int centerY = faceCopy.height / 2;
+            Color pixel;
+
+            // ReadPixels does not work on WebGPU when the browser lacks JSPI
+            if (SystemInfo.supportsAsyncGPUReadback)
+            {
+                var request = AsyncGPUReadback.Request(faceCopy, 0, TextureFormat.RGBA32);
+                while (!request.done)
+                    yield return null;
+
+                Assert.IsFalse(request.hasError, "AsyncGPUReadback of the requested cubemap face failed.");
+                pixel = request.GetData<Color32>()[centerY * faceCopy.width + centerX];
+            }
+            else
+            {
+                readback = new Texture2D(faceCopy.width, faceCopy.height, TextureFormat.RGBA32, false);
+                RenderTexture.active = faceCopy;
+                readback.ReadPixels(new Rect(0, 0, faceCopy.width, faceCopy.height), 0, 0);
+                readback.Apply();
+                pixel = readback.GetPixel(centerX, centerY);
+            }
+
+            Assert.Greater(pixel.r, 0.9f, $"The requested cubemap face does not contain the camera rendering. Pixel: {pixel}");
+        }
+        finally
+        {
+            RenderTexture.active = previousActive;
+            faceCopy.Release();
+            Object.DestroyImmediate(faceCopy);
+            if (readback != null)
+                Object.DestroyImmediate(readback);
+        }
     }
 
     // When switching to URP it sets "UniversalPipeline" as global shader tag.
