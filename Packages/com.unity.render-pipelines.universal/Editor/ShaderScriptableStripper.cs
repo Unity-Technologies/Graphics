@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_ReflectionProbeRotation(ref IShaderScriptableStrippingData strippingData)
         {
-            if (strippingData.PassHasKeyword(m_ReflectionProbeRotation))
+            if (strippingData.PassHasKeyword(m_ReflectionProbeRotation) && !strippingData.IsKeywordDynamic(m_ReflectionProbeRotation))
             {
                 bool useRotation = !strippingData.stripReflectionProbeRotationVariants;
                 return useRotation != strippingData.IsKeywordEnabled(m_ReflectionProbeRotation);
