@@ -1,5 +1,6 @@
 using UnityEditor.Build.Profile;
 using UnityEditor.Shaders;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -14,6 +15,9 @@ namespace UnityEditor.Rendering.Universal
         const string k_Identifier = "URP_GLOBAL_CONSTANT_BUFFER";
         const string k_Value = "1";
         const string k_Define = k_Identifier + " " + k_Value;
+
+        // SessionState survives domain reloads, so the warning is logged once per editor session.
+        const string k_HiddenSettingWarnedKey = "URP.GlobalConstantBuffer.HiddenSettingWarned";
 
         [InitializeOnLoadMethod]
         static void Initialize()
@@ -51,6 +55,8 @@ namespace UnityEditor.Rendering.Universal
             if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderingCapabilitiesSettings>(out var capabilities))
                 return;
 
+            WarnIfEnabledButHidden(capabilities.useGlobalConstantBuffer);
+
             // As an internal define, it stays out of the Shader Constant Defines UI and nobody can
             // edit it out of sync with the setting.
             ShaderBuildSettings buildSettings = EditorGraphicsSettings.GetShaderBuildSettings();
@@ -74,6 +80,23 @@ namespace UnityEditor.Rendering.Universal
             EditorGraphicsSettings.SetShaderBuildSettings(buildSettings);
         }
 
+        // Outside Developer Mode the Rendering Capabilities section is hidden but the setting still applies, and the
+        // define is internal, so it isn't listed in the Shader Constant Defines either. Someone who opens a project
+        // where it was committed on would get the constant buffer path, and the shader reimport that comes with it,
+        // with nothing in the UI to explain it or turn it off.
+        static void WarnIfEnabledButHidden(bool enabled)
+        {
+            if (!ShouldWarnEnabledButHidden(enabled, Unsupported.IsDeveloperMode(), SessionState.GetBool(k_HiddenSettingWarnedKey, false)))
+                return;
+
+            SessionState.SetBool(k_HiddenSettingWarnedKey, true);
+            Debug.LogWarning("URP's Use Global Constant Buffer setting is on in this project. This work-in-progress setting only shows in "
+                + "Developer Mode, under Project Settings > Graphics > URP > Rendering Capabilities. Shaders are compiled with the "
+                + "URP_GLOBAL_CONSTANT_BUFFER define, which costs more memory, and URP pushes its global shader variables through a "
+                + "constant buffer. To turn it off, clear the setting in Developer Mode, or set m_UseGlobalConstantBuffer to 0 in the "
+                + "URP Global Settings asset. Either way, every shader is reimported.");
+        }
+
         internal enum DefineAction
         {
             None,
@@ -89,5 +112,9 @@ namespace UnityEditor.Rendering.Universal
 
             return wanted ? DefineAction.Add : DefineAction.Remove;
         }
+
+        // Kept apart from the editor state it reads so it can be tested, like Decide.
+        internal static bool ShouldWarnEnabledButHidden(bool enabled, bool developerMode, bool alreadyWarned)
+            => enabled && !developerMode && !alreadyWarned;
     }
 }
