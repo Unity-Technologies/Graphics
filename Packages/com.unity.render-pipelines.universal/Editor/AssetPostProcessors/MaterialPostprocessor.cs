@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
                 string commandLineOptions = Environment.CommandLine;
                 bool inTestSuite = commandLineOptions.Contains("-testResults");
                 bool isTemplate = EditorApplication.isCreateFromTemplate;
-                if (!inTestSuite && fileExist && !isTemplate)
+                if (!inTestSuite && fileExist && !isTemplate && !Application.isBatchMode)
                 {
                     EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
                         " Unity must upgrade them to be compatible with your current version of URP. \n" +
