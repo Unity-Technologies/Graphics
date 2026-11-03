@@ -906,13 +906,16 @@ namespace UnityEngine.Rendering.Universal
                 // * Similar reasoning as for drawShadowPasses - GBuffer is public frame data so custom passes that don't
                 //   respect opaqueLayerMask can draw to it (e.g. DecalGBufferRenderPass or custom gbuffer passes).
                 drawDeferredLightingPass = cameraCullingMask != 0,
+
+                // depthTextureProducedByPrepass:
+                // * The prepass produces the camera depth texture directly instead of it being copied from the depth attachment.
+                //   If the prepass is not drawn, depth texture is cleared.
+                depthTextureProducedByPrepass = requirePrepassForTextures && !usesDeferredLighting && !useDepthPriming,
             };
 
             // Only use a depth format when we do a prepass directly to the cameraDepthTexture, or if R32F color format is not supported. If we do depth priming (ie, prepass to the activeCameraDepth), we don't do a prepass to the texture. Instead, we do a copy from the primed attachment.
-            // The prepass must also actually execute (drawPrepass); if it's skipped due to empty layer masks, the cameraDepthTexture is never written by the prepass.
-            bool prepassToCameraDepthTexture = renderStages.drawPrepass && requirePrepassForTextures && !usesDeferredLighting && !useDepthPriming;
-            bool depthTextureIsDepthFormat = prepassToCameraDepthTexture || !PlatformAutoDetect.hasRenderToR32F;
-            bool requireCopyFromDepth = renderPassInputs.requiresDepthTexture && !prepassToCameraDepthTexture;
+            bool depthTextureIsDepthFormat = renderStages.depthTextureProducedByPrepass || !PlatformAutoDetect.hasRenderToR32F;
+            bool requireCopyFromDepth = renderPassInputs.requiresDepthTexture && !renderStages.depthTextureProducedByPrepass;
 
             // We configure this for the first camera of the stack and overlay camera will reuse create color/depth var
             // to pick the correct target, as if there is an intermediate texture, overlay cam should use them
@@ -1157,7 +1160,7 @@ namespace UnityEngine.Rendering.Universal
         // During a partial prepass, we only render forward opaque objects that aren't rendered into the gbuffer.
         // This produces a set of partial depth & normal buffers that must be completed by the gbuffer pass later in the frame.
         // This allows us to produce complete depth & normals data before lighting takes place, but it isn't valid when custom
-        // passes require this data before the gbuffer pass finishes.
+        // passes require this data before the gbuffer pass finishes (see CalculateDepthCopySchedule).
         private static bool AllowPartialDepthNormalsPrepass(bool isDeferred, RenderPassInputSummary renderPassInputSummary, bool useDepthPriming)
         {
             bool requiresDepthAfterGbuffer = RenderPassEvent.AfterRenderingGbuffer <= renderPassInputSummary.requiresDepthTextureEarliestEvent;
@@ -1219,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal
             return schedule;
         }
 
-        private DepthCopySchedule CalculateDepthCopySchedules(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool isDeferred, bool requiresDepthPrepass, bool hasFullPrepass)
+        private static DepthCopySchedule CalculateDepthCopySchedules(in RenderPassInputSummary renderPassInputs, bool depthTextureProducedByPrepass)
         {
             // Assume the depth texture is unused and no copy is needed until we determine otherwise
             DepthCopySchedule depth = DepthCopySchedule.None;
@@ -1227,23 +1230,14 @@ namespace UnityEngine.Rendering.Universal
             // If the depth texture is read during the frame, determine when the copy should occur
             if (renderPassInputs.requiresDepthTexture)
             {
-                //The prepass will render directly to the depthTexture when not using depth priming. Therefore we don't need a copy in that case.
-                bool depthTextureRequiresCopy = isDeferred || (!requiresDepthPrepass || useDepthPriming);
-
-                if (depthTextureRequiresCopy)
+                if (depthTextureProducedByPrepass)
                 {
-                    // A depth read before the GBuffer is served by a copy right after the prepass, so the prepass has
-                    // to be a full one. A missing prepass (e.g. an empty camera culling mask) is not a bug: depth
-                    // simply isn't available before the GBuffer in that case.
-                    Debug.Assert(renderPassInputs.requiresDepthTextureEarliestEvent >= RenderPassEvent.AfterRenderingGbuffer
-                                 || !requiresDepthPrepass
-                                 || hasFullPrepass, "Doing a partial prepass when the full depth data is needed before 'AfterRenderingGBuffer'");
-
-                    depth = CalculateDepthCopySchedule(renderPassInputs.requiresDepthTextureEarliestEvent);
+                    // The prepass will render directly to the depthTexture when not using depth priming. Therefore we don't need a copy in that case.
+                    depth = DepthCopySchedule.DuringPrepass;
                 }
                 else
                 {
-                    depth = DepthCopySchedule.DuringPrepass;
+                    depth = CalculateDepthCopySchedule(renderPassInputs.requiresDepthTextureEarliestEvent);
                 }
             }
             return depth;
@@ -1280,15 +1274,10 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPrePasses);
 
-            bool isDepthOnlyPrepass = renderStages.drawPrepass && !renderPassInputs.requiresNormalsTexture;
             bool isDepthNormalPrepass = renderStages.drawPrepass && renderPassInputs.requiresNormalsTexture;
 
-            // The depth prepass is considered "full" (renders the entire scene, not a partial subset), when we either:
-            // - Have a depth only prepass (URP always renders the full scene in depth only mode)
-            // - Have a depth normals prepass that does not allow the partial prepass optimization
-            bool hasFullPrepass = isDepthOnlyPrepass || (isDepthNormalPrepass && !AllowPartialDepthNormalsPrepass(usesDeferredLighting, renderPassInputs, useDepthPriming));
-
-            var depthCopySchedule = CalculateDepthCopySchedules(cameraData, renderPassInputs, usesDeferredLighting, renderStages.drawPrepass, hasFullPrepass);
+            bool hasPartialPrepass = isDepthNormalPrepass && AllowPartialDepthNormalsPrepass(usesDeferredLighting, renderPassInputs, useDepthPriming);
+            var depthCopySchedule = CalculateDepthCopySchedules(renderPassInputs, renderStages.depthTextureProducedByPrepass);
 
             // Decide if & when to use GPU Occlusion Culling.
             // In deferred, do it during gbuffer laydown unless we are forced to do a *full* prepass by a render pass.
@@ -1346,7 +1335,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // There's no special copy logic for the camera normals texture, so we can set the global as long as we're not performing a partial prepass.
                     // In the case of a partial prepass, the global will be set later by the gbuffer pass once it completes the data in the texture.
-                    bool setGlobalTextures = isLastPass && hasFullPrepass;
+                    bool setGlobalTextures = isLastPass && !hasPartialPrepass;
 
                     if (isDepthNormalPrepass)
                     {
@@ -1357,7 +1346,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             SetupRenderGraphCameraProperties(renderGraph, depthTarget);
                         }
-                        DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures, !hasFullPrepass);
+                        DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures, hasPartialPrepass);
                         // Restore camera properties for the rest of the render graph execution.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
@@ -1376,6 +1365,14 @@ namespace UnityEngine.Rendering.Universal
                             InstanceOcclusionTest(renderGraph, cameraData, OcclusionTest.TestAll);
                     }
                 }
+            }
+            else
+            {
+                // When a required prepass is skipped due to not rendering any geometry, clear & publish the textures it would have produced.
+                TextureHandle cameraDepthTexture = renderStages.depthTextureProducedByPrepass ? resourceData.cameraDepthTexture : TextureHandle.nullHandle;
+                TextureHandle cameraNormalsTexture = renderPassInputs.requiresNormalsTexture && !usesDeferredLighting ? resourceData.cameraNormalsTexture : TextureHandle.nullHandle;
+                TextureHandle renderingLayersTexture = !usesDeferredLighting && m_RenderingLayerProvidesByDepthNormalPass ? resourceData.renderingLayersTexture : TextureHandle.nullHandle;
+                PublishPrepassGlobalTexturesPass.Render(renderGraph, cameraDepthTexture, cameraNormalsTexture, renderingLayersTexture);
             }
 
             // After the prepass completes, we should copy depth if necessary and also render motion vectors. (they're expected to be available whenever depth is)
@@ -1398,7 +1395,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
                 // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
                 // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
-                m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, cameraData, isDepthNormalPrepass);
+                // Render into the camera normals texture whenever normals are required, so it's produced even if the prepass is skipped.
+                m_DeferredLights.CreateGbufferTextures(renderGraph, resourceData, cameraData, renderPassInputs.requiresNormalsTexture);
 
                 m_ValidationHandler.OnBeforeGBuffers(renderGraph, resourceData);
 
@@ -1420,7 +1418,8 @@ namespace UnityEngine.Rendering.Universal
 
 	                // When we have a partial depth normals prepass, we must wait until the gbuffer pass to set global textures.
 	                // In this case, the incoming global texture data is incomplete and the gbuffer pass is required to complete it.
-	                bool setGlobalTextures = isDepthNormalPrepass && !hasFullPrepass;
+	                // When the prepass is skipped, the gbuffer pass is the only producer of these textures.
+	                bool setGlobalTextures = hasPartialPrepass || (!renderStages.drawPrepass && renderPassInputs.requiresNormalsTexture);
 #if ENABLE_VR && ENABLE_XR_MODULE
                     // Draw the inset depth occluder only once before the first GBuffer sub-pass.
                     // The near-plane depth values it writes persist into subsequent sub-passes because depth is never cleared or invalidated between them
@@ -1658,7 +1657,7 @@ namespace UnityEngine.Rendering.Universal
             IUpscaler activeUpscaler = postProcessingData.activeUpscaler;
             bool requiresFinalPostUpscale = cameraData.resolvedUpscalerHash == UniversalRenderPipeline.k_UpscalerHash_FSR1
                             || (activeUpscaler != null && !activeUpscaler.isTemporal && !postProcessingData.activeUpscalerIsEmbedded);
-			
+
             // When FXAA or scaling is active, we must perform an additional pass at the end of the frame for the following reasons:
             // 1. FXAA expects to be the last shader running on the image before it's presented to the screen. Since users are allowed
             //    to add additional render passes after post processing occurs, we can't run FXAA until all of those passes complete as well.
@@ -2275,6 +2274,45 @@ namespace UnityEngine.Rendering.Universal
 
                 // Empty render func. We are only marking the textures as used which triggers a clear.
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) => { });
+            }
+        }
+    }
+
+    // Only publishes the textures that a prepass would normally publish, in the case where the actual prepass is not executed.
+    // Implemented as a single pass instead to avoid overhead from three separate passes if using RenderGraphUtils.SetGlobalTexture.
+    static class PublishPrepassGlobalTexturesPass
+    {
+        const string k_PassName = "Publish Prepass Global Textures";
+        static readonly ProfilingSampler s_ProfilingSampler = new ProfilingSampler(k_PassName);
+
+        private class PassData { }
+
+        internal static void Render(RenderGraph graph, TextureHandle cameraDepthTexture, TextureHandle cameraNormalsTexture, TextureHandle renderingLayersTexture)
+        {
+            if (!cameraDepthTexture.IsValid() && !cameraNormalsTexture.IsValid() && !renderingLayersTexture.IsValid())
+                return;
+
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_PassName, out _, s_ProfilingSampler))
+            {
+                if (cameraDepthTexture.IsValid())
+                {
+                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
+                    builder.SetGlobalTextureAfterPass(cameraDepthTexture, DepthOnlyPass.s_CameraDepthTextureID);
+                }
+                if (cameraNormalsTexture.IsValid())
+                {
+                    builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
+                    builder.SetGlobalTextureAfterPass(cameraNormalsTexture, DepthNormalOnlyPass.s_CameraNormalsTextureID);
+                }
+                if (renderingLayersTexture.IsValid())
+                {
+                    builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
+                    builder.SetGlobalTextureAfterPass(renderingLayersTexture, DepthNormalOnlyPass.s_CameraRenderingLayersTextureID);
+                }
+
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc(static (PassData _, RasterGraphContext _) => { });
             }
         }
     }

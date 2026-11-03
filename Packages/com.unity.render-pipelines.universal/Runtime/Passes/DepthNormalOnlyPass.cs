@@ -21,8 +21,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal static readonly string k_CameraNormalsTextureName = "_CameraNormalsTexture";
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
-        private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
+        internal static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
+        internal static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
         // Publishes a valid default as the normals global, for the frames where this pass isn't recorded
         internal static void SetDefaultNormalsGlobalTexture(IBaseRenderGraphBuilder builder, TextureHandle defaultNormalsTexture)
