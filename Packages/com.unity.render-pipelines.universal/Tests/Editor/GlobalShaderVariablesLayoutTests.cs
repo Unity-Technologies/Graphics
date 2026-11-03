@@ -18,6 +18,9 @@ namespace UnityEditor.Rendering.Universal.Tests
         // A cbuffer is addressed as an array of float4 registers.
         const int k_RegisterSize = 16;
 
+        // The cache line size guideline 5 in GlobalShaderVariables.cs lays the matrices out for.
+        const int k_CacheLineSize = 64;
+
         static readonly BindingFlags k_FieldFlags =
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
@@ -97,6 +100,23 @@ namespace UnityEditor.Rendering.Universal.Tests
                     // A field smaller than a register must fit entirely inside one.
                     Assert.That(offset % k_RegisterSize + size, Is.LessThanOrEqualTo(k_RegisterSize),
                         $"{field.DeclaringType.Name}.{field.Name} is {size} bytes at offset {offset}, it straddles a register boundary. Add padding before it.");
+                }
+            });
+        }
+
+        // Guideline 5 starts every matrix on a cache line, so that a lit draw reads each main light shadow cascade from a
+        // single line. A register added or removed before them breaks that without any compile or packing error, only the
+        // GPU time shows it. The offset counts from the start of the buffer, so the check runs on GlobalShaderVariables.
+        [Test]
+        public void MatricesStartOnCacheLineBoundary()
+        {
+            ForEachLeafField(typeof(GlobalShaderVariables), 0, (field, offset) =>
+            {
+                if (field.FieldType == typeof(Matrix4x4))
+                {
+                    Assert.That(offset % k_CacheLineSize, Is.Zero,
+                        $"{field.DeclaringType.Name}.{field.Name} is a Matrix4x4 at offset {offset}, it must start on a {k_CacheLineSize}-byte boundary. " +
+                        $"Keep the number of registers before it a multiple of {k_CacheLineSize / k_RegisterSize}, see guideline 5 in GlobalShaderVariables.cs.");
                 }
             });
         }

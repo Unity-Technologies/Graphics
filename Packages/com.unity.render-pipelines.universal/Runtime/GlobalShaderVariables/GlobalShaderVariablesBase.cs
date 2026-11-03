@@ -63,23 +63,25 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _LastTimeParameters; // UnityInput.hlsl
         public Vector4 _ScreenParams; // UnityInput.hlsl
         public Vector4 _ZBufferParams; // UnityInput.hlsl
-        public Vector4 unity_OrthoParams; // UnityInput.hlsl
         public Vector4 _RTHandleScale; // UnityInput.hlsl
-        public Vector4 _ScaledScreenParams; // Unity.hlsl
         public Vector4 _ScreenSize; // UnityInput.hlsl
         public Vector4 _ScreenSizeOverride; // Unity.hlsl
         public Vector4 _ScreenCoordScaleBias; // Unity.hlsl
 
-        // Ambient gradient, filled from RenderSettings.
+        // Ambient gradient and environment color, filled from RenderSettings.
         public Vector4 unity_AmbientSky; // UnityInput.hlsl
         public Vector4 unity_AmbientEquator; // UnityInput.hlsl
         public Vector4 unity_AmbientGround; // UnityInput.hlsl
+        public Vector4 _GlossyEnvironmentColor; // Unity.hlsl
+
+        // From _GlossyEnvironmentColor on, the members lit fragment shaders read, see guideline 5 in GlobalShaderVariables.
+        public Vector4 unity_OrthoParams; // UnityInput.hlsl
+        public Vector4 _ScaledScreenParams; // Unity.hlsl
         public Vector2 _GlobalMipBias; // UnityInput.hlsl
         public float _DitheringTextureInvSize; // LODCrossFade.hlsl
         public float _URPPadding1;
 
         // Environment, come from RenderSettings.
-        public Vector4 _GlossyEnvironmentColor; // Unity.hlsl
         public Vector4 _SubtractiveShadowColor; // Unity.hlsl
         public Vector4 _GlossyEnvironmentCubeMap_HDR; // Unity.hlsl
     }

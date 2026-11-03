@@ -209,27 +209,30 @@ namespace UnityEngine.Rendering.Universal
     [StructLayout(LayoutKind.Sequential)]
     internal struct GlobalShaderVariablesOnly3D
     {
+        // Up to the main light shadow matrices, the members lit fragment shaders read, see guideline 5 in
+        // GlobalShaderVariables. They continue the ones closing GlobalShaderVariablesBase.
+
         // Main Light
-        public Matrix4x4 _MainLightWorldToLight; // LightCookieInput.hlsl
         public Vector4 _MainLightPosition; // Forward + Deferred Light
         public Vector4 _MainLightColor; // Forward + Deferred Light (half precision in shader)
         public Vector4 _MainLightOcclusionProbes; // Forward Light (half precision in shader)
+
+        // The scalars lit shaders read, in a single 16 byte row next to the main light, see guideline 5 in
+        // GlobalShaderVariables.
+        public uint _MainLightLayerMask; // Forward + Deferred Light
+        public uint _RenderingLayerMaxInt; // Unity.hlsl
+        public uint _EnableProbeVolumes; // Forward Light
+        public float _MainLightCookieTextureFormat; // LightCookieInput.hlsl
 
         // Forward+ Parameters
         public Vector4 _FPParams0; // Input.hlsl + USE_CLUSTER_LIGHT_LOOP
         public Vector4 _FPParams1; // Input.hlsl + USE_CLUSTER_LIGHT_LOOP
         public Vector4 _FPParams2; // Input.hlsl + USE_CLUSTER_LIGHT_LOOP
 
-        // Motion Vectors. In XR single pass the shader macros redirect every read to the Stereo arrays, which stay
-        // loose uniforms, so these two are only consumed outside XR. See UnityInput.hlsl.
-        public Matrix4x4 _NonJitteredViewProjMatrix; // UnityInput.hlsl
-        public Matrix4x4 _PrevViewProjMatrix; // UnityInput.hlsl
-
         // Additional Lights. The arrays themselves are in the AdditionalLights CBuffer.
         public Vector4 _AdditionalLightsCount; // Input.hlsl (half precision in shader), x holds the count
 
         // Main Light Shadows
-        public MainLightShadowMatrices _MainLightWorldToShadow; // GlobalShaderVariables.hlsl
         public Vector4 _CascadeShadowSplitSpheres0; // Shadows.hlsl
         public Vector4 _CascadeShadowSplitSpheres1; // Shadows.hlsl
         public Vector4 _CascadeShadowSplitSpheres2; // Shadows.hlsl
@@ -250,15 +253,21 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 _AdditionalShadowOffset1; // Shadows.hlsl
         public Vector4 _AdditionalShadowmapSize; // Shadows.hlsl
 
-        // Misc
-        public float _MainLightCookieTextureFormat; // LightCookieInput.hlsl
-        public float _AdditionalLightsCookieAtlasTextureFormat; // LightCookieInput.hlsl
-        public uint _RenderingLayerMaxInt; // Unity.hlsl
-        public uint _EnableProbeVolumes; // Forward Light
+        // Main Light Shadows matrices. The rows before them add up to a multiple of 64 bytes, so each cascade matrix fills
+        // one cache line, see guideline 5 in GlobalShaderVariables.
+        public MainLightShadowMatrices _MainLightWorldToShadow; // GlobalShaderVariables.hlsl
 
-        // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D fields we add can consume the
+        // Main Light cookie
+        public Matrix4x4 _MainLightWorldToLight; // LightCookieInput.hlsl
+
+        // Motion Vectors. In XR single pass the shader macros redirect every read to the Stereo arrays, which stay
+        // loose uniforms, so these two are only consumed outside XR. See UnityInput.hlsl.
+        public Matrix4x4 _NonJitteredViewProjMatrix; // UnityInput.hlsl
+        public Matrix4x4 _PrevViewProjMatrix; // UnityInput.hlsl
+
+        // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D scalars we add can consume the
         // remaining padding slots instead of needing padding of their own.
-        public uint _MainLightLayerMask; // Forward + Deferred Light
+        public float _AdditionalLightsCookieAtlasTextureFormat; // LightCookieInput.hlsl
         public uint _URPPadding2;
         public uint _URPPadding3;
         public uint _URPPadding4;

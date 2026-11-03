@@ -27,6 +27,17 @@ namespace UnityEngine.Rendering.Universal
     ///
     /// 5. Try to keep data grouped by access and rendering system as much as possible.
     ///   - Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
+    ///   - The members lit fragment shaders read sit together, from _GlossyEnvironmentColor in GlobalShaderVariablesBase to
+    ///     _AdditionalShadowmapSize in GlobalShaderVariablesOnly3D, followed by the main light shadow matrices. A lit draw then
+    ///     reads its constants from fewer 64 byte cache lines, which the GPU time shows on Switch.
+    ///     - Add a member lit shaders read inside that range, any other one outside of it. GlobalShaderVariablesBase ends
+    ///       inside the range, so a Base member lit shaders don't read goes before _GlossyEnvironmentColor, not at the end.
+    ///     - The scalars lit shaders read share the row right after the main light. The last row of GlobalShaderVariablesOnly3D
+    ///       holds _AdditionalLightsCookieAtlasTextureFormat, read only with additional light cookies, and the free slots
+    ///       for new 3D scalars.
+    ///     - Keep the number of 16 byte rows before _MainLightWorldToShadow, GlobalShaderVariablesBase included, a multiple
+    ///       of 4, so that each cascade matrix fills exactly one cache line. The same goes for every matrix:
+    ///       GlobalShaderVariablesLayoutTests checks that each one starts on a 64 byte boundary.
     ///
     /// 6. Total size of each sub-struct must be a multiple of 16 bytes (Vector4), add trailing padding when needed.
     ///
