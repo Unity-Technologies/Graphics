@@ -16,6 +16,9 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor")]
 
+// Access to HashFNV1A32 for the Unified Ray Tracing GeometryPool
+[assembly: InternalsVisibleTo("Unity.UnifiedRayTracing.Runtime")]
+
 // Access to RenderGraph internals (e.g. RenderGraphParameters.invalidContextForTesting) for SurfaceCache core tests
 [assembly: InternalsVisibleTo("Unity.SurfaceCache.Tests")]
 

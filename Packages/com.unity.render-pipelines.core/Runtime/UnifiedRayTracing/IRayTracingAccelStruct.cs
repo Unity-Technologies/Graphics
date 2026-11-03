@@ -21,6 +21,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public int subMeshIndex;
 
         /// <summary>
+        /// The Mesh LOD level used to build this instance's geometry. Default value: 0.
+        /// </summary>
+        /// <remarks>
+        /// The value must be less than <see cref="Mesh.lodCount"/>. For a Mesh without Mesh LODs, use 0.
+        /// </remarks>
+        public int meshLod;
+
+        /// <summary>
         /// The transformation matrix of the instance.
         /// </summary>
         public Matrix4x4 localToWorldMatrix;
@@ -70,6 +78,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             this.mesh = mesh;
             this.subMeshIndex = subMeshIndex;
+            meshLod = 0;
             localToWorldMatrix = Matrix4x4.identity;
             mask = 0xFFFFFFFF;
             instanceID = 0xFFFFFFFF;

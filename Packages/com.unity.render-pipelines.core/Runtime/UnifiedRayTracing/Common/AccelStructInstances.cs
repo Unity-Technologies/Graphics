@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             Debug.Assert(meshInstance.mesh != null, "targetRenderer.mesh is null");
 
             GeometryPoolHandle geometryHandle;
-            if (!m_GeometryPool.Register(meshInstance.mesh, out geometryHandle))
+            if (!m_GeometryPool.Register(meshInstance.mesh, meshInstance.meshLod, out geometryHandle))
                 throw new System.InvalidOperationException("Failed to allocate geometry data for instance");
             m_GeometryPool.SendGpuCommands();
 
