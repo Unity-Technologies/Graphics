@@ -162,6 +162,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_CameraMotionBlur = Shader.Find("Hidden/Universal Render Pipeline/CameraMotionBlur");
         Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
         Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
+        Shader m_ScreenSpaceAmbientOcclusion = Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
         Shader m_TerrainLit = Shader.Find("Universal Render Pipeline/Terrain/Lit");
         Shader m_TerrainLitAddPass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)");
         Shader m_TerrainLitBasePass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)");
@@ -219,6 +220,11 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_ScreenSpaceIrradiance;
         LocalKeyword m_ScreenSpaceReflection;
+        LocalKeyword m_GTAOMode;
+        LocalKeyword m_GTAODepthPyramid;
+        LocalKeyword m_SourceDepthLow;
+        LocalKeyword m_SourceDepthMedium;
+        LocalKeyword m_SourceDepthHigh;
         LocalKeyword m_WriteSmoothness;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
@@ -304,6 +310,11 @@ namespace UnityEditor.Rendering.Universal
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_ScreenSpaceIrradiance = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceIrradiance);
             m_ScreenSpaceReflection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceReflection);
+            m_GTAOMode = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword);
+            m_GTAODepthPyramid = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_GTAODepthPyramidKeyword);
+            m_SourceDepthLow = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword);
+            m_SourceDepthMedium = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword);
+            m_SourceDepthHigh = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword);
             m_WriteSmoothness = TryGetLocalKeyword(shader, ShaderKeywordStrings.WriteSmoothness);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
@@ -1274,6 +1285,21 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripInvalidVariants_GTAODepthSource(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_ScreenSpaceAmbientOcclusion)
+                return false;
+
+            // GTAO always reads the normals texture, so it is never paired with a reconstructed normals source.
+            bool isGTAO = strippingData.IsKeywordEnabled(m_GTAOMode) ||
+                          strippingData.IsKeywordEnabled(m_GTAODepthPyramid);
+            bool reconstructsNormals = strippingData.IsKeywordEnabled(m_SourceDepthLow) ||
+                                       strippingData.IsKeywordEnabled(m_SourceDepthMedium) ||
+                                       strippingData.IsKeywordEnabled(m_SourceDepthHigh);
+
+            return isGTAO && reconstructsNormals;
+        }
+
         internal bool StripInvalidVariants(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripInvalidVariants_HDR(ref strippingData))
@@ -1286,6 +1312,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripInvalidVariants_AdditionalLights(ref strippingData))
+                return true;
+
+            if (StripInvalidVariants_GTAODepthSource(ref strippingData))
                 return true;
 
             return false;

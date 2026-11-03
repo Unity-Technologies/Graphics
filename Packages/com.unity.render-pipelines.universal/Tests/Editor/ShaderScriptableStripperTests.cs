@@ -522,6 +522,7 @@ namespace ShaderStrippingAndPrefiltering
             StripInvalidVariants_TerrainHoles(shader, expectedTerrainHoles, expectedTerrainHolesWithAlphaTestOn);
             TestStripInvalidVariants_Shadows(shader, expectedSoftShadows);
             TestStripInvalidVariants_AdditionalLights(shader);
+            TestStripInvalidVariants_GTAODepthSource(shader);
         }
 
         public void TestStripInvalidVariants_HDR(Shader shader)
@@ -705,6 +706,54 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel};
             TestHelper.s_PassKeywords = additionalLightKeywords;
             helper.AreEqual(shader != null, helper.stripper.StripInvalidVariants_AdditionalLights(ref helper.data));
+        }
+
+        public void TestStripInvalidVariants_GTAODepthSource(Shader shader)
+        {
+            bool isCorrectShader = shader == Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
+            TestHelper helper;
+            string depthNormalsKeyword = ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword;
+            string[] gtaoKeywords =
+            {
+                ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_GTAODepthPyramidKeyword,
+            };
+            string[] reconstructedNormalsKeywords =
+            {
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword,
+            };
+
+            foreach (var gtaoKeyword in gtaoKeywords)
+            {
+                // Invalid: GTAO with a reconstructed normals source
+                foreach (var sourceKeyword in reconstructedNormalsKeywords)
+                {
+                    helper = new TestHelper(shader, ShaderFeatures.None);
+                    helper.data.IsHDRShaderVariantValid = true;
+                    TestHelper.s_EnabledKeywords = new List<string> { gtaoKeyword, sourceKeyword };
+                    helper.AreEqual(isCorrectShader, helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                    helper.AreEqual(isCorrectShader, helper.stripper.StripInvalidVariants(ref helper.data));
+                }
+
+                // Valid: GTAO with the normals texture
+                helper = new TestHelper(shader, ShaderFeatures.None);
+                helper.data.IsHDRShaderVariantValid = true;
+                TestHelper.s_EnabledKeywords = new List<string> { gtaoKeyword, depthNormalsKeyword };
+                helper.IsFalse(helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+            }
+
+            // Valid: SSAO with a reconstructed normals source
+            foreach (var sourceKeyword in reconstructedNormalsKeywords)
+            {
+                helper = new TestHelper(shader, ShaderFeatures.None);
+                helper.data.IsHDRShaderVariantValid = true;
+                TestHelper.s_EnabledKeywords = new List<string> { sourceKeyword };
+                helper.IsFalse(helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+            }
         }
 
         /*****************************************************
