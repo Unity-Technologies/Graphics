@@ -17,6 +17,28 @@ namespace UnityEditor.Rendering
         // Set while a caller blocks the Editor, so searches have to finish before RunQueuedSearch returns
         public static bool synchronous { get; set; }
 
+        // Asset changes reach the index after a delay and are then applied in the background, and searches do not wait for them
+        static void WaitForIndexUpToDate(Action onIndexUpToDate)
+        {
+            if (IsIndexUpdatePending())
+                EditorApplication.delayCall += () => WaitForIndexUpToDate(onIndexUpToDate);
+            else
+                onIndexUpToDate();
+        }
+
+        static bool IsIndexUpdatePending()
+        {
+            // The index defers its updates until play mode is exited
+            if (EditorApplication.isPlaying)
+                return false;
+
+            var db = SearchDatabase.GetDefaultSearchDatabase();
+            if (db.LoadingState == SearchDatabase.LoadState.Error || db.LoadingState == SearchDatabase.LoadState.Canceled)
+                return false;
+
+            return SearchMonitor.pending || !db.ready || db.updating || db.needsUpdate;
+        }
+
         public static void RunQueuedSearch(
             IndexingOptions neededOptions,
             List<(string query, string description)> contextSearchQueriesAndIds,
@@ -111,7 +133,7 @@ namespace UnityEditor.Rendering
 
             void OnSearchIndexReady()
             {
-                ProcessNextSearch();
+                WaitForIndexUpToDate(ProcessNextSearch);
             }
 
             if (isDeepSearchEnabled != needsDeepSearch || isPackageIndexingEnabled != needsPackageIndexing)
