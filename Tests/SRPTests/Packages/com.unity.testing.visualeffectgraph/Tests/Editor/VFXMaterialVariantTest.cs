@@ -513,8 +513,7 @@ namespace UnityEditor.VFX.Test
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true  , usingImporter = false},
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = false},
 
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = false , usingImporter = true},
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = false , usingImporter = true},
+            // Importer cases also check the result before the inspector is created, so the costly import runs once for both.
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true  , usingImporter = true},
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = true},
         };
@@ -565,6 +564,8 @@ namespace UnityEditor.VFX.Test
             var output = graph.children.OfType<VFXComposedParticleOutput>().FirstOrDefault();
             Assert.IsNotNull(output);
 
+            CheckCrossPipelineMaterialOverride(output, allAssets, testCase.compilationMode);
+
             if (testCase.createEditor)
             {
                 //Insure from potential side effect from editor creation & inspector gui invocation
@@ -576,8 +577,17 @@ namespace UnityEditor.VFX.Test
                     Assert.IsTrue(inspector.tracker.activeEditors.OfType<VFXComposedParticleOutputEditor>().Any());
                     yield return null;
                 }
+
+                CheckCrossPipelineMaterialOverride(output, allAssets, testCase.compilationMode);
             }
 
+            yield return null;
+            VFXTestCommon.GetViewWindow().Close();
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
+        static void CheckCrossPipelineMaterialOverride(VFXComposedParticleOutput output, UnityObject[] allAssets, VFXCompilationMode compilationMode)
+        {
             var settings = (VFXMaterialSerializedSettings)output.GetSetting("materialSettings").value;
             //Suppose to be overridden, no need to send a material (if not, it will throw a NRE)
             settings.TryGetFloat("_SurfaceType", null, out var _surfaceType);
@@ -587,7 +597,7 @@ namespace UnityEditor.VFX.Test
 
             var materials = allAssets.OfType<Material>().ToArray();
             Material actualMaterial;
-            if (testCase.compilationMode == VFXCompilationMode.Edition)
+            if (compilationMode == VFXCompilationMode.Edition)
             {
                 var parentMaterial = materials.FirstOrDefault(o => o.isVariant == false);
                 actualMaterial = materials.FirstOrDefault(o => o.isVariant);
@@ -672,10 +682,6 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(savedProperties.Any(o => o.name == "_ZTest"));
 #endif
             }
-
-            yield return null;
-            VFXTestCommon.GetViewWindow().Close();
-            VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
         IEnumerator PrepareSimpleGraphWithSgOutput(VFXGraph graph)
