@@ -19,6 +19,7 @@
 #pragma kernel VisualizeSinglePassStereoInstancingHardware VisualizeSinglePassStereoInstancing=VisualizeSinglePassStereoInstancingHardware UNIFIED_RT_BACKEND_HARDWARE
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
 #pragma multi_compile_local SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
 
 // The hardware ray tracing compute-shader variants in this file fails to compile on Metal with inlineraytracing
 // enabled due to inlineraytracing requiring DXC over FXC compilation path.
