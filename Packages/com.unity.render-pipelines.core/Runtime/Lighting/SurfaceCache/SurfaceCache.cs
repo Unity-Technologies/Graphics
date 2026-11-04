@@ -947,7 +947,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PunctualLights, punctualLightBuffer);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightCount, punctualLightCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SamplesPerPunctualLight, (int)SamplesPerPunctualLight);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._FrameIdx, data.FrameIdx);
+                cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIdx);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._Samples, data.PunctualLightSamples);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
                 cmd.SetComputeTextureParam(shader, kernelIdx, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
@@ -985,7 +985,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeIntParam(shader, ShaderIDs._MultiBounce, data.MultiBounce ? 1 : 0);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._PunctualLightSampleCount, data.PunctualLightSampleCount);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightSampleCount, (int)data.PunctualLightSampleCount);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._CellPatchIndices, data.CellPatchIndices);
