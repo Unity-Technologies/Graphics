@@ -18,6 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool isEnabled => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
         public override string isDisabledMessage => "Converter requires HDRP. Convert your project to HDRP to use this converter.";
 
+        public override void BeforeConvert()
+        {
+            // The replacement materials live in the global settings, which may not exist yet or be out of date
+            HDRenderPipelineGlobalSettings.Ensure();
+            base.BeforeConvert();
+        }
+
         protected override Dictionary<string, Func<Material>> materialMappings
         {
             get
