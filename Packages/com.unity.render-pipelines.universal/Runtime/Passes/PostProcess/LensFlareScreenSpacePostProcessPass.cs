@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class LensFlareScreenSpacePostProcessPass : PostProcessPass
     {
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         // Post-processing main color-buffer texture desc. Can be different from downsampled bloom/flare textures.
         int m_ColorBufferWidth;
@@ -19,8 +18,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.LensFlareScreenSpace;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
 
             // Default values
             m_ColorBufferWidth = 1; // Unknown at pipe/pass construction time. Safe default. Avoid division by zero.
@@ -30,8 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -59,10 +56,10 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
+            if (!IsActive(volumeStack, frameData))
                 return;
 
-            if (!IsActive(volumeStack, frameData))
+            if (!m_Material.Validate())
                 return;
 
             var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
@@ -112,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.actualColorWidth = m_ColorBufferWidth;
                 passData.actualColorHeight = m_ColorBufferHeight;
                 passData.camera = cameraData.camera;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.lensFlareScreenSpace = lensFlareScreenSpace; // NOTE: reference, assumed constant until executed.
                 passData.downsample = downsample;
                 passData.flareResultTmp = resultTmpTexture;

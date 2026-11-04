@@ -9,8 +9,7 @@ namespace UnityEngine.Rendering.Universal
         public const string k_TargetName = "CameraColorDepthOfFieldBokeh";
         const int k_DownSample = 2;
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         Vector4[] m_BokehKernel;
         int m_BokehHash;
@@ -23,14 +22,12 @@ namespace UnityEngine.Rendering.Universal
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.BokehDepthOfField;
-            m_Material = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class DoFBokehPassData
@@ -58,15 +55,15 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var depthOfField = volumeStack.GetComponent<DepthOfField>();
             if (!depthOfField.IsActive() || depthOfField.mode.value != DepthOfFieldMode.Bokeh)
                 return;
 
             var cameraData = frameData.Get<UniversalCameraData>();
             if (cameraData.isSceneViewCamera)
+                return;
+
+            if (!m_Material.Validate())
                 return;
 
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
@@ -127,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthTexture = resourceData.cameraDepthTexture;
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
-                passData.material = m_Material;
+                passData.material = m_Material.material;
 
                 // Pass Textures
                 passData.fullCoCTexture = fullCoCTexture;

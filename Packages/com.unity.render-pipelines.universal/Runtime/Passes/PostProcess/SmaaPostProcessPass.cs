@@ -9,8 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "CameraColorSMAA";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         // Static resource textures for SMAA technique
         Texture2D m_AreaTexture;
@@ -26,8 +25,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.SMAANeighborhoodBlend;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
 
             m_AreaTexture = smaaAreaTexture;
             m_SearchTexture = smaaSearchTexture;
@@ -42,8 +40,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class SMAASetupPassData
@@ -67,11 +64,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var cameraData = frameData.Get<UniversalCameraData>();
             if (cameraData.antialiasing != AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                return;
+
+            if (!m_Material.Validate())
                 return;
 
             var resourceData = frameData.Get<UniversalResourceData>();
@@ -109,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.stencilMask = (float)kStencilBit;
 
                 passData.antialiasingQuality = cameraData.antialiasingQuality;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
 
                 builder.SetRenderAttachment(edgeTexture, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(edgeTextureStencil, AccessFlags.Write);
@@ -138,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachmentDepth(edgeTextureStencil, AccessFlags.Read);
                 passData.sourceTexture = edgeTexture;
                 builder.UseTexture(edgeTexture, AccessFlags.Read);
-                passData.material = m_Material;
+                passData.material = m_Material.material;
 
                 builder.SetRenderFunc(static (SMAAPassData data, RasterGraphContext context) =>
                 {
@@ -159,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
                 passData.blendTexture = blendTexture;
                 builder.UseTexture(blendTexture, AccessFlags.Read);
-                passData.material = m_Material;
+                passData.material = m_Material.material;
 
                 builder.SetRenderFunc(static (SMAAPassData data, RasterGraphContext context) =>
                 {
