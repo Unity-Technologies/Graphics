@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
 
         public const string k_UpscaledColorTargetName = "CameraColorUpscaled";
         Texture2D[] m_BlueNoise16LTex;
-        Material m_UpscalerReactiveMaskMaterial;
+        PostProcessMaterial m_UpscalerReactiveMaskMaterial;
         bool m_IsValid;
 
         bool m_WarnedHardwareDrsTemporalUnsupported;
@@ -25,24 +25,20 @@ namespace UnityEngine.Rendering.Universal
             this.profilingSampler = null;   // Use default name
             m_BlueNoise16LTex = blueNoise16LTex;
 
-            m_UpscalerReactiveMaskMaterial = PostProcessUtils.LoadShader(reactiveMaskShader, passName, logLevel: LogType.Log);
+            m_UpscalerReactiveMaskMaterial = new PostProcessMaterial(reactiveMaskShader, passName);
 
-            m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0
-                && m_UpscalerReactiveMaskMaterial != null;
+            m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0;
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_UpscalerReactiveMaskMaterial);
+            m_UpscalerReactiveMaskMaterial.Dispose();
 
             m_IsValid = false;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
             if (postProcessingData.activeUpscaler == null)
                 return;
@@ -74,6 +70,9 @@ namespace UnityEngine.Rendering.Universal
             // Left the skip path: reset so re-entering it warns again.
             if (Debug.isDebugBuild)
                 m_WarnedHardwareDrsTemporalUnsupported = false;
+
+            if (!m_IsValid || !m_UpscalerReactiveMaskMaterial.Validate())
+                return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
@@ -216,7 +215,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (resourceData.cameraOpaqueTexture.IsValid())
                 {
-                    io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, frameData, m_UpscalerReactiveMaskMaterial, upscaler.reactiveMaskSource, upscalerOptions, io.enableTexArray);
+                    io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, frameData, m_UpscalerReactiveMaskMaterial.material, upscaler.reactiveMaskSource, upscalerOptions, io.enableTexArray);
                     m_WarnedMissingOpaqueTexture = false;
                 }
                 else if (Debug.isDebugBuild && !m_WarnedMissingOpaqueTexture)
