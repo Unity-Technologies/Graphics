@@ -17,6 +17,8 @@ class RuntimeTests
     RenderTexture m_Destination;
     GameObject m_TargetLight;
     GameObject m_AnotherLight;
+    UniversalRenderPipelineAsset m_TestAsset;
+    UniversalRendererData m_TestRendererData;
 
     [SetUp]
     public void Setup()
@@ -40,6 +42,16 @@ class RuntimeTests
             m_Destination.Release();
             Object.DestroyImmediate(m_Destination);
             m_Destination = null;
+        }
+        if (m_TestAsset != null)
+        {
+            Object.DestroyImmediate(m_TestAsset);
+            m_TestAsset = null;
+        }
+        if (m_TestRendererData != null)
+        {
+            Object.DestroyImmediate(m_TestRendererData);
+            m_TestRendererData = null;
         }
     }
 
@@ -132,6 +144,15 @@ class RuntimeTests
 
         if ((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) == 0)
             Assert.Ignore("Render requests into a cubemap require CopyTextureSupport.DifferentTypes.");
+
+        // The active quality level can use a debug renderer that overwrites the camera color
+        m_TestRendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+        m_TestRendererData.renderingMode = RenderingMode.Forward;
+        m_TestAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+        m_TestAsset.m_RendererDataList[0] = m_TestRendererData;
+        QualitySettings.renderPipeline = m_TestAsset;
+        yield return null;
+        Assert.AreSame(m_TestAsset, GraphicsSettings.currentRenderPipeline, "The test URP asset is not active.");
 
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = Color.red;
