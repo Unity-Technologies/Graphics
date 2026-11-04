@@ -127,8 +127,8 @@ namespace UnityEngine.Rendering
                     Array.Fill(matIndices, renderer.component.renderingLayerMask); // repurpose the material id as we don't need it here
                     var perSubMeshMask = new uint[subMeshCount];
                     Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
-                    Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
-                    perSubMeshOpaqueness.Fill(true);
+                    var perSubMeshOpaqueness = new bool[subMeshCount];
+                    Array.Fill(perSubMeshOpaqueness, true);
 
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }

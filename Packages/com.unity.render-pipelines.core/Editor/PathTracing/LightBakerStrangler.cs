@@ -699,7 +699,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 if ((lodBuildData.LodMask & currentLodLevel) == 0)
                     continue;
 
-                Span<uint> currentLodMasks = stackalloc uint[lodBuildData.Masks.Length];
+                var currentLodMasks = new uint[lodBuildData.Masks.Length];
                 GetCurrentLodInstanceMasks(pathtracingShader, lodBuildData.Masks, currentLodMasks);
 
                 instanceHandles[i++] = world.AddInstance(lodBuildData.Mesh, lodBuildData.Materials, currentLodMasks, UnityComputeWorld.RenderingObjectLayer, lodBuildData.LocalToWorldMatrix, lodBuildData.Bounds, lodBuildData.IsStatic, lodBuildData.Filter, true);
@@ -715,7 +715,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     if ((lodZeroInstance.LodMask & currentLodLevel) != 0)
                         continue;
 
-                    Span<uint> lodZeroMasks = stackalloc uint[lodZeroInstance.Masks.Length];
+                    var lodZeroMasks = new uint[lodZeroInstance.Masks.Length];
                     GetLodZeroInstanceMasks(pathtracingShader, lodZeroInstance.Masks, lodZeroMasks);
 
                     world.UpdateInstanceMask(lodZeroInstance.InstanceHandle, lodZeroMasks);

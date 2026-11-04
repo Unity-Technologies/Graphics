@@ -149,8 +149,8 @@ namespace UnityEngine.Rendering
                     int subMeshCount = mesh.subMeshCount;
                     var maskAndMatDummy = new uint[subMeshCount];
                     System.Array.Fill(maskAndMatDummy, 0xFFFFFFFF);
-                    Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
-                    perSubMeshOpaqueness.Fill(true);
+                    var perSubMeshOpaqueness = new bool[subMeshCount];
+                    System.Array.Fill(perSubMeshOpaqueness, true);
 
                     accelStruct.AddInstance(EntityId.ToULong(renderer.component.GetEntityId()), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
