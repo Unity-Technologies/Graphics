@@ -19,6 +19,15 @@ namespace UnityEditor.Rendering.Universal
             // LOD fade is now controlled by the render pipeline, and not the individual material, so disable it.
             material.DisableKeyword("LOD_FADE_CROSSFADE");
         }
+
+        internal static void UpdateEmissionMode(Material material)
+        {
+            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
+                material.EnableKeyword("_EMISSION");
+            }
+        }
     }
 
     /// <summary>
@@ -180,7 +189,7 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_AlphaClip", 1.0f);
             }
 
-            UpdateEmissionMode(material);
+            MaterialUpgradeUtils.UpdateEmissionMode(material);
 
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -205,6 +214,8 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
+
+            MaterialUpgradeUtils.UpdateEmissionMode(material);
 
             material.SetFloat("_WorkflowMode", 0.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -251,15 +262,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
-            }
-        }
-
-        private static void UpdateEmissionMode(Material material)
-        {
-            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
-            {
-                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
-                material.EnableKeyword("_EMISSION");
             }
         }
 
@@ -337,15 +339,6 @@ namespace UnityEditor.Rendering.Universal
             material.globalIlluminationFlags |= shouldEmissionBeEnabled ? MaterialGlobalIlluminationFlags.RealtimeDirectEmission : MaterialGlobalIlluminationFlags.None;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
             MaterialUpgradeUtils.DisableKeywords(material);
-        }
-
-        private static void UpdateEmissionMode(Material material)
-        {
-            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
-            {
-                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
-                material.EnableKeyword("_EMISSION");
-            }
         }
 
         private static void UpdateMaterialSpecularSource(Material material)
@@ -440,7 +433,7 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateStandardSurface(Material material)
         {
-            UpdateEmissionMode(material);
+            MaterialUpgradeUtils.UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
             ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
@@ -453,7 +446,7 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="material"></param>
         public static void UpdateUnlit(Material material)
         {
-            UpdateEmissionMode(material);
+            MaterialUpgradeUtils.UpdateEmissionMode(material);
             UpdateSurfaceBlendModes(material);
             ParticleGUI.SetupMaterialWithColorMode(material);
             MaterialUpgradeUtils.DisableKeywords(material);
@@ -491,15 +484,6 @@ namespace UnityEditor.Rendering.Universal
             else if (material.globalIlluminationFlags == MaterialGlobalIlluminationFlags.None)
             {
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-            }
-        }
-
-        private static void UpdateEmissionMode(Material material)
-        {
-            if ((material.globalIlluminationFlags & (MaterialGlobalIlluminationFlags.BakedEmission | MaterialGlobalIlluminationFlags.RealtimeIndirectEmission)) != MaterialGlobalIlluminationFlags.None)
-            {
-                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeDirectEmission;
-                material.EnableKeyword("_EMISSION");
             }
         }
 
