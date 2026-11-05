@@ -1128,7 +1128,7 @@ namespace UnityEditor.VFX.UI
         private void StartEditingPath()
         {
             m_PathTextField.style.display = DisplayStyle.Flex;
-            m_PathTextField.value = m_PathLabel.text;
+            m_PathTextField.value = controller.graph.categoryPath ?? string.Empty;
             m_PathLabel.style.display = DisplayStyle.None;
 
             m_PathTextField.style.fontSize = 11;
@@ -1141,6 +1141,7 @@ namespace UnityEditor.VFX.UI
             switch (evt.keyCode)
             {
                 case KeyCode.Escape:
+                    m_PathTextField.value = controller.graph.categoryPath ?? string.Empty;
                     m_PathTextField.Q("unity-text-input").Blur();
                     break;
                 case KeyCode.Return:
@@ -1155,7 +1156,8 @@ namespace UnityEditor.VFX.UI
             m_PathTextField.style.display = DisplayStyle.None;
             m_PathLabel.style.display = DisplayStyle.Flex;
 
-            controller.graph.categoryPath = m_PathTextField.text;
+            if (m_PathTextField.text != (controller.graph.categoryPath ?? string.Empty))
+                controller.graph.categoryPath = m_PathTextField.text;
             UpdateSubtitle();
         }
 

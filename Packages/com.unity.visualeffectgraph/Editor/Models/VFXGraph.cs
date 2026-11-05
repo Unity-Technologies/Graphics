@@ -432,6 +432,7 @@ namespace UnityEditor.VFX
             var graph = resource.GetGraph();
             graph.UpdateSubAssets();
             resource.WriteAsset();
+            VFXViewController.NotifyResourceWritten(resource);
         }
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
@@ -1764,7 +1765,13 @@ namespace UnityEditor.VFX
         public string categoryPath
         {
             get { return m_CategoryPath; }
-            set { m_CategoryPath = value; }//TODO invalidate cache here
+            set
+            {
+                if (m_CategoryPath == value)
+                    return;
+                m_CategoryPath = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         public ReadOnlyCollection<VisualEffectObject> subgraphDependencies

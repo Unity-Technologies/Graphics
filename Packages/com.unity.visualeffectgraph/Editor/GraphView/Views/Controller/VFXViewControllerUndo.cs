@@ -34,6 +34,9 @@ namespace UnityEditor.VFX.UI
 
             m_NeedsFlush = false;
             m_CurrentCursor = 0;
+
+            // -1 means no save point: an already dirty graph doesn't match the file at any cursor
+            m_LastSaveCursor = EditorUtility.IsDirty(initialState) ? -1 : 0;
         }
 
         public void UpdateState(VFXModel model, VFXModel.InvalidationCause cause)
@@ -59,6 +62,11 @@ namespace UnityEditor.VFX.UI
                         {
                             m_FullGraphBackup = true;
                             stateUpdated = true;
+                        }
+                        else if (model != null && (model.hideFlags & HideFlags.DontSave) == 0)
+                        {
+                            // Dirtied without an undo step, so no undo/redo can return to the saved state
+                            m_LastSaveCursor = -1;
                         }
                     }
                     break;
@@ -110,6 +118,10 @@ namespace UnityEditor.VFX.UI
                 Undo.RecordObject(m_graphUndoCursor, string.Format("Modify VFX Graph - {0} ({1})", m_Graph?.GetResource()?.name, m_graphUndoCursor.index + 1));
                 m_graphUndoCursor.index = m_graphUndoCursor.index + 1;
                 m_CurrentUndoGroup = Undo.GetCurrentGroup();
+
+                // The new step discards the redo history, which may hold the save point
+                if (m_CurrentCursor < m_LastSaveCursor)
+                    m_LastSaveCursor = -1;
                 m_CurrentCursor = m_graphUndoCursor.index;
             }
 
@@ -201,6 +213,19 @@ namespace UnityEditor.VFX.UI
             while (m_CurrentCursor != m_graphUndoCursor.index);
 
             return needsRecompile ? RestoreResult.FullGraph : RestoreResult.Deltas;
+        }
+
+        public bool isAtSavePoint => m_LastSaveCursor == m_CurrentCursor;
+
+        public void NotifySave()
+        {
+            // A failed write leaves the graph dirty and the previous save point valid
+            if (EditorUtility.IsDirty(m_Graph))
+                return;
+
+            m_LastSaveCursor = m_CurrentCursor;
+            // An edit after the save must get its own undo step, or undo/redo could land on this cursor with unsaved changes
+            Undo.IncrementCurrentGroup();
         }
 
         public void AddSlotValueChange(VFXSlot slot)
@@ -324,6 +349,8 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         private int m_CurrentCursor;
         [SerializeField]
+        private int m_LastSaveCursor;
+        [SerializeField]
         private List<IBackupState> m_undoStack;
         [SerializeField]
         private VFXGraphUndoCursor m_graphUndoCursor;
@@ -405,12 +432,21 @@ namespace UnityEditor.VFX.UI
                         ExpressionGraphDirtyParamOnly = true;
                         graph.SetExpressionValueDirty();
                     }
+
+                    if (m_graphUndoStack.isAtSavePoint)
+                        EditorUtility.ClearDirty(graph);
                 }
             }
             finally
             {
                 m_reentrantUndo = false;
             }
+        }
+
+        internal static void NotifyResourceWritten(VisualEffectResource resource)
+        {
+            if (s_Controllers.TryGetValue(resource, out var controller))
+                controller.m_graphUndoStack?.NotifySave();
         }
     }
 }
