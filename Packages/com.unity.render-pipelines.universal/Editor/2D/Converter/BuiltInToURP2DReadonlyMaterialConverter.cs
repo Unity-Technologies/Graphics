@@ -29,6 +29,13 @@ namespace UnityEditor.Rendering.Universal
 
         public override string isDisabledMessage => "Converter requires URP with a 2D Renderer. Convert your project to URP to use this converter.";
 
+        public override void BeforeConvert()
+        {
+            // The replacement materials live in the global settings, which may not exist yet or be out of date
+            UniversalRenderPipelineGlobalSettings.Ensure();
+            base.BeforeConvert();
+        }
+
         protected override Dictionary<string, Func<Material>> materialMappings
         {
             get
