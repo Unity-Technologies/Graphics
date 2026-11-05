@@ -174,6 +174,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [TestCaseSource(nameof(PrepassCases))]
+        [Ignore("Unstable: the first case can run before the pipeline is created, which discards its setup")]
         public void PrepassGlobalTextures_MatchResourceData(RenderingMode renderingMode, PrepassState prepassState, DepthPrimingMode depthPrimingMode, bool depthInput, bool renderingLayers)
         {
             m_Camera.cullingMask = prepassState switch
