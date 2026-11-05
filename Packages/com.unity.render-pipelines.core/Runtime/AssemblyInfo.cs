@@ -27,6 +27,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime.Tests")]
 [assembly: InternalsVisibleTo("SRPSmoke.Editor.Tests")]
 [assembly: InternalsVisibleTo("Assembly-CSharp-Editor-testable")]
+[assembly: InternalsVisibleTo("Unity.Modules.GI.LightBaker.Tests.Editor")]
 
 // Access for URP Tests so they use internals from Core Runtime
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime.Tests")]
