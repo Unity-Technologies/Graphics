@@ -6,6 +6,7 @@ using UnityEditorInternal.FrameDebuggerInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
 // Captures Graphics.RenderSprite draws with the Frame Debugger to check how Sprites that share a
 // MaterialPropertyBlock are batched, and reads the rendered pixels back to check what each Sprite drew.
@@ -274,6 +275,9 @@ class RenderSpriteBatchingFrameDebuggerTests
 
     // The texture in the batching key must not stop Sprites that share an atlas from dynamic batching.
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-160512
+    })]
     public void RenderSprite_SharedMaterialPropertyBlockSameAtlas_IsDynamicBatched(
         [Values(SpriteMaskInteraction.None, SpriteMaskInteraction.VisibleOutsideMask)] SpriteMaskInteraction maskInteraction)
     {
