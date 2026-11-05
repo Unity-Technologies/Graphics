@@ -684,7 +684,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int visibleLightCount = visibleLights.Length;
             for (ushort visLightIndex = 0; visLightIndex < visibleLightCount; ++visLightIndex)
             {
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visLightIndex);
                 ++stencilVisLightOffsets[(int)vl.lightType];
             }
 
@@ -705,7 +705,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             for (ushort visLightIndex = 0; visLightIndex < visibleLightCount; ++visLightIndex)
             {
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visLightIndex);
                 if (vl.lightType != LightType.Spot &&
                     vl.lightType != LightType.Directional &&
                     vl.lightType != LightType.Point)
@@ -807,7 +807,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int soffset = m_stencilVisLightOffsets[(int)LightType.Directional]; soffset < m_stencilVisLights.Length; ++soffset)
             {
                 ushort visLightIndex = m_stencilVisLights[soffset];
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visLightIndex);
                 if (vl.lightType != LightType.Directional)
                     break;
 
@@ -878,7 +878,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int soffset = m_stencilVisLightOffsets[(int)LightType.Point]; soffset < m_stencilVisLights.Length; ++soffset)
             {
                 ushort visLightIndex = m_stencilVisLights[soffset];
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visLightIndex);
                 if (vl.lightType != LightType.Point)
                     break;
 
@@ -949,7 +949,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 ushort visLightIndex = m_stencilVisLights[soffset];
 
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(visLightIndex);
                 if (vl.lightType != LightType.Spot)
                     break;
 

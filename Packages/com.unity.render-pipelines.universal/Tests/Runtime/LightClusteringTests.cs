@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Universal.Tests
@@ -58,6 +60,8 @@ namespace UnityEngine.Rendering.Universal.Tests
                 Perspective(60f, 16f / 9f, 0.01f, 1000f, k_Screen, ClusteringItem.Point(new float3(22f, 0f, 0.3f), 0.35f)));
             yield return Case("PointLightBehindCamera", "A point light entirely behind the camera is in no tile or z-bin.",
                 Perspective(60f, 16f / 9f, 0.3f, 1000f, k_Screen, ClusteringItem.Point(new float3(0f, 0f, -5f), 2f)));
+            yield return Case("PointLightEnclosingNearPlane", "A point light whose sphere contains the near-plane rectangle covers every tile.",
+                Perspective(1f, 1f, float2.zero, 0.5f, 100f, k_SmallScreen, ClusteringItem.Point(new float3(0.3f, -0.2f, 1f), 5f)));
 
             yield return Case("SpotLightInFrontOfNearPlane", "A spot light in front of the near plane.",
                 Perspective(72.032f, 1.3333f, 0.412f, 1000f, k_SmallScreen, ClusteringItem.Spot(new float3(1.5852f, -1.4977f, 6.9015f), new float3(-0.1672f, -0.2562f, 0.952f), 2.227f, 75.974f)));
@@ -127,8 +131,8 @@ namespace UnityEngine.Rendering.Universal.Tests
         public void LightClustering_ProjectedCircleHorizonAroundCamera_IsMissing()
         {
             // A cone base circle facing the camera sideways, with the camera inside its projection onto the YZ plane.
-            TilingJob.GetProjectedCircleHorizon(new float2(-4.750001f, 2.279692E-09f), 32.998745f, new float2(1f, 0f), new float2(0f, 1f), out var uv1, out var uv2);
-            Assert.IsTrue(math.any(math.isnan(uv1)) && math.any(math.isnan(uv2)), $"Expected no horizon, got {uv1} and {uv2}.");
+            var found = TilingJob.GetProjectedCircleHorizon(new float2(-4.750001f, 2.279692E-09f), 32.998745f, new float2(1f, 0f), new float2(0f, 1f), out var uv1, out var uv2);
+            Assert.IsFalse(found, $"Expected no horizon, got {uv1} and {uv2}.");
         }
 
         [Description("Cone section points are accepted on or inside the cone up to its base, and rejected outside its angle, which degenerate sections can produce.")]
@@ -152,6 +156,233 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.IsFalse(IsOnCone(halfAngle + math.radians(10f), 5f), "A point outside the cone angle was accepted.");
             Assert.IsFalse(IsOnCone(halfAngle, 0.5f * range / cosHalfAngle + range), "A point beyond the cone base was accepted.");
             Assert.IsFalse(IsOnCone(math.PI - halfAngle, 5f), "A point on the opposite nappe was accepted.");
+        }
+
+        [Description("Clustering into buffers left over from a previous run gives the same result as into cleared buffers.")]
+        [Test]
+        public void LightClustering_ReusedBuffers_MatchFreshBuffers()
+        {
+            var reusedZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var reusedTileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            var freshZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var freshTileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            try
+            {
+                for (var i = 0; i < reusedZBins.Length; i++)
+                {
+                    reusedZBins[i] = 0xFFFFFFFFu;
+                }
+                for (var i = 0; i < reusedTileMasks.Length; i++)
+                {
+                    reusedTileMasks[i] = 0xFFFFFFFFu;
+                }
+
+                RunPointLightClustering(new float3(1f, 0.5f, 4f), 1.5f, reusedZBins, reusedTileMasks, out var binCount, out var tileResolution, out var wordsPerTile);
+                RunPointLightClustering(new float3(1f, 0.5f, 4f), 1.5f, freshZBins, freshTileMasks, out _, out _, out _);
+
+                var zBinWords = binCount * (ZBinningJob.headerLength + wordsPerTile);
+                var tileWords = tileResolution.x * tileResolution.y * wordsPerTile;
+                CollectionAssert.AreEqual(freshZBins.GetSubArray(0, zBinWords).ToArray(), reusedZBins.GetSubArray(0, zBinWords).ToArray());
+                CollectionAssert.AreEqual(freshTileMasks.GetSubArray(0, tileWords).ToArray(), reusedTileMasks.GetSubArray(0, tileWords).ToArray());
+            }
+            finally
+            {
+                reusedZBins.Dispose();
+                reusedTileMasks.Dispose();
+                freshZBins.Dispose();
+                freshTileMasks.Dispose();
+            }
+        }
+
+        [Description("An infinite far plane is treated as the largest finite one, so the light still lands in the z-bins.")]
+        [Test]
+        public void LightClustering_InfiniteFarPlane_LightIsInZBins()
+        {
+            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            try
+            {
+                RunPointLightClustering(new float3(1f, 0.5f, 4f), 1.5f, zBins, tileMasks, out var binCount, out _, out var wordsPerTile, float.PositiveInfinity);
+
+                var binsWithLight = 0;
+                for (var bin = 0; bin < binCount; bin++)
+                {
+                    if ((zBins[bin * (ZBinningJob.headerLength + wordsPerTile) + ZBinningJob.headerLength] & 1u) != 0)
+                        binsWithLight++;
+                }
+                Assert.Greater(binsWithLight, 0, $"The light is missing from all {binCount} z-bins.");
+            }
+            finally
+            {
+                zBins.Dispose();
+                tileMasks.Dispose();
+            }
+        }
+
+        [Description("Lights and probes without a volume (zero range, spot angle or extents) are in no tile or z-bin.")]
+        [Test]
+        public void LightClustering_ItemsWithoutVolume_AreSkipped()
+        {
+            var lights = new NativeArray<VisibleLight>(2, Allocator.TempJob);
+            var probes = new NativeArray<VisibleReflectionProbe>(1, Allocator.TempJob);
+            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            try
+            {
+                // View space (x, y, z) is world (x, y, -z) under an identity world-to-view matrix.
+                lights[0] = new VisibleLight
+                {
+                    lightType = LightType.Point,
+                    finalColor = Color.white,
+                    screenRect = new Rect(0, 0, 1, 1),
+                    localToWorldMatrix = Matrix4x4.Translate(new Vector3(0f, 0f, -5f)),
+                    range = 0f,
+                };
+                lights[1] = new VisibleLight
+                {
+                    lightType = LightType.Spot,
+                    finalColor = Color.white,
+                    screenRect = new Rect(0, 0, 1, 1),
+                    localToWorldMatrix = Matrix4x4.TRS(new Vector3(0f, 0f, -2f), Quaternion.LookRotation(Vector3.back), Vector3.one),
+                    range = 5f,
+                    spotAngle = 0f,
+                };
+                probes[0] = new VisibleReflectionProbe
+                {
+                    bounds = new Bounds(new Vector3(1f, 0f, -4f), Vector3.zero),
+                    localToWorldMatrix = Matrix4x4.Translate(new Vector3(1f, 0f, -4f)),
+                };
+                var worldToViews = new Fixed2<float4x4>(float4x4.identity, float4x4.identity);
+                var viewToClip = float4x4.PerspectiveFov(math.radians(90f), 1f, 0.5f, 100f);
+                var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
+
+                ForwardLights.ScheduleClusteringJobs(
+                    false, true, lights, probes, zBins, tileMasks,
+                    worldToViews, viewToClips, 1, new int2(64, 64), 0.5f, 100f, false,
+                    out _, out _, out var binCount, out _, out _, out var tileResolution, out _, out var wordsPerTile).Complete();
+
+                for (var bin = 0; bin < binCount; bin++)
+                {
+                    for (var word = 0; word < wordsPerTile; word++)
+                        Assert.AreEqual(0u, zBins[bin * (ZBinningJob.headerLength + wordsPerTile) + ZBinningJob.headerLength + word], $"z-bin {bin} holds an item.");
+                }
+                for (var i = 0; i < tileResolution.x * tileResolution.y * wordsPerTile; i++)
+                    Assert.AreEqual(0u, tileMasks[i], $"Tile word {i} holds an item.");
+            }
+            finally
+            {
+                lights.Dispose();
+                probes.Dispose();
+                zBins.Dispose();
+                tileMasks.Dispose();
+            }
+        }
+
+        [Description("A light beyond the supported view distance is in no tile or z-bin, and a light with a huge range around the camera is in all of them.")]
+        [Test]
+        public void LightClustering_DistantAndHugeLights_StayBounded()
+        {
+            var lights = new NativeArray<VisibleLight>(2, Allocator.TempJob);
+            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            try
+            {
+                lights[0] = PointLightAtView(new float3(0f, 0f, 5e9f), 1000f);
+                lights[1] = PointLightAtView(new float3(0f, 0f, 2f), 1e20f);
+                ClusterLights(lights, 1e12f, zBins, tileMasks, out var binCount, out var tileResolution, out var wordsPerTile);
+
+                for (var bin = 0; bin < binCount; bin++)
+                {
+                    var word = zBins[bin * (ZBinningJob.headerLength + wordsPerTile) + ZBinningJob.headerLength];
+                    Assert.AreEqual(0u, word & 1u, $"The distant light is in z-bin {bin}.");
+                    Assert.AreEqual(2u, word & 2u, $"The huge light is missing from z-bin {bin}.");
+                }
+                for (var tile = 0; tile < tileResolution.x * tileResolution.y; tile++)
+                {
+                    var word = tileMasks[tile * wordsPerTile];
+                    Assert.AreEqual(0u, word & 1u, $"The distant light is in tile {tile}.");
+                    Assert.AreEqual(2u, word & 2u, $"The huge light is missing from tile {tile}.");
+                }
+            }
+            finally
+            {
+                lights.Dispose();
+                zBins.Dispose();
+                tileMasks.Dispose();
+            }
+        }
+
+        [Description("A light with a non-finite position, e.g. from a broken transform, is in no z-bin.")]
+        [Test]
+        public void LightClustering_NonFiniteLightPosition_IsInNoZBin()
+        {
+            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
+            var zBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob);
+            var tileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob);
+            try
+            {
+                lights[0] = PointLightAtView(new float3(0f, 0f, float.NaN), 2f);
+                ClusterLights(lights, 100f, zBins, tileMasks, out var binCount, out _, out var wordsPerTile);
+
+                for (var bin = 0; bin < binCount; bin++)
+                    Assert.AreEqual(0u, zBins[bin * (ZBinningJob.headerLength + wordsPerTile) + ZBinningJob.headerLength], $"z-bin {bin} holds the light.");
+            }
+            finally
+            {
+                lights.Dispose();
+                zBins.Dispose();
+                tileMasks.Dispose();
+            }
+        }
+
+        // View space (x, y, z) is world (x, y, -z) under the identity world-to-view matrix of ClusterLights.
+        static VisibleLight PointLightAtView(float3 positionVS, float range) => new VisibleLight
+        {
+            lightType = LightType.Point,
+            finalColor = Color.white,
+            screenRect = new Rect(0, 0, 1, 1),
+            localToWorldMatrix = Matrix4x4.Translate(new Vector3(positionVS.x, positionVS.y, -positionVS.z)),
+            range = range,
+        };
+
+        static void ClusterLights(NativeArray<VisibleLight> lights, float farPlane, NativeArray<uint> zBins, NativeArray<uint> tileMasks, out int binCount, out int2 tileResolution, out int wordsPerTile)
+        {
+            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
+            var worldToViews = new Fixed2<float4x4>(float4x4.identity, float4x4.identity);
+            var viewToClip = float4x4.PerspectiveFov(math.radians(90f), 1f, 0.5f, math.min(farPlane, 1e6f));
+            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
+
+            ForwardLights.ScheduleClusteringJobs(
+                false, true, lights, probes, zBins, tileMasks,
+                worldToViews, viewToClips, 1, new int2(64, 64), 0.5f, farPlane, false,
+                out _, out _, out binCount, out _, out _, out tileResolution, out _, out wordsPerTile).Complete();
+
+            probes.Dispose();
+        }
+
+        static void RunPointLightClustering(float3 lightPositionVS, float range, NativeArray<uint> zBins, NativeArray<uint> tileMasks, out int binCount, out int2 tileResolution, out int wordsPerTile, float farClipPlane = 100f)
+        {
+            var lights = new NativeArray<VisibleLight>(1, Allocator.TempJob);
+            lights[0] = new VisibleLight()
+            {
+                lightType = LightType.Point,
+                finalColor = Color.white,
+                screenRect = new Rect(0, 0, 1, 1),
+                localToWorldMatrix = Matrix4x4.Translate(new Vector3(lightPositionVS.x, lightPositionVS.y, -lightPositionVS.z)),
+                range = range,
+            };
+            var probes = new NativeArray<VisibleReflectionProbe>(0, Allocator.TempJob);
+            var worldToViews = new Fixed2<float4x4>(float4x4.identity, float4x4.identity);
+            var viewToClip = float4x4.PerspectiveFov(math.radians(90f), 1f, 0.5f, 100f);
+            var viewToClips = new Fixed2<float4x4>(viewToClip, viewToClip);
+
+            ForwardLights.ScheduleClusteringJobs(
+                false, true, lights, probes, zBins, tileMasks,
+                worldToViews, viewToClips, 1, new int2(64, 64), 0.5f, farClipPlane, false,
+                out _, out _, out binCount, out _, out _, out tileResolution, out _, out wordsPerTile).Complete();
+
+            lights.Dispose();
+            probes.Dispose();
         }
 
         [Description("Randomized check of light clustering on scenes biased towards degenerate configurations. The scenes depend on floating-point math that can differ between platforms, so this is not deterministic and is run manually. Configure it with URP_LIGHT_CLUSTERING_FUZZ_COUNT, URP_LIGHT_CLUSTERING_FUZZ_SEED and URP_LIGHT_CLUSTERING_FUZZ_MAX_ITEMS.")]

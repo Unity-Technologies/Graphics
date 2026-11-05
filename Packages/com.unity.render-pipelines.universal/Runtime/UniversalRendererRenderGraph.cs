@@ -965,6 +965,8 @@ namespace UnityEngine.Rendering.Universal
             OnAfterRendering(renderGraph, applyPostProcessing);
 
             EndRenderGraphXRRendering(renderGraph);
+
+            m_ForwardLights.UploadRenderGraphClusteringData(renderGraph);
         }
 
         /// <summary>
@@ -988,6 +990,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnFinishRenderGraphRendering(CommandBuffer cmd)
         {
+            // No-op after a normal frame; frees what an aborted recording or execution left behind.
+            if (usesClusterLightLoop)
+                m_ForwardLights.DisposeClusteringData();
+
             if (usesDeferredLighting)
                 m_DeferredPass.OnCameraCleanup(cmd);
 

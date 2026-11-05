@@ -2420,7 +2420,7 @@ namespace UnityEngine.Rendering.Universal
                     if (i == mainLightIndex)
                         continue;
 
-                    ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                    ref VisibleLight vl = ref visibleLights.UnsafeElementAt(i);
 
                     // UniversalRP doesn't support additional directional light shadows yet
                     if (vl.lightType == LightType.Spot || vl.lightType == LightType.Point)
@@ -2456,7 +2456,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(i);
                 Light light = vl.light;
                 UniversalAdditionalLightData data = null;
                 if (light != null)
@@ -2739,7 +2739,7 @@ namespace UnityEngine.Rendering.Universal
             int totalVisibleLights = visibleLights.Length;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
-                ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAtMutable(i);
+                ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAt(i);
                 Light currLight = currVisibleLight.light;
 
                 // Particle system lights have the light property as null. We sort lights so all particles lights

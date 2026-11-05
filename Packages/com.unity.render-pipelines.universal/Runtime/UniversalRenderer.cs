@@ -222,8 +222,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool postProcessEnabled { get; set; }
 
         internal DeferredLights deferredLights { get => m_DeferredLights; }
-#if VOLUMETRIC_FOG
         internal ForwardLights forwardLights { get => m_ForwardLights; }
+#if VOLUMETRIC_FOG
         internal FogVolumeManager fogVolumeManager { get => m_FogVolumeManager; }
 #endif
         internal LayerMask prepassLayerMask { get; set; }
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
-            forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.DeferredPlus || data.renderingMode == RenderingMode.ForwardPlus;
+            forwardInitParams.clustering = data.renderingMode == RenderingMode.DeferredPlus || data.renderingMode == RenderingMode.ForwardPlus;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;

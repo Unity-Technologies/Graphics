@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -85,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseAdditionalLightsConstantBuffer;
 
-        bool m_UseForwardPlus;
+        bool m_UseClustering;
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
         int2 m_TileResolution;
@@ -95,6 +96,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Forward+ cluster data uses StructuredBuffers (SSBOs) when possible and optimal
         bool m_UseForwardPlusStructuredBuffer;
 
+        // True while clustering jobs have been kicked off, but data has not yet uploaded to the GPU.
+        internal bool hasPendingClusteringData => m_ZBins.IsCreated;
+
         const string k_ZBinBufferName =  "URP Z-Bin Buffer";
         NativeArray<uint> m_ZBins;
         GraphicsBuffer m_ZBinsBuffer;
@@ -102,6 +106,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_TileBufferName = "URP Tile Buffer";
         NativeArray<uint> m_TileMasks;
         GraphicsBuffer m_TileMasksBuffer;
+        int m_TileMasksBufferWords;
 
         LightCookieManager m_LightCookieManager;
         ReflectionProbeManager m_ReflectionProbeManager;
@@ -110,11 +115,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         float m_ZBinOffset;
         int m_LightCount;
         int m_BinCount;
+        int m_UsedZBinWords;
+        int m_UsedTileWords;
 
         internal struct InitParams
         {
             public LightCookieManager lightCookieManager;
-            public bool forwardPlus;
+            public bool clustering;
 
             static internal InitParams Create()
             {
@@ -129,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
-                    p.forwardPlus = false;
+                    p.clustering = false;
                 }
                 return p;
             }
@@ -144,7 +151,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_UseAdditionalLightsConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
             m_UseForwardPlusStructuredBuffer = RenderingUtils.useStructuredBuffer;
-            m_UseForwardPlus = initParams.forwardPlus;
+            m_UseClustering = initParams.clustering;
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
             if (m_UseAdditionalLightsConstantBuffer)
@@ -156,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CreateAdditionalLightsLooseUniformArrays();
             }
 
-            if (m_UseForwardPlus)
+            if (m_UseClustering)
             {
                 CreateForwardPlusBuffers();
                 m_ReflectionProbeManager = ReflectionProbeManager.Create();
@@ -222,8 +229,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void CreateForwardPlusBuffers()
         {
-            m_ZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.Persistent);
-            m_TileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.Persistent);
+            m_TileMasksBufferWords = UniversalRenderPipeline.maxTileWords;
 
             if (m_UseForwardPlusStructuredBuffer)
             {
@@ -343,6 +349,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             out int wordsPerTile
         )
         {
+            // Also bounds an infinite far plane, which a camera accepts though its projection is then not renderable.
+            farClipPlane = math.min(farClipPlane, TilingJob.k_MaxDistance);
+
             localLightCount = supportsAdditionalLights ? lights.Length: 0;
             // The lights array first has directional lights, and then local lights. We traverse the list to find the
             // index of the first local light.
@@ -396,50 +405,59 @@ namespace UnityEngine.Rendering.Universal.Internal
                 binCount = (int)(farClipPlane * zBinScale + zBinOffset);
             }
 
-            // Necessary to avoid negative bin count when the farClipPlane is set to Infinity in the editor.
-            binCount = Math.Max(binCount, 0);
+            // At least one bin keeps the shader's last-bin clamp valid.
+            binCount = Math.Max(binCount, 1);
 
-            var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
+            // Nothing to cluster: one empty bin per view, which the shader's last-bin clamp always reads, and no tile words.
+            if (itemsPerTile == 0)
+            {
+                binCount = 1;
+                for (var i = 0; i < ZBinningJob.headerLength * viewCount; i++)
+                    zBins[i] = ZBinningJob.emptyHeader;
+                return default;
+            }
 
-            var lightMinMaxZJob = new LightMinMaxZJob
+            var minMaxZBins = new NativeArray<int2>(itemsPerTile * viewCount, Allocator.TempJob);
+            var zBinMapping = new ZBinMapping { scale = zBinScale, offset = zBinOffset, binCount = binCount, isOrthographic = isOrthographic };
+
+            var lightMinMaxZBinsJob = new LightMinMaxZBinsJob
             {
                 worldToViews = worldToViews,
                 lights = localLights,
-                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount),
-                near = nearClipPlane
+                minMaxZBins = minMaxZBins.GetSubArray(0, localLightCount * viewCount),
+                near = nearClipPlane,
+                zBinMapping = zBinMapping
             };
             // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
-            var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(localLightCount * viewCount, 32, new JobHandle());
+            var lightMinMaxZBinsHandle = localLightCount > 0 ? lightMinMaxZBinsJob.ScheduleParallel(localLightCount * viewCount, 32, default) : default;
 
             var reflectionProbeRotation = GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings) ? reflectionProbeSettings.UseReflectionProbeRotation : true;
 
-            var reflectionProbeMinMaxZJob = new ReflectionProbeMinMaxZJob
+            var reflectionProbeMinMaxZBinsJob = new ReflectionProbeMinMaxZBinsJob
             {
                 worldToViews = worldToViews,
                 reflectionProbes = probes,
                 reflectionProbeRotation = reflectionProbeRotation,
-                minMaxZs = minMaxZs.GetSubArray(localLightCount * viewCount, reflectionProbeCount * viewCount),
-                near = nearClipPlane
+                minMaxZBins = minMaxZBins.GetSubArray(localLightCount * viewCount, reflectionProbeCount * viewCount),
+                near = nearClipPlane,
+                zBinMapping = zBinMapping
             };
-            var reflectionProbeMinMaxZHandle = reflectionProbeMinMaxZJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZHandle);
+            var reflectionProbeMinMaxZBinsHandle = reflectionProbeCount > 0 ? reflectionProbeMinMaxZBinsJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZBinsHandle) : lightMinMaxZBinsHandle;
 
 
             var zBinningBatchCount = (binCount + ZBinningJob.batchSize - 1) / ZBinningJob.batchSize;
             var zBinningJob = new ZBinningJob
             {
                 bins = zBins,
-                minMaxZs = minMaxZs,
-                zBinScale = zBinScale,
-                zBinOffset = zBinOffset,
+                minMaxZBins = minMaxZBins,
                 binCount = binCount,
                 wordsPerTile = wordsPerTile,
                 lightCount = localLightCount,
                 reflectionProbeCount = reflectionProbeCount,
                 batchCount = zBinningBatchCount,
                 viewCount = viewCount,
-                isOrthographic = isOrthographic
             };
-            var zBinningHandle = zBinningJob.ScheduleParallel(zBinningBatchCount * viewCount, 1, reflectionProbeMinMaxZHandle);
+            var zBinningHandle = zBinningJob.ScheduleParallel(zBinningBatchCount * viewCount, 1, reflectionProbeMinMaxZBinsHandle);
 
             GetViewParams(isOrthographic, viewToClips[0], out float viewPlaneBottom0, out float viewPlaneTop0, out float4 viewToViewportScaleBias0);
             GetViewParams(isOrthographic, viewToClips[1], out float viewPlaneBottom1, out float viewPlaneTop1, out float4 viewToViewportScaleBias1);
@@ -467,7 +485,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isOrthographic = isOrthographic
             };
 
-            var tileRangeHandle = tilingJob.ScheduleParallel(itemsPerTile * viewCount, 1, reflectionProbeMinMaxZHandle);
+            var tileRangeHandle = tilingJob.ScheduleParallel(itemsPerTile * viewCount, 1, default);
 
             var expansionJob = new TileRangeExpansionJob
             {
@@ -480,10 +498,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             };
 
             var tilingHandle = expansionJob.ScheduleParallel(tileResolution.y * viewCount, 1, tileRangeHandle);
-            JobHandle cullingHandle = JobHandle.CombineDependencies(
-                minMaxZs.Dispose(zBinningHandle),
-                tileRanges.Dispose(tilingHandle));
-            return cullingHandle;
+            var disposeJob = new DisposeClusteringScratchJob { minMaxZBins = minMaxZBins, tileRanges = tileRanges };
+            return disposeJob.Schedule(JobHandle.CombineDependencies(zBinningHandle, tilingHandle));
+        }
+
+        // Frees the per-schedule scratch arrays in one job instead of one dispose job each.
+        [BurstCompile]
+        struct DisposeClusteringScratchJob : IJob
+        {
+            [ReadOnly, DeallocateOnJobCompletion]
+            public NativeArray<int2> minMaxZBins;
+
+            [ReadOnly, DeallocateOnJobCompletion]
+            public NativeArray<InclusiveRange> tileRanges;
+
+            public void Execute()
+            {
+                // Nothing to do: the job only exists to free its arrays after both clustering chains.
+            }
         }
 
         internal void PreSetup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
@@ -497,33 +529,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_UseAdditionalLightsConstantBuffer && lightData.additionalLightsCount > 0)
                 EnsureAdditionalLightsConstantBuffer();
 
-            if (m_UseForwardPlus)
+            if (m_UseClustering)
             {
                 using var _ = new ProfilingScope(m_ProfilingSamplerFPSetup);
 
                 m_ReflectionProbeManager.PreSetup();
 
-                if (!m_CullingHandle.IsCompleted)
+                if (m_TileMasksBufferWords != UniversalRenderPipeline.maxTileWords)
                 {
-                    throw new InvalidOperationException("Forward+ jobs have not completed yet.");
-                }
-
-                if (m_TileMasks.Length != UniversalRenderPipeline.maxTileWords)
-                {
-                    m_ZBins.Dispose();
                     m_ZBinsBuffer.Dispose();
-                    m_TileMasks.Dispose();
                     m_TileMasksBuffer.Dispose();
                     CreateForwardPlusBuffers();
                 }
-                else
-                {
-                    unsafe
-                    {
-                        UnsafeUtility.MemClear(m_ZBins.GetUnsafePtr(), m_ZBins.Length * sizeof(uint));
-                        UnsafeUtility.MemClear(m_TileMasks.GetUnsafePtr(), m_TileMasks.Length * sizeof(uint));
-                    }
-                }
+
+                Debug.Assert(!hasPendingClusteringData, "Clustering data from a previous render was never uploaded.");
+                if (hasPendingClusteringData)
+                    DisposeClusteringData();
+
+                m_ZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBinWords, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                m_TileMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileWords, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 var viewCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
@@ -557,6 +581,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     out m_ActualTileWidth,
                     out m_WordsPerTile
                 );
+
+                m_UsedZBinWords = m_BinCount * (ZBinningJob.headerLength + m_WordsPerTile) * viewCount;
+                m_UsedTileWords = m_TileResolution.x * m_TileResolution.y * m_WordsPerTile * viewCount;
 
                 JobHandle.ScheduleBatchedJobs();
             }
@@ -599,31 +626,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool additionalLightsPerVertex = lightData.shadeAdditionalLightsPerVertex;
             using (new ProfilingScope(m_ProfilingSampler))
             {
-                if (m_UseForwardPlus)
+                if (m_UseClustering)
                 {
                     if (lightData.reflectionProbeAtlas)
                     {
                         m_ReflectionProbeManager.UpdateGpuData(cameraData, CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
                     }
 
-                    using (new ProfilingScope(m_ProfilingSamplerFPComplete))
-                    {
-                        m_CullingHandle.Complete();
-                    }
-
-                    using (new ProfilingScope(m_ProfilingSamplerFPUpload))
+                    // No clustering data when PreSetup was skipped, e.g. for offscreen depth cameras, which shade no lights.
+                    if (m_ZBins.IsCreated)
                     {
                         if (m_UseForwardPlusStructuredBuffer)
                         {
-                            m_ZBinsBuffer.SetData(m_ZBins);
-                            m_TileMasksBuffer.SetData(m_TileMasks);
                             cmd.SetGlobalBuffer(LightShaderPropertyId._ZBins, m_ZBinsBuffer);
                             cmd.SetGlobalBuffer(LightShaderPropertyId._Tiles, m_TileMasksBuffer);
                         }
                         else
                         {
-                            m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
-                            m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                             cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, LightShaderPropertyId._ZBinBuffer, 0, UniversalRenderPipeline.maxZBinWords * 4);
                             cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, LightShaderPropertyId._TileBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
                         }
@@ -636,10 +655,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.Exposure, useExposure);
 
                 bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
-                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
-                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel,  lightCountCheck && !additionalLightsPerVertex && !m_UseForwardPlus);
-                cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, m_UseForwardPlus);
-                cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, m_UseForwardPlus); // Backward compatibility. Deprecated in 6.1.
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, lightCountCheck && additionalLightsPerVertex && !m_UseClustering);
+                cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel,  lightCountCheck && !additionalLightsPerVertex && !m_UseClustering);
+                cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, m_UseClustering);
+                cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, m_UseClustering); // Backward compatibility. Deprecated in 6.1.
 
                 bool isShadowMask = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
@@ -649,7 +668,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, lightData.reflectionProbeBlending);
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
-                cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas && m_UseForwardPlus && lightData.reflectionProbeBlending); // Needs to match shader stripping
+                cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas && m_UseClustering && lightData.reflectionProbeBlending); // Needs to match shader stripping
 
                 var asset = UniversalRenderPipeline.asset;
 #if UNITY_META_QUEST
@@ -703,13 +722,73 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Cleanup()
+        static readonly ProfilingSampler s_UploadClusteringData = new ProfilingSampler("Upload Clustering Data");
+
+        class UploadClusteringDataPassData
         {
-            if (m_UseForwardPlus)
+            internal ForwardLights forwardLights;
+        }
+
+        /// <summary>
+        /// Uploads the clustering data at the end of the render graph, giving the jobs the whole graph execution to finish.
+        /// </summary>
+        internal void UploadRenderGraphClusteringData(RenderGraph renderGraph)
+        {
+            if (!m_UseClustering)
+                return;
+
+            using (var builder = renderGraph.AddUnsafePass<UploadClusteringDataPassData>(s_UploadClusteringData.name, out var passData, s_UploadClusteringData))
+            {
+                passData.forwardLights = this;
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc(static (UploadClusteringDataPassData data, UnsafeGraphContext _) => data.forwardLights.UploadClusteringData());
+            }
+        }
+
+        void UploadClusteringData()
+        {
+            if (!m_ZBins.IsCreated)
+                return;
+
+            using (new ProfilingScope(m_ProfilingSamplerFPComplete))
             {
                 m_CullingHandle.Complete();
-                m_ZBins.Dispose();
-                m_TileMasks.Dispose();
+            }
+
+            // Immediate rather than recorded; valid because the camera's commands are only submitted after the graph executes.
+            // GPU work issued immediately (not recorded) by an earlier pass would still see the previous upload.
+            using (new ProfilingScope(m_ProfilingSamplerFPUpload))
+            {
+                if (m_UseForwardPlusStructuredBuffer)
+                {
+                    m_ZBinsBuffer.SetData(m_ZBins, 0, 0, m_UsedZBinWords);
+                    m_TileMasksBuffer.SetData(m_TileMasks, 0, 0, m_UsedTileWords);
+                }
+                else
+                {
+                    m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, (m_UsedZBinWords + 3) / 4);
+                    m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, (m_UsedTileWords + 3) / 4);
+                }
+            }
+
+            DisposeClusteringData();
+        }
+
+        internal void DisposeClusteringData()
+        {
+            m_CullingHandle.Complete();
+            m_CullingHandle = default;
+            m_ZBins.Dispose();
+            m_ZBins = default;
+            m_TileMasks.Dispose();
+            m_TileMasks = default;
+        }
+
+        internal void Cleanup()
+        {
+            if (m_UseClustering)
+            {
+                DisposeClusteringData();
                 m_ZBinsBuffer.Dispose();
                 m_ZBinsBuffer = null;
                 m_TileMasksBuffer.Dispose();
@@ -816,7 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 : Vector4.zero;
 
             // Forward+ Parameters, cached by PreSetup.
-            if (m_UseForwardPlus)
+            if (m_UseClustering)
             {
                 vars._FPParams0 = math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount);
                 vars._FPParams1 = math.float4(cameraData.pixelRect.size / m_ActualTileWidth, m_TileResolution.x, m_WordsPerTile);
@@ -960,7 +1039,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
-            if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
+            if (lightData.additionalLightsCount == 0 || m_UseClustering)
                 return lightData.additionalLightsCount;
 
             // SetLightIndexMap was already applied on the previous pass; calling it again would

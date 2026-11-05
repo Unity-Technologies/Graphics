@@ -5,8 +5,8 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [BurstCompile]
-    struct ReflectionProbeMinMaxZJob : IJobFor
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    struct ReflectionProbeMinMaxZBinsJob : IJobFor
     {
         public Fixed2<float4x4> worldToViews;
 
@@ -14,7 +14,9 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleReflectionProbe> reflectionProbes;
         [ReadOnly]
         public bool reflectionProbeRotation;
-        public NativeArray<float2> minMaxZs;
+        public NativeArray<int2> minMaxZBins;
+
+        public ZBinMapping zBinMapping;
 
         public float near;
 
@@ -23,6 +25,12 @@ namespace UnityEngine.Rendering.Universal
             var minMax = math.float2(float.MaxValue, float.MinValue);
             var reflectionProbeIndex = index % reflectionProbes.Length;
             var reflectionProbe = reflectionProbes[reflectionProbeIndex];
+            if (!TilingJob.HasNonZeroVolume(reflectionProbe))
+            {
+                minMaxZBins[index] = zBinMapping.ToBins(minMax);
+                return;
+            }
+
             var viewIndex = index / reflectionProbes.Length;
             var worldToView = worldToViews[viewIndex];
             var centerWS = (float3)reflectionProbe.bounds.center;
@@ -47,9 +55,9 @@ namespace UnityEngine.Rendering.Universal
                 minMax.y = math.max(minMax.y, cornerVS.z);
             }
 
-            // As in LightMinMaxZJob: a probe entirely closer than the near plane keeps max < min.
+            // As in LightMinMaxZBinsJob: a probe entirely closer than the near plane keeps max < min.
             minMax.x = math.max(minMax.x, near);
-            minMaxZs[index] = minMax;
+            minMaxZBins[index] = zBinMapping.ToBins(minMax);
         }
     }
 }

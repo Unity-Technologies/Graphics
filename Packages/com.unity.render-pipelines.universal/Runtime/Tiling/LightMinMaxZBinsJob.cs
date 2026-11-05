@@ -5,16 +5,18 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [BurstCompile]
-    struct LightMinMaxZJob : IJobFor
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    struct LightMinMaxZBinsJob : IJobFor
     {
         public Fixed2<float4x4> worldToViews;
 
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
-        public NativeArray<float2> minMaxZs;
+        public NativeArray<int2> minMaxZBins;
 
         public float near;
+
+        public ZBinMapping zBinMapping;
 
         public void Execute(int index)
         {
@@ -29,18 +31,22 @@ namespace UnityEngine.Rendering.Universal
 
             var minMax = math.float2(originVS.z - light.range, originVS.z + light.range);
 
-            if (light.lightType == LightType.Spot)
+            if (!TilingJob.HasNonZeroVolume(light))
+            {
+                minMax.x = float.MaxValue;
+                minMax.y = float.MinValue;
+            }
+            else if (light.lightType == LightType.Spot)
             {
                 // Based on https://iquilezles.org/www/articles/diskbbox/diskbbox.htm
                 var angleA = math.radians(light.spotAngle) * 0.5f;
-                float cosAngleA = math.cos(angleA);
+                math.sincos(angleA, out var sinAngleA, out var cosAngleA);
                 float coneHeight = light.range * cosAngleA;
                 float3 spotDirectionWS = lightToWorld.c2.xyz;
                 var endPointWS = originWS + spotDirectionWS * coneHeight;
                 var endPointVS = math.mul(worldToView, math.float4(endPointWS, 1)).xyz;
                 endPointVS.z *= -1;
-                var angleB = math.PI * 0.5f - angleA;
-                var coneRadius = light.range * cosAngleA * math.sin(angleA) / math.sin(angleB);
+                var coneRadius = light.range * sinAngleA;
                 var a = endPointVS - originVS;
                 // Saturate: rounding can push the argument slightly below 0, where sqrt returns NaN.
                 var e = math.sqrt(math.saturate(1.0f - a.z * a.z / math.dot(a, a)));
@@ -50,18 +56,11 @@ namespace UnityEngine.Rendering.Universal
                 if (-a.z < coneHeight * cosAngleA) minMax.x = math.min(originVS.z, endPointVS.z - e * coneRadius);
                 if (a.z < coneHeight * cosAngleA) minMax.y = math.max(originVS.z, endPointVS.z + e * coneRadius);
             }
-            else if (light.lightType != LightType.Point)
-            {
-                // Currently we support only spot, point and directional lights in URP. This job only deals with the
-                // first two. If any other light type is found, skip that light.
-                minMax.x = float.MaxValue;
-                minMax.y = float.MinValue;
-            }
 
             // Clamp to near, not 0: an orthographic near plane can be negative. A light entirely closer than the near
-            // plane keeps max < min, which ZBinningJob treats as empty.
+            // plane keeps max < min, which ZBinMapping.ToBins turns into an empty bin span.
             minMax.x = math.max(minMax.x, near);
-            minMaxZs[index] = minMax;
+            minMaxZBins[index] = zBinMapping.ToBins(minMax);
         }
     }
 }
