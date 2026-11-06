@@ -418,6 +418,41 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        [TestCase(new[] { "Idle", "Walk", "Run" }, 0, "Run", ExpectedResult = "Run 1")]
+        [TestCase(new[] { "Idle", "Walk", "Run" }, 0, "Jump", ExpectedResult = "Jump")]
+        [TestCase(new[] { "Idle", "Walk", "Run" }, 2, "Run", ExpectedResult = "Run")]
+        [TestCase(new[] { "Idle", "Idle" }, 1, "Idle", ExpectedResult = "Idle 1")]
+        [TestCase(new[] { "New item", "New item 1" }, 2, "New item", ExpectedResult = "New item 2")]
+        [TestCase(new[] { "Run" }, 1, "run", ExpectedResult = "run")]
+        [TestCase(new[] { "", "Walk" }, 1, "", ExpectedResult = "New item")]
+        [TestCase(new[] { "Walk" }, 1, " ", ExpectedResult = "New item")]
+        public string Enum_Value_Name_Is_Made_Unique(string[] names, int index, string name)
+        {
+            return VFXListParameterEnumValuePropertyRM.MakeNameUnique(names, index, name);
+        }
+
+        [Test]
+        public void Enum_Value_Name_At_Max_Length_Is_Shortened_To_Fit_Number()
+        {
+            var maxLengthName = new string('a', VFXParameterController.kMaxExposedNameLength);
+            var shortenedName = new string('a', VFXParameterController.kMaxExposedNameLength - 2);
+
+            var firstDuplicate = VFXListParameterEnumValuePropertyRM.MakeNameUnique(new[] { maxLengthName }, 1, maxLengthName);
+            var secondDuplicate = VFXListParameterEnumValuePropertyRM.MakeNameUnique(new[] { maxLengthName, firstDuplicate }, 2, maxLengthName);
+
+            Assert.AreEqual(shortenedName + " 1", firstDuplicate);
+            Assert.AreEqual(shortenedName + " 2", secondDuplicate);
+        }
+
+        [Test]
+        public void Enum_Value_Name_Over_Max_Length_Is_Truncated()
+        {
+            var overlongName = new string('a', VFXParameterController.kMaxExposedNameLength + 10);
+
+            Assert.AreEqual(VFXParameterController.kMaxExposedNameLength, VFXListParameterEnumValuePropertyRM.TruncateName(overlongName).Length);
+            Assert.AreEqual("Run", VFXListParameterEnumValuePropertyRM.TruncateName("Run"));
+        }
+
         [Test]
         public void Move_Parameter_To_Output_Category_And_Back_Keeps_Range()
         {

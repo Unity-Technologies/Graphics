@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 
         void CreateTextField()
         {
-            m_TextField = new TextField(128, false, false, '*');
+            m_TextField = new TextField(VFXParameterController.kMaxExposedNameLength, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
             m_TextField.value = "";
