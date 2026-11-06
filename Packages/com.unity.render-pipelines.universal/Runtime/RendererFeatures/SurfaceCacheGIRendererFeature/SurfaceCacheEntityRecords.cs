@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public EntityId Key;
         public EntityId Mesh;
+        public int MeshLod;
         // Into the buffer this record was drained with, so valid only until that buffer is reused.
         public int MaterialsStart;
         public int MaterialsCount;

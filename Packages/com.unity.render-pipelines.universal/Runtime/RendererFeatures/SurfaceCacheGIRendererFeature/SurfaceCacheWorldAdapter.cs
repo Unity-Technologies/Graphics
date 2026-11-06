@@ -68,6 +68,16 @@ namespace UnityEngine.Rendering.Universal
         {
             return _entityInstances.TryGetInputMaterialIds(key, out materialIds);
         }
+
+        internal bool TryGetEntityInstanceAppliedMeshLod(EntityId key, out int meshLod)
+        {
+            return _entityInstances.TryGetAppliedMeshLod(key, out meshLod);
+        }
+
+        internal bool TryGetMeshRendererAppliedMeshLod(EntityId key, out int meshLod)
+        {
+            return _meshRenderers.TryGetAppliedMeshLod(key, out meshLod);
+        }
 #endif
 
         public void Update(SurfaceCacheWorldChangeSet changes, AmbientMode ambientMode, Material skyboxMaterial,
@@ -309,6 +319,7 @@ namespace UnityEngine.Rendering.Universal
             TKey Key { get; }
             bool Visible { get; }
             Mesh Mesh { get; }
+            int MeshLod { get; }
             uint RenderingLayerMask { get; }
             Matrix4x4 LocalToWorld { get; }
             // May fill and return the given scratch list. Assignments outside subMeshCount are dropped.
@@ -353,6 +364,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            public int MeshLod => _renderer.globalIlluminationMeshLod;
+
             public uint RenderingLayerMask => _renderer.renderingLayerMask;
 
             public Matrix4x4 LocalToWorld => _renderer.transform.localToWorldMatrix;
@@ -384,6 +397,7 @@ namespace UnityEngine.Rendering.Universal
             // Safe only because the live RenderMeshArrayHost keeps these meshes resident.
             public Mesh Mesh => _record.Mesh != EntityId.None ? Resources.EntityIdToObject(_record.Mesh) as Mesh : null;
 
+            public int MeshLod => _record.MeshLod;
             public uint RenderingLayerMask => _record.RenderingLayerMask;
             public Matrix4x4 LocalToWorld => _record.LocalToWorld;
 
@@ -428,6 +442,7 @@ namespace UnityEngine.Rendering.Universal
             readonly List<bool> _inWorld = new();
             readonly List<InstanceHandle> _handles = new();
             readonly List<EntityId> _meshIds = new();
+            readonly List<int> _meshLods = new();
             // The transform last applied to the world instance.
             readonly List<Matrix4x4> _localToWorlds = new();
             // Materials provided by the source the last time we checked ("null materials" are EntityId.None).
@@ -464,6 +479,18 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 localToWorld = default;
+                return false;
+            }
+
+            public bool TryGetAppliedMeshLod(TKey key, out int meshLod)
+            {
+                if (_slots.TryGetValue(key, out int slot) && _inWorld[slot])
+                {
+                    meshLod = _meshLods[slot];
+                    return true;
+                }
+
+                meshLod = 0;
                 return false;
             }
 
@@ -607,6 +634,7 @@ namespace UnityEngine.Rendering.Universal
                 _inWorld.Add(false);
                 _handles.Add(default);
                 _meshIds.Add(EntityId.None);
+                _meshLods.Add(0);
                 _localToWorlds.Add(default);
                 _inputMaterialIds.Add(null);
                 _acquiredMaterialIds.Add(null);
@@ -626,6 +654,7 @@ namespace UnityEngine.Rendering.Universal
                     _inWorld[slot] = _inWorld[last];
                     _handles[slot] = _handles[last];
                     _meshIds[slot] = _meshIds[last];
+                    _meshLods[slot] = _meshLods[last];
                     _localToWorlds[slot] = _localToWorlds[last];
                     _inputMaterialIds[slot] = _inputMaterialIds[last];
                     _acquiredMaterialIds[slot] = _acquiredMaterialIds[last];
@@ -636,6 +665,7 @@ namespace UnityEngine.Rendering.Universal
                 _inWorld.RemoveAt(last);
                 _handles.RemoveAt(last);
                 _meshIds.RemoveAt(last);
+                _meshLods.RemoveAt(last);
                 _localToWorlds.RemoveAt(last);
                 _inputMaterialIds.RemoveAt(last);
                 _acquiredMaterialIds.RemoveAt(last);
@@ -658,9 +688,10 @@ namespace UnityEngine.Rendering.Universal
                 ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
                 var localToWorld = source.LocalToWorld;
+                int meshLod = ResolveMeshLod(mesh, source.MeshLod);
                 try
                 {
-                    _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, localToWorld);
+                    _handles[slot] = world.AddInstance(mesh, acquiredMatHandles, masks, localToWorld, meshLod);
                 }
                 catch
                 {
@@ -671,6 +702,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 _meshIds[slot] = mesh.GetEntityId();
+                _meshLods[slot] = meshLod;
                 _localToWorlds[slot] = localToWorld;
                 _inputMaterialIds[slot] = CopyToReusedOrNewArray(inputMatIds);
                 _acquiredMaterialIds[slot] = CopyToReusedOrNewArray(acquiredMatIds);
@@ -681,7 +713,7 @@ namespace UnityEngine.Rendering.Universal
 
             void UpdateInWorld(int slot, in TSource source, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
             {
-                if (_meshIds[slot] != mesh.GetEntityId())
+                if (_meshIds[slot] != mesh.GetEntityId() || _meshLods[slot] != ResolveMeshLod(mesh, source.MeshLod))
                 {
                     RemoveFromWorld(slot, sharedMaterials, world);
                     AddToWorld(slot, source, mesh, sharedMaterials, world);
@@ -758,6 +790,7 @@ namespace UnityEngine.Rendering.Universal
                 RecycleMaterialIdArray(_acquiredMaterialIds[slot]);
                 _handles[slot] = default;
                 _meshIds[slot] = EntityId.None;
+                _meshLods[slot] = 0;
                 _localToWorlds[slot] = default;
                 _inputMaterialIds[slot] = null;
                 _acquiredMaterialIds[slot] = null;
@@ -855,6 +888,11 @@ namespace UnityEngine.Rendering.Universal
 
                 freeArrays.Push(array);
             }
+        }
+
+        static int ResolveMeshLod(Mesh mesh, int requestedMeshLod)
+        {
+            return Mathf.Clamp(requestedMeshLod, 0, mesh.lodCount - 1);
         }
 
         static void ResolveMaterialIds(IReadOnlyList<Material> materials, Span<EntityId> materialEntityIds)

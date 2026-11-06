@@ -729,11 +729,13 @@ namespace UnityEngine.Rendering
             Mesh mesh,
             Span<MaterialHandle> materials,
             Span<uint> masks,
-            in Matrix4x4 localToWorldMatrix)
+            in Matrix4x4 localToWorldMatrix,
+            int meshLod = 0)
         {
             Debug.Assert(mesh.vertexCount > 0);
             Debug.Assert(mesh.subMeshCount == materials.Length);
             Debug.Assert(mesh.subMeshCount == masks.Length);
+            Debug.Assert(meshLod >= 0 && meshLod < mesh.lodCount);
 
             Span<uint> validMasks = stackalloc uint[mesh.subMeshCount];
             Span<uint> materialIndices = stackalloc uint[mesh.subMeshCount];
@@ -753,13 +755,13 @@ namespace UnityEngine.Rendering
             Span<int> subMeshTriangleCounts = stackalloc int[mesh.subMeshCount];
             for (int i = 0; i < subMeshTriangleCounts.Length; ++i)
             {
-                uint indexCount = mesh.GetIndexCount(i);
+                uint indexCount = mesh.GetIndexCount(i, meshLod);
                 Debug.Assert(indexCount % 3 == 0, "Mesh should contain triangles.");
                 subMeshTriangleCounts[i] = (int)(indexCount / 3);
             }
 
             InstanceHandle instance = _instanceHandleSet.Add();
-            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, validMasks, materialIndices, isOpaque, 0);
+            _rayTracingAccelerationStructure.AddInstance(instance.Value, mesh, localToWorldMatrix, validMasks, materialIndices, isOpaque, 0, meshLod);
             TrackInstance(instance, subMeshTriangleCounts, materials);
             return instance;
         }
