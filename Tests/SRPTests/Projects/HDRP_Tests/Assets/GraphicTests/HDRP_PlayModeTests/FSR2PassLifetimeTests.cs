@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -67,6 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [UnityTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-160598
+        })]
         public IEnumerator SwitchingPipelineAsset_DestroysFSR2Contexts()
         {
             var camera = m_CameraObject.GetComponent<Camera>();
