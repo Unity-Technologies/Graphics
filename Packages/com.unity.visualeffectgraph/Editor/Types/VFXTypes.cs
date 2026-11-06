@@ -393,6 +393,9 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct TerrainType
     {
+        // Always world space, so this must not be marked spaceable.
+        [Tooltip("Sets the world space position of the Terrain.")]
+        public Vector3 Position;
         [Tooltip("Sets the bounds of the Terrain.")]
         public AABox Bounds;
         [Tooltip("Sets the height map of the Terrain.")]

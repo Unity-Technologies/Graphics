@@ -33,6 +33,7 @@ Fetch data from buffers, meshes, and textures.
 | [Sample Texture3D Operator](Operator-SampleTexture3D.md) | Sample a 3D texture using UV coordinates and mipmap level. |
 | [Sample TextureCube Operator](Operator-SampleTextureCube.md) | Sample a cubemap texture using a direction vector and mipmap level. |
 | [Sample TextureCubeArray Operator](Operator-SampleTextureCubeArray.md) | Sample a cubemap array using a slice, direction vector, and mipmap level. |
+| [Sample Terrain Operator](Operator-SampleTerrain.md) | Sample the height of a Terrain. |
 
 ## Additional resources
 

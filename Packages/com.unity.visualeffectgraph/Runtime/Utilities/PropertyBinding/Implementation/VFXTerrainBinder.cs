@@ -13,6 +13,7 @@ namespace UnityEngine.VFX.Utility
         public ExposedProperty m_Property = "Terrain";
         public Terrain Terrain = null;
 
+        private ExposedProperty Terrain_Position;
         private ExposedProperty Terrain_Bounds_center;
         private ExposedProperty Terrain_Bounds_size;
         private ExposedProperty Terrain_HeightMap;
@@ -31,6 +32,7 @@ namespace UnityEngine.VFX.Utility
 
         void UpdateSubProperties()
         {
+            Terrain_Position = m_Property + "_Position";
             Terrain_Bounds_center = m_Property + "_Bounds_center";
             Terrain_Bounds_size = m_Property + "_Bounds_size";
             Terrain_HeightMap = m_Property + "_HeightMap";
@@ -50,6 +52,7 @@ namespace UnityEngine.VFX.Utility
         {
             Bounds b = Terrain.terrainData.bounds;
 
+            component.SetVector3(Terrain_Position, Terrain.GetPosition());
             component.SetVector3(Terrain_Bounds_center, b.center);
             component.SetVector3(Terrain_Bounds_size, b.size);
             component.SetTexture(Terrain_HeightMap, Terrain.terrainData.heightmapTexture);
