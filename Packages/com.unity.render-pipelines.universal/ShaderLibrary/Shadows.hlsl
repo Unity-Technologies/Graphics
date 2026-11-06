@@ -169,7 +169,7 @@ bool SoftShadowsAvailable()
 // PCSS is layered on the per-light soft shadows. Each light still picks its filter.
 bool ShadowsPCSSAvailable()
 {
-    return _SHADOWS_SOFT && _SHADOWS_PCSS;
+    return _SHADOWS_PCSS;
 }
 
 // Should match: UnityEngine.Rendering.Universal + 1

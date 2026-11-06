@@ -27,10 +27,10 @@ bool LightLayersAvailable()
 
 bool IsMatchingLightLayer(Light light, uint renderingLayers)
 {
-    bool isMatching = true;
+    uint matchBits = 1u;
     if (_LIGHT_LAYERS)
-        isMatching = IsMatchingLightLayer(light.layerMask, renderingLayers);
-    return isMatching;
+        matchBits = light.layerMask & renderingLayers;
+    return matchBits != 0u;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
