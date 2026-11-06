@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Surface Cache Global Illumination")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
+    [VolumeRequiresRendererFeatures(typeof(SurfaceCacheGIRendererFeature))]
+#endif
     [DisplayInfo(name = "Surface Cache Global Illumination")]
     public class SurfaceCacheGIVolumeOverride : VolumeComponent
     {

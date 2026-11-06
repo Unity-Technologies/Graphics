@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(SurfaceCacheGIVolumeOverride))]
-    internal class SurfaceCacheGIVolumeEditor : VolumeComponentEditor
+    internal class SurfaceCacheGIVolumeEditor : UniversalRenderPipelineVolumeComponentEditor
     {
         protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
         private bool m_QualityDirty = true;
@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
             m_Enabled = Unpack(o.Find(obj => obj.enabled));
