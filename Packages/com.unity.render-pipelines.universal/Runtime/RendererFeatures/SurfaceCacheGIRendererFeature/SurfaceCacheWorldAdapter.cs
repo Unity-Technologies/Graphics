@@ -291,6 +291,16 @@ namespace UnityEngine.Rendering.Universal
             //    and tracking. It is a lot of work and cost for little gain.
         }
 
+        // Preview scene objects (e.g. Prefab Mode) dispatch transform changes but never their destruction.
+        static bool IsInPreviewScene(Component component)
+        {
+#if UNITY_EDITOR
+            return UnityEditor.SceneManagement.EditorSceneManager.IsPreviewSceneObject(component);
+#else
+            return false;
+#endif
+        }
+
         interface IInstanceSource<TKey>
         {
             TKey Key { get; }
@@ -315,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
             public EntityId Key => _renderer.GetEntityId();
 
             // In an open subscene the live-converted entities are the source of truth, not the authoring renderers.
-            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene && IsInGlobalIlluminationLOD(_renderer);
+            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene && !IsInPreviewScene(_renderer) && IsInGlobalIlluminationLOD(_renderer);
 
             // A renderer outside any LODGroup contributes, matching an entity without a MeshLODComponent.
             static bool IsInGlobalIlluminationLOD(MeshRenderer renderer)
@@ -856,7 +866,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isRegistered = _slots.TryGetValue(id, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                bool shouldBeRegistered = terrain.isActiveAndEnabled && terrain.terrainData != null;
+                bool shouldBeRegistered = terrain.isActiveAndEnabled && terrain.terrainData != null && !IsInPreviewScene(terrain);
                 bool matchesWorldFilter = (terrain.renderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;
 
@@ -1134,7 +1144,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isRegistered = _slots.TryGetValue(id, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                bool shouldBeRegistered = light.isActiveAndEnabled && !light.bakingOutput.isBaked;
+                bool shouldBeRegistered = light.isActiveAndEnabled && !light.bakingOutput.isBaked && !IsInPreviewScene(light);
                 bool matchesWorldFilter = ((uint)light.renderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;
 
