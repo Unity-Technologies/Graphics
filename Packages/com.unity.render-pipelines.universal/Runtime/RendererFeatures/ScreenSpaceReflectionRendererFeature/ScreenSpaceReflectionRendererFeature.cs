@@ -47,6 +47,10 @@ namespace UnityEngine.Rendering.Universal
             if (UniversalRenderer.IsOffscreenDepthTexture(universalCameraData))
                 return;
 
+            // Reflection probe captures don't need SSR.
+            if (universalCameraData.cameraType == CameraType.Reflection)
+                return;
+
             // Only allow in preview cameras via the RenderRequest API (i.e. 'Cameras' overlay in scene view)
             // Don't allow regular preview cameras (i.e. thumbnails, material previews)
             if (universalCameraData.isPreviewCamera && !universalCameraData.camera.isProcessingRenderRequest)
