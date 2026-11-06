@@ -96,6 +96,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewPanelSettings.clearDepthStencil = true;
             m_PreviewPanelSettings.isTransient = true;
             m_PreviewPanelSettings.disableNoThemeWarning = true;
+            // The graph may read any optional channel (UV1-3, Normal, Tangent). Enable them all so the panel's
+            // vertex layout always provides them (zero-filled), otherwise Metal logs "Missing vertex input".
+            m_PreviewPanelSettings.extraVertexChannels = ExtraVertexChannels.TexCoord1 | ExtraVertexChannels.TexCoord2 |
+                ExtraVertexChannels.TexCoord3 | ExtraVertexChannels.Normal | ExtraVertexChannels.Tangent;
             var root = m_PreviewPanelSettings.panel.visualTree;
             root.StretchToParentSize();
             var previewElementUxml = Resources.Load<VisualTreeAsset>("UXML/UITKMasterNodePreview");
