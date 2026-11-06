@@ -1665,6 +1665,98 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        static readonly bool[] kConvertToSubgraphBlock_With_Operators_Case = { true, false };
+
+        [UnityTest, Description("Repro from UUM-153537")]
+        public IEnumerator ConvertToSubgraphBlock_With_Operators([ValueSource(nameof(kConvertToSubgraphBlock_With_Operators_Case))] bool withGroupAndStickyNote)
+        {
+            string vfxPath;
+            {
+                var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+                vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+                var update = vfxGraph.children.OfType<VFXBasicUpdate>().Single();
+                var setPosition = ScriptableObject.CreateInstance<SetAttribute>();
+                setPosition.SetSettingValue("attribute", "position");
+                update.AddChild(setPosition);
+
+                // The operand type differs from the linked inputs, relinking them one by one would change it
+                var modulo = ScriptableObject.CreateInstance<Operator.Modulo>();
+                modulo.SetOperandType(typeof(Vector3));
+                vfxGraph.AddChild(modulo);
+                Assert.AreEqual(typeof(Vector3), modulo.inputSlots[0].property.type);
+                for (int i = 0; i < 2; ++i)
+                {
+                    var absolute = ScriptableObject.CreateInstance<Operator.Absolute>();
+                    vfxGraph.AddChild(absolute);
+                    Assert.IsTrue(modulo.inputSlots[i].Link(absolute.outputSlots[0]));
+                }
+                Assert.IsTrue(setPosition.inputSlots[0].Link(modulo.outputSlots[0]));
+                VFXTestCommon.ReimportVFXGraph(vfxGraph);
+            }
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetEntityId(), 0));
+
+            var window = VFXTestCommon.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+            yield return null;
+
+            var operatorControllers = viewController.AllSlotContainerControllers.Where(t => t.model is VFXOperator).ToArray();
+            Assert.AreEqual(3, operatorControllers.Length);
+            var updateContext = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+            var setPositionController = viewController.AllSlotContainerControllers.Single(t => t.model.GetParent() == updateContext);
+            var controllers = operatorControllers.Cast<Controller>().Append(setPositionController).ToList();
+
+            if (withGroupAndStickyNote)
+            {
+                viewController.AddStickyNote(Vector2.zero, null);
+                yield return null;
+
+                var stickyNote = viewController.stickyNotes.Single();
+                viewController.GroupNodes(operatorControllers, new[] { stickyNote });
+                yield return null;
+
+                controllers.Add(stickyNote);
+                controllers.Add(viewController.groupNodes.Single());
+            }
+
+            var subgraphPath = vfxPath + "block";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphPath);
+            viewController.ApplyChanges();
+            yield return null;
+
+            //Main Graph Content
+            updateContext = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+            Assert.IsFalse(updateContext.children.OfType<SetAttribute>().Any());
+            Assert.AreEqual(1, updateContext.children.OfType<VFXSubgraphBlock>().Count());
+            Assert.IsFalse(viewController.graph.children.OfType<VFXOperator>().Any());
+
+            //Subgraph Content
+            var subgraphAsset = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(subgraphPath);
+            var subgraph = (VFXGraph)subgraphAsset.GetResource().graph;
+
+            var innerModulo = subgraph.children.OfType<Operator.Modulo>().Single();
+            Assert.AreEqual(typeof(Vector3), innerModulo.GetOperandType());
+            Assert.IsTrue(innerModulo.inputSlots.All(t => t.HasLink()));
+
+            var innerSetPosition = subgraph.children.OfType<VFXBlockSubgraphContext>().Single().children.OfType<SetAttribute>().Single();
+            Assert.AreEqual(innerModulo.outputSlots[0], innerSetPosition.inputSlots[0].LinkedSlots.Single());
+
+            if (withGroupAndStickyNote)
+            {
+                Assert.AreEqual(1, subgraph.UIInfos.stickyNoteInfos.Length);
+                var group = subgraph.UIInfos.groupInfos.Single();
+                Assert.AreEqual(4, group.contents.Length);
+                Assert.AreEqual(3, group.contents.Count(t => t.model is VFXOperator));
+                Assert.AreEqual(1, group.contents.Count(t => t.isStickyNote));
+            }
+
+            window.Close();
+            yield return null;
+        }
+
         static readonly bool[] kConvertToSubGraphOperator_With_ExposedProperty_Select_Parameters = { true, false };
 
         [UnityTest]
