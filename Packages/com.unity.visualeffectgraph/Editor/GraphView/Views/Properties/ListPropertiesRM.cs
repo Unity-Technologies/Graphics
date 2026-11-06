@@ -47,8 +47,9 @@ namespace UnityEditor.VFX.UI
 
         void OnAdd()
         {
-            var list = (List<T>)m_Provider.value;
-            list.Add(ValidateItem(list, list.Count, CreateItem()));
+            T value = CreateItem();
+
+            ((List<T>)m_Provider.value).Add(value);
             NotifyValueChanged();
             Update();
         }
@@ -73,7 +74,6 @@ namespace UnityEditor.VFX.UI
         void ItemChanged()
         {
             NotifyValueChanged();
-            Update();
         }
 
         protected ReorderableList m_List;
@@ -131,8 +131,7 @@ namespace UnityEditor.VFX.UI
                 get => ((List<T>)m_List.GetValue())[m_Index];
                 set
                 {
-                    var list = (List<T>)m_List.GetValue();
-                    list[m_Index] = m_List.ValidateItem(list, m_Index, (T)value);
+                    ((List<T>)m_List.GetValue())[m_Index] = (T)value;
                     m_List.ItemChanged();
                 }
             }
@@ -177,9 +176,6 @@ namespace UnityEditor.VFX.UI
         protected abstract U CreateField(IPropertyRMProvider provider);
 
         protected abstract T CreateItem();
-
-        // The provided index might be out of bounds as newly added items are not yet in the supplied list.
-        protected virtual T ValidateItem(List<T> list, int index, T item) => item;
 
         protected U CreateNewField(int index)
         {
