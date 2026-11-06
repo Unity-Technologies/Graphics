@@ -837,6 +837,7 @@ namespace ShaderStrippingAndPrefiltering
 
             TestStripUnusedFeatures_DebugDisplay(shader);
             TestStripUnusedFeatures_ScreenCoordOverride(shader);
+            TestStripUnusedFeatures_ReflectionProbeRotation(shader);
             TestStripUnusedFeatures_PunctualLightShadows(shader);
             TestStripUnusedFeatures_FoveatedRendering(shader);
             TestStripUnusedFeatures_DeferredRendering(shader);
@@ -920,6 +921,50 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.SCREEN_COORD_OVERRIDE};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.SCREEN_COORD_OVERRIDE};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenCoordOverride(ref helper.data));
+        }
+
+        public void TestStripUnusedFeatures_ReflectionProbeRotation(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            // A dynamic keyword resolves at runtime, so its single variant must be kept
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_DynamicKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_DynamicKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
         }
 
         public void TestStripUnusedFeatures_PunctualLightShadows(Shader shader)
