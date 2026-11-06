@@ -120,8 +120,10 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Destination = new RenderTexture(64, 64, 24);
             m_Objects.Add(m_Destination);
 
-            // Let the pipeline switch to the test asset
+            // Let the pipeline switch to the test asset. Nothing may render during that frame in batchmode, so render once to
+            // make sure the pipeline exists. Creating it recreates the renderers, which would discard the per-test setup.
             yield return null;
+            RenderPipeline.SubmitRenderRequest(m_Camera, new RenderPipeline.StandardRequest { destination = m_Destination });
         }
 
         [OneTimeTearDown]
@@ -174,7 +176,6 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [TestCaseSource(nameof(PrepassCases))]
-        [Ignore("Unstable: the first case can run before the pipeline is created, which discards its setup")]
         public void PrepassGlobalTextures_MatchResourceData(RenderingMode renderingMode, PrepassState prepassState, DepthPrimingMode depthPrimingMode, bool depthInput, bool renderingLayers)
         {
             m_Camera.cullingMask = prepassState switch
@@ -189,18 +190,20 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_CameraData.SetRenderer(rendererIndex);
 
             var feature = m_Features[rendererIndex];
+            var capturePass = feature.capturePass;
             feature.requireRenderingLayers = renderingLayers;
-            feature.capturePass.mismatches.Clear();
-            feature.capturePass.ConfigureInput(depthInput ?
+            capturePass.mismatches.Clear();
+            capturePass.ConfigureInput(depthInput ?
                 ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal : ScriptableRenderPassInput.Normal);
 
             // Deferred produces the normals in the gbuffer pass
-            feature.capturePass.renderPassEvent = renderingMode == RenderingMode.Deferred ?
+            capturePass.renderPassEvent = renderingMode == RenderingMode.Deferred ?
                 RenderPassEvent.AfterRenderingGbuffer : RenderPassEvent.AfterRenderingPrePasses;
 
             RenderPipeline.SubmitRenderRequest(m_Camera, new RenderPipeline.StandardRequest { destination = m_Destination });
 
-            Assert.IsEmpty(feature.capturePass.mismatches, "Globals that don't match the resource data");
+            Assert.AreSame(capturePass, feature.capturePass, "The renderer was recreated during the render, discarding the test setup");
+            Assert.IsEmpty(capturePass.mismatches, "Globals that don't match the resource data");
         }
     }
 }
