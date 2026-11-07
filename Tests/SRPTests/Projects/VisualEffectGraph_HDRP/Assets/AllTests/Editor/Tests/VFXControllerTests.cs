@@ -1124,6 +1124,7 @@ namespace UnityEditor.VFX.Test
 
         [UnityTest]
         [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.OSXEditor,
             RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-160528
         })]
         public IEnumerator Clear_Undo_Stack_After_Closing_Window()
