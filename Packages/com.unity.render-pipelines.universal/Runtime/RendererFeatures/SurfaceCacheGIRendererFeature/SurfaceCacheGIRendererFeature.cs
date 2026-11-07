@@ -219,7 +219,8 @@ namespace UnityEngine.Rendering.Universal
                     WarmUpSampleMultiplier = (uint)volumeOverride.lightTransportWarmupSampleMultiplier.value,
                     PunctualLightCandidateCount = (uint)volumeOverride.lightTransportPunctualLightCandidateCount.value,
                     DistanceFallback = volumeOverride.volumeDistanceFallback.value,
-                    AlphaCutouts = volumeOverride.transparencyMode.value == SurfaceCacheGIVolumeOverride.TransparencyMode.OpaquesAndCutouts
+                    AlphaCutouts = volumeOverride.transparencyMode.value == SurfaceCacheGIVolumeOverride.TransparencyMode.OpaquesAndCutouts,
+                    RayTracingNormalBias = volumeOverride.lightTransportRayTracingNormalBias.value
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
