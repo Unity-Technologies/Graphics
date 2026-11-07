@@ -420,6 +420,58 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(new [] { HLSLAccess.INOUT, HLSLAccess.IN, HLSLAccess.IN }, function.inputs.Select(x => x.access));
 
         }
+
+        [TestCase("\n")]
+        [TestCase("\r\n")]
+        [TestCase(" ")]
+        [TestCase("\t")]
+        [TestCase("\n\n\n")]
+        [TestCase("  \n\t\n")]
+        [Test, Description("Covers issue UUM-158603")]
+        public void HLSL_Check_Leading_Whitespace(string leadingWhitespace)
+        {
+            // Arrange
+            string hlslCode = leadingWhitespace +
+                "float FloatFunction(in float value)\n" +
+                "{\n" +
+                "    return value;\n" +
+                "}\n";
+
+            // Act
+            HLSLFunction function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
+
+            // Assert
+            Assert.AreEqual("FloatFunction", function.name);
+            Assert.AreEqual(0, function.index);
+            Assert.AreEqual("{\n    return value;\n}", function.body);
+        }
+
+        [Test, Description("Covers issue UUM-158603")]
+        public void HLSL_Check_Leading_Whitespace_Multiple_Functions()
+        {
+            // Arrange
+            string hlslCode =
+                "\n\n" +
+                "float First(in float value)\n" +
+                "{\n" +
+                "    return value;\n" +
+                "}\n" +
+                "\n" +
+                "float Second(in float value)\n" +
+                "{\n" +
+                "    return value * 2;\n" +
+                "}\n";
+
+            // Act
+            HLSLFunction[] functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
+
+            // Assert
+            Assert.AreEqual(2, functions.Length);
+            Assert.AreEqual(0, functions[0].index);
+            Assert.AreEqual(51, functions[1].index);
+            Assert.AreEqual("{\n    return value;\n}", functions[0].body);
+            Assert.AreEqual("{\n    return value * 2;\n}", functions[1].body);
+        }
     }
 }
 #endif
