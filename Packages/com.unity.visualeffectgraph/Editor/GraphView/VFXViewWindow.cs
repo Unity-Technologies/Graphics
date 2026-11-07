@@ -119,11 +119,18 @@ namespace UnityEditor.VFX.UI
 
         public static bool CloseIfNotLast(VFXView vfxView)
         {
-            var noAssetWindows = s_VFXWindows.Where(x => x.graphView?.controller?.graph == null).ToArray();
-            if (noAssetWindows.Length > 1)
+            // The window is already unregistered when it is being destroyed, in which case there is nothing left to close.
+            var closingWindow = s_VFXWindows.FirstOrDefault(x => x.graphView == vfxView);
+            if (closingWindow == null)
             {
-                var window = noAssetWindows.Single(x => x.graphView == vfxView);
-                window.Close();
+                return false;
+            }
+
+            // Windows restored by the layout but not initialized yet have no graph view, they are empty only if they have no resource to display.
+            var noAssetWindowsCount = s_VFXWindows.Count(x => x.graphView != null ? x.graphView.controller?.graph == null : x.m_DisplayedResource == null);
+            if (noAssetWindowsCount > 1)
+            {
+                closingWindow.Close();
                 return true;
             }
 

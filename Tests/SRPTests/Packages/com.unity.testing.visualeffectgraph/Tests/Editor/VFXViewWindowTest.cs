@@ -1148,6 +1148,109 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        [UnityTest, Description("Closing a window must not throw when other windows were restored by the layout but never initialized")]
+        public IEnumerator Close_Window_With_Uninitialized_Windows_Does_Not_Throw()
+        {
+            VFXTestCommon.CloseAllVFXWindow();
+
+            var otherGraphs = new[]
+            {
+                VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx"),
+                VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx")
+            };
+            var graph = VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx");
+
+            var uninitializedWindows = new List<VFXViewWindow>();
+            try
+            {
+                // Windows that were never shown have no graph view, like docked windows that were never focused after a layout restore.
+                // The resource is assigned right after creation because a second window without resource would close itself in OnEnable.
+                foreach (var otherGraph in otherGraphs)
+                {
+                    var uninitializedWindow = ScriptableObject.CreateInstance<VFXViewWindow>();
+                    uninitializedWindows.Add(uninitializedWindow);
+                    VFXTestCommon.SetFieldValue(uninitializedWindow, "m_DisplayedResource", otherGraph.visualEffectResource);
+                }
+
+                var registeredWindows = VFXViewWindow.GetAllWindows();
+                Assert.AreEqual(2, registeredWindows.Count);
+                Assert.IsTrue(registeredWindows.All(x => x.graphView == null && x.displayedResource != null));
+
+                var window = VFXTestCommon.GetWindow(graph, true);
+                yield return null;
+                Assert.IsNotNull(window);
+                Assert.IsFalse(uninitializedWindows.Contains(window));
+                Assert.IsNotNull(window.graphView);
+                window.LoadResource(graph.visualEffectResource);
+                Assert.IsNotNull(window.graphView.controller);
+                Assert.IsTrue(uninitializedWindows.All(x => x.graphView == null));
+
+                window.Close();
+                yield return null;
+
+                LogAssert.NoUnexpectedReceived();
+            }
+            finally
+            {
+                foreach (var uninitializedWindow in uninitializedWindows)
+                {
+                    if (uninitializedWindow != null)
+                    {
+                        uninitializedWindow.Close();
+                    }
+                }
+            }
+        }
+
+        [UnityTest, Description("Unloading the graph of the only empty window must keep it open when the other windows were restored by the layout with a resource")]
+        public IEnumerator Unload_Graph_With_Uninitialized_Windows_Keeps_Window_Open()
+        {
+            VFXTestCommon.CloseAllVFXWindow();
+
+            var otherGraphs = new[]
+            {
+                VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx"),
+                VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx")
+            };
+            var graph = VFXTestCommon.CopyTemporaryGraph("Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx");
+
+            var uninitializedWindows = new List<VFXViewWindow>();
+            VFXViewWindow window = null;
+            try
+            {
+                foreach (var otherGraph in otherGraphs)
+                {
+                    var uninitializedWindow = ScriptableObject.CreateInstance<VFXViewWindow>();
+                    uninitializedWindows.Add(uninitializedWindow);
+                    VFXTestCommon.SetFieldValue(uninitializedWindow, "m_DisplayedResource", otherGraph.visualEffectResource);
+                }
+
+                window = VFXTestCommon.GetWindow(graph, true);
+                yield return null;
+                window.LoadResource(graph.visualEffectResource);
+                Assert.IsNotNull(window.graphView.controller);
+
+                window.graphView.controller = null;
+                yield return null;
+
+                Assert.IsTrue(window != null, "The window was closed although the other windows display a resource.");
+                Assert.IsTrue(VFXViewWindow.GetAllWindows().Contains(window));
+            }
+            finally
+            {
+                if (window != null)
+                {
+                    window.Close();
+                }
+                foreach (var uninitializedWindow in uninitializedWindows)
+                {
+                    if (uninitializedWindow != null)
+                    {
+                        uninitializedWindow.Close();
+                    }
+                }
+            }
+        }
     }
 
     // Counts import passes touching the test temp folder, so tests can assert Save All batches its writes into one import.
