@@ -210,7 +210,6 @@ void SamplePunctualLightBounceRadianceUniform(
             lightSample.hitPos,
             lightSample.hitInstanceId,
             lightSample.hitPrimitiveIndex,
-            patchGeo.position,
             reconnectionRayOrigin,
             discardSample))
         {
@@ -224,8 +223,7 @@ void SamplePunctualLightBounceRadianceUniform(
             lights,
             lightSample,
             patchGeo.position,
-            patchGeo.normal,
-            reconnectionRayOrigin);
+            patchGeo.normal);
 
         validSampleCount++;
         ProjectAndAccumulate(radianceAccumulator, radianceSample.radianceOverDensity, radianceSample.direction);
@@ -299,8 +297,7 @@ void SamplePunctualLightBounceRadianceRIS(
                     lights,
                     punctualLightSample,
                     patchGeo.position,
-                    patchGeo.normal,
-                    reconnectionRayOrigin);
+                    patchGeo.normal);
 
                 // weight = targetVal / sourceDensity, and targetVal = Luminance(radiance), so
                 // weight = Luminance(radiance / sourceDensity) = Luminance(radiance) / sourceDensity.
@@ -326,7 +323,6 @@ void SamplePunctualLightBounceRadianceRIS(
             reservoir.lightSample.hitPos,
             reservoir.lightSample.hitInstanceId,
             reservoir.lightSample.hitPrimitiveIndex,
-            patchGeo.position,
             reconnectionRayOrigin,
             discardSample))
         {
