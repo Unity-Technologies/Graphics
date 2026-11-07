@@ -36,8 +36,8 @@ namespace UnityEditor.VFX.Test
             List<GraphicsStateCollection.ShaderVariant> variants = new List<GraphicsStateCollection.ShaderVariant>();
             gsc.GetVariants(variants);
 
-            // 3 outputs, each with 4 passes, with and without instancing (x2) = 24 variants
-            Assert.IsTrue(variants.Count == 24, $"Expected 24 variants in the GraphicsStateCollection, but got {variants.Count}.");
+            // 6 shaders (the Multi-Mesh output has one per mesh), each with 4 passes, with and without instancing (x2) = 48 variants
+            Assert.IsTrue(variants.Count == 48, $"Expected 48 variants in the GraphicsStateCollection, but got {variants.Count}.");
 
             foreach (var variant in variants)
             {
@@ -58,8 +58,8 @@ namespace UnityEditor.VFX.Test
             gsc.AddGraphicsStatesFromReference(graphicsState, new[] { vfxAsset });
             gsc.GetVariants(variants);
 
-            // 3 outputs, each with 4 passes, with and without instancing (x2) = 24 variants
-            Assert.IsTrue(variants.Count == 24, $"Expected 24 variants in the GraphicsStateCollection, but got {variants.Count}.");
+            // 6 shaders (the Multi-Mesh output has one per mesh), each with 4 passes, with and without instancing (x2) = 48 variants
+            Assert.IsTrue(variants.Count == 48, $"Expected 48 variants in the GraphicsStateCollection, but got {variants.Count}.");
 
             foreach (var variant in variants)
             {
