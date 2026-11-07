@@ -840,7 +840,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var node = selection.OfType<IShaderNodeView>().First().node;
             if (node.documentationURL != null)
-                System.Diagnostics.Process.Start(node.documentationURL);
+                Application.OpenURL(node.documentationURL);
         }
 
         void OpenSubGraph(DropdownMenuAction action)
