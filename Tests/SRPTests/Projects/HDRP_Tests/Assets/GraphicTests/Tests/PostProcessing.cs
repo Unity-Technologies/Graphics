@@ -8,6 +8,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -159,6 +160,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest(
             "4014_PrecomputedVelocityAlembic",
             "https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157558",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11
         )]
         [TestNotSupportedOn(
             "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
