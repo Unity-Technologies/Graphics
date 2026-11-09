@@ -96,6 +96,29 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
+        internal static bool ValidateGraphicsAPIsForPCSS(out string unsupportedGraphicsApisMessage)
+        {
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                if (!ShadowUtils.SupportsPCSS(graphicsAPIs[apiIndex]))
+                {
+                    if (unsupportedGraphicsApisMessage != null)
+                        unsupportedGraphicsApisMessage += ", ";
+                    unsupportedGraphicsApisMessage += graphicsAPIs[apiIndex];
+                }
+            }
+
+            if (unsupportedGraphicsApisMessage != null)
+                unsupportedGraphicsApisMessage += ".";
+
+            return unsupportedGraphicsApisMessage == null;
+        }
+
         static bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
         {
             // Check the list of Renderers against all Graphics APIs the player is built with.
@@ -878,12 +901,18 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(serialized.mainLightShadowsPCSSProp, Styles.mainLightShadowsPCSS);
                 EditorGUILayout.PropertyField(serialized.additionalLightShadowsPCSSProp, Styles.additionalLightShadowsPCSS);
-                return;
             }
 
+            bool enabledInAsset = serialized.mainLightShadowsPCSSProp.boolValue || serialized.additionalLightShadowsPCSSProp.boolValue;
+            if (!enabledInAsset)
+                return;
+
             // A hidden toggle still applies to lights set to High on their own
-            if (serialized.mainLightShadowsPCSSProp.boolValue || serialized.additionalLightShadowsPCSSProp.boolValue)
+            if (!isHighQuality)
                 EditorGUILayout.HelpBox(Styles.pcssEnabledBelowHighQuality.text, MessageType.Info, true);
+
+            if (!ValidateGraphicsAPIsForPCSS(out var unsupportedGraphicsApisMessage))
+                EditorGUILayout.HelpBox(Styles.pcssUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Info, true);
         }
 
         static void DrawShadowsSoftShadowQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

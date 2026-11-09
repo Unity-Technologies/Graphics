@@ -1558,6 +1558,17 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS };
             TestHelper.s_DynamicKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
             helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // GL doesn't support PCSS, so only its off variant remains
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.data.isGLDevice = true;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.data.isGLDevice = true;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_HDRGrading(Shader shader)

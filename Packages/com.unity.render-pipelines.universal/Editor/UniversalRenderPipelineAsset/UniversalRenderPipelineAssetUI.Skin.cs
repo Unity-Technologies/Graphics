@@ -164,6 +164,8 @@ namespace UnityEditor.Rendering.Universal
                 L10n.TextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ", null, null, null);
             public static GUIContent rendererUnsupportedAPIMessage =
                 L10n.TextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n", null, null, null);
+            public static GUIContent pcssUnsupportedMessage =
+                L10n.TextContent("Some Graphics API(s) in the Player Graphics APIs list don't support PCSS, so lights use the High soft shadow filter there: ", null, null, null);
             public static GUIContent pcssEnabledBelowHighQuality =
                 L10n.TextContent("PCSS is enabled and still applies to lights whose own Soft Shadows Quality is High. Set Quality to High to change its settings.", null, null, null);
             public static GUIContent webGL2GpuResidentDrawerErrorMessage =

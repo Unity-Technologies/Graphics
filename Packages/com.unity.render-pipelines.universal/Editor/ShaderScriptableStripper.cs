@@ -666,6 +666,10 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompileKeepOffVariant(m_ShadowsPCSS, ShaderFeatures.ShadowsPCSS))
                 return true;
 
+            // Matches ShadowUtils.SupportsPCSS
+            if (strippingData.isGLDevice && strippingData.IsKeywordEnabled(m_ShadowsPCSS))
+                return true;
+
             // URP only sets PCSS with the per-light soft shadow keyword
             return strippingData.IsKeywordEnabled(m_ShadowsPCSS)
                 && !strippingData.IsKeywordEnabled(m_SoftShadows)

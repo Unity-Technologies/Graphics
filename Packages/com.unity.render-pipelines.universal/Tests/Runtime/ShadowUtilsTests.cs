@@ -186,12 +186,13 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.That(receiverNormalBias, Is.EqualTo(-casterNormalBias).Within(k_Tolerance));
         }
 
-        [Description("PCSS replaces the highest soft shadow quality only, so a light resolving to Low or Medium keeps the tent filter even when the asset enables PCSS.")]
-        [TestCase(true, SoftShadowQuality.High, ExpectedResult = true)]
-        [TestCase(true, SoftShadowQuality.Medium, ExpectedResult = false)]
-        [TestCase(true, SoftShadowQuality.Low, ExpectedResult = false)]
-        [TestCase(false, SoftShadowQuality.High, ExpectedResult = false)]
-        public bool IsAdditionalLightPCSSEnabled_NeedsTheAssetToggleAndTheHighestQuality(bool enabledInAsset, SoftShadowQuality resolvedQuality)
+        [Description("PCSS replaces the highest soft shadow quality only, so a light resolving to Low or Medium keeps the tent filter even when the asset enables PCSS. A device without PCSS support, such as GL, keeps it too.")]
+        [TestCase(true, SoftShadowQuality.High, true, ExpectedResult = true)]
+        [TestCase(true, SoftShadowQuality.Medium, true, ExpectedResult = false)]
+        [TestCase(true, SoftShadowQuality.Low, true, ExpectedResult = false)]
+        [TestCase(false, SoftShadowQuality.High, true, ExpectedResult = false)]
+        [TestCase(true, SoftShadowQuality.High, false, ExpectedResult = false)]
+        public bool IsAdditionalLightPCSSEnabled_NeedsDeviceSupportAndTheAssetToggleAtTheHighestQuality(bool enabledInAsset, SoftShadowQuality resolvedQuality, bool pcssSupported)
         {
             if (!ShadowUtils.SupportsPerLightSoftShadowQuality())
                 Assert.Ignore("XR mobile cannot select the soft shadow quality per light, so PCSS is never enabled there.");
@@ -200,12 +201,25 @@ namespace UnityEngine.Rendering.Universal.Tests
             try
             {
                 asset.additionalLightShadowsPCSS = enabledInAsset;
-                return ShadowUtils.IsAdditionalLightPCSSEnabled((int)resolvedQuality, asset);
+                return ShadowUtils.IsAdditionalLightPCSSEnabled((int)resolvedQuality, asset, pcssSupported);
             }
             finally
             {
                 Object.DestroyImmediate(asset);
             }
+        }
+
+        [Description("GL doesn't support PCSS, so its lights keep the High quality tent filter.")]
+        [TestCase(GraphicsDeviceType.OpenGLES3, ExpectedResult = false)]
+        [TestCase(GraphicsDeviceType.OpenGLCore, ExpectedResult = false)]
+        [TestCase(GraphicsDeviceType.Direct3D11, ExpectedResult = true)]
+        [TestCase(GraphicsDeviceType.Direct3D12, ExpectedResult = true)]
+        [TestCase(GraphicsDeviceType.Vulkan, ExpectedResult = true)]
+        [TestCase(GraphicsDeviceType.Metal, ExpectedResult = true)]
+        [TestCase(GraphicsDeviceType.WebGPU, ExpectedResult = true)]
+        public bool SupportsPCSS_ExcludesGL(GraphicsDeviceType type)
+        {
+            return ShadowUtils.SupportsPCSS(type);
         }
 
         [Description("Without a pipeline asset there is no PCSS toggle to read, so the light keeps the tent filter.")]

@@ -82,10 +82,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal static readonly bool m_ForceShadowPointSampling;
 
+        static readonly bool s_PCSSSupported;
+
         static ShadowUtils()
         {
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
                 GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+            s_PCSSSupported = SupportsPCSS(SystemInfo.graphicsDeviceType);
         }
 
         /// <summary>
@@ -657,7 +660,7 @@ namespace UnityEngine.Rendering.Universal
             SoftShadowQuality softShadowQuality = GetPerLightSoftShadowQuality(shadowLight.light, asset);
 
             // PCSS sizes its own filter, and widening the kernel would collapse its penumbra
-            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset))
+            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset, s_PCSSSupported))
                 return 1.0f;
 
             return GetSoftShadowKernelRadius(softShadowQuality);
@@ -701,9 +704,14 @@ namespace UnityEngine.Rendering.Universal
             return ResolveSoftShadowQuality(softShadowQuality, asset);
         }
 
-        static bool IsPCSSEnabled(LightType lightType, SoftShadowQuality resolvedSoftShadowQuality, UniversalRenderPipelineAsset asset)
+        internal static bool SupportsPCSS(GraphicsDeviceType type)
         {
-            if (asset == null || !SupportsPerLightSoftShadowQuality() || resolvedSoftShadowQuality < SoftShadowQuality.High)
+            return type != GraphicsDeviceType.OpenGLES3 && type != GraphicsDeviceType.OpenGLCore;
+        }
+
+        static bool IsPCSSEnabled(LightType lightType, SoftShadowQuality resolvedSoftShadowQuality, UniversalRenderPipelineAsset asset, bool pcssSupported)
+        {
+            if (asset == null || !SupportsPerLightSoftShadowQuality() || !pcssSupported || resolvedSoftShadowQuality < SoftShadowQuality.High)
                 return false;
 
             switch (lightType)
@@ -725,13 +733,18 @@ namespace UnityEngine.Rendering.Universal
                 return false;
 
             SoftShadowQuality softShadowQuality = additionalLightData != null ? additionalLightData.softShadowQuality : SoftShadowQuality.UsePipelineSettings;
-            return IsPCSSEnabled(shadowLight.lightType, ResolveSoftShadowQuality(softShadowQuality, asset), asset);
+            return IsPCSSEnabled(shadowLight.lightType, ResolveSoftShadowQuality(softShadowQuality, asset), asset, s_PCSSSupported);
         }
 
         // Takes the resolved quality packed into the y channel of the shadow params. Spot and point lights share the toggle.
         internal static bool IsAdditionalLightPCSSEnabled(float packedSoftShadowQuality, UniversalRenderPipelineAsset asset)
         {
-            return IsPCSSEnabled(LightType.Spot, (SoftShadowQuality)(int)packedSoftShadowQuality, asset);
+            return IsAdditionalLightPCSSEnabled(packedSoftShadowQuality, asset, s_PCSSSupported);
+        }
+
+        internal static bool IsAdditionalLightPCSSEnabled(float packedSoftShadowQuality, UniversalRenderPipelineAsset asset, bool pcssSupported)
+        {
+            return IsPCSSEnabled(LightType.Spot, (SoftShadowQuality)(int)packedSoftShadowQuality, asset, pcssSupported);
         }
 
         // Ignores the asset toggle so the inspector can explain that it is off

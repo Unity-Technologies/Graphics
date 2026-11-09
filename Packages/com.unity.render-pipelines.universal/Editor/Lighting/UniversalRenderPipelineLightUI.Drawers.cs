@@ -333,6 +333,10 @@ namespace UnityEditor.Rendering.Universal
                     string propertyPath = isToggleListed ? (isDirectional ? "m_MainLightShadowsPCSS" : "m_AdditionalLightShadowsPCSS") : "m_SoftShadowQuality";
                     EditorUtils.QualitySettingsHelpBox(string.Format(message.text, toggle.text), MessageType.Info, UniversalRenderPipelineAssetUI.Expandable.Shadows, propertyPath);
                 }
+                else if (!UniversalRenderPipelineAssetUI.ValidateGraphicsAPIsForPCSS(out var unsupportedGraphicsApisMessage))
+                {
+                    EditorGUILayout.HelpBox(UniversalRenderPipelineAssetUI.Styles.pcssUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Info);
+                }
 
                 using (new EditorGUI.DisabledScope(!enabledInAsset))
                 {
