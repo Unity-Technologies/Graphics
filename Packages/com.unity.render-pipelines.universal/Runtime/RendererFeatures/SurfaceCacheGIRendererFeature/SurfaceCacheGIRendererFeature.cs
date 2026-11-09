@@ -165,7 +165,8 @@ namespace UnityEngine.Rendering.Universal
                     SampleCount = (uint)volumeOverride.lightTransportSampleCount.value,
                     WarmUpSampleMultiplier = (uint)volumeOverride.lightTransportWarmupSampleMultiplier.value,
                     PunctualLightCandidateCount = (uint)volumeOverride.lightTransportPunctualLightCandidateCount.value,
-                    DistanceFallback = volumeOverride.volumeDistanceFallback.value
+                    DistanceFallback = volumeOverride.volumeDistanceFallback.value,
+                    RayTracingNormalBias = volumeOverride.lightTransportRayTracingNormalBias.value
                 },
                 PatchFilteringParams = new SurfaceCachePatchFilteringParameterSet
                 {
