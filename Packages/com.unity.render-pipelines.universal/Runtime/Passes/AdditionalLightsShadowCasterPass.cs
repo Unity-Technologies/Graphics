@@ -1246,7 +1246,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     float slopeScaleDepthBias = ShadowUtils.GetSlopeScaleDepthBias(ref shadowLight, data.shadowData, visibleLightIndex);
                     RendererList shadowRendererList = data.shadowRendererListsHdl[globalShadowSliceIndex];
-                    ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias);
+                    ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias, useDepthClamp: false);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
                     anyShadowSliceRenderer = true;
                 }

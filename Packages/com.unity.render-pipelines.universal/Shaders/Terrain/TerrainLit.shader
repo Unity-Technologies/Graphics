@@ -128,8 +128,10 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             ZWrite On
             ColorMask 0
+            ZClip [_ZClip]
 
             HLSLPROGRAM
+            #define _SHADOW_CASTER_ZCLIP 1
             #pragma target 2.0
 
             #pragma vertex ShadowPassVertex

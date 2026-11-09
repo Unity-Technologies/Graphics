@@ -108,6 +108,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "ShadowCaster"}
 
             ColorMask 0
+            ZClip [_ZClip]
 
             HLSLPROGRAM
 

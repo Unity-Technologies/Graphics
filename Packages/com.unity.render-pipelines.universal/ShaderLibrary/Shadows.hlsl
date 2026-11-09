@@ -295,6 +295,8 @@ CBUFFER_END
 // w: unused
 float4 _ShadowBias;
 
+float _ZClip;
+
 half IsSpotLight()
 {
     return round(_ShadowBias.z) == 0.0 ? 1 : 0;
@@ -957,7 +959,12 @@ float4 ApplyShadowClamping(float4 positionCS)
     // (see: Shadows.cpp::RenderShadowMaps() #L2161-L2162)
     // (see: Shadows.cpp::RenderShadowMaps() #L2086-L2102)
     // (see: Shadows.cpp::PrepareStateForShadowMap() #L1685-L1686)
+#if defined(_SHADOW_CASTER_ZCLIP)
+    // Defined only by passes that also set ZClip [_ZClip]: pancaking is needed only while the rasterizer clips.
+    positionCS.z = lerp(positionCS.z, clamped, IsDirectionalLight() * _ZClip);
+#else
     positionCS.z = lerp(positionCS.z, clamped, IsDirectionalLight());
+#endif
 
     return positionCS;
 }

@@ -71,6 +71,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Tags{"LightMode" = "ShadowCaster"}
 
             ColorMask 0
+            ZClip [_ZClip]
 
             HLSLPROGRAM
 

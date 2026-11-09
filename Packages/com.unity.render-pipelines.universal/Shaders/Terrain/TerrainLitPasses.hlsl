@@ -561,12 +561,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 #endif
 
     float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
-
-#if UNITY_REVERSED_Z
-    clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
-#else
-    clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
-#endif
+    clipPos = ApplyShadowClamping(clipPos);
 
     o.clipPos = clipPos;
 

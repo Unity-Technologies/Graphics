@@ -943,7 +943,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.ShadowCaster(target),
                     pragmas = TerrainCorePragmas.Instanced,
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection { { CoreKeywordDescriptors.ShadowCasterZClip, 1 } },
                     keywords = new KeywordCollection() { CoreKeywords.ShadowCaster,  },
                     includes = TerrainCoreIncludes.ShadowCaster,
 

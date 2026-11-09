@@ -99,8 +99,10 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
             ZWrite On
             ColorMask 0
+            ZClip [_ZClip]
 
             HLSLPROGRAM
+            #define _SHADOW_CASTER_ZCLIP 1
             #pragma target 2.0
 
             #pragma multi_compile_instancing

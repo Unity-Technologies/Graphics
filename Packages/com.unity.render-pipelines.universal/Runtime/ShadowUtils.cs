@@ -332,12 +332,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="settings"></param>
         /// <param name="proj"></param>
         /// <param name="view"></param>
-        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
+        [Obsolete("Use the overload taking slopeScaleDepthBias and useDepthClamp so the configured depth bias mode is respected; retrieve the slope with ShadowUtils.GetSlopeScaleDepthBias and pass false for useDepthClamp to keep the previous clipping. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view)
         {
-            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, k_LegacySlopeScaleDepthBias);
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, k_LegacySlopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -350,11 +350,31 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="proj">The projection matrix used while rendering.</param>
         /// <param name="view">The view matrix used while rendering.</param>
         /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        [Obsolete("Use the overload taking useDepthClamp; pass false to keep the previous clipping. #from(7000.0)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
         {
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, slopeScaleDepthBias, useDepthClamp: false);
+        }
+
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd">The command buffer to record rendering commands on.</param>
+        /// <param name="context">The rendering context.</param>
+        /// <param name="shadowSliceData">The shadow slice to render.</param>
+        /// <param name="settings">The shadow drawing settings.</param>
+        /// <param name="proj">The projection matrix used while rendering.</param>
+        /// <param name="view">The view matrix used while rendering.</param>
+        /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        /// <param name="useDepthClamp">When true, casters render with depth clipping disabled (ZClip Off) so depth is clamped at the near plane instead of clipped. Pass true only for directional lights when <see cref="SystemInfo.supportsDepthClamp"/> is true.</param>
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias, bool useDepthClamp)
+        {
             cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, useDepthClamp ? 0.0f : 1.0f);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -364,14 +384,17 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+            // Restore previous depth bias and ZClip values
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, 1.0f);
+            cmd.SetGlobalDepthBias(0.0f, 0.0f);
         }
 
         internal static void RenderShadowSlice(RasterCommandBuffer cmd,
             ref ShadowSliceData shadowSliceData, ref RendererList shadowRendererList,
-            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias, bool useDepthClamp)
         {
             cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, useDepthClamp ? 0.0f : 1.0f);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -379,7 +402,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DrawRendererList(shadowRendererList);
 
             cmd.DisableScissorRect();
-            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+            // Restore previous depth bias and ZClip values
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, 1.0f);
+            cmd.SetGlobalDepthBias(0.0f, 0.0f);
         }
 
         /// <summary>
@@ -389,12 +414,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context"></param>
         /// <param name="shadowSliceData"></param>
         /// <param name="settings"></param>
-        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
+        [Obsolete("Use the overload taking slopeScaleDepthBias and useDepthClamp so the configured depth bias mode is respected; retrieve the slope with ShadowUtils.GetSlopeScaleDepthBias and pass false for useDepthClamp to keep the previous clipping. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, k_LegacySlopeScaleDepthBias);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, k_LegacySlopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -405,11 +430,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowSliceData">The shadow slice to render.</param>
         /// <param name="settings">The shadow drawing settings.</param>
         /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        [Obsolete("Use the overload taking proj, view and useDepthClamp; pass shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix and false to keep the previous clipping. #from(7000.0)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings, float slopeScaleDepthBias)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -943,6 +969,11 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetCameraPosition(RasterCommandBuffer cmd, Vector3 worldSpaceCameraPos)
         {
             cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+        }
+
+        internal static bool ShouldUseShadowDepthClamp(bool isDirectional)
+        {
+            return isDirectional && SystemInfo.supportsDepthClamp;
         }
 
         private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)

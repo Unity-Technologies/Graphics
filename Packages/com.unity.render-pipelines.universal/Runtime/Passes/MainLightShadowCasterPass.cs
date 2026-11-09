@@ -458,6 +458,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ShadowUtils.SetCameraPosition(cmd, data.cameraData.worldSpaceCameraPos);
 
                 float slopeScaleDepthBias = ShadowUtils.GetSlopeScaleDepthBias(ref shadowLight, data.shadowData, shadowLightIndex);
+                bool useDepthClamp = ShadowUtils.ShouldUseShadowDepthClamp(isDirectional: true);
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
@@ -465,8 +466,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, false);
                     RendererList shadowRendererList = data.shadowRendererListsHandle[cascadeIndex];
-                    ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias);
+                    ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias, useDepthClamp);
                 }
+
                 SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
             }
         }

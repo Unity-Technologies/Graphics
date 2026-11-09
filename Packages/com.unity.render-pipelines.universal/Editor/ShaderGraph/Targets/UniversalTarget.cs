@@ -1504,7 +1504,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ShadowCaster(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
+                defines = new DefineCollection { { CoreKeywordDescriptors.ShadowCasterZClip, 1 } },
                 keywords = new KeywordCollection { CoreKeywords.ShadowCaster },
                 includes = new IncludeCollection { CoreIncludes.ShadowCaster },
 
@@ -2154,6 +2154,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { UberSwitchedCullRenderState(target) },
                 { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.ZClip("[_ZClip]") },
             };
 
             if (!target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
@@ -2657,6 +2658,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Vertex,
+        };
+
+        public static readonly KeywordDescriptor ShadowCasterZClip = new KeywordDescriptor()
+        {
+            displayName = "Shadow Caster ZClip",
+            referenceName = "_SHADOW_CASTER_ZCLIP",
+            type = KeywordType.Boolean,
         };
 
         public static readonly KeywordDescriptor AutomaticTimeBasedMotionVectors = new KeywordDescriptor()

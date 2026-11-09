@@ -177,8 +177,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip [_ZClip]
 
             HLSLPROGRAM
+            #define _SHADOW_CASTER_ZCLIP 1
             #pragma target 2.0
 
             // -------------------------------------
