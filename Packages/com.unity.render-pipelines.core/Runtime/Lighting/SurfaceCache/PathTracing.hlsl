@@ -162,8 +162,7 @@ RadianceSample EvaluateUnshadowedPunctualLightSampleBounceRadiance(
     StructuredBuffer<PunctualLight> lights,
     PunctualLightSample punctualLightSample,
     float3 position,
-    float3 normal,
-    float3 reconnectionRayOrigin)
+    float3 normal)
 {
     RadianceSample result = (RadianceSample)0;
 
@@ -171,7 +170,7 @@ RadianceSample EvaluateUnshadowedPunctualLightSampleBounceRadiance(
     const float planeDistance = dot(normal, punctualLightSample.hitPos - position);
     if (epsilon < planeDistance) // Light sample hit point must be "in front" of the patch.
     {
-        const float reconnectionDistance = distance(reconnectionRayOrigin, punctualLightSample.hitPos);
+        const float reconnectionDistance = distance(position, punctualLightSample.hitPos);
         const float reciprocalReconnectionDistance = rcp(reconnectionDistance);
 
         const PunctualLight light = lights[punctualLightSample.lightIndex];
@@ -225,7 +224,6 @@ bool RejectPunctualLightSample(
     float3 hitPos,
     uint hitInstanceId,
     uint hitPrimitiveIndex,
-    float3 position,
     float3 reconnectionRayOrigin,
     out bool discardSample)
 {
@@ -233,7 +231,7 @@ bool RejectPunctualLightSample(
 
     UnifiedRT::Ray reconnectionRay;
     reconnectionRay.origin = reconnectionRayOrigin;
-    reconnectionRay.direction = normalize(hitPos - position);
+    reconnectionRay.direction = normalize(hitPos - reconnectionRayOrigin);
     reconnectionRay.tMin = 0;
     reconnectionRay.tMax = FLT_MAX;
     UnifiedRT::Hit reconnectionResult = TraceRayClosestHit(dispatchThreadIndex, groupThreadIndex, accelStruct, reconnectionRay);
