@@ -131,10 +131,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
             cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-            // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
-            // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
-            float alphaToMaskAvailable = ((data.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.isOpaque) ? 1.0f : 0.0f;
-            cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
+            RenderingUtils.SetAlphaToMaskAvailable(cmd, data.alphaToMaskAvailable);
 
             var activeDebugHandler = GetActiveDebugHandler(data.cameraData);
             if (activeDebugHandler != null)
@@ -147,6 +144,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.DrawRendererListObjectsWithError(cmd, ref objectsWithErrorRendererList);
             }
+
+            if (data.alphaToMaskAvailable)
+                RenderingUtils.SetAlphaToMaskAvailable(cmd, false);
         }
 
         /// <summary>
@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalCameraData cameraData;
             internal UniversalShadowData shadowData;
             internal bool isOpaque;
+            internal bool alphaToMaskAvailable;
             internal bool shouldTransparentsReceiveShadows;
             internal bool shouldTransparentsReceiveSSR;
             internal uint batchLayerMask;
@@ -252,6 +253,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseAllGlobalTextures(true);
 
                 InitPassData(cameraData, shadowData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
+                TextureHandle msaaTarget = colorTarget.IsValid() ? colorTarget : depthTarget;
+                passData.alphaToMaskAvailable = m_IsOpaque && renderGraph.GetRenderTargetInfo(msaaTarget).msaaSamples > 1;
 
                 if (colorTarget.IsValid())
                 {
@@ -422,6 +425,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
                 InitPassData(cameraData, shadowData, ref passData.basePassData, batchLayerMask);
+                passData.basePassData.alphaToMaskAvailable = passData.basePassData.isOpaque && renderGraph.GetRenderTargetInfo(colorTarget).msaaSamples > 1;
 
                 passData.maskSize = maskSize;
 

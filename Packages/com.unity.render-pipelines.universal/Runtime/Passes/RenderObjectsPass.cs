@@ -212,6 +212,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            RenderingUtils.SetAlphaToMaskAvailable(cmd, passData.alphaToMaskAvailable);
+
             var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);
             if (activeDebugHandler != null)
             {
@@ -221,6 +223,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DrawRendererList(rendererList);
             }
+
+            if (passData.alphaToMaskAvailable)
+                RenderingUtils.SetAlphaToMaskAvailable(cmd, false);
 
             if (passData.cameraSettings.overrideCamera && passData.cameraSettings.restoreCamera && !passData.cameraData.xr.enabled)
             {
@@ -244,6 +249,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal bool depthInputAttachment;
             internal bool isActiveTargetBackBuffer;
+            internal bool alphaToMaskAvailable;
         }
 
         private void InitPassData(UniversalCameraData cameraData, ref PassData passData, bool isActiveTargetBackBuffer = false)
@@ -295,6 +301,7 @@ namespace UnityEngine.Rendering.Universal
                 InitPassData(cameraData, ref passData, resourceData.isActiveTargetBackBuffer);
 
                 passData.color = resourceData.activeColorTexture;
+                passData.alphaToMaskAvailable = renderQueueType == RenderQueueType.Opaque && renderGraph.GetRenderTargetInfo(resourceData.activeColorTexture).msaaSamples > 1;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
 
                 if (resourceData.activeDepthTexture.IsValid())

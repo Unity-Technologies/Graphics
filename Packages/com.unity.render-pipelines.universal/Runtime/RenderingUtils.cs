@@ -297,6 +297,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawRendererList(rl);
         }
 
+        // Material alpha clipping relies on _AlphaToMaskAvailable to know whether AlphaToMask may be active.
+        internal static void SetAlphaToMaskAvailable(RasterCommandBuffer cmd, bool enabled)
+        {
+            cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, enabled ? 1.0f : 0.0f);
+        }
+
         static readonly ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
         static readonly RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
