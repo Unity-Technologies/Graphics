@@ -305,14 +305,13 @@ namespace UnityEngine.Rendering
             {
                 public static readonly int _EmissiveTriangles = Shader.PropertyToID("_EmissiveTriangles");
                 public static readonly int _EmissiveTriangleCounter = Shader.PropertyToID("_EmissiveTriangleCounter");
-                public static readonly int _SubmeshInstanceId = Shader.PropertyToID("_SubmeshInstanceId");
-                public static readonly int _SubmeshTriangleCount = Shader.PropertyToID("_SubmeshTriangleCount");
                 public static readonly int _SrcTriangles = Shader.PropertyToID("_SrcTriangles");
                 public static readonly int _SrcTriangleCount = Shader.PropertyToID("_SrcTriangleCount");
                 public static readonly int _DstTriangles = Shader.PropertyToID("_DstTriangles");
                 public static readonly int _DstTriangleCount = Shader.PropertyToID("_DstTriangleCount");
                 public static readonly int _RemovedInstanceIds = Shader.PropertyToID("_RemovedInstanceIds");
-                public static readonly int _RemovedInstanceIdCount = Shader.PropertyToID("_RemovedInstanceIdCount");
+                public static readonly int SurfaceCacheEmissiveTriangleAdditionConstants = Shader.PropertyToID("SurfaceCacheEmissiveTriangleAdditionConstants");
+                public static readonly int SurfaceCacheEmissiveTriangleRemovalConstants = Shader.PropertyToID("SurfaceCacheEmissiveTriangleRemovalConstants");
             }
 
             // Dependencies
@@ -337,6 +336,9 @@ namespace UnityEngine.Rendering
 
             // Temporary buffer used during removal of triangles
             GraphicsBuffer _removedInstanceIds;
+
+            readonly ConstantBuffer<SurfaceCacheEmissiveTriangleAdditionConstants> _additionConstants = new();
+            readonly ConstantBuffer<SurfaceCacheEmissiveTriangleRemovalConstants> _removalConstants = new();
 
             public EmissiveTriangleList(ComputeShader additionShader, ComputeShader removalShader)
             {
@@ -441,7 +443,9 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._DstTriangles, _emissiveTrianglesScratch);
                 cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._DstTriangleCount, _emissiveTriangleCounterScratch);
                 cmd.SetComputeBufferParam(_removalShader, _removeKernel, ShaderIDs._RemovedInstanceIds, _removedInstanceIds);
-                cmd.SetComputeIntParam(_removalShader, ShaderIDs._RemovedInstanceIdCount, removedCount);
+                var constants = new SurfaceCacheEmissiveTriangleRemovalConstants { _RemovedInstanceIdCount = (uint)removedCount };
+                _removalConstants.UpdateData(cmd, constants);
+                _removalConstants.Set(cmd, _removalShader, ShaderIDs.SurfaceCacheEmissiveTriangleRemovalConstants);
                 cmd.DispatchCompute(_removalShader, _removeKernel, GraphicsHelpers.DivUp(_emissiveTriangles.count, _removeGroupSize), 1, 1);
 
                 // Swap scratch and active buffers
@@ -459,8 +463,13 @@ namespace UnityEngine.Rendering
                 foreach (int instanceID in _pendingAdds)
                 {
                     int triangleCount = _submeshInstanceTriangleCounts[instanceID];
-                    cmd.SetComputeIntParam(_additionShader, ShaderIDs._SubmeshInstanceId, instanceID);
-                    cmd.SetComputeIntParam(_additionShader, ShaderIDs._SubmeshTriangleCount, triangleCount);
+                    var constants = new SurfaceCacheEmissiveTriangleAdditionConstants
+                    {
+                        _SubmeshInstanceId = (uint)instanceID,
+                        _SubmeshTriangleCount = (uint)triangleCount,
+                    };
+                    _additionConstants.UpdateData(cmd, constants);
+                    _additionConstants.Set(cmd, _additionShader, ShaderIDs.SurfaceCacheEmissiveTriangleAdditionConstants);
                     cmd.DispatchCompute(_additionShader, _addKernel, GraphicsHelpers.DivUp(triangleCount, _addGroupSize), 1, 1);
                 }
             }
@@ -476,6 +485,8 @@ namespace UnityEngine.Rendering
                 _emissiveTriangleCounter?.Dispose();
                 _emissiveTriangleCounterScratch?.Dispose();
                 _removedInstanceIds?.Dispose();
+                _additionConstants.Release();
+                _removalConstants.Release();
             }
         }
 

@@ -11,8 +11,7 @@ StructuredBuffer<SphericalHarmonics::RGBL1> _InputPatchIrradiances;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _InputOutputPatchIrradiances;
 
-uint _RingConfigOffset;
-float _TemporalSmoothing;
+#include "TemporalFilteringConstants.cs.hlsl"
 
 [numthreads(64, 1, 1)]
 void FilterTemporally(uint patchIdx : SV_DispatchThreadID)

@@ -10,9 +10,7 @@ RWStructuredBuffer<uint> _CellAllocationMarks;
 RWStructuredBuffer<uint> _CellPatchIndices;
 RWStructuredBuffer<uint> _PatchCellIndices;
 
-uint _RingConfigOffset;
-uint _FrameIdx;
-uint _BouncePatchAllocation;
+#include "EvictionConstants.cs.hlsl"
 
 [numthreads(256, 1, 1)]
 void Evict(uint patchIdx : SV_DispatchThreadID)

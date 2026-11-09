@@ -45,9 +45,7 @@ RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances1;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
 
-uint _RingConfigReadOffset;
-uint _RingConfigWriteOffset;
-uint _PatchOffset;
+#include "DefragConstants.cs.hlsl"
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void Defrag(Threading::Group group)

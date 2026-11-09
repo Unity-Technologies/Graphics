@@ -62,21 +62,8 @@ TYPED_TEXTURE2D_X(float, _ScreenDepths);
 TYPED_TEXTURE2D_X(float3, _ScreenShadedNormals);
 TYPED_TEXTURE2D_X(float3, _ScreenFlatNormals);
 
-uint _RingConfigOffset;
-uint _VolumeSpatialResolution;
-uint _VolumeCascadeCount;
-uint _ViewMode; // Match the C# debug view-mode enum; 0 (None) is never dispatched.
-uint _ShowSamplePosition;
-float4x4 _ClipToWorldTransforms[2];
-uint _FrameIdx;
-float _VolumeVoxelMinSize;
-float3 _VolumeTargetPos;
-int _PatchWarping;
-float _MaterialAtlasTexelSize; // The size of 1 texel in the albedo atlas
-uint _TileOffsetY;
-uint _TileHeight;
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/DebugConstants.cs.hlsl"
 
-uint _DummyBlackbox; // By using a uniform we force the compiler to not make any assumptions.
 float3 IsActuallyNan(float3 val) {
     return isnan(asfloat(_DummyBlackbox ^ asuint(val)));
 }
@@ -211,7 +198,7 @@ void Visualize(uint2 threadIdx, uint groupThreadIdx)
         const float3 worldFlatNormal = _ScreenFlatNormals[COORD_TEXTURE2D_X(pixelIdx)];
 
         PatchUtil::VolumeParamSet volumeParams;
-        volumeParams.targetPos = _VolumeTargetPos;
+        volumeParams.targetPos = _VolumeTargetPos.xyz;
         volumeParams.spatialResolution = _VolumeSpatialResolution;
         volumeParams.voxelMinSize = _VolumeVoxelMinSize;
         volumeParams.cascadeOffsets = _VolumeCascadeOffsets;

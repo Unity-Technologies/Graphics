@@ -18,13 +18,7 @@ StructuredBuffer<PatchAllocationRequest> _Requests;
 StructuredBuffer<uint> _RequestCount;
 StructuredBuffer<int3> _VolumeCascadeOffsets;
 
-uint _RingConfigOffset;
-uint _VolumeSpatialResolution;
-uint _VolumeCascadeCount;
-float _VolumeVoxelMinSize;
-float3 _VolumeTargetPos;
-int _PatchWarping;
-uint _FrameIndex;
+#include "PatchAllocationConstants.cs.hlsl"
 
 [numthreads(256, 1, 1)]
 void Allocate(uint threadIdx : SV_DispatchThreadID)
@@ -36,7 +30,7 @@ void Allocate(uint threadIdx : SV_DispatchThreadID)
         PatchUtil::VolumeParamSet volumeParams;
         volumeParams.spatialResolution = _VolumeSpatialResolution;
         volumeParams.voxelMinSize = _VolumeVoxelMinSize;
-        volumeParams.targetPos = _VolumeTargetPos;
+        volumeParams.targetPos = _VolumeTargetPos.xyz;
         volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
         volumeParams.cascadeCount = _VolumeCascadeCount;
         volumeParams.patchWarping = _PatchWarping != 0;

@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 #pragma kernel Remove
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "EmissiveTriangles.hlsl"
 
 StructuredBuffer<EmissiveTriangle> _SrcTriangles;
@@ -8,7 +9,7 @@ StructuredBuffer<uint> _SrcTriangleCount;
 RWStructuredBuffer<EmissiveTriangle> _DstTriangles;
 RWStructuredBuffer<uint> _DstTriangleCount;
 StructuredBuffer<uint> _RemovedInstanceIds;
-uint _RemovedInstanceIdCount;
+#include "EmissiveTriangleRemovalConstants.cs.hlsl"
 
 groupshared EmissiveTriangle _GroupSurvivors[256];
 groupshared uint _GroupSurvivorCount;

@@ -12,9 +12,7 @@ RWStructuredBuffer<uint> _PatchCellIndices;
 
 StructuredBuffer<int3> _NewVolumeCascadeOffsets;
 
-int4 _OldVolumeCascadeOffsets[cascadeMax];
-uint _VolumeSpatialResolution;
-uint _VolumeCascadeCount;
+#include "ScrollingConstants.cs.hlsl"
 
 [numthreads(8, 8, 8)]
 void Scroll(uint3 threadId : SV_DispatchThreadID)
@@ -26,7 +24,7 @@ void Scroll(uint3 threadId : SV_DispatchThreadID)
 
     const uint cascadeIdx = threadId.z / _VolumeSpatialResolution;
     const int3 newCascadeOffset = _NewVolumeCascadeOffsets[cascadeIdx];
-    const int3 oldCascadeOffset = _OldVolumeCascadeOffsets[cascadeIdx].xyz;
+    const int3 oldCascadeOffset = asint(_OldVolumeCascadeOffsets[cascadeIdx].xyz);
 
     const int3 positionStorageSpaceInt = int3(positionStorageSpace);
     const int3 oldPositionVolumeSpace = PatchUtil::ConvertStorageSpaceToVolumeSpace(positionStorageSpaceInt, _VolumeSpatialResolution, oldCascadeOffset);

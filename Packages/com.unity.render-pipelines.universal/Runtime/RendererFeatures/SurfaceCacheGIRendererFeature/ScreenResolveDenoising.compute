@@ -22,9 +22,7 @@ RW_TEXTURE2D_X(float3, _ResultL10);
 RW_TEXTURE2D_X(float3, _ResultL11);
 RW_TEXTURE2D_X(float3, _ResultL12);
 
-float4x4 _ClipToWorldTransforms[2];
-float3 _CameraWorldPos;
-int _PassIndex;
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/ScreenResolveDenoisingConstants.cs.hlsl"
 
 static const uint kKernelStrides[4] = { 1, 2, 2, 3 };
 
@@ -66,7 +64,7 @@ void Denoise(uint2 pixelLowResPos)
     // At a distance of N from the camera, the falloff rate of the plane distance
     // weight is such that it has half weight (0.5) at a distance N/100.
     const float k_PlaneDistanceFalloff = 0.6931472f / (0.01f * 0.01f);
-    const float3 centerToCamera = _CameraWorldPos - centerWorldPos;
+    const float3 centerToCamera = _CameraWorldPos.xyz - centerWorldPos;
     const float planeDistanceFalloff = k_PlaneDistanceFalloff * rcp(dot(centerToCamera, centerToCamera));
 
     irradianceSum = centerIrradiance;

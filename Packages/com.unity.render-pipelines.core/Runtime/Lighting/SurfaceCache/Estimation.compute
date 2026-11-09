@@ -63,28 +63,7 @@ TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
-uint _PunctualLightCount;
-uint _FrameIdx;
-uint _VolumeSpatialResolution;
-uint _VolumeCascadeCount;
-float _VolumeVoxelMinSize;
-float _RayTracingNormalBias;
-uint _MultiBounce;
-uint _SampleCount;
-uint _WarmUpSampleMultiplier;
-uint _PunctualLightCandidateCount;
-float _ShortHysteresis;
-uint _RingConfigOffset;
-float3 _VolumeTargetPos;
-int _PatchWarping;
-float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
-float _AlbedoBoost;
-float _EnvironmentIntensityMultiplier;
-float _EmissiveTriangleIntensityMultiplier;
-uint _PunctualLightSampleCount;
-float3 _DirectionalLightDirection;
-float3 _DirectionalLightIntensity;
-uint _BouncePatchAllocation;
+#include "EstimationConstants.cs.hlsl"
 
 SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(
     float shortHysteresis,
@@ -442,8 +421,8 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
             accelStruct,
             ray,
             matPoolParams,
-            _DirectionalLightDirection,
-            _DirectionalLightIntensity,
+            _DirectionalLightDirection.xyz,
+            _DirectionalLightIntensity.xyz,
             _MultiBounce,
             _EnvironmentCubemap,
             _EnvironmentIntensityMultiplier,
@@ -504,7 +483,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
     PatchUtil::VolumeParamSet volumeParams;
     volumeParams.spatialResolution = _VolumeSpatialResolution;
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
-    volumeParams.targetPos = _VolumeTargetPos;
+    volumeParams.targetPos = _VolumeTargetPos.xyz;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
     volumeParams.patchWarping = _PatchWarping != 0;

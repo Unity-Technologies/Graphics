@@ -24,9 +24,7 @@ TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL11);
 TYPED_TEXTURE2D_X(float3, _LowResIrradiancesL12);
 RW_TEXTURE2D_X(float4, _FullResIrradiances);
 
-float _Intensity;
-float4x4 _ClipToWorldTransforms[2];
-float3 _CameraWorldPos;
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/ScreenResolveUpsamplingConstants.cs.hlsl"
 
 #define UPSAMPLE_TILE_SIZE 8
 
@@ -118,7 +116,7 @@ void Upsample(uint2 targetPixelPos, int groupIndex, uint2 groupId)
     // At a distance of N from the camera, the falloff rate of the plane distance
     // weight is such that it has half weight (0.5) at a distance N/100.
     const float k_PlaneDistanceFalloff = 0.6931472f / (0.01f * 0.01f);
-    const float3 targetToCamera = _CameraWorldPos - fullResWorldPos;
+    const float3 targetToCamera = _CameraWorldPos.xyz - fullResWorldPos;
     const float planeDistanceFalloff = k_PlaneDistanceFalloff * rcp(dot(targetToCamera, targetToCamera));
 
     float weightSum = 0.0f;

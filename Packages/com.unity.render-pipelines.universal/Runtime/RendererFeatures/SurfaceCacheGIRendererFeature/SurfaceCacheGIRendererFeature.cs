@@ -293,48 +293,29 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PreviousLowResScreenIrradiancesL11 = Shader.PropertyToID("_PreviousLowResScreenIrradiancesL11");
             public static readonly int _PreviousLowResScreenIrradiancesL12 = Shader.PropertyToID("_PreviousLowResScreenIrradiancesL12");
             public static readonly int _PreviousLowResScreenNdcDepths = Shader.PropertyToID("_PreviousLowResScreenNdcDepths");
-            public static readonly int _PassIndex = Shader.PropertyToID("_PassIndex");
-            public static readonly int _Intensity = Shader.PropertyToID("_Intensity");
-            public static readonly int _ViewMode = Shader.PropertyToID("_ViewMode");
-            public static readonly int _ShowSamplePosition = Shader.PropertyToID("_ShowSamplePosition");
-            public static readonly int _SampleCount = Shader.PropertyToID("_SampleCount");
-            public static readonly int _ClipToWorldTransforms = Shader.PropertyToID("_ClipToWorldTransforms");
-            public static readonly int _NoiseWorldToClipTransform = Shader.PropertyToID("_NoiseWorldToClipTransform");
-            public static readonly int _CameraWorldPos = Shader.PropertyToID("_CameraWorldPos");
-            public static readonly int _CurrentClipToWorldTransforms = Shader.PropertyToID("_CurrentClipToWorldTransforms");
-            public static readonly int _PreviousClipToWorldTransforms = Shader.PropertyToID("_PreviousClipToWorldTransforms");
-            public static readonly int _FrameIdx = Shader.PropertyToID("_FrameIdx");
-            public static readonly int _StereoEyeIndex = Shader.PropertyToID("_StereoEyeIndex");
-            public static readonly int _VolumeSpatialResolution = Shader.PropertyToID("_VolumeSpatialResolution");
-            public static readonly int _RingConfigOffset = Shader.PropertyToID("_RingConfigOffset");
-            public static readonly int _VolumeTargetPos = Shader.PropertyToID("_VolumeTargetPos");
-            public static readonly int _FullResPixelOffset = Shader.PropertyToID("_FullResPixelOffset");
-            public static readonly int _LowResScreenSize = Shader.PropertyToID("_LowResScreenSize");
-            public static readonly int _VolumeCascadeCount = Shader.PropertyToID("_VolumeCascadeCount");
-            public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
-            public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
             public static readonly int _VolumeCascadeOffsets = Shader.PropertyToID("_VolumeCascadeOffsets");
             public static readonly int _PatchCellIndices = Shader.PropertyToID("_PatchCellIndices");
             public static readonly int _MaterialEntries = Shader.PropertyToID("_MaterialEntries");
             public static readonly int _AlbedoTextures = Shader.PropertyToID("_AlbedoTextures");
             public static readonly int _EmissionTextures = Shader.PropertyToID("_EmissionTextures");
-            public static readonly int _MaterialAtlasTexelSize = Shader.PropertyToID("_MaterialAtlasTexelSize");
-            public static readonly int _TileOffsetY = Shader.PropertyToID("_TileOffsetY");
-            public static readonly int _TileHeight = Shader.PropertyToID("_TileHeight");
             public static readonly int _GlobalProbe = Shader.PropertyToID("_GlobalProbe");
-            public static readonly int _DistanceFallback = Shader.PropertyToID("_DistanceFallback");
             public static readonly int _InputL0 = Shader.PropertyToID("_InputL0");
             public static readonly int _InputL10 = Shader.PropertyToID("_InputL10");
             public static readonly int _InputL11 = Shader.PropertyToID("_InputL11");
             public static readonly int _InputL12 = Shader.PropertyToID("_InputL12");
             public static readonly int _LowResNdcDepths = Shader.PropertyToID("_LowResNdcDepths");
+            public static readonly int SurfaceCacheGIFlatNormalResolutionConstants = Shader.PropertyToID("SurfaceCacheGIFlatNormalResolutionConstants");
+            public static readonly int SurfaceCacheGIPatchAllocationConstants = Shader.PropertyToID("SurfaceCacheGIPatchAllocationConstants");
+            public static readonly int SurfaceCacheGIScreenResolveLookupConstants = Shader.PropertyToID("SurfaceCacheGIScreenResolveLookupConstants");
+            public static readonly int SurfaceCacheGIScreenResolveDenoisingConstants = Shader.PropertyToID("SurfaceCacheGIScreenResolveDenoisingConstants");
+            public static readonly int SurfaceCacheGIScreenResolveUpsamplingConstants = Shader.PropertyToID("SurfaceCacheGIScreenResolveUpsamplingConstants");
+            public static readonly int SurfaceCacheGIDebugConstants = Shader.PropertyToID("SurfaceCacheGIDebugConstants");
         }
 
         internal readonly struct CameraInfo
         {
             public readonly Matrix4x4 ClipToWorld0;
             public readonly Matrix4x4 ClipToWorld1;
-            public readonly Matrix4x4 WorldToClip;
             public readonly Vector3 WorldPos;
             public readonly int2 ScreenResolution;
             // How many XR views/eyes? 1 if we are not using XR.
@@ -342,11 +323,10 @@ namespace UnityEngine.Rendering.Universal
             // Whether we use Texture2D or Texture2DArray for screen textures when doing XR rendering.
             public readonly bool ScreenTexturesAreArrays;
 
-            public CameraInfo(Matrix4x4 clipToWorld0, Matrix4x4 clipToWorld1, Matrix4x4 worldToClip, Vector3 worldPos, int2 screenResolution, int viewCount, bool screenTexturesAreArrays)
+            public CameraInfo(Matrix4x4 clipToWorld0, Matrix4x4 clipToWorld1, Vector3 worldPos, int2 screenResolution, int viewCount, bool screenTexturesAreArrays)
             {
                 ClipToWorld0 = clipToWorld0;
                 ClipToWorld1 = clipToWorld1;
-                WorldToClip = worldToClip;
                 WorldPos = worldPos;
                 ViewCount = viewCount;
                 ScreenTexturesAreArrays = screenTexturesAreArrays;
@@ -354,11 +334,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void ComputeViewInfo(UniversalCameraData cameraData, int viewIndex, out Matrix4x4 worldToClip, out Matrix4x4 clipToWorld, out Vector3 worldPos)
+        static void ComputeViewInfo(UniversalCameraData cameraData, int viewIndex, out Matrix4x4 clipToWorld, out Vector3 worldPos)
         {
             var worldToView = cameraData.GetViewMatrix(viewIndex);
             var viewToClip = cameraData.GetGPUProjectionMatrix(true, viewIndex);
-            worldToClip = viewToClip * worldToView;
+            var worldToClip = viewToClip * worldToView;
             clipToWorld = worldToClip.inverse;
             worldPos = cameraData.xr.enabled ? (Vector3)worldToView.inverse.GetColumn(3) : cameraData.worldSpaceCameraPos;
         }
@@ -370,13 +350,13 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(viewCount == 1 || viewCount == 2);
             Debug.Assert(viewCount == 1 || screenTexturesAreArrays);
 
-            ComputeViewInfo(cameraData, 0, out var worldToClip, out var clipToWorld0, out var worldPos);
+            ComputeViewInfo(cameraData, 0, out var clipToWorld0, out var worldPos);
             var clipToWorld1 = clipToWorld0;
             if (viewCount > 1)
-                ComputeViewInfo(cameraData, 1, out _, out clipToWorld1, out _);
+                ComputeViewInfo(cameraData, 1, out clipToWorld1, out _);
 
             var screenResolution = new int2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
-            return new CameraInfo(clipToWorld0, clipToWorld1, worldToClip, worldPos, screenResolution, viewCount, screenTexturesAreArrays);
+            return new CameraInfo(clipToWorld0, clipToWorld1, worldPos, screenResolution, viewCount, screenTexturesAreArrays);
         }
 
         // Keeps DrawObjectsPass/GBufferPass on the screen-space-GI path instead of falling back to lightmap/APV/SH.
@@ -562,6 +542,7 @@ namespace UnityEngine.Rendering.Universal
             private class FlatNormalResolutionPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIFlatNormalResolutionConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 ThreadCount;
@@ -573,6 +554,7 @@ namespace UnityEngine.Rendering.Universal
             private class PatchAllocationPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIPatchAllocationConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 ThreadCount;
@@ -611,6 +593,7 @@ namespace UnityEngine.Rendering.Universal
             private class DebugPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIDebugConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 ThreadCount;
@@ -644,6 +627,7 @@ namespace UnityEngine.Rendering.Universal
             private class ScreenIrradianceLookupPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIScreenResolveLookupConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 ThreadCount;
@@ -673,6 +657,7 @@ namespace UnityEngine.Rendering.Universal
             private class ScreenIrradianceUpsamplingPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIScreenResolveUpsamplingConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 FullResThreadCount;
@@ -693,6 +678,7 @@ namespace UnityEngine.Rendering.Universal
             private class ScreenResolveDenoisingPassData
             {
                 internal ComputeShader Shader;
+                internal ConstantBuffer<SurfaceCacheGIScreenResolveDenoisingConstants> Constants;
                 internal int KernelIndex;
                 internal uint3 ThreadGroupSize;
                 internal uint3 ThreadCount;
@@ -711,7 +697,6 @@ namespace UnityEngine.Rendering.Universal
                 internal TextureHandle InputNdcDepths;
                 internal TextureHandle ScreenFlatNormals;
                 internal Matrix4x4[] ClipToWorldTransforms = new Matrix4x4[2];
-                internal Matrix4x4 NoiseWorldToClipTransform;
                 internal Vector3 CameraWorldPos;
                 internal int PassCount;
             }
@@ -747,6 +732,28 @@ namespace UnityEngine.Rendering.Universal
             private uint3 _screenResolveUpsamplingKernelGroupSize;
             private uint3 _screenResolveDenoisingKernelGroupSize;
             private uint3 _debugKernelGroupSize;
+
+            private class ConstantBufferSet : IDisposable
+            {
+                public readonly ConstantBuffer<SurfaceCacheGIFlatNormalResolutionConstants> FlatNormalResolution = new();
+                public readonly ConstantBuffer<SurfaceCacheGIPatchAllocationConstants> PatchAllocation = new();
+                public readonly ConstantBuffer<SurfaceCacheGIScreenResolveLookupConstants> ScreenResolveLookup = new();
+                public readonly ConstantBuffer<SurfaceCacheGIScreenResolveDenoisingConstants> ScreenResolveDenoising = new();
+                public readonly ConstantBuffer<SurfaceCacheGIScreenResolveUpsamplingConstants> ScreenResolveUpsampling = new();
+                public readonly ConstantBuffer<SurfaceCacheGIDebugConstants> Debug = new();
+
+                public void Dispose()
+                {
+                    FlatNormalResolution.Release();
+                    PatchAllocation.Release();
+                    ScreenResolveLookup.Release();
+                    ScreenResolveDenoising.Release();
+                    ScreenResolveUpsampling.Release();
+                    Debug.Release();
+                }
+            }
+
+            private readonly ConstantBufferSet _constantBuffers = new();
 
             internal Vector3 FocusPos { get; set; }
             internal VolumeParameterSet VolumeParams { get; set; }
@@ -804,6 +811,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 _debugTraceScratch?.Dispose();
                 _debugTraceScratch = null;
+
+                _constantBuffers.Dispose();
             }
 
             internal TextureHandle RecordFlatNormalResolution(RenderGraph renderGraph, in CameraInfo cameraInfo, TextureHandle screenDepths)
@@ -823,6 +832,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     passData.ThreadCount = new uint3((uint)cameraInfo.ScreenResolution.x, (uint)cameraInfo.ScreenResolution.y, (uint)cameraInfo.ViewCount);
                     passData.Shader = _flatNormalResolutionShader;
+                    passData.Constants = _constantBuffers.FlatNormalResolution;
                     passData.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _flatNormalResolutionSinglePassStereoInstancingKernel : _flatNormalResolutionMonoKernel;
                     passData.ThreadGroupSize = _flatNormalResolutionKernelGroupSize;
                     passData.ScreenDepths = screenDepths;
@@ -876,6 +886,7 @@ namespace UnityEngine.Rendering.Universal
 
                     passData.ThreadCount = new uint3(lowResScreenSize, 1);
                     passData.Shader = _patchAllocationShader;
+                    passData.Constants = _constantBuffers.PatchAllocation;
                     passData.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _patchAllocationSinglePassStereoInstancingKernel : _patchAllocationMonoKernel;
                     passData.ThreadGroupSize = _patchAllocationKernelGroupSize;
                     passData.ScreenDepths = resourceData.cameraDepthTexture;
@@ -955,6 +966,7 @@ namespace UnityEngine.Rendering.Universal
                     data.ClipToWorldTransforms[1] = cameraInfo.ClipToWorld1;
                     data.ThreadCount = new uint3((uint)CurrentPerCameraState.LowResIrradiancesL0.rt.width, (uint)CurrentPerCameraState.LowResIrradiancesL0.rt.height, (uint)cameraInfo.ViewCount);
                     data.Shader = _screenResolveLookupShader;
+                    data.Constants = _constantBuffers.ScreenResolveLookup;
                     data.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _screenResolveLookupSinglePassStereoInstancingKernel : _screenResolveLookupMonoKernel;
                     data.ThreadGroupSize = _screenResolveLookupKernelGroupSize;
                     data.ExposureMultiplier = resourceData.exposureMultiplier;
@@ -1039,10 +1051,10 @@ namespace UnityEngine.Rendering.Universal
                     {
                         denoisingData.ClipToWorldTransforms[0] = cameraInfo.ClipToWorld0;
                         denoisingData.ClipToWorldTransforms[1] = cameraInfo.ClipToWorld1;
-                        denoisingData.NoiseWorldToClipTransform = cameraInfo.WorldToClip;
                         denoisingData.CameraWorldPos = cameraInfo.WorldPos;
                         denoisingData.ThreadCount = new uint3((uint)lowResWidth, (uint)lowResHeight, (uint)cameraInfo.ViewCount);
                         denoisingData.Shader = _screenResolveDenoisingShader;
+                        denoisingData.Constants = _constantBuffers.ScreenResolveDenoising;
                         denoisingData.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _screenResolveDenoisingSinglePassStereoInstancingKernel : _screenResolveDenoisingMonoKernel;
                         denoisingData.ThreadGroupSize = _screenResolveDenoisingKernelGroupSize;
                         denoisingData.InputL0 = lowResScreenIrradiancesL0Handle;
@@ -1110,6 +1122,7 @@ namespace UnityEngine.Rendering.Universal
                         passData.TraceScratchBuffer = _debugTraceScratch;
                         passData.World = _world;
                         passData.Shader = _debugShader;
+                        passData.Constants = _constantBuffers.Debug;
                         passData.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _debugSinglePassStereoInstancingKernel : _debugMonoKernel;
                         passData.ThreadGroupSize = _debugKernelGroupSize;
                         passData.ScreenDepths = resourceData.cameraDepthTexture;
@@ -1154,6 +1167,7 @@ namespace UnityEngine.Rendering.Universal
                     data.CameraWorldPos = cameraInfo.WorldPos;
                     data.FullResThreadCount = new uint3((uint)cameraInfo.ScreenResolution.x, (uint)cameraInfo.ScreenResolution.y, (uint)cameraInfo.ViewCount);
                     data.Shader = _screenResolveUpsamplingShader;
+                    data.Constants = _constantBuffers.ScreenResolveUpsampling;
                     data.KernelIndex = cameraInfo.ScreenTexturesAreArrays ? _screenResolveUpsamplingSinglePassStereoInstancingKernel : _screenResolveUpsamplingMonoKernel;
                     data.ThreadGroupSize = _screenResolveUpsamplingKernelGroupSize;
                     data.FullResDepths = resourceData.cameraDepthTexture;
@@ -1194,7 +1208,10 @@ namespace UnityEngine.Rendering.Universal
                 var kernelIndex = data.KernelIndex;
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenDepths, data.ScreenDepths);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenFlatNormals, data.ScreenFlatNormals);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, data.ClipToWorldTransforms);
+                var constants = new SurfaceCacheGIFlatNormalResolutionConstants();
+                unsafe { CopyMatrices(data.ClipToWorldTransforms, constants._ClipToWorldTransforms); }
+                data.Constants.UpdateData(cmd, constants);
+                data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIFlatNormalResolutionConstants);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
@@ -1226,18 +1243,26 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchCellIndices, data.PatchCellIndices);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._VolumeCascadeOffsets, data.CascadeOffsets);
-                cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIdx);
-                cmd.SetComputeIntParam(shader, ShaderIDs._StereoEyeIndex, data.StereoEyeIndex);
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
-                cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
-                cmd.SetComputeIntParams(shader, ShaderIDs._FullResPixelOffset, (int)data.FullResPixelOffset.x, (int)data.FullResPixelOffset.y);
-                cmd.SetComputeIntParams(shader, ShaderIDs._LowResScreenSize, (int)data.LowResScreenSize.x, (int)data.LowResScreenSize.y);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VoxelMinSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._CurrentClipToWorldTransforms, data.CurrentClipToWorldTransforms);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._PreviousClipToWorldTransforms, data.PreviousClipToWorldTransforms);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
+                var constants = new SurfaceCacheGIPatchAllocationConstants
+                {
+                    _VolumeTargetPos = data.VolumeTargetPos,
+                    _VolumeVoxelMinSize = data.VoxelMinSize,
+                    _FrameIdx = data.FrameIdx,
+                    _StereoEyeIndex = (uint)data.StereoEyeIndex,
+                    _VolumeSpatialResolution = data.VolumeSpatialResolution,
+                    _VolumeCascadeCount = data.VolumeCascadeCount,
+                    _LowResScreenSize = data.LowResScreenSize,
+                    _FullResPixelOffset = data.FullResPixelOffset,
+                    _RingConfigOffset = data.RingConfigOffset,
+                    _PatchWarping = data.PatchWarpingEnabled ? 1 : 0,
+                };
+                unsafe
+                {
+                    CopyMatrices(data.CurrentClipToWorldTransforms, constants._CurrentClipToWorldTransforms);
+                    CopyMatrices(data.PreviousClipToWorldTransforms, constants._PreviousClipToWorldTransforms);
+                }
+                data.Constants.UpdateData(cmd, constants);
+                data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIPatchAllocationConstants);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
@@ -1264,14 +1289,19 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._VolumeCascadeOffsets, data.CascadeOffsets);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._PatchStatistics, data.PatchStatistics);
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._GlobalProbe, data.GlobalProbeBuffer);
-                cmd.SetComputeIntParam(shader, ShaderIDs._DistanceFallback, data.DistanceFallback ? 1 : 0);
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
-                cmd.SetComputeIntParam(shader, ShaderIDs._SampleCount, (int)data.SampleCount);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, data.ClipToWorldTransforms);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
+                var constants = new SurfaceCacheGIScreenResolveLookupConstants
+                {
+                    _VolumeTargetPos = data.VolumeTargetPos,
+                    _VolumeVoxelMinSize = data.VolumeVoxelMinSize,
+                    _VolumeSpatialResolution = data.VolumeSpatialResolution,
+                    _VolumeCascadeCount = data.VolumeCascadeCount,
+                    _SampleCount = data.SampleCount,
+                    _PatchWarping = data.PatchWarpingEnabled ? 1 : 0,
+                    _DistanceFallback = data.DistanceFallback ? 1u : 0u,
+                };
+                unsafe { CopyMatrices(data.ClipToWorldTransforms, constants._ClipToWorldTransforms); }
+                data.Constants.UpdateData(cmd, constants);
+                data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIScreenResolveLookupConstants);
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
@@ -1284,9 +1314,11 @@ namespace UnityEngine.Rendering.Universal
                 var kernelIndex = data.KernelIndex;
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResNdcDepths, data.InputNdcDepths);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ScreenFlatNormals, data.ScreenFlatNormals);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, data.ClipToWorldTransforms);
-                cmd.SetComputeMatrixParam(shader, ShaderIDs._NoiseWorldToClipTransform, data.NoiseWorldToClipTransform);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._CameraWorldPos, data.CameraWorldPos);
+                var constants = new SurfaceCacheGIScreenResolveDenoisingConstants
+                {
+                    _CameraWorldPos = data.CameraWorldPos,
+                };
+                unsafe { CopyMatrices(data.ClipToWorldTransforms, constants._ClipToWorldTransforms); }
 
                 uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
 
@@ -1311,7 +1343,9 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL10, outputL10);
                     cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL11, outputL11);
                     cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultL12, outputL12);
-                    cmd.SetComputeIntParam(shader, ShaderIDs._PassIndex, passIndex);
+                    constants._PassIndex = passIndex;
+                    data.Constants.UpdateData(cmd, constants);
+                    data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIScreenResolveDenoisingConstants);
 
                     cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
 
@@ -1337,12 +1371,27 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL11, passData.LowResScreenIrradiancesL11);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._LowResIrradiancesL12, passData.LowResScreenIrradiancesL12);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._ResultNdcDepths, passData.LowResScreenNdcDepths);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._Intensity, passData.Intensity);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, passData.ClipToWorldTransforms);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._CameraWorldPos, passData.CameraWorldPos);
+                var constants = new SurfaceCacheGIScreenResolveUpsamplingConstants
+                {
+                    _CameraWorldPos = passData.CameraWorldPos,
+                    _Intensity = passData.Intensity,
+                };
+                unsafe { CopyMatrices(passData.ClipToWorldTransforms, constants._ClipToWorldTransforms); }
+                passData.Constants.UpdateData(cmd, constants);
+                passData.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIScreenResolveUpsamplingConstants);
 
                 uint3 groupCount = DivUp(passData.FullResThreadCount, passData.ThreadGroupSize);
                 cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
+            }
+
+            static unsafe void CopyMatrices(Matrix4x4[] matrices, float* destination)
+            {
+                Debug.Assert(matrices.Length == 2, "Every destination holds exactly two matrices.");
+                for (int matrixIdx = 0; matrixIdx < matrices.Length; ++matrixIdx)
+                {
+                    for (int elementIdx = 0; elementIdx < 16; ++elementIdx)
+                        destination[matrixIdx * 16 + elementIdx] = matrices[matrixIdx][elementIdx];
+                }
             }
 
             static void RenderDebug(DebugPassData data, UnsafeGraphContext graphCtx)
@@ -1367,22 +1416,25 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetComputeBufferParam(shader, kernelIndex, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._AlbedoTextures, albedoTextures);
                 cmd.SetComputeTextureParam(shader, kernelIndex, ShaderIDs._EmissionTextures, data.World.GetMaterialEmissionTextures());
-                cmd.SetComputeFloatParam(shader, ShaderIDs._MaterialAtlasTexelSize, 1.0f / albedoTextures.width);
                 InlineRayTracing.SetAccelerationStructure(cmd, shader, kernelIndex, "_RayTracingAccelerationStructure", data.World.GetAccelerationStructure().GetAccelerationStructure());
                 data.World.GetAccelerationStructure().Instances.Bind(cmd, shader, kernelIndex);
                 InlineRayTracing.SetTraceScratchBuffer(cmd, shader, kernelIndex, data.TraceScratchBuffer);
 
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeSpatialResolution, (int)data.VolumeSpatialResolution);
-                cmd.SetComputeIntParam(shader, ShaderIDs._VolumeCascadeCount, (int)data.VolumeCascadeCount);
-                cmd.SetComputeIntParam(shader, ShaderIDs._ViewMode, (int)data.ViewMode);
-                cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIndex);
-                cmd.SetComputeIntParam(shader, ShaderIDs._ShowSamplePosition, data.ShowSamplePosition ? 1 : 0);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
-                cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
-                cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
-                cmd.SetComputeVectorParam(shader, ShaderIDs._VolumeTargetPos, data.VolumeTargetPos);
-                cmd.SetComputeMatrixArrayParam(shader, ShaderIDs._ClipToWorldTransforms, data.ClipToWorldTransforms);
-                cmd.SetComputeIntParam(shader, ShaderIDs._TileHeight, (int)data.TileHeight);
+                var constants = new SurfaceCacheGIDebugConstants
+                {
+                    _VolumeTargetPos = data.VolumeTargetPos,
+                    _VolumeVoxelMinSize = data.VolumeVoxelMinSize,
+                    _RingConfigOffset = data.RingConfigOffset,
+                    _VolumeSpatialResolution = data.VolumeSpatialResolution,
+                    _VolumeCascadeCount = data.VolumeCascadeCount,
+                    _ViewMode = (uint)data.ViewMode,
+                    _ShowSamplePosition = data.ShowSamplePosition ? 1u : 0u,
+                    _FrameIdx = data.FrameIndex,
+                    _PatchWarping = data.PatchWarpingEnabled ? 1 : 0,
+                    _MaterialAtlasTexelSize = 1.0f / albedoTextures.width,
+                    _TileHeight = data.TileHeight,
+                };
+                unsafe { CopyMatrices(data.ClipToWorldTransforms, constants._ClipToWorldTransforms); }
 
                 if (data.ViewMode == SurfaceCacheDebugViewMode.Albedo
                     || data.ViewMode == SurfaceCacheDebugViewMode.Emission
@@ -1390,7 +1442,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     for (uint tileOffsetY = 0; tileOffsetY < data.ThreadCount.y; tileOffsetY += data.TileHeight)
                     {
-                        cmd.SetComputeIntParam(shader, ShaderIDs._TileOffsetY, (int)tileOffsetY);
+                        constants._TileOffsetY = tileOffsetY;
+                        data.Constants.UpdateData(cmd, constants);
+                        data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIDebugConstants);
                         var tileThreadCount = new uint3(data.ThreadCount.x, math.min(data.TileHeight, data.ThreadCount.y - tileOffsetY), data.ThreadCount.z);
                         uint3 groupCount = DivUp(tileThreadCount, data.ThreadGroupSize);
                         cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
@@ -1398,7 +1452,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    cmd.SetComputeIntParam(shader, ShaderIDs._TileOffsetY, 0);
+                    data.Constants.UpdateData(cmd, constants);
+                    data.Constants.Set(cmd, shader, ShaderIDs.SurfaceCacheGIDebugConstants);
                     uint3 groupCount = DivUp(data.ThreadCount, data.ThreadGroupSize);
                     cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, (int)groupCount.z);
                 }

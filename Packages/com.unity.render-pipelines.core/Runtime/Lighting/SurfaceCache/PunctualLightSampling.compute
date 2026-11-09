@@ -39,11 +39,7 @@ RWStructuredBuffer<PunctualLightSample> _Samples;
 StructuredBuffer<MaterialPool::MaterialEntry> _MaterialEntries;
 Texture2DArray<float4> _AlbedoTextures;
 SamplerState sampler_AlbedoTextures;
-float _MaterialAtlasTexelSize;
-float _AlbedoBoost;
-uint _FrameIdx;
-uint _PunctualLightCount;
-uint _SamplesPerPunctualLight;
+#include "PunctualLightSamplingConstants.cs.hlsl"
 
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void SamplePunctualLights(uint dispatchThreadIdx : SV_DispatchThreadID, uint groupThreadIdx : SV_GroupIndex)

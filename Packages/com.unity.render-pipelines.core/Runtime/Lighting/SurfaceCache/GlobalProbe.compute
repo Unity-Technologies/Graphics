@@ -8,7 +8,7 @@
 RWStructuredBuffer<SphericalHarmonics::RGBL1> _GlobalProbe;
 TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
-float _EnvironmentIntensityMultiplier;
+#include "GlobalProbeConstants.cs.hlsl"
 
 #define SAMPLE_COUNT 32
 
