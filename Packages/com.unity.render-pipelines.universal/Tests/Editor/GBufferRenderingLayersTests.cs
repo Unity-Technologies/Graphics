@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         public void GBufferPassesDeclareWriteRenderingLayers()
         {
             var lightMode = new ShaderTagId("LightMode");
+            var renderPipeline = new ShaderTagId("RenderPipeline");
             var checkedShaders = new HashSet<string>();
             var missing = new List<string>();
 
@@ -32,6 +33,12 @@ namespace UnityEditor.Rendering.Universal.Tests
                 for (int s = 0; s < data.SerializedSubshaderCount; ++s)
                 {
                     var subshader = data.GetSerializedSubshader(s);
+                    // Shader Graph assets can carry subshaders for other pipelines, such as HDRP, which URP never selects.
+                    // Untagged subshaders stay in: URP can select them.
+                    var pipelineTag = subshader.FindTagValue(renderPipeline).name;
+                    if (!string.IsNullOrEmpty(pipelineTag) && pipelineTag != "UniversalPipeline")
+                        continue;
+
                     for (int p = 0; p < subshader.PassCount; ++p)
                     {
                         var pass = subshader.GetPass(p);
