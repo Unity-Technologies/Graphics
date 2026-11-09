@@ -1,7 +1,6 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine.PathTracing.Core;
@@ -1895,23 +1894,24 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         const int k_ManyInstanceCount = 1000;
-        static readonly Regex k_MissingMetaPassError = new("does not have a 'Meta' shader pass");
 
-        // The adapter keeps track of the materials it already reported, so a material shared by many instances must
-        // not turn into one log entry (and one formatted message allocation) per instance.
         [Test]
-        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_LogsErrorOnce()
+        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_AddsMaskedOutInstancesWithoutLogging()
         {
             var env = CreateEnvironmentOrIgnore();
             var mesh = CreateQuadMesh();
             var materialMissingMetaPass = CreateMaterialMissingMetaPass();
             try
             {
-                LogAssert.Expect(LogType.Error, k_MissingMetaPassError);
                 Update(env.Adapter, CreateEntityAddedChangeSet(mesh, materialMissingMetaPass), env.World);
 
                 LogAssert.NoUnexpectedReceived();
                 Assert.AreEqual(k_ManyInstanceCount, env.World.GetInstanceCount());
+                Assert.AreEqual(1, env.World.GetMaterialCount());
+                foreach (var instance in env.World.GetAccelerationStructure().Instances.instances)
+                {
+                    Assert.AreEqual(0u, instance.instanceMask);
+                }
             }
             finally
             {
