@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Copy and rescale depth buffer for XR devices
                 if (hdCamera.xr.enabled && hdCamera.xr.copyDepth && depthBackBuffer.IsValid())
-                    CopyDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, depthBackBuffer, true);
+                    CopyDepth(m_RenderGraph, prepassOutput.resolvedDepthBuffer, depthBackBuffer, true);
 
                 if (m_CurrentDebugDisplaySettings.data.historyBuffersView != -1)
                 {
@@ -736,7 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int passIndex;
         }
 
-        void CopyDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle output, bool copyForXR)
+        void CopyDepth(RenderGraph renderGraph, TextureHandle depthBuffer, TextureHandle output, bool copyForXR)
         {
             string name = copyForXR ? "Copy XR Depth" : "Copy Depth";
             var profileID = copyForXR ? HDProfileId.XRDepthCopy : HDProfileId.DuplicateDepthBuffer;
@@ -747,8 +747,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
                 passData.output = output;
                 builder.SetRenderAttachmentDepth(output, AccessFlags.Write);
-                passData.blitScaleBias = copyForXR ? new Vector2(hdCamera.actualWidth / hdCamera.finalViewport.width, hdCamera.actualHeight / hdCamera.finalViewport.height)
-                                                   : RTHandles.rtHandleProperties.rtHandleScale;
+                passData.blitScaleBias = RTHandles.rtHandleProperties.rtHandleScale;
                 passData.flipY = copyForXR;
                 passData.passIndex = renderGraph.GetTextureDesc(depthBuffer).msaaSamples != MSAASamples.None ? 1 : 0;
                 Debug.Assert(!(copyForXR && passData.passIndex != 0), "MSAA depth copies do not support XR scaling and Y-flipping.");
@@ -1736,7 +1735,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange: GetTransparentRenderQueueRange(hdCamera, false)));
 
             // Copy depth buffer for refraction
-            CopyDepth(renderGraph, hdCamera, prepassOutput.depthBuffer, output.depthBufferPreRefraction, false);
+            CopyDepth(renderGraph, prepassOutput.depthBuffer, output.depthBufferPreRefraction, false);
 
             if (hasWater)
             {
