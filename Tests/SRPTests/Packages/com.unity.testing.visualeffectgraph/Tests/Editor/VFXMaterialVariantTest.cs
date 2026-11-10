@@ -514,16 +514,26 @@ namespace UnityEditor.VFX.Test
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = false},
 
             // Importer cases also check the result before the inspector is created, so the costly import runs once for both.
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true  , usingImporter = true},
             new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = true},
         };
 
         private static System.Reflection.PropertyInfo kGetAllowLocking = typeof(Material).GetProperty("allowLocking", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
-        // The usingImporter cases change a global import setting, which reimports every visual effect in the project.
         [UnityTest, Description("Cover behavior from UUM-29663 & UUM-77448, in editor, both settings from HDRP & URP must be kept")]
-        [Timeout(360000)]
         public IEnumerator Cross_Pipeline_VFX_Override([ValueSource(nameof(k_Cross_Pipeline_Cases))] Cross_Pipeline_VFX_Override_Test_Case testCase)
+        {
+            return CrossPipelineVFXOverride(testCase);
+        }
+
+        // Forcing edition compilation changes a global import setting, which reimports every visual effect in the project.
+        [UnityTest, Category("MonitoredOnly"), Description("Cover behavior from UUM-29663 & UUM-77448 through the importer in edition mode")]
+        [Timeout(360000)]
+        public IEnumerator Cross_Pipeline_VFX_Override_Forced_Edition_Import()
+        {
+            return CrossPipelineVFXOverride(new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true, usingImporter = true });
+        }
+
+        static IEnumerator CrossPipelineVFXOverride(Cross_Pipeline_VFX_Override_Test_Case testCase)
         {
             var path = "Packages/com.unity.testing.visualeffectgraph/Scenes/CrossPipeline_MaterialOverride.vfx";
 

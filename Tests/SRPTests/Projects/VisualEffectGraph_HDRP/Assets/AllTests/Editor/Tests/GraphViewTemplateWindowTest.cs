@@ -472,7 +472,8 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        [UnityTest, Description("Covers UUM-121936")]
+        // Installs the whole Learning Templates sample, then waits for its script compilation and domain reload.
+        [UnityTest, Category("MonitoredOnly"), Description("Covers UUM-121936")]
         [Timeout(360000)]
         public IEnumerator Check_Install_Dependencies_Learning_Sample_Button()
         {
