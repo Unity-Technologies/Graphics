@@ -722,7 +722,10 @@ namespace UnityEditor.VFX
                 var shaderTags = new VFXShaderWriter();
                 var renderQueueStr = subOutput.GetRenderQueueStr();
                 var renderTypeStr = isBlendModeOpaque ? "Opaque" : "Transparent";
-                shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"{1}\" \"RenderType\"=\"{2}\" }}", renderQueueStr, !isBlendModeOpaque, renderTypeStr));
+                // The pipeline tag is what scopes the SRP shader keyword filtering rules to these shaders
+                var renderPipelineTagStr = subOutput.GetRenderPipelineTagStr();
+                var renderPipelineTag = string.IsNullOrEmpty(renderPipelineTagStr) ? string.Empty : string.Format(" \"RenderPipeline\"=\"{0}\"", renderPipelineTagStr);
+                shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"{1}\" \"RenderType\"=\"{2}\"{3} }}", renderQueueStr, !isBlendModeOpaque, renderTypeStr, renderPipelineTag));
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
 
                 foreach (var additionnalStencilReplacement in subOutput.GetStencilStateOverridesStr())
