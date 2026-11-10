@@ -200,6 +200,9 @@ namespace UnityEditor.Rendering.Universal
                     {
                         var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
 
+                        // Opening the scene unloads converted assets that are not saved, such as prefabs
+                        AssetDatabase.SaveAssets();
+
                         var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
                         AssetDatabase.OpenAsset(mainInstanceID);
 
