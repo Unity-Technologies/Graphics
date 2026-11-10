@@ -256,6 +256,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (builtinData.depthOffset)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
 
+            // LOD crossfade dithering seeds from the per-pixel view vector
+            if (builtinData.supportLodCrossFade && !context.pass.IsRelatedToRaytracing())
+                context.AddField(HDStructFields.FragInputs.positionRWS);
+
             context.AddField(HDFields.CustomVelocity, systemData.customVelocity);
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
