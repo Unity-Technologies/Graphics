@@ -298,7 +298,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 worldToViews = worldToViews,
                 lights = localLights,
-                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount)
+                minMaxZs = minMaxZs.GetSubArray(0, localLightCount * viewCount),
+                near = nearClipPlane
             };
             // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
             var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(localLightCount * viewCount, 32, new JobHandle());
@@ -310,7 +311,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 worldToViews = worldToViews,
                 reflectionProbes = probes,
                 reflectionProbeRotation = reflectionProbeRotation,
-                minMaxZs = minMaxZs.GetSubArray(localLightCount * viewCount, reflectionProbeCount * viewCount)
+                minMaxZs = minMaxZs.GetSubArray(localLightCount * viewCount, reflectionProbeCount * viewCount),
+                near = nearClipPlane
             };
             var reflectionProbeMinMaxZHandle = reflectionProbeMinMaxZJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZHandle);
 
@@ -356,6 +358,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 viewToViewportScaleBiases = new Fixed2<float4>(viewToViewportScaleBias0, viewToViewportScaleBias1),
                 tileCount = tileResolution,
                 near = nearClipPlane,
+                far = farClipPlane,
                 isOrthographic = isOrthographic
             };
 
