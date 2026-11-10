@@ -3,7 +3,7 @@
   "enableLockFile": false,
   "disableProjectUpdate": true,
   "dependencies": {
-    "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
+    "com.unity.external.test-protocol": "file:../../../../../Packages/Internal/com.unity.external.test-protocol",
     "com.unity.ide.rider": "file:../../../../../ShadowPackages/com.unity.ide.rider",
     "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",
     "com.unity.inputsystem": "1.19.0",
