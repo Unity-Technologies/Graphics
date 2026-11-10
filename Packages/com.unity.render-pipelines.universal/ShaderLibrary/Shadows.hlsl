@@ -456,6 +456,18 @@ half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sam
             wV *= 0.081632 * 0.081632;
             u = fetchCenter.x * texelSize.x + u * texelSize.x;
             v = fetchCenter.y * texelSize.y + v * texelSize.y;
+            half4 hwU = half4(wU);
+            half4 hwV = half4(wV);
+
+            UNITY_UNROLL for (int j = 0; j < 4; j++)
+            {
+                half4 s;
+                s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
+                s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
+                s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
+                s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
+                attenuation += hwV[j] * dot(s, hwU);
+            }
         }
         else
         {
@@ -464,17 +476,19 @@ half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sam
             wV *= 0.16 * 0.16;
             u = fetchCenter.x * texelSize.x + u * texelSize.x;
             v = fetchCenter.y * texelSize.y + v * texelSize.y;
-        }
-        half4 hwU = half4(wU);
 
-        UNITY_UNROLL for (int j = 0; j < 4; j++)
-        {
-            half4 s;
-            s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
-            s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
-            s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
-            s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
-            attenuation += half(wV[j]) * dot(s, hwU);
+            half3 hwU = half3(wU.xyw);
+            half3 hwV = half3(wV.xyw);
+            float3 rowV = v.xyw;
+
+            UNITY_UNROLL for (int j = 0; j < 3; j++)
+            {
+                half3 s;
+                s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, rowV[j], shadowCoord.z)));
+                s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, rowV[j], shadowCoord.z)));
+                s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, rowV[j], shadowCoord.z)));
+                attenuation += hwV[j] * dot(s, hwU);
+            }
         }
     }
     return attenuation;
