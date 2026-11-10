@@ -49,6 +49,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Metal
         )]
         [IgnoreGraphicsTest(
+            "9920_WaterSurface$",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-155367",
+            GraphicsDeviceType.Direct3D12
+        )]
+        [IgnoreGraphicsTest(
             "9922_WaterPrefab$",
             "Minor divergence across the waves' crests.",
             GraphicsDeviceType.Metal
