@@ -1123,19 +1123,15 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        [UnityPlatform(exclude = new RuntimePlatform[] {
-            RuntimePlatform.OSXEditor,
-            RuntimePlatform.WindowsEditor // Disabled for Instability https://jira.unity3d.com/browse/UUM-160528
-        })]
         public IEnumerator Clear_Undo_Stack_After_Closing_Window()
         {
             var graph = VFXTestCommon.CreateGraph_And_System();
             var resource = graph.GetResource();
             var asset = resource.asset;
 
+            // Count only this graph's entries: the fixture's own controller can record entries for its asset at any time
+            var graphUndoName = $"VFX Graph - {Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(asset))} (";
             var undoList = new List<string>();
-            Undo.GetUndoList(undoList, out var cursor);
-            var initialUndoCount = undoList.Count;
 
             var window = VFXTestCommon.GetWindow(asset, true);
             window.LoadAsset(asset, null);
@@ -1148,26 +1144,30 @@ namespace UnityEditor.VFX.Test
             }
             Assert.AreEqual(VFXCompilationMode.Edition, VisualEffectAssetUtility.GetCompilationMode(asset));
 
+            undoList.Clear();
+            Undo.GetUndoList(undoList, out var cursor);
+            var loadUndoVFXCount = undoList.Count(o => o.Contains(graphUndoName));
+
+            // A new group before each move lets late graph changes from loading merge into a move's entry
             var eventCount = 4;
             for (int eventIndex = 0; eventIndex < eventCount; eventIndex++)
             {
-                graph.children.OfType<VFXContext>().First().position += Vector2.down;
                 Undo.IncrementCurrentGroup();
+                graph.children.OfType<VFXContext>().First().position += Vector2.down;
                 yield return null;
             }
             undoList.Clear();
             Undo.GetUndoList(undoList, out cursor);
-            var undoVFXCount = undoList.Count(o => o.Contains("VFX"));
-            Assert.AreEqual(eventCount, undoVFXCount);
+            var undoVFXCount = undoList.Count(o => o.Contains(graphUndoName));
+            Assert.AreEqual(eventCount, undoVFXCount - loadUndoVFXCount, string.Join("\n", undoList));
 
             window.Close();
             yield return null;
 
             undoList.Clear();
             Undo.GetUndoList(undoList, out cursor);
-            undoVFXCount = undoList.Count(o => o.Contains("VFX"));
-            Assert.AreEqual(0, undoVFXCount);
-            Assert.AreEqual(initialUndoCount, undoList.Count);
+            undoVFXCount = undoList.Count(o => o.Contains(graphUndoName));
+            Assert.AreEqual(0, undoVFXCount, string.Join("\n", undoList));
         }
 
         [Test]
