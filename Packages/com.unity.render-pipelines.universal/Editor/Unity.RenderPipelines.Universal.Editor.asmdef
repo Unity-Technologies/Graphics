@@ -52,6 +52,11 @@
             "define": "XR_MANAGEMENT_4_0_1_OR_NEWER"
         },
         {
+            "name": "com.unity.xr.foundation",
+            "expression": "7.0.0",
+            "define": "XR_FOUNDATION_7_0_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.visualeffectgraph",
             "expression": "1.0.0",
             "define": "HAS_VFX_GRAPH"

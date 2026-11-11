@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
 using UnityEditor.XR.Management;
 using UnityEngine.XR.Management;
 #endif
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.XRGraphics
         internal static List<string> GetActiveXRLoaders(BuildTargetGroup buildTargetGroup)
         {
             var loaders = new List<string>();
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
             XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
             if (generalSettings != null && generalSettings.Manager != null)
             {

@@ -5,7 +5,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
 using UnityEditor.XR.Management;
 using UnityEngine.XR.Management;
 #endif
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.Universal
                 isSwitch = buildTargetGroup == BuildTargetGroup.Switch;
                 isSwitch2 = buildTargetGroup == BuildTargetGroup.Switch2;
 
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                 var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                 if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                 {
@@ -395,7 +395,7 @@ namespace UnityEditor.Rendering.Universal
                 s_UseSHPerVertexForSHAuto = true;
 
             // XR Stripping
-            #if XR_MANAGEMENT_4_0_1_OR_NEWER
+            #if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                 BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                 XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                 s_StripXRVariants = generalSettings == null || generalSettings.Manager == null || generalSettings.Manager.activeLoaders.Count <= 0;

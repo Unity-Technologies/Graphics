@@ -344,7 +344,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal static bool IsAndroidXRTargetted() //Include Quest platform
         {
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             if (buildTargetGroup != BuildTargetGroup.Android)
                 return false;

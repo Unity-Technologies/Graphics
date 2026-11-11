@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
 using UnityEditor.XR.Management;
 #endif
 
@@ -481,7 +481,7 @@ namespace UnityEditor.Rendering.Universal
                         float nearPlaneMinBound = Mathf.Min(0.01f * serializedLight.settings.range.floatValue, 0.1f);
                         EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
                         var isQuest = false;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                         var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                         var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                         if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)

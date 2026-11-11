@@ -42,6 +42,11 @@
             "define": "ENABLE_XR_MANAGEMENT"
         },
         {
+            "name": "com.unity.xr.foundation",
+            "expression": "7.0.0",
+            "define": "XR_FOUNDATION_7_0_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.modules.nvidia",
             "expression": "1.0.0",
             "define": "ENABLE_NVIDIA_MODULE"
