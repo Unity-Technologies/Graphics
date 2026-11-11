@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Currently we only need to call this when the user doesn't want transparent objects to receive shadows
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
                     {
-                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        MainLightShadowCasterPass.SetShadowParamsForTransparentsNotReceivingShadows(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData.emptyAdditionalLightShadowsBuffer);
                         context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }
@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // doesn't want transparent objects to receive shadows
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                     {
-                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        MainLightShadowCasterPass.SetShadowParamsForTransparentsNotReceivingShadows(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData.emptyAdditionalLightShadowsBuffer);
                         context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }

@@ -298,11 +298,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             return shadowLightIndex != -1 ? lightData.visibleLights[shadowLightIndex].light : null;
         }
 
-        static Vector4 ComputeShadowParamsForEmptyRendering(Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
+        internal static Vector4 ComputeShadowParamsForEmptyRendering(Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
-            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(cameraData.maxShadowDistance, shadowData.mainLightShadowCascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
+            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(cameraData.maxShadowDistance * cameraData.maxShadowDistance, shadowData.mainLightShadowCascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
             return new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias);
         }
 
@@ -332,6 +332,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal static void SetShadowParamsForEmptyShadowmap(IBaseCommandBuffer cmd)
         {
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
+        }
+
+        internal static void SetShadowParamsForTransparentsNotReceivingShadows(IBaseCommandBuffer cmd)
+        {
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, k_DefaultEmptyShadowParams);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
         }
 
