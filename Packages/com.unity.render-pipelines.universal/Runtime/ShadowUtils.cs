@@ -451,11 +451,11 @@ namespace UnityEngine.Rendering.Universal
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
-            int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+            int currentTileCount = (atlasWidth / resolution) * (atlasHeight / resolution);
             while (currentTileCount < tileCount)
             {
                 resolution = resolution >> 1;
-                currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+                currentTileCount = (atlasWidth / resolution) * (atlasHeight / resolution);
             }
             return resolution;
         }

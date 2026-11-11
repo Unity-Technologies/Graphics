@@ -40,6 +40,21 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.That(ShadowUtils.GetCasterDepthBias(depthBias, depthBiasMode, normalBiasMode, texelSize), Is.EqualTo(expected).Within(k_Tolerance));
         }
 
+        [Description("The returned resolution is the largest power-of-two fraction of the smaller atlas side at which the requested number of tiles fits. The tiles are counted per axis, so atlas sides that are not multiples of the resolution do not inflate the count.")]
+        [TestCase(600, 1000, 25, 75)]
+        [TestCase(300, 400, 5, 75)]
+        [TestCase(1000, 600, 25, 75)]
+        [TestCase(1024, 1024, 1, 1024)]
+        [TestCase(1024, 1024, 4, 512)]
+        [TestCase(1024, 2048, 3, 512)]
+        public void GetMaxTileResolutionInAtlas_ReturnsLargestResolutionThatFitsTileCount(int atlasWidth, int atlasHeight, int tileCount, int expected)
+        {
+            int resolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, tileCount);
+
+            Assert.That(resolution, Is.EqualTo(expected));
+            Assert.That((atlasWidth / resolution) * (atlasHeight / resolution), Is.GreaterThanOrEqualTo(tileCount));
+        }
+
         [Description("Each soft shadow quality maps to the radius of its PCF kernel. The shadow biases scale with this radius to compensate for the wider filter.")]
         [TestCase(SoftShadowQuality.Low, 1.5f)]
         [TestCase(SoftShadowQuality.Medium, 2.5f)]
