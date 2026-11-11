@@ -211,6 +211,10 @@ namespace UnityEngine.Rendering.Universal
         /// Render texture settings used to create intermediate camera textures for rendering.
         /// </summary>
         public RenderTextureDescriptor cameraTargetDescriptor;
+
+        internal int backbufferWidth;
+        internal int backbufferHeight;
+
         internal Rect pixelRect;
         internal bool useScreenCoordOverride;
         internal Vector4 screenSizeOverride;
@@ -673,6 +677,8 @@ namespace UnityEngine.Rendering.Universal
             renderType = CameraRenderType.Base;
             targetTexture = null;
             cameraTargetDescriptor = default;
+            backbufferWidth = 0;
+            backbufferHeight = 0;
             pixelRect = default;
             useScreenCoordOverride = false;
             screenSizeOverride = default;

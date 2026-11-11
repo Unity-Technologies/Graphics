@@ -1423,6 +1423,11 @@ namespace UnityEngine.Rendering.Universal
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
+            
+            Vector2Int backbufferSize = RenderingUtils.GetScreenBackbufferSize(camera);
+            cameraData.backbufferWidth = backbufferSize.x;
+            cameraData.backbufferHeight = backbufferSize.y;
+            
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData,
                 cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
 
