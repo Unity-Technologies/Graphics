@@ -168,6 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             GraphicsDeviceType.Direct3D11,
             GraphicsDeviceType.Vulkan
         )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157855",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Vulkan
+        )]
         [TestNotSupportedOn(
             "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",
             "Not XR compatible",
