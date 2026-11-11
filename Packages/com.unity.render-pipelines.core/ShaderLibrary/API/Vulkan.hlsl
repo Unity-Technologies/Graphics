@@ -15,6 +15,14 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+#if defined(UNITY_COMPILER_DXC) && !defined(UNITY_DECLARE_SPIRV_VIEW_INDEX)
+// Enum values from the Khronos SPIR-V specification. DXC inline SPIR-V attributes only accept the numeric values.
+#define UNITY_SPIRV_CAPABILITY_MULTIVIEW 4439
+#define UNITY_SPIRV_BUILTIN_VIEW_INDEX 4440
+// SV_ViewID is only valid on vertex inputs, so the view index is a global builtin rather than a member of the shader's input struct
+#define UNITY_DECLARE_SPIRV_VIEW_INDEX(name) [[vk::ext_extension("SPV_KHR_multiview")]] [[vk::ext_capability(UNITY_SPIRV_CAPABILITY_MULTIVIEW)]] [[vk::ext_builtin_input(UNITY_SPIRV_BUILTIN_VIEW_INDEX)]] static const uint name
+#endif
+
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER
 #define PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER

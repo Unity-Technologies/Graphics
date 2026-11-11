@@ -188,10 +188,14 @@ CBUFFER_END
 #endif
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
+#if !defined(UNITY_DECLARE_MULTIVIEW)
+#if defined(SHADER_API_VULKAN) && defined(UNITY_COMPILER_DXC)
+#define UNITY_DECLARE_MULTIVIEW(number_of_views) UNITY_DECLARE_SPIRV_VIEW_INDEX(gl_ViewID)
+#else
 // OVR_multiview
 // In order to convey this info over the DX compiler, we wrap it into a cbuffer.
-#if !defined(UNITY_DECLARE_MULTIVIEW)
 #define UNITY_DECLARE_MULTIVIEW(number_of_views) CBUFFER_START(OVR_multiview) uint gl_ViewID; uint numViews_##number_of_views; CBUFFER_END
+#endif
 #define UNITY_VIEWID gl_ViewID
 #endif
 #endif
