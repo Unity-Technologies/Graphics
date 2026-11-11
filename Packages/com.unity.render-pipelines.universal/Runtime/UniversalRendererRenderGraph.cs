@@ -526,7 +526,11 @@ namespace UnityEngine.Rendering.Universal
             // The clear pass is only required if either color or depth needs clearing.
             var clearParams = GetClearCameraParams(cameraData);
             if (clearParams.mustClearColor || clearParams.mustClearDepth)
-                InitializeCameraTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture);
+            {
+                InitializeCameraTargetsPass.Render(renderGraph,
+                    clearParams.mustClearColor ? resourceData.activeColorTexture : TextureHandle.nullHandle,
+                    clearParams.mustClearDepth ? resourceData.activeDepthTexture : TextureHandle.nullHandle);
+            }
         }
 
         void SetupTargetHandles(UniversalCameraData cameraData)
@@ -2285,7 +2289,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     // Only publishes the textures that a prepass would normally publish, in the case where the actual prepass is not executed.
-    // Implemented as a single pass instead to avoid overhead from three separate passes if using RenderGraphUtils.SetGlobalTexture.
+    // The textures are bound as attachments so they are all cleared through load actions in a single render pass.
     static class PublishPrepassGlobalTexturesPass
     {
         const string k_PassName = "Publish Prepass Global Textures";
@@ -2300,19 +2304,20 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_PassName, out _, s_ProfilingSampler))
             {
+                int colorIndex = 0;
                 if (cameraDepthTexture.IsValid())
                 {
-                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
+                    builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
                     builder.SetGlobalTextureAfterPass(cameraDepthTexture, DepthOnlyPass.s_CameraDepthTextureID);
                 }
                 if (cameraNormalsTexture.IsValid())
                 {
-                    builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
+                    builder.SetRenderAttachment(cameraNormalsTexture, colorIndex++, AccessFlags.Write);
                     builder.SetGlobalTextureAfterPass(cameraNormalsTexture, DepthNormalOnlyPass.s_CameraNormalsTextureID);
                 }
                 if (renderingLayersTexture.IsValid())
                 {
-                    builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
+                    builder.SetRenderAttachment(renderingLayersTexture, colorIndex++, AccessFlags.Write);
                     builder.SetGlobalTextureAfterPass(renderingLayersTexture, DepthNormalOnlyPass.s_CameraRenderingLayersTextureID);
                 }
 
