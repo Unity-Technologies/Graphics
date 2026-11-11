@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 using Unity.Profiling;
-using Unity.UI.Builder;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -461,7 +460,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (settings.IsFavorite(descriptor))
                 {
-                    var parent = button.GetFirstAncestorWithClass("unity-tree-view__item");
+                    var parent = GetFirstAncestorWithClass(button, "unity-tree-view__item");
                     parent.RemoveFromClassList("favorite");
                     settings.RemoveFavorite(descriptor);
                     var idToRemove = m_FavoriteCategory.children.SingleOrDefault(x => x.data.name == descriptor.name && x.data.category == descriptor.category).id;
@@ -472,7 +471,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    var parent = button.GetFirstAncestorWithClass("unity-tree-view__item");
+                    var parent = GetFirstAncestorWithClass(button, "unity-tree-view__item");
                     parent.AddToClassList("favorite");
                     settings.AddFavorite(descriptor);
                     var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
@@ -516,7 +515,7 @@ namespace UnityEditor.VFX.UI
             // The test on localPosition is to toggle expand state only when clicking on the left of the treeview item label
             if (evt.target is VisualElement element and not Toggle && evt.localPosition.x < 30)
             {
-                var parent = element.GetFirstAncestorWithClass("unity-tree-view__item");
+                var parent = GetFirstAncestorWithClass(element, "unity-tree-view__item");
                 if (parent != null)
                 {
                     var toggle = parent.Q<Toggle>();
@@ -572,7 +571,7 @@ namespace UnityEditor.VFX.UI
             element.Clear();
             element.ClearClassList();
 
-            var parent = element.GetFirstAncestorWithClass("unity-tree-view__item");
+            var parent = GetFirstAncestorWithClass(element, "unity-tree-view__item");
             parent.RemoveFromClassList("favorite");
             parent.RemoveFromClassList("treeleaf");
             parent.RemoveFromClassList("separator");
@@ -629,11 +628,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private static VisualElement GetFirstAncestorWithClass(VisualElement element, string className)
+        {
+            for (; element != null; element = element.parent)
+            {
+                if (element.ClassListContains(className))
+                    return element;
+            }
+
+            return null;
+        }
+
         private void BindItem(TreeView treeview, VisualElement element, int index)
         {
             var item = treeview.GetItemDataForIndex<Descriptor>(index);
             element.AddToClassList("treenode");
-            var parent = element.GetFirstAncestorWithClass("unity-tree-view__item");
+            var parent = GetFirstAncestorWithClass(element, "unity-tree-view__item");
 
             List<Label> labels = null;
 
