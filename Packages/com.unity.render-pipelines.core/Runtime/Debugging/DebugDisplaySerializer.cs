@@ -45,6 +45,10 @@ namespace UnityEngine.Rendering
             set => instance.m_AreDebugOverlaysHidden = value;
         }
 
+        // TODO https://jira.unity3d.com/browse/VM-3582 Remove Pragma warning disable once Engine modules are built under net10 
+        // Uses this assembly's DynamicallyAccessedMembers polyfill over the engine's and the BCL's copies.
+        // See DynamicallyAccessedMembersAttribute.cs.
+#pragma warning disable CS0436
         const DynamicallyAccessedMemberTypes k_CreatedMembers =
             DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors;
 
@@ -87,6 +91,7 @@ namespace UnityEngine.Rendering
         {
             return instance.GetOrCreate(typeof(T)) as T;
         }
+#pragma warning restore CS0436
 
         /// <summary>
         /// Returns the serialized instance for the given debug display settings type.
