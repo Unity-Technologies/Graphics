@@ -234,7 +234,11 @@ namespace UnityEditor.Rendering.Converter
 
             var scenePath = GetUnloadedScenePath(assetItem.GlobalObjectId);
             if (scenePath != null)
+            {
+                // Opening the scene unloads converted assets that are not saved, such as prefabs
+                AssetDatabase.SaveAssets();
                 (m_ScenesOpenedForConversion ??= new HashSet<string>()).Add(scenePath);
+            }
 
             var obj = assetItem.LoadObject();
 
@@ -273,6 +277,8 @@ namespace UnityEditor.Rendering.Converter
 
         public virtual void AfterConvert()
         {
+            // A later converter can open scenes too
+            AssetDatabase.SaveAssets();
             m_ScenesOpenedForConversion?.Clear();
         }
     }

@@ -525,13 +525,14 @@ namespace UnityEditor.Rendering.Converter
                 EditorUtility.ClearProgressBar();
             }
 
+            // Save before reloading the scene we started from, which unloads converted assets that are not saved
+            AssetDatabase.SaveAssets();
+
             // Checking if we have changed current scene. If we have we reload the old scene we started from
             if (!string.IsNullOrEmpty(currentScenePath) && currentScenePath != SceneManager.GetActiveScene().path)
             {
                 EditorSceneManager.OpenScene(currentScenePath);
             }
-
-            AssetDatabase.SaveAssets();
 
             RefreshUI();
 
