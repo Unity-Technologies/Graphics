@@ -63,8 +63,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 SetUpSpriteInstanceProperties();
-                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
                 UNITY_SKINNED_VERTEX_COMPUTE(input);
+                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
 
                 Varyings o = CommonLitVertex(input);
                 o.color = input.color * _Color * unity_SpriteColor;
@@ -117,8 +117,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 SetUpSpriteInstanceProperties();
-                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
                 UNITY_SKINNED_VERTEX_COMPUTE(input);
+                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
 
                 Varyings o = CommonNormalsVertex(input);
                 o.color = input.color * _Color * unity_SpriteColor;
@@ -174,8 +174,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 SetUpSpriteInstanceProperties();
-                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
                 UNITY_SKINNED_VERTEX_COMPUTE(input);
+                input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
 
                 Varyings o = CommonUnlitVertex(input);
                 o.color = input.color *_Color * unity_SpriteColor;
