@@ -14,36 +14,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   templateScene: {fileID: 102900000, guid: 41b58a5346e82e4489f95a96a01905f4, type: 3}
   templateName: Indoors (URP)
-  description: A scene that works best with the Universal Render Pipeline. Contains
-    a camera, a directional light, a global volume with a selection of post processing
-    effects, baked ambient lighting and a baked reflection probe.
+  description: A scene that works best with the Universal Render Pipeline. Contains a camera, a directional light, a global volume with a selection of post processing effects, baked ambient lighting and a baked reflection probe.
   preview: {fileID: 7045967719960347874}
   dependencies:
   - dependency: {fileID: 112000000, guid: 695c65e91172db945bf049e595adcc66, type: 2}
-    instantiationMode: 0
+    instantiationMode: 1
   - dependency: {fileID: 2100000, guid: 761d8e1f988ed2345a28312145c79c6e, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 919132149155446097, guid: b9ae429aca254fa41966db24b9e53232, type: 3}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: 92f845725428c954b878da352f657fe5, type: 2}
     instantiationMode: 0
-  - dependency: {fileID: 2100000, guid: 4f1ef37ae953c484bbc5d5e4049147e5, type: 2}
-    instantiationMode: 0
-  - dependency: {fileID: 11400000, guid: afa2d039a61b9a44ab0eb7f1c138af34, type: 2}
-    instantiationMode: 0
-  - dependency: {fileID: 919132149155446097, guid: b28fa67a0ff82c5478f27368dc627683, type: 3}
+  - dependency: {fileID: 4900000, guid: 4e56ea919713d47dbb73d97eb790b035, type: 3}
     instantiationMode: 0
   - dependency: {fileID: 919132149155446097, guid: 4e8732d4875cc0647b52b55a218072b6, type: 3}
     instantiationMode: 0
   - dependency: {fileID: 919132149155446097, guid: 1dbf28c1bb322474d981b2dc555e28b0, type: 3}
     instantiationMode: 0
-  - dependency: {fileID: 2800000, guid: 32b23d5d74f3aee4f9364e34e2f59379, type: 3}
-    instantiationMode: 1
+  - dependency: {fileID: 4900000, guid: 43608436e3f3e480a89899068f2840c6, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 11400000, guid: 6f5f3e944558b294093fde8026e4d36e, type: 2}
+    instantiationMode: 0
   - dependency: {fileID: 2100000, guid: b34b07a45ba63ce47896c9e674f3a7a7, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: c2e40fa84d53ccd428f640eac126b1fb, type: 2}
     instantiationMode: 0
   - dependency: {fileID: 8900000, guid: e375ace14cc3b5b448ca85ba2455930c, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 4900000, guid: 61d83ef24d5d3417ea922c5f7ffc0a53, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 4900000, guid: 14e5369f7abc34ccb9bc2a8adc489e8e, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: 177b2538515c71b4a86aa1cad939807a, type: 2}
+    instantiationMode: 1
+  - dependency: {fileID: 11400000, guid: 253e19dba0654715a6a9d067af07d8f5, type: 2}
+    instantiationMode: 0
+  - dependency: {fileID: 2100000, guid: 4f1ef37ae953c484bbc5d5e4049147e5, type: 2}
+    instantiationMode: 0
+  - dependency: {fileID: 919132149155446097, guid: b28fa67a0ff82c5478f27368dc627683, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 4900000, guid: bd6aa490af3a444eab1051042136cb7c, type: 3}
+    instantiationMode: 0
+  - dependency: {fileID: 4900000, guid: 58b4c233f8e2f4e1bac1e5633ff84297, type: 3}
     instantiationMode: 0
   - dependency: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
     instantiationMode: 0
