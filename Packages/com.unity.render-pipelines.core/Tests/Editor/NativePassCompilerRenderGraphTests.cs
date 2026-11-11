@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
@@ -1078,6 +1079,106 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(1, lastUsed.Count);
             Assert.AreEqual(renderTargets.extraTextures[1].handle.index, lastUsed[0].index);
+        }
+
+        void ImportMemorylessDepthAndSplitAcrossNativePasses(RenderGraph renderGraph)
+        {
+            var renderTargets = ImportAndCreateRenderTargets(renderGraph);
+
+            var depthHandle = RTHandles.Alloc(BuiltinRenderTextureType.Depth, "Memoryless Depth");
+            var importInfo = new RenderTargetInfo
+            {
+                width = 1024,
+                height = 768,
+                volumeDepth = 1,
+                msaaSamples = 1,
+                format = GraphicsFormat.D32_SFloat_S8_UInt,
+                isMemoryless = true,
+            };
+            var memorylessDepth = renderGraph.ImportTexture(depthHandle, importInfo, new ImportResourceParams());
+
+            using (var builder = renderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Opaques", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(memorylessDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Breaks the native render pass between the two raster passes
+            using (var builder = renderGraph.AddComputePass<RenderGraphTestPassData>("Compute", out var passData))
+            {
+                builder.UseTexture(renderTargets.extraTextures[0], AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, ComputeGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            using (var builder = renderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Transparents", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(memorylessDepth, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+        }
+
+        [Test]
+        public void ImportedMemorylessAcrossNativePasses_StaysMemoryless_WhenMemorylessCannotBeStored()
+        {
+            NativePassCompiler.s_SupportsMemorylessTexturesOverride = true;
+            NativePassCompiler.s_CanStoreMemorylessTexturesOverride = false;
+            try
+            {
+                var renderGraph = AllocateRenderGraph();
+                ImportMemorylessDepthAndSplitAcrossNativePasses(renderGraph);
+
+                if (RenderGraph.enableValidityChecks)
+                    LogAssert.Expect(LogType.Warning, new Regex("Imported memoryless resource 'Memoryless Depth'.*does not retain its contents"));
+                var exception = Assert.Throws<Exception>(() => renderGraph.CompileNativeRenderGraph(renderGraph.ComputeGraphHash()));
+                Assert.AreEqual(RenderGraph.RenderGraphExceptionMessages.k_ResolvignMemorylessResource, exception.Message);
+            }
+            finally
+            {
+                NativePassCompiler.s_SupportsMemorylessTexturesOverride = null;
+                NativePassCompiler.s_CanStoreMemorylessTexturesOverride = null;
+            }
+        }
+
+        [Test]
+        public void ImportedMemorylessAcrossNativePasses_IsStoredAndLoaded_WhenMemorylessCanBeStored()
+        {
+            NativePassCompiler.s_SupportsMemorylessTexturesOverride = true;
+            NativePassCompiler.s_CanStoreMemorylessTexturesOverride = true;
+            try
+            {
+                var renderGraph = AllocateRenderGraph();
+                ImportMemorylessDepthAndSplitAcrossNativePasses(renderGraph);
+
+                if (RenderGraph.enableValidityChecks)
+                    LogAssert.Expect(LogType.Log, new Regex("Imported memoryless resource 'Memoryless Depth'.*stored and loaded across the pass boundary"));
+                var result = renderGraph.CompileNativeRenderGraph(renderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(2, passes.Count);
+                Assert.IsTrue(passes[0].hasDepth);
+                Assert.IsTrue(passes[1].hasDepth);
+
+                // Depth is attachment 0
+                var firstUse = passes[0].attachments[0];
+                Assert.AreEqual(RenderBufferLoadAction.DontCare, firstUse.loadAction);
+                Assert.AreEqual(RenderBufferStoreAction.Store, firstUse.storeAction);
+                Assert.IsFalse(firstUse.memoryless);
+
+                var lastUse = passes[1].attachments[0];
+                Assert.AreEqual(RenderBufferLoadAction.Load, lastUse.loadAction);
+                Assert.AreEqual(RenderBufferStoreAction.DontCare, lastUse.storeAction);
+                Assert.IsFalse(lastUse.memoryless);
+            }
+            finally
+            {
+                NativePassCompiler.s_SupportsMemorylessTexturesOverride = null;
+                NativePassCompiler.s_CanStoreMemorylessTexturesOverride = null;
+            }
         }
 
         [Test]

@@ -49,10 +49,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Set to true if this render target should use memoryless storage.
         /// Mainly intended for the backbuffer depth on Metal iOS/tvOS/visionOS when PlayerSettings depth memoryless mode is
         /// enabled, and for XR eye textures that the provider requests as memoryless.
-        /// Memoryless resources can't be loaded or stored, so importing one forces discard on last use regardless of
+        /// Importing a memoryless resource forces discard on last use regardless of
         /// <see cref="ImportResourceParams.discardOnLastUse"/>. Their contents only survive within a single native render
-        /// pass. This flag describes how the surface was created, so the graph can't compensate for it: a pass that loads
-        /// the contents after a native render pass boundary reads undefined data.
+        /// pass. On platforms that back memoryless surfaces with memory on demand, such as Vulkan, the graph stores and loads
+        /// the contents across a native render pass boundary instead, at the cost of the memory savings. On other platforms,
+        /// a pass that loads the contents after a native render pass boundary reads undefined data.
         /// </summary>
         public bool isMemoryless;
     }
@@ -74,7 +75,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Discard the imported texture the last time it is used by the graph.
         /// If MSAA enabled, only the multisampled version is discarded while the MSAA surface is always resolved.
         /// Fully discarding both multisampled and resolved data is not currently possible.
-        /// Always true for memoryless resources, whose contents can never be stored. See <see cref="RenderTargetInfo.isMemoryless"/>.
+        /// Always true for memoryless resources, whose contents are never kept after their last use in the graph. See <see cref="RenderTargetInfo.isMemoryless"/>.
         /// </summary>
         public bool discardOnLastUse;
         /// <summary>

@@ -3068,6 +3068,172 @@ namespace UnityEngine.Rendering.Tests
             m_RenderGraph.Cleanup();
         }
 
+        // Same as TextureUVOrigin_CheckBackbufferUVOriginInherited, but the backbuffer is memoryless, like an XR eye texture with MSAA,
+        // so nothing in the native pass is stored.
+        [Test]
+        public void TextureUVOrigin_CheckBackbufferUVOriginInherited_WhenBackbufferIsMemoryless()
+        {
+            // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage
+            m_RenderGraphTestPipeline.invalidContextForTesting = true;
+            m_RenderGraphTestPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.PropagateAttachmentOrientation;
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // On !SystemInfo.graphicsUVStartsAtTop APIs everything simplifies as that matches Unity's texture reads so we can't test a TopLeft system there.
+                var backBufferUVOrigin = SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft;
+
+                var importParams = new ImportResourceParams
+                {
+                    textureUVOrigin = backBufferUVOrigin,
+                };
+                var importInfo = new RenderTargetInfo
+                {
+                    width = 1024,
+                    height = 768,
+                    volumeDepth = 1,
+                    msaaSamples = 1,
+                    format = GraphicsFormat.R16G16B16A16_SFloat,
+                    isMemoryless = true,
+                };
+                var backBuffer = m_RenderGraph.ImportTexture(RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget, "Backbuffer Color"), importInfo, importParams);
+
+                importInfo.format = GraphicsFormat.D32_SFloat_S8_UInt;
+                var depthBuffer = m_RenderGraph.ImportTexture(RTHandles.Alloc(BuiltinRenderTextureType.Depth, "Backbuffer Depth"), importInfo, importParams);
+
+                var intermediateTexture = m_RenderGraph.CreateTexture(SimpleTextureDesc("IntermediateTexture", 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.renderAttachment = intermediateTexture;
+
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.Write);
+                    builder.SetRenderAttachment(intermediateTexture, 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                    });
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.inputAttachment = intermediateTexture;
+                    passData.renderAttachment = backBuffer;
+
+                    builder.SetRenderAttachment(backBuffer, 0, AccessFlags.Write);
+                    builder.SetInputAttachment(intermediateTexture, 0, AccessFlags.Read);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                        Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.inputAttachment));
+                    });
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                // Nothing to test here, since the passes are not merged because of the "back buffer in multiple render targets" API limitation (e.g OpenGL)
+                if (passes.Count > 1 && passes[0].breakAudit.reason == PassBreakReason.BackbufferInMultipleRenderTargetsNotSupported)
+                    return;
+
+                Assert.AreEqual(1, passes.Count);
+                for (int attachmentIndex = 0; attachmentIndex < passes[0].attachments.size; ++attachmentIndex)
+                    Assert.AreEqual(RenderBufferStoreAction.DontCare, passes[0].attachments[attachmentIndex].storeAction);
+            };
+
+            m_Camera.Render();
+
+            m_RenderGraph.Cleanup();
+        }
+
+        // Same as TextureUVOrigin_CheckBackbufferUVOriginInherited_WhenBackbufferIsMemoryless, but the memoryless backbuffer spans two
+        // native passes, so it is stored in the first one and nothing is stored in the last one.
+        [Test]
+        public void TextureUVOrigin_CheckBackbufferUVOriginInherited_WhenMemorylessBackbufferSpansNativePasses()
+        {
+            NativePassCompiler.s_SupportsMemorylessTexturesOverride = true;
+            NativePassCompiler.s_CanStoreMemorylessTexturesOverride = true;
+            try
+            {
+                // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage
+                m_RenderGraphTestPipeline.invalidContextForTesting = true;
+                m_RenderGraphTestPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.PropagateAttachmentOrientation;
+                m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+                {
+                    var backBufferUVOrigin = SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft;
+
+                    var importParams = new ImportResourceParams
+                    {
+                        textureUVOrigin = backBufferUVOrigin,
+                    };
+                    var importInfo = new RenderTargetInfo
+                    {
+                        width = 1024,
+                        height = 768,
+                        volumeDepth = 1,
+                        msaaSamples = 1,
+                        format = GraphicsFormat.R16G16B16A16_SFloat,
+                        isMemoryless = true,
+                    };
+                    var backBuffer = m_RenderGraph.ImportTexture(RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget, "Backbuffer Color"), importInfo, importParams);
+
+                    importInfo.format = GraphicsFormat.D32_SFloat_S8_UInt;
+                    var depthBuffer = m_RenderGraph.ImportTexture(RTHandles.Alloc(BuiltinRenderTextureType.Depth, "Backbuffer Depth"), importInfo, importParams);
+
+                    var computeTexture = m_RenderGraph.CreateTexture(SimpleTextureDesc("ComputeTexture", 1024, 768, 1, GraphicsFormat.R8G8B8A8_UNorm));
+
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                    {
+                        passData.backBufferUVOrigin = backBufferUVOrigin;
+                        passData.renderAttachment = backBuffer;
+
+                        builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.Write);
+                        builder.SetRenderAttachment(backBuffer, 0, AccessFlags.Write);
+                        builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                        {
+                            Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                        });
+                    }
+
+                    // Breaks the native render pass between the two raster passes
+                    using (var builder = m_RenderGraph.AddComputePass<RenderGraphTestPassData>("TestCompute", out var passData))
+                    {
+                        builder.UseTexture(computeTexture, AccessFlags.ReadWrite);
+                        builder.AllowPassCulling(false);
+                        builder.SetRenderFunc(static (RenderGraphTestPassData data, ComputeGraphContext context) => { });
+                    }
+
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                    {
+                        passData.backBufferUVOrigin = backBufferUVOrigin;
+                        passData.renderAttachment = backBuffer;
+
+                        builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+                        builder.SetRenderAttachment(backBuffer, 0, AccessFlags.ReadWrite);
+                        builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                        {
+                            Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                        });
+                    }
+
+                    var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                    var passes = result.contextData.GetNativePasses();
+
+                    Assert.AreEqual(2, passes.Count);
+                    for (int attachmentIndex = 0; attachmentIndex < passes[1].attachments.size; ++attachmentIndex)
+                        Assert.AreEqual(RenderBufferStoreAction.DontCare, passes[1].attachments[attachmentIndex].storeAction);
+                };
+
+                m_Camera.Render();
+            }
+            finally
+            {
+                NativePassCompiler.s_SupportsMemorylessTexturesOverride = null;
+                NativePassCompiler.s_CanStoreMemorylessTexturesOverride = null;
+                m_RenderGraph.Cleanup();
+            }
+        }
+
         [Test]
         public void CanMergeBackBufferAndCustomRenderTargets()
         {
