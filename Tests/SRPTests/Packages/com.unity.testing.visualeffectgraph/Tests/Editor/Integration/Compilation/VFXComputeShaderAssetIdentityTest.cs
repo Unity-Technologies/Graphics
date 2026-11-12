@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test.Integration.Compilation
 {
@@ -71,6 +73,17 @@ namespace UnityEditor.VFX.Test.Integration.Compilation
             }
         }
 
+        static string SaveSingleVariantJson(ComputeShader computeShader)
+        {
+            var collection = new GraphicsStateCollection();
+            Assert.IsTrue(collection.AddComputeVariant(computeShader, 0, new LocalKeyword[0]));
+            string filePath = Path.Combine(Application.temporaryCachePath, "VFXComputeShaderAssetIdentity.graphicsstate");
+            Assert.IsTrue(collection.SaveToFile(filePath));
+            string json = File.ReadAllText(filePath);
+            File.Delete(filePath);
+            return json;
+        }
+
         static void AssertStampedIdentity(string vfxPath)
         {
             string assetGuid = AssetDatabase.AssetPathToGUID(vfxPath);
@@ -86,6 +99,10 @@ namespace UnityEditor.VFX.Test.Integration.Compilation
                 SerializedProperty stamped = serializedShader.FindProperty("m_AssetLocalIdentifierInFile");
                 Assert.IsNotNull(stamped);
                 Assert.AreEqual(localId, stamped.longValue);
+
+                string json = SaveSingleVariantJson(computeShader);
+                StringAssert.IsMatch("\"computeShaderAssetGUID\"\\s*:\\s*\"" + guid + "\"", json);
+                StringAssert.IsMatch("\"computeShaderAssetLocalIdentifierInFile\"\\s*:\\s*" + localId + "\\b", json);
             }
         }
 
@@ -126,6 +143,69 @@ namespace UnityEditor.VFX.Test.Integration.Compilation
 
             CollectionAssert.AreEqual(before, CollectLocalFileIds(movedPath));
             AssertStampedIdentity(movedPath);
+        }
+
+        [Test]
+        public void VFXComputeVariants_RoundTripGraphicsStateCollection_ResolveToOwnSubAsset()
+        {
+            string vfxPath = CreateTwoSystemGraph();
+            ComputeShader[] computeShaders = LoadComputeShaders(vfxPath);
+
+            string collectionPath = VFXTestCommon.tempBasePath + "VFXComputeIdentity.graphicsstate";
+            var collection = new GraphicsStateCollection();
+            foreach (ComputeShader computeShader in computeShaders)
+                Assert.IsTrue(collection.AddComputeVariant(computeShader, 0, new LocalKeyword[0]));
+            Assert.AreEqual(computeShaders.Length, collection.computeVariantCount);
+            Assert.IsTrue(collection.SaveToFile(Path.GetFullPath(collectionPath)));
+
+            AssetDatabase.ImportAsset(collectionPath, ImportAssetOptions.ForceUpdate);
+            var loaded = AssetDatabase.LoadAssetAtPath<GraphicsStateCollection>(collectionPath);
+            Assert.AreEqual(computeShaders.Length, loaded.computeVariantCount);
+
+            var variants = new List<GraphicsStateCollection.ComputeShaderVariant>();
+            loaded.GetComputeVariants(variants);
+            var resolved = new HashSet<Object>();
+            foreach (GraphicsStateCollection.ComputeShaderVariant variant in variants)
+            {
+                Assert.IsNotNull(variant.shader);
+                Assert.IsTrue(resolved.Add(variant.shader), "Two rows resolved to the same ComputeShader");
+            }
+            CollectionAssert.AreEquivalent(computeShaders, resolved);
+            foreach (ComputeShader computeShader in computeShaders)
+                Assert.IsTrue(loaded.ContainsComputeVariant(computeShader, 0, new LocalKeyword[0]));
+        }
+
+        [Test]
+        public void AddComputeVariants_AddsKernelZeroOfEachCompute()
+        {
+            string vfxPath = CreateTwoSystemGraph();
+            ComputeShader[] computeShaders = LoadComputeShaders(vfxPath);
+            var visualEffectAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+
+            var collection = new GraphicsStateCollection();
+            Assert.IsTrue(collection.AddComputeVariants(new[] { visualEffectAsset }, new GlobalKeyword[0]));
+            Assert.AreEqual(computeShaders.Length, collection.computeVariantCount);
+            foreach (ComputeShader computeShader in computeShaders)
+                Assert.IsTrue(collection.ContainsComputeVariant(computeShader, 0, computeShader.enabledKeywords));
+
+            Assert.IsFalse(collection.AddComputeVariants(new[] { visualEffectAsset }, new GlobalKeyword[0]));
+
+            var manualCollection = new GraphicsStateCollection();
+            foreach (ComputeShader computeShader in computeShaders)
+                Assert.IsTrue(manualCollection.AddComputeVariant(computeShader, 0, computeShader.enabledKeywords));
+            CollectionAssert.AreEquivalent(GetComputeVariantKeys(manualCollection), GetComputeVariantKeys(collection));
+        }
+
+        static List<object> GetComputeVariantKeys(GraphicsStateCollection collection)
+        {
+            var variants = new List<GraphicsStateCollection.ComputeShaderVariant>();
+            collection.GetComputeVariants(variants);
+            return variants.Select(v => (object)new
+            {
+                v.shader,
+                v.kernelIndex,
+                keywords = string.Join(" ", v.keywords.Select(k => k.name).OrderBy(n => n))
+            }).ToList();
         }
     }
 }
