@@ -1,0 +1,1784 @@
+fileFormatVersion: 2
+guid: de1bc1cc0a4d81d46a53bdd13861d12a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: crystals_1.png
+  - first:
+      213: 21300002
+    second: crystals_2.png
+  - first:
+      213: 21300004
+    second: crystals_3.png
+  - first:
+      213: 21300006
+    second: crystals_4.png
+  - first:
+      213: 21300008
+    second: landscape_00.png
+  - first:
+      213: 21300010
+    second: landscape_01.png
+  - first:
+      213: 21300012
+    second: landscape_02.png
+  - first:
+      213: 21300014
+    second: landscape_03.png
+  - first:
+      213: 21300016
+    second: landscape_04.png
+  - first:
+      213: 21300018
+    second: landscape_05.png
+  - first:
+      213: 21300020
+    second: landscape_06.png
+  - first:
+      213: 21300022
+    second: landscape_07.png
+  - first:
+      213: 21300024
+    second: landscape_08.png
+  - first:
+      213: 21300026
+    second: landscape_09.png
+  - first:
+      213: 21300028
+    second: landscape_10.png
+  - first:
+      213: 21300030
+    second: landscape_11.png
+  - first:
+      213: 21300032
+    second: landscape_12.png
+  - first:
+      213: 21300034
+    second: landscape_13.png
+  - first:
+      213: 21300036
+    second: landscape_14.png
+  - first:
+      213: 21300038
+    second: landscape_15.png
+  - first:
+      213: 21300040
+    second: landscape_16.png
+  - first:
+      213: 21300042
+    second: landscape_17.png
+  - first:
+      213: 21300044
+    second: landscape_18.png
+  - first:
+      213: 21300046
+    second: landscape_19.png
+  - first:
+      213: 21300048
+    second: landscape_20.png
+  - first:
+      213: 21300050
+    second: landscape_21.png
+  - first:
+      213: 21300052
+    second: landscape_22.png
+  - first:
+      213: 21300054
+    second: landscape_23.png
+  - first:
+      213: 21300056
+    second: landscape_24.png
+  - first:
+      213: 21300058
+    second: landscape_25.png
+  - first:
+      213: 21300060
+    second: landscape_26.png
+  - first:
+      213: 21300062
+    second: landscape_27.png
+  - first:
+      213: 21300064
+    second: landscape_28.png
+  - first:
+      213: 21300066
+    second: landscape_29.png
+  - first:
+      213: 21300068
+    second: landscape_30.png
+  - first:
+      213: 21300070
+    second: landscape_31.png
+  - first:
+      213: 21300072
+    second: landscape_32.png
+  - first:
+      213: 21300074
+    second: landscape_33.png
+  - first:
+      213: 21300076
+    second: landscape_34.png
+  - first:
+      213: 21300078
+    second: landscape_35.png
+  - first:
+      213: 21300080
+    second: landscape_36.png
+  - first:
+      213: 21300082
+    second: landscape_37.png
+  - first:
+      213: 21300084
+    second: landscape_38.png
+  - first:
+      213: 21300086
+    second: landscape_39.png
+  - first:
+      213: 21300088
+    second: rocks_1.png
+  - first:
+      213: 21300090
+    second: rocks_2.png
+  - first:
+      213: 21300092
+    second: rocks_3.png
+  - first:
+      213: 21300094
+    second: rocks_4.png
+  - first:
+      213: 21300096
+    second: rocks_5.png
+  - first:
+      213: 21300098
+    second: rocks_6.png
+  - first:
+      213: 21300100
+    second: rocks_7.png
+  - first:
+      213: 21300102
+    second: rocks_8.png
+  - first:
+      213: 21300104
+    second: trees_1.png
+  - first:
+      213: 21300106
+    second: trees_10.png
+  - first:
+      213: 21300108
+    second: trees_11.png
+  - first:
+      213: 21300110
+    second: trees_12.png
+  - first:
+      213: 21300112
+    second: trees_2.png
+  - first:
+      213: 21300114
+    second: trees_3.png
+  - first:
+      213: 21300116
+    second: trees_4.png
+  - first:
+      213: 21300118
+    second: trees_5.png
+  - first:
+      213: 21300120
+    second: trees_6.png
+  - first:
+      213: 21300122
+    second: trees_7.png
+  - first:
+      213: 21300124
+    second: trees_8.png
+  - first:
+      213: 21300126
+    second: trees_9.png
+  - first:
+      213: 21300128
+    second: landscape_sheet_0
+  externalObjects: {}
+  serializedVersion: 11
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 130
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: tvOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Windows Store Apps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Tizen
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: crystals_1.png
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 203
+        width: 130
+        height: 110
+      alignment: 9
+      pivot: {x: 0.5, y: 0.58181816}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02305410000000000800000000000000
+      internalID: 21300000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: crystals_2.png
+      rect:
+        serializedVersion: 2
+        x: 1853
+        y: 278
+        width: 130
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5423729}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22305410000000000800000000000000
+      internalID: 21300002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: crystals_3.png
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 89
+        width: 130
+        height: 124
+      alignment: 9
+      pivot: {x: 0.5, y: 0.516129}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42305410000000000800000000000000
+      internalID: 21300004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: crystals_4.png
+      rect:
+        serializedVersion: 2
+        x: 1853
+        y: 399
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62305410000000000800000000000000
+      internalID: 21300006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_00.png
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82305410000000000800000000000000
+      internalID: 21300008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_01.png
+      rect:
+        serializedVersion: 2
+        x: 1062
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2305410000000000800000000000000
+      internalID: 21300010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_02.png
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 18
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2305410000000000800000000000000
+      internalID: 21300012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_03.png
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 117
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2305410000000000800000000000000
+      internalID: 21300014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_04.png
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 216
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03305410000000000800000000000000
+      internalID: 21300016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_05.png
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23305410000000000800000000000000
+      internalID: 21300018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_06.png
+      rect:
+        serializedVersion: 2
+        x: 930
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43305410000000000800000000000000
+      internalID: 21300020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_07.png
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 85
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63305410000000000800000000000000
+      internalID: 21300022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_08.png
+      rect:
+        serializedVersion: 2
+        x: 1853
+        y: 163
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83305410000000000800000000000000
+      internalID: 21300024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_09.png
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 5
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3305410000000000800000000000000
+      internalID: 21300026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_10.png
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 104
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3305410000000000800000000000000
+      internalID: 21300028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_11.png
+      rect:
+        serializedVersion: 2
+        x: 1457
+        y: 216
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3305410000000000800000000000000
+      internalID: 21300030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_12.png
+      rect:
+        serializedVersion: 2
+        x: 797
+        y: 101
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04305410000000000800000000000000
+      internalID: 21300032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_13.png
+      rect:
+        serializedVersion: 2
+        x: 797
+        y: 200
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24305410000000000800000000000000
+      internalID: 21300034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_14.png
+      rect:
+        serializedVersion: 2
+        x: 666
+        y: 299
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44305410000000000800000000000000
+      internalID: 21300036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_15.png
+      rect:
+        serializedVersion: 2
+        x: 797
+        y: 2
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64305410000000000800000000000000
+      internalID: 21300038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_16.png
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 97
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84305410000000000800000000000000
+      internalID: 21300040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_17.png
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 196
+        width: 130
+        height: 80
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4305410000000000800000000000000
+      internalID: 21300042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_18.png
+      rect:
+        serializedVersion: 2
+        x: 666
+        y: 398
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4305410000000000800000000000000
+      internalID: 21300044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_19.png
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 180
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4305410000000000800000000000000
+      internalID: 21300046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_20.png
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 65
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05305410000000000800000000000000
+      internalID: 21300048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_21.png
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 6
+        width: 130
+        height: 80
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25305410000000000800000000000000
+      internalID: 21300050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_22.png
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 283
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45305410000000000800000000000000
+      internalID: 21300052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_23.png
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 398
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65305410000000000800000000000000
+      internalID: 21300054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_24.png
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 216
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85305410000000000800000000000000
+      internalID: 21300056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_25.png
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 117
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5305410000000000800000000000000
+      internalID: 21300058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_26.png
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 18
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5305410000000000800000000000000
+      internalID: 21300060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_27.png
+      rect:
+        serializedVersion: 2
+        x: 1325
+        y: 173
+        width: 130
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5305410000000000800000000000000
+      internalID: 21300062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_28.png
+      rect:
+        serializedVersion: 2
+        x: 1194
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06305410000000000800000000000000
+      internalID: 21300064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_29.png
+      rect:
+        serializedVersion: 2
+        x: 1326
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26305410000000000800000000000000
+      internalID: 21300066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_30.png
+      rect:
+        serializedVersion: 2
+        x: 1457
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46305410000000000800000000000000
+      internalID: 21300068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_31.png
+      rect:
+        serializedVersion: 2
+        x: 1325
+        y: 74
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66305410000000000800000000000000
+      internalID: 21300070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_32.png
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 184
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86305410000000000800000000000000
+      internalID: 21300072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_33.png
+      rect:
+        serializedVersion: 2
+        x: 1589
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6305410000000000800000000000000
+      internalID: 21300074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_34.png
+      rect:
+        serializedVersion: 2
+        x: 1589
+        y: 117
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6305410000000000800000000000000
+      internalID: 21300076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_35.png
+      rect:
+        serializedVersion: 2
+        x: 1589
+        y: 18
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6305410000000000800000000000000
+      internalID: 21300078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_36.png
+      rect:
+        serializedVersion: 2
+        x: 1590
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07305410000000000800000000000000
+      internalID: 21300080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_37.png
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 216
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27305410000000000800000000000000
+      internalID: 21300082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_38.png
+      rect:
+        serializedVersion: 2
+        x: 1721
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47305410000000000800000000000000
+      internalID: 21300084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: landscape_39.png
+      rect:
+        serializedVersion: 2
+        x: 1458
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67305410000000000800000000000000
+      internalID: 21300086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_1.png
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 414
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87305410000000000800000000000000
+      internalID: 21300088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_2.png
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 315
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7305410000000000800000000000000
+      internalID: 21300090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_3.png
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 411
+        width: 130
+        height: 100
+      alignment: 9
+      pivot: {x: 0.5, y: 0.64}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7305410000000000800000000000000
+      internalID: 21300092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_4.png
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 309
+        width: 130
+        height: 100
+      alignment: 9
+      pivot: {x: 0.5, y: 0.64}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7305410000000000800000000000000
+      internalID: 21300094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_5.png
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 210
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08305410000000000800000000000000
+      internalID: 21300096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_6.png
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 111
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28305410000000000800000000000000
+      internalID: 21300098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_7.png
+      rect:
+        serializedVersion: 2
+        x: 1589
+        y: 216
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48305410000000000800000000000000
+      internalID: 21300100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rocks_8.png
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 12
+        width: 130
+        height: 96
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68305410000000000800000000000000
+      internalID: 21300102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_1.png
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 161
+        width: 130
+        height: 108
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5925926}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88305410000000000800000000000000
+      internalID: 21300104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_10.png
+      rect:
+        serializedVersion: 2
+        x: 1457
+        y: 86
+        width: 130
+        height: 128
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8305410000000000800000000000000
+      internalID: 21300106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_11.png
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 395
+        width: 130
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.55172414}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8305410000000000800000000000000
+      internalID: 21300108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_12.png
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 272
+        width: 130
+        height: 120
+      alignment: 9
+      pivot: {x: 0.5, y: 0.53333336}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8305410000000000800000000000000
+      internalID: 21300110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_2.png
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 265
+        width: 130
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5423729}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09305410000000000800000000000000
+      internalID: 21300112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_3.png
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 48
+        width: 130
+        height: 110
+      alignment: 9
+      pivot: {x: 0.5, y: 0.58181816}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29305410000000000800000000000000
+      internalID: 21300114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_4.png
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 386
+        width: 130
+        height: 124
+      alignment: 9
+      pivot: {x: 0.5, y: 0.516129}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49305410000000000800000000000000
+      internalID: 21300116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_5.png
+      rect:
+        serializedVersion: 2
+        x: 1325
+        y: 288
+        width: 130
+        height: 124
+      alignment: 9
+      pivot: {x: 0.5, y: 0.516129}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69305410000000000800000000000000
+      internalID: 21300118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_6.png
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 141
+        width: 130
+        height: 122
+      alignment: 9
+      pivot: {x: 0.5, y: 0.52459013}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89305410000000000800000000000000
+      internalID: 21300120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_7.png
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 20
+        width: 130
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5423729}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9305410000000000800000000000000
+      internalID: 21300122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_8.png
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 395
+        width: 130
+        height: 116
+      alignment: 9
+      pivot: {x: 0.5, y: 0.55172414}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9305410000000000800000000000000
+      internalID: 21300124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trees_9.png
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 279
+        width: 130
+        height: 114
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5614035}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9305410000000000800000000000000
+      internalID: 21300126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      landscape_18.png: 21300044
+      landscape_21.png: 21300050
+      rocks_8.png: 21300102
+      crystals_2.png: 21300002
+      landscape_19.png: 21300046
+      landscape_24.png: 21300056
+      landscape_34.png: 21300076
+      landscape_04.png: 21300016
+      crystals_4.png: 21300006
+      landscape_10.png: 21300028
+      landscape_32.png: 21300072
+      trees_10.png: 21300106
+      crystals_1.png: 21300000
+      landscape_00.png: 21300008
+      landscape_07.png: 21300022
+      landscape_20.png: 21300048
+      landscape_26.png: 21300060
+      trees_1.png: 21300104
+      landscape_16.png: 21300040
+      landscape_22.png: 21300052
+      landscape_39.png: 21300086
+      trees_7.png: 21300122
+      landscape_09.png: 21300026
+      trees_4.png: 21300116
+      rocks_5.png: 21300096
+      landscape_12.png: 21300032
+      landscape_14.png: 21300036
+      landscape_25.png: 21300058
+      rocks_2.png: 21300090
+      landscape_11.png: 21300030
+      trees_12.png: 21300110
+      rocks_6.png: 21300098
+      landscape_03.png: 21300014
+      landscape_05.png: 21300018
+      trees_6.png: 21300120
+      landscape_37.png: 21300082
+      landscape_30.png: 21300068
+      landscape_28.png: 21300064
+      landscape_38.png: 21300084
+      trees_11.png: 21300108
+      landscape_08.png: 21300024
+      trees_9.png: 21300126
+      landscape_31.png: 21300070
+      rocks_4.png: 21300094
+      trees_8.png: 21300124
+      rocks_1.png: 21300088
+      trees_2.png: 21300112
+      trees_5.png: 21300118
+      crystals_3.png: 21300004
+      landscape_15.png: 21300038
+      landscape_13.png: 21300034
+      landscape_36.png: 21300080
+      landscape_17.png: 21300042
+      landscape_29.png: 21300066
+      landscape_06.png: 21300020
+      landscape_02.png: 21300012
+      landscape_35.png: 21300078
+      landscape_01.png: 21300010
+      landscape_27.png: 21300062
+      landscape_33.png: 21300074
+      rocks_7.png: 21300100
+      trees_3.png: 21300114
+      rocks_3.png: 21300092
+      landscape_23.png: 21300054
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
