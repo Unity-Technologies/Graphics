@@ -934,8 +934,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             var lights = lightData.visibleLights;
             int maxAdditionalLightsCount = m_MaxVisibleAdditionalLights;
 
-            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, lightData, reuseCullingResult);
-            if (additionalLightsCount > 0)
+            SetupPerObjectLightIndices(cullResults, lightData, reuseCullingResult);
+            if (lightData.additionalLightsCount > 0)
             {
                 int mainLight = lightData.mainLightIndex;
                 if (m_UseAdditionalLightsConstantBuffer)
@@ -1038,15 +1038,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        int SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
+        void SetupPerObjectLightIndices(CullingResults cullResults, UniversalLightData lightData, bool reuseCullingResult)
         {
             if (lightData.additionalLightsCount == 0 || m_UseClustering)
-                return lightData.additionalLightsCount;
+                return;
 
             // SetLightIndexMap was already applied on the previous pass; calling it again would
             // mutate the shared per-object cull a second time.
             if (reuseCullingResult)
-                return lightData.additionalLightsCount;
+                return;
 
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
             int globalDirectionalLightsCount = 0;
@@ -1084,6 +1084,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // The loop maps the lights CreateLightData counted: the visible lights other than the main light, up to the
+            // max visible additional lights. The light arrays and _AdditionalLightsCount use lightData's count.
+            Debug.Assert(additionalLightsCount == lightData.additionalLightsCount,
+                "The per-object light index map covers a different number of additional lights than lightData.additionalLightsCount.");
+
             // Disable all remaining lights we cannot fit into the global light buffer.
             for (int i = globalDirectionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
@@ -1091,7 +1096,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
 
             perObjectLightIndexMap.Dispose();
-            return additionalLightsCount;
         }
     }
 }
