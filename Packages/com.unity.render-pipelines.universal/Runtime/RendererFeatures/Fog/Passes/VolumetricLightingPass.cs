@@ -478,7 +478,8 @@ namespace UnityEngine.Rendering.Universal
                     // Pull previous view-projection / camera position from the per-camera motion tracker.
                     Matrix4x4 prevVP = Matrix4x4.identity;
                     Vector3 prevCamPos = camera.transform.position;
-                    if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additional))
+                    var additional = cameraData.additionalCameraData;
+                    if (additional != null)
                     {
                         var motionData = additional.motionVectorsPersistentData;
                         prevVP = motionData.previousViewProjection;

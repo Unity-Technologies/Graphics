@@ -725,7 +725,8 @@ namespace UnityEngine.Rendering.Universal
             // Left out under XR single pass: there the shaders resolve both names onto the per eye Stereo arrays that
             // MotionVectorRenderPass sets, so filling these two would upload values nothing reads.
             bool isXRSinglePass = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
-            if (!isXRSinglePass && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            var additionalCameraData = cameraData.additionalCameraData;
+            if (!isXRSinglePass && additionalCameraData != null)
             {
                 var motionData = additionalCameraData.motionVectorsPersistentData;
                 uploader._NonJitteredViewProjMatrix = motionData.GetViewProjectionNoJitter(cameraData.xr);

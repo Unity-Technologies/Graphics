@@ -1123,7 +1123,8 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerCameraShaderConstants(cmd);
 
                 ProbeVolumesOptions apvOptions = null;
-                if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                var additionalCameraData = cameraData.additionalCameraData;
+                if (additionalCameraData != null)
                     apvOptions = additionalCameraData.volumeStack?.GetComponent<ProbeVolumesOptions>();
 
                 bool supportProbeVolume = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
@@ -2178,6 +2179,8 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, bool isLastBaseCamera, UniversalCameraData cameraData)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeAdditionalCameraData);
+
+            cameraData.additionalCameraData = additionalCameraData;
 
             var renderer = GetRenderer(camera, additionalCameraData);
             var settings = asset;

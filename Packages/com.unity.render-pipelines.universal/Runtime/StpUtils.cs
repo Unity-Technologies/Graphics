@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void PopulateStpConfig(UniversalCameraData cameraData, in TextureHandle inputColor, in TextureHandle inputDepth, in TextureHandle inputMotion, int debugViewIndex, in TextureHandle debugView, in TextureHandle destination, Texture2D noiseTexture, out STP.Config config)
         {
-            cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+            var additionalCameraData = cameraData.additionalCameraData;
             Debug.Assert(additionalCameraData != null);
 
             var motionData = additionalCameraData.motionVectorsPersistentData;

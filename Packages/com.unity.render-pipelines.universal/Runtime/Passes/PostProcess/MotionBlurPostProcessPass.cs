@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         private class MotionBlurPassData
         {
             internal Material material;
-            internal Camera camera;
+            internal MotionVectorsPersistentData motionData;
             internal TextureHandle sourceTexture;
             internal int passIndex;
             internal float intensity;
@@ -96,7 +96,8 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 passData.material = m_Material.material;
                 passData.passIndex = passIndex;
-                passData.camera = cameraData.camera;
+                var additionalCameraData = cameraData.additionalCameraData;
+                passData.motionData = additionalCameraData != null ? additionalCameraData.motionVectorsPersistentData : null;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
                 passData.intensity = motionBlur.intensity.value;
                 passData.clamp = motionBlur.clamp.value;
@@ -106,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
-                    UpdateMotionBlurMatrices(data.material, data.camera, data.xr);
+                    UpdateMotionBlurMatrices(data.material, data.motionData, data.xr);
 
                     var sourceSize = PostProcessUtils.CalcShaderSourceSize(sourceTextureHdl);
                     data.material.SetVector(ShaderConstants._SourceSize, sourceSize);
@@ -123,13 +124,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void UpdateMotionBlurMatrices(Material material, Camera camera, Experimental.Rendering.XRPass xr)
+        public static void UpdateMotionBlurMatrices(Material material, MotionVectorsPersistentData motionData, Experimental.Rendering.XRPass xr)
         {
-            MotionVectorsPersistentData motionData = null;
-
-            if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
-                motionData = additionalCameraData.motionVectorsPersistentData;
-
             if (motionData == null)
                 return;
 

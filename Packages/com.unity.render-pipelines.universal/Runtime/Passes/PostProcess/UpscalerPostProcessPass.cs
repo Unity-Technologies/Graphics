@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
             // (preUpscaleResolution) is a sub-rect of it; without DRS they're equal. Upscalers allocate history at this.
             io.maxPreUpscaleResolution = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
-            cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+            var additionalCameraData = cameraData.additionalCameraData;
             MotionVectorsPersistentData motionData = additionalCameraData != null ? additionalCameraData.motionVectorsPersistentData : null;
             if (motionData == null) // Per-camera motion data is required for upscaling (camera matrices, positions, previous-frame sizes).
             {
