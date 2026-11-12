@@ -81,12 +81,17 @@ namespace UnityEngine.Rendering.Universal
         public override void OnBeforeRender(Camera camera, Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteSkin spriteSkin = (SpriteSkin)sourceComponent;
-            if (spriteSkin != null && spriteSkin.vertexDeformationHash != m_LastDeformedVertexHash)
-            {
-                SpriteRenderer spriteRenderer;
-                spriteSkin.TryGetComponent<SpriteRenderer>(out spriteRenderer);
-                persistantShadowShape.SetFlip(spriteRenderer.flipX, spriteRenderer.flipY);
+            if (spriteSkin == null)
+                return;
 
+            // Flipping does not deform the vertices, so it does not change vertexDeformationHash and has to be
+            // picked up every frame. A SpriteSkin whose bones do not move is not deformed again.
+            SpriteRenderer spriteRenderer;
+            spriteSkin.TryGetComponent<SpriteRenderer>(out spriteRenderer);
+            persistantShadowShape.SetFlip(spriteRenderer.flipX, spriteRenderer.flipY);
+
+            if (spriteSkin.vertexDeformationHash != m_LastDeformedVertexHash)
+            {
                 TryToSetPersistantShapeData(spriteSkin, persistantShadowShape, false);
                 m_LastDeformedVertexHash = spriteSkin.vertexDeformationHash;
             }
