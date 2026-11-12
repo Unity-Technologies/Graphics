@@ -587,6 +587,19 @@ namespace UnityEngine.Rendering
             return _emissiveTriangles.TrackedTriangleCount;
         }
 
+#if UNITY_INCLUDE_TESTS
+        internal List<Vector3> ReadBackMaterialEmissionColors()
+        {
+            using (var cmd = new CommandBuffer())
+            {
+                _materialPool.Build(cmd);
+                Graphics.ExecuteCommandBuffer(cmd);
+            }
+
+            return _materialPool.ReadBackEmissionColors();
+        }
+#endif
+
         public void SetEnvironmentMaterial(Material mat)
         {
             _cubemapRender.SetMaterial(mat);

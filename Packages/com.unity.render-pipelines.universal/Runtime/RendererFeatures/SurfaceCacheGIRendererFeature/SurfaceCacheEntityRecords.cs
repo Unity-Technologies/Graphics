@@ -10,6 +10,13 @@ namespace UnityEngine.Rendering.Universal
         public EntityId Material;
     }
 
+    // Value as the shader receives it, so colors are in the active color space.
+    struct SurfaceCacheMaterialOverride
+    {
+        public int NameId;
+        public Vector4 Value;
+    }
+
     struct SurfaceCacheEntityInstanceRecord
     {
         public EntityId Key;
@@ -18,6 +25,9 @@ namespace UnityEngine.Rendering.Universal
         // Into the buffer this record was drained with, so valid only until that buffer is reused.
         public int MaterialsStart;
         public int MaterialsCount;
+        // Into the buffer this record was drained with, like the materials. Applies to every submesh.
+        public int OverridesStart;
+        public int OverridesCount;
         // Pending transforms below this index were pushed before this record.
         public int TransformsBefore;
         public Matrix4x4 LocalToWorld;

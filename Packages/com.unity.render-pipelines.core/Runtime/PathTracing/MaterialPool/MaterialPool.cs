@@ -307,6 +307,20 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
+#if UNITY_INCLUDE_TESTS
+        internal List<Vector3> ReadBackEmissionColors()
+        {
+            var entries = new GpuMaterialEntry[MaterialBuffer.count];
+            MaterialBuffer.GetData(entries);
+
+            var emissionColors = new List<Vector3>(entries.Length);
+            foreach (var entry in entries)
+                emissionColors.Add(entry.EmissionColor);
+
+            return emissionColors;
+        }
+#endif
+
         private bool UpdateMaterial(in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel, MaterialEntry materialEntry)
         {
             var albedo = new StagedTexture(TextureType.Albedo, materialEntry.AlbedoTextureLocation, true);

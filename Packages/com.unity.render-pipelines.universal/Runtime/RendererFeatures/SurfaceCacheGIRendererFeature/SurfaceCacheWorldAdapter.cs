@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
             RemoveInstancesWithDestroyedMeshes(changes.MeshDestroyedList, world);
 
             UpdateMeshRenderers(changes.MeshRendererTransformChangedIds, changes.MeshRendererTransformChangedLocalToWorlds, changes.MeshRendererChangedList, changes.MeshRendererDestroyedList, world);
-            UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceMaterialList, changes.EntityInstanceDestroyedList, world);
+            UpdateEntityInstances(changes.EntityInstanceTransformChangedList, changes.EntityInstanceChangedList, changes.EntityInstanceMaterialList, changes.EntityInstanceMaterialOverrideList, changes.EntityInstanceDestroyedList, world);
 #if ENABLE_TERRAIN_MODULE
             UpdateTerrains(changes.TerrainTransformChangedList, changes.TerrainChangedList, changes.TerrainDestroyedList, changes.TerrainDataChangedList, world);
 #endif
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
                 _meshRenderers.TryRemove(entityId, _sharedMaterials, world);
         }
 
-        void UpdateEntityInstances(NativeArray<SurfaceCacheEntityTransformRecord> transformChanged, NativeArray<SurfaceCacheEntityInstanceRecord> changed, NativeArray<SurfaceCacheSubMeshMaterial> materials, NativeArray<EntityId> destroyed, SurfaceCacheWorld world)
+        void UpdateEntityInstances(NativeArray<SurfaceCacheEntityTransformRecord> transformChanged, NativeArray<SurfaceCacheEntityInstanceRecord> changed, NativeArray<SurfaceCacheSubMeshMaterial> materials, NativeArray<SurfaceCacheMaterialOverride> overrides, NativeArray<EntityId> destroyed, SurfaceCacheWorld world)
         {
             using var _ = k_EntityInstanceUpdateMarker.Auto();
 
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
                 _entityInstances.TryRemove(key, _sharedMaterials, world);
 
             foreach (var record in changed)
-                _entityInstances.Refresh(_entityInstances.CreateSource(record, materials), _sharedMaterials, world, _renderingLayerMaskFilter);
+                _entityInstances.Refresh(_entityInstances.CreateSource(record, materials, overrides), _sharedMaterials, world, _renderingLayerMaskFilter);
         }
 
 #if ENABLE_TERRAIN_MODULE
@@ -290,11 +290,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < changed.Count; i++)
             {
                 var material = (Material)changed[i];
-                var matEntityId = material.GetEntityId();
-                if (_sharedMaterials.IsReferenced(matEntityId))
-                {
-                    _sharedMaterials.Update(matEntityId, material, world);
-                }
+                _sharedMaterials.Update(material.GetEntityId(), material, world);
             }
 
             // For now we do not explicitly handle material _removal_. This is acceptable for these reasons:
@@ -324,10 +320,94 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 LocalToWorld { get; }
             // May fill and return the given scratch list. Assignments outside subMeshCount are dropped.
             IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount);
+            // Adds the instance's values for the numeric properties of the material at materialIndex.
+            void GetOverrides(Material material, int materialIndex, List<SurfaceCacheMaterialOverride> scratch);
+        }
+
+        // Overrides are sorted by NameId, and null when the instance overrides nothing.
+        readonly struct SharedMaterialKey : IEquatable<SharedMaterialKey>
+        {
+            public readonly EntityId Material;
+            public readonly SurfaceCacheMaterialOverride[] Overrides;
+
+            public SharedMaterialKey(EntityId material)
+            {
+                Material = material;
+                Overrides = null;
+            }
+
+            public SharedMaterialKey(EntityId material, SurfaceCacheMaterialOverride[] overrides)
+            {
+                Material = material;
+                Overrides = overrides;
+            }
+
+            public bool Equals(SharedMaterialKey other)
+            {
+                return Material == other.Material && OverridesEqual(Overrides, other.Overrides);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is SharedMaterialKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                int hash = Material.GetHashCode();
+                if (Overrides != null)
+                {
+                    foreach (var materialOverride in Overrides)
+                        hash = HashCode.Combine(hash, materialOverride.NameId, materialOverride.Value);
+                }
+
+                return hash;
+            }
+
+            static bool OverridesEqual(SurfaceCacheMaterialOverride[] first, SurfaceCacheMaterialOverride[] second)
+            {
+                int length = first?.Length ?? 0;
+                if (length != (second?.Length ?? 0))
+                    return false;
+
+                for (int i = 0; i < length; i++)
+                {
+                    if (first[i].NameId != second[i].NameId || !first[i].Value.Equals(second[i].Value))
+                        return false;
+                }
+
+                return true;
+            }
+        }
+
+        static bool TryFindNumericProperty(Shader shader, int nameId, out int propertyIndex)
+        {
+            int propertyCount = shader.GetPropertyCount();
+            for (int i = 0; i < propertyCount; i++)
+            {
+                if (shader.GetPropertyNameId(i) != nameId)
+                    continue;
+
+                propertyIndex = i;
+                return IsNumeric(shader.GetPropertyType(i));
+            }
+
+            propertyIndex = -1;
+            return false;
+        }
+
+        static bool IsNumeric(ShaderPropertyType type)
+        {
+            return type == ShaderPropertyType.Float
+                || type == ShaderPropertyType.Range
+                || type == ShaderPropertyType.Color
+                || type == ShaderPropertyType.Vector;
         }
 
         readonly struct MeshRendererSource : IInstanceSource<EntityId>
         {
+            static MaterialPropertyBlock s_Properties;
+
             readonly MeshRenderer _renderer;
 
             public MeshRendererSource(MeshRenderer renderer)
@@ -375,6 +455,50 @@ namespace UnityEngine.Rendering.Universal
                 _renderer.GetSharedMaterials(scratch);
                 return scratch;
             }
+
+            public void GetOverrides(Material material, int materialIndex, List<SurfaceCacheMaterialOverride> scratch)
+            {
+                if (!_renderer.HasPropertyBlock())
+                    return;
+
+                // Rendering uses a material's own block in place of the renderer's block, not merged with it.
+                s_Properties ??= new MaterialPropertyBlock();
+                _renderer.GetPropertyBlock(s_Properties, materialIndex);
+                if (s_Properties.isEmpty)
+                    _renderer.GetPropertyBlock(s_Properties);
+
+                var shader = material.shader;
+                int propertyCount = shader.GetPropertyCount();
+                for (int i = 0; i < propertyCount; i++)
+                {
+                    var type = shader.GetPropertyType(i);
+                    if (!IsNumeric(type))
+                        continue;
+
+                    int nameId = shader.GetPropertyNameId(i);
+                    if (TryGetOverride(s_Properties, nameId, type, out var value))
+                        scratch.Add(new SurfaceCacheMaterialOverride { NameId = nameId, Value = value });
+                }
+            }
+
+            static bool TryGetOverride(MaterialPropertyBlock properties, int nameId, ShaderPropertyType type, out Vector4 value)
+            {
+                bool isFloat = type == ShaderPropertyType.Float || type == ShaderPropertyType.Range;
+                if (isFloat && properties.HasFloat(nameId))
+                {
+                    value = new Vector4(properties.GetFloat(nameId), 0f, 0f, 0f);
+                    return true;
+                }
+
+                if (!isFloat && properties.HasVector(nameId))
+                {
+                    value = properties.GetVector(nameId);
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
         }
 
         readonly struct EntityRecordSource : IInstanceSource<EntityId>
@@ -382,14 +506,17 @@ namespace UnityEngine.Rendering.Universal
             readonly SurfaceCacheEntityInstanceRecord _record;
             // Copied out: a drained record only carries a range into a buffer the bridge reuses every frame.
             readonly SurfaceCacheSubMeshMaterial[] _materials;
+            readonly SurfaceCacheMaterialOverride[] _overrides;
 
-            public EntityRecordSource(in SurfaceCacheEntityInstanceRecord record, SurfaceCacheSubMeshMaterial[] materials)
+            public EntityRecordSource(in SurfaceCacheEntityInstanceRecord record, SurfaceCacheSubMeshMaterial[] materials, SurfaceCacheMaterialOverride[] overrides)
             {
                 _record = record;
                 _materials = materials;
+                _overrides = overrides;
             }
 
             public SurfaceCacheSubMeshMaterial[] SubMeshMaterials => _materials;
+            public SurfaceCacheMaterialOverride[] Overrides => _overrides;
 
             public EntityId Key => _record.Key;
             public bool Visible => _record.Visible;
@@ -423,11 +550,22 @@ namespace UnityEngine.Rendering.Universal
                 return scratch;
             }
 
+            // An entity can carry override components for properties its material's shader does not declare.
+            public void GetOverrides(Material material, int materialIndex, List<SurfaceCacheMaterialOverride> scratch)
+            {
+                var shader = material.shader;
+                foreach (var materialOverride in _overrides)
+                {
+                    if (TryFindNumericProperty(shader, materialOverride.NameId, out _))
+                        scratch.Add(materialOverride);
+                }
+            }
+
             public EntityRecordSource WithLocalToWorld(in Matrix4x4 localToWorld)
             {
                 var record = _record;
                 record.LocalToWorld = localToWorld;
-                return new EntityRecordSource(record, _materials);
+                return new EntityRecordSource(record, _materials, _overrides);
             }
         }
 
@@ -446,14 +584,15 @@ namespace UnityEngine.Rendering.Universal
             // The transform last applied to the world instance.
             readonly List<Matrix4x4> _localToWorlds = new();
             // Materials provided by the source the last time we checked ("null materials" are EntityId.None).
-            readonly List<EntityId[]> _inputMaterialIds = new();
+            readonly List<SharedMaterialKey[]> _inputMaterialKeys = new();
             // Materials currently acquired from the shared set (may include the fallback material).
-            readonly List<EntityId[]> _acquiredMaterialIds = new();
+            readonly List<SharedMaterialKey[]> _acquiredMaterialKeys = new();
 
             readonly List<TSource> _reevaluateScratch = new();
             readonly Material _fallbackMaterial;
             readonly List<Material> _materialScratch = new();
-            readonly Dictionary<int, Stack<EntityId[]>> _freeMaterialIdArrays = new();
+            readonly List<SurfaceCacheMaterialOverride> _overrideScratch = new();
+            readonly Dictionary<int, Stack<SharedMaterialKey[]>> _freeMaterialKeyArrays = new();
 
             public InstanceSet(Material fallbackMaterial)
             {
@@ -498,7 +637,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (_slots.TryGetValue(key, out int slot) && _inWorld[slot])
                 {
-                    materialIds = _inputMaterialIds[slot];
+                    materialIds = Array.ConvertAll(_inputMaterialKeys[slot], materialKey => materialKey.Material);
                     return true;
                 }
 
@@ -636,8 +775,8 @@ namespace UnityEngine.Rendering.Universal
                 _meshIds.Add(EntityId.None);
                 _meshLods.Add(0);
                 _localToWorlds.Add(default);
-                _inputMaterialIds.Add(null);
-                _acquiredMaterialIds.Add(null);
+                _inputMaterialKeys.Add(null);
+                _acquiredMaterialKeys.Add(null);
                 return slot;
             }
 
@@ -656,8 +795,8 @@ namespace UnityEngine.Rendering.Universal
                     _meshIds[slot] = _meshIds[last];
                     _meshLods[slot] = _meshLods[last];
                     _localToWorlds[slot] = _localToWorlds[last];
-                    _inputMaterialIds[slot] = _inputMaterialIds[last];
-                    _acquiredMaterialIds[slot] = _acquiredMaterialIds[last];
+                    _inputMaterialKeys[slot] = _inputMaterialKeys[last];
+                    _acquiredMaterialKeys[slot] = _acquiredMaterialKeys[last];
                     _slots[_keys[slot]] = slot;
                 }
                 _keys.RemoveAt(last);
@@ -667,8 +806,8 @@ namespace UnityEngine.Rendering.Universal
                 _meshIds.RemoveAt(last);
                 _meshLods.RemoveAt(last);
                 _localToWorlds.RemoveAt(last);
-                _inputMaterialIds.RemoveAt(last);
-                _acquiredMaterialIds.RemoveAt(last);
+                _inputMaterialKeys.RemoveAt(last);
+                _acquiredMaterialKeys.RemoveAt(last);
             }
 
             void AddToWorld(int slot, in TSource source, Mesh mesh, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world)
@@ -679,13 +818,13 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(_materialScratch.Count == 0);
                 var inputMats = source.GetMaterials(_materialScratch, mesh.subMeshCount);
 
-                Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
-                ResolveMaterialIds(inputMats, inputMatIds);
+                var inputMatKeys = ReuseOrCreateMaterialKeyArray(mesh.subMeshCount);
+                ResolveMaterialKeys(source, inputMats, null, inputMatKeys);
 
                 Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
+                var acquiredMatKeys = ReuseOrCreateMaterialKeyArray(mesh.subMeshCount);
                 Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, acquiredMatHandles, acquiredMatIds, masks);
+                ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, inputMatKeys, acquiredMatHandles, acquiredMatKeys, masks);
 
                 var localToWorld = source.LocalToWorld;
                 int meshLod = ResolveMeshLod(mesh, source.MeshLod);
@@ -695,8 +834,10 @@ namespace UnityEngine.Rendering.Universal
                 }
                 catch
                 {
-                    foreach (var matEntityId in acquiredMatIds)
-                        sharedMaterials.Release(matEntityId, world);
+                    foreach (var matKey in acquiredMatKeys)
+                        sharedMaterials.Release(matKey, world);
+                    RecycleMaterialKeyArray(inputMatKeys);
+                    RecycleMaterialKeyArray(acquiredMatKeys);
                     _materialScratch.Clear();
                     throw;
                 }
@@ -704,8 +845,8 @@ namespace UnityEngine.Rendering.Universal
                 _meshIds[slot] = mesh.GetEntityId();
                 _meshLods[slot] = meshLod;
                 _localToWorlds[slot] = localToWorld;
-                _inputMaterialIds[slot] = CopyToReusedOrNewArray(inputMatIds);
-                _acquiredMaterialIds[slot] = CopyToReusedOrNewArray(acquiredMatIds);
+                _inputMaterialKeys[slot] = inputMatKeys;
+                _acquiredMaterialKeys[slot] = acquiredMatKeys;
                 _inWorld[slot] = true;
 
                 _materialScratch.Clear();
@@ -724,28 +865,63 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(_materialScratch.Count == 0);
                 var inputMats = source.GetMaterials(_materialScratch, mesh.subMeshCount);
 
-                Span<EntityId> inputMatIds = stackalloc EntityId[mesh.subMeshCount];
-                ResolveMaterialIds(inputMats, inputMatIds);
+                var inputMatKeys = ReuseOrCreateMaterialKeyArray(mesh.subMeshCount);
+                ResolveMaterialKeys(source, inputMats, _inputMaterialKeys[slot], inputMatKeys);
 
-                bool materialsChanged = !((ReadOnlySpan<EntityId>)inputMatIds).SequenceEqual(_inputMaterialIds[slot]);
-                bool hasRejectedMaterials = Array.IndexOf(_acquiredMaterialIds[slot], EntityId.None) >= 0;
-                if (materialsChanged || hasRejectedMaterials)
+                bool materialsChanged = !((ReadOnlySpan<SharedMaterialKey>)inputMatKeys).SequenceEqual(_inputMaterialKeys[slot]);
+                if (materialsChanged || HasRejectedMaterials(_inputMaterialKeys[slot], _acquiredMaterialKeys[slot]))
                 {
                     Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
-                    Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
+                    var acquiredMatKeys = ReuseOrCreateMaterialKeyArray(mesh.subMeshCount);
                     Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, acquiredMatHandles, acquiredMatIds, masks);
+                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, inputMatKeys, acquiredMatHandles, acquiredMatKeys, masks);
 
                     world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
                     world.UpdateInstanceMask(_handles[slot], masks);
 
-                    foreach (var matEntityId in _acquiredMaterialIds[slot])
-                        sharedMaterials.Release(matEntityId, world);
+                    foreach (var matKey in _acquiredMaterialKeys[slot])
+                        sharedMaterials.Release(matKey, world);
 
-                    RecycleMaterialIdArray(_inputMaterialIds[slot]);
-                    RecycleMaterialIdArray(_acquiredMaterialIds[slot]);
-                    _inputMaterialIds[slot] = CopyToReusedOrNewArray(inputMatIds);
-                    _acquiredMaterialIds[slot] = CopyToReusedOrNewArray(acquiredMatIds);
+                    // Releasing the superseded materials can free the atlas space a rejected acquisition needed.
+                    // A material can only be released once no instance uses it, so the rejected ones are detached first.
+                    if (HasRejectedMaterials(inputMatKeys, acquiredMatKeys))
+                    {
+                        for (int i = 0; i < acquiredMatKeys.Length; i++)
+                        {
+                            if (!IsRejected(inputMatKeys[i], acquiredMatKeys[i]))
+                                continue;
+
+                            acquiredMatHandles[i] = MaterialHandle.Invalid;
+                            masks[i] = 0u;
+                        }
+
+                        world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
+                        world.UpdateInstanceMask(_handles[slot], masks);
+
+                        for (int i = 0; i < acquiredMatKeys.Length; i++)
+                        {
+                            if (acquiredMatHandles[i] == MaterialHandle.Invalid)
+                                sharedMaterials.Release(acquiredMatKeys[i], world);
+                        }
+
+                        for (int i = 0; i < acquiredMatKeys.Length; i++)
+                        {
+                            if (acquiredMatHandles[i] == MaterialHandle.Invalid)
+                                AcquireMaterial(i, world, sharedMaterials, inputMats, inputMatKeys, acquiredMatHandles, acquiredMatKeys, masks);
+                        }
+
+                        world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
+                        world.UpdateInstanceMask(_handles[slot], masks);
+                    }
+
+                    RecycleMaterialKeyArray(_inputMaterialKeys[slot]);
+                    RecycleMaterialKeyArray(_acquiredMaterialKeys[slot]);
+                    _inputMaterialKeys[slot] = inputMatKeys;
+                    _acquiredMaterialKeys[slot] = acquiredMatKeys;
+                }
+                else
+                {
+                    RecycleMaterialKeyArray(inputMatKeys);
                 }
 
                 _materialScratch.Clear();
@@ -753,30 +929,119 @@ namespace UnityEngine.Rendering.Universal
                 ApplyTransform(slot, source.LocalToWorld, world);
             }
 
-            void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, IReadOnlyList<Material> inputMats, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
+            static bool HasRejectedMaterials(SharedMaterialKey[] inputMatKeys, SharedMaterialKey[] acquiredMatKeys)
             {
-                for (int i = 0; i < acquiredMaterialHandles.Length; i++)
+                for (int i = 0; i < acquiredMatKeys.Length; i++)
+                {
+                    if (IsRejected(inputMatKeys[i], acquiredMatKeys[i]))
+                        return true;
+                }
+
+                return false;
+            }
+
+            // A material acquired without the overrides that did not fit is retried like a rejected one.
+            static bool IsRejected(in SharedMaterialKey inputMatKey, in SharedMaterialKey acquiredMatKey)
+            {
+                return acquiredMatKey.Material == EntityId.None
+                    || (acquiredMatKey.Overrides == null && inputMatKey.Overrides != null && acquiredMatKey.Material == inputMatKey.Material);
+            }
+
+            void ResolveMaterialKeys(in TSource source, IReadOnlyList<Material> inputMats, SharedMaterialKey[] previousKeys, SharedMaterialKey[] keys)
+            {
+                for (int i = 0; i < keys.Length; i++)
                 {
                     Material inputMat = i < inputMats.Count ? inputMats[i] : null;
-
-                    bool matIsUnsetOrNoMetaPass = inputMat == null || inputMat.FindPass("Meta") == -1;
-
-                    masks[i] = matIsUnsetOrNoMetaPass ? 0u : 1u;
-
-                    // Acquiring the fallback even for unset materials buys the assumption that a handle always exists.
-                    var acquiredMat = inputMat;
-                    if (matIsUnsetOrNoMetaPass)
-                        acquiredMat = _fallbackMaterial;
-
-                    var acquiredMatEntityId = acquiredMat.GetEntityId();
-                    acquiredMaterialHandles[i] = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
-                    acquiredMaterialEntityIds[i] = acquiredMatEntityId;
-
-                    if (acquiredMaterialHandles[i] == MaterialHandle.Invalid)
+                    if (inputMat == null)
                     {
-                        masks[i] = 0u;
-                        acquiredMaterialEntityIds[i] = EntityId.None;
+                        keys[i] = new SharedMaterialKey(EntityId.None);
+                        continue;
                     }
+
+                    Debug.Assert(_overrideScratch.Count == 0);
+                    source.GetOverrides(inputMat, i, _overrideScratch);
+                    SortByNameId(_overrideScratch);
+
+                    var matEntityId = inputMat.GetEntityId();
+                    if (_overrideScratch.Count == 0)
+                        keys[i] = new SharedMaterialKey(matEntityId);
+                    else if (previousKeys != null && i < previousKeys.Length && previousKeys[i].Material == matEntityId && OverridesMatch(previousKeys[i].Overrides, _overrideScratch))
+                        keys[i] = previousKeys[i];
+                    else
+                        keys[i] = new SharedMaterialKey(matEntityId, _overrideScratch.ToArray());
+
+                    _overrideScratch.Clear();
+                }
+            }
+
+            static void SortByNameId(List<SurfaceCacheMaterialOverride> overrides)
+            {
+                for (int i = 1; i < overrides.Count; i++)
+                {
+                    var current = overrides[i];
+                    int j = i - 1;
+                    while (j >= 0 && overrides[j].NameId > current.NameId)
+                    {
+                        overrides[j + 1] = overrides[j];
+                        j--;
+                    }
+
+                    overrides[j + 1] = current;
+                }
+            }
+
+            static bool OverridesMatch(SurfaceCacheMaterialOverride[] overrides, List<SurfaceCacheMaterialOverride> scratch)
+            {
+                if (overrides == null || overrides.Length != scratch.Count)
+                    return false;
+
+                for (int i = 0; i < overrides.Length; i++)
+                {
+                    if (overrides[i].NameId != scratch[i].NameId || !overrides[i].Value.Equals(scratch[i].Value))
+                        return false;
+                }
+
+                return true;
+            }
+
+            void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, IReadOnlyList<Material> inputMats, SharedMaterialKey[] inputMaterialKeys, Span<MaterialHandle> acquiredMaterialHandles, SharedMaterialKey[] acquiredMaterialKeys, Span<uint> masks)
+            {
+                for (int i = 0; i < acquiredMaterialHandles.Length; i++)
+                    AcquireMaterial(i, world, sharedMaterials, inputMats, inputMaterialKeys, acquiredMaterialHandles, acquiredMaterialKeys, masks);
+            }
+
+            void AcquireMaterial(int subMeshIndex, SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, IReadOnlyList<Material> inputMats, SharedMaterialKey[] inputMaterialKeys, Span<MaterialHandle> acquiredMaterialHandles, SharedMaterialKey[] acquiredMaterialKeys, Span<uint> masks)
+            {
+                Material inputMat = subMeshIndex < inputMats.Count ? inputMats[subMeshIndex] : null;
+
+                bool matIsUnsetOrNoMetaPass = inputMat == null || inputMat.FindPass("Meta") == -1;
+
+                masks[subMeshIndex] = matIsUnsetOrNoMetaPass ? 0u : 1u;
+
+                // Acquiring the fallback even for unset materials buys the assumption that a handle always exists.
+                var acquiredMat = inputMat;
+                var acquiredMatKey = inputMaterialKeys[subMeshIndex];
+                if (matIsUnsetOrNoMetaPass)
+                {
+                    acquiredMat = _fallbackMaterial;
+                    acquiredMatKey = new SharedMaterialKey(_fallbackMaterial.GetEntityId());
+                }
+
+                acquiredMaterialHandles[subMeshIndex] = sharedMaterials.Acquire(acquiredMatKey, acquiredMat, world);
+
+                // Per-instance values can outgrow the atlas, so such an instance keeps contributing with the shared material.
+                if (acquiredMaterialHandles[subMeshIndex] == MaterialHandle.Invalid && acquiredMatKey.Overrides != null)
+                {
+                    acquiredMatKey = new SharedMaterialKey(acquiredMatKey.Material);
+                    acquiredMaterialHandles[subMeshIndex] = sharedMaterials.Acquire(acquiredMatKey, acquiredMat, world);
+                }
+
+                acquiredMaterialKeys[subMeshIndex] = acquiredMatKey;
+
+                if (acquiredMaterialHandles[subMeshIndex] == MaterialHandle.Invalid)
+                {
+                    masks[subMeshIndex] = 0u;
+                    acquiredMaterialKeys[subMeshIndex] = new SharedMaterialKey(EntityId.None);
                 }
             }
 
@@ -784,34 +1049,34 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(_inWorld[slot]);
                 world.RemoveInstance(_handles[slot]);
-                foreach (var matEntityId in _acquiredMaterialIds[slot])
-                    sharedMaterials.Release(matEntityId, world);
-                RecycleMaterialIdArray(_inputMaterialIds[slot]);
-                RecycleMaterialIdArray(_acquiredMaterialIds[slot]);
+                foreach (var matKey in _acquiredMaterialKeys[slot])
+                    sharedMaterials.Release(matKey, world);
+                RecycleMaterialKeyArray(_inputMaterialKeys[slot]);
+                RecycleMaterialKeyArray(_acquiredMaterialKeys[slot]);
                 _handles[slot] = default;
                 _meshIds[slot] = EntityId.None;
                 _meshLods[slot] = 0;
                 _localToWorlds[slot] = default;
-                _inputMaterialIds[slot] = null;
-                _acquiredMaterialIds[slot] = null;
+                _inputMaterialKeys[slot] = null;
+                _acquiredMaterialKeys[slot] = null;
                 _inWorld[slot] = false;
             }
 
-            EntityId[] CopyToReusedOrNewArray(ReadOnlySpan<EntityId> materialIds)
+            SharedMaterialKey[] ReuseOrCreateMaterialKeyArray(int length)
             {
-                var array = _freeMaterialIdArrays.TryGetValue(materialIds.Length, out var freeArrays) && freeArrays.Count != 0
+                return _freeMaterialKeyArrays.TryGetValue(length, out var freeArrays) && freeArrays.Count != 0
                     ? freeArrays.Pop()
-                    : new EntityId[materialIds.Length];
-                materialIds.CopyTo(array);
-                return array;
+                    : new SharedMaterialKey[length];
             }
 
-            void RecycleMaterialIdArray(EntityId[] array)
+            void RecycleMaterialKeyArray(SharedMaterialKey[] array)
             {
-                if (!_freeMaterialIdArrays.TryGetValue(array.Length, out var freeArrays))
+                // Pooled arrays would otherwise keep the override arrays alive.
+                Array.Clear(array, 0, array.Length);
+                if (!_freeMaterialKeyArrays.TryGetValue(array.Length, out var freeArrays))
                 {
-                    freeArrays = new Stack<EntityId[]>();
-                    _freeMaterialIdArrays.Add(array.Length, freeArrays);
+                    freeArrays = new Stack<SharedMaterialKey[]>();
+                    _freeMaterialKeyArrays.Add(array.Length, freeArrays);
                 }
 
                 freeArrays.Push(array);
@@ -822,6 +1087,7 @@ namespace UnityEngine.Rendering.Universal
         sealed class EntityInstanceSet : InstanceSet<EntityId, EntityRecordSource>
         {
             readonly Dictionary<int, Stack<SurfaceCacheSubMeshMaterial[]>> _freeSubMeshMaterialArrays = new();
+            readonly Dictionary<int, Stack<SurfaceCacheMaterialOverride[]>> _freeOverrideArrays = new();
 
             public EntityInstanceSet(Material fallbackMaterial)
                 : base(fallbackMaterial)
@@ -838,52 +1104,68 @@ namespace UnityEngine.Rendering.Universal
                 ApplyTransform(slot, localToWorld, world);
             }
 
-            public EntityRecordSource CreateSource(in SurfaceCacheEntityInstanceRecord record, NativeArray<SurfaceCacheSubMeshMaterial> materials)
+            public EntityRecordSource CreateSource(in SurfaceCacheEntityInstanceRecord record, NativeArray<SurfaceCacheSubMeshMaterial> materials, NativeArray<SurfaceCacheMaterialOverride> overrides)
             {
                 int count = record.MaterialsCount;
 
                 // Such a record is never registered, so nothing reads its materials.
                 if (count == 0 || !record.Visible || record.Mesh == EntityId.None)
-                    return new EntityRecordSource(record, Array.Empty<SurfaceCacheSubMeshMaterial>());
+                    return new EntityRecordSource(record, Array.Empty<SurfaceCacheSubMeshMaterial>(), Array.Empty<SurfaceCacheMaterialOverride>());
 
-                // A registered key usually re-reports the same count, so its buffer is reused rather than reallocated.
-                var buffer = TryGetSlot(record.Key, out int slot) ? GetSource(slot).SubMeshMaterials : null;
+                // A registered key usually re-reports the same counts, so its buffers are reused rather than reallocated.
+                bool registered = TryGetSlot(record.Key, out int slot);
+                var buffer = registered ? GetSource(slot).SubMeshMaterials : null;
                 if (buffer == null || buffer.Length != count)
-                    buffer = ReuseOrCreateSubMeshMaterialArray(count);
+                    buffer = ReuseOrCreateArray(_freeSubMeshMaterialArrays, count);
 
                 NativeArray<SurfaceCacheSubMeshMaterial>.Copy(materials, record.MaterialsStart, buffer, 0, count);
-                return new EntityRecordSource(record, buffer);
+
+                int overrideCount = record.OverridesCount;
+                var overrideBuffer = registered ? GetSource(slot).Overrides : null;
+                if (overrideBuffer == null || overrideBuffer.Length != overrideCount)
+                    overrideBuffer = ReuseOrCreateArray(_freeOverrideArrays, overrideCount);
+
+                if (overrideCount != 0)
+                    NativeArray<SurfaceCacheMaterialOverride>.Copy(overrides, record.OverridesStart, overrideBuffer, 0, overrideCount);
+
+                return new EntityRecordSource(record, buffer, overrideBuffer);
             }
 
             protected override void OnSourceReplaced(in EntityRecordSource previous, in EntityRecordSource replacement)
             {
                 if (previous.SubMeshMaterials != replacement.SubMeshMaterials)
-                    RecycleSubMeshMaterialArray(previous.SubMeshMaterials);
+                    RecycleArray(_freeSubMeshMaterialArrays, previous.SubMeshMaterials);
+                if (previous.Overrides != replacement.Overrides)
+                    RecycleArray(_freeOverrideArrays, previous.Overrides);
             }
 
             protected override void OnSourceUnregistered(in EntityRecordSource source)
             {
-                RecycleSubMeshMaterialArray(source.SubMeshMaterials);
+                RecycleArray(_freeSubMeshMaterialArrays, source.SubMeshMaterials);
+                RecycleArray(_freeOverrideArrays, source.Overrides);
             }
 
-            SurfaceCacheSubMeshMaterial[] ReuseOrCreateSubMeshMaterialArray(int length)
+            static T[] ReuseOrCreateArray<T>(Dictionary<int, Stack<T[]>> freeArraysByLength, int length)
             {
-                if (_freeSubMeshMaterialArrays.TryGetValue(length, out var freeArrays) && freeArrays.Count != 0)
+                if (length == 0)
+                    return Array.Empty<T>();
+
+                if (freeArraysByLength.TryGetValue(length, out var freeArrays) && freeArrays.Count != 0)
                     return freeArrays.Pop();
 
-                return new SurfaceCacheSubMeshMaterial[length];
+                return new T[length];
             }
 
-            void RecycleSubMeshMaterialArray(SurfaceCacheSubMeshMaterial[] array)
+            static void RecycleArray<T>(Dictionary<int, Stack<T[]>> freeArraysByLength, T[] array)
             {
                 bool isSharedEmptyArray = array.Length == 0;
                 if (isSharedEmptyArray)
                     return;
 
-                if (!_freeSubMeshMaterialArrays.TryGetValue(array.Length, out var freeArrays))
+                if (!freeArraysByLength.TryGetValue(array.Length, out var freeArrays))
                 {
-                    freeArrays = new Stack<SurfaceCacheSubMeshMaterial[]>();
-                    _freeSubMeshMaterialArrays.Add(array.Length, freeArrays);
+                    freeArrays = new Stack<T[]>();
+                    freeArraysByLength.Add(array.Length, freeArrays);
                 }
 
                 freeArrays.Push(array);
@@ -893,15 +1175,6 @@ namespace UnityEngine.Rendering.Universal
         static int ResolveMeshLod(Mesh mesh, int requestedMeshLod)
         {
             return Mathf.Clamp(requestedMeshLod, 0, mesh.lodCount - 1);
-        }
-
-        static void ResolveMaterialIds(IReadOnlyList<Material> materials, Span<EntityId> materialEntityIds)
-        {
-            for (int i = 0; i < materialEntityIds.Length; i++)
-            {
-                Material material = i < materials.Count ? materials[i] : null;
-                materialEntityIds[i] = material != null ? material.GetEntityId() : EntityId.None;
-            }
         }
 
 #if ENABLE_TERRAIN_MODULE
@@ -1151,7 +1424,7 @@ namespace UnityEngine.Rendering.Universal
                     world.UpdateInstanceMaterials(_handles[slot], matHandles);
                     world.UpdateInstanceMask(_handles[slot], masks);
 
-                    sharedMaterials.Release(_acquiredMaterialIds[slot], world);
+                    sharedMaterials.Release(new SharedMaterialKey(_acquiredMaterialIds[slot]), world);
 
                     _inputMaterialIds[slot] = inputMatEntityId;
                     _acquiredMaterialIds[slot] = acquiredMatEntityId;
@@ -1162,7 +1435,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(_inWorld[slot]);
                 world.RemoveInstance(_handles[slot]);
-                sharedMaterials.Release(_acquiredMaterialIds[slot], world);
+                sharedMaterials.Release(new SharedMaterialKey(_acquiredMaterialIds[slot]), world);
                 _handles[slot] = default;
                 _inputMaterialIds[slot] = EntityId.None;
                 _acquiredMaterialIds[slot] = EntityId.None;
@@ -1199,7 +1472,7 @@ namespace UnityEngine.Rendering.Universal
                     acquiredMatEntityId = inputMatEntityId;
                     acquiredMat = inputMat;
                 }
-                acquiredMatHandle = sharedMaterials.Acquire(acquiredMatEntityId, acquiredMat, world);
+                acquiredMatHandle = sharedMaterials.Acquire(new SharedMaterialKey(acquiredMatEntityId), acquiredMat, world);
                 if (acquiredMatHandle == MaterialHandle.Invalid)
                 {
                     mask = 0u;
@@ -1364,11 +1637,12 @@ namespace UnityEngine.Rendering.Universal
 
             const EmissionMode kEmissionMode = EmissionMode.Realtime;
             const UVChannel kUVChannel = UVChannel.UV0;
+            static readonly int k_EmissionColorId = Shader.PropertyToID("_EmissionColor");
 
-            readonly Dictionary<EntityId, Entry> _entries = new();
-            readonly HashSet<EntityId> _pendingMetaPassEvals = new();
+            readonly Dictionary<SharedMaterialKey, Entry> _entries = new();
+            readonly HashSet<SharedMaterialKey> _pendingMetaPassEvals = new();
             readonly HashSet<EntityId> _reportedRejections = new();
-            readonly List<EntityId> _idScratch = new();
+            readonly List<SharedMaterialKey> _keyScratch = new();
             readonly Material _fallbackMaterial;
             int _resolution = 256;
 
@@ -1385,34 +1659,34 @@ namespace UnityEngine.Rendering.Universal
                 _resolution = resolution;
                 _reportedRejections.Clear();
 
-                _idScratch.Clear();
-                _idScratch.AddRange(_entries.Keys);
-                foreach (var matEntityId in _idScratch)
+                _keyScratch.Clear();
+                _keyScratch.AddRange(_entries.Keys);
+                foreach (var matKey in _keyScratch)
                 {
-                    if (_pendingMetaPassEvals.Contains(matEntityId))
+                    if (_pendingMetaPassEvals.Contains(matKey))
                         continue;
 
-                    var entry = _entries[matEntityId];
+                    var entry = _entries[matKey];
                     if (entry.Material == null)
                         continue;
 
 #if UNITY_EDITOR
-                    var descriptor = entry.Material.FindPass("Meta") == -1 ? GetFallbackMaterialDescriptor() : CreateDescriptor(entry.Material);
+                    var descriptor = entry.Material.FindPass("Meta") == -1 ? GetFallbackMaterialDescriptor() : CreateDescriptor(matKey, entry.Material);
 #else
-                    var descriptor = CreateDescriptor(entry.Material);
+                    var descriptor = CreateDescriptor(matKey, entry.Material);
 #endif
-                    UpdateInWorld(matEntityId, entry, descriptor, world);
+                    UpdateInWorld(matKey, entry, descriptor, world);
                 }
-                _idScratch.Clear();
+                _keyScratch.Clear();
                 return true;
             }
 
-            public MaterialHandle Acquire(EntityId matEntityId, Material mat, SurfaceCacheWorld world)
+            public MaterialHandle Acquire(in SharedMaterialKey matKey, Material mat, SurfaceCacheWorld world)
             {
-                if (_entries.TryGetValue(matEntityId, out var entry))
+                if (_entries.TryGetValue(matKey, out var entry))
                 {
                     entry.RefCount += 1;
-                    _entries[matEntityId] = entry;
+                    _entries[matKey] = entry;
                     return entry.WorldHandle;
                 }
                 else
@@ -1423,24 +1697,24 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                     if (UnityEditor.ShaderUtil.IsPassCompiled(mat, metaPassIndex))
                     {
-                        descriptor = CreateDescriptor(mat);
+                        descriptor = CreateDescriptor(matKey, mat);
                     }
                     else
                     {
                         descriptor = GetFallbackMaterialDescriptor();
-                        _pendingMetaPassEvals.Add(matEntityId);
+                        _pendingMetaPassEvals.Add(matKey);
                         UnityEditor.ShaderUtil.CompilePass(mat, metaPassIndex);
                     }
 #else
-                    descriptor = CreateDescriptor(mat);
+                    descriptor = CreateDescriptor(matKey, mat);
 #endif
 
                     var newHandle = world.AddMaterial(descriptor, kUVChannel);
                     DestroyDescriptorTextures(descriptor);
                     if (newHandle == MaterialHandle.Invalid)
                     {
-                        _pendingMetaPassEvals.Remove(matEntityId);
-                        ReportRejection(matEntityId, mat);
+                        _pendingMetaPassEvals.Remove(matKey);
+                        ReportRejection(matKey.Material, mat);
                         return MaterialHandle.Invalid;
                     }
 
@@ -1450,7 +1724,7 @@ namespace UnityEngine.Rendering.Universal
                         WorldHandle = newHandle,
                         Material = mat
                     };
-                    _entries[matEntityId] = newEntry;
+                    _entries[matKey] = newEntry;
                     return newHandle;
                 }
             }
@@ -1460,22 +1734,22 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (_pendingMetaPassEvals.Count != 0)
                 {
-                    var evaluatedMaterials = new List<EntityId>();
-                    foreach (var matEntityId in _pendingMetaPassEvals)
+                    var evaluatedMaterials = new List<SharedMaterialKey>();
+                    foreach (var matKey in _pendingMetaPassEvals)
                     {
-                        var entry = _entries[matEntityId];
+                        var entry = _entries[matKey];
                         var metaPassIndex = entry.Material.FindPass("Meta");
                         Debug.Assert(metaPassIndex != -1);
                         if (UnityEditor.ShaderUtil.IsPassCompiled(entry.Material, metaPassIndex))
                         {
-                            UpdateInWorld(matEntityId, entry, CreateDescriptor(entry.Material), world);
-                            evaluatedMaterials.Add(matEntityId);
+                            UpdateInWorld(matKey, entry, CreateDescriptor(matKey, entry.Material), world);
+                            evaluatedMaterials.Add(matKey);
                         }
                     }
 
-                    foreach (var matEntityId in evaluatedMaterials)
+                    foreach (var matKey in evaluatedMaterials)
                     {
-                        _pendingMetaPassEvals.Remove(matEntityId);
+                        _pendingMetaPassEvals.Remove(matKey);
                     }
                 }
             }
@@ -1483,69 +1757,136 @@ namespace UnityEngine.Rendering.Universal
 
             public void Update(EntityId matEntityId, Material material, SurfaceCacheWorld world)
             {
-                Debug.Assert(_entries.ContainsKey(matEntityId));
+                _keyScratch.Clear();
+                foreach (var matKey in _entries.Keys)
+                {
+                    if (matKey.Material == matEntityId)
+                        _keyScratch.Add(matKey);
+                }
 
-                if (!_pendingMetaPassEvals.Contains(matEntityId))
+                foreach (var matKey in _keyScratch)
+                    Update(matKey, material, world);
+
+                _keyScratch.Clear();
+            }
+
+            void Update(in SharedMaterialKey matKey, Material material, SurfaceCacheWorld world)
+            {
+                if (!_pendingMetaPassEvals.Contains(matKey))
                 {
 #if UNITY_EDITOR
                     // If the shader was modified, the meta pass may have been deleted, or not yet compiled.
                     var metaPassIndex = material.FindPass("Meta");
                     if (metaPassIndex == -1)
                     {
-                        UpdateInWorld(matEntityId, _entries[matEntityId], GetFallbackMaterialDescriptor(), world);
+                        UpdateInWorld(matKey, _entries[matKey], GetFallbackMaterialDescriptor(), world);
                         return;
                     }
                     else if (!UnityEditor.ShaderUtil.IsPassCompiled(material, metaPassIndex))
                     {
-                        _pendingMetaPassEvals.Add(matEntityId);
+                        _pendingMetaPassEvals.Add(matKey);
                         UnityEditor.ShaderUtil.CompilePass(material, metaPassIndex);
                         return;
                     }
 #endif
 
-                    UpdateInWorld(matEntityId, _entries[matEntityId], CreateDescriptor(material), world);
+                    UpdateInWorld(matKey, _entries[matKey], CreateDescriptor(matKey, material), world);
                 }
             }
 
-            public bool IsReferenced(EntityId matEntityId)
+            public void Release(in SharedMaterialKey matKey, SurfaceCacheWorld world)
             {
-                return _entries.ContainsKey(matEntityId);
-            }
-
-            public void Release(EntityId matEntityId, SurfaceCacheWorld world)
-            {
-                if (matEntityId == EntityId.None)
+                if (matKey.Material == EntityId.None)
                     return;
 
-                Debug.Assert(_entries.ContainsKey(matEntityId));
-                var entry = _entries[matEntityId];
+                Debug.Assert(_entries.ContainsKey(matKey));
+                var entry = _entries[matKey];
 
                 if (entry.RefCount == 1)
                 {
-                    RemoveHandle(matEntityId, world);
+                    RemoveHandle(matKey, world);
                 }
                 else
                 {
                     entry.RefCount -= 1;
-                    _entries[matEntityId] = entry;
+                    _entries[matKey] = entry;
                 }
             }
 
             public void CleanUp(SurfaceCacheWorld world)
             {
-                var ids = new EntityId[_entries.Count];
+                var keys = new SharedMaterialKey[_entries.Count];
 
                 int i = 0;
                 foreach (var key in _entries.Keys)
-                    ids[i++] = key;
+                    keys[i++] = key;
 
-                foreach (var id in ids)
-                    RemoveHandle(id, world);
+                foreach (var key in keys)
+                    RemoveHandle(key, world);
             }
 
             MaterialPool.MaterialDescriptor CreateDescriptor(Material material)
             {
                 return MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material, kEmissionMode, _resolution);
+            }
+
+            // The overrides are applied to a copy, so the meta pass and the emission read them like material values.
+            MaterialPool.MaterialDescriptor CreateDescriptor(in SharedMaterialKey matKey, Material material)
+            {
+                if (matKey.Overrides == null)
+                    return CreateDescriptor(material);
+
+                var overridden = new Material(material) { hideFlags = HideFlags.HideAndDontSave };
+                try
+                {
+                    ApplyOverrides(overridden, matKey.Overrides);
+                    return CreateDescriptor(overridden);
+                }
+                finally
+                {
+                    CoreUtils.Destroy(overridden);
+                }
+            }
+
+            static void ApplyOverrides(Material material, SurfaceCacheMaterialOverride[] overrides)
+            {
+                var shader = material.shader;
+                bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
+                foreach (var materialOverride in overrides)
+                {
+                    if (!TryFindNumericProperty(shader, materialOverride.NameId, out int propertyIndex))
+                        continue;
+
+                    var type = shader.GetPropertyType(propertyIndex);
+                    var flags = shader.GetPropertyFlags(propertyIndex);
+
+                    // The setters convert sRGB properties from gamma, and the override is already in the active color space.
+                    bool isSRGB = (type == ShaderPropertyType.Color && (flags & ShaderPropertyFlags.HDR) == 0) || (flags & ShaderPropertyFlags.Gamma) != 0;
+                    bool toGamma = isSRGB && linear;
+
+                    var value = materialOverride.Value;
+                    if (type == ShaderPropertyType.Float || type == ShaderPropertyType.Range)
+                        material.SetFloat(materialOverride.NameId, toGamma ? Mathf.LinearToGammaSpace(value.x) : value.x);
+                    else
+                        material.SetVector(materialOverride.NameId, toGamma ? (Vector4)((Color)value).gamma : value);
+                }
+
+                // The inspector derives EmissiveIsBlack from the material's own emission color, which an override can replace.
+                var giFlags = material.globalIlluminationFlags;
+                bool emissiveIsBlackDerived = (giFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) != 0 && giFlags != MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                if (emissiveIsBlackDerived && HasOverride(overrides, k_EmissionColorId) && material.GetColor(k_EmissionColorId).maxColorComponent > 0f)
+                    material.globalIlluminationFlags = giFlags & ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+
+            static bool HasOverride(SurfaceCacheMaterialOverride[] overrides, int nameId)
+            {
+                foreach (var materialOverride in overrides)
+                {
+                    if (materialOverride.NameId == nameId)
+                        return true;
+                }
+
+                return false;
             }
 
 #if UNITY_EDITOR
@@ -1559,12 +1900,12 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            void UpdateInWorld(EntityId matEntityId, in Entry entry, in MaterialPool.MaterialDescriptor descriptor, SurfaceCacheWorld world)
+            void UpdateInWorld(in SharedMaterialKey matKey, in Entry entry, in MaterialPool.MaterialDescriptor descriptor, SurfaceCacheWorld world)
             {
                 bool updated = world.UpdateMaterial(entry.WorldHandle, in descriptor, kUVChannel);
                 DestroyDescriptorTextures(descriptor);
                 if (!updated)
-                    ReportRejection(matEntityId, entry.Material);
+                    ReportRejection(matKey.Material, entry.Material);
             }
 
             void ReportRejection(EntityId matEntityId, Material mat)
@@ -1573,12 +1914,12 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogError($"Surface Cache GI: material '{mat.name}' could not be added because the material texture atlas is full ({SystemInfo.maxTextureArraySlices} slices). Lower 'Material Resolution' on the Surface Cache GI renderer feature or share materials between objects.", mat);
             }
 
-            void RemoveHandle(EntityId matEntityId, SurfaceCacheWorld world)
+            void RemoveHandle(in SharedMaterialKey matKey, SurfaceCacheWorld world)
             {
-                _pendingMetaPassEvals.Remove(matEntityId);
-                var entry = _entries[matEntityId];
+                _pendingMetaPassEvals.Remove(matKey);
+                var entry = _entries[matKey];
                 world.RemoveMaterial(entry.WorldHandle);
-                _entries.Remove(matEntityId);
+                _entries.Remove(matKey);
             }
 
             static void DestroyDescriptorTextures(in MaterialPool.MaterialDescriptor desc)
