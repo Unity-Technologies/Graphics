@@ -255,9 +255,14 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     return GetAdditionalLight(i, positionWS, shadowMask, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent, float3 geometricNormalWS)
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows)
 {
-    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, geometricNormalWS, inputData.positionCS.xy, true);
+    return GetAdditionalLight(i, positionWS, shadowMask, receiveShadows, float3(0.0, 0.0, 0.0));
+}
+
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
+{
+    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, inputData.geometricNormalWS, inputData.positionCS.xy, true);
 
     if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {

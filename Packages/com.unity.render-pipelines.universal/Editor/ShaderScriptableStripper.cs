@@ -249,6 +249,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_TransparentReceiveFog;
         LocalKeyword m_SurfaceTypeTransparent;
         LocalKeyword m_LightFalloffQuadratic;
+        LocalKeyword m_ShadowReceiverNormalBias;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
         LocalKeyword m_BloomLQ;
@@ -339,6 +340,7 @@ namespace UnityEditor.Rendering.Universal
             m_TransparentReceiveFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.TransparentReceiveFog);
             m_SurfaceTypeTransparent = TryGetLocalKeyword(shader, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
             m_LightFalloffQuadratic = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightFalloffQuadratic);
+            m_ShadowReceiverNormalBias = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowReceiverNormalBias);
             m_DepthAsInputAttachment = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
             m_DepthAsInputAttachmentMSAA = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
@@ -930,6 +932,11 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompile(m_LightFalloffQuadratic, ShaderFeatures.LightFalloffQuadratic);
         }
 
+        internal bool StripUnusedFeatures_ShadowReceiverNormalBias(ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            return stripTool.StripMultiCompile(m_ShadowReceiverNormalBias, ShaderFeatures.ShadowReceiverNormalBias);
+        }
+
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_ProbeVolumesL1, ShaderFeatures.ProbeVolumeL1, m_ProbeVolumesL2, ShaderFeatures.ProbeVolumeL2);
@@ -1144,6 +1151,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_LightFalloffQuadratic(ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_ShadowReceiverNormalBias(ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))

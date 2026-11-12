@@ -76,6 +76,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData.positionWS = positionWS;
     inputData.positionCS = input.positionCS;
     inputData.normalWS = normalWS;
+    inputData.geometricNormalWS = normalWS;
     inputData.viewDirectionWS = viewDirectionWS;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
@@ -345,7 +346,7 @@ void Frag(PackedVaryings packedInput,
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface, surfaceData.normalWS.xyz);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surface);
 
     float linearEyeDepth = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFogFromEyeDepth(color.rgb, linearEyeDepth));

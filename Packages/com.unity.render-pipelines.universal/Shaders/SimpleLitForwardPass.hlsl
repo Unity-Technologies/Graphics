@@ -96,6 +96,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
+    inputData.geometricNormalWS = input.normalWS.xyz;
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
@@ -249,7 +250,7 @@ void LitPassFragmentSimple(
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData,
         UseSpecGlossMap() || UseSpecularColor(), UseAlphaPremultiply(),
-        ReceiveShadows(), IsSurfaceTypeTransparent(), input.normalWS.xyz);
+        ReceiveShadows(), IsSurfaceTypeTransparent());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.positionCS));
 #if defined(_TRANSPARENT_RECEIVE_FOG)
     if (IsSurfaceTypeTransparent())

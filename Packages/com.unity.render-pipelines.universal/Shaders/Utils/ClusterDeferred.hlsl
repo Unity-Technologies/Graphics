@@ -113,12 +113,15 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
 
     float4 posWS = mul(_ScreenToWorld[SLICE_ARRAY_INDEX], float4(input.positionCS.xy, gBufferData.depth, 1.0));
     posWS.xyz *= rcp(posWS.w);
+    half3 geometricNormalWS = half3(SafeNormalize(cross(ddy(posWS.xyz), ddx(posWS.xyz))));
+    geometricNormalWS *= half(FastSign(dot(geometricNormalWS, GetWorldSpaceViewDir(posWS.xyz))));
 
     InputData inputData = (InputData)0;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
     inputData.positionWS = posWS.xyz;
     inputData.normalWS = gBufferData.normalWS;
+    inputData.geometricNormalWS = geometricNormalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(posWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.positionCS = float4(positionSS, input.positionCS.zw);
@@ -142,9 +145,8 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     UNITY_BRANCH if (!materialReceiveShadowsOff)
     {
         float4 shadowCoord = float4(0, 0, 0, 0);
-        // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
         if (MainLightShadowsAvailable())
-            shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, gBufferData.normalWS);
+            shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, inputData.geometricNormalWS);
         mainLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, gBufferData.shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false, positionSS);
     }
 
@@ -162,7 +164,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     // We do additional directional lights last because otherwise FXC complains...
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false, gBufferData.normalWS);
+        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false);
 
         UNITY_BRANCH if (materialReceiveShadowsOff)
         {
@@ -175,7 +177,7 @@ half4 DeferredShadingClustered(Varyings input) : SV_Target
     UNITY_LOOP for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
-        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false, gBufferData.normalWS);
+        Light light = GetAdditionalLight(lightIndex, inputData, gBufferData.shadowMask, aoFactor, !materialReceiveShadowsOff, false);
 
         UNITY_BRANCH if (materialReceiveShadowsOff)
         {

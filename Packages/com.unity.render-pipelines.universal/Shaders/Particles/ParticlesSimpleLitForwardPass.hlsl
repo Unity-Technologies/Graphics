@@ -39,6 +39,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
+    inputData.geometricNormalWS = input.normalWS.xyz;
 
     viewDirWS = SafeNormalize(viewDirWS);
 
@@ -161,7 +162,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS, input.normalWS.xyz);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
 #if defined(_TRANSPARENT_RECEIVE_FOG)

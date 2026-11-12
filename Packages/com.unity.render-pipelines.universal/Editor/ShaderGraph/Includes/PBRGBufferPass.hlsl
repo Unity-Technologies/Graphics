@@ -1,8 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
-void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData, bool isSurfaceTypeTransparent)
 {
     inputData = (InputData)0;
 
@@ -28,7 +27,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), input.normalWS) : float4(0, 0, 0, 0);
+    inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, input.normalWS) : float4(0, 0, 0, 0);
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
@@ -93,6 +92,12 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
+    #if defined(_SURFACE_TYPE_TRANSPARENT)
+        bool isSurfaceTypeTransparent = true;
+    #else
+        bool isSurfaceTypeTransparent = false;
+    #endif
+
     #if defined(_ALPHATEST_ON)
         half alpha = surfaceDescription.Alpha;
         clip(alpha - surfaceDescription.AlphaClipThreshold);
@@ -105,7 +110,7 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     LODFadeCrossFade(unpacked.positionCS);
 
     InputData inputData;
-    InitializeInputData(unpacked, surfaceDescription, inputData);
+    InitializeInputData(unpacked, surfaceDescription, inputData, isSurfaceTypeTransparent);
     #ifdef VARYINGS_NEED_TEXCOORD0
         SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0);
     #else

@@ -691,6 +691,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
 
                 cmd.SetKeyword(ShaderGlobalKeywords.LightFalloffQuadratic, UniversalRenderPipeline.IsQuadraticFalloffEnabled());
+                cmd.SetKeyword(ShaderGlobalKeywords.ShadowReceiverNormalBias, ShadowUtils.IsShadowReceiverNormalBiasEnabled());
 
                 var stack = VolumeManager.instance.stack;
                 ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(

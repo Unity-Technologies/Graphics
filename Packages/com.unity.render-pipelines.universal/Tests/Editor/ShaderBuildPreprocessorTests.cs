@@ -46,6 +46,9 @@ namespace ShaderStrippingAndPrefiltering
                     if (PlayerSettings.allowHDRDisplaySupport)
                         defaultFeatures |= ShaderFeatures.HdrGrading;
 
+                    if (ShadowUtils.IsShadowReceiverNormalBiasEnabled())
+                        defaultFeatures |= ShaderFeatures.ShadowReceiverNormalBias;
+
                     return defaultFeatures;
                 }
             }
@@ -431,6 +434,30 @@ namespace ShaderStrippingAndPrefiltering
             finally
             {
                 lightFalloffSettings.lightFalloffMode = previousLightFalloffMode;
+            }
+        }
+
+        // ShaderFeatures.ShadowReceiverNormalBias - _SHADOW_RECEIVER_NORMAL_BIAS
+        [Test]
+        public void TestGetSupportedShaderFeaturesFromAsset_ShadowReceiverNormalBias()
+        {
+            var shadowBiasSettings = GraphicsSettings.GetRenderPipelineSettings<URPShadowBiasSettings>();
+            ShadowNormalBiasMode previousNormalBiasMode = shadowBiasSettings.normalBiasMode;
+            try
+            {
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Caster;
+                ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures & ~ShaderFeatures.ShadowReceiverNormalBias;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Receiver;
+                actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.ShadowReceiverNormalBias;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+            }
+            finally
+            {
+                shadowBiasSettings.normalBiasMode = previousNormalBiasMode;
             }
         }
 

@@ -1005,6 +1005,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
         public static readonly GlobalKeyword LightFalloffQuadratic = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffQuadratic);
+        public static readonly GlobalKeyword ShadowReceiverNormalBias = GlobalKeyword.Create(ShaderKeywordStrings.ShadowReceiverNormalBias);
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1429,6 +1430,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
         public const string LightFalloffQuadratic = "_LIGHT_FALLOFF_QUADRATIC";
+
+        /// <summary> Keyword used to apply the shadow normal bias at the shadow receiver. </summary>
+        public const string ShadowReceiverNormalBias = "_SHADOW_RECEIVER_NORMAL_BIAS";
     }
 
     public sealed partial class UniversalRenderPipeline

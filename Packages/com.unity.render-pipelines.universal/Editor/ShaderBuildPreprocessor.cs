@@ -80,6 +80,7 @@ namespace UnityEditor.Rendering.Universal
         VolumetricFog = (1L << 57),
         LightFalloffQuadratic = (1L << 58),
         ShadowsPCSS = (1L << 59),
+        ShadowReceiverNormalBias = (1L << 60),
         All = ~0
     }
 
@@ -679,6 +680,9 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipeline.IsQuadraticFalloffEnabled())
                 urpAssetShaderFeatures |= ShaderFeatures.LightFalloffQuadratic;
 
+            if (ShadowUtils.IsShadowReceiverNormalBiasEnabled())
+                urpAssetShaderFeatures |= ShaderFeatures.ShadowReceiverNormalBias;
+
             if (urpAsset.supportScreenSpaceLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.ScreenSpaceLensFlare;
 
@@ -1151,6 +1155,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
             spd.stripVolumetricFog = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.VolumetricFog);
             spd.stripLightFalloffQuadratic = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.LightFalloffQuadratic);
+            spd.stripShadowReceiverNormalBias = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowReceiverNormalBias);
 
             // Rendering Modes
             // Check if only Deferred is being used

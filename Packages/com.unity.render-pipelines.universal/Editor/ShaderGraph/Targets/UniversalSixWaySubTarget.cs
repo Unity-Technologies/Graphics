@@ -505,6 +505,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { CoreKeywordDescriptors.Exposure },
                 { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowReceiverNormalBias },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },

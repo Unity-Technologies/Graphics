@@ -243,6 +243,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
         [SerializeField] private bool m_PrefilterLightFalloffQuadratic = true;
 
+        // Shadow receiver normal bias (_SHADOW_RECEIVER_NORMAL_BIAS)
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.ShadowReceiverNormalBias)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.ShadowReceiverNormalBias)]
+        [SerializeField] private bool m_PrefilterShadowReceiverNormalBias = false;
+
         // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
         // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
         // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
@@ -298,6 +303,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripVolumetricFog;
 
             public bool stripLightFalloffQuadratic;
+
+            public bool stripShadowReceiverNormalBias;
 
             public bool stripScreenSpaceIrradiance;
 
@@ -372,6 +379,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterVolumetricFog                 = prefilteringData.stripVolumetricFog;
 
             m_PrefilterLightFalloffQuadratic         = prefilteringData.stripLightFalloffQuadratic;
+
+            m_PrefilterShadowReceiverNormalBias      = prefilteringData.stripShadowReceiverNormalBias;
 
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 

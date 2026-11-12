@@ -284,6 +284,12 @@ namespace UnityEngine.Rendering.Universal
             return shadowBiasSettings != null ? shadowBiasSettings.normalBiasMode : ShadowNormalBiasMode.Caster;
         }
 
+        internal static bool IsShadowReceiverNormalBiasEnabled()
+        {
+            GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
+            return GetConfiguredNormalBiasMode(shadowBiasSettings) == ShadowNormalBiasMode.Receiver;
+        }
+
         /// <summary>
         /// Returns the slope-scale depth bias to set while rendering the shadow slices of a visible light, respecting the depth bias mode configured in the URP graphics settings.
         /// In the slope-scale depth bias mode the maximum slope is scaled by the light's soft shadow PCF kernel radius, since wider kernels sample farther from the receiver.

@@ -912,6 +912,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_VolumetricFog(shader);
             TestStripUnusedFeatures_LightFalloffQuadratic(shader);
+            TestStripUnusedFeatures_ShadowReceiverNormalBias(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
             TestStripUnusedFeatures_SHAuto(shader);
             TestStripUnusedFeatures_DataDrivenLensFlare(shader);
@@ -2623,6 +2624,29 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
             TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
             helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
+        }
+
+        public void TestStripUnusedFeatures_ShadowReceiverNormalBias(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowReceiverNormalBias);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowReceiverNormalBias);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_ProbesVolumes(Shader shader)

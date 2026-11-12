@@ -93,6 +93,15 @@
     #endif
 #endif
 
+#if !defined(_SHADOW_RECEIVER_NORMAL_BIAS_KEYWORD_DECLARED)
+    #if !defined(_SHADOW_RECEIVER_NORMAL_BIAS)
+        static const bool _SHADOW_RECEIVER_NORMAL_BIAS = 0;
+    #elif DEFINED_NONZERO(_SHADOW_RECEIVER_NORMAL_BIAS)
+        #undef _SHADOW_RECEIVER_NORMAL_BIAS
+        #define _SHADOW_RECEIVER_NORMAL_BIAS 1
+    #endif
+#endif
+
 // 1 when the soft-shadow quality keywords are runtime-branching: all qualities then share one
 // variant, so filtering must use the single-body filter instead of the per-quality unrolled ones.
 #if defined(_SHADOWS_SOFT_LOW_KEYWORD_DECLARED) && (_SHADOWS_SOFT_LOW_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
@@ -648,11 +657,17 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
         half cascadeIndex = 0;
         if (_MAIN_LIGHT_SHADOWS_CASCADE)
             cascadeIndex = ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
-        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
+        if (_SHADOW_RECEIVER_NORMAL_BIAS)
+            positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
         shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
     }
 
     return shadowCoord;
+}
+
+float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent)
+{
+    return TransformWorldToShadowCoord(positionWS, isSurfaceTypeTransparent, float3(0.0, 0.0, 0.0));
 }
 
 half SampleShadowmapPCSSDirectional(float4 shadowCoord, half cascadeIndex, float2 positionSS, half4 shadowParams)
@@ -777,7 +792,8 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
         #endif
 
             // Read behind the slice-index guard above, so the bias data may stay stale while the shadowmap is empty
-            positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
+            if (_SHADOW_RECEIVER_NORMAL_BIAS)
+                positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
 
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
@@ -797,12 +813,22 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData)
+{
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, float3(0.0, 0.0, 0.0));
+}
+
 half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS)
 {
     half result = half(1.0);
     if (AdditionalLightShadowsAvailable())
         result = SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, GetAdditionalLightShadowParams(lightIndex), GetAdditionalLightShadowSamplingData(lightIndex), normalWS);
     return result;
+}
+
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
+{
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, float3(0.0, 0.0, 0.0));
 }
 
 half GetMainLightShadowFade(float3 positionWS)
@@ -919,6 +945,11 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, positionSS, true);
 }
 
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows)
+{
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, float3(0.0, 0.0, 0.0));
+}
+
 float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)
 {
     float4 result = (float4)0;
@@ -933,6 +964,11 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransp
     }
 
     return result;
+}
+
+float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent)
+{
+    return GetShadowCoord(vertexInput, isSurfaceTypeTransparent, float3(0.0, 0.0, 0.0));
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)

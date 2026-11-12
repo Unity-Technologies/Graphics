@@ -275,12 +275,6 @@ half4 DeferredShading(Varyings input) : SV_Target
     URP_LIGHT_ACCUM3 color = 0.0;
     half alpha = 1.0;
 
-    #if defined(GBUFFER_FEATURE_SHADOWMASK)
-    // If both lights and geometry are static, then no realtime lighting to perform for this combination.
-    [branch] if ((_LightFlags & gBufferData.materialFlags) == kMaterialFlagSubtractiveMixedLighting)
-        return half4(color, alpha); // Cannot discard because stencil must be updated.
-    #endif
-
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      {
@@ -295,9 +289,16 @@ half4 DeferredShading(Varyings input) : SV_Target
     #endif
     float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, gBufferData.depth, 1.0));
     posWS.xyz *= rcp(posWS.w);
+    half3 geometricNormalWS = half3(SafeNormalize(cross(ddy(posWS.xyz), ddx(posWS.xyz))));
+    geometricNormalWS *= half(FastSign(dot(geometricNormalWS, GetWorldSpaceViewDir(posWS.xyz))));
 
-    // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
-    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, gBufferData.normalWS, positionSS);
+    #if defined(GBUFFER_FEATURE_SHADOWMASK)
+    // If both lights and geometry are static, then no realtime lighting to perform for this combination.
+    [branch] if ((_LightFlags & gBufferData.materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+        return half4(color, alpha); // Cannot discard because stencil must be updated.
+    #endif
+
+    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, geometricNormalWS, positionSS);
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
     [branch] if (!IsMatchingLightLayer(unityLight.layerMask, gBufferData.meshRenderingLayers))

@@ -2971,6 +2971,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor ShadowReceiverNormalBias = new KeywordDescriptor()
+        {
+            displayName = "Shadow Receiver Normal Bias",
+            referenceName = "_SHADOW_RECEIVER_NORMAL_BIAS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
             displayName = "Cluster Light Loop",

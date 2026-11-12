@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             "_SHADOWS_SOFT_HIGH",
             "_SHADOWS_SOFT_LOW",
             "_SHADOWS_SOFT_MEDIUM",
+            "_SHADOW_RECEIVER_NORMAL_BIAS",
             "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
             "_SPECGLOSSMAP",
             "_SPECULARHIGHLIGHTS_OFF",
@@ -85,14 +86,16 @@ namespace UnityEditor.Rendering.Universal.Tests
             ("Editor/ShaderGraph/Includes/PBRForwardPass.hlsl", "_SPECULAR_SETUP", 1),
             ("Editor/ShaderGraph/Includes/PBRForwardPass.hlsl", "_CLEARCOAT", 1),
             ("Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl", "_NORMALMAP", 1),
-            ("Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 1),
+            ("Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 2),
             ("Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl", "_SPECULAR_SETUP", 1),
             ("Editor/ShaderGraph/Includes/SixWayForwardPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 3),
             ("Editor/ShaderGraph/Includes/UnlitPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 5),
             ("Editor/ShaderGraph/Includes/Varyings.hlsl", "_NORMALMAP", 1),
+            ("Editor/ShaderGraph/Includes/Varyings.hlsl", "_SURFACE_TYPE_TRANSPARENT", 1),
             ("Editor/ShaderGraph/Includes/Terrain/PBRForwardPass.hlsl", "_NORMALMAP", 1),
-            ("Editor/ShaderGraph/Includes/Terrain/PBRForwardPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 1),
+            ("Editor/ShaderGraph/Includes/Terrain/PBRForwardPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 2),
             ("Editor/ShaderGraph/Includes/Terrain/PBRGBufferPass.hlsl", "_NORMALMAP", 1),
+            ("Editor/ShaderGraph/Includes/Terrain/PBRGBufferPass.hlsl", "_SURFACE_TYPE_TRANSPARENT", 1),
         };
 
         enum RestrictionScope
