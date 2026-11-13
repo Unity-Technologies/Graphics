@@ -306,7 +306,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 #if defined(_RECEIVE_SHADOWS_OFF)
 #define LIGHT_EVALUATION_NO_SHADOWS
 #endif
-#define LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
