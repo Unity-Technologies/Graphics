@@ -6,13 +6,6 @@
       "source": "builtin",
       "dependencies": {}
     },
-    "com.unity.collab-proxy": {
-      "version": "2.13.6",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
     "com.unity.collections": {
       "version": "6.7.0",
       "depth": 2,
@@ -32,21 +25,17 @@
       "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.40",
+      "version": "3.1.0",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.ext.nunit": "1.0.6"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.28",
+      "version": "2.0.29",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.test-framework": "1.1.33"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
@@ -121,17 +110,16 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.unity.ide.rider": "3.0.40",
-        "com.unity.ide.visualstudio": "2.0.28",
+        "com.unity.ide.rider": "3.1.0",
+        "com.unity.ide.visualstudio": "2.0.29",
         "com.unity.render-pipelines.high-definition": "17.7.0",
-        "com.unity.ugui": "2.7.0",
-        "com.unity.inputsystem": "6.7.0",
-        "com.unity.collab-proxy": "2.13.6"
+        "com.unity.ugui": "7.0.0",
+        "com.unity.inputsystem": "6.7.0"
       }
     },
     "com.unity.test-framework": {
       "version": "1.9.0",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {
         "com.unity.ext.nunit": "2.1.0",
@@ -194,7 +182,7 @@
     },
     "com.unity.modules.jsonserialize": {
       "version": "1.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {}
     },
