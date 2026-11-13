@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// zero-radius runs stay as line segments, non-zero radii become circles or capsules.
     /// </summary>
     /// <remarks>
-    /// Moved verbatim out of <see cref="ShadowMesh2D"/> so that any generation path can reuse it
+    /// Moved out of <see cref="ShadowMesh2D"/> so that any generation path can reuse it
     /// rather than reimplement capsule expansion. This is input normalisation, not shadow
     /// geometry: it produces an outline, and what a path does with that outline is up to the path.
     /// </remarks>
@@ -78,18 +78,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void AddCapsule(Vector3 pt0, Vector3 pt1, float r0, float r1, NativeArray<Vector3> generatedVertices, NativeArray<int> generatedIndices, bool reverseWindingOrder, ref int vertexWritePos, ref int indexWritePos)
         {
-            // Add Straight Segments
-            Vector3 delta = (pt1 - pt0).normalized;
-            Vector3 relOffset0 = new Vector3(delta.y, -delta.x, 0);
-            Vector3 relOffset1 = new Vector3(-delta.y, delta.x, 0);
-
-            if (pt1.x < pt0.x)
-            {
-                Vector3 temp = pt0;
-                pt0 = pt1;
-                pt1 = temp;
-            }
-
+            // Each cap is oriented toward the other end, so the outline is the same whichever way
+            // the edge runs. Do not reorder the endpoints: each radius must stay with its own end.
             int circle0Start = vertexWritePos;
 
             // Add circles
