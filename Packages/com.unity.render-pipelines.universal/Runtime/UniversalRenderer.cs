@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresBlitForOffscreenCamera = applyPostProcessing || renderPassInputs.requiresColorTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport || requestedColorHistory;
 
             if (isOffscreenRender)
-                return requiresBlitForOffscreenCamera;
+                return requiresBlitForOffscreenCamera || isScaledRender;
 
             return requiresBlitForOffscreenCamera || isScaledRender || isScalableBufferManagerUsed || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
