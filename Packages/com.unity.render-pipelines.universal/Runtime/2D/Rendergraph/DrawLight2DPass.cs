@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 !isLightingActive)
                 return;
 
-            // Render single RTs by for apis that don't support MRTs
+            // Render one light texture per pass where Renderer2D.supportsMRT is false (OpenGLES3 and OpenGLCore)
             if (!isVolumetric && !Renderer2D.supportsMRT)
             {
                 var passName = ProfilerMarkers.s_LightSRTPass;

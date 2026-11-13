@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
         //   - Non-volumetric draws enable exactly one USE_SHAPE_LIGHT_TYPE_<N>, where N is the
         //     light's rank among the blend styles in use in its layer batch.
         //   - Volumetric draws enable none (the USE_DEFAULT_LIGHT_TYPE shader fallback handles it).
-        //   - On GLES3 (Renderer2D.supportsMRT == false) the index is forced to 0 regardless.
+        //   - On OpenGLES3 and OpenGLCore (Renderer2D.supportsMRT == false) the index is forced to 0 regardless.
         // The 11 multi-keyword combinations multi_compile generates are unreachable for this shader.
         static readonly string[] kShapeLightTypeKeywords =
         {
@@ -198,8 +198,8 @@ namespace UnityEditor.Rendering.Universal
         // slot from 0 up to its rank across all build scenes, but never higher. Keep all of them.
         // This bound assumes every light lives in a build scene. A light spawned at runtime from a
         // prefab or asset bundle isn't scanned, so it can raise other lights' slots past the bound.
-        // Slot 0 also covers GLES3, where Renderer2D.supportsMRT is false and indicesIndex is
-        // forced to 0.
+        // Slot 0 also covers OpenGLES3 and OpenGLCore, where Renderer2D.supportsMRT is false and
+        // indicesIndex is forced to 0.
         static void AddShapeLightCombos(HashSet<string>[] shapeLightDraws, HashSet<string> combos)
         {
             int blendStyleRank = 0;

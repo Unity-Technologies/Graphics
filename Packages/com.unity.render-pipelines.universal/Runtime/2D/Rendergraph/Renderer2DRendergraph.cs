@@ -1403,9 +1403,16 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
+        internal static bool IsGLDevice()
+        {
+            return IsGLESDevice() || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
+        }
+
+        // OpenGL uses one light pass per blend style. With MRT on OpenGLCore, NVIDIA drivers write a light's colour
+        // into the other bound light textures too, so a Multiply light leaks into the Additive texture (UUM-161536).
         internal static bool supportsMRT
         {
-            get => !IsGLESDevice();
+            get => !IsGLDevice();
         }
 
         internal static bool IsSceneViewOrPreviewLightingActive(UniversalCameraData cameraData)
