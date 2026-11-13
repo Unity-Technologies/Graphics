@@ -1068,12 +1068,21 @@ namespace ShaderStrippingAndPrefiltering
 
             // Initial
             RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = true;
             ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             ShaderFeatures expected = ShaderFeatures.ScreenSpaceShadows;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
+            // Main light shadows disabled
+            rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = false;
+            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
+            expected = ShaderFeatures.None;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
             m_TestHelper.rendererFeatures[0].SetActive(false);
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = true;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             expected = ShaderFeatures.None;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);

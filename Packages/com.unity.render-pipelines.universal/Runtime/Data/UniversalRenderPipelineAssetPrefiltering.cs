@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: off variants are atm always removed when shadows are supported
         // Note: StencilDeferred is intentionally NOT carved out here.
         // Additional-light shadows keep their carve-out below.
-        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight,            keywordNames: ShaderKeywordStrings.MainLightShadows)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff,      keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndCascades, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]

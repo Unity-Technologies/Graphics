@@ -955,7 +955,8 @@ namespace UnityEditor.Rendering.Universal
                 if (sssFeature != null)
                 {
                     // The feature is active (Tested a few lines above)
-                    shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
+                    if (rendererRequirements.needsMainLightShadows)
+                        shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
                     continue;
                 }
 
