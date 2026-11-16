@@ -71,10 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             "Not XR compatible", XrDevice.Any
         )]
         [IgnoreGraphicsTest(
-            "8101_Opaque$",
-            "https://jira.unity3d.com/browse/UUM-153642"
-        )]
-        [IgnoreGraphicsTest(
             "8207_InstancingMaterials",
             "Disabled for Instability https://jira.unity3d.com/browse/UUM-157557",
             RuntimePlatform.WindowsEditor,
