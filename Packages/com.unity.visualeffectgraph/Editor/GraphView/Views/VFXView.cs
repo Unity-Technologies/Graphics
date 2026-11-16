@@ -3501,7 +3501,7 @@ namespace UnityEditor.VFX.UI
             for (var i = 0; i < newParametersControllers.Length; i++)
             {
                 var parameterController = newParametersControllers[i];
-                var newParameterName = VFXParameterController.MakeNameUnique(m_Controller, parameterController.exposedName);
+                var newParameterName = VFXParameterController.MakeNameUnique(m_Controller, parameterController.exposedName, VFXParameterController.kMaxExposedNameLength);
                 var newVfxParameter = VFXParameter.Duplicate(newParameterName, parameterController.model);
                 controller.AddVFXModel(Vector2.zero, newVfxParameter);
                 VFXParameterController newParameterController = controller.GetNewParameterController(newVfxParameter);

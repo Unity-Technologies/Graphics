@@ -246,6 +246,18 @@ namespace UnityEditor.VFX.Test.Integration
             Assert.AreEqual("Seed_1", getAttributeOp.attribute);
         }
 
+        [TestCase("_heat", ExpectedResult = "_heat_1")]
+        [TestCase("heat_", ExpectedResult = "heat__1")]
+        public string DuplicateCustomAttribute_WithUnderscoreAtEnd_KeepsUnderscore(string name)
+        {
+            VFXGraph graph = VFXTestCommon.MakeTemporaryGraph();
+            Assert.IsTrue(graph.TryAddCustomAttribute(name, VFXValueType.Float, string.Empty, false, out _));
+
+            VFXAttribute copy = graph.DuplicateCustomAttribute(name);
+
+            return copy.name;
+        }
+
         private string CheckCustomAttributeName<T>(string name) where T : VFXModel
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();

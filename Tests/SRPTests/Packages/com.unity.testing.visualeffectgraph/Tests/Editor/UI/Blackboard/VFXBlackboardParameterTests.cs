@@ -394,14 +394,14 @@ namespace UnityEditor.VFX.Test.UI.Blackboard
             yield return null;
 
             // Assert
-            Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+            Assert.AreEqual($"{existingName} (1)", parameterFields[1].controller.exposedName);
 
             // Renaming again to the same existing name must give the same suffix, not alternate between 1 and 2
             for (var i = 0; i < 3; i++)
             {
                 parameterFields[1].controller.exposedName = existingName;
                 yield return null;
-                Assert.AreEqual($"{existingName} 1", parameterFields[1].controller.exposedName);
+                Assert.AreEqual($"{existingName} (1)", parameterFields[1].controller.exposedName);
             }
         }
     }

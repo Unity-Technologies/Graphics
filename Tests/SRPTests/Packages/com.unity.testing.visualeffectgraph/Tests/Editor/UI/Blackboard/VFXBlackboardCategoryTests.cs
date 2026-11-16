@@ -149,15 +149,48 @@ namespace UnityEditor.VFX.Test.UI.Blackboard
             window.graphView.DuplicateBlackBoardCategorySelection();
             blackboard.SetCategoryName(cat, "new name");
             window.graphView.OnSave();
-            var enumerator = VFXBlackboardTestHelper.WaitFor(() => blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " 1").First() != null);
+            var enumerator = VFXBlackboardTestHelper.WaitFor(() => blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " (1)").First() != null);
             while (enumerator.MoveNext())
             {
                 yield return null;
             }
 
             // Assert
-            cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " 1").First();
+            cat = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName + " (1)").First();
             Assert.NotNull(cat);
+        }
+
+        [UnityTest]
+        public IEnumerator Duplicate_Category_With_Long_Parameter_Name_Keeps_Name_Length_Limit()
+        {
+            // Arrange
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+            string categoryName = "new category";
+            VFXGraph graph = VFXTestCommon.MakeTemporaryGraph();
+            VFXViewWindow window = VFXTestCommon.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXBlackboard blackboard = window.graphView.blackboard;
+            yield return null;
+
+            blackboard.Update();
+            blackboard.AddCategory(categoryName);
+            yield return null;
+
+            VFXViewController viewController = window.graphView.controller;
+            VFXParameter parameter = viewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(d => d.modelType == typeof(float)).variant);
+            viewController.ApplyChanges();
+            var longName = new string('a', VFXParameterController.kMaxExposedNameLength);
+            parameter.SetSettingValue("m_ExposedName", longName);
+            parameter.category = categoryName;
+            yield return null;
+
+            // Act
+            blackboard.DuplicateCategory(categoryName);
+            yield return null;
+
+            // Assert
+            VFXParameterController copy = viewController.parameterControllers.Single(x => x.model != parameter);
+            Assert.AreEqual(new string('a', VFXParameterController.kMaxExposedNameLength - 4) + " (1)", copy.exposedName);
         }
 
         [UnityTest]
