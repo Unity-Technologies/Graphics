@@ -1677,6 +1677,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // UUM-160872: Expose the stack the camera rendered with to endCameraRendering callbacks, as URP does
+        static void EndCameraRenderingWithVolumeStack(ScriptableRenderContext renderContext, Camera camera, HDCamera hdCamera)
+        {
+            var mainVolumeStack = VolumeManager.instance.stack;
+            if (hdCamera != null)
+                VolumeManager.instance.stack = hdCamera.volumeStack;
+
+            try
+            {
+                EndCameraRendering(renderContext, camera);
+            }
+            finally
+            {
+                VolumeManager.instance.stack = mainVolumeStack;
+            }
+        }
+
         bool PrepareAndCullCamera(
             Camera camera,
             XRPass xrPass,
@@ -1771,7 +1788,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.Submit();
                 m_CullingResultsPool.Release(cullingResults);
                 if (xrPass.isLastCameraPass)
-                    EndCameraRendering(renderContext, camera);
+                    EndCameraRenderingWithVolumeStack(renderContext, camera, hdCamera);
                 return false;
             }
 
@@ -2642,7 +2659,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (renderRequest.xrPass.isLastCameraPass)
                             {
                                 //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
-                                EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                                EndCameraRenderingWithVolumeStack(renderContext, renderRequest.hdCamera.camera, renderRequest.hdCamera);
                             }
                     }
 

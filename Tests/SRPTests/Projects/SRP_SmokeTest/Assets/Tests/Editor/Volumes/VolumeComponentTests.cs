@@ -612,4 +612,74 @@ namespace UnityEditor.Rendering.Tests
             Assert.IsNotNull(volumeManager.GetVolumeComponentsForDisplay(null));
         }
     }
+
+    class VolumeStackContributionsTests
+    {
+        VolumeManager m_VolumeManager;
+        VolumeProfile m_Profile;
+        Volume m_Volume;
+
+        [SetUp]
+        public void Setup()
+        {
+            m_VolumeManager = new VolumeManager();
+            m_VolumeManager.baseComponentTypeArray = new[] { typeof(TestAnimationCurveVolumeComponent) };
+            m_VolumeManager.InitializeInternal();
+            m_VolumeManager.recordVolumeContributions = true;
+
+            m_Profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            m_Profile.Add<TestAnimationCurveVolumeComponent>();
+
+            m_Volume = new GameObject("Volume").AddComponent<Volume>();
+            m_Volume.sharedProfile = m_Profile;
+            m_Volume.weight = 0.5f;
+            m_VolumeManager.Register(m_Volume);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            m_VolumeManager.Unregister(m_Volume);
+            m_VolumeManager.Deinitialize();
+            UnityEngine.Object.DestroyImmediate(m_Volume.gameObject);
+            UnityEngine.Object.DestroyImmediate(m_Profile);
+        }
+
+        [Test, Description("UUM-160872")]
+        public void Update_WithTriggerWithoutCamera_RecordsContributions()
+        {
+            var trigger = new GameObject("Trigger");
+            try
+            {
+                m_VolumeManager.Update(m_VolumeManager.stack, trigger.transform, ~0);
+
+                Assert.AreEqual(1, m_VolumeManager.stack.contributions.Count);
+                Assert.AreSame(m_Volume, m_VolumeManager.stack.contributions[0].volume);
+                Assert.AreEqual(0.5f, m_VolumeManager.stack.contributions[0].weight);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(trigger);
+            }
+        }
+
+        [Test]
+        public void Update_ClearsContributionsFromPreviousUpdate()
+        {
+            m_VolumeManager.Update(m_VolumeManager.stack, null, ~0);
+            m_Volume.enabled = false;
+            m_VolumeManager.Update(m_VolumeManager.stack, null, ~0);
+
+            Assert.IsEmpty(m_VolumeManager.stack.contributions);
+        }
+
+        [Test]
+        public void Update_WithRecordingDisabled_RecordsNothing()
+        {
+            m_VolumeManager.recordVolumeContributions = false;
+            m_VolumeManager.Update(m_VolumeManager.stack, null, ~0);
+
+            Assert.IsEmpty(m_VolumeManager.stack.contributions);
+        }
+    }
 }
