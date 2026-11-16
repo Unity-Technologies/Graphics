@@ -351,7 +351,7 @@ namespace UnityEngine.PathTracing.Core
             _lightState = new LightState();
 
             _cubemapRender = new CubemapRender(worldResources.SkyBoxMesh, worldResources.SixFaceSkyBoxMesh, worldResources.SolidColorShader);
-            _cubemapRender.SetMode(CubemapRender.Mode.Material);
+            _cubemapRender.SetMode(CubemapRender.Mode.Texture);
             _environmentSampling = new EnvironmentImportanceSampling(worldResources.EnvironmentImportanceSamplingBuild);
             _reservoirGrid = new RegirLightGrid(worldResources.BuildLightGridShader);
             _conservativeLightGrid = new ConservativeLightGrid(worldResources.BuildLightGridShader);
@@ -362,9 +362,9 @@ namespace UnityEngine.PathTracing.Core
             return color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f;
         }
 
-        public void SetEnvironmentMaterial(Material mat)
+        public void SetEnvironmentCubemap(Texture cubemap)
         {
-            _cubemapRender.SetMaterial(mat);
+            _cubemapRender.SetTexture(cubemap);
         }
 
         public ComputeBuffer GetMaterialListBuffer()
@@ -972,7 +972,7 @@ namespace UnityEngine.PathTracing.Core
         public void Build(Bounds sceneBounds, CommandBuffer cmdBuf, ref GraphicsBuffer scratchBuffer, Rendering.Sampling.SamplingResources samplingResources, bool emissiveSampling, int envCubemapResolution, int maxLightGridCellCount)
         {
             Debug.Assert(_rayTracingAccelerationStructure != null);
-            _lightState.Build(sceneBounds, cmdBuf, emissiveSampling && _cubemapRender.GetMaterial() != null);
+            _lightState.Build(sceneBounds, cmdBuf, emissiveSampling && _cubemapRender.HasContent());
 
             if (_lightState.lightPickingMethod == LightPickingMethod.Regir)
             {

@@ -14,10 +14,12 @@ namespace UnityEngine.PathTracing.Core
         internal enum Mode
         {
             Material,
-            Color
+            Color,
+            Texture
         }
 
         private Material _cubemapMaterial;
+        private Texture _texture;
         private Shader _lastUsedCubemapShader;
         private LocalKeyword? _noSunKeyword;
         private Color[] _faceColors = new Color[6]
@@ -76,6 +78,12 @@ namespace UnityEngine.PathTracing.Core
             _cubemapMaterial = mat;
         }
 
+        public void SetTexture(Texture cubemap)
+        {
+            Debug.Assert(cubemap == null || cubemap.dimension == TextureDimension.Cube);
+            _texture = cubemap;
+        }
+
         public void SetColor(Color color)
         {
             for (int faceIndex = 0; faceIndex < 6; faceIndex++)
@@ -94,7 +102,12 @@ namespace UnityEngine.PathTracing.Core
             _mode = mode;
         }
 
-        public Material GetMaterial() => _cubemapMaterial;
+        public bool HasContent() => _mode switch
+        {
+            Mode.Material => _cubemapMaterial != null,
+            Mode.Texture => _texture != null,
+            _ => true
+        };
 
         Color LightColorInRenderingSpace(Light light)
         {
@@ -106,6 +119,14 @@ namespace UnityEngine.PathTracing.Core
         public void Update(CommandBuffer cmd, Light sun, int resolution, out bool viewAndProjectionMatricesChanged)
         {
             viewAndProjectionMatricesChanged = false;
+
+            if (_mode == Mode.Texture)
+            {
+                _hash = _texture != null
+                    ? HashCode.Combine((int)_mode + 1, _texture.GetEntityId(), _texture.updateCount)
+                    : HashCode.Combine((int)_mode + 1);
+                return;
+            }
 
             int newHash = ((int)_mode) + 1;
             if (_mode == Mode.Color)
@@ -176,6 +197,8 @@ namespace UnityEngine.PathTracing.Core
 
         public Texture GetCubemap()
         {
+            if (_mode == Mode.Texture)
+                return _texture != null ? _texture : CoreUtils.blackCubeTexture;
             return _cubemap != null ? _cubemap : CoreUtils.blackCubeTexture;
         }
 

@@ -340,12 +340,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             allocatedObjects.Add(envCubemap);
             // If we have no cubemap (i.e. the 1x1x1 black texture), don't set it - we don't want to waste samples directly sampling it.
             if (!isEmptyCubemap)
-            {
-                var envCubemapMaterial = new Material(Shader.Find("Hidden/PassthroughSkybox"));
-                envCubemapMaterial.SetTexture("_Tex", envCubemap);
-                world.SetEnvironmentMaterial(envCubemapMaterial);
-                allocatedObjects.Add(envCubemapMaterial);
-            }
+                world.SetEnvironmentCubemap(envCubemap);
         }
 
         internal static void InjectMaterials(
