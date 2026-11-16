@@ -716,9 +716,8 @@ namespace UnityEngine.Rendering.Universal
             // mask, so pushing or restoring the defaults only re-sends those variables instead of all of them.
             var uploader = m_GlobalShaderVariablesUploader;
 
-            // Misc. Only written when a pass consuming the rendering layers texture is recorded, like the loose
-            // uniform path, which set it from those passes.
-            if (m_RequiresRenderingLayer)
+            // Misc. Only written when a pass encodes the rendering layers.
+            if (m_RequiresRenderingLayer || (usesDeferredLighting && m_DeferredLights.UseRenderingLayers))
                 uploader._RenderingLayerMaxInt = RenderingLayerUtils.GetMaxInt(m_RenderingLayersMaskSize);
 
             // Motion vectors. Update() already ran for this camera before the record, so the matrices are final here.
@@ -1505,7 +1504,6 @@ namespace UnityEngine.Rendering.Universal
                                 resourceData.activeDepthTexture,
                                 resourceData.mainShadowsTexture,
                                 resourceData.additionalShadowsTexture,
-                                m_RenderingLayersMaskSize,
                                 batchLayerMask);
                         }
                         else
@@ -2204,7 +2202,6 @@ namespace UnityEngine.Rendering.Universal
             if (m_RenderingLayerProvidesByDepthNormalPass)
             {
                 m_DepthNormalPrepass.enableRenderingLayers = true;
-                m_DepthNormalPrepass.renderingLayersMaskSize = m_RenderingLayersMaskSize;
             }
             else
             {

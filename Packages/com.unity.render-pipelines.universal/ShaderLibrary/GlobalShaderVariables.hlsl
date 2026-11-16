@@ -6,9 +6,14 @@
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
 // URP_GLOBAL_CONSTANT_BUFFER is a shader constant define driven by the Project Settings > Graphics > URP > Rendering Capabilities > Use Persistent Constant Buffers
 // Only available in Editor Developer mode for now, still wip
+// GLES3 keeps loose uniforms, like RenderingUtils.usePersistentConstantBuffer.
+#if defined(URP_GLOBAL_CONSTANT_BUFFER) && !defined(SHADER_API_GLES3)
+#define URP_GLOBAL_CONSTANT_BUFFER_ACTIVE
+#endif
+
 // The members are ordered by access, see guideline 5 in GlobalShaderVariables.cs: the ones lit fragment shaders read
 // sit together, from _GlossyEnvironmentColor to _AdditionalShadowmapSize, followed by the main light shadow matrices.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
 CBUFFER_START(GlobalShaderVariables)
 #endif
     // (t/20, t, t*2, t*3)
@@ -46,7 +51,7 @@ CBUFFER_START(GlobalShaderVariables)
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
     // Ambient gradient, filled from RenderSettings, then the environment color.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 unity_AmbientSky;
     float4 unity_AmbientEquator;
     float4 unity_AmbientGround;
@@ -69,7 +74,7 @@ CBUFFER_START(GlobalShaderVariables)
     float _DitheringTextureInvSize;
     float _URPPadding1;
     // Environment
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _SubtractiveShadowColor;
     float4 _GlossyEnvironmentCubeMap_HDR;
 #else
@@ -80,7 +85,7 @@ CBUFFER_START(GlobalShaderVariables)
     // Main Light
     float4 _MainLightPosition;
     // In Forward+, .a stores whether the main light is using subtractive mixed mode.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _MainLightColor;
     float4 _MainLightOcclusionProbes;
 #else
@@ -99,7 +104,7 @@ CBUFFER_START(GlobalShaderVariables)
     float4 _FPParams1;
     float4 _FPParams2;
     // Additional Lights. The arrays themselves stay loose uniforms, only the count lives here.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _AdditionalLightsCount; // x holds the count
 #else
     half4 _AdditionalLightsCount; // x holds the count
@@ -140,7 +145,7 @@ CBUFFER_START(GlobalShaderVariables)
     uint _URPPadding4;
     // === Variables only present in 2D renderer start here ===
     // float4 _URPDummy2D;
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
 CBUFFER_END
 #endif
 

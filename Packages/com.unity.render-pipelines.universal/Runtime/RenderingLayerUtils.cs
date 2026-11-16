@@ -87,17 +87,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Sets property that is needed to write into rendering layers texture.
-        /// </summary>
-        /// <param name="cmd">Used command buffer</param>
-        /// <param name="maskSize">The mask size of rendering layers texture</param>
-        public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), maskSize); }
-        internal static void SetupProperties(RasterCommandBuffer cmd, MaskSize maskSize)
-        {
-            cmd.SetGlobalInt(ShaderPropertyId.renderingLayerMaxInt, (int)GetMaxInt(maskSize));
-        }
-
-        /// <summary>
         /// The mask holding every bit a rendering layers texture of that size can store. Single source of truth: the
         /// enum to bit count mapping lives in GetBits, deriving it from the enum ordinal breaks when a value is inserted.
         /// </summary>

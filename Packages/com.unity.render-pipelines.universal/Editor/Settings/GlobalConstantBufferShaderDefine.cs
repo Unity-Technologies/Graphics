@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void OnActiveRenderPipelineTypeChanged() => Reconcile();
 
-        static void Reconcile()
+        internal static void Reconcile()
         {
             // Bail out rather than treating an unresolved setting as off, which would strip the define and
             // reimport every shader in the project.

@@ -710,8 +710,7 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsSettings.lightsUseColorTemperature = true;
                 SetupPerFrameShaderConstants();
 
-                var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-                useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer;
+                RefreshGlobalConstantBufferFlag();
 
 #if UNITY_ENABLE_CHECKS
                 if (DebugManager.instance.isAnyDebugUIActive)
@@ -1036,6 +1035,9 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogWarning($"Camera '{camera.name}' has an invalid render target size (width: {camera.targetTexture.width}, height: {camera.targetTexture.height}) or pixel dimensions (width: {camera.pixelWidth}, height: {camera.pixelHeight}). Camera will be skipped.");
                 return;
             }
+
+            // Render requests don't go through RenderCameras.
+            RefreshGlobalConstantBufferFlag();
 
             var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData);
@@ -2784,9 +2786,16 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Whether URP uploads its global shader variables as a persistent constant buffer.
-        /// Read once per frame, this setting cannot change between the cameras of a frame.
+        /// Refreshed by RefreshGlobalConstantBufferFlag before anything renders.
         /// </summary>
         internal static bool useGlobalConstantBuffer { get; private set; }
+
+        // Like the shaders, GLES3 keeps loose uniforms.
+        internal static void RefreshGlobalConstantBufferFlag()
+        {
+            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+            useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer && RenderingUtils.usePersistentConstantBuffer;
+        }
 
         /// <summary>
         /// Inverse width of the LOD cross fade dithering texture, resolved once per frame from the pipeline asset.

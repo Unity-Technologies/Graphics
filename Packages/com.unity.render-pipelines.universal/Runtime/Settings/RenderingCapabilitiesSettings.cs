@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs. Warning, this currently costs more memory and triggers a full shaders re-compilation.")]
+        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs except OpenGL ES 3. Warning, this currently costs more memory and triggers a full shaders re-compilation.")]
         bool m_UseGlobalConstantBuffer = false;
         #endregion
 
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// When enabled, URP declares its global shader variables as a constant buffer instead of loose uniforms,
         /// by adding the URP_GLOBAL_CONSTANT_BUFFER shader define. The define is global and applies to every
-        /// graphics API. Work in progress.
+        /// graphics API, but OpenGL ES 3 keeps loose uniforms. Work in progress.
         /// </summary>
         // Only the inspector depends on Developer Mode (HideInInspector), not the value: the editor and the player both
         // read the serialized field. GlobalConstantBufferShaderDefine derives the shader define from this value, so the

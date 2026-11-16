@@ -16,7 +16,7 @@ TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 // One packed surface for every MIP, so a single UAV reaches all of them and both XR slices.
 RW_TEXTURE2D_X(float, _GTAODepthPyramid);
 
-float4 _ZBufferParams;           // the engine's per camera global, declared here because URP's headers are not included
+float4 _ZBufferParams;           // set by GTAOPass
 float4 _GTAOPrefilterSize;       // xy = MIP 0 viewport size, zw = max source depth coordinate
 float4 _GTAOPrefilterSourceSize; // xy = source depth allocation size, zw = its reciprocal
 float4 _GTAOPrefilterFalloff;    // x = falloff multiplier, y = falloff addend, z = max storable depth, w = unused

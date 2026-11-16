@@ -405,7 +405,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class RenderingLayersPassData
         {
             internal PassData basePassData;
-            internal RenderingLayerUtils.MaskSize maskSize;
 
             public RenderingLayersPassData()
             {
@@ -414,7 +413,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorTarget, in TextureHandle renderingLayersTexture, in TextureHandle depthTarget,
-            in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
+            in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>(passName, out var passData, profilingSampler))
             {
@@ -426,8 +425,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 InitPassData(cameraData, shadowData, ref passData.basePassData, batchLayerMask);
                 passData.basePassData.alphaToMaskAvailable = passData.basePassData.isOpaque && renderGraph.GetRenderTargetInfo(colorTarget).msaaSamples > 1;
-
-                passData.maskSize = maskSize;
 
                 passData.basePassData.albedoHdl = colorTarget;
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
@@ -472,7 +469,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseRendererList(passData.basePassData.objectsWithErrorRendererListHdl);
                 }
 
-                // Required here because of RenderingLayerUtils.SetupProperties
+                // Required here because of the WriteRenderingLayers keyword
                 builder.AllowGlobalStateModification(true);
 
                 if (cameraData.xr.enabled)
@@ -490,8 +487,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     // Enable Rendering Layers
                     context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
-
-                    RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
 
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows

@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _GTAOPrefilterSourceSize = Shader.PropertyToID("_GTAOPrefilterSourceSize");
             public static readonly int _GTAOPrefilterFalloff = Shader.PropertyToID("_GTAOPrefilterFalloff");
             public static readonly int _GTAOPrefilterOrthoRemap = Shader.PropertyToID("_GTAOPrefilterOrthoRemap");
+            public static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
             public static readonly int _GTAOPrefilterDownsample = Shader.PropertyToID("_GTAOPrefilterDownsample");
             public static readonly int _GTAOPrefilterMipCount = Shader.PropertyToID("_GTAOPrefilterMipCount");
         }
@@ -219,6 +220,7 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 prefilterSourceSize; // xy = source depth allocation size, zw = its reciprocal
             public Vector4 prefilterFalloff; // x = falloff multiplier, y = falloff addend, z = max storable depth
             public Vector4 orthoRemap;       // xy = orthographic eye depth remap, x + y * rawDepth
+            public Vector4 zBufferParams;    // the camera's _ZBufferParams
             public Vector4[] depthPyramidMipLevelOffsets = new Vector4[SSAOUtils.k_GTAODepthPyramidMipCount]; // xy = where each MIP sits in the packed pyramid
             public int downsample;
             public int mipCount;
@@ -739,6 +741,8 @@ namespace UnityEngine.Rendering.Universal
                 float farPlane = cameraData.camera.farClipPlane;
                 passData.orthoRemap = SystemInfo.usesReversedZBuffer ? new Vector4(farPlane, nearPlane - farPlane, 0.0f, 0.0f) : new Vector4(nearPlane, farPlane - nearPlane, 0.0f, 0.0f);
 
+                passData.zBufferParams = RenderingUtils.ComputeZBufferParams(cameraData.camera);
+
                 passData.disableTexture2DArrayKeyword = m_DepthPrefilterState.disableTexture2DArray;
                 passData.pyramidIsArray = pyramidIsArray;
                 passData.downsample = m_CurrentSettings.Downsample ? 2 : 1;
@@ -774,6 +778,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterSourceSize, data.prefilterSourceSize);
                     cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterFalloff, data.prefilterFalloff);
                     cmd.SetComputeVectorParam(cs, ShaderIDs._GTAOPrefilterOrthoRemap, data.orthoRemap);
+                    cmd.SetComputeVectorParam(cs, ShaderIDs._ZBufferParams, data.zBufferParams);
                     cmd.SetComputeVectorArrayParam(cs, SSAOUtils.ShaderConstants._GTAODepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsets);
                     cmd.SetComputeIntParam(cs, ShaderIDs._GTAOPrefilterDownsample, data.downsample);
                     cmd.SetComputeIntParam(cs, ShaderIDs._GTAOPrefilterMipCount, data.mipCount);

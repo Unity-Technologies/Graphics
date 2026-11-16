@@ -247,6 +247,11 @@ namespace UnityEngine.Rendering
         Material m_DebugFragmentationMaterial;
         readonly Plane[] m_DebugFrustumPlanes = new Plane[6];
 
+        static Vector4 DebugScreenSize(Camera camera)
+        {
+            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+        }
+
         // Scenario blending debug data
         GUIContent[] m_DebugScenarioNames = new GUIContent[0];
         int[] m_DebugScenarioValues = new int[0];
@@ -1033,6 +1038,7 @@ namespace UnityEngine.Rendering
                 m_ProbeSamplingDebugMaterial.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
                 m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_DisplayNumbersTexture);
                 m_ProbeSamplingDebugMaterial.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
+                m_ProbeSamplingDebugMaterial.SetVector("_ProbeVolumeDebugScreenSize", DebugScreenSize(camera));
                 m_ProbeSamplingDebugMaterial.SetInt("_ForceDebugNormalViewBias", 0); // Add a secondary locator to show intermediate position (with no Anti-Leak) when Anti-Leak is active
 
                 m_ProbeSamplingDebugMaterial.SetBuffer("_positionNormalBuffer", s_ProbeSamplingDebugData.positionNormalBuffer);
@@ -1084,7 +1090,7 @@ namespace UnityEngine.Rendering
                     {
                         m_DebugMaterial.SetVectorArray("_TouchupVolumeBounds", adjustmentVolumeBounds);
                         m_DebugMaterial.SetInt("_AdjustmentVolumeCount", probeVolumeDebug.isolationProbeDebug ? adjustmentVolumeCount : 0);
-                        m_DebugMaterial.SetVector("_ScreenSize", new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f/camera.pixelWidth, 1.0f/camera.pixelHeight));
+                        m_DebugMaterial.SetVector("_ProbeVolumeDebugScreenSize", DebugScreenSize(camera));
 
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
@@ -1096,6 +1102,7 @@ namespace UnityEngine.Rendering
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         m_ProbeSamplingDebugMaterial02.SetInt("_DebugProbeVolumeSampling", 1);
+                        m_ProbeSamplingDebugMaterial02.SetVector("_ProbeVolumeDebugScreenSize", DebugScreenSize(camera));
                         props.SetInt("_ShadingMode", (int)DebugProbeShadingMode.SH);
                         props.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
                         props.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));

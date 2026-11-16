@@ -365,8 +365,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
                     cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, true);
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers && !CoreUtils.IsSceneLightingDisabled(camera));
-
-                    RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);
                 }
             }
 

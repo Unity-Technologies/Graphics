@@ -256,32 +256,12 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
-            float far = camera.farClipPlane;
-            float invNear = Mathf.Approximately(camera.nearClipPlane, 0.0f) ? 0.0f : 1.0f / camera.nearClipPlane;
-            float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
             float isOrthographic = camera.orthographic ? 1.0f : 0.0f;
-
-            // From http://www.humus.name/temp/Linearize%20depth.txt
-            // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
-            // the same constants for both D3D and OpenGL here.
-            // D3D is this:
-            float zc0 = 1.0f - far * invNear;
-            float zc1 = far * invNear;
-
-            Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
-
-            if (SystemInfo.usesReversedZBuffer)
-            {
-                zBufferParams.y += zBufferParams.x;
-                zBufferParams.x = -zBufferParams.x;
-                zBufferParams.w += zBufferParams.z;
-                zBufferParams.z = -zBufferParams.z;
-            }
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
             vars._ScreenParams = new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight);
             vars._ScaledScreenParams = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight);
-            vars._ZBufferParams = zBufferParams;
+            vars._ZBufferParams = RenderingUtils.ComputeZBufferParams(camera);
             vars.unity_OrthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
             vars._ScreenSize = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight);
             vars._ScreenSizeOverride = cameraData.screenSizeOverride;
@@ -680,6 +660,7 @@ namespace UnityEngine.Rendering.Universal
 
             // A custom renderer only gets the base vars, the URP 3D and 2D renderers add their own group.
             m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base);
+            m_GlobalShaderVariablesUploader.useConstantBuffer = UniversalRenderPipeline.useGlobalConstantBuffer;
             m_GlobalShaderVariablesUploader.BeginFill();
             BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 

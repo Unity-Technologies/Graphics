@@ -38,24 +38,17 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _PrevCamPosWS = Shader.PropertyToID("_PrevCamPosWS");
             public static readonly int _VBufferPrevViewProjMatrix = Shader.PropertyToID("_VBufferPrevViewProjMatrix");
 
-            public static readonly int _AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
             public static readonly int AdditionalLights = Shader.PropertyToID("AdditionalLights");
             public static readonly int urp_ZBinBuffer = Shader.PropertyToID("urp_ZBinBuffer");
             public static readonly int urp_TileBuffer = Shader.PropertyToID("urp_TileBuffer");
             public static readonly int urp_ZBins = Shader.PropertyToID("urp_ZBins");
             public static readonly int urp_Tiles = Shader.PropertyToID("urp_Tiles");
-            public static readonly int _FPParams0 = Shader.PropertyToID("_FPParams0");
-            public static readonly int _FPParams1 = Shader.PropertyToID("_FPParams1");
-            public static readonly int _FPParams2 = Shader.PropertyToID("_FPParams2");
             public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
             public static readonly int unity_MatrixV = Shader.PropertyToID("unity_MatrixV");
 
             // Light cookies
             public static readonly int _MainLightCookieTexture = Shader.PropertyToID("_MainLightCookieTexture");
             public static readonly int _AdditionalLightsCookieAtlasTexture = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
-            public static readonly int _MainLightWorldToLight = Shader.PropertyToID("_MainLightWorldToLight");
-            public static readonly int _MainLightCookieTextureFormat = Shader.PropertyToID("_MainLightCookieTextureFormat");
-            public static readonly int _AdditionalLightsCookieAtlasTextureFormat = Shader.PropertyToID("_AdditionalLightsCookieAtlasTextureFormat");
             public static readonly int LightCookies = Shader.PropertyToID("LightCookies");
         }
 
@@ -99,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
             public bool depthIsArray;
             public bool applyLocalLights;
             public UniversalShadowData shadowData;
+            public UniversalGlobalShaderData globalShaderData;
 
             // Textures
             public TextureHandle depthTexture;
@@ -261,6 +255,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthIsArray = depthIsArray;
                 passData.applyLocalLights = applyLocalLights;
                 passData.shadowData = frameData.Get<UniversalShadowData>();
+                passData.globalShaderData = frameData.Get<UniversalGlobalShaderData>();
 
                 passData.vbufferW = vBufferParams.vbufferW;
                 passData.vbufferH = vBufferParams.vbufferH;
@@ -574,14 +569,15 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._VBufferDensity, data.vbufferDensity);
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._VBuffer, data.vbuffer);
 
+                    var globals = data.globalShaderData.Get();
+
                     // Bind URP's persistent AdditionalLights constant buffer, or the zero stand-in if ForwardLights
                     // didn't provide one.
                     {
                         GraphicsBuffer additionalLightsCB = data.additionalLightsCB ?? data.zeroLightCB;
                         int additionalLightsCBSizeBytes = data.additionalLightsCB != null ? data.additionalLightsCBSizeBytes : data.zeroLightCBSizeBytes;
                         cmd.SetComputeConstantBufferParam(cs, ShaderIDs.AdditionalLights, additionalLightsCB, 0, additionalLightsCBSizeBytes);
-                        cmd.SetComputeVectorParam(cs, ShaderIDs._AdditionalLightsCount,
-                            new Vector4(data.additionalLightsCount, 0f, 0f, 0f));
+                        globals._AdditionalLightsCount = new Vector4(data.additionalLightsCount, 0f, 0f, 0f);
                     }
 
                     if (data.zBinsBuffer != null && data.tileMasksBuffer != null)
@@ -599,9 +595,9 @@ namespace UnityEngine.Rendering.Universal
                                 data.tileMasksBuffer, 0, UniversalRenderPipeline.maxTileWords * 4);
                         }
 
-                        cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams0, data.fpParams0);
-                        cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams1, data.fpParams1);
-                        cmd.SetComputeVectorParam(cs, ShaderIDs._FPParams2, data.fpParams2);
+                        globals._FPParams0 = data.fpParams0;
+                        globals._FPParams1 = data.fpParams1;
+                        globals._FPParams2 = data.fpParams2;
                         cmd.SetComputeVectorParam(cs, ShaderIDs._WorldSpaceCameraPos, data.cameraPositionWS);
                         cmd.SetComputeMatrixParam(cs, ShaderIDs.unity_MatrixV, data.viewMatrix);
                     }
@@ -612,9 +608,9 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._MainLightCookieTexture, data.mainCookieTexture);
                     cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._AdditionalLightsCookieAtlasTexture, data.additionalCookieAtlas);
 
-                    cmd.SetComputeMatrixParam(cs, ShaderIDs._MainLightWorldToLight, sampleCookies ? data.mainCookieWorldToLight : Matrix4x4.identity);
-                    cmd.SetComputeFloatParam(cs, ShaderIDs._MainLightCookieTextureFormat, sampleCookies ? data.mainCookieFormat : kLightCookieFormatNone);
-                    cmd.SetComputeFloatParam(cs, ShaderIDs._AdditionalLightsCookieAtlasTextureFormat, sampleCookies ? data.additionalCookieFormat : kLightCookieFormatNone);
+                    globals._MainLightWorldToLight = sampleCookies ? data.mainCookieWorldToLight : Matrix4x4.identity;
+                    globals._MainLightCookieTextureFormat = sampleCookies ? data.mainCookieFormat : kLightCookieFormatNone;
+                    globals._AdditionalLightsCookieAtlasTextureFormat = sampleCookies ? data.additionalCookieFormat : kLightCookieFormatNone;
                     {
                         GraphicsBuffer lightCookieCB = data.zeroLightCB;
                         int lightCookieCBSizeBytes = data.zeroCookieCBSizeBytes;
@@ -642,9 +638,13 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._VBufferFeedback, data.feedbackBuffer);
                     }
 
+                    globals.PushGlobal(cmd);
+
                     int dispatchX = CoreUtils.DivRoundUp(data.vbufferW, 8);
                     int dispatchY = CoreUtils.DivRoundUp(data.vbufferH, 8);
                     cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+                    globals.PushDefaultToGlobal(cmd);
                 });
 
                 fogData.vbuffer = passData.vbuffer;

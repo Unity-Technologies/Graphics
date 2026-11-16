@@ -243,6 +243,33 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2Int(Screen.width, Screen.height);
         }
 
+        // The camera's _ZBufferParams, with the reversed-Z flip.
+        internal static Vector4 ComputeZBufferParams(Camera camera)
+        {
+            float far = camera.farClipPlane;
+            float invNear = Mathf.Approximately(camera.nearClipPlane, 0.0f) ? 0.0f : 1.0f / camera.nearClipPlane;
+            float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
+
+            // From http://www.humus.name/temp/Linearize%20depth.txt
+            // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
+            // the same constants for both D3D and OpenGL here.
+            // D3D is this:
+            float zc0 = 1.0f - far * invNear;
+            float zc1 = far * invNear;
+
+            Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                zBufferParams.y += zBufferParams.x;
+                zBufferParams.x = -zBufferParams.x;
+                zBufferParams.w += zBufferParams.z;
+                zBufferParams.z = -zBufferParams.z;
+            }
+
+            return zBufferParams;
+        }
+
         internal static void SetupOffscreenUIViewportParams(UniversalCameraData cameraData, Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
         {
             Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
