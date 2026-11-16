@@ -244,6 +244,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             m_ZBinsBuffer.name = k_ZBinBufferName;
             m_TileMasksBuffer.name = k_TileBufferName;
+
+            // Uploads only cover the used words, which can be zero; GLES allocates buffer storage on the first upload.
+            ClearBuffer(m_ZBinsBuffer);
+            ClearBuffer(m_TileMasksBuffer);
+        }
+
+        static void ClearBuffer(GraphicsBuffer buffer)
+        {
+            using var zeros = new NativeArray<uint>(buffer.count * buffer.stride / sizeof(uint), Allocator.Temp);
+            buffer.SetData(zeros);
         }
 
         void ResizeAdditionalLightsBuffer(int maxLights)
