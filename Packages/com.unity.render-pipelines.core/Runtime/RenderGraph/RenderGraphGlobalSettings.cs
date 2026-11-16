@@ -59,10 +59,10 @@ namespace UnityEngine.Rendering
             set => this.SetValueAndNotify(ref m_EnableCompilationCaching, value);
         }
 
-        [RecreatePipelineOnChange , SerializeField, Tooltip("Enable validity checks of render graph in Editor and Development mode. Always disabled in Release build.")]
+        [RecreatePipelineOnChange , SerializeField, Tooltip("Enable validity checks of render graph in Editor and Development mode, and the Editor warnings of URP about loose-uniform writes to its constant buffers. Always disabled in Release build.")]
         private bool m_EnableValidityChecks = true;
 
-        /// <summary>Enable validity checks for render graph. Always disabled in Release mode.</summary>
+        /// <summary>Enable validity checks for render graph, and the Editor warnings of URP about loose-uniform writes to its constant buffers. Always disabled in Release mode.</summary>
         public bool enableValidityChecks
         {
             get => m_EnableValidityChecks;

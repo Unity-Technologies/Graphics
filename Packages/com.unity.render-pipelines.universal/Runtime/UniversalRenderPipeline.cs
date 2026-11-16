@@ -580,6 +580,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
 
             ConstantBuffer.ReleaseAll();
+            ConstantBufferPropertyWarnings.Release();
             VolumeManager.instance.Deinitialize();
 
             DisposeAdditionalCameraData();
@@ -675,15 +676,23 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
-            // RenderPipelineManager calls this once per frame: reset the back buffer MSAA request, let each
-            // camera rendered here report its need, then apply. Cameras rendered outside this path (render
-            // requests) are not counted — safe only because they target a destination texture, never the back
-            // buffer. If that changes, this decision becomes incomplete.
-            m_RealBackbufferMSAARequest.BeginFrame();
-            m_XRDisplayMSAARequest.BeginFrame();
-            RenderCameras(renderContext, cameras);
-            ApplyRealBackbufferMSAARequest();
-            ApplyXRDisplayMSAARequest();
+            ConstantBufferPropertyWarnings.BeginRender();
+            try
+            {
+                // RenderPipelineManager calls this once per frame: reset the back buffer MSAA request, let each
+                // camera rendered here report its need, then apply. Cameras rendered outside this path (render
+                // requests) are not counted — safe only because they target a destination texture, never the back
+                // buffer. If that changes, this decision becomes incomplete.
+                m_RealBackbufferMSAARequest.BeginFrame();
+                m_XRDisplayMSAARequest.BeginFrame();
+                RenderCameras(renderContext, cameras);
+                ApplyRealBackbufferMSAARequest();
+                ApplyXRDisplayMSAARequest();
+            }
+            finally
+            {
+                ConstantBufferPropertyWarnings.EndRender();
+            }
         }
 
         void RenderCameras(ScriptableRenderContext renderContext, List<Camera> cameras)
@@ -906,28 +915,36 @@ namespace UnityEngine.Rendering.Universal
                 camera.targetTexture = temporaryRT ? temporaryRT : destination;
 
                 // Do not call Render() here — it must run once per frame (see its back buffer MSAA bookkeeping).
-                if (standardRequest != null)
+                ConstantBufferPropertyWarnings.BeginRender();
+                try
                 {
-                    RenderCameras(context, new List<Camera>{ camera });
-                }
-                else
-                {
-                    if (camera.targetTexture != null)
+                    if (standardRequest != null)
                     {
-                        camera.targetTexture.IncrementUpdateCount();
+                        RenderCameras(context, new List<Camera>{ camera });
                     }
-
-                    using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
+                    else
                     {
-                        tmp.Add(camera);
-
-                        using (new ContextRenderingScope(context, tmp))
-                        using (new CameraRenderingScope(context, camera))
+                        if (camera.targetTexture != null)
                         {
-                            camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
-                            RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+                            camera.targetTexture.IncrementUpdateCount();
+                        }
+
+                        using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
+                        {
+                            tmp.Add(camera);
+
+                            using (new ContextRenderingScope(context, tmp))
+                            using (new CameraRenderingScope(context, camera))
+                            {
+                                camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                                RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    ConstantBufferPropertyWarnings.EndRender();
                 }
 
                 if(temporaryRT)
@@ -1001,7 +1018,15 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmitRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type. #from(2023.1)")]
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
-            RenderSingleCameraInternal(context, camera);
+            ConstantBufferPropertyWarnings.BeginRender();
+            try
+            {
+                RenderSingleCameraInternal(context, camera);
+            }
+            finally
+            {
+                ConstantBufferPropertyWarnings.EndRender();
+            }
         }
 
         internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, bool isLastBaseCamera = true)

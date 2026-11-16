@@ -159,7 +159,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                ConstantBufferPropertyWarnings.BeginPipelineWrites();
                 m_StagingVars.SetGlobals(cmd, toPush, groups);
+                ConstantBufferPropertyWarnings.EndPipelineWrites();
             }
 
             m_StagingDirty.varsBase &= ~toPush.varsBase;
