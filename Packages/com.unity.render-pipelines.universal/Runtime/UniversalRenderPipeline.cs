@@ -1508,7 +1508,6 @@ namespace UnityEngine.Rendering.Universal
                             }
 #endif
 
-                            InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, isLastBaseCamera, overlayCameraData);
                             overlayCameraData.camera = overlayCamera;
                             overlayCameraData.baseCamera = baseCamera;
 
@@ -1532,6 +1531,9 @@ namespace UnityEngine.Rendering.Universal
                                 UpdateVolumeFramework(overlayCamera, overlayAdditionalCameraData);
 #endif
 
+                                // We call InitializeAdditionalCameraData once per overlay camera, as for the base camera.
+                                // The call comes after the XR setup above and after the BeginCameraRendering callbacks,
+                                // which can move the camera.
                                 bool isLastOverlayCamera = i == lastActiveOverlayCameraIndex;
                                 InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, isLastOverlayCamera, isLastBaseCamera, overlayCameraData);
 
