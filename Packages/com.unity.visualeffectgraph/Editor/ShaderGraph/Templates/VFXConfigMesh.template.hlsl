@@ -15,6 +15,8 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
+    if (index >= indirectBuffer[instanceActiveIndex])
+        return false;
     index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
     #endif
 
