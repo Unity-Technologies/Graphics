@@ -22,15 +22,29 @@ using UnityEditor.TestTools.Graphics;
 
 namespace Unity.Rendering.Universal.Tests
 {
+    // The mode of URP's global constant buffer that a fixture runs.
+    public enum GlobalConstantBufferContext
+    {
+        TransientCB,
+        PersistentCB,
+    }
+
     public class UniversalGraphicsTestBase
     {
         protected readonly GpuResidentDrawerGlobalContext gpuResidentDrawerContext;
         protected readonly GpuResidentDrawerContext requestedGRDContext;
+        protected readonly GlobalConstantBufferContext requestedCBContext;
         protected readonly Dictionary<IGPUResidentRenderPipeline, GPUResidentDrawerMode> previousDrawerModes;
+        bool m_PreviousUseGlobalConstantBuffer;
 
+        // A fixture that names no mode runs the transient one, so it keeps its name.
         public UniversalGraphicsTestBase(GpuResidentDrawerContext grdContext)
+            : this(grdContext, GlobalConstantBufferContext.TransientCB) { }
+
+        public UniversalGraphicsTestBase(GpuResidentDrawerContext grdContext, GlobalConstantBufferContext cbContext)
         {
             requestedGRDContext = grdContext;
+            requestedCBContext = cbContext;
 
             gpuResidentDrawerContext = GlobalContextManager.Get<GpuResidentDrawerGlobalContext>();
 
@@ -55,6 +69,12 @@ namespace Unity.Rendering.Universal.Tests
         [UnityOneTimeSetUp]
         public IEnumerator OneTimeSetup()
         {
+            // URP reads the mode from the setting. Switched before the first test's outer actions, which read it too.
+            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+            Assert.That(cbSettings, Is.Not.Null, "The fixture runs its mode through the Use Persistent Global Constant Buffer setting.");
+            m_PreviousUseGlobalConstantBuffer = cbSettings.useGlobalConstantBuffer;
+            cbSettings.useGlobalConstantBuffer = requestedCBContext == GlobalConstantBufferContext.PersistentCB;
+
             // Necessary because of inconsistencies on some platforms
             yield return GlobalResolutionSetter.SetResolutionWithRetry(1920, 1080, true);
 
@@ -91,6 +111,12 @@ namespace Unity.Rendering.Universal.Tests
                         (string.IsNullOrEmpty(unsupportedReason) ? string.Empty : " " + unsupportedReason);
                 }
             );
+
+            Assert.That(
+                UniversalRenderPipeline.useGlobalConstantBuffer,
+                Is.EqualTo(requestedCBContext == GlobalConstantBufferContext.PersistentCB),
+                () => $"URP's global constant buffer did not render in the {requestedCBContext} mode of the fixture."
+            );
         }
 
         [OneTimeTearDown]
@@ -99,11 +125,16 @@ namespace Unity.Rendering.Universal.Tests
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
 
             gpuResidentDrawerContext.RestoreDrawerModes(previousDrawerModes);
+            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+            if (cbSettings != null)
+                cbSettings.useGlobalConstantBuffer = m_PreviousUseGlobalConstantBuffer;
         }
     }
 
     public class UniversalTestFixtureData
     {
+        // Each fixture runs in both modes of URP's global constant buffer, from the same build, except on OpenGL ES 3 and
+        // OpenGL Core, which keep loose uniforms. GRDEnabled with PersistentCB is "modern URP".
         public static IEnumerable FixtureParams
         {
             get
@@ -112,12 +143,40 @@ namespace Unity.Rendering.Universal.Tests
                     GpuResidentDrawerContext.GRDDisabled
                 );
 
+                if (UniversalRenderPipeline.IsGlobalConstantBufferSupported())
+                {
+                    yield return new TestFixtureData(
+                        GpuResidentDrawerContext.GRDDisabled,
+                        GlobalConstantBufferContext.PersistentCB
+                    );
+                }
+
                 if (GraphicsTestPlatform.Current.IsEditorPlatform)
                 {
                     yield return new TestFixtureData(
                         GpuResidentDrawerContext.GRDEnabled
                     );
+
+                    if (UniversalRenderPipeline.IsGlobalConstantBufferSupported())
+                    {
+                        yield return new TestFixtureData(
+                            GpuResidentDrawerContext.GRDEnabled,
+                            GlobalConstantBufferContext.PersistentCB
+                        );
+                    }
                 }
+            }
+        }
+
+        // For the fixtures that don't take the GPU Resident Drawer contexts, like URP 2D's.
+        public static IEnumerable GlobalConstantBufferFixtureParams
+        {
+            get
+            {
+                yield return new TestFixtureData();
+
+                if (UniversalRenderPipeline.IsGlobalConstantBufferSupported())
+                    yield return new TestFixtureData(GlobalConstantBufferContext.PersistentCB);
             }
         }
     }

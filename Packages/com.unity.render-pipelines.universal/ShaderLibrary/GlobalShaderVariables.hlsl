@@ -3,11 +3,17 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+// OpenGL Core alone. Switch and Switch 2 compile their shaders as OpenGL Core unless they use DXC, so their shaders get
+// SHADER_API_GLCORE too, next to SHADER_API_SWITCH or SHADER_API_SWITCH2: testing SHADER_API_GLCORE alone would catch them.
+#if defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)
+#define URP_SHADER_API_GLCORE
+#endif
+
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
-// URP_GLOBAL_CONSTANT_BUFFER is a shader constant define driven by the Project Settings > Graphics > URP > Rendering Capabilities > Use Persistent Constant Buffers
-// Only available in Editor Developer mode for now, still wip
-// GLES3 keeps loose uniforms, like RenderingUtils.usePersistentConstantBuffer.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER) && !defined(SHADER_API_GLES3)
+// Declared on every API but GLES3, which WebGL2 also reports, and OpenGL Core, where the constant buffers of DOTS instancing
+// can leave no slot for it; the condition must match UniversalRenderPipeline.IsGlobalConstantBufferSupported().
+// Use Persistent Global Constant Buffer only chooses who fills it.
+#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
 #define URP_GLOBAL_CONSTANT_BUFFER_ACTIVE
 #endif
 

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     /// <remarks>
     /// To change those settings, go to Editor > Project Settings in the Graphics tab (URP).
-    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// URP reads them every frame, so they can also change at runtime, in the Editor and in the Player.
     /// </remarks>
     /// <seealso cref="IRenderPipelineGraphicsSettings"/>
     [Serializable]
@@ -33,25 +33,30 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs except OpenGL ES 3. Warning, this currently costs more memory and triggers a full shaders re-compilation.")]
-        bool m_UseGlobalConstantBuffer = false;
+        [Tooltip("URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill it from loose uniforms. Scripts can then no longer change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. OpenGL ES 3 and OpenGL Core keep loose uniforms.")]
+        bool m_UsePersistentGlobalConstantBuffer = false;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
-        /// When enabled, URP declares its global shader variables as a constant buffer instead of loose uniforms,
-        /// by adding the URP_GLOBAL_CONSTANT_BUFFER shader define. The define is global and applies to every
-        /// graphics API, but OpenGL ES 3 keeps loose uniforms. Work in progress.
+        /// The Use Persistent Global Constant Buffer setting.
+        /// When enabled, URP binds its global constant buffer itself (persistent mode), and scripts can no longer change its
+        /// variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. Otherwise the engine
+        /// fills it from URP's loose uniforms (transient mode). Both modes run the same shaders, so changing it recompiles
+        /// no shader. OpenGL ES 3 and OpenGL Core keep loose uniforms.
         /// </summary>
-        // Only the inspector depends on Developer Mode (HideInInspector), not the value: the editor and the player both
-        // read the serialized field. GlobalConstantBufferShaderDefine derives the shader define from this value, so the
-        // shaders of a build always match what the runtime pushes, whoever builds the project. A Developer Mode gate here
-        // made an editor outside Developer Mode strip the define while its players still pushed the constant buffer.
         public bool useGlobalConstantBuffer
         {
-            get => m_UseGlobalConstantBuffer;
-            set => this.SetValueAndNotify(ref m_UseGlobalConstantBuffer, value);
+            get => m_UsePersistentGlobalConstantBuffer;
+            set
+            {
+#if UNITY_EDITOR
+                this.SetValueAndNotify(ref m_UsePersistentGlobalConstantBuffer, value);
+#else
+                m_UsePersistentGlobalConstantBuffer = value;
+#endif
+            }
         }
 
         #endregion

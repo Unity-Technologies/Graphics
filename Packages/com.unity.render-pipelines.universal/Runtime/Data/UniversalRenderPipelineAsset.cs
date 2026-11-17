@@ -864,6 +864,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Dispose();
                 renderer = null;
+
+                // The slot can still bind a buffer the renderer released, and after a domain reload
+                // useGlobalConstantBuffer starts over.
+                if (UniversalRenderPipeline.useGlobalConstantBuffer)
+                    GlobalShaderVariablesUploader.UnbindGlobal();
             }
         }
 

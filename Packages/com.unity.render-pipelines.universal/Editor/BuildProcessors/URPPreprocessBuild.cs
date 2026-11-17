@@ -27,9 +27,6 @@ namespace UnityEditor.Rendering.Universal
 
                 EnsureVolumeProfile();
 
-                // The editor hooks only reconcile the active build profile.
-                GlobalConstantBufferShaderDefine.Reconcile();
-
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
             }
         }

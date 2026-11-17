@@ -56,12 +56,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Determines whether to push a persistent constant buffer or to fill dynamic constant buffers with loose uniforms APIs (cmd.SetGlobalFloat, ...)
+        /// Set before each fill; the pipeline unbinds the slot when it leaves the persistent mode.
         /// </summary>
-        /// <remark>
-        /// Refreshed by the renderer every frame: the setting behind it can be toggled at any time in the Editor.
-        /// Switching mode is safe mid-flight because every frame starts with a PushDefaultToGlobal, which re-establishes
-        /// all the variables in the mode currently selected.
-        /// </remark>
         internal bool useConstantBuffer { get; set; }
 
         internal GlobalShaderVariablesUploader(GlobalShaderVariablesGroup ownedGroups)
@@ -95,6 +91,14 @@ namespace UnityEngine.Rendering.Universal
             m_IsFillingDefaults = false;
             m_IsDefaultBufferUploaded = false;
             m_IsDefaultBufferBound = false;
+        }
+
+        /// <summary>
+        /// Unbinds the global constant buffer slot.
+        /// </summary>
+        internal static void UnbindGlobal()
+        {
+            Shader.SetGlobalConstantBuffer(k_GlobalShaderVariablesID, (GraphicsBuffer)null, 0, 0);
         }
 
         /// <summary>

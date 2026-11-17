@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         // Integer defines of that same file, the only thing an array length is allowed to reference.
         static readonly Regex k_HlslDefine = new Regex(@"^#define\s+(\w+)\s+(\d+)\s*$");
 
-        // The shader define selecting the persistent constant buffer, so the layout the hlsl is read for.
+        // The define URP declares its global constant buffer under, so the layout the hlsl is read for.
         const string k_PersistentConstantBuffersDefine = "URP_GLOBAL_CONSTANT_BUFFER";
 
         [Test]
@@ -238,8 +238,8 @@ namespace UnityEditor.Rendering.Universal.Tests
             var defines = new Dictionary<string, int>();
 
             // A member can be declared once per branch of a conditional, when only its precision changes. The layout
-            // read here is the one the persistent constant buffer mode compiles, so the branch taken is the one that
-            // mode selects. Conditions are tracked as a stack because of the include guard wrapping the whole file.
+            // read here is the one declared under URP_GLOBAL_CONSTANT_BUFFER, so the branch taken is the one that define
+            // selects. Conditions are tracked as a stack because of the include guard wrapping the whole file.
             var conditions = new List<string>();
             bool skipping = false;
 
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering.Universal.Tests
                     }
                     else if (trimmed.StartsWith("#else", StringComparison.Ordinal))
                     {
-                        // Only the persistent constant buffer condition has a known answer here, so anything else
+                        // Only the URP_GLOBAL_CONSTANT_BUFFER condition has a known answer here, so anything else
                         // would leave the layout ambiguous instead of silently picking one of the two branches.
                         Assert.That(conditions.Count, Is.GreaterThan(0), "GlobalShaderVariables.hlsl has an #else without a matching #if.");
                         Assert.That(conditions[conditions.Count - 1], Does.Contain(k_PersistentConstantBuffersDefine),

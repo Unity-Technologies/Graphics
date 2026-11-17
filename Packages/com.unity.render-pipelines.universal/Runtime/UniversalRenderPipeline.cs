@@ -2817,11 +2817,38 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static bool useGlobalConstantBuffer { get; private set; }
 
-        // Like the shaders, GLES3 keeps loose uniforms.
+        /// <summary>
+        /// Reads the requested mode into useGlobalConstantBuffer, see <see cref="IsGlobalConstantBufferRequested"/>.
+        /// </summary>
         internal static void RefreshGlobalConstantBufferFlag()
         {
+            bool wasPersistent = useGlobalConstantBuffer;
+            useGlobalConstantBuffer = IsGlobalConstantBufferRequested();
+
+            // The engine doesn't fill a bound constant buffer, so back in the transient mode the slot must be unbound.
+            if (wasPersistent && !useGlobalConstantBuffer)
+                GlobalShaderVariablesUploader.UnbindGlobal();
+        }
+
+        /// <summary>
+        /// Whether URP's shaders declare its global constant buffer on this graphics API, see GlobalShaderVariables.hlsl.
+        /// OpenGL ES 3 and OpenGL Core keep loose uniforms.
+        /// </summary>
+        internal static bool IsGlobalConstantBufferSupported()
+        {
+            return RenderingUtils.usePersistentConstantBuffer && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+        }
+
+        /// <summary>
+        /// The Use Persistent Global Constant Buffer setting, where <see cref="IsGlobalConstantBufferSupported"/>.
+        /// </summary>
+        internal static bool IsGlobalConstantBufferRequested()
+        {
+            if (!IsGlobalConstantBufferSupported())
+                return false;
+
             var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-            useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer && RenderingUtils.usePersistentConstantBuffer;
+            return cbSettings != null && cbSettings.useGlobalConstantBuffer;
         }
 
         /// <summary>
