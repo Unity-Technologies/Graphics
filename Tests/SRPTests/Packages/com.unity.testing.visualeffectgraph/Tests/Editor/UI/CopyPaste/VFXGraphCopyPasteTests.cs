@@ -301,6 +301,9 @@ namespace UnityEditor.VFX.Test.UI.CopyPaste
         }
 
         [UnityTest, Description("UUM-122054")]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.WindowsEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-161997
+        })]
         public IEnumerator CopyPasteParameter_Check_Order()
         {
             var window = VFXTestCommon.GetViewWindow();
