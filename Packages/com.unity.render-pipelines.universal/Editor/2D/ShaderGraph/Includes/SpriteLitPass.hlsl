@@ -1,8 +1,6 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
 
-half4 _RendererColor;
-
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -11,7 +9,7 @@ PackedVaryings vert(Attributes input)
     SetUpSpriteInstanceProperties();
     input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
     output = BuildVaryings(input);
-    output.color *= _RendererColor * unity_SpriteColor; // vertex color has to applied here
+    output.color *= unity_SpriteColor; // vertex color has to applied here
 #if defined(DEBUG_DISPLAY)
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 #endif

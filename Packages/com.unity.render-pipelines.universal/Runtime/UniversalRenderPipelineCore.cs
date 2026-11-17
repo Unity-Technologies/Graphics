@@ -846,9 +846,6 @@ namespace UnityEngine.Rendering.Universal
         // This uniform is specific to the RTHandle system
         public static readonly int rtHandleScale = Shader.PropertyToID("_RTHandleScale");
 
-        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
-        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
-
         public static readonly int ditheringTexture = Shader.PropertyToID("_DitheringTexture");
         public static readonly int ditheringTextureInvSize = Shader.PropertyToID("_DitheringTextureInvSize");
 

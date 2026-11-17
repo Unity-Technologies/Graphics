@@ -7,10 +7,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color ("Tint", Color) = (1,1,1,1)
-        [HideInInspector] PixelSnap ("Pixel snap", Float) = 0
-        [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
-        [HideInInspector] _AlphaTex ("External Alpha", 2D) = "white" {}
-        [HideInInspector] _EnableExternalAlpha ("Enable External Alpha", Float) = 0
     }
 
     SubShader
@@ -61,7 +57,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
 
                 Varyings o = CommonUnlitVertex(input);
-                o.color = input.color *_Color * unity_SpriteColor;
+                o.color = input.color * _Color * unity_SpriteColor;
                 return o;
             }
 

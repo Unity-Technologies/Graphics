@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal
             new List<ShaderTagId>() {k_LegacyPassName, k_CombinedRenderingPassName};
 
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
-        private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
         private static void Execute(RasterGraphContext context, PassData passData)
         {
@@ -22,7 +21,6 @@ namespace UnityEngine.Rendering.Universal
             var blendStylesCount = passData.blendStyleIndices.Length;
 
             cmd.SetGlobalFloat(k_HDREmulationScaleID, passData.hdrEmulationScale);
-            cmd.SetGlobalColor(k_RendererColorID, Color.white);
             RendererLighting.SetLightShaderGlobals(cmd, passData.lightBlendStyles, passData.blendStyleIndices);
 
 #if UNITY_EDITOR

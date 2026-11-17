@@ -141,23 +141,20 @@ float3 UnitySkinSprite(in float3 inputData, in uint4 blendIndices, in float4 ble
 #ifdef UNITY_INSTANCING_ENABLED
     UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
         // Refer unity_SpriteProps in UnityInput.hlsl
-        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpritePropArray)
+        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpritePropsArray)
         // SpriteRenderer.Color while Non-Batched/Instanced.
-        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpriteRendererColorArray)
+        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpriteColorArray)
         // To support RSUV in Instanced code-path
         UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
     UNITY_INSTANCING_BUFFER_END(PerDrawSprite)
 
-    #define unity_SpriteProp        UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpritePropArray)
-    #define unity_SpriteColor       UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteRendererColorArray)
+    #define unity_SpriteProps       UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpritePropsArray)
+    #define unity_SpriteColor       UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteColorArray)
     #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_RendererUserValueArray).x)
 #endif // instancing
 
 void SetUpSpriteInstanceProperties()
 {
-#if defined(UNITY_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
-    unity_SpriteProps = unity_SpriteProp;
-#endif
 }
 
 #endif

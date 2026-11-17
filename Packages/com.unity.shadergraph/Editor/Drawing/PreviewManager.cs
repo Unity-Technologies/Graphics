@@ -648,7 +648,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
         private static int k_spriteProps = Shader.PropertyToID("unity_SpriteProps");
         private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
-        private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
         private float previewTime = 0;
 
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
@@ -826,7 +825,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     //but I dont believe such a place exists and would be too costly to add.
                     masterRenderData.shaderData.mat.SetVector(k_spriteProps, new Vector4(1, 1, -1, 0));
                     masterRenderData.shaderData.mat.SetVector(k_spriteColor, new Vector4(1, 1, 1, 1));
-                    masterRenderData.shaderData.mat.SetVector(k_rendererColor, new Vector4(1, 1, 1, 1));
                     RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
                 }
 

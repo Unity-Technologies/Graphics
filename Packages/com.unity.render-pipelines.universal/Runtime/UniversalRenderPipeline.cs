@@ -2834,9 +2834,6 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
-            // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
-            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
-
             Texture2D ditheringTexture = null;
             switch (asset.lodCrossFadeDitheringType)
             {
