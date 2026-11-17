@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal
         public class Styles
         {
             public static readonly GUIContent cameraType = L10n.TextContent("Render Type", "Defines if a camera renders directly to a target or overlays on top of another camera’s output. Overlay option is not available when Deferred Render Data is in use.", null, null);
-            public static readonly string pixelPerfectInfo = L10n.Tr("Projection settings have been overriden by the Pixel Perfect Camera.", null);
+            public static readonly string pixelPerfectInfo = L10n.Tr("Projection settings have been overridden by the Pixel Perfect Camera.", null);
 
             // Stack cameras
             public static readonly GUIContent stackSettingsText = L10n.TextContent("Stack", "The list of overlay cameras assigned to this camera.", null, null);
