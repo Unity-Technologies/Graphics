@@ -311,6 +311,9 @@ class EditorTests
                 new UnityEditor.Rendering.Universal.ShaderGUI.LitShader().ValidateMaterial(validated);
 
                 CollectionAssert.AreEquivalent(material.shaderKeywords, validated.shaderKeywords, $"{path} is out of date with its shader.");
+
+                // Loading the material already ran the Editor's validation on it, so a value it changed only shows as the material being dirty
+                Assert.IsFalse(EditorUtility.IsDirty(material), $"{path} was changed when it was loaded and validated.");
             }
             finally
             {
