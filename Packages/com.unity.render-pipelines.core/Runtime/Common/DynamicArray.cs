@@ -158,8 +158,9 @@ namespace UnityEngine.Rendering
                 Add(item);
             else
             {
-                Resize(size + 1, true);
-                Array.Copy(m_Array, index, m_Array, index + 1, size - index);
+                int oldSize = size;
+                Resize(oldSize + 1, true);
+                Array.Copy(m_Array, index, m_Array, index + 1, oldSize - index);
                 m_Array[index] = item;
             }
         }
